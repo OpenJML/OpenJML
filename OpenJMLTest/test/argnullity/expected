@@ -7,10 +7,10 @@ Starting proof of ArgNullity.m1(@Nullable Integer) with prover !!!!
 test/argnullity/ArgNullity.java:12: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1
     //@ ghost var s1 = zznn.insert(0,in); // FAILS
                                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/seq.jml:14: verify: Precondition conjunct is false: _JML__tmp`40 != null
+$SPECS/org/jmlspecs/lang/internal/seq.jml:14: verify: Precondition conjunct is false: _JML__tmp`40 != null
     public final bigint length;
                          ^
 Completed proof of ArgNullity.m1(@Nullable Integer) with prover !!!! - with warnings
@@ -30,10 +30,10 @@ Starting proof of ArgNullity.m5(Integer) with prover !!!!
 test/argnullity/ArgNullity.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m5
     //@ ghost var s5 = zznn.insert(0,in); // FAILS
                                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/seq.jml:37: verify: Precondition conjunct is false: _JML__tmp`228 != null
+$SPECS/org/jmlspecs/lang/internal/seq.jml:37: verify: Precondition conjunct is false: _JML__tmp`228 != null
     //@   reads t[*], t.length;
                    ^
 Completed proof of ArgNullity.m5(Integer) with prover !!!! - with warnings
@@ -47,10 +47,10 @@ Starting proof of ArgNullity2.mm1(@Nullable Integer) with prover !!!!
 test/argnullity/ArgNullity.java:42: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm1
     //@ ghost var s1 = zznn.insert(0,in); // FAILS
                                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/seq.jml:45: verify: Precondition conjunct is false: _JML__tmp`40 != null
+$SPECS/org/jmlspecs/lang/internal/seq.jml:45: verify: Precondition conjunct is false: _JML__tmp`40 != null
     //-RAC@   ensures \result.length == t.length;
                                              ^
 Completed proof of ArgNullity2.mm1(@Nullable Integer) with prover !!!! - with warnings
@@ -62,10 +62,10 @@ Starting proof of ArgNullity2.mm3(@Nullable Integer) with prover !!!!
 test/argnullity/ArgNullity.java:50: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm3
     //@ ghost var s3 = zz.insert(0,in); // FAILS
                                 ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/seq.jml:54: verify: Precondition conjunct is false: _JML__tmp`134 != null
+$SPECS/org/jmlspecs/lang/internal/seq.jml:54: verify: Precondition conjunct is false: _JML__tmp`134 != null
     //@ no_state
         ^
 Completed proof of ArgNullity2.mm3(@Nullable Integer) with prover !!!! - with warnings

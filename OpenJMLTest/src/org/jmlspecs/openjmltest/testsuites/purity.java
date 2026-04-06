@@ -318,4 +318,121 @@ public class purity extends TCBase {
                 ,"/TEST.java:16: error: A no_state method may not read class fields: A.k", 19
         );
     }
+
+    @Test
+    public void testPurityInherited1() {
+        expectedExit = 1;
+        helpTCText(null,
+            """
+            class A {
+                public int j;
+            
+                //@ no_state
+                public void m() {}
+            }
+            
+            class B extends A {
+            
+               public void m() { j = 0; } // implicitly no_state
+            
+            }
+            """
+                ,"/TEST.java:10: error: A no_state method may not read class fields: j", 22
+        );
+    }
+
+    @Test
+    public void testPurityInherited2() {
+        expectedExit = 1;
+        helpTCText(null,
+            """
+            class A {
+                public int j;
+            
+                //@ spec_pure
+                public void m() {}
+            }
+            
+            class B extends A {
+            
+                //@ pure
+                public void m() { j = 0; } // must be at least the purity of A.m
+            
+            }
+            """
+                ,"/TEST.java:10: error: A method must be at least as pure as a method it overrides: pure vs. spec_pure", 9
+                ,"/TEST.java:4: error: Associated declaration: /TEST.java:10:", 9
+        );
+    }
+
+    @Test
+    public void testPurityInherited3() {
+        expectedExit = 1;
+        helpTCText(null,
+            """
+            //@ spec_pure
+            class A {
+                public int j;
+            
+                public void m() {}
+            }
+            
+            class B extends A {
+            
+                //@ pure
+                public void m() { }
+            
+            }
+            """
+                ,"/TEST.java:10: error: A method must be at least as pure as a method it overrides: pure vs. spec_pure", 9
+                ,"/TEST.java:1: error: Associated declaration: /TEST.java:10:", 5
+        );
+    }
+
+    @Test
+    public void testPurityInherited4() {
+        expectedExit = 1;
+        helpTCText(null,
+            """
+            //@ no_state
+            class A {
+                /*@ pure */ A(){}
+                public int j;
+                public int m() { return 0; }
+            }
+            
+            //@ pure
+            class B extends A {
+            
+                public int m() { return j; }  // is no_state
+            
+            }
+            """
+                ,"/TEST.java:8: warning: Method B.m() inherits purity no_state but has default purity pure from enclosing class; specify purity explicitly to avoid confusion", 5
+                ,"/TEST.java:11: error: A no_state method may not read class fields: j", 29
+            );
+    }
+
+    @Test
+    public void testPurityInherited5() {
+        expectedExit = 0;
+        helpTCText(null,
+            """
+            //@ pure
+            class A {
+                public int j;
+            
+                public int m() { return 0; }
+            }
+            
+            //@ no_state
+            class B extends A {
+                /*@ pure */ B(){}
+                public int m() { return j; } // is pure
+            
+            }
+            """
+                ,"/TEST.java:8: warning: Method B.m() inherits purity pure but has default purity no_state from enclosing class; specify purity explicitly to avoid confusion", 5
+        );
+    }
 }

@@ -26,32 +26,24 @@ import com.sun.tools.javac.tree.JCTree.JCIdent;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.util.Name;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
+
+import java.util.*;
 
 public class JmlPrimitiveTypes extends JmlExtension {
     
-    public static java.util.Map<String,String> jmlNames = new java.util.HashMap<>();
+    public static java.util.Map<String,String> jmlNames = new java.util.concurrent.ConcurrentHashMap<>();
     
     public static String jmlName(Symbol sym) {
         return sym == null ? "<ERROR>" : jmlNames.get(sym.toString());
     }
 
     public JmlPrimitiveTypes(Context context) {
-        // FIXME - why is this called so many times
-        // And why do we have to clear a type to get it to reload its operators for a new context?
-//        intmapTypeKind.clear();
-//        setTypeKind.clear();
-//        seqTypeKind.clear();
-//        arrayTypeKind.clear();
-//        realTypeKind.clear();
     }
     
     public static class JmlTypeKind extends IJmlClauseKind {
         private String typename; // flat or unqualified type name
-        public com.sun.tools.javac.util.Name name;
-        Symbol.ClassSymbol sym = null; // symbol of represetnatino type; lazily filled in; depends on context; only implemented for a single context
-        Type type = null; // lazily filled in; depends on context; only  implemented for a single context
-        Context context = null; // context for type -- need even though it shadows IJmlClauseKind.context
 
         public JmlTypeKind(String keyword, String typename) {
             super(keyword);
@@ -59,71 +51,41 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jmlNames.put(typename, keyword);
         }
         
-        public void clear() {
-            name = null;
-            type = null;
-            context = null;
-            sym = null;
-        }
-
 //        public void initType(Context context) { this.context = context; }
 
         public int numTypeArguments() { return 0; }
 
         public Type getType(Context context) {
-            getSymbol(context);
-            return type;
+            return getSymbol(context).type;
         }
         
-        public void init(Context context) {
-            this.context = context;
-            String fqname = typename;
-
-            var nm = Names.instance(context).fromString("java.base");
-            com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
-            sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
-            //sym = JmlTypes.instance(context).createClass(fqname);
-            if (sym == null) {
-                System.out.println("FAILED TO GET SYM FOR " + fqname);
-            }
-            this.type = sym.type;
-            //System.out.println("GOT " + fqname + " " + type.hashCode() + " " + sym.hashCode());
-            if (this.sym != type.tsym) System.out.println("Primitive Symbols different: " + sym + " " + type.tsym);
-            this.name = Names.instance(context).fromString(typename); // FIXME - is this OK if the name is fully-qualified?
-            initOps();
+        public Name getName(Context context) {
+            return Names.instance(context).fromString(typename);
+        }
+        
+        public Symbol.ClassSymbol init(Context context) {
+            var s = getSymbol(context);
+            initOps(context, s.type);
+            return s;
         }
         
         public Symbol.ClassSymbol getSymbol(Context context) {
-            // Caching the type (which depends on context) for general use
-            if (type == null || context != this.context) {
-                try {
-                    initAll(context);
-                } catch (Throwable e) {
-                    e.printStackTrace(System.out);
-                }
+            //System.out.println("GetTOMG SYM FOPr " + typename + " " + this.getClass());
+            String fqname = typename;
+            var nm = Names.instance(context).fromString("java.base");
+            com.sun.tools.javac.code.Symbol.ModuleSymbol moduleSym = com.sun.tools.javac.code.ModuleFinder.instance(context).findModule(nm);
+            //System.out.println("   MODULE " + moduleSym);
+            Symbol.ClassSymbol sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
+            //System.out.println("   CLASS " + sym);
+            if (sym == null) {
+                System.out.println("FAILED TO GET SYM FOR " + fqname);
             }
             return sym;
         }
         
-        public void initAll(Context context) {
-            //System.out.println("INIT ALL");
-            TYPETypeKind.init(context);
-            bigintTypeKind.init(context);
-            arrayTypeKind.init(context);
-            datagroupTypeKind.init(context);
-            intmapTypeKind.init(context);
-            intsetTypeKind.init(context);
-            locsetTypeKind.init(context);
-            mapTypeKind.init(context);
-            rangeTypeKind.init(context);
-            realTypeKind.init(context);
-            seqTypeKind.init(context);
-            setTypeKind.init(context);
-            stringTypeKind.init(context);
-        }
         
         // FIXME - this does not get called unless the tool encounters an explicit \zzz for the given type -- and then operators are not found
-        public void initOps() {
+        public void initOps(Context context, Type type) {
             //System.out.println("EQOPS " + type + " " + context.hashCode());
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
@@ -145,7 +107,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
             init(parser);
-            if (name == null) name = parser.names.fromString(keyword);
+            var name = getName(parser.context);
             JCIdent id = parser.maker().at(parser.pos()).Ident(keyword);
             int p = parser.pos();
             int ep = parser.endPos();
@@ -193,7 +155,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final JmlTypeKind bigintTypeKind = new JmlTypeKind(bigintID,"org.jmlspecs.lang.internal.bigint") {
         
-        public void initOps() {
+        public void initOps(Context context, Type type) {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
@@ -258,7 +220,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
     public static final JmlTypeKind realTypeKind = new JmlTypeKind(realId,"org.jmlspecs.lang.internal.real") {
         
-        public void initOps() {
+        public void initOps(Context context, Type type) {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
@@ -312,7 +274,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public int numTypeArguments() { return 1; }
         
         @Override
-        public void initOps() {
+        public void initOps(Context context, Type type) {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
@@ -327,7 +289,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public int numTypeArguments() { return 1; }
 
         @Override
-        public void initOps() {
+        public void initOps(Context context, Type type) {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
@@ -371,7 +333,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public int numTypeArguments() { return 0; }
 
         @Override
-        public void initOps() {
+        public void initOps(Context context, Type type) {
             JmlTypes jt = JmlTypes.instance(context);
             jt.enterBinop("==", type, type, jt.syms.booleanType);
             jt.enterBinop("!=", type, type, jt.syms.booleanType);
@@ -382,13 +344,6 @@ public class JmlPrimitiveTypes extends JmlExtension {
             jt.enterBinop("+", type, type, type);
             jt.enterBinop("+", type, jt.syms.charType, type);
         }
-
-//        public Type getType(Context context) {
-//            var t = super.getType(context);
-//            JmlTypes.instance(context).enterBinop("+", t, t, t);
-//            return t;
-//        }
-        
         
         // FIXME - don't think these are needed or used
         @Override
@@ -406,8 +361,8 @@ public class JmlPrimitiveTypes extends JmlExtension {
         }
         
         private void test(Type t, JmlAttr attr, DiagnosticPosition p) {
-            JmlTypes types = JmlTypes.instance(context);
-            if (types.isSameType(t, stringTypeKind.type) || types.isSameType(t, attr.syms.stringType) || types.isSameType(t, attr.syms.charType)) return;
+            JmlTypes types = JmlTypes.instance(attr.context);
+            if (types.isSameType(t, stringTypeKind.getSymbol(attr.context).type) || types.isSameType(t, attr.syms.stringType) || types.isSameType(t, attr.syms.charType)) return;
             utils.error(p, "jml.message", "Cannot convert " + t + " to \\string");
         }
     };
@@ -427,7 +382,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public int numTypeArguments() { return 0; }
         
         @Override
-        public void initOps() {
+        public void initOps(Context context, Type type) {
             // intentionally no operations, not even ==
         }
         
@@ -492,12 +447,8 @@ public class JmlPrimitiveTypes extends JmlExtension {
 					else if (t instanceof JmlTree.JmlSingleton && ((JmlTree.JmlSingleton)t).kind instanceof LocSet) {}
 					else utils.error(t.pos(), "jml.message", "Only location expressions may be arguments to \\locset: " + t + " (" + t.getClass() + ")");
 				});
-				tree.type = type;
-				// FIXME
-//				((JCIdent)app.meth).sym = id.sym;
-//				((JCIdent)app.meth).type = id.type; // FIXME - or should be a method type?
-				System.out.println("TYPECHECKED " + tree + " AS " + type);
-				return type;
+				tree.type = getSymbol(attr.context).type;
+				return tree.type;
 			}
 			// FIXME - internal error
 			return null;
@@ -510,7 +461,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree that, Env<AttrContext> localEnv) {
-            return JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
+            return JmlPrimitiveTypes.locsetTypeKind.getSymbol(attr.context).type;
         }
     };
 

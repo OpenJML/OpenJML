@@ -118,7 +118,8 @@ public class OpenJMLTestRunner {
             var constr = cons[0];
             
             // Get all methods (which are the test cases) in the test suite
-            var allmethods = clazz.getDeclaredMethods();
+            // Using getMethods, which includes inherited methods, so that we emulate JUnit behavior
+            var allmethods = clazz.getMethods();
             var methods = allmethods;
             java.util.Arrays.sort(methods, (a,b)->a.toString().compareTo(b.toString()));
             

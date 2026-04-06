@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
 ## Folder containing this script -- which is OpenJMLTest/releaseTests
-LOCAL=`cd $(dirname $BASH_SOURCE[0]) && pwd`
+LOCAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 
 ## This file tests a release of the OpenJML tool
 ## This is just a quick "smoke" test to make sure that 
@@ -18,8 +18,8 @@ fi
 . $LOCAL/../setup-coverage releasetests
 
 
-if [ -z "${ZIP+x}" ]; then
-  ## if ZIP is not set, then test the current build in development environment holding this file
+if [ -z "${ZIPARCHIVE+x}" ]; then
+  ## if ZIPARCHIVE is not set, then test the current build in development environment holding this file
   export OJBIN="$LOCAL/../../OpenJMLsrc"
   OJ="$OJBIN"/openjml
   JV="$OJBIN"/openjml-java
@@ -27,25 +27,25 @@ if [ -z "${ZIP+x}" ]; then
   echo "Testing current build at $OJ"
 
 else
-  if [ -z "${ZIP}" ]; then
-    ## ZIP is set to an empty string -- use default
-    ZIP=$LOCAL/../../OpenJMLsrc/release-temp/openjml.zip
+  if [ -z "${ZIPARCHIVE}" ]; then
+    ## ZIPARCHIVE is set to an empty string -- use default
+    ZIPARCHIVE=$LOCAL/../../OpenJMLsrc/release-temp/openjml.zip
   fi
-  ## ZIP is set -- presume it names an openjml.zip to be tested
-  if [ ! -e "$ZIP" ]; then
-    echo "Zip file not found" $ZIP "cwd=" `pwd` 
+  ## ZIPARCHIVE is set -- presume it names an openjml.zip to be tested
+  if [ ! -e "$ZIPARCHIVE" ]; then
+    echo "Zip file not found" $ZIPARCHIVE "cwd=" `pwd` 
     exit 1
   fi
   
   rm -rf temp-release
   mkdir temp-release
   pushd temp-release > /dev/null
-  unzip ${ZIP} > /dev/null
+  unzip ${ZIPARCHIVE} > /dev/null
   export OJBIN=`pwd`
   OJ="$OJBIN"/openjml
   JV="$OJBIN"/openjml-java
   RT="$OJBIN"/jmlruntime.jar
-  echo Testing release build unzipped from $ZIP into `pwd`
+  echo Testing release build unzipped from $ZIPARCHIVE into `pwd`
   popd > /dev/null
 fi
 

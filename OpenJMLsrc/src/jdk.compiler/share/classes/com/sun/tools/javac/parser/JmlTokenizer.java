@@ -638,7 +638,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     super.scanIdent();  // tk and name are set
                     // assuming that token() is Token.IDENTIFIER
                     String seq = name.toString();
-                    jmlTokenClauseKind = Extensions.allKinds.get(seq);
+                    jmlTokenClauseKind = Extensions.instance(context).findKeyword(seq);
                     if (scannerDebug) {
                         System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenClauseKind);
                         if (jmlTokenClauseKind == null) {

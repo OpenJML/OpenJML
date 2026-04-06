@@ -1674,7 +1674,7 @@ public class JmlJson {
         public JmlStatementExpr deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
-            var result = M.JmlExpressionStatement(
+            var result = M.JmlStatementExpr(
                     (String)values[0],
                     (IJmlClauseKind)values[1],
                     (org.jmlspecs.openjml.esc.Label)values[2],
@@ -1732,13 +1732,13 @@ public class JmlJson {
         }
     }
 
-    class JmlStatementShowAdapter extends Adapter<JmlStatementExprList> {
+    class JmlStatementExprListAdapter extends Adapter<JmlStatementExprList> {
         public static final String[] fields = { "name", "clauseType", "expressions" };
         @Override
         public JmlStatementExprList deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
-            var result = M.JmlStatementShow(
+            var result = M.JmlStatementExprList(
                     (IJmlClauseKind)values[1],
                     JmlJson.<JCExpression>toList(values[2])
                     );
@@ -2237,7 +2237,7 @@ public class JmlJson {
             var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
-            var kind = Extensions.findKeyword(str);
+            var kind = Extensions.allKinds.get(str);
             var token = new JmlToken(kind, null, 0, 0, null);
             return token;
         }
@@ -2305,7 +2305,7 @@ public class JmlJson {
             var o = json.getAsJsonObject().get(primitiveTag);
             if (o.isJsonNull()) return null;
             var str = o.getAsJsonPrimitive().getAsString();
-            return Extensions.findKeyword(str);
+            return Extensions.allKinds.get(str);
         }
    }
     

@@ -1258,7 +1258,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     // FIXME - clean this up
     JmlSpecs.TypeSpecs specsToPrint = null;
 
-    public void visitJmlClassDecl(JmlClassDecl that) {
+    public void visitClassDef(JmlClassDecl that) {
         if (that.typeSpecs != null) {
             specsToPrint = that.typeSpecs;
         }
@@ -1282,7 +1282,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 println();
                 align();
                 print("}"); println();
-                visitClassDef(that);
+                super.visitClassDef(that);
             } catch (IOException e) {
                 perr(that,e);
             }
@@ -1298,7 +1298,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
                 perr(that,e);
             }
         } else {
-            visitClassDef(that);
+            super.visitClassDef(that);
         }
     }
 
@@ -1372,12 +1372,14 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         }
     }
 
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
+    public void visitMethodDef(JCMethodDecl jcthat) {
+        var that = (JmlMethodDecl)jcthat;
         // FIXME //@? model?
-        if (that.methodSpecsCombined != null) {
-            that.methodSpecsCombined.cases.accept(this);
-        }
-        else if (that.methodSpecs != null) that.methodSpecs.accept(this);
+//        if (that.methodSpecsCombined != null) {
+//            that.methodSpecsCombined.cases.accept(this);
+//        }
+//        else 
+        if (that.methodSpecs != null) that.methodSpecs.accept(this);
         // FIXME - visitMethodDef will print the Java modifiers
         // and annotations that are on the Java declaration
         // We need the following to get the combined annotations
@@ -1389,7 +1391,7 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
         if (that.name == that.name.table.names.init &&
                 sourceOutput) sourceOutput = false;
 
-        visitMethodDef(that);
+        super.visitMethodDef(that);
         sourceOutput = wasSourceOutput;
     }
     
@@ -1397,22 +1399,18 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     	return (mods.flags & Utils.JMLBIT) != 0;
     }
 
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    @Override
+    public void visitVarDef(JCVariableDecl that) {
         try {
         	if (isJML(that.mods)) print("//@ ");
-        	visitVarDef(that);
+            super.visitVarDef(that);
+            if (!(that instanceof JmlVariableDecl)) return;
+            JmlVariableDecl jmlthat = (JmlVariableDecl)that;
+//            if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
+            if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
         } catch (Exception e) {
         	perr(that,e);
         }
-    }
-
-    @Override
-    public void visitVarDef(JCVariableDecl that) {
-        super.visitVarDef(that);
-        if (!(that instanceof JmlVariableDecl)) return;
-        JmlVariableDecl jmlthat = (JmlVariableDecl)that;
-//        if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
-        if (jmlthat.fieldSpecs != null) printFieldSpecs(jmlthat.fieldSpecs);
     }
 
     public void printFieldSpecs(JmlSpecs.FieldSpecs fspecs) {
@@ -1516,9 +1514,11 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             printExpr(that.expression);
             print("(");
             boolean first = true;
-            for (JCExpression t: that.argtypes) {
-                if (first) first = false; else print(",");
-                printExpr(t);
+            if (that.argtypes != null) {
+                for (JCExpression t: that.argtypes) {
+                    if (first) first = false; else print(",");
+                    printExpr(t);
+                }
             }
             print(")");
         } catch (IOException e) { perr(that,e); }

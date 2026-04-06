@@ -7,11 +7,15 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.JmlTree;
+import org.openjml.IAPI.IASTListener;
 
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
+import com.sun.tools.javac.util.Context;
 
 public interface IAPI {
     
@@ -23,6 +27,8 @@ public interface IAPI {
     
     public boolean isOptionSet(String key);
     public String getOption(String key);
+//    public String getSpecs(MethodSymbol methodSymbol);
+
     
     public static final int OK = Main.Result.OK.exitCode;
     public static final int ERROR = Main.Result.ERROR.exitCode;
@@ -54,6 +60,17 @@ public interface IAPI {
 //    /*@pure*/
 //    public Main main();
 //
+    
+    public final static java.util.List<IASTListener> astListeners = new java.util.LinkedList<>();
+    
+    public static void setASTListener(IASTListener listener) {
+        synchronized (astListeners) { astListeners.add(listener); }
+    }
+
+    public static void removeASTListener(IASTListener listener) {
+        synchronized (astListeners) { astListeners.remove(listener); }
+    }
+
     /** An interface for progress information; the implementation reports progress
      * by calling report(...); clients will receive notification of progress
      * events by implementing this interface and registering the listener with
@@ -95,6 +112,12 @@ public interface IAPI {
         default IProofResultListener setListener(IProofResultListener listener) { return null; }
     }
 
+    public static interface IASTListener {
+        
+        @SuppressWarnings("exports")
+        void notify(Context context, javax.tools.JavaFileObject absoluteFileName, org.jmlspecs.openjml.JmlTree.JmlCompilationUnit ast);
+    }
+
 //    /** Sets a progress listener that hears any progress reports (e.g. names of
 //     * files as they are parsed).  Any previous listener is forgotten (there is
 //     * just one listener at a time).
@@ -102,12 +125,9 @@ public interface IAPI {
 //     */
 //    public void setProgressListener(/*@ nullable */ Main.IProgressListener p);
 //    
-//    /** Sets a listener for ESC proof results as they are generated. Any previous
-//     * listener is returned and forgotten (there is just one listener at a time, 
-//     * unless they are explicitly chained).
-//     * @param p the listener
-//     */
-//    public IProofResultListener setProofResultListener(/*@nullable*/ IProofResultListener p);
+
+    /** Sets a listener for ESC proof results as they are generated. */
+    public IProofResultListener setProofResultListener(/*@nullable*/ IProofResultListener p);
 //
 //    /** This method initializes the Options instance of the current compilation
 //     * context. If the options argument is not null, its content is used
@@ -310,7 +330,7 @@ public interface IAPI {
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
 //    public /*@non_null*/
-//    JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo);
+//    JmlTree.JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo);
 //
 //    /** Produces a parse tree for a single file without any specifications; the
 //     * file may be either a .java or a specification file.  The trees are not
@@ -322,7 +342,7 @@ public interface IAPI {
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
 //    default public /*@non_null*/
-//    JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) { return null; }
+//    JmlTree.JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) { return null; }
 //    
 //    /** Produces a parse tree for the given text; the text must represent a
 //     * compilation unit for a .java file or a specification file.  The name 
@@ -341,7 +361,7 @@ public interface IAPI {
 //    //@ requires isOpen;
 //    //@ ensures isOpen;
 //    public /*@non_null*/
-//    JmlCompilationUnit parseString(/*@non_null*/ String name,
+//    JmlTree.JmlCompilationUnit parseCompilationUnitString(/*@non_null*/ String name,
 //            /*@non_null*/ String content) throws Exception;
 //
 //    /** Parse input text as a Java/JML expression; the isJML parameter must
@@ -400,10 +420,10 @@ public interface IAPI {
 //     */ // FIXME - comment on whether the package path is needed
 //    public JavaFileObject makeJFOfromString(String name, String content) throws Exception;
 //    
-    /** Creates a JavaFileObject instance from a real file, by name
-     * @param filepath the path to the file, either absolute or relative to the current working directory
-     * @return the resulting JavaFileObject
-     */
+//    /** Creates a JavaFileObject instance from a real file, by name
+//     * @param filepath the path to the file, either absolute or relative to the current working directory
+//     * @return the resulting JavaFileObject
+//     */
 //    default public JavaFileObject makeJFOfromFilename(String filepath) {
 //        JavacFileManager dfm = (JavacFileManager)context().get(JavaFileManager.class);
 //        return dfm.getFileForInput(filepath);
@@ -542,23 +562,25 @@ public interface IAPI {
 //
 //    // FIXME _ need a way to determine if a CU has been typechecked (successfully)
 //    
-//    /** Executes static checking on the given method; assumes that all 
-//     * relevant ASTs have been typechecked (both the argument and any
-//     * methods that it references by direct calls or in its specs)
-//     * @param msym the method to check
-//     * @return the result of the proof attempt
-//     */
-//    //@ requires isOpen;
-//    //@ ensures isOpen;
-//    public IProverResult doESC(MethodSymbol msym);
-//
-//    /** Executes static checking on the methods of the given class; assumes that all 
-//     * relevant ASTs have been typechecked
-//     * @param csym the class to check
-//     */
-//    //@ requires isOpen;
-//    //@ ensures isOpen;
-//    public void doESC(ClassSymbol csym);
+    /** Executes static checking on the given method; assumes that all 
+     * relevant ASTs have been typechecked (both the argument and any
+     * methods that it references by direct calls or in its specs)
+     * @param msym the method to check
+     * @return the result of the proof attempt
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    @SuppressWarnings("exports")
+    public IProverResult doESC(JmlTree.JmlMethodDecl methodDecl);
+
+    /** Executes static checking on the methods of the given class; assumes that all 
+     * relevant ASTs have been typechecked
+     * @param csym the class to check
+     */
+    //@ requires isOpen;
+    //@ ensures isOpen;
+    @SuppressWarnings("exports")
+    public void doESC(JmlTree.JmlClassDecl classDecl);
 //
 ////    /** The proof result of the most recent proof attempt for the given
 ////     * method, or null if there has been none.

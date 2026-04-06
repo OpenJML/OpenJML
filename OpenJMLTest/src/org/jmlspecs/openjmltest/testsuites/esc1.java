@@ -489,6 +489,7 @@ public class esc1 extends EscBase {
                     @NonNull Entry<String,String> k;
                     //@ ghost List<Entry<String,String>> v = values;
                     //@ loop_invariant values == v;
+                    //@ loop_assigns k, it.*, values.*;
                     while (it.hasNext()) {
                         k = it.next();
                         //@ assert k != null;
@@ -500,10 +501,10 @@ public class esc1 extends EscBase {
                 """
                 ,"/tt/TestJava.java:8: error: cannot find symbol\n"
                         + "  symbol:   class NonNull\n"
-                        + "  location: class tt.TestJava", 10
+                        + "  location: class tt.TestJava", 57
                 ,"/tt/TestJava.java:8: error: cannot find symbol\n"
                         + "  symbol:   class NonNull\n"
-                        + "  location: class tt.TestJava", 57
+                        + "  location: class tt.TestJava", 10
                 ,"/tt/TestJava.java:9: error: cannot find symbol\n"
                         + "  symbol:   class NonNull\n"
                         + "  location: class tt.TestJava", 15

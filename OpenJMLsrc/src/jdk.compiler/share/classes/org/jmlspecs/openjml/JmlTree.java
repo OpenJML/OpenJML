@@ -107,7 +107,7 @@ public class JmlTree {
         JmlMethodSig JmlMethodSig(JCExpression expr, List<JCExpression> argtypes);
         JmlDoWhileLoop JmlDoWhileLoop(JCDoWhileLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlEnhancedForLoop JmlEnhancedForLoop(JCEnhancedForLoop loop, List<JmlStatementLoop> loopSpecs);
-        JmlStatementExpr JmlExpressionStatement(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e);
+        JmlStatementExpr JmlStatementExpr(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e);
         JmlStatementHavoc JmlHavocStatement(List<JCTree.JCExpression> e);
         JmlForLoop JmlForLoop(JCForLoop loop, List<JmlStatementLoop> loopSpecs);
         JmlGroupName JmlGroupName(JCExpression selection);
@@ -141,7 +141,7 @@ public class JmlTree {
         JmlSpecificationCase JmlSpecificationCase(JCModifiers mods, boolean code, IJmlClauseKind t, IJmlClauseKind also, List<JmlMethodClause> clauses, JCBlock block);
         JmlSpecificationCase JmlSpecificationCase(JmlSpecificationCase sc, List<JmlMethodClause> clauses);
         JmlStatement JmlStatement(IJmlClauseKind t, JCTree.JCStatement e);
-        JmlStatementExprList JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions);
+        JmlStatementExprList JmlStatementExprList(IJmlClauseKind t, List<JCExpression> expressions);
         JmlStatementDecls JmlStatementDecls(List<JCTree.JCStatement> list);
         JmlStatementHavoc JmlStatementHavoc(List<JCTree.JCExpression> storerefs);
         JmlStatementLoopExpr JmlStatementLoopExpr(IJmlClauseKind t, JCTree.JCExpression e);
@@ -639,7 +639,7 @@ public class JmlTree {
         
         /** Creates a JML expression statement (e.g. assert) */
         @Override
-        public JmlStatementExpr JmlExpressionStatement(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e) {
+        public JmlStatementExpr JmlStatementExpr(String keyword, IJmlClauseKind t, Label label, JCTree.JCExpression e) {
             return new JmlStatementExpr(pos,t,label,e);
         }
         
@@ -768,7 +768,7 @@ public class JmlTree {
         }
 
         @Override
-        public JmlStatementExprList JmlStatementShow(IJmlClauseKind t, List<JCExpression> expressions) {
+        public JmlStatementExprList JmlStatementExprList(IJmlClauseKind t, List<JCExpression> expressions) {
             return new JmlStatementExprList(pos,t,expressions);
         }
 
@@ -1307,7 +1307,10 @@ public class JmlTree {
         public Env<AttrContext> staticInitializerBlockEnv;
         
         public java.util.List<ExceptionLineAnnotation> lineAnnotations;
-        
+
+        /** Source position of the class/interface/enum/record name token; Position.NOPOS if not set. */
+        public int namePosition = Position.NOPOS;
+
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         protected JmlClassDecl(JCModifiers mods, Name name,
                 List<JCTypeParameter> typarams, JCExpression extending,
@@ -1335,7 +1338,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlClassDecl(this); 
+                ((IJmlVisitor)v).visitClassDef(this); 
             } else {
                 // unexpectedVisitor(this,v);
                 super.accept(v);
@@ -1345,7 +1348,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlClassDecl(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitClass(this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);
@@ -1385,7 +1388,7 @@ public class JmlTree {
 
         /** The final, combined specs from all sources (set in JmlMemberEnter);
          * set to self in parser for methods in anonymous classes */
-        public JmlSpecs.MethodSpecs methodSpecsCombined; 
+//        public JmlSpecs.MethodSpecs methodSpecsCombined; 
 
         public JmlMethodSpecs methodSpecs;
 
@@ -1395,7 +1398,10 @@ public class JmlTree {
         
         public boolean usedBitVectors = false;
         public boolean isInitializer = false;
-        
+
+        /** Source position of the method name identifier token; Position.NOPOS if not set. */
+        public int namePosition = Position.NOPOS;
+
         /** The constructor for the AST node - but use the factory to get new nodes, not this */
         public JmlMethodDecl(JCModifiers mods, Name name, JCExpression restype,  // FIXME - backdoor use - should not be public
                 List<JCTypeParameter> typarams, JCVariableDecl recvparam, List<JCVariableDecl> params,
@@ -1423,7 +1429,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlMethodDecl(this); 
+                ((IJmlVisitor)v).visitMethodDef(this); 
             } else {
                 // unexpectedVisitor(this,v);
                 super.accept(v);
@@ -1433,7 +1439,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlMethodDecl(this, d);
+                return ((JmlTreeVisitor<R,D>)v).visitMethod(this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);
@@ -1528,7 +1534,10 @@ public class JmlTree {
         
         /** A fixed ident used in ESC */
         public JCIdent ident = null;
-        
+
+        /** Source position of the name identifier token; Position.NOPOS if not set. */
+        public int namePosition = Position.NOPOS;
+
         public JmlSpecs.FieldSpecs fieldSpecs() {
             if (fieldSpecs == null) fieldSpecs = new JmlSpecs.FieldSpecs(this);
             return fieldSpecs;
@@ -1567,7 +1576,7 @@ public class JmlTree {
         @Override
         public void accept(Visitor v) {
             if (v instanceof IJmlVisitor) {
-                ((IJmlVisitor)v).visitJmlVariableDecl(this); 
+                v.visitVarDef(this); 
             } else {
                 // unexpectedVisitor(this,v);
                 super.accept(v);
@@ -1577,7 +1586,7 @@ public class JmlTree {
         @Override
         public <R,D> R accept(TreeVisitor<R,D> v, D d) {
             if (v instanceof JmlTreeVisitor) {
-                return ((JmlTreeVisitor<R,D>)v).visitJmlVariableDecl(this, d);
+                return v.visitVariable(this, d);
             } else {
                 // unexpectedVisitor(this,v);
                 return super.accept(v,d);

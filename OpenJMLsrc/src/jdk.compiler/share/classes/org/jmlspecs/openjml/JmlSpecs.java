@@ -705,11 +705,11 @@ public class JmlSpecs {
      * @param spec the specs to associate with the type
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
-        //if (type.toString().endsWith(".Object")) System.out.println("PUTSPECS " + type + " " + type.hashCode() + " " + ((JCClassDecl)spec.specsEnv.tree).sym + " " + spec);
+        if (utils.verbose()) System.out.println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec);
         spec.csymbol = type;
-        specsTypes.put(type,spec);        
+        specsTypes.put(type,spec);
         setStatus(type, SpecsStatus.SPECS_LOADED);
-        if (utils.verbose()) utils.note("      Saving class specs for " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
+        if (utils.verbose()) utils.note("      Saving class specs for " + type + " " + type.flatname + (spec.specDecl == null ? " (null declaration)": " (non-null declaration)"));
     }
     
     public void removeSpecs(ClassSymbol type) {
@@ -1226,11 +1226,10 @@ public class JmlSpecs {
             list.add(e);
         }
         
-        boolean print = false; // sym.toString().contains("? extends U");
+        boolean print = false; // sym.toString().equals("m(int)");
         
         boolean isPureA = determinePurity(sym) != null ;
-               // : utils.hasModifier(mspecs.mods, Modifiers.PURE, Modifiers.SPEC_PURE, MOdifiers.STRICTLY_PURE, Modifiers.NO_STATE); // use isPure?
-        //if (print) System.out.println("DEFAULT " + sym.owner + " " + sym + " "+ libraryMethod + " " + JmlOption.isOption(context,JmlOption.PURITYCHECK) + " " + isPureA + " " + isPureL);
+
         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,isPureA?nothingKind:everythingKind).setType(JmlPrimitiveTypes.locsetTypeKind.getType(context))));
         JmlMethodClause clpa = new JmlTree.JmlMethodClauseStoreRef(pos,accessibleID, accessibleClauseKind,
@@ -1246,10 +1245,8 @@ public class JmlSpecs {
         JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase(csm, false, MethodSimpleClauseExtensions.behaviorClause,null,clauses,null);
         mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
         if (decl == null) mspecs.cases.deSugared = mspecs.cases;
-        //FIXME: this sets as pure far more methods than needed, including some that are definitely not pure
-        //if (print) System.out.println("LIB-PURE " + sym.owner + " " + sym + " " + isPureA + " " + isPureL + " " + (decl!= null));
-        //if (isPureL && !isPureA && (decl==null)) addModifier(pos, Modifiers.SPEC_PURE, mspecs.mods);
-        //if (print) System.out.println("DEFAULT SPECS " + mspecs);
+
+        //if (print) { System.out.println("DEFAULT SPECS " + sym.owner + " " + sym + " " + mspecs); org.jmlspecs.openjml.Utils.dumpStack(); }
         return mspecs;
     }
     
@@ -1940,7 +1937,7 @@ public class JmlSpecs {
             if (print) System.out.println("TOCLASS " + msym.owner + " " + msym + " " + enclosingPurity);
         }
         if (best != null && enclosingPurity != null && best.jmlclausekind != enclosingPurity.jmlclausekind) {
-            utils.warning("jml.message",
+            utils.warning(enclosingPurity.pos, "jml.message",
                     "Method " + msym.owner +"."+msym + " inherits purity " + best + " but has default purity " + enclosingPurity + " from enclosing class; specify purity explicitly to avoid confusion");
             mods.jmlmods.add(best);
         }

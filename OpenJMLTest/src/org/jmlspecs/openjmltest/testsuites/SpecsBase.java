@@ -195,8 +195,7 @@ public class SpecsBase extends TCBase {
     static private java.util.List<String> findAllFiles(File d, String root) {
         String[] files = d.list();
         java.util.List<String> list = new ArrayList<String>();
-        if (files == null) return list;
-        for (String s: files) {
+        for (String s: files) { // 'files' is null if 'd' is not a valid directory, that is, Main.specs is incorrectly initialized
             if (s.charAt(0) == '.') continue;
             File f = new File(d,s);
             if (f.isDirectory()) {

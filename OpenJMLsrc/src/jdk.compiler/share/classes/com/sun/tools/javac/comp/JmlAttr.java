@@ -180,13 +180,22 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void validateTypeAnnotations(JCTree tree, boolean sigOnly) {
         tree.accept(new JmlTypeAnnotationsValidator(sigOnly));
     }
-	public class JmlTypeAnnotationsValidator extends Attr.TypeAnnotationsValidator implements IJmlVisitor {
+    public class JmlTypeAnnotationsValidator extends Attr.TypeAnnotationsValidator implements IJmlVisitor {
 
-		public JmlTypeAnnotationsValidator(boolean sigOnly) {
-			super(sigOnly);
-		}
-		
-	}
+        public JmlTypeAnnotationsValidator(boolean sigOnly) {
+            super(sigOnly);
+        }
+
+        @Override
+        public void visitTypeTest(JCInstanceOf tree) {
+            if (tree.pattern instanceof JmlMethodInvocation jmi) {
+                scan(tree.expr);
+                scan(jmi.args);
+            } else {
+                super.visitTypeTest(tree);
+            }
+        }
+    }
 
     /** This is the compilation context for which this is the unique instance */
     /*@non_null*/ final public Context context;
@@ -542,11 +551,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - why should we attribute the Java class body in the case of a binary class
         
         boolean prevIsInJmlDeclaration = isInJmlDeclaration;
-        isInJmlDeclaration = utils.isJML(c.flags());  // REMOVED implementationAllowed ||
+        isInJmlDeclaration = Utils.isJML(c.flags());  // REMOVED implementationAllowed ||
         ((JmlCheck)chk).setInJml(isInJmlDeclaration);
         JavaFileObject prev = log.useSource(((JmlClassDecl)env.enclClass).toplevel.sourcefile);  // FIXME - no write for multiple source files
         var savedAttribJmlDecls = this.attribJmlDecls;
-        attribJmlDecls = utils.isJML(c.flags()) || true;
+        attribJmlDecls = Utils.isJML(c.flags()) || true;
         try {
             // If the class is binary only, then we have not yet attributed the super/extending/implementing classes in the source AST for the specifications
             
@@ -611,7 +620,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		for (var d: c.defs) {
     			if (d instanceof JCMethodDecl) {
     				var msym = ((JCMethodDecl)d).sym;
-    				if (!utils.isJML(msym.flags())) specs.getAttrSpecs(msym);
+    				if (!Utils.isJML(msym.flags())) specs.getAttrSpecs(msym);
     			}
     			else if (d instanceof JCVariableDecl) {
     				JCVariableDecl v = (JCVariableDecl)d;
@@ -622,7 +631,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			}
     			else if (d instanceof JCClassDecl) {
     				var csym = ((JCClassDecl)d).sym;
-    				if (!utils.isJML(csym.flags())) specs.getAttrSpecs(csym);
+    				if (!Utils.isJML(csym.flags())) specs.getAttrSpecs(csym);
     			}
     			else if (d instanceof JmlBlock) {
     				JmlBlock bl = (JmlBlock)d;
@@ -727,7 +736,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - this overlaps too much with the superclass method
         
         boolean prev = jmlresolve.allowJML();
-        if (!prev && env.enclMethod == null) prev = jmlresolve.setAllowJML(utils.isJML(env.enclClass.mods));
+        if (!prev && env.enclMethod == null) prev = jmlresolve.setAllowJML(Utils.isJML(env.enclClass.mods));
         super.visitBlock(tree);
         if (env.info.scope.owner.kind == TYP || env.info.scope.owner.kind == ERR) {
             // An initialization block within a class -- we create a BlockSpecs, now that we know the env
@@ -954,12 +963,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JavaFileObject prev = log.useSource(tspecs.file);
         checkTypeMatch(classSymbol, tspecs.specDecl);
         Symbol owner = classSymbol.owner;
-        boolean ownerIsJML = utils.isJML(owner.flags());
+        boolean ownerIsJML = Utils.isJML(owner.flags());
         boolean isLocal = !(owner instanceof ClassSymbol ||owner instanceof PackageSymbol);
         JmlModifiers specsModifiers = tspecs.modifiers;
 
         annotationsToModifiers(specsModifiers, (JCExpression)null);
-        boolean inJML = utils.isJML(specsModifiers);
+        boolean inJML = Utils.isJML(specsModifiers);
         boolean isModel = utils.hasModifier(specsModifiers,Modifiers.MODEL);
         if (ownerIsJML && isModel) {
         	utils.error(tspecs.file,specsDecl,"jml.no.nested.model.type", classSymbol.name + " in " + classSymbol.owner);
@@ -1214,12 +1223,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             utils.errorAndAssociatedDeclaration(log.currentSourceFile(), tree, currentMethodPurity.source, currentMethodPurity.pos(),
                     "jml.message", "Array allocations are not permitted in strictly_pure methods");
         }
-        super.visitNewArray(tree);
-        if (!quantifiedExprs.isEmpty()) {
-            // FIXME - it appears this gets triggered when specs with constructors
-            //    		System.out.println("QUANTIFIERS " + Arrays.toString(quantifiedExprs.toArray()));
-            //        	utils.error(tree, "jml.message", "Quantifier bodies may not contain constructors");
+        var hasNullable = tree.elemtype instanceof JCAnnotatedType at ? hasAnnotation(at.annotations, Modifiers.NULLABLE) : false;
+        var hasNonNull = tree.elemtype instanceof JCAnnotatedType at ? hasAnnotation(at.annotations, Modifiers.NON_NULL) : false;
+        var defNullity = specs.defaultNullity(enclosingClassEnv.enclClass.sym);
+        //System.out.println("HAS " + hasNullable + " " + hasNonNull + " " + defNullity);
+        if (tree.elems == null) {
+            if (hasNonNull && !(tree.elemtype instanceof JCPrimitiveTypeTree )) {
+                utils.error(tree.elemtype, "jml.message", "The element type must be @Nullable");
+            }
+            var ann = treeutils.makeAnnotation(tree.elemtype.pos, Modifiers.NON_NULL);
+            var a = treeutils.makeAnnotation(tree.elemtype.pos, Modifiers.NULLABLE);
+            attribAnnotationTypes(List.<JCAnnotation>of(a, ann), env);
+            //System.out.println("ANNS " + a + " " + ann + " " + a.type + " " + ann.type + " " + hasNonNull + " " + tree.elemtype + " " + tree.elemtype.getClass());
+            if (!hasNullable && !hasNonNull) tree.elemtype = jmlMaker.AnnotatedType(List.<JCAnnotation>of(a), tree.elemtype);
+            // FIXME - need also to handle multi-dimensional arrays
         }
+        super.visitNewArray(tree);
+        //System.out.println("NEWARRAY " + tree.type + " " + tree.elemtype + " " + tree.dims);
     }
     
     @Override
@@ -1339,8 +1359,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     @Override 
     public void visitMethodDef(JCMethodDecl m) {
         var javaMethodDecl = (JmlMethodDecl)m;
+        var that = javaMethodDecl;
         
-    	//System.out.println("VISIT METHOD DEF " + m.name);
+        var savedPurity = currentMethodPurity;
+        currentMethodPurity = specs.determinePurity(that.sym);
+        boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
+        try {
+
+        
+        // System.out.println("JML ATTR VISIT METHOD DEF " + m.name + " " + env.enclClass.sym);
     	if (utils.verbose()) utils.note("Attributing method " + env.enclClass.sym + " " + javaMethodDecl.name + " " + javaMethodDecl.sourcefile + " " + javaMethodDecl);
 
         // Setting relax to true keeps super.visitMethodDef from complaining
@@ -1396,7 +1423,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             // Set relax to true if this method declaration is allowed to have no body
             // because it is a model declaration or it is in a specification file.
             boolean isJavaFile = jmethod.sourcefile != null && jmethod.sourcefile.getKind() == JavaFileObject.Kind.SOURCE;
-            boolean isJmlDecl = utils.isJML(m.mods);
+            boolean isJmlDecl = Utils.isJML(m.mods);
             boolean noBodyOKSaved = noBodyOK;
             noBodyOK = isJmlDecl || !isJavaFile;
             boolean prevAllowJML = jmlresolve.allowJML();
@@ -1454,6 +1481,18 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         	if (utils.verbose()) utils.note("Completed Attributing method " + env.enclClass.sym + " " + m.name);
         	jmlenv = jmlenv.pop();
         }
+        if (that.restype != null && that.restype.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+            utils.error(that, "jml.message", "a method return type may not be \\datagroup");
+        }
+    } catch (PropagatedException e) {
+        throw e;
+    } catch (Exception e) {
+        utils.error(that, "jml.internal", "Exception while attributing method: " + that);
+        e.printStackTrace(System.out);
+    } finally {
+        currentMethodPurity = savedPurity; 
+        JmlResolve.instance(context).setAllowJML(prev);
+    }
     }
     
     @Override
@@ -1651,8 +1690,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkModelGhost(JmlMethodDecl specDecl, MethodSymbol msym) {
     	var mspecs = specs.getLoadedSpecs(msym);
     	if (mspecs == null) return; // TODO: Why might this happen?
-        boolean inJML = utils.isJML(msym.flags());
-        boolean ownerInJML = utils.isJML(msym.owner.flags());
+        boolean inJML = Utils.isJML(msym.flags());
+        boolean ownerInJML = Utils.isJML(msym.owner.flags());
         boolean classIsModel = isModelClass(msym.owner);
         boolean model = mspecs == null ? false : isModel(mspecs.mods);
         
@@ -1660,7 +1699,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     	if (specDecl != null) {
         	boolean isJML = utils.isJML(specDecl);
-        	boolean isOwnerJML = utils.isJML(msym.owner.flags());
+        	boolean isOwnerJML = Utils.isJML(msym.owner.flags());
         	boolean isModel = utils.hasMod(specDecl.mods, Modifiers.MODEL);
         	if (isOwnerJML && isModel) {
         		utils.error(specDecl.sourcefile, specDecl, "jml.message", "A model type may not contain model declarations: " + msym.owner + "." + specDecl.sym);
@@ -1747,8 +1786,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (mods == null) mods = (JmlModifiers)javaMethodTree.mods; // FIXME - this can happen for JML synthesized methods, such as are added for RAC - perhaps we should properly initialize the modifiers, but for now we just say they are OK
 
             annotationsToModifiers(mods, mspecs.javaDecl != null ? mspecs.javaDecl.restype : mspecs.specDecl.restype);
-            boolean inJML = utils.isJML(mods);
-            boolean ownerInJML = utils.isJML(msym.owner.flags());
+            boolean inJML = Utils.isJML(mods);
+            boolean ownerInJML = Utils.isJML(msym.owner.flags());
             boolean model = isModel(mods);
         	var specDecl = mspecs.specDecl;
         	JCAnnotation a;
@@ -1828,15 +1867,15 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                                     );
                             
                     }
-//                    var parentSpecs = specs.getAttrSpecs(ms);  // FIXME - this line causes unchecked cast warnings in List.jml??
-//                    if (parentSpecs != null) { // FIXME - why might the parent not have specs?
-//                        var th = utils.findModifier(parentSpecs.mods, HELPER);
-//                        if (th != null && utils.findModifier(mods,HELPER) == null) {
-//                            //utils.warningAndAssociatedDeclaration(log.currentSourceFile(), mods.pos, th.source, th.pos,
-//                            //        "jml.message", "A method that overrides a helper method must be marked helper");
-//                            mods.jmlmods.add(th);
-//                        }
-//                    }
+                    var pmods = specs.getSpecsModifiers(ms);  // FIXME - this line causes unchecked cast warnings in List.jml??
+                    if (pmods != null) { // FIXME - why might the parent not have specs?
+                        var th = utils.findModifier(pmods, HELPER);
+                        if (th != null && utils.findModifier(mods,HELPER) == null) {
+                            utils.warning(WarningCategory.HELPER, log.currentSourceFile(), mods.pos, th.source, th.pos,
+                                    "jml.message", "A method that overrides a helper method is implicitly helper");
+                            mods.jmlmods.add(th);
+                        }
+                    }
                 }
 
             } else { // Constructor
@@ -2933,7 +2972,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            jmlresolve.setAllowJML(prev);
 //        }
 //
-//        // These are checked later in visitJmlVariableDecl
+//        // These are checked later in visitVarDef
 ////        // Check the mods after the specs, because the modifier checks depend on
 ////        // the specification clauses being attributed
 ////        if (tree instanceof JmlVariableDecl) {
@@ -3018,7 +3057,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (specField.getInitializer() != null && // There is an initializer
                                     utils.isSpecFile(specField.sourcefile) && // Not in a .java file
                                     javaField != specField && // But there is a .java file
-                                    !utils.isJML(specField.mods) && // The decl is not in JML
+                                    !Utils.isJML(specField.mods) && // The decl is not in JML
                                     specField.sym.owner.kind != Kinds.Kind.MTH && // The decl is not a local decl in a method body
                                     !specField.sym.owner.isEnum() // We are not an enum
                                     ) {
@@ -3174,7 +3213,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //                long wasFinal = specFlags & Flags.FINAL;
 //                if ((specVarDecl.mods.flags & Flags.AccessFlags) == 0)
 //                    specVarDecl.mods.flags |= Flags.PUBLIC;
-//                if (utils.isJML(specFlags)) {
+//                if (Utils.isJML(specFlags)) {
 //                    if (wasFinal == 0)
 //                        specVarDecl.mods.flags &= ~Flags.FINAL;
 //                    if (utils.hasMod(specVarDecl.mods, Modifiers.INSTANCE))
@@ -3184,9 +3223,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         	// specmods is the mods from the JML declaration, if it exists, otherwise the mods from the Java declaration
         	// This is because mods in JML supersede those in the Java file; there is a check thats the two are consistent
-        	boolean specsinJML = utils.isJML(specmods);
-        	boolean modsinJML = utils.isJML(mods);
-        	boolean ownerInJML = utils.isJML(tree.sym.owner.flags());
+        	boolean specsinJML = Utils.isJML(specmods);
+        	boolean modsinJML = Utils.isJML(mods);
+        	boolean ownerInJML = Utils.isJML(tree.sym.owner.flags());
         	boolean ghost = isGhost(specmods);
         	boolean model = isModel(specmods);
         	boolean modelOrGhost = model || ghost;
@@ -3310,8 +3349,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void checkVarMods2(JmlVariableDecl tree) {
         if (tree.name == names.error || tree.type.isErroneous()) return;
         JCModifiers mods = tree.mods;
-        boolean inJML = utils.isJML(mods);
-        boolean ownerInJML = utils.isJML(tree.sym.owner.flags());
+        boolean inJML = Utils.isJML(mods);
+        boolean ownerInJML = Utils.isJML(tree.sym.owner.flags());
         boolean ghost = isGhost(mods);
         boolean model = isModel(mods);
         boolean modelOrGhost = model || ghost;
@@ -3383,11 +3422,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean interfaceExpected,
             boolean checkExtensible) {
     	var saved = jmlresolve.allowJML();
-    	if (utils.isJML(owningTree.mods)) {
+    	if (Utils.isJML(owningTree.mods)) {
     		//System.out.println("SETTING TO ALLOW JML FOR " + tree + " IN " + env.enclClass.name  + " " + saved);
     		jmlresolve.setAllowJML(true);
     	}
-    	//if (org.jmlspecs.openjml.Utils.isJML()) utils.warning(tree,"jml.message","ATTRIB BASE " + env.enclClass.name  + " " + utils.isJML(env.enclClass.mods) + " " + tree.toString().substring(0,tree.toString().length() < 50 ? tree.toString().length() : 50) + " " + jmlresolve.allowJML());
+    	//if (org.jmlspecs.openjml.Utils.isJML()) utils.warning(tree,"jml.message","ATTRIB BASE " + env.enclClass.name  + " " + Utils.isJML(env.enclClass.mods) + " " + tree.toString().substring(0,tree.toString().length() < 50 ? tree.toString().length() : 50) + " " + jmlresolve.allowJML());
     	try {
     		return super.attribBase(tree, env, classExpected, interfaceExpected, checkExtensible); // FIXME - removed owningTree
     	} finally {
@@ -3398,7 +3437,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Overridden in order to be sure that the type specs are attributed. */
     public Type attribType(JCTree tree, Env<AttrContext> env) { // FIXME _ it seems this will automatically happen - why not?
         Type result;
-        if (tree instanceof JCIdent id && Extensions.findKeyword(id.name) instanceof JmlPrimitiveTypes.JmlTypeKind kt) {
+        if (tree instanceof JCIdent id && Extensions.instance(context).findKeyword(id.name) instanceof JmlPrimitiveTypes.JmlTypeKind kt) {
             // Backslash identifier -- user added type
             result = kt.getType(context);
             tree.type = result;
@@ -3667,7 +3706,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             checkTypeClauseMods(tree,tree.modifiers,"constraint clause",tree.clauseType);
             if (tree.sigs != null) for (JmlTree.JmlMethodSig sig: tree.sigs) {
                 if (sig.argtypes == null) {
-                    // FIXME - not implemented
+                    for (var t: env.enclClass.defs) {
+                        if (t instanceof JCMethodDecl m) {
+                            String s = sig.expression.toString();
+                            if (s.equals(m.name.toString()) || s.equals(m.sym.owner.toString() + "." + m.name)) {
+                                if (sig.methodSymbol != null) {
+                                    utils.error(sig, "jml.message", "Duplicate match for " + sig + " in " + env.enclClass.sym);
+                                    // FIXME - point to duplicate declarations?
+                                } else {
+                                    sig.methodSymbol = m.sym;
+                                }
+                            }
+                        }
+                    }
+                    if (sig.methodSymbol == null) {
+                        utils.error(sig, "jml.message", "Could not match " + sig + " in " + env.enclClass.sym);
+                    }
+                    // FIXME - not implemented for method signatures with types without package names (or maybe with)
                 } else {
                     sig.accept(this);
                     Symbol s = sig.methodSymbol;
@@ -4870,11 +4925,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     boolean isGhost(JCExpression lhs) {
     	if (lhs instanceof JCArrayAccess) return isGhost(((JCArrayAccess)lhs).indexed);
     	if (lhs instanceof JCIdent) {
-    		return utils.isJML(((JCIdent)lhs).sym.flags());
+    		return Utils.isJML(((JCIdent)lhs).sym.flags());
     	}
     	if (lhs instanceof JCFieldAccess) {
     		var fa = (JCFieldAccess)lhs;
-    		return utils.isJML(fa.sym.flags()) || isGhost(fa.selected);
+    		return Utils.isJML(fa.sym.flags()) || isGhost(fa.selected);
     	}
     	if (lhs instanceof JmlTuple) {
     		for (var e: ((JmlTuple)lhs).values) {
@@ -5113,7 +5168,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 // FIXME - fix how to get a type with the type variable resolved
                 if (left.getTypeArguments().length() > 0 && left.getTypeArguments().get(0) instanceof Type.TypeVar) {
                 } else if (right.getTypeArguments().length() > 0 && right.getTypeArguments().get(0) instanceof Type.TypeVar) {
-                } else if (left.tsym == jmltypes.STRINGsym(context) && right.tsym == syms.charType.tsym) {
+                } else if (left.tsym == jmltypes.STRINGsym() && right.tsym == syms.charType.tsym) {
                     // FIXME - ought to be able to avoid a particular test because the operator is allowed
                 } else {
                 utils.error(that, "jml.message", "No allowed implicit conversion permits this operation on JML types: " + left + " " + operator.name + " " + right);
@@ -5667,7 +5722,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     List.<JCExpression>nil(), // thrown types
                     body=F.Block(0,bodyStats.toList()), // body - more to be added later
                     null); // default value
-            utils.setJML(methodDecl.mods);
+            Utils.setJML(methodDecl.mods);
             methodDecl.mods.annotations = methodDecl.mods.annotations.append(utils.modToAnnotationAST(Modifiers.PURE,0,0)); // FIXME- fix positions?
             // methodDecl is (RT is the result type): public RT value(Object[] args) { ... decls... }
             
@@ -6035,7 +6090,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         		}
         	}
         	Name nm = tree.name;
-            var ck = Extensions.findKeyword(tree.name);
+            var ck = Extensions.instance(context).findKeyword(tree.name);
             if (ck instanceof JmlTypeKind jtk) {
                 // Get here when a type-name is used as the expression in a static dot-selection
                 // FIXME - I think
@@ -6536,7 +6591,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             result = tree.type = check(tree, t, KindSelector.VAL, resultInfo);
         } else {
-            IJmlClauseKind fext = Extensions.findKeyword(tree.name);
+            IJmlClauseKind fext = Extensions.instance(context).findKeyword(tree.name);
             // TODO: Not sure under what conditions resultInfo.pkind might be both VAL and TYP and what would happen then
             if (fext instanceof JmlField && this.jmlresolve.allowJML() && !resultInfo.pkind.contains(KindSelector.TYP)) {
             	// <expr>.array
@@ -7557,7 +7612,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            // assume $$values$ppp != null;
 //            // assume $$values$ppp.length == 0;
 //            JCExpression nn = factory.at(p).Binary(JCTree.NE, factory.Ident(tree.valuesDecl), nullLit );
-//            stats.append( factory.at(p).JmlExpressionStatement(JmlToken.ASSUME, Label.POSTCONDITION, nn));
+//            stats.append( factory.at(p).JmlStatementExpr(JmlToken.ASSUME, Label.POSTCONDITION, nn));
 //            nn = factory.at(p).Select(factory.Ident(tree.valuesDecl), names.fromString("size"));
 //            nn = factory.at(p).Apply(null,nn,List.<JCExpression>nil());
 //            nn = factory.at(p).Binary(JCTree.EQ, nn, zeroLit );
@@ -7763,43 +7818,58 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         // FIXME - fill in
     }
 
-    public void visitJmlClassDecl(JmlClassDecl that) {
-    	//if (that.sym != null && (env.enclMethod==null) && utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
-        // Typically, classes are attributed by calls to attribClass and
-        // then to attibClassBody and attribClassBodySpecs, but local
-        // classes do end up here.
-    	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITCLASSDECL " + that.sym);
-        that.toplevel = (JmlCompilationUnit)enclosingClassEnv.toplevel;
-        var saved = jmlresolve.allowJML();
-        if (utils.isJML(that.mods)) jmlresolve.setAllowJML(true);
-
-        if (env.enclMethod != null) {
-        	// Local class
-        	that.specsDecl = that;
-        }        
-
-        visitClassDef(that);
-        var cspec = specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
-        if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
-        	utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
-        	// Note: We need that.sym in order to register a local class's specs, but the local class
-        	// is attributed as a method statement.
-        	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
-        	specs.putSpecs(that.sym, cspec = new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
-        	specs.getAttrSpecs(that.sym);
-        	//FIXME - not at all sure about correctness of this branch
-        }
-        jmlresolve.setAllowJML(saved);
-        
-    }
+//    public void visitJmlClassDecl(JmlClassDecl that) {
+//    	//if (that.sym != null && (env.enclMethod==null) && Utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
+//        // Typically, classes are attributed by calls to attribClass and
+//        // then to attibClassBody and attribClassBodySpecs, but local
+//        // classes do end up here.
+//    	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITCLASSDECL " + that.sym);
+//        that.toplevel = (JmlCompilationUnit)enclosingClassEnv.toplevel;
+//        var saved = jmlresolve.allowJML();
+//        if (Utils.isJML(that.mods)) jmlresolve.setAllowJML(true);
+//
+//        if (env.enclMethod != null) {
+//        	// Local class
+//        	that.specsDecl = that;
+//        }        
+//
+//        visitClassDef(that);
+//        var cspec = specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
+//        if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
+//        	utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
+//        	// Note: We need that.sym in order to register a local class's specs, but the local class
+//        	// is attributed as a method statement.
+//        	//((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
+//        	specs.putSpecs(that.sym, cspec = new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
+//        	specs.getAttrSpecs(that.sym);
+//        	//FIXME - not at all sure about correctness of this branch
+//        }
+//        jmlresolve.setAllowJML(saved);
+//        
+//    }
 
     @Override
     public void visitClassDef(JCClassDecl tree) {
+        var that = (JmlClassDecl)tree;
     	//if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITCLASSDEF " + tree.sym);
         // The superclass calls classEnter if the env is owned by a VAR or MTH.
         // But JML has the case of an anonymous class that occurs in a class
         // specification (e.g. an invariant), or in a method clause (so it is
         // owned by the method)
+        //if (that.sym != null && (env.enclMethod==null) && Utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
+        // Typically, classes are attributed by calls to attribClass and
+        // then to attibClassBody and attribClassBodySpecs, but local
+        // classes do end up here.
+        //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("VISITCLASSDECL " + that.sym);
+        that.toplevel = (JmlCompilationUnit)enclosingClassEnv.toplevel;
+        var saved = jmlresolve.allowJML();
+        if (Utils.isJML(that.mods)) jmlresolve.setAllowJML(true);
+
+        if (env.enclMethod != null) {
+            // Local class
+            that.specsDecl = that;
+        }        
+
         try {
             if (!env.info.scope.owner.kind.matches(KindSelector.VAL_MTH) && tree.sym == null) {
                 enter.classEnter(tree, env);
@@ -7824,7 +7894,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             tree.defs = newlist.toList();
         } finally {
         }
-    }
+
+        var cspec = specs.getAttrSpecs(that.sym); // if not yet attributed, attribute the specs
+        if (env.enclMethod != null && specs.status(that.sym).less(JmlSpecs.SpecsStatus.SPECS_ATTR)) {
+            utils.warning(that,"jml.message","UNEXPECTED RE-PUTTING LOCAL CLASS SPECS " + that.sym);
+            // Note: We need that.sym in order to register a local class's specs, but the local class
+            // is attributed as a method statement.
+            //((JmlEnter)enter).specsClassEnter(that.sym.owner, that, typeEnvs.get(that.sym), that);
+            specs.putSpecs(that.sym, cspec = new JmlSpecs.TypeSpecs(that, that, typeEnvs.get(that.sym)));
+            specs.getAttrSpecs(that.sym);
+            //FIXME - not at all sure about correctness of this branch
+        }
+        jmlresolve.setAllowJML(saved);
+}
 
     public void addClassInferredSpecs(ClassSymbol csym) { // FIXME - should this really be in JmlAttr?
         // Add inferred/default clauses
@@ -7877,26 +7959,26 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     
     public JmlToken currentMethodPurity = null;
 
-    @Override
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
-        var savedPurity = currentMethodPurity;
-        currentMethodPurity = specs.determinePurity(that.sym);
-        boolean prev = JmlResolve.instance(context).addAllowJML(utils.isJML(that));
-        try {
-            visitMethodDef(that);
-            if (that.restype != null && that.restype.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
-                utils.error(that, "jml.message", "a method return type may not be \\datagroup");
-            }
-        } catch (PropagatedException e) {
-            throw e;
-        } catch (Exception e) {
-            utils.error(that, "jml.internal", "Exception while attributing method: " + that);
-            e.printStackTrace(System.out);
-        } finally {
-            currentMethodPurity = savedPurity; 
-            JmlResolve.instance(context).setAllowJML(prev);
-        }
-    }
+//    @Override
+//    public void visitJmlMethodDecl(JmlMethodDecl that) {
+//        var savedPurity = currentMethodPurity;
+//        currentMethodPurity = specs.determinePurity(that.sym);
+//        boolean prev = JmlResolve.instance(context).addAllowJML(Utils.isJML(that));
+//        try {
+//            visitMethodDef(that);
+//            if (that.restype != null && that.restype.type.tsym == JmlPrimitiveTypes.datagroupTypeKind.getSymbol(context)) {
+//                utils.error(that, "jml.message", "a method return type may not be \\datagroup");
+//            }
+//        } catch (PropagatedException e) {
+//            throw e;
+//        } catch (Exception e) {
+//            utils.error(that, "jml.internal", "Exception while attributing method: " + that);
+//            e.printStackTrace(System.out);
+//        } finally {
+//            currentMethodPurity = savedPurity; 
+//            JmlResolve.instance(context).setAllowJML(prev);
+//        }
+//    }
     
     public static class SpecialDiagnosticPosition extends com.sun.tools.javac.util.JCDiagnostic.SimpleDiagnosticPosition {
         String message;
@@ -7918,6 +8000,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
             atype.annotations = atype.annotations.append(ann);
+            return tt;
+        } else if (tt instanceof JCWildcard) {
             return tt;
         } else {
             JCAnnotation ann = utils.modToAnnotationAST(defaultNullity, arg.pos, arg.pos); // FIXME - better position
@@ -7947,12 +8031,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      * @param that the AST node to attribute
      */
     @Override
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
+    public void visitVarDef(JCVariableDecl jcthat) {
+        var that = (JmlVariableDecl)jcthat;
         if (that.name == names.error) {
             utils.error(that.getStartPosition()+1, "jml.message", "Error in parsed declaration, or misspelled keyword: " + that.toString().replace("\r\n"," ").replace("\n"," ").replace("\r"," "));
             return; // This can happen if, for example, we are parsing 'require true' (with the typo)
         }
-        if (utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
+        if (Utils.isJML(that.mods.flags) && !this.attribJmlDecls) return;
         if (env.enclMethod != null) {
             if (that.vartype instanceof JCTypeApply ft) {
                 var nn = specs.defaultNullity(env.enclClass.sym);
@@ -7963,7 +8048,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         JavaFileObject prevSource = null;
         boolean isReplacementType = that.jmltype;
-        boolean prev = ((JmlResolve)rs).setAllowJML(utils.isJML(that.mods) || isReplacementType);
+        boolean prev = ((JmlResolve)rs).setAllowJML(Utils.isJML(that.mods) || isReplacementType);
         try {
             if (that.source() != null) prevSource = log.useSource(that.source());
 
@@ -7987,7 +8072,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     lintEnv = lintEnv.next;
                 env.info.lint = lintEnv.info.lint;
             }
-            visitVarDef(that);
+            super.visitVarDef(that);
             
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
             
@@ -8130,7 +8215,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.error(that, "jml.message", "\\datagroup declarations may not have initializers");
             }
 
-            if (that.init != null && !utils.isJML(that.mods.flags)) {
+            if (that.init != null && !Utils.isJML(that.mods.flags)) {
                 Object v = that.sym.getConstValue();
                 JCExpression initExpr = that.init;
                 if (v != null && initExpr instanceof JCLiteral lit) {
@@ -8574,6 +8659,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             Utils.dumpStack();
             return (tree.type = types.createErrorType(resultInfo.pt));
         }
+        if (jmltypes.isJmlType(found) && resultInfo.pt == Type.noType) {
+            tree.type = found;
+            return found;
+        }
         if (jmltypes.isJmlType(resultInfo.pt)) {
             // These allow implicit casts
             
@@ -8694,8 +8783,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     				checkMethodModifiers(msym, sp.javaDecl);
 
 //        			if (specDecl != null) {
-//        				boolean isJML = utils.isJML(specDecl);
-//        				boolean isOwnerJML = utils.isJML(msym.owner.flags());
+//        				boolean isJML = Utils.isJML(specDecl);
+//        				boolean isOwnerJML = Utils.isJML(msym.owner.flags());
 //        				boolean isModel = utils.hasMod(specDecl.mods, Modifiers.MODEL);
 //        				if (isOwnerJML && isModel) {
 //        					utils.error(specDecl.sourcefile, specDecl, "jml.message", "A model type may not contain model declarations: " + specDecl.name + " in " + msym.owner);
@@ -8901,10 +8990,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             var prevSource = fspecs.decl == null ? null : log.useSource(fspecs.decl.sourcefile);            
     		jmlenv = jmlenv.pushCopy();
     		jmlenv.jmlVisibility = -1;
-            boolean prevAllow = ((JmlResolve)rs).setAllowJML(utils.isJML(vsym.flags()));
+            boolean prevAllow = ((JmlResolve)rs).setAllowJML(Utils.isJML(vsym.flags()));
             if (fspecs.decl != null && fspecs.decl.init != null && fspecs.decl.init.type == null) {
         		ResultInfo rri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
-        		jmlenv.inPureEnvironment = utils.isJML(fspecs.decl.mods);
+        		jmlenv.inPureEnvironment = Utils.isJML(fspecs.decl.mods);
             	Type t = fspecs.decl.init.type = attribTree(fspecs.decl.init, initEnv, rri);
             	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
             }
@@ -8989,7 +9078,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) { visitTree(tree); }
         public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) { visitTree(tree); }
         public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) { visitTree(tree); }
-        public void visitJmlMethodDecl(JmlMethodDecl tree)             { visitTree(tree); }
+        //public void visitJmlMethodDecl(JmlMethodDecl tree)             { visitTree(tree); }
         public void visitJmlMethodInvocation(JmlMethodInvocation tree) { visitTree(tree); }
         public void visitJmlMethodSpecs(JmlMethodSpecs tree)           { visitTree(tree); }
         public void visitJmlModelProgramStatement(JmlModelProgramStatement tree){ visitTree(tree); }
@@ -9019,7 +9108,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree)     { visitTree(tree); }
         public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) { visitTree(tree); }
         public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) { visitTree(tree); }
-        public void visitJmlVariableDecl(JmlVariableDecl tree)         { visitTree(tree); }
         public void visitJmlWhileLoop(JmlWhileLoop tree)               { visitTree(tree); }
     }
     

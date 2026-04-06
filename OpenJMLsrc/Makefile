@@ -66,11 +66,11 @@ topdir := $(strip $(patsubst %/, %, $(dir $(makefile_path))))
 # ... and then we can include the real makefile
 include $(topdir)/make/Init.gmk
 
-#### Additions for building OpenJML in the GitHub actions
+#### OpenJML-specific build targets
 
 ## This Makefile assumes that the OpenJML, JMLAnnotations, Specs, openjml.github.io, OpenJML_Demo, Solvers
 ## repos are cloned into sibling folders under one common folder
-## I expect this Makefile and auxiliary scrip0ts to fail if there are spaces in folder and file paths
+## I expect this Makefile and auxiliary scripts to fail if there are spaces in folder and file paths
 
 ## A temporary folder (relative to the location of the Makefile) used to stage materials in assembling a release
 ## May not contain whitespace
@@ -80,8 +80,28 @@ TEMP=release-temp
 ## Must be a simple name, not a multi-segment path, and not contain whitespace
 TEMPLIB=templib
 
+## Relative path to the tutorial source files
+TUT=../../openjml.github.io/tutorial
+
 ## A permanent folder that holds auxiliary material to be included in a release
 RELFILES=release-files
+
+## The built JDK bin tools (jar, java, javac) from the most recent build target
+BUILDJDK := $(firstword $(wildcard $(topdir)/build/*/jdk))
+JAR      := $(BUILDJDK)/bin/jar
+
+## The zip tool used to assemble the release archive; override on the command line if needed
+ZIPCMD := zip
+
+## OS name used to select the correct Solvers subfolder
+UNAME := $(shell uname)
+ifeq ($(UNAME),Darwin)
+  OS_NAME := macos
+else ifeq ($(UNAME),Linux)
+  OS_NAME := linux
+else
+  OS_NAME := windows
+endif
 
 ## Used in both the github build.yml action and the development environment
 
@@ -89,25 +109,25 @@ RELFILES=release-files
 ## Note that the openjml.zip file produced by a release is specific to a particular machine architecture
 ## The created release zip is in $TEMP (./release-temp)
 release: .FORCE
-	make version-info
-	make annotation
-	make openjml
-	make jmlruntime.jar
-	make tutorial
-	make post
+	$(MAKE) version-info
+	$(MAKE) annotation
+	$(MAKE) openjml
+	$(MAKE) jmlruntime.jar
+	$(MAKE) tutorial
+	$(MAKE) post
 
 clean-jml:
-	rm -rf release-temp temp-release
+	rm -rf release-temp temp-release $(TEMPLIB) jmlruntime.jar $(USERGUIDE)
 
 ## Cleans and makes release
 clean-release:
-	-make clean dist-clean clean-jml
+	-$(MAKE) clean dist-clean clean-jml
 	rm -rf $(makefile_path)/html
 	rm -rf $(TEMP)
 	rm -rf src/java.base/share/classes/org/jmlspecs/annotation
 	rm -rf $(RELFILES)/tutorial
-	bash ./configure
-	make release
+	./configure
+	$(MAKE) release
 
 ## Creates/updates the version.properties source file from ../version.txt
 version: .FORCE
@@ -118,8 +138,7 @@ version: .FORCE
 ## of the commit points compiled into the release.
 version-info: .FORCE
 	@ if [ ! -e ../version.txt ]; then echo "No version.txt file"; exit 1; else echo "Building version" `cat ../version.txt`; fi
-	@ make version > version-info.txt ## Just to be silent
-	@ rm -f version-info.txt
+	@ $(MAKE) version > /dev/null
 	@ cat ../version.txt > version-info.txt
 	@ echo "OpenJML" `git rev-parse HEAD` >> version-info.txt
 	@ (cd ../../Specs; echo "Specs" `git rev-parse HEAD`) >> version-info.txt
@@ -133,7 +152,7 @@ version-info: .FORCE
 tutorial: .FORCE
 	rm -rf $(RELFILES)/tutorial
 	mkdir $(RELFILES)/tutorial
-	cp -pR ../../openjml.github.io/tutorial/*.java ../../openjml.github.io/tutorial/*.out $(RELFILES)/tutorial
+	cp -pR $(TUT)/*.java $(TUT)/*.out $(RELFILES)/tutorial
 
 ## Copies current annotation files into the development code
 annotation: .FORCE
@@ -145,15 +164,15 @@ post: .FORCE
 	rm -rf $(TEMP)
 	mkdir $(TEMP)
 	cp -pRL jmlruntime.jar $(TEMP)
+	cp -pRL jmlruntime.jar $(TUT)
 	cp -pRL build/*release/jdk $(TEMP)
 	(cd $(TEMP); rm -rf `find . -name .DS_Store`)
-	if [ `uname` = 'Darwin' ]; then echo Mac ; export S=macos ; elif [ `uname` = 'Linux' ]; then echo Linux; export S=linux ; else echo Win; export S=windows ; fi ;\
-	cp -pR ../../Solvers/Solvers-$$S $(TEMP)
+	cp -pR ../../Solvers/Solvers-$(OS_NAME) $(TEMP)
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
-	(cd $(TEMP); zip -qr ./openjml.zip * )
+	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
 
 #RunOpenJML.class: RunOpenJML.java
 #	./openjml-compile -cp . RunOpenJML.java
@@ -166,23 +185,24 @@ ZIPNAME=userguide-examples.zip
 userguide-examples:
 	@ ( rm -rf $(USERGUIDE); mkdir -p ${USERGUIDE}; cd ${USERGUIDE}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; )
 	@ if [ -e ${USERGUIDE}/${USERGUIDEID}/examples ] ; then \
-	        (cd ${USERGUIDE}/${USERGUIDEID}; zip -rq $(ZIPNAME) installLocation test-userguide-examples examples; mv ${ZIPNAME} ../../../../openjml.github.io/examples ); \
+	        (cd ${USERGUIDE}/${USERGUIDEID}; $(ZIPCMD) -rq $(ZIPNAME) installLocation test-userguide-examples examples; mv ${ZIPNAME} ../../../../openjml.github.io/examples ); \
 	        rm -rf ${USERGUIDE}; ls -la ../../openjml.github.io/examples/${ZIPNAME}; \
 	else echo Userguide examples are not available; fi
 
 TEMPDOCS=tempDocs
-DOWNLOADS=~/Desktop
+# Mac-specific path; adjust for other platforms
+DOWNLOADS=$(wildcard ~/Desktop)
 ## Pulls the JML reference manual and the OpenJML User Guide LaTeX sources from Overleaf and then builds the pdfs locally (not using Overleaf to build)
 ## Requires a local installation of pdflatex
 update-docs:
-	rm -rf ${DOWNLOADS}/OpenJMLUserGuide.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf 
-	make userguide-examples
+	rm -rf "${DOWNLOADS}/OpenJMLUserGuide.pdf" "${DOWNLOADS}/JML_Reference_Manual.pdf" 
+	$(MAKE) userguide-examples
 	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${REFMANID} ; cd ${REFMANID}; pdflatex JMLReferenceManual.tex --interaction batchmode ; bibtex JMLReferenceManual ; pdflatex JMLReferenceManual.tex --interaction batchmode; pdflatex JMLReferenceManual.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf; )
 	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; cd ${USERGUIDEID} ; pdflatex OpenJMLUserGuide.tex --interaction batchmode; bibtex OpenJMLUserGuide; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}; )
-	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf ../../openjml.github.io/documentation
-	cp ${DOWNLOADS}/OpenJMLUserGuide.pdf $(RELFILES)
-	cp ${DOWNLOADS}/JML_Reference_Manual.pdf ../../openjml.github.io/documentation
-	cp ${DOWNLOADS}/JML_Reference_Manual.pdf $(RELFILES)
+	cp "${DOWNLOADS}/OpenJMLUserGuide.pdf" ../../openjml.github.io/documentation
+	cp "${DOWNLOADS}/OpenJMLUserGuide.pdf" "$(RELFILES)"
+	cp "${DOWNLOADS}/JML_Reference_Manual.pdf" ../../openjml.github.io/documentation
+	cp "${DOWNLOADS}/JML_Reference_Manual.pdf" "$(RELFILES)"
 
 ## Commits and pushes the builds produced by `update-docs` to openjml.github.io
 ## (Does not commit them to the current branch of OpenJMLsrc)
@@ -197,22 +217,23 @@ trial: .FORCE
 ## Tests the most recently created release (release-temp/openjml.zip)
 release-test: .FORCE
 	@ echo Running release tests on newly created trial release
-	@ ZIP="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
+	@ ZIPARCHIVE="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
 
 ## Development build targets
 
 ## Builds the openjml executable (without updating version, annotation and tutorial files)
+## NOJML= disables JML during the build of OpenJML itself (since the openjml executable is the javac executable)
 openjml: .FORCE
-	NOJML= make
+	NOJML= $(MAKE)
 
 ## Updates the smt code from the jSMTLIB repo 
 ## The repo must be cloned locally and resident at ../../../jSMTLIB relative to the folder holding this Makefile
 ## This action is rarely needed
 smt:
-	if [ -e $(mkfile_dir)/../../../jSMTLIB/SMT ]; then \
-	    cp -Rp $(mkfile_dir)/../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
-	elif [ -e $(mkfile_dir)/../../jSMTLIB/SMT ]; then \
-	    cp -Rp $(mkfile_dir)/../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
+	if [ -e $(topdir)/../../../jSMTLIB/SMT ]; then \
+	    cp -Rp $(topdir)/../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
+	elif [ -e $(topdir)/../../jSMTLIB/SMT ]; then \
+	    cp -Rp $(topdir)/../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
 	fi
 
 ## Builds the jmlruntime.jar, which holds classes needed for running rac
@@ -227,7 +248,7 @@ jmlruntime.jar: .FORCE
 	@touch $(TEMPLIB)/JMLRUNTIME_MARKER
 	@## jmlruntime.jar has bin-runtime, the annotations, and the marker file JMLRUNTIME_MARKER
 	@## If Java is incorrectly setup, the jar command fails - so we check it this first time
-	@(cd $(TEMPLIB); jar -cf ../jmlruntime.jar . ) || exit 1
+	@(cd $(TEMPLIB); $(JAR) -cf ../jmlruntime.jar . ) || exit 1
 	@rm -rf $(TEMPLIB)
 	@echo "   " jmlruntime.jar created
 

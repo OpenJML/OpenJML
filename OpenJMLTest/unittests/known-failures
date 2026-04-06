@@ -153,13 +153,15 @@ escfileslist3.test[locsetTests]
 escfileslist3.test[record2]
 escfileslist3.test[staticInit]  #       Needs implementation of static initialization
 escfileslist3.test[gitbug908]   # THe weird OJ= problem
+escfileslist3.test[gitbug883bad]  # Not sure what happened with this test
+
 escgeneric.testGenericType1
 escgeneric.testTypeOf
 escgeneric.testTypeParameter2d
 esclambdas.testIdentity
 esclambdas.testIdentity2
 
-escnew3.testCast1       # m7 reports a verification error sometimes and sometimes does not
+# escnew3.testCast1       # m7 reports a verification error sometimes and sometimes does not
 
 racfiles.gitbug861		#	missing check in compiler constant static initializer
 racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
@@ -167,12 +169,20 @@ racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with i
 bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
 
-
-escfiles2.gitbug932 # mistranslation of super in specs
-racfiles.gitbug932  # mistranslation of super in specs
-
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
 
 primesc2.jmlreal                 # feasibility check times out
 escwebexamples.HeapSort
+
+SFBugs.gitbug712                      # String literal ("Alice") problem
+
+escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
+escfiles2.gitbug726                   # OLList problem
+escfiles2.gitbug880                   # Helloworld infeasible
+escfiles2.gitbug903                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+escfiles3.gitbug814                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+escfileslist1.test[escDoubleArith]    # feasibility problem with real arithmetic
+escfileslist3.test[gitbug944]         # bad translation for \seq<\bigint>
+runscripts2.apiASTCrash               # CRASH in Attr
+

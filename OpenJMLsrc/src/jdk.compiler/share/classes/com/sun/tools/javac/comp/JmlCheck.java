@@ -141,7 +141,7 @@ public class JmlCheck extends Check {
             boolean isInInterface = sym.owner.isInterface();
             boolean isInstance = JmlAttr.instance(context).isInstance(d.mods);
             if (isInstance) k &= ~Flags.STATIC;
-            if ((wasFinal==0) && Utils.instance(context).isJML(flags) && sym.owner.isInterface()) {
+            if ((wasFinal==0) && Utils.isJML(flags) && sym.owner.isInterface()) {
             	k &= ~Flags.FINAL;
             }
         	if (isInInterface && (k&Flags.AccessFlags)==0) k |= Flags.PUBLIC;
@@ -162,8 +162,9 @@ public class JmlCheck extends Check {
     
     @Override
     public Type checkType(DiagnosticPosition pos, Type found, Type req, final CheckContext checkContext) {
-        var TYPE = JmlPrimitiveTypes.TYPETypeKind.getSymbol(context);
-        Symbol BIGINT = JmlPrimitiveTypes.bigintTypeKind.getSymbol(context);
+        JmlTypes jmltypes = JmlTypes.instance(context);
+        var TYPE = jmltypes.TYPEsym();
+        Symbol BIGINT = jmltypes.BIGINTsym();
 
         if (found != null && found.getTag() == TypeTag.ARRAY && req.getTag() == TypeTag.ARRAY &&
                 ((Type.ArrayType)found).getComponentType().tsym == TYPE &&
@@ -171,9 +172,8 @@ public class JmlCheck extends Check {
             return req;
         }
         if (found == req) return found;
-        JmlTypes jmltypes = JmlTypes.instance(context);
         // FIXME - all this in isAssignable?
-        if (req.tsym == JmlPrimitiveTypes.realTypeKind.getSymbol(context)) {
+        if (req.tsym == jmltypes.REALsym()) {
         	if (found.isNumeric() || found.tsym == BIGINT) return found;
         } else if (req.tsym == BIGINT) {
         	if (found.isIntegral()) return found;

@@ -204,7 +204,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             		msp.javaEnv = msp.specsEnv = methodEnv(md, env); // FIXME - review this -- needs formals, type parameters
 					specs.putSpecs(md.sym, msp);
         		} else if (t instanceof JmlTree.JmlBlock block) {
-        			if (block.isInitializerBlock && utils.isSpecFile(block.sourcefile) && !utils.isJML(env.enclClass.mods)) {
+        			if (block.isInitializerBlock && utils.isSpecFile(block.sourcefile) && !Utils.isJML(env.enclClass.mods)) {
         				utils.error(block.source(), t, "jml.initializer.block.allowed");
         			}
     			} else if (t instanceof JmlTree.JmlTypeClauseInitializer init) {
@@ -225,6 +225,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     			}
         	}
             x: for (var t: specsDecl.defs) {
+                if (t instanceof JmlTree.JmlTypeClause tc) {
+                    annotate.annotateLater(tc.modifiers.annotations, env, env.enclClass.sym, tc.pos());
+                }
                 if (t instanceof JmlTree.JmlTypeClauseConditional tc) {
                     var nm = tc.identifier.name;
                     for (var v: specsDecl.defs) {
@@ -361,7 +364,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     			}
     	        
     		} else if (t instanceof JmlTree.JmlBlock block) {
-    			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !utils.isJML(env.enclClass.mods)) {
+    			if (block.isInitializerBlock && block.sourcefile.getKind() != JavaFileObject.Kind.SOURCE && !Utils.isJML(env.enclClass.mods)) {
     	        	utils.error(block.sourcefile, block, "jml.initializer.block.allowed");
     	        	ok = false;
     	        }
@@ -440,7 +443,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 ////        }  // FIXME
 //        if (chk.checkUnique(tree.pos(), m, enclScope)) {
 //            if (!noEntering) {
-//                if (tree.body == null && m.owner.isInterface() && utils.isJML(m.flags())) {
+//                if (tree.body == null && m.owner.isInterface() && Utils.isJML(m.flags())) {
 //                    m.flags_field |= (Flags.ABSTRACT | Utils.JMLADDED);
 //                    m.enclClass().flags_field |= Utils.JMLADDED;
 //                }
@@ -464,7 +467,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	JmlEnter.instance(context).methodEnv = localEnv;
     	if (!enterJML) return true; // FIXME - enterJML can be done away with, I think
     	boolean b = super.visitMethodDefHelper(tree, m, enclScope, localEnv);
-    	if (JmlEnter.debugEnter && b) System.out.println("enter: entered method " + m + " " + org.jmlspecs.openjml.Utils.instance(context).isJML(m.flags()));
+    	if (JmlEnter.debugEnter && b) System.out.println("enter: entered method " + m + " " + org.jmlspecs.openjml.Utils.isJML(m.flags()));
         return b;
     }
     
@@ -499,7 +502,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.GHOST);
 //            if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.MODEL);
 //            boolean classIsModel = ((JmlAttr)attr).isModel(javaDecl.getModifiers()); // FIXME - should really be recursive
-//            if (!utils.isJML(specsMethodDecl.mods)) {
+//            if (!Utils.isJML(specsMethodDecl.mods)) {
 //                // Method is not (directly) in a JML declaration. So it should not have ghost or model annotations
 //                // We are going to discard this declaration because of the error, so we do extra checking
 //                if (a != null) {
@@ -523,7 +526,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        if ((matchSym.flags() & Flags.GENERATEDCONSTR) != 0 && prevMatch instanceof JmlMethodDecl && utils.findMod(((JmlMethodDecl)prevMatch).mods, Modifiers.MODEL) == null)  prevMatch = null;
 //        if (prevMatch != null) {
 //            // DO extra checking since we are discarding this declaration because it is already matched
-//            if (!utils.isJML(specsMethodDecl.mods)) {
+//            if (!Utils.isJML(specsMethodDecl.mods)) {
 //                JmlAnnotation a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.GHOST);
 //                if (a == null) a = ((JmlAttr)attr).findMod(specsMethodDecl.mods,Modifiers.MODEL);
 //                if (a != null) {
@@ -531,7 +534,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //                }
 //            }
 //            // Previous match - give error - duplicate already reported if the specsMethodDecl is JML
-//            if (!utils.isJML(specsMethodDecl.mods) && !sameTree) {
+//            if (!Utils.isJML(specsMethodDecl.mods) && !sameTree) {
 //                utils.errorAndAssociatedDeclaration(specsMethodDecl.sourcefile, specsMethodDecl.pos, ((JmlMethodDecl)prevMatch).sourcefile, prevMatch.pos,"jml.duplicate.method.match",specsMethodDecl.sym.toString(), csym.flatName());
 //            }
 //            return false;
@@ -644,8 +647,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 null);
         ms.specsDecl = ms;
         
-        utils.setJML(m.mods);
-        utils.setJML(ms.mods);
+        Utils.setJML(m.mods);
+        Utils.setJML(ms.mods);
         specs.addModifier(Position.NOPOS, Modifiers.HELPER, (JmlModifiers)m.mods);
         specs.addModifier(Position.NOPOS, Modifiers.PURE, (JmlModifiers)m.mods);
         specs.addModifier(Position.NOPOS, Modifiers.MODEL, (JmlModifiers)m.mods);
@@ -675,7 +678,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                     JCStatement stat = jmlF.Exec(expr);
                     JCStatement stat2 = jmlF.Return(treeutils.makeZeroEquivalentLit(decl,md.sym.getReturnType()));
                     md.body = jmlF.Block(0L, List.<JCStatement>of(stat,stat2));
-                    md.body.flags = utils.setJML(md.body.flags);
+                    md.body.flags = Utils.setJML(md.body.flags);
                 } 
                 continue;
             }
@@ -786,7 +789,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 m.setSource(inv.source());
                 inv.racmethod = m;
 
-                utils.setJML(m.mods);
+                Utils.setJML(m.mods);
                 specs.addModifier(Position.NOPOS, Modifiers.HELPER, (JmlModifiers)m.mods);
                 specs.addModifier(Position.NOPOS, Modifiers.SPEC_PURE, (JmlModifiers)m.mods);
                 specs.addModifier(Position.NOPOS, Modifiers.MODEL, (JmlModifiers)m.mods);
@@ -808,7 +811,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         JmlTree.JmlMethodDecl mr = (JmlTree.JmlMethodDecl)jmlF.MethodDef(jmlF.Modifiers(flags),name, jmlF.Type(modelVarDecl.sym.type),
                 List.<JCTypeParameter>nil(),List.<JCVariableDecl>nil(),List.<JCExpression>nil(), nobody ? null : jmlF.Block(0,List.<JCStatement>of(returnStatement)), null);
         mr.pos = modelVarDecl.pos;
-        utils.setJML(mr.mods);
+        Utils.setJML(mr.mods);
         JavaFileObject p = log.useSource(modelVarDecl.sourcefile);
         int endpos = modelVarDecl.getEndPosition(log.currentSource().getEndPosTable());
         log.useSource(p);
@@ -854,7 +857,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 env = speccu.topLevelEnv;
             }
             // Compute the method type
-            boolean prevallow = resolve.addAllowJML(utils.isJML(tree.mods));
+            boolean prevallow = resolve.addAllowJML(Utils.isJML(tree.mods));
             boolean prevcu = resolve.setInJMLCU(specMethod.isInJMLCU());
             mtemp.type = signature(msym, tree.typarams, tree.params,
                                tree.restype, tree.recvparam, tree.thrown,
@@ -1168,7 +1171,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        JmlMethodDecl prevMethod = currentMethod; // FIXME - why do we need to stack calls?
 //        currentMethod = (JmlMethodDecl) tree;
 ////        boolean prevAllowJml = resolve.allowJML();
-////        boolean isJMLMethod = utils.isJML(tree.mods);
+////        boolean isJMLMethod = Utils.isJML(tree.mods);
 //        try {
 //            super.visitMethodDef(tree);
 //
@@ -1232,7 +1235,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        ((JmlCheck)chk).noDuplicateWarn = true;
 //        if (chk.checkUnique(tree.pos(), m, enclScope)) {
 //            // Not a duplicate - OK if the declaration is JML - if not, then ignore it
-//            if (!utils.isJML(m.flags())) {
+//            if (!Utils.isJML(m.flags())) {
 //                // This is an error, but it is reported later
 //                //utils.error(((JmlMethodDecl)tree).sourcefile, tree, "jml.no.method.match", enclScope.owner.flatName() + "." + m);
 //            } else {
@@ -1240,7 +1243,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //            }
 //        } else {
 //            // A duplicate - OK if the declaration is not JML
-//            if (utils.isJML(m.flags())) {
+//            if (Utils.isJML(m.flags())) {
 //                // FIXME
 //            }
 //        }
@@ -1269,7 +1272,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 
     @Override
     public void visitMethodDef(JCMethodDecl tree) {
-        boolean prev = resolve.setAllowJML(utils.isJML(tree.mods));
+        boolean prev = resolve.setAllowJML(Utils.isJML(tree.mods));
         boolean prevcu = resolve.setInJMLCU(((JmlSource)tree).isInJMLCU());
         try {
             super.visitMethodDef(tree);
@@ -1284,8 +1287,8 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         var jtree = (JmlVariableDecl)tree;
         // FIXME - should we be using allowJML for both types?
         // We use add... rather than set...  in the statement below because these might be formals within a model method
-        //System.out.println("VVD " + tree + " " + utils.isJML(tree.mods) + " " + jtree.jmltype);
-        boolean prev = resolve.addAllowJML(utils.isJML(tree.mods) || jtree.jmltype);
+        //System.out.println("VVD " + tree + " " + Utils.isJML(tree.mods) + " " + jtree.jmltype);
+        boolean prev = resolve.addAllowJML(Utils.isJML(tree.mods) || jtree.jmltype);
         boolean prevcu = resolve.setInJMLCU(((JmlSource)tree).isInJMLCU());
         try {
             super.visitVarDef(tree);
@@ -1302,7 +1305,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     @Override
     public boolean visitVarDefIsStatic(JCVariableDecl tree, Env<AttrContext> env) {
         boolean b = super.visitVarDefIsStatic(tree,env);
-        if (!utils.isJML(tree.mods)) return b;
+        if (!Utils.isJML(tree.mods)) return b;
         if ((env.info.scope.owner.flags() & INTERFACE) != 0 &&
                 utils.hasMod(tree.mods,Modifiers.INSTANCE)) return false;
         if ((tree.mods.flags & STATIC) != 0) return true;

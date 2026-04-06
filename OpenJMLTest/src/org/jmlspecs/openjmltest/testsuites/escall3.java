@@ -21,7 +21,10 @@ public class escall3 extends EscBase {
         addOptions("--prover=Z");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { }\n"
-                ,"/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-macos/Z.X",-1
+                ,oneof(
+                        seq("/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-macos/Z.X",-1)
+                        ,seq("/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-linux/Z.X",-1)
+                    )
                 ,"/tt/TestJava.java: error: The executable for prover Z is not specified - use -exec or define an openjml.prover.... property",-1
                 );
     }
@@ -75,6 +78,123 @@ public class escall3 extends EscBase {
                 ,"/tt/TestJava.java: warning: debug feasibility starting number has bad format: zzz", -1
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec1() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    public void m(int i) {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec2() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    //@ also ensures true;
+                    public void m(int i) {}
+                }
+                """
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec3() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    //@ pure
+                    public void m(int i) {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:6: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec4() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    //@ final
+                    public void m(int i) {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:6: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec5() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt; //@ pure
+                public class TestJava { /*@ requires i > 0; */ public void m(int i) {}}
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    public void m(int i) {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                );
+    }
+    
+    @Test
+    public void testAbsentSpec6() {
+        expectedExit=0;
+        addOptions("--check-feasibility=none");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { /*@ requires i > 0; pure */ public void m(int i) {} public int k; }
+                class A extends TestJava {
+                    public void p() { m(0); }
+                    //@ pure
+                    public void m(int i) { k = 0; }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:6: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m: k", 30
+                ,"/tt/TestJava.java:2: verify: Associated declaration", 45
                 );
     }
     

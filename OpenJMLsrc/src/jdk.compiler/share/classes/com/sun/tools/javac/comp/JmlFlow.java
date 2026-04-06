@@ -15,7 +15,7 @@ import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.MiscExpressions;
-import org.jmlspecs.openjml.ext.StateExpressions;
+import org.jmlspecs.openjml.ext.StateExpressions.StateExpression;
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 
 import com.sun.tools.javac.code.Flags;
@@ -26,13 +26,7 @@ import com.sun.tools.javac.comp.Flow.SnippetBreakToAnalyzer;
 import com.sun.tools.javac.resources.CompilerProperties.Errors;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.TreeInfo;
-import com.sun.tools.javac.tree.JCTree.JCClassDecl;
-import com.sun.tools.javac.tree.JCTree.JCExpression;
-import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
-import com.sun.tools.javac.tree.JCTree.JCIdent;
-import com.sun.tools.javac.tree.JCTree.JCMethodInvocation;
-import com.sun.tools.javac.tree.JCTree.JCStatement;
-import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
+import com.sun.tools.javac.tree.JCTree.*;
 import com.sun.tools.javac.tree.TreeMaker;
 import com.sun.tools.javac.util.Bits;
 import com.sun.tools.javac.util.Context;
@@ -97,10 +91,11 @@ public class JmlFlow extends Flow  {
         //// These are implemented
         
         @Override
-        public void visitJmlMethodDecl(JmlMethodDecl that) {
+        public void visitMethodDef(JCMethodDecl jcthat) {
+            var that = (JmlMethodDecl)jcthat;
             JavaFileObject prev = Log.instance(context).useSource(that.sourcefile);
             try {
-                visitMethodDef(that);
+                super.visitMethodDef(that);
             } finally {
                 Log.instance(context).useSource(prev);
             }
@@ -141,10 +136,10 @@ public class JmlFlow extends Flow  {
             scan(that.elseBlock);
         }
 
-        @Override
-        public void visitJmlClassDecl(JmlClassDecl that) {
-            visitClassDef(that);
-        }
+//        @Override
+//        public void visitJmlClassDecl(JmlClassDecl that) {
+//            visitClassDef(that);
+//        }
 
         @Override
         public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
@@ -232,16 +227,6 @@ public class JmlFlow extends Flow  {
                 scan(e);
         }
         
-        @Override
-        public void visitJmlVariableDecl(JmlVariableDecl that) {
-        	try {
-            visitVarDef(that);
-        	} catch (Exception e) {
-        		System.out.println("Exception visiting " + that);
-        		throw e;
-        	}
-        }
-
         @Override
         public void visitJmlWhileLoop(JmlWhileLoop that) {
             visitWhileLoop(that);
@@ -504,18 +489,16 @@ public class JmlFlow extends Flow  {
  //           }
         }
 
-        @Override
-        public void visitJmlMethodDecl(JmlMethodDecl that) {
-            visitMethodDef(that);
-        }
+//        @Override
+//        public void visitMethodDef(JmlMethodDecl that) {
+//            super.visitMethodDef(that);
+//        }
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         	if (that.meth != null) {
         		visitApply(that);
-        	} else if (that.kind == org.jmlspecs.openjml.ext.StateExpressions.oldKind ||
-                    that.kind == org.jmlspecs.openjml.ext.StateExpressions.preKind ||
-                    that.kind == org.jmlspecs.openjml.ext.StateExpressions.pastKind) {
+        	} else if (that.kind instanceof StateExpression) {
         	    // FIXME Could scan the first argument, but don't have a way to determine whether any ids are
         	    // assigned in that program state. So just skipping the check for now.
         	} else {
@@ -550,10 +533,10 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlClassDecl(JmlClassDecl that) {
-            var prev = log.useSource(that.sourcefile);
+        public void visitClassDef(JCClassDecl that) {
+            var prev = log.useSource(((JmlClassDecl)that).sourcefile);
             try {
-                visitClassDef(that);
+                super.visitClassDef(that);
             } finally {
                 log.useSource(prev);
             }
@@ -681,7 +664,7 @@ public class JmlFlow extends Flow  {
         }
 
         @Override
-        public void visitJmlVariableDecl(JmlVariableDecl that) {
+        public void visitVarDef(JCVariableDecl that) {
             try {
                 if (that.sym.kind == com.sun.tools.javac.code.Kinds.Kind.TYP 
                         && log.currentSourceFile().getKind() != JavaFileObject.Kind.SOURCE
@@ -691,7 +674,7 @@ public class JmlFlow extends Flow  {
                     // FIXME - are we allowed to have a declaration that mimics the Java value if compiled?
                     // FIXME - should we check this so that we catch duplicate initializations?
                 } else {
-                    visitVarDef(that);
+                    super.visitVarDef(that);
                 }
             } catch (Exception e) {
                 System.out.println("Exception flow-checking " + that);
@@ -745,7 +728,7 @@ public class JmlFlow extends Flow  {
         @Override
         void checkInit(DiagnosticPosition pos, VarSymbol sym) {
         	// A static final ghost field does not need to be initialized
-            if (!(Utils.instance(context).isJML(sym.flags()) && Utils.isStatic(sym.flags()) && Utils.isFinal(sym.flags()))) {
+            if (!(Utils.isJML(sym.flags()) && Utils.isStatic(sym.flags()) && Utils.isFinal(sym.flags()))) {
             	super.checkInit(pos,sym);
             }
         }
@@ -938,10 +921,10 @@ public class JmlFlow extends Flow  {
             else scan(tree.args);
         }
 
-        @Override
-        public void visitJmlMethodDecl(JmlMethodDecl that) {
-            visitMethodDef(that);
-        }
+//        @Override
+//        public void visitMethodDef(JmlMethodDecl that) {
+//            super.visitMethodDef(that);
+//        }
 
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
@@ -978,10 +961,10 @@ public class JmlFlow extends Flow  {
             scan(that.elseBlock);
         }
 
-        @Override
-        public void visitJmlClassDecl(JmlClassDecl that) {
-            visitClassDef(that);
-        }
+//        @Override
+//        public void visitJmlClassDecl(JmlClassDecl that) {
+//            visitClassDef(that);
+//        }
 
         @Override
         public void visitJmlDoWhileLoop(JmlDoWhileLoop that) {
@@ -1064,10 +1047,10 @@ public class JmlFlow extends Flow  {
             scan(that.storerefs);
         }
 
-        @Override
-        public void visitJmlVariableDecl(JmlVariableDecl that) {
-            visitVarDef(that);
-        }
+//        @Override
+//        public void visitJmlVariableDecl(JmlVariableDecl that) {
+//            visitVarDef(that);
+//        }
 
         @Override
         public void visitJmlWhileLoop(JmlWhileLoop that) {
@@ -1299,13 +1282,31 @@ public class JmlFlow extends Flow  {
         }
     }
     
-    public class JmlCaptureAnalyzer extends CaptureAnalyzer implements IJmlVisitor{
-    	public void visitAnnotation(JCTree.JCAnnotation tree) {
-    		// FIXME - we skip annotations because some of them crash in CaptureAnalyzer.visitIdent, as they do 
-    		// not have sym set -- this is a bug of as yet undebugged cause
-    		//System.out.println("ANNOT " + tree + " " + tree.type);
-    		return;
-    	}
+    public class JmlCaptureAnalyzer extends CaptureAnalyzer implements IJmlVisitor {
+        @Override
+        public void visitAnnotation(JCTree.JCAnnotation tree) {
+            // FIXME - we skip annotations because some of them crash in CaptureAnalyzer.visitIdent, as they do 
+            // not have sym set -- this is a bug of as yet undebugged cause
+            //System.out.println("ANNOT " + tree + " " + tree.type);
+            return;
+        }
+
+        @Override
+        public void visitJmlMethodSig(JmlMethodSig tree) {
+            // No flow tests for JmlMethodSig;
+            // FIXME -- if we allow this scan then we get crashes because a JCIdent as a JmlMethoSig does not have a symbol
+        }
+        
+        @Override
+        public void visitJmlMethodInvocation(JmlMethodInvocation tree) {
+            if (tree.kind instanceof StateExpression) {
+                // skip this because one argument might be a label and the other is
+                // evaluated at that label
+            } else {
+                IJmlVisitor.super.visitJmlMethodInvocation(tree);
+            }
+        }
+
     }
         
     // Overridden to call JML versions of visitors

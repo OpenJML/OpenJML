@@ -109,8 +109,6 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
     if (!Object.class.isAssignableFrom(raw)) {
       return null; // it's a primitive!
     }
-    System.out.println("NO CUSTOM ADAPTER FOR " + type);
-    if (true) return null;
 
     // Don't allow using reflection on anonymous and local classes because synthetic fields for
     // captured enclosing values make this unreliable
@@ -200,12 +198,7 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
     }
     final boolean jsonAdapterPresent = mapped != null;
     if (mapped == null) {
-      try {
       mapped = context.getAdapter(fieldType);
-      } catch (Exception e) {
-        System.out.println("Failed to get adaptor for " + fieldType);
-        throw e;
-      }
     }
 
     @SuppressWarnings("unchecked")

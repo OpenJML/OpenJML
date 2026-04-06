@@ -685,7 +685,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
 //    }
 //
-//    public void visitJmlStatementExprList(JmlStatementShow tree) {
+//    public void visitJmlStatementExprList(JmlStatementExprList tree) {
 //        for (JCExpression e: tree.expressions) scan(e);
 //    }
 //    
@@ -791,7 +791,7 @@ public class JmlTreeMatch extends JmlTreeScanner {
 //        scan(tree.expression);
 //    }
 //
-//    public void visitJmlVariableDecl(JmlVariableDecl that) {
+//    public void visitVarDef(JCVariableDecl that) {
 //        visitVarDef(that);
 //        if (scanMode == AST_SPEC_MODE) {
 //            if (that.fieldSpecsCombined != null) {

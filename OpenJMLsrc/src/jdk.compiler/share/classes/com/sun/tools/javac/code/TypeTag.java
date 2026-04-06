@@ -137,7 +137,7 @@ public enum TypeTag {
 
     final int superClasses;
     final int numericClass;
-    final boolean isPrimitive;
+    public final boolean isPrimitive; // OPENJML - made public
 
     private TypeTag() {
         this(0, 0, false);

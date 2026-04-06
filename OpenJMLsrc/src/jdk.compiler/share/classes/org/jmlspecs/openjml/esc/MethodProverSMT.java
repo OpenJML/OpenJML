@@ -190,7 +190,7 @@ public class MethodProverSMT {
         if (exec == null || exec.isEmpty()) exec = Options.instance(context).get(Strings.proverPropertyPrefix + proverToUse);
         if (exec == null || exec.isEmpty()) {
             // The default is that the prover executables are located in folders named 
-            // ./Solvers-$OS for $OS either Mac or Win or Linux. relative to the path returned by findInstallLocation
+            // ./Solvers-$OS for $OS either macos or windows or linux, relative to the path returned by findInstallLocation
             String loc = Main.solvers;
             String ex = null;
             ex = proverToUse.replace("z3_","z3-").replace('_','.');
@@ -1865,7 +1865,7 @@ public class MethodProverSMT {
          * value of the newly declared variable anyway.
          */
         @Override
-        public void visitJmlVariableDecl(JmlVariableDecl e) {
+        public void visitVarDef(JCVariableDecl e) {
             scan(e.init);
             Name n = e.name;
             String sv = cemap.get(e);

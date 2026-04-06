@@ -575,6 +575,21 @@ public class JmlCompiler extends JavaCompiler {
 
         return stopIfError(CompileState.ATTR, results);
     }
+    
+    public Env<AttrContext> attribute(Env<AttrContext> env) {
+        try {
+            return super.attribute(env);
+        } finally {
+            if (!env.toplevel.sourcefile.toString().contains(".jml")) {
+                synchronized (org.openjml.API.astListeners) { 
+                    for (var listener: org.openjml.API.astListeners) {
+                        listener.notify(context, env.toplevel.sourcefile, (JmlCompilationUnit)env.toplevel);
+                    }
+                }
+            }
+        }
+    }
+
 
     /** Overridden in order to insert ESC and RAC (or other) processing after the OpenJDK flow processing */
     @Override
@@ -617,15 +632,15 @@ public class JmlCompiler extends JavaCompiler {
                 infer(env);
             return noresults;
         } else if (utils.rac) {
-        	var results = new java.util.LinkedList<Env<AttrContext>>();
-        	for (var env: envs) {
-        		var t = env.tree;
-                if (utils.isSpecFile(((JmlTree.JmlSource)t).source())) continue;
-        		env = rac(env);
-        		if (env == null) continue;
-        		results.add(env);
-        	}
-        	return results;
+            var results = new java.util.LinkedList<Env<AttrContext>>();
+            for (var env: envs) {
+                var t = env.tree;
+                if (t instanceof JmlTree.JmlSource s && utils.isSpecFile(s.source())) continue;
+                if (!(t instanceof JCTree.JCModuleDecl)) env = rac(env);
+                if (env == null) continue;
+                results.add(env);
+            }
+            return results;
         } else {
         	return envs;
         }

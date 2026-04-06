@@ -268,9 +268,9 @@ public class Utils {
      * @return true if all elements are not null, false if at least one is
      */
     public static boolean nonnullElementCheck(Object[] array) {
-        if (array == null) return false;
+        if (array == null) return false;        
         for (Object o: array) {
-            if (o == null) return false;
+            if (o == null || (o instanceof Object[] oo && !nonnullElementCheck(oo))) return false;
         }
         return true;
     }

@@ -21,22 +21,26 @@ function ctrl_c() {
 
 F=$(realpath "$BASH_SOURCE")
 R=$(dirname "$F")
-export ROOT=`(cd "$R/../../OpenJMLsrc" ; pwd)`
-TEST="../OpenJMLTest"
+export ROOT=$(cd "$R/../../OpenJMLsrc" && pwd -P)
 JROOT="$R/../libs"
 JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar:$JROOT/opentest4j-1.3.0.jar"
-export NJAVAC=`echo "$ROOT"/build/*/jdk/bin/javac`
-NJAVA=`echo "$ROOT"/build/*/jdk/bin/java`
+export NJAVAC=$(echo "$ROOT"/build/*/jdk/bin/javac)
+NJAVA=$(echo "$ROOT"/build/*/jdk/bin/java)
+
+if [ $# -lt 1 ]; then
+    echo "error: runtests requires at least one testsuite name"
+    exit 1
+fi
 
 cd "$R"
 ## Now in OpenJMLTest/unittests
 
-. "../setup-coverage" unit-$1
+. "../setup-coverage" "unit-$1"
 
 . "$ROOT/setup-exports"
 
 rm -f *.class
-CL=`echo "$ROOT"/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+CL=$(echo "$ROOT"/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g")
 export CP=".:../src:$JUNIT:$CL"
 
 while true; do
@@ -57,7 +61,7 @@ while true; do
   break
 done
 
-SPECS=`(cd "$ROOT/../../Specs/specs" ; pwd )`
+SPECS=$(cd "$ROOT/../../Specs/specs" && pwd -P)
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
 ## This almost duplicates running openjml-java in the development environment, except for the addition of AGENT and the specific classpath
 ## echo Running $@

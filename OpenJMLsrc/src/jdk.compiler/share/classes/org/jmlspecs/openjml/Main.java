@@ -51,7 +51,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     /** Holds the value of an environment variable that is the path to
      *  the installation directory for openjml. In a release installation,
-     *  install, specs, solvers are the same (as of this writing).
+     *  install, solvers are the same (as of this writing). and specs is install/specs
      *  In a development environment, they are different -- OPENJML_INSTALL is the OpenJMLsrc folder, holding openjml, openjml-java etc.
      */
     public static final String install = System.getenv("OPENJML_INSTALL");
@@ -631,8 +631,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     }
 
     /** Sets the listener to which reports of proof results are sent. */
-    public void setProofResultListener(IAPI.IProofResultListener listener) {
-        context().get(IAPI.IProofResultListener.class).setListener(listener);
+    public IAPI.IProofResultListener setProofResultListener(IAPI.IProofResultListener listener) {
+        return context().get(IAPI.IProofResultListener.class).setListener(listener);
     }
 
     /** This is overridden so that serious internal bugs are reported as OpenJML

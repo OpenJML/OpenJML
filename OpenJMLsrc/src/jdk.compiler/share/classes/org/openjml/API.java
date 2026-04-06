@@ -10,11 +10,18 @@ import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.Main;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.JmlTree.*;
+import org.jmlspecs.openjml.esc.JmlEsc;
+import org.openjml.IAPI.IASTListener;
 
+import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.parser.JmlScanner;
 import com.sun.tools.javac.parser.JmlTokenizer;
 import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.*;
 
 /** This class is a wrapper and publicly published API for the OpenJML tool 
  * functionality.  In principle, any external programmatic interaction with
@@ -77,6 +84,12 @@ public class API implements IAPI {
     public String getOption(String key) {
         return com.sun.tools.javac.util.Options.instance(main.context()).get(key);
     }
+    
+//    public String getSpecs(MethodSymbol methodSymbol) {
+//        return org.jmlspecs.openjml.JmlSpecs.instance(main.context()).getAttrSpecs(methodSymbol).toString();
+//    }
+    
+
 
     
 //    @Override @SuppressWarnings("exports")
@@ -191,6 +204,11 @@ public class API implements IAPI {
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
      */
+    @Override
+    public IAPI.IProofResultListener setProofResultListener(/*@nullable*/ IAPI.IProofResultListener p) {
+        return main.setProofResultListener(p);
+    }
+
     @Override
     public int execute(/*@ non_null*/ String ... args) {
         int x = main.compile(args, main.context()).exitCode;
@@ -351,18 +369,18 @@ public class API implements IAPI {
 //     * @see org.jmlspecs.openjml.IAPI#parseSingleFile(java.io.File)
 //     */
 //    @Override
-//    public /*@non_null*/ JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) {
+//    public /*@non_null*/ JmlTree.JmlCompilationUnit parseSingleFile(/*@non_null*/ String filename) {
 //        return parseSingleFile(makeJFOfromFilename(filename));
 //    }
-//    
-//    
+    
+    
 //    /* (non-Javadoc)
 //     * @see org.jmlspecs.openjml.IAPI#parseSingleFile(java.io.File)
 //     */
-////    @Override
-//    public /*@non_null*/ JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo) {
-//        JmlCompiler c = JmlCompiler.instance(main.context);
-//        JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
+//    @Override
+//    public /*@non_null*/ JmlTree.JmlCompilationUnit parseSingleFile(/*@non_null*/ JavaFileObject jfo) {
+//        JmlCompiler c = JmlCompiler.instance(main.context());
+//        JmlTree.JmlCompilationUnit specscu = (JmlCompilationUnit)c.parse(jfo);
 //        return specscu;
 //    }
 //
@@ -370,12 +388,11 @@ public class API implements IAPI {
 //     * @see org.jmlspecs.openjml.IAPI#parseString(java.lang.String, java.lang.String)
 //     */
 //    @Override
-//    public /*@non_null*/ JmlCompilationUnit parseString(/*@non_null*/ String name, /*@non_null*/ String content) throws Exception {
+//    public /*@non_null*/ JmlTree.JmlCompilationUnit parseCompilationUnitString(/*@non_null*/ String name, /*@non_null*/ String content) throws Exception {
 //        if (name == null || name.length() == 0) throw new IllegalArgumentException();
-//        JmlCompiler c = JmlCompiler.instance(context());
+//        JmlCompiler c = JmlCompiler.instance(main.context());
 //        JavaFileObject file = makeJFOfromString(name,content);
-//        Iterable<? extends JavaFileObject> fobjects = List.<JavaFileObject>of(file);
-//        JmlCompilationUnit jcu = ((JmlCompilationUnit)c.parse(fobjects.iterator().next()));
+//        JmlTree.JmlCompilationUnit jcu = (JmlCompilationUnit)c.parse(file);
 //        if (name.endsWith(".java")) jcu.specsCompilationUnit = jcu;
 //        return jcu;
 //    }
@@ -443,9 +460,9 @@ public class API implements IAPI {
 //     */
 //    @Override
 //    public JavaFileObject makeJFOfromFile(File file) {
-////        JavacFileManager dfm = (JavacFileManager)context().get(JavaFileManager.class);
-////        return dfm.getJavaFileForInput(file);
-//    	return null; // FIXME
+//        JavacFileManager dfm = (JavacFileManager)main.context().get(JavaFileManager.class);
+//        return dfm.getJavaFileForInput(file);
+////    	return null; // FIXME
 //    }
 //    
 //    // TODO: need an easier way to find out if there are errors from parseAndCheck or enterAndCheck
@@ -750,44 +767,41 @@ public class API implements IAPI {
 //        return finder;
 //    }
 //    
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#doESC(com.sun.tools.javac.code.Symbol.MethodSymbol)
-//     */
-//    @Override
-//    public IProverResult doESC(MethodSymbol msym) {
-//        JmlMethodDecl decl = getMethodDecl(msym);
-//        JmlEsc esc = JmlEsc.instance(context());
-//        class L implements IProofResultListener { 
-//        	public L(IProofResultListener chained) { this.chained = chained; }
-//        	public IProofResultListener chained;
-//        	public IProverResult result; 
-//        	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
-//                if (result.result() == IProverResult.COMPLETED) return;
-//                if (result.result() == IProverResult.RUNNING) return;
-//        		this.result = result; 
-//        		if (chained != null) chained.reportProofResult(msym, result);
-//        	}
-//        };
-//        
-//        IProofResultListener p = setProofResultListener(null);
-//        L l = new L(p);
-//        setProofResultListener(l);
-//        esc.check(decl);
-//        setProofResultListener(p);
-//        return l.result; 
-//    }
-//    
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#doESC(com.sun.tools.javac.code.Symbol.ClassSymbol)
-//     */
-//    @Override
-//    public void doESC(ClassSymbol csym) {
-//        //if (!isTypechecked(csym)) typecheck(csym);
-////        mostRecentProofMethod = null;
-////        mostRecentProgram = null;
-//        JmlClassDecl decl = getClassDecl(csym);
-//        JmlEsc.instance(context()).check(decl);
-//    }
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#doESC(com.sun.tools.javac.code.Symbol.MethodSymbol)
+     */
+    @SuppressWarnings("exports")
+    @Override
+    public IProverResult doESC(JmlMethodDecl decl) {
+        JmlEsc esc = JmlEsc.instance(main.context());
+        class L implements IProofResultListener { 
+        	public L(IProofResultListener chained) { this.chained = chained; }
+        	public IProofResultListener chained;
+        	public IProverResult result; 
+        	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
+                if (result.result() == IProverResult.COMPLETED) return;
+                if (result.result() == IProverResult.RUNNING) return;
+        		this.result = result; 
+        		if (chained != null) chained.reportProofResult(msym, result);
+        	}
+        };
+        
+        IProofResultListener p = setProofResultListener(null);
+        L l = new L(p);
+        setProofResultListener(l);
+        esc.check(decl);
+        setProofResultListener(p);
+        return l.result; 
+    }
+    
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#doESC(com.sun.tools.javac.code.Symbol.ClassSymbol)
+     */
+    @SuppressWarnings("exports")
+    @Override
+    public void doESC(JmlClassDecl decl) {
+        JmlEsc.instance(main.context()).check(decl);
+    }
 //    
 ////    /* (non-Javadoc)
 ////     * @see org.jmlspecs.openjml.IAPI#getProofResult(com.sun.tools.javac.code.Symbol.MethodSymbol)

@@ -2,9 +2,11 @@ package com.sun.tools.javac.comp;
 
 import org.jmlspecs.openjml.visitors.IJmlVisitor;
 
+import org.jmlspecs.openjml.JmlTree;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotatedType;
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 
 public class JmlTypeAnnotate extends Annotate.TypeAnnotate implements IJmlVisitor {
@@ -22,11 +24,15 @@ public class JmlTypeAnnotate extends Annotate.TypeAnnotate implements IJmlVisito
     public void visitAnnotatedType(JCAnnotatedType tree) {
     	// This is called more than once, giving duplicate error messages (e.g. for repeated annotations),
     	// FIXME - but I'm not sure how to avoid it
-//        if (org.jmlspecs.openjml.Main.useJML) {
-//        	System.out.println("VISITINGANN " + tree + " " + tree.type);
-//        	for (var a: tree.annotations) System.out.println("   " + a + " " + a.type + " " + a.annotationType + " "+ a.annotationType.type);
-//        }
     	super.visitAnnotatedType(tree);
     }
+
+//    // FIXME - do we really need this?
+//    @Override
+//    public void visitClassDef(JCClassDecl tree) {
+//        for (var def: tree.defs) {
+//            if (def instanceof JmlTree.JmlTypeClause) scan(def);
+//        }
+//    }
 
 }

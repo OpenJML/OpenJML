@@ -48,7 +48,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
      * placed, and ignoring the specs CU; <BR>
      * AST_JML_MODE scans the tree as an individual compilation unit
      * (no specs in other files, but including the specs that are part of that file)<BR>
-     * SPEC_MODE ignores parsed specs and instead scans through the
+     * AST_SPEC_MODE ignores parsed specs and instead scans through the
      * summaries of specs (that come from the specification files).
      */
     public int scanMode;
@@ -96,33 +96,36 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
     
     //public void visitJmlChoose(JmlChoose that);
 
-    public void visitJmlClassDecl(JmlClassDecl that) {
-    	var prev = context == null ? null : Log.instance(context).useSource( that.sourcefile);
-		try {
-	        if (scanMode == AST_SPEC_MODE) {
-	            if (!that.isTypeChecked()) throw new RuntimeException("AST_SPEC_MODE requires that the Class be type-checked; class " + that.name + " is not.");
-	        }
-	        boolean isJML = (that.mods.flags & Utils.JMLBIT) != 0; // SHould use Utils.isJML(), but it needs a context value
-	        if (!isJML || scanMode == AST_JML_MODE) visitClassDef(that);
-	        if (scanMode == AST_SPEC_MODE) {
-	            JmlSpecs.TypeSpecs ms = that.typeSpecs;
-	            if (ms != null) {
-	                scan(ms.modifiers);
-	                scan(ms.clauses);
-	                //scan(ms.decls);
-	            } else {
-	                // FIXME - why does this happen: System.out.println("No specs found for " + that.name);
-	            }
-	        }
-	        if (scanMode == AST_JML_MODE) {
-	            JmlSpecs.TypeSpecs ms = that.typeSpecs;
-	            // already done - scan(ms.modifiers);
-	            if (ms != null) scan(ms.clauses);
-	            //if (ms != null) scan(ms.decls);
-	        }
-		} finally {
-			if (context != null) Log.instance(context).useSource(prev);
-		}
+    public void visitClassDef(JCClassDecl jcthat) {
+        // This method is called during the non-JML build of JML, so we guard the JML-specific actions
+        if (jcthat instanceof JmlClassDecl that) {
+            var prev = context == null ? null : Log.instance(context).useSource( that.sourcefile);
+            try {
+                if (scanMode == AST_SPEC_MODE) {
+                    if (!that.isTypeChecked()) throw new RuntimeException("AST_SPEC_MODE requires that the Class be type-checked; class " + that.name + " is not.");
+                }
+                boolean isJML = (that.mods.flags & Utils.JMLBIT) != 0; // SHould use Utils.isJML(), but it needs a context value
+                if (!isJML || scanMode == AST_JML_MODE) super.visitClassDef(that);
+                if (scanMode == AST_SPEC_MODE) {
+                    JmlSpecs.TypeSpecs ms = that.typeSpecs;
+                    if (ms != null) {
+                        scan(ms.modifiers);
+                        scan(ms.clauses);
+                    } else {
+                        // FIXME - why does this happen: System.out.println("No specs found for " + that.name);
+                    }
+                }
+                if (scanMode == AST_JML_MODE) {
+                    JmlSpecs.TypeSpecs ms = that.typeSpecs;
+                    // already done - scan(ms.modifiers);
+                    if (ms != null) scan(ms.clauses);
+                }
+            } finally {
+                if (context != null) Log.instance(context).useSource(prev);
+            }
+        } else {
+            super.visitClassDef(jcthat);
+        }
     }
 
     public void visitTopLevel(JCCompilationUnit that) {
@@ -225,21 +228,27 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(tree.list);
 //    }
 //
-    public void visitJmlMethodDecl(JmlMethodDecl that) {
-    	var prev = context == null ? null : Log.instance(context).useSource(that.sourcefile);
-		try {
-	        if (scanMode == AST_SPEC_MODE) {
-	            JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
-	            scan(ms.mods);
-	            scan(ms.cases);
-	        }
-	        if (scanMode == AST_JML_MODE) {
-	            scan(that.methodSpecs);
-	        }
-	        visitMethodDef(that);
-		} finally {
-			if (context != null) Log.instance(context).useSource(prev);
-		}
+    public void visitMethodDef(JCMethodDecl jcthat) {
+        if (jcthat instanceof JmlMethodDecl that) {
+            var prev = context == null ? null : Log.instance(context).useSource(that.sourcefile);
+            try {
+                if (scanMode == AST_SPEC_MODE) {
+//                    JmlSpecs.MethodSpecs ms = that.methodSpecsCombined;
+//                    if (ms != null) { // FIXME - explain why ms might be null
+//                        scan(ms.mods);
+//                        scan(ms.cases);
+//                    }
+                }
+                if (scanMode == AST_JML_MODE) {
+                    scan(that.methodSpecs);
+                }
+                super.visitMethodDef(that);
+            } finally {
+                if (context != null) Log.instance(context).useSource(prev);
+            }
+        } else {
+            super.visitMethodDef(jcthat);
+        }
     }
 
     public void visitJmlMethodInvocation(JmlMethodInvocation that) {
@@ -303,7 +312,7 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //    public void visitJmlInlinedLoop(JmlInlinedLoop that) {
 //    }
 
-    //public void visitJmlStatementExprList(JmlStatementShow tree);
+    //public void visitJmlStatementExprList(JmlStatementExprList tree);
     
 //    public void visitJmlStatementDecls(JmlStatementDecls tree) {
 //        for (JCTree.JCStatement s : tree.list) {
@@ -404,18 +413,22 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //        scan(tree.expression);
 //    }
 //
-    public void visitJmlVariableDecl(JmlVariableDecl that) {
-        visitVarDef(that);
-        if (scanMode == AST_SPEC_MODE) {
-//            if (that.fieldSpecsCombined != null) {
-//                scan(that.fieldSpecsCombined.mods);
-//                scan(that.fieldSpecsCombined.list);
-//            }
-        }
-        if (scanMode == AST_JML_MODE) {
-            if (that.fieldSpecs != null) {
-                scan(that.fieldSpecs.mods);
-                scan(that.fieldSpecs.list);
+    @Override
+    public void visitVarDef(JCVariableDecl that) {
+        super.visitVarDef(that);
+        // This method is called during the non-JML build of JML, so we guard the JML-specific actions
+        if (that instanceof JmlVariableDecl jthat) {
+            if (scanMode == AST_SPEC_MODE) {
+                //            if (that.fieldSpecsCombined != null) {
+                //                scan(that.fieldSpecsCombined.mods);
+                //                scan(that.fieldSpecsCombined.list);
+                //            }
+            }
+            if (scanMode == AST_JML_MODE) {
+                if (jthat.fieldSpecs != null) {
+                    scan(jthat.fieldSpecs.mods);
+                    scan(jthat.fieldSpecs.list);
+                }
             }
         }
     }

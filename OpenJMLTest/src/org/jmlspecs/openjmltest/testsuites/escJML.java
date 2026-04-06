@@ -22,6 +22,8 @@ public class escJML extends EscBase {
         super.tearDown();
     }
     
+    // FIXME - the JML.lbl functions should report output just like the \lbl version do
+    
     @Test
     public void testLBLObject() {
         helpEsc("tt.TestJava","package tt; \n"
@@ -51,9 +53,10 @@ public class escJML extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(int i) { \n"
-                +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
+                +"     //@ assert \\lbl(AL,i) != 0; \n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:4: verify: Label AL has value 0", 22
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }

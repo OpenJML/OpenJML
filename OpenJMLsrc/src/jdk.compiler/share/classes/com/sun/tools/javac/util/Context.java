@@ -119,7 +119,7 @@ public class Context {
      * or
      * {@literal Key<T> -> Factory<T> }
      */
-    protected final Map<Key<?>,Object> ht = new HashMap<>();
+    protected final Map<Key<?>,Object> ht = new java.util.HashMap<>();
 
     /** Set the factory for the key in this context. */
     public <T> void put(Key<T> key, Factory<T> fac) {

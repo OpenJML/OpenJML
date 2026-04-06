@@ -7,4 +7,4 @@
 
 ## If the environmental variable COV is set, then coverage measurements are reported
 
-JOBS=0 ./runpar $@
+JOBS=0 ./runpar "$@"

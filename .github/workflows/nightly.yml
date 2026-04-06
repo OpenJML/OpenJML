@@ -54,6 +54,10 @@ jobs:
       fail-fast: false
 
     steps:
+    - name: Run userguide tests
+      run: |
+        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
+
     - name: Checkout actions
       uses: actions/checkout@v6
       with:
@@ -65,6 +69,12 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
+
+    - name: Run userguide tests
+      run: |
+        ( cd OpenJML/OpenJMLTest; git clone https://git:${{ secrets.OVERLEAF_TOKEN }}@git.overleaf.com/620c2512d552cc226f5f4c94 )
+        ( cd OpenJML/OpenJMLTest/620c2512d552cc226f5f4c94; chmod +x test-userguide-examples; PATH="../../OpenJMLsrc:$PATH" ./test-userguide-examples || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV }
+
     - name: Build OpenJML
       uses: ./ACTIONS/.github/actions/openjml-build/
       with:
@@ -76,7 +86,11 @@ jobs:
         echo $sep $sepsemi
         PATH="../../OpenJML/$FOLDER$sep$PATH" echo $PATH
         PATH="../../OpenJML/$FOLDER$sepsemi$PATH" echo $PATH
-        echo "failures= " >> $GITHUB_ENV
+        echo "failures=" >> $GITHUB_ENV
+
+    - name: Run userguide tests
+      run: |
+        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-nightly || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
 
     - name: Run release tests
       run: |
@@ -90,10 +104,6 @@ jobs:
       run: |
         PATH="../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest json-tests || echo "failures=$failures json tests failed." >> $GITHUB_ENV
 
-    - name: Run userguide tests
-      run: |
-        PATH="../../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest userguide-tests-released || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
-
     - name: Report
       run: |
         if [ -z "$failures" ] ; then echo All tests OK; exit 0; else echo $failures; exit 1; fi
@@ -101,7 +111,7 @@ jobs:
 
   ## This job builds a development version of OpenJML as part of a trial release build
   ## and then runs various unit and functionality tests
-  unittests:
+  unittests1:
     needs: export-matrix
     runs-on: ${{ matrix.os }}
     strategy:
@@ -128,6 +138,62 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="../../$FOLDER$sep$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
 
+  unittests2:
+    needs: export-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+      fail-fast: false
 
+    steps:
+    - name: Checkout actions
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: ./.github
+        path: ACTIONS
+    - name: OS setup
+      uses: ./ACTIONS/.github/actions/os-setup/
+    - name: Checkout OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
+      with:
+        branch: ${{ github.ref_name }}
+    - name: Build OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-build/
+      with:
+        test: false ## These tests of the release are performed in the build workflow
+
+    - name: Run unit tests
+      run: |
+        PATH="../../$FOLDER$sep$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
+
+  unittests3:
+    needs: export-matrix
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+      fail-fast: false
+
+    steps:
+    - name: Checkout actions
+      uses: actions/checkout@v4
+      with:
+        sparse-checkout: ./.github
+        path: ACTIONS
+    - name: OS setup
+      uses: ./ACTIONS/.github/actions/os-setup/
+    - name: Checkout OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
+      with:
+        branch: ${{ github.ref_name }}
+    - name: Build OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-build/
+      with:
+        test: false ## These tests of the release are performed in the build workflow
+
+    - name: Run unit tests
+      run: |
+        PATH="../../$FOLDER$sep$PATH" START=71 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 

@@ -112,19 +112,23 @@ public class racnew extends RacBase {
 
     /** Successful precondition */
     @Test public void testPrecondition() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(0); System.out.println(\"END\"); }\n" +
-                " /*@ requires i == 0; */ static void m(int i) {} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(0); System.out.println("END"); }
+                 /*@ requires i == 0; */ static void m(int i) {} }
+                """
                 ,"END"
                 );
     }
     
     /** Failed precondition */
     @Test public void testPrecondition2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(0); System.out.println(\"END\"); }\n" +
-                " /*@ requires i != 0; */ \n" +
-                " static public void m(int i) {} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(0); System.out.println("END"); }
+                 /*@ requires i != 0; */
+                 static public void m(int i) {} }
+                """
                 ,"/tt/TestJava.java:1: JML precondition is false"
                 ,"/tt/TestJava.java:3: Associated declaration"
                 ,"/tt/TestJava.java:2: JML precondition is false"
@@ -134,15 +138,17 @@ public class racnew extends RacBase {
     
     /** Failed precondition */
     @Test public void testPrecondition3() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " m(1); \n" +
-                " m(-1); \n" +
-                " m(0); \n" +
-                " System.out.println(\"END\"); }\n" +
-                " /*@ requires i > 0; */ \n" +
-                " /*@ requires i < 0; */ \n" +
-                " static public void m(int i) {} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                 m(1);
+                 m(-1);
+                 m(0);
+                 System.out.println("END"); }
+                 /*@ requires i > 0; */
+                 /*@ requires i < 0; */
+                 static public void m(int i) {} }
+                """
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"/tt/TestJava.java:8: Associated declaration"
                 ,"/tt/TestJava.java:6: JML precondition is false"
@@ -233,20 +239,24 @@ public class racnew extends RacBase {
     // TODO need multiple requires, multiple spec cases
 
     @Test public void testPostcondition() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures k == i; */ static int m(int i) { k = i; return 13; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println("END"); } static int k = 0;
+                 /*@ ensures k == i; */ static int m(int i) { k = i; return 13; } }
+                """
                 ,"END"
                 );
     }
 
     @Test public void testPostcondition1() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " m(1); System.out.println(\"END\"); } \n" +
-                " static public int k = 0; \n" +
-                " /*@ ensures k == 0; */ \n" +
-                " static public int m(int i) { k = i; return 13; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                 m(1); System.out.println("END"); }
+                 static public int k = 0;
+                 /*@ ensures k == 0; */
+                 static public int m(int i) { k = i; return 13; } }
+                """
                 ,"/tt/TestJava.java:5: JML postcondition is false"
                 ,"/tt/TestJava.java:4: Associated declaration"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
@@ -256,32 +266,45 @@ public class racnew extends RacBase {
     }
 
     @Test public void testPostcondition2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ requires true; \nalso \nrequires false; \nensures k == 0; */ static void m(int i) { k = i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println("END"); } static int k = 0;
+                 /*@ requires true;
+                also
+                requires false;
+                ensures k == 0; */ static void m(int i) { k = i; } }
+                """
                 ,"END"
                 );
     }
 
     @Test public void testPostcondition3() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ requires true; \nensures true; \nalso \nrequires false; \nensures k == 0; */ static void m(int i) { k = i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(1); System.out.println("END"); } static int k = 0;
+                 /*@ requires true;
+                ensures true;
+                also
+                requires false;
+                ensures k == 0; */ static void m(int i) { k = i; } }
+                """
                 ,"END"
                 );
     }
 
     @Test public void testPostcondition4() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " m(1); System.out.println(\"END\"); } \n" +
-                " static public int k = 0; \n" +
-                " /*@ requires true; \n" +
-                "     ensures k != i; \n" +
-                "     also \n" +
-                "     requires true; \n" +
-                "     ensures k == 0; */ \n" +
-                " static public void m(int i) { k = i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                 m(1); System.out.println("END"); }
+                 static public int k = 0;
+                 /*@ requires true;
+                     ensures k != i;
+                     also
+                     requires true;
+                     ensures k == 0; */
+                 static public void m(int i) { k = i; } }
+                """
                 ,"/tt/TestJava.java:9: JML postcondition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"/tt/TestJava.java:9: JML postcondition is false"
@@ -296,21 +319,23 @@ public class racnew extends RacBase {
     
     @Test public void testPostcondition5() {
         expectedRACExit = 1;
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String[] args) { \n"
-                +"    org.jmlspecs.runtime.Utils.useExceptions = true; \n"
-                +"    m(1); \n"
-                +"    System.out.println(\"END\"); \n"
-                +"  } \n"
-                +"  static int k = 0; \n"
-                +"  /*@   requires true; \n"
-                +"        ensures k != i; \n" 
-                +"      also \n"
-                +"        requires true; \n"
-                +"        ensures k == 0; */\n"
-                +"  static void m(int i) { k = i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    org.jmlspecs.runtime.Utils.useExceptions = true;
+                    m(1);
+                    System.out.println("END");
+                  }
+                  static int k = 0;
+                  /*@   requires true;
+                        ensures k != i;
+                      also
+                        requires true;
+                        ensures k == 0; */
+                  static void m(int i) { k = i; } }
+                """
                 ,"Exception in thread \"main\" org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:14: verify: JML postcondition is false"
                 ,"/tt/TestJava.java:10: Associated declaration"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
@@ -321,15 +346,17 @@ public class racnew extends RacBase {
     }
     
     @Test public void testSignals() {
-        helpRacText("tt.TestJava","package tt; public class TestJava {\n"
-                +" public static void main(String[] args) { \n"
-                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
-                +"} \n"
-                +"static int k = 0; \n"
-                +" /*@ requires true; \n"
-                +"     signals (java.io.FileNotFoundException e) e == null; */\n"
-                +"static public void m(int i) throws java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                 public static void main(String[] args) {
+                   try { m(1); } catch (Exception e) {} System.out.println("END");
+                }
+                static int k = 0;
+                 /*@ requires true;
+                     signals (java.io.FileNotFoundException e) e == null; */
+                static public void m(int i) throws java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } }
+                """
                 ,"/tt/TestJava.java:8: JML signals condition is false"
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"/tt/TestJava.java:3: JML signals condition is false"
@@ -339,14 +366,17 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSignals2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava {\n"
-                +" public static void main(String[] args) { \n"
-                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
-                +"} \n"
-                +"static public int k = 0; \n"
-                +" /*@ requires true; \nsignals (java.io.FileNotFoundException e) e == null; */\n"
-                +"static public void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                 public static void main(String[] args) {
+                   try { m(1); } catch (Exception e) {} System.out.println("END");
+                }
+                static public int k = 0;
+                 /*@ requires true;
+                signals (java.io.FileNotFoundException e) e == null; */
+                static public void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } }
+                """
                 ,"/tt/TestJava.java:8: JML signals condition is false"
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"/tt/TestJava.java:3: JML signals condition is false"
@@ -356,14 +386,17 @@ public class racnew extends RacBase {
     }
     
     @Test public void testSignalsOnly() {
-        helpRacText("tt.TestJava","package tt; public class TestJava {\n"
-                +" public static void main(String[] args) { \n"
-                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
-                +"} \n"
-                +"static int k = 0; \n"
-                +" /*@ requires true; \nsignals_only \\nothing; */\n"
-                +"static public void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                 public static void main(String[] args) {
+                   try { m(1); } catch (Exception e) {} System.out.println("END");
+                }
+                static int k = 0;
+                 /*@ requires true;
+                signals_only \\nothing; */
+                static public void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } }
+                """
                 ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause: java.io.FileNotFoundException" // check by callee
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause: java.io.FileNotFoundException" // check of postcondition assumption by caller
@@ -373,27 +406,33 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSignalsOnly1() {
-        helpRacText("tt.TestJava","package tt; public class TestJava {\n"
-                +" public static void main(String[] args) { \n"
-                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
-                +"} \n"
-                +"static int k = 0; \n"
-                +" /*@ requires true; \nsignals_only java.io.FileNotFoundException; */\n"
-                +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                 public static void main(String[] args) {
+                   try { m(1); } catch (Exception e) {} System.out.println("END");
+                }
+                static int k = 0;
+                 /*@ requires true;
+                signals_only java.io.FileNotFoundException; */
+                static void m(int i) throws Exception, java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } }
+                """
                 ,"END"
                 );
     }
 
     @Test public void testSignalsOnly2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava {\n"
-                +" public static void main(String[] args) { \n"
-                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
-                +"} \n"
-                +"static int k = 0; \n"
-                +" /*@ requires true; \nsignals_only java.io.FileNotFoundException; */\n"
-                +"static void m(int i) throws Exception, java.io.FileNotFoundException { throw new Exception(); } "
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                 public static void main(String[] args) {
+                   try { m(1); } catch (Exception e) {} System.out.println("END");
+                }
+                static int k = 0;
+                 /*@ requires true;
+                signals_only java.io.FileNotFoundException; */
+                static void m(int i) throws Exception, java.io.FileNotFoundException { throw new Exception(); } }
+                """
                 ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause: java.lang.Exception"
                 ,"/tt/TestJava.java:7: Associated declaration"
                 ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause: java.lang.Exception"
@@ -403,14 +442,17 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSignalsOnlyDefault() {
-        helpRacText("tt.TestJava","package tt; public class TestJava {\n"
-                +" public static void main(String[] args) { \n"
-                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
-                +"} \n"
-                +"static int k = 0; \n"
-                +" /*@ requires true; \n*/\n"
-                +"static void m(int i) throws java.io.FileNotFoundException { throw new RuntimeException(); } "
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                 public static void main(String[] args) {
+                   try { m(1); } catch (Exception e) {} System.out.println("END");
+                }
+                static int k = 0;
+                 /*@ requires true;
+                */
+                static void m(int i) throws java.io.FileNotFoundException { throw new RuntimeException(); } }
+                """
 //                ,"/tt/TestJava.java:8: JML unexpected exception for the signals_only clause"
 //                ,"/tt/TestJava.java:8: Associated declaration"
 //                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause"
@@ -420,29 +462,35 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSignalsOnlyDefault1() {
-        helpRacText("tt.TestJava","package tt; public class TestJava {\n"
-                +" public static void main(String[] args) { \n"
-                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
-                +"} \n"
-                +"static int k = 0; \n"
-                +" /*@ requires true; \n*/\n"
-                +"static void m(int i) throws java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } "
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                 public static void main(String[] args) {
+                   try { m(1); } catch (Exception e) {} System.out.println("END");
+                }
+                static int k = 0;
+                 /*@ requires true;
+                */
+                static void m(int i) throws java.io.FileNotFoundException { throw new java.io.FileNotFoundException(); } }
+                """
                 ,"END"
                 );
     }
 
     @Test public void testSignalsOnlyDefault2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava {\n"
-                +" public static void main(String[] args) throws RuntimeException { \n"
-                +"   try { m(1); } catch (Exception e) {} System.out.println(\"END\"); \n"
-                +"} \n"
-                +"static int k = 0; \n"
-                +" \n"
-                +"static void m(int i) \n"
-                +"    throws java.io.FileNotFoundException \n"
-                +"   { throw new RuntimeException(); }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                 public static void main(String[] args) throws RuntimeException {
+                   try { m(1); } catch (Exception e) {} System.out.println("END");
+                }
+                static int k = 0;
+
+                static void m(int i)
+                    throws java.io.FileNotFoundException
+                   { throw new RuntimeException(); }
+                }
+                """
 //                ,"/tt/TestJava.java:7: JML unexpected exception for the signals_only clause"
 //                ,"/tt/TestJava.java:7: Associated declaration"
 //                ,"/tt/TestJava.java:3: JML unexpected exception for the signals_only clause"
@@ -452,22 +500,26 @@ public class racnew extends RacBase {
     }
 
     @Test public void testResult() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) {  m(1); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures \\result == 4; */ static int m(int i) { return 4; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {  m(1); System.out.println("END"); } static int k = 0;
+                 /*@ ensures \\result == 4; */ static int m(int i) { return 4; } }
+                """
                 ,"END"
         );
     }
 
     @Test public void testResult1() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
-                +" m(1); \n"
-                +" System.out.println(\"END\"); } \n"
-                +" static int k = 0; \n" 
-                +" /*@ ensures \\result == 4; */ \n"
-                +" static public int m(int i) { \n"
-                +" return 5; } "
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                 m(1);
+                 System.out.println("END"); }
+                 static int k = 0;
+                 /*@ ensures \\result == 4; */
+                 static public int m(int i) {
+                 return 5; } }
+                """
                 ,"/tt/TestJava.java:6: JML postcondition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"/tt/TestJava.java:2: JML postcondition is false"
@@ -494,9 +546,11 @@ public class racnew extends RacBase {
     }
     
     @Test public void testLabel() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures (\\lbl ENS \\result == 1); */ static public int m(int i) { return i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println("END"); } static int k = 0;
+                 /*@ ensures (\\lbl ENS \\result == 1); */ static public int m(int i) { return i; } }
+                """
                 ,"LABEL ENS = true"
                 ,"LABEL ENS = true"
                 ,"LABEL ENS = false"
@@ -510,9 +564,11 @@ public class racnew extends RacBase {
     }
     
     @Test public void testLabel2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
-                " /*@ ensures (\\lbl ENS (\\lbl RES \\result) == 1); */ static public int m(int i) { return i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println("END"); } static int k = 0;
+                 /*@ ensures (\\lbl ENS (\\lbl RES \\result) == 1); */ static public int m(int i) { return i; } }
+                """
                 ,"LABEL RES = 1"
                 ,"LABEL ENS = true"
                 ,"LABEL RES = 1"
@@ -530,9 +586,11 @@ public class racnew extends RacBase {
     }
     
     @Test public void testOld() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static public int k = 0; \n" +
-                " /*@ ensures (\\lbl ENS \\old(k)) == k; */ static public int m(int i) { k=i; return i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println("END"); } static public int k = 0;
+                 /*@ ensures (\\lbl ENS \\old(k)) == k; */ static public int m(int i) { k=i; return i; } }
+                """
                 ,"LABEL ENS = 0" // k==0 at beginning of m(1)
                 ,"/tt/TestJava.java:2: JML postcondition is false" // postcondition false because k is now 1
                 ,"/tt/TestJava.java:2: Associated declaration"
@@ -550,9 +608,14 @@ public class racnew extends RacBase {
     }
     
     @Test public void testOld2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
-                " static int m(int i) { //@ assert (\\lbl AST \\old(k)) == 0; \n k=i; //@ assert (\\lbl AST2 \\old(k)) == 0;\n //@ assert (\\lbl AST3 k) == 0; \n return i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println("END"); } static int k = 0;
+                 static int m(int i) { //@ assert (\\lbl AST \\old(k)) == 0;
+                 k=i; //@ assert (\\lbl AST2 \\old(k)) == 0;
+                 //@ assert (\\lbl AST3 k) == 0;
+                 return i; } }
+                """
                 ,"LABEL AST = 0"
                 ,"LABEL AST2 = 0"
                 ,"LABEL AST3 = 1"
@@ -567,21 +630,22 @@ public class racnew extends RacBase {
     }
     
     @Test public void testOld3() {  // FIXME - \old at a label not working for RAC
-        helpRacText("tt.TestJava","package tt; public class TestJava { \n"
-                + "public static void main(String[] args) { \n"
-                + "  m(1); m(0); \n"
-                + "  System.out.println(\"END\"); "
-                + "} \n"
-                + "static int k = 0; \n"
-                + "static int m(int i) { \n"
-                + "  //@ ghost int p = (\\lbl AST \\old(k)); \n"
-                + "  k=i; \n"
-                + "  lab: k = 9+i; \n"
-                + "  //@ ghost int kk =  (\\lbl AST2 \\old(k));\n "
-                + "  //@ set kk = (\\lbl AST3 k); \n "
-                + "  //@ set kk = (\\lbl AST4 \\old(k,lab)); \n "
-                + "  return i; } "
-                + "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava {
+                public static void main(String[] args) {
+                  m(1); m(0);
+                  System.out.println("END"); }
+                static int k = 0;
+                static int m(int i) {
+                  //@ ghost int p = (\\lbl AST \\old(k));
+                  k=i;
+                  lab: k = 9+i;
+                  //@ ghost int kk =  (\\lbl AST2 \\old(k));
+                  //@ set kk = (\\lbl AST3 k);
+                  //@ set kk = (\\lbl AST4 \\old(k,lab));
+                  return i; } }
+                """
                 ,"LABEL AST = 0"  // k==0 at beginning of m(1)
                 ,"LABEL AST2 = 0" // k==0 at beginning of m(1)
                 ,"LABEL AST3 = 10" // k currently 10 in m(1)
@@ -596,9 +660,12 @@ public class racnew extends RacBase {
     }
     
     @Test public void testInformal() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println(\"END\"); } static int k = 0; \n" +
-                " static int m(int i) { System.out.println(i); //@ assert (i==0) <==> (* informal *); \n return i; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) { m(1); m(0); System.out.println("END"); } static int k = 0;
+                 static int m(int i) { System.out.println(i); //@ assert (i==0) <==> (* informal *);
+                 return i; } }
+                """
                 ,"1"
                 ,"/tt/TestJava.java:2: JML assertion is false"
                 ,"0"
@@ -607,11 +674,13 @@ public class racnew extends RacBase {
     }
 
     @Test public void testTypeOfA() {
-        helpRacText("tt.TestJava","package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { public static void main(String[] args) { \n" +
-                "m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println(\"END\"); } \n" +
-                " //@ requires JML.informal(\"asd\") && (\\lbl CLS \\erasure(\\typeof(i))) == Object.class; \n" +
-                " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; import static org.jmlspecs.lang.JML.*; public class TestJava { public static void main(String[] args) {
+                m(new Object()); m(new String()); m(Boolean.TRUE); System.out.println("END"); }
+                 //@ requires JML.informal("asd") && (\\lbl CLS \\erasure(\\typeof(i))) == Object.class;
+                 static public void m(/*@nullable*/Object i) { System.out.println("CLASS " + i.getClass()); } }
+                """
                 ,"LABEL CLS = class java.lang.Object"
                 ,"LABEL CLS = class java.lang.Object"
                 ,"CLASS class java.lang.Object"
@@ -632,11 +701,13 @@ public class racnew extends RacBase {
     }
     
     @Test public void testTypeOf1() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(new Object[1]); m(new String[2]); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object); \n" +
-                " static public void m(/*@nullable*/Object i) { System.out.println(\"CLASS \" + i.getClass()); } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(new Object[1]); m(new String[2]); System.out.println("END"); }
+                 //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object);
+                 static public void m(/*@nullable*/Object i) { System.out.println("CLASS " + i.getClass()); } }
+                """
                 ,"LABEL CLS = java.lang.Object[]"
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"/tt/TestJava.java:4: Associated declaration"
@@ -654,20 +725,22 @@ public class racnew extends RacBase {
     }
     
     @Test public void testTypeOf2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(0); System.out.println(\"END\"); } \n" +
-                " //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object); \n" +
-                " static public void m(int i) { \n" +
-                "//@ assert (\\lbl AST \\typeof(true)) == \\typeof(true); \n" +
-                "//@ assert (\\lbl AST2 \\typeof((short)0)) != \\typeof(true); \n" +
-                "//@ assert (\\lbl AST3 \\typeof((long)0)) != \\typeof(true); \n" +
-                "//@ assert (\\lbl AST4 \\typeof((byte)0)) != \\typeof(true); \n" +
-                "//@ assert (\\lbl AST5 \\typeof('c')) != \\typeof(true); \n" +
-                "//@ assert (\\lbl AST6 \\typeof(\"c\")) != \\typeof(true); \n" +
-                "//@ assert (\\lbl AST7 \\typeof((float)0)) != \\typeof(true); \n" +
-                "//@ assert (\\lbl AST8 \\typeof((double)0)) != \\typeof(true); \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(0); System.out.println("END"); }
+                 //@ requires (\\lbl CLS \\typeof(i)) == \\type(Object);
+                 static public void m(int i) {
+                //@ assert (\\lbl AST \\typeof(true)) == \\typeof(true);
+                //@ assert (\\lbl AST2 \\typeof((short)0)) != \\typeof(true);
+                //@ assert (\\lbl AST3 \\typeof((long)0)) != \\typeof(true);
+                //@ assert (\\lbl AST4 \\typeof((byte)0)) != \\typeof(true);
+                //@ assert (\\lbl AST5 \\typeof('c')) != \\typeof(true);
+                //@ assert (\\lbl AST6 \\typeof("c")) != \\typeof(true);
+                //@ assert (\\lbl AST7 \\typeof((float)0)) != \\typeof(true);
+                //@ assert (\\lbl AST8 \\typeof((double)0)) != \\typeof(true);
+                } }
+                """
                 ,"LABEL CLS = int"
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"/tt/TestJava.java:4: Associated declaration"
@@ -686,13 +759,15 @@ public class racnew extends RacBase {
     }
     
     @Test public void testTypeOf3() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(0); System.out.println(\"END\"); } \n" +
-                " static void m(int i) { \n" +
-                "//@ assert (\\lbl AST9 \\typeof(5/0)) == \\typeof(5/0); \n" +
-                "//@ assert (\\lbl AST10 \\typeof(5.0/0.0)) != \\typeof(5/0); \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(0); System.out.println("END"); }
+                 static void m(int i) {
+                //@ assert (\\lbl AST9 \\typeof(5/0)) == \\typeof(5/0);
+                //@ assert (\\lbl AST10 \\typeof(5.0/0.0)) != \\typeof(5/0);
+                } }
+                """
                 ,"LABEL AST9 = int"
                 ,"LABEL AST10 = double"
                 ,"END"
@@ -781,22 +856,23 @@ public class racnew extends RacBase {
     
     @Test public void testNonnullelement() {
         expectedRACExit = 1;
-        helpRacText("tt.TestJava","package tt; public class TestJava { static int z = 0; public static void main(String[] args) { \n" +
-                "String[] s2null = new String[]{null,\"B\"}; \n" +
-                "String[] s2 = new String[]{\"A\",\"B\"}; \n" +
-                "m(new Object[]{}); \n" +
-                "m(new String[]{\"A\"}); \n" +
-                "m(s2); \n" +
-                "m(s2null); \n" +
-                "//@ assert \\nonnullelements(s2,s2null); \n" +
-                "//@ assert \\nonnullelements(s2,s2); \n" +
-                        // Tests shortcut evaluation - should evaluate all arguments first
-                "//@ assert \\nonnullelements(s2null,new Integer[]{5/z}); \n" +
-                "System.out.println(\"END\"); } \n" +
-                " static void m(Object[] o) { \n" +
-                "//@ assert (\\lbl ELEM \\nonnullelements(o)); \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { static int z = 0; public static void main(String[] args) {
+                String[] s2null = new String[]{null,"B"};
+                String[] s2 = new String[]{"A","B"};
+                m(new Object[]{});
+                m(new String[]{"A"});
+                m(s2);
+                m(s2null);
+                //@ assert \\nonnullelements(s2,s2null);
+                //@ assert \\nonnullelements(s2,s2);
+                //@ assert \\nonnullelements(s2null,new Integer[]{5/z});
+                System.out.println("END"); }
+                 static void m(Object[] o) {
+                //@ assert (\\lbl ELEM \\nonnullelements(o));
+                } }
+                """
                 ,"LABEL ELEM = true"
                 ,"LABEL ELEM = true"
                 ,"LABEL ELEM = true"
@@ -810,13 +886,15 @@ public class racnew extends RacBase {
     }
     
     @Test public void testNonnullelement2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(null); \n" +
-                "System.out.println(\"END\"); } \n" +
-                " static void m(Object /*@nullable*/[] o) { \n" +
-                "//@ assert (\\lbl ELEM \\nonnullelements((\\lbl O o))); \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(null);
+                System.out.println("END"); }
+                 static void m(Object /*@nullable*/[] o) {
+                //@ assert (\\lbl ELEM \\nonnullelements((\\lbl O o)));
+                } }
+                """
                 ,"LABEL O = null"
                 ,"LABEL ELEM = false"
                 ,"/tt/TestJava.java:5: JML assertion is false"
@@ -825,24 +903,26 @@ public class racnew extends RacBase {
     }
     
     @Test public void testLbl() { // FIXME - same as in racnew2?
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(null); \n" +
-                "System.out.println(\"END\"); } \n" +
-                "static int i = 0; static String n = \"asd\";\n" +
-                " static void m(/*@nullable*/ Object o) { \n" +
-                "//@ assert (\\lbl STRING \"def\") != null; \n" +
-                "++i; //@ assert (\\lbl SHORT (short)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl LONG (long)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl BYTE (byte)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl INT (int)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl FLOAT (float)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0; \n" +
-                "//@ assert (\\lbl CHAR n.charAt(0)) != 0; \n" +
-                "//@ assert (\\lbl BOOLEAN (i == 0)) ; \n" +
-                "//@ assert (\\lbl OBJECT o) == null; \n" +
-                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(null);
+                System.out.println("END"); }
+                static int i = 0; static String n = "asd";
+                 static void m(/*@nullable*/ Object o) {
+                //@ assert (\\lbl STRING "def") != null;
+                ++i; //@ assert (\\lbl SHORT (short)(i)) != 0;
+                ++i; //@ assert (\\lbl LONG (long)(i)) != 0;
+                ++i; //@ assert (\\lbl BYTE (byte)(i)) != 0;
+                ++i; //@ assert (\\lbl INT (int)(i)) != 0;
+                ++i; //@ assert (\\lbl FLOAT (float)(i)) != 0;
+                ++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0;
+                //@ assert (\\lbl CHAR n.charAt(0)) != 0;
+                //@ assert (\\lbl BOOLEAN (i == 0)) ;
+                //@ assert (\\lbl OBJECT o) == null;
+                //@ assert (\\lbl STRING "abc") != null;
+                } }
+                """
                 ,"LABEL STRING = def"
                 ,"LABEL SHORT = 1"
                 ,"LABEL LONG = 2"
@@ -860,22 +940,24 @@ public class racnew extends RacBase {
     }
     
     @Test public void testLblConst() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(null); \n" +
-                "System.out.println(\"END\"); } static int i = 0; \n" +
-                " static void m(/*@ nullable */ Object o) { \n" +
-                "//@ assert (\\lbl OBJECT null) == null; \n" +
-                "//@ assert (\\lbl INT (int)(4)) != 0; \n" +
-                "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
-                "//@ assert (\\lbl LONG (long)(2)) != 0; \n" +
-                "//@ assert (\\lbl BYTE (byte)(3)) != 0; \n" +
-                "//@ assert (\\lbl FLOAT (float)(5)) != 0; \n" +
-                "//@ assert (\\lbl DOUBLE (double)(6)) != 0; \n" +
-                "//@ assert (\\lbl CHAR 'a') != 0; \n" +
-                "//@ assert (\\lbl BOOLEAN true) ; \n" +
-                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(null);
+                System.out.println("END"); } static int i = 0;
+                 static void m(/*@ nullable */ Object o) {
+                //@ assert (\\lbl OBJECT null) == null;
+                //@ assert (\\lbl INT (int)(4)) != 0;
+                //@ assert (\\lbl SHORT (short)(1)) != 0;
+                //@ assert (\\lbl LONG (long)(2)) != 0;
+                //@ assert (\\lbl BYTE (byte)(3)) != 0;
+                //@ assert (\\lbl FLOAT (float)(5)) != 0;
+                //@ assert (\\lbl DOUBLE (double)(6)) != 0;
+                //@ assert (\\lbl CHAR 'a') != 0;
+                //@ assert (\\lbl BOOLEAN true) ;
+                //@ assert (\\lbl STRING "abc") != null;
+                } }
+                """
                 ,"LABEL OBJECT = null"
                 ,"LABEL INT = 4"
                 ,"LABEL SHORT = 1"
@@ -891,46 +973,48 @@ public class racnew extends RacBase {
     }
     
     @Test public void testLblX() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(); mm(); ma(); mg(); \n" +
-                "System.out.println(\"END\"); } \n" +
-                " static void m() { \n" +
-                "//@ ghost \\TYPE c; \n" +
-                "//@ set c = \\type(int); \n" +
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\type(boolean); \n" +
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "}\n" +
-                " static void mm() { \n" +
-                "//@ ghost \\TYPE c; \n" +
-                "//@ set c = \\type(java.lang.Object); \n" +
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\type(Object); \n" +
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "//@ set c = \\type(java.lang.String); \n" +
-                "//@ set c = (\\lbl TYP3 c); \n" +
-                "//@ set c = \\type(String); \n" +
-                "//@ set c = (\\lbl TYP4 c); \n" +
-                "}\n" +
-                " static void ma() { \n" +
-                "//@ ghost \\TYPE c; \n" +
-                "//@ set c = \\type(java.lang.String[]); \n" +
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\type(String[]); \n" +
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "//@ set c = \\type(java.lang.String[][]); \n" +
-                "//@ set c = (\\lbl TYP3 c); \n" +
-                "//@ set c = \\type(String[][]); \n" +
-                "//@ set c = (\\lbl TYP4 c); \n" +
-                "} \n" +
-                " static void mg() { \n" +
-                "//@ ghost \\TYPE c; \n" +
-                "//@ set c = \\type(java.lang.Class<Integer>); \n" +
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ ghost boolean bbb = (\\lbl TRUE Class.class == \\erasure(\\type(Class<Boolean>))); \n" +
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(); mm(); ma(); mg();
+                System.out.println("END"); }
+                 static void m() {
+                //@ ghost \\TYPE c;
+                //@ set c = \\type(int);
+                //@ set c = (\\lbl TYP1 c);
+                //@ set c = \\type(boolean);
+                //@ set c = (\\lbl TYP2 c);
+                }
+                 static void mm() {
+                //@ ghost \\TYPE c;
+                //@ set c = \\type(java.lang.Object);
+                //@ set c = (\\lbl TYP1 c);
+                //@ set c = \\type(Object);
+                //@ set c = (\\lbl TYP2 c);
+                //@ set c = \\type(java.lang.String);
+                //@ set c = (\\lbl TYP3 c);
+                //@ set c = \\type(String);
+                //@ set c = (\\lbl TYP4 c);
+                }
+                 static void ma() {
+                //@ ghost \\TYPE c;
+                //@ set c = \\type(java.lang.String[]);
+                //@ set c = (\\lbl TYP1 c);
+                //@ set c = \\type(String[]);
+                //@ set c = (\\lbl TYP2 c);
+                //@ set c = \\type(java.lang.String[][]);
+                //@ set c = (\\lbl TYP3 c);
+                //@ set c = \\type(String[][]);
+                //@ set c = (\\lbl TYP4 c);
+                }
+                 static void mg() {
+                //@ ghost \\TYPE c;
+                //@ set c = \\type(java.lang.Class<Integer>);
+                //@ set c = (\\lbl TYP1 c);
+                //@ ghost boolean bbb = (\\lbl TRUE Class.class == \\erasure(\\type(Class<Boolean>)));
+                //@ set c = (\\lbl TYP2 c);
+                } }
+                """
                 ,"LABEL TYP1 = int"
                 ,"LABEL TYP2 = boolean"
                 ,"LABEL TYP1 = java.lang.Object"
@@ -949,45 +1033,47 @@ public class racnew extends RacBase {
     }
     
     @Test
-    public void testTypelc() { 
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(); mm(); ma(); mg(); \n" +
-                "System.out.println(\"END\"); } \n" +
-                " static void m() { \n" +
-                "//@ ghost \\TYPE c; \n" +
-                "//@ set c = \\type(int); \n" +
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\type(boolean); \n" +
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "}\n" +
-                " static void mm() { \n" +
-                "//@ ghost \\TYPE c; \n" +
-                "//@ set c = \\type(java.lang.Object); \n" +
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\type(Object); \n" +
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "//@ set c = \\type(java.lang.String); \n" +
-                "//@ set c = (\\lbl TYP3 c); \n" +
-                "//@ set c = \\type(String); \n" +
-                "//@ set c = (\\lbl TYP4 c); \n" +
-                "}\n" +
-                " static void ma() { \n" +
-                "//@ ghost \\TYPE c; \n" +
-                "//@ set c = \\type(java.lang.String[]); \n" +
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\type(String[]); \n" +
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "//@ set c = \\type(java.lang.String[][]); \n" +
-                "//@ set c = (\\lbl TYP3 c); \n" +
-                "//@ set c = \\type(String[][]); \n" +
-                "//@ set c = (\\lbl TYP4 c); \n" +
-                "} \n" +
-                " static void mg() { \n" +
-                "//@ ghost \\TYPE c; \n" +
-                "//@ set c = \\type(java.lang.Class<Integer>); \n" +
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "} " +
-                "}"
+    public void testTypelc() {
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(); mm(); ma(); mg();
+                System.out.println("END"); }
+                 static void m() {
+                //@ ghost \\TYPE c;
+                //@ set c = \\type(int);
+                //@ set c = (\\lbl TYP1 c);
+                //@ set c = \\type(boolean);
+                //@ set c = (\\lbl TYP2 c);
+                }
+                 static void mm() {
+                //@ ghost \\TYPE c;
+                //@ set c = \\type(java.lang.Object);
+                //@ set c = (\\lbl TYP1 c);
+                //@ set c = \\type(Object);
+                //@ set c = (\\lbl TYP2 c);
+                //@ set c = \\type(java.lang.String);
+                //@ set c = (\\lbl TYP3 c);
+                //@ set c = \\type(String);
+                //@ set c = (\\lbl TYP4 c);
+                }
+                 static void ma() {
+                //@ ghost \\TYPE c;
+                //@ set c = \\type(java.lang.String[]);
+                //@ set c = (\\lbl TYP1 c);
+                //@ set c = \\type(String[]);
+                //@ set c = (\\lbl TYP2 c);
+                //@ set c = \\type(java.lang.String[][]);
+                //@ set c = (\\lbl TYP3 c);
+                //@ set c = \\type(String[][]);
+                //@ set c = (\\lbl TYP4 c);
+                }
+                 static void mg() {
+                //@ ghost \\TYPE c;
+                //@ set c = \\type(java.lang.Class<Integer>);
+                //@ set c = (\\lbl TYP1 c);
+                } }
+                """
                 ,"LABEL TYP1 = int"
                 ,"LABEL TYP2 = boolean"
                 ,"LABEL TYP1 = java.lang.Object"
@@ -1005,41 +1091,44 @@ public class racnew extends RacBase {
 
     @Test
     public void testSubtype() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(); mm(); \n" +
-                "System.out.println(\"END\"); } \n" +
-                "static Object o = new Object(); \n" +
-                "static Object oo = new String(); \n" +
-                "static Object ob = Boolean.FALSE; \n" +
-                "static String s = new String(); \n" +
-                "static Boolean b = Boolean.TRUE; \n" +
-                " static void m() { \n" +
-                "//@ ghost boolean c; \n" +
-                "//@ set c = o.getClass() <:= o.getClass(); \n" + // Object <:= Object  // Class
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\typeof(o) <:= \\typeof(o); \n" +  // Object <:= Object // \TYPE
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "//@ set c = \\typeof(o) <:= \\typeof(oo); \n" + // Object <:= String // \TYPE
-                "//@ set c = (\\lbl TYP3 c); \n" +
-                "//@ set c = \\typeof(oo) <:= \\typeof(o); \n" + // String <:= Object // \TYPE
-                "//@ set c = (\\lbl TYP4 c); \n" +
-                "//@ set c = \\typeof(ob) <:= \\typeof(oo); \n" + // Boolean <:= String // \TYPE
-                "//@ set c = (\\lbl TYP5 c); \n" +
-                "}\n" +
-                " static void mm() { \n" +
-                "//@ ghost boolean c; \n" +
-                "//@ set c = s.getClass() <:= b.getClass(); \n" + // String <:= Boolean // Class
-                "//@ set c = (\\lbl TYP1 c); \n" +
-                "//@ set c = \\typeof(s) <:= \\typeof(b); \n" +  // String <:= Boolean // \TYPE
-                "//@ set c = (\\lbl TYP2 c); \n" +
-                "//@ set c = \\type(int) <:= \\typeof(o); \n" + // int <:= Object // \TYPE
-                "//@ set c = (\\lbl TYP3 c); \n" +
-                "//@ set c = \\type(int) <:= \\type(int); \n" + // int <:= int  // false
-                "//@ set c = (\\lbl TYP4 c); \n" +
-                "//@ set c = \\type(int) <:= \\type(boolean); \n" + // int <:= boolean
-                "//@ set c = (\\lbl TYP5 c); \n" +
-                "}\n" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(); mm();
+                System.out.println("END"); }
+                static Object o = new Object();
+                static Object oo = new String();
+                static Object ob = Boolean.FALSE;
+                static String s = new String();
+                static Boolean b = Boolean.TRUE;
+                 static void m() {
+                //@ ghost boolean c;
+                //@ set c = o.getClass() <:= o.getClass(); // Object <:= Object  // Class
+                //@ set c = (\\lbl TYP1 c);
+                //@ set c = \\typeof(o) <:= \\typeof(o); // Object <:= Object // \\TYPE
+                //@ set c = (\\lbl TYP2 c);
+                //@ set c = \\typeof(o) <:= \\typeof(oo); // Object <:= String // \\TYPE
+                //@ set c = (\\lbl TYP3 c);
+                //@ set c = \\typeof(oo) <:= \\typeof(o); // String <:= Object // \\TYPE
+                //@ set c = (\\lbl TYP4 c);
+                //@ set c = \\typeof(ob) <:= \\typeof(oo); // Boolean <:= String // \\TYPE
+                //@ set c = (\\lbl TYP5 c);
+                }
+                 static void mm() {
+                //@ ghost boolean c;
+                //@ set c = s.getClass() <:= b.getClass(); // String <:= Boolean // Class
+                //@ set c = (\\lbl TYP1 c);
+                //@ set c = \\typeof(s) <:= \\typeof(b); // String <:= Boolean // \\TYPE
+                //@ set c = (\\lbl TYP2 c);
+                //@ set c = \\type(int) <:= \\typeof(o); // int <:= Object // \\TYPE
+                //@ set c = (\\lbl TYP3 c);
+                //@ set c = \\type(int) <:= \\type(int); // int <:= int  // false
+                //@ set c = (\\lbl TYP4 c);
+                //@ set c = \\type(int) <:= \\type(boolean); // int <:= boolean
+                //@ set c = (\\lbl TYP5 c);
+                }
+                }
+                """
                 ,"LABEL TYP1 = true"
                 ,"LABEL TYP2 = true"
                 ,"LABEL TYP3 = false"
@@ -1055,14 +1144,17 @@ public class racnew extends RacBase {
     }
 
     @Test public void testUndefined() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(0); m(1); m(2); System.out.println(\"END\"); } \n" +
-                " //@ requires 10/i != 0; \n" +
-                " //@ ensures 10/(i-1) == 0; \n" +
-                " static public void m(int i) { \n" +
-                "   System.out.println(\"VALUE \" + i); \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(0); m(1); m(2); System.out.println("END"); }
+                 //@ requires 10/i != 0;
+                 //@ ensures 10/(i-1) == 0;
+                 static public void m(int i) {
+                   System.out.println("VALUE " + i);
+                 }
+                }
+                """
                 ,"/tt/TestJava.java:3: JML Division by zero"
                 ,"JML undefined precondition - exception thrown" // FIXME - this should have a line number
                 ,"java.lang.ArithmeticException: / by zero"
@@ -1098,13 +1190,15 @@ public class racnew extends RacBase {
     // tests that requires clauses in the same spec case are evaluated in order as if connected by &&
     // (if not, in this case we would get an exception)
     @Test public void testUndefined2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(0); m(1); System.out.println(\"END\"); } \n" +
-                " //@ requires i != 0; \n" +
-                " //@ requires 10/i == 10; \n" +
-                " static public void m(int i) { \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt; public class TestJava { public static void main(String[] args) {
+                m(0); m(1); System.out.println("END"); }
+                 //@ requires i != 0;
+                 //@ requires 10/i == 10;
+                 static public void m(int i) {
+                } }
+                """
                 ,"/tt/TestJava.java:2: JML precondition is false"
                 ,"/tt/TestJava.java:5: Associated declaration"
                 ,"/tt/TestJava.java:3: JML precondition is false"
@@ -1172,16 +1266,23 @@ public class racnew extends RacBase {
     }
 
     @Test public void testSpecModelMethod() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
-                +"/*@ model static pure public int mm() { return 5; } */ \n"
-                +"//@ ghost static public int i = 0;\n  "
-                +"//@ public invariant i == 0; \n //@ ensures i == 1;\n static public int m(); "
-                +"}"
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt; public class A {
+                /*@ model static pure public int mm() { return 5; } */
+                //@ ghost static public int i = 0;
+                //@ public invariant i == 0;
+                //@ ensures i == 1;
+                static public int m(); }
+                """
                 );
-        helpRacText("tt.A","package tt; public class A { static public int m() { \n"
-                +"  //@ set i = mm(); \n"
-                +"  return 0; }  \n"
-                +" public static void main(String[] args) { m(); System.out.println(\"END\"); }}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A { static public int m() {
+                  //@ set i = mm();
+                  return 0; }
+                 public static void main(String[] args) { m(); System.out.println("END"); } }
+                """
                 ,"/tt/A.java:1: JML postcondition is false"
                 ,"/$A/tt/A.jml:5: Associated declaration"
                 ,"/tt/A.java:4: JML postcondition is false"
@@ -1192,19 +1293,22 @@ public class racnew extends RacBase {
 
     @Test
     public void testSpecModelClass() {
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"/*@ model public static class AA { static public int mm() { return 5; }} */ \n"
-                +"//@ ghost public static int i = 0;\n"
-                +"//@ public invariant i == 0; \n"
-                +"//@ ensures i == 0;\n"
-                +"static public int m() { \n"
-                +"  //@ set i = AA.mm(); \n"
-                +"  return 0; \n"
-                +"}  \n "
-                +"public static void main(String[] args) { \n"
-                +"  m(); \n"
-                +"  System.out.println(\"END\"); \n"
-                +"}}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A {
+                /*@ model public static class AA { static public int mm() { return 5; }} */
+                //@ ghost public static int i = 0;
+                //@ public invariant i == 0;
+                //@ ensures i == 0;
+                static public int m() {
+                  //@ set i = AA.mm();
+                  return 0;
+                }
+                public static void main(String[] args) {
+                  m();
+                  System.out.println("END");
+                } }
+                """
                 ,"/tt/A.java:6: verify: JML postcondition is false"  // TODO: Would like this to be line 8
                 ,"/tt/A.java:5: verify: Associated declaration"
                 ,"/tt/A.java:11: verify: JML postcondition is false"
@@ -1214,24 +1318,30 @@ public class racnew extends RacBase {
     }
     
     @Test
-    public void testSpecModelClass2() { 
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
-                +"/*@ model public static class AB { static public int mm() { return 5; }} */ \n"
-                +"//@ ghost public static int i = 0;\n"
-                +"//@ public invariant i == 0; \n"
-                +"//@ ensures i == 0;\n "
-                +"static public int m(); \n"
-                +"}"
+    public void testSpecModelClass2() {
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt; public class A {
+                /*@ model public static class AB { static public int mm() { return 5; }} */
+                //@ ghost public static int i = 0;
+                //@ public invariant i == 0;
+                //@ ensures i == 0;
+                static public int m();
+                }
+                """
                 );
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"static public int m() { \n"
-                +"  //@ set i = AB.mm(); \n"
-                +"  return 0; \n"
-                +"}  \n "
-                +"public static void main(String[] args) { \n"
-                +"  m(); \n"
-                +"  System.out.println(\"END\"); \n"
-                +"}}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A {
+                static public int m() {
+                  //@ set i = AB.mm();
+                  return 0;
+                }
+                public static void main(String[] args) {
+                  m();
+                  System.out.println("END");
+                } }
+                """
                 ,"/tt/A.java:2: JML postcondition is false"  // TODO: Would like this to be line 4
                 ,"/$A/tt/A.jml:5: Associated declaration"
                 ,"/tt/A.java:7: JML postcondition is false"
@@ -1241,20 +1351,26 @@ public class racnew extends RacBase {
     }
     
     @Test public void testStaticInvariant() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
-                +"//@ static public invariant i == 0; \n "
-                +"public static void m(); \n"
-                +"}"
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt; public class A {
+                //@ static public invariant i == 0;
+                public static void m();
+                }
+                """
                 );
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"static public int i = 0;  \n "
-                +"static public void m() { i = 1-i; }  \n "
-                +"public static void main(String[] args) { \n"
-                +"m(); \n"
-                +"System.out.println(\"MID \" + i); \n"
-                +"m(); \n"
-                +"System.out.println(\"END \" + i); \n"
-                +"}}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A {
+                static public int i = 0;
+                static public void m() { i = 1-i; }
+                public static void main(String[] args) {
+                m();
+                System.out.println("MID " + i);
+                m();
+                System.out.println("END " + i);
+                } }
+                """
                 ,"/tt/A.java:3: JML invariant is false on leaving method tt.A.m()" // callee invariant by callee
                 ,"/$A/tt/A.jml:2: Associated declaration"
                 ,"/tt/A.java:5: JML assumed invariant is false on leaving method tt.A.m(), returning to tt.A.main(java.lang.String[])" // callee invariant by caller
@@ -1268,23 +1384,29 @@ public class racnew extends RacBase {
                 );
     }
 
-    @Test public void testStaticInvariant2() { 
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
-                +"//@ static public invariant i == 0; \n "
-                +"public void m(); \n"
-                +"}"
+    @Test public void testStaticInvariant2() {
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt; public class A {
+                //@ static public invariant i == 0;
+                public void m();
+                }
+                """
                 );
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"static public int i = 0;  \n "
-                +"public void m() { i = 1-i; }  \n "
-                +"public static void main(String[] args) { \n"
-                +"new A().m(); \n"
-                +"System.out.println(\"MID\"); \n"
-                +"new A().m(); i = 5; \n"
-                +"System.out.println(\"MID\"); \n"
-                +"new A().m(); \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A {
+                static public int i = 0;
+                public void m() { i = 1-i; }
+                public static void main(String[] args) {
+                new A().m();
+                System.out.println("MID");
+                new A().m(); i = 5;
+                System.out.println("MID");
+                new A().m();
+                System.out.println("END");
+                } }
+                """
                 // i == 0 initially
                 // i == 1 on exit from m
                 ,"/tt/A.java:3: JML invariant is false on leaving method tt.A.m()"  // Leaving m
@@ -1332,23 +1454,29 @@ public class racnew extends RacBase {
 
     @Test public void testInvariant() { 
         addOptions("--rac-show-source=source");
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n" 
-                +"//@ public invariant i == 0;\n"
-                +"public void m(); \n"
-                +"}"
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt; public class A {
+                //@ public invariant i == 0;
+                public void m();
+                }
+                """
                 );
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"public int i = 0; static int j; \n"
-                +"public void m() { i = 1-i; }  \n"
-                +"public static void main(String[] args) { \n"
-                +"new A().m();\n"
-                +"j = 0; System.out.println(\"MID\"); j = 1;\n"
-                +"new A().m();\n"
-                +"j = 2; System.out.println(\"END\");\n"
-                +"}}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A {
+                public int i = 0; static int j;
+                public void m() { i = 1-i; }
+                public static void main(String[] args) {
+                new A().m();
+                j = 0; System.out.println("MID"); j = 1;
+                new A().m();
+                j = 2; System.out.println("END");
+                } }
+                """
                 
                 ,"/tt/A.java:3: JML invariant is false on leaving method tt.A.m()" // Leaving m(), Line 5
-                ,"public void m() { i = 1-i; }  "
+                ,"public void m() { i = 1-i; }"
                 ,"            ^"
                 ,"/$A/tt/A.jml:2: Associated declaration: /tt/A.java:3:"
                 ,"//@ public invariant i == 0;"
@@ -1361,7 +1489,7 @@ public class racnew extends RacBase {
                 ,"           ^"
                 ,"MID"
                 ,"/tt/A.java:3: JML invariant is false on leaving method tt.A.m()"
-                ,"public void m() { i = 1-i; }  "
+                ,"public void m() { i = 1-i; }"
                 ,"            ^"
                 ,"/$A/tt/A.jml:2: Associated declaration: /tt/A.java:3:"
                 ,"//@ public invariant i == 0;"
@@ -1428,22 +1556,28 @@ public class racnew extends RacBase {
     }
 
     @Test public void testConstraint() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n"
-                +"//@ constraint i == \\old(i)+1; \n "
-                +"void m(); \n"
-                +"}"
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt; public class A {
+                //@ constraint i == \\old(i)+1;
+                void m();
+                }
+                """
                 );
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"int i = 1;  \n "
-                +"void m() { i *= 2; }  \n "
-                +"public static void main(String[] args) { \n"
-                +"A a = new A();\n"
-                +"System.out.println(\"START\"); \n"
-                +"a.m(); \n"
-                +"System.out.println(\"MID\"); \n"
-                +"a.m(); \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A {
+                int i = 1;
+                void m() { i *= 2; }
+                public static void main(String[] args) {
+                A a = new A();
+                System.out.println("START");
+                a.m();
+                System.out.println("MID");
+                a.m();
+                System.out.println("END");
+                } }
+                """
                 ,"START"
                 ,"MID"
                 ,"/tt/A.java:3: JML constraint clause is false on leaving method"
@@ -1455,20 +1589,22 @@ public class racnew extends RacBase {
     }
 
     @Test public void testHelper() {
-        addMockFile("$A/tt/A.jml","package tt; public class A { \n"
-                +"//@ invariant i == 0; \n "
-                +"/*@ private helper */ void m(); \n"
-                +"}"
+        addMockFile("$A/tt/A.jml",
+                """
+                package tt; public class A {
+                //@ invariant i == 0;
+                /*@ private helper */ void m();
+                }
+                """
                 );
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"int i = 0;  \n "
-                +"private void m() { i = 1-i; }  \n "
-                +"public static void main(String[] args) { \n"
-                +"new A().m(); "
-                +"System.out.println(\"MID\"); "
-                +"new A().m(); "
-                +"System.out.println(\"END\"); "
-                +"}}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A {
+                int i = 0;
+                private void m() { i = 1-i; }
+                public static void main(String[] args) {
+                new A().m(); System.out.println("MID"); new A().m(); System.out.println("END"); } }
+                """
                 ,"MID"
                 ,"END"
                 );
@@ -1495,18 +1631,20 @@ public class racnew extends RacBase {
     }
    
     @Test public void testModelField() {
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"static int j = 5; //@ in i; \n "
-                +"//@ static model int i; \n "
-                +"//@ static represents i = j+1; \n "
-                +"public static void main(String[] args) { \n"
-                +"//@ set System.out.println(\"A \" + i); \n"
-                +" j = 10; \n"
-                +"//@ set System.out.println(\"A \" + i); \n"
-                +"System.out.println(\"END\"); "
-                +"}"
-                +"//@ static ghost int ii; \n "
-                +"}"
+        helpRacText("tt.A",
+                """
+                package tt; public class A {
+                static int j = 5; //@ in i;
+                //@ static model int i;
+                //@ static represents i = j+1;
+                public static void main(String[] args) {
+                //@ set System.out.println("A " + i);
+                 j = 10;
+                //@ set System.out.println("A " + i);
+                System.out.println("END"); }
+                //@ static ghost int ii;
+                }
+                """
                 ,"A 6"
                 ,"A 11"
                 ,"END"

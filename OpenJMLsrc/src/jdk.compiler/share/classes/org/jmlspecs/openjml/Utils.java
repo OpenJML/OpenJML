@@ -302,7 +302,7 @@ public class Utils {
      * @param mods the instance of JCModifiers to test
      * @return true if JML is set
      */
-    public boolean isJML(/*@ nullable */ JCModifiers mods) {
+    public static boolean isJML(/*@ nullable */ JCModifiers mods) {
         return mods != null && (mods.flags & JMLBIT) != 0;
     }
     
@@ -310,7 +310,7 @@ public class Utils {
      * @param flags the bit-array to test
      * @return true if JML is set
      */
-    public boolean isJML(long flags) {
+    public static boolean isJML(long flags) {  // FIXME - make static and some other of these methods
         return (flags & JMLBIT) != 0;
     }
 
@@ -322,12 +322,12 @@ public class Utils {
      * 
      * @param mods The modifiers in which to set the JML flag
      */
-    public void setJML(/*@ non_null */ JCModifiers mods) {
+    public static void setJML(/*@ non_null */ JCModifiers mods) {
         mods.flags |= JMLBIT;
     }
 
     /** Sets the JMLBIT flag in the flags bit-vector */
-    public long setJML(long flags) {
+    public static long setJML(long flags) {
         return flags | JMLBIT;
     }
 
@@ -335,7 +335,7 @@ public class Utils {
      * 
      * @param mods The modifiers in which to set the JML flag
      */
-    public void unsetJML(/*@ non_null */ JCModifiers mods) {
+    public static void unsetJML(/*@ non_null */ JCModifiers mods) {
         mods.flags &= ~JMLBIT;
     }
 
@@ -1775,13 +1775,13 @@ public class Utils {
 
     public void error(int begin, int end, String key, Object... args) {
         this.error(
-                new DiagnosticPositionSE(begin, end - 1), // FIXME - really the -1
+                new DiagnosticPositionSE(begin, end), // end is exclusive (one past last char)
                 key, args);// TODO - not unicode friendly
     }
-    
+
     public void error(int begin, int preferred, int end, String key, Object... args) {
         this.error(
-                new DiagnosticPositionSE(begin, preferred, end - 1), // FIXME - really the -1 ?
+                new DiagnosticPositionSE(begin, preferred, end), // end is exclusive (one past last char)
                 key, args);// TODO - not unicode friendly
     }
     
@@ -1806,7 +1806,7 @@ public class Utils {
     }
 
     public void warning(int pos, int endPos, String key, Object ... args) {
-        warning(WarningCategory.NULL, (JavaFileObject)null, new DiagnosticPositionSE(pos,endPos-1), key, args);
+        warning(WarningCategory.NULL, (JavaFileObject)null, new DiagnosticPositionSE(pos, endPos), key, args);
     }
 
     public void warning(DiagnosticPosition pos, String key, Object ... args) {
@@ -1817,6 +1817,11 @@ public class Utils {
     public void warning(WarningCategory.Key category, String key, Object ... args) {
         warning(category, (JavaFileObject)null, null, key, args);
     }
+    
+    public void warning(WarningCategory.Key category, JavaFileObject source, int pos, JavaFileObject asource, int apos, String key, String... args) {
+        warning(category, source, new DiagnosticPositionSE(pos, pos), asource, new DiagnosticPositionSE(apos, apos), args[0]); // FIXME
+    }
+
 
     public void warning(WarningCategory.Key category, JavaFileObject source, DiagnosticPosition pos, JavaFileObject asource, DiagnosticPosition apos, String message) {
         var wt = WarningCategory.instance(context).action(category);
@@ -1858,7 +1863,7 @@ public class Utils {
 
     public void warning(WarningCategory.Key category, JavaFileObject source, int begin, int end, String key, Object ... args) {
         this.warning(category, source,
-                new DiagnosticPositionSE(begin, end - 1), // FIXME - really the -1
+                new DiagnosticPositionSE(begin, end), // end is exclusive (one past last char)
                 key, args);
     }
     
@@ -1972,7 +1977,7 @@ public class Utils {
     static public class DiagnosticPositionSE implements DiagnosticPosition {
         protected int begin;
         protected int preferred;
-        protected int end; // The end character, NOT ONE CHARACTER BEYOND
+        protected int end; // Exclusive end: one character BEYOND the last character of the range
         
         public DiagnosticPositionSE(int begin, int end) {
             this.begin = begin;

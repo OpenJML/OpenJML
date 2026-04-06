@@ -1,13 +1,11 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJMLTest
-Bundle-SymbolicName: OpenJMLTest
-Bundle-Version: 0.8.52
+Bundle-SymbolicName: org.jmlspecs.OpenJMLTest;singleton:=true
+Bundle-Version: 0.21.0
+Bundle-ClassPath: bin/
 Bundle-Activator: org.jmlspecs.openjmltest.Activator
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
- org.junit,
- org.jmlspecs.annotation,
- junit-jupiter-api
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Bundle-ActivationPolicy: lazy
+Bundle-Vendor: David R. Cok
+Export-Package: org.jmlspecs.openjmltest
+Require-Bundle: org.eclipse.core.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8

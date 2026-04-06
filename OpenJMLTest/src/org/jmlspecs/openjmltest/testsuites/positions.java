@@ -50,6 +50,7 @@ public class positions extends JmlTestSuite {
             com.sun.tools.javac.main.JmlCompiler.instance(context);
             parserFactory = ParserFactory.instance(context);
         } catch (Exception e) {
+            // CATASTROPHIC INTERNAL BUG
             e.printStackTrace(this.out);
         }
     }
@@ -80,7 +81,6 @@ public class positions extends JmlTestSuite {
         static void print(JCTree tree, java.io.PrintStream out) {
             tree.accept(new Print(out));
         }
-
     }
 
     public static class Finder extends JmlTreeScanner {
@@ -96,7 +96,7 @@ public class positions extends JmlTestSuite {
             if (done != null) return;
             if (tree == null) return;
             if (tree.getClass() == clazz) { done = tree; return; }
-            if(tree != null) tree.accept(this);
+            tree.accept(this);
         }
         
         static JCTree find(Class<?> clazz, JCTree tree) {
@@ -106,7 +106,9 @@ public class positions extends JmlTestSuite {
         }
     }
 
-    public void helpParser(boolean compunit, String markedString, Class<?> clazz, int numErrors) {
+    public void helpParser(boolean compunit, String markedString, Class<?> clazz, int numErrors, String[] messages) {
+        boolean intentionalError = numErrors < 0;
+        numErrors = Math.abs(numErrors);
         try {
             int startpos = markedString.indexOf('#');
             int prefpos = markedString.indexOf('#',startpos+1)-1;
@@ -117,44 +119,50 @@ public class positions extends JmlTestSuite {
             JmlParser parser = (JmlParser)parserFactory.newParser(testString, false, true, true);
             JCTree result;
             JCTree ztree = null;
+            int observedErrors = 0;
             try {
-            if (compunit) {
-                JCCompilationUnit tree = parser.parseCompilationUnit();
-                ztree = tree;
-                assertTrue("parse failure", tree != null);
-                result = Finder.find(clazz,tree);
-                if (collector.getDiagnostics().size() != numErrors) {
-                    printDiagnostics();
-                    fail("Saw errors: expected " + numErrors 
-                                            + " actual " + collector.getDiagnostics().size());
+                if (compunit) {
+                    JCCompilationUnit tree = parser.parseCompilationUnit();
+                    ztree = tree;
+                    assertTrue("parse failure", tree != null);
+                    result = Finder.find(clazz,tree);
+                    observedErrors = collector.getDiagnostics().size();
+                    // printDiagnostics(); // Uncomment to debug test failures
+                    assertEquals("Wrong number of errors:", numErrors, observedErrors);
+                    assertTrue("failed to find node", result != null);
+                    assertEquals("start position-A", startpos, result.getStartPosition());
+                    assertEquals("start position-B", startpos, parser.getStartPos(result));
+                    assertEquals("pref position", prefpos, result.getPreferredPosition());
+                    assertEquals("end position-A", endpos, result.getEndPosition(tree.endPositions));
+                    assertEquals("end position-B", endpos, parser.getEndPos(result));
+                } else {
+                    parser.getScanner().setJml(true);
+                    JCExpression tree = parser.parseExpression();
+                    observedErrors = collector.getDiagnostics().size();
+                    ztree = tree;
+                    result = Finder.find(clazz,tree);
+                    // printDiagnostics(); // Uncomment to debug test failures
+                    assertEquals("Wrong number of errors:", numErrors, observedErrors);
+                    assertTrue("failed to find node", result != null);
+                    assertEquals("start position-A", startpos, result.getStartPosition());
+                    assertEquals("start position-B", startpos, parser.getStartPos(result));
+                    assertEquals("pref position", prefpos, result.getPreferredPosition());
+                    assertEquals("end position", endpos, parser.getEndPos(result));
                 }
-                assertTrue("failed to find node", result != null);
-                assertEquals("start position-A", startpos, result.getStartPosition());
-                assertEquals("start position-B", startpos, parser.getStartPos(result));
-                assertEquals("pref position", prefpos, result.getPreferredPosition());
-                assertEquals("end position-A", endpos, result.getEndPosition(tree.endPositions));
-                assertEquals("end position-B", endpos, parser.getEndPos(result));
-            } else {
-                parser.getScanner().setJml(true);
-                JCExpression tree = parser.parseExpression();
-                ztree = tree;
-                result = Finder.find(clazz,tree);
-                if (collector.getDiagnostics().size() != numErrors) {
-                    printDiagnostics();
-                    fail("Saw errors: expected " + numErrors 
-                                            + " actual " + collector.getDiagnostics().size());
+                for (int i = 0; i < observedErrors; i++) {
+                    String msg = collector.getDiagnostics().get(i).toString();
+                    assertEquals(messages[i], msg);
                 }
-                assertTrue("failed to find node", result != null);
-                assertEquals("start position-A", startpos, result.getStartPosition());
-                assertEquals("start position-B", startpos, parser.getStartPos(result));
-                assertEquals("pref position", prefpos, result.getPreferredPosition());
-                assertEquals("end position", endpos, parser.getEndPos(result));
-            }
+
             } catch (AssertionError e) {
-                this.out.println(clazz + " " + startpos + " " + prefpos + " " + endpos);
-                this.out.println(testString);
-                if (e.getMessage().contains("failed to find")) Print.print(ztree, this.out);
-                throw e;
+                if (intentionalError) {
+                    assertEquals(e.getMessage(), "Wrong number of errors: expected:<1> but was:<0>");
+                } else {
+                    this.out.println(clazz + " " + startpos + " " + prefpos + " " + endpos);
+                    this.out.println(testString);
+                    if (e.getMessage().contains("failed to find")) Print.print(ztree, this.out);
+                    throw e;
+                }
             }
         } catch (Exception e) {
             e.printStackTrace(this.out);
@@ -166,16 +174,18 @@ public class positions extends JmlTestSuite {
     static int count = 0;
     
     public static class Test {
-        boolean compunit;
-        String input;
-        Class<?> clazz;
-        int numerrors;
+        boolean compunit; // true->compilation unit; false->expression
+        String input;     // text to be parsed
+        Class<?> clazz;   // the class of the AST text enclosed in ##...#
+        int numerrors;    // the number of errors expected
+        String[] output;
         
-        public Test(boolean cu, String input, Class<?> clazz, int numerrors) {
+        public Test(boolean cu, String input, Class<?> clazz, int numerrors, String... output) {
             this.compunit = cu;
             this.input = input;
             this.clazz = clazz;
             this.numerrors = numerrors;
+            this.output = output;
         }
         
         public String toString() {
@@ -204,6 +214,9 @@ public class positions extends JmlTestSuite {
         { new Test(true,"public class A { //@ assignable #a#[ *]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. 4]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. ]#;\n void m(){}}", JCArrayAccess.class, 0)},
+        { new Test(false,"2 + (##~ 1#) +", JCUnary.class, 1, "/TEST.java:1: error: reached end of file while parsing\n"
+                + "2 + (~ 1) +\n"
+                + "           ^")},
 
 //        FIXME
 //        { new Test(true,"public class A { //@ assignable ##abc# ;\n void m(){}}", JCIdent.class, 0)},
@@ -212,11 +225,16 @@ public class positions extends JmlTestSuite {
 ////        { new Test(true,"public class A { //@ assignable ##\\nothing#;\n", JmlStoreRefKeyword.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##\\everything#;\n", JmlStoreRefKeyword.class, 0)},
 //        { new Test(true,"public class A { //@ assignable ##a, ab . *# ;\n void m(){}}", JmlStoreRefListExpression.class, 0)},
+        
+        // harness failures
+        { new Test(false,"2 + (##~ 1#) + 7", JCUnary.class, -1)},
+        { new Test(true,"public class A { //@ ghost boolean i = ##true# ;\n }", JCLiteral.class, -1)},
     };
+    
     
     @org.junit.Test
     public void run() {
-        helpParser(test.compunit, test.input, test.clazz, test.numerrors);
+        helpParser(test.compunit, test.input, test.clazz, test.numerrors, test.output);
     }
 
 }

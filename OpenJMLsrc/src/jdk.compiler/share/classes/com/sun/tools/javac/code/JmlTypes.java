@@ -68,17 +68,48 @@ public class JmlTypes extends Types {
         super(context);
         this.context = context;
     }
+    
+    private boolean initialized = false;
+    
+    private void initialize() {
+        if (!initialized) {
+            TYPEsym = JmlPrimitiveTypes.TYPETypeKind.init(context);
+            BIGINTsym = JmlPrimitiveTypes.bigintTypeKind.init(context);
+            REALsym = JmlPrimitiveTypes.realTypeKind.init(context);
+            STRINGsym = JmlPrimitiveTypes.stringTypeKind.init(context);
+            SETsym = JmlPrimitiveTypes.setTypeKind.init(context);
+            SEQsym = JmlPrimitiveTypes.seqTypeKind.init(context);
+            MAPsym = JmlPrimitiveTypes.mapTypeKind.init(context);
+            ARRAYsym = JmlPrimitiveTypes.arrayTypeKind.init(context);
+            LOCSETsym = JmlPrimitiveTypes.locsetTypeKind.init(context);
+            JmlPrimitiveTypes.intmapTypeKind.init(context);
+            JmlPrimitiveTypes.intsetTypeKind.init(context);
+            JmlPrimitiveTypes.rangeTypeKind.init(context);
+            JmlPrimitiveTypes.datagroupTypeKind.init(context);
+            initialized = true;
+        }
+    }
+    
+    private Symbol.TypeSymbol TYPEsym;
+    private Symbol.TypeSymbol BIGINTsym;
+    private Symbol.TypeSymbol REALsym;
+    private Symbol.TypeSymbol STRINGsym;
+    private Symbol.TypeSymbol SETsym;
+    private Symbol.TypeSymbol SEQsym;
+    private Symbol.TypeSymbol MAPsym;
+    private Symbol.TypeSymbol ARRAYsym;
+    private Symbol.TypeSymbol LOCSETsym;
         
-    public Symbol.TypeSymbol TYPEsym(Context context) { return JmlPrimitiveTypes.TYPETypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol BIGINTsym(Context context) { return JmlPrimitiveTypes.bigintTypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol REALsym(Context context) { return JmlPrimitiveTypes.realTypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol STRINGsym(Context context) { return JmlPrimitiveTypes.stringTypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol RANGEsym(Context context) { return JmlPrimitiveTypes.rangeTypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol SETsym(Context context) { return JmlPrimitiveTypes.setTypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol SEQsym(Context context) { return JmlPrimitiveTypes.seqTypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol MAPsym(Context context) { return JmlPrimitiveTypes.mapTypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol ARRAYsym(Context context) { return JmlPrimitiveTypes.arrayTypeKind.getSymbol(context); }
-    public Symbol.TypeSymbol LOCSETsym(Context context) { return JmlPrimitiveTypes.locsetTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol TYPEsym() { initialize(); return TYPEsym; }
+    public Symbol.TypeSymbol BIGINTsym() { initialize(); return BIGINTsym; }
+    public Symbol.TypeSymbol REALsym() { initialize(); return REALsym; }
+    public Symbol.TypeSymbol STRINGsym() { initialize(); return STRINGsym; }
+    public Symbol.TypeSymbol RANGEsym() { initialize(); return JmlPrimitiveTypes.rangeTypeKind.getSymbol(context); }
+    public Symbol.TypeSymbol SETsym() { initialize(); return SETsym; }
+    public Symbol.TypeSymbol SEQsym() { initialize(); return SEQsym; }
+    public Symbol.TypeSymbol MAPsym() { initialize(); return MAPsym; }
+    public Symbol.TypeSymbol ARRAYsym() { initialize(); return ARRAYsym; }
+    public Symbol.TypeSymbol LOCSETsym() { initialize(); return LOCSETsym; }
     
     /** Overrides Types.isSameType with functionality for JML primitive types. */
     @Override
@@ -128,14 +159,14 @@ public class JmlTypes extends Types {
         if (s == t) return true;
         if (isSameType(s,t)) return true;
         if (!javaOnly) {
-            if (s.tsym == BIGINTsym(context)) {
+            if (s.tsym == BIGINTsym) {
                 if (isJavaIntegral(t)) return true;
                 if (t.toString().contains("BigInteger")) return true; // FIXME - improve over string comparison
                 return false;
             }
-            if (s.tsym == REALsym(context)) {
+            if (s.tsym == REALsym) {
                 if (isNumeric(t)) return true; 
-                if (t.tsym == BIGINTsym(context)) return true;
+                if (t.tsym == BIGINTsym) return true;
                 if (t.toString().contains("BigInteger")) return true;
                 return false;
             }
@@ -157,13 +188,13 @@ public class JmlTypes extends Types {
     /** True if the Java tag is a numeric type (not for JML types). */ // FIXME - this includes JML types
     public boolean isNumeric(Type t) {
         int i = t.getTag().ordinal();  // FIXME - should not have bigint here -- those calls should use isAnyNumeric
-        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t.tsym == BIGINTsym(context) || t.tsym == REALsym(context);
+        return i >= TypeTag.BYTE.ordinal() && i <= TypeTag.DOUBLE.ordinal()|| t.tsym == BIGINTsym || t.tsym == REALsym;
     }
     
     /** True if the type is an integral type including boxed and JML types. */
     public boolean isAnyNumeric(Type t) {
         if (isAnyIntegral(t)) return true;
-        if (t.tsym == REALsym(context)) return true;
+        if (t.tsym == REALsym) return true;
         if (t instanceof Type.TypeVar) return false;
         t = unboxedTypeOrType(t);
         return isNumeric(t);
@@ -176,7 +207,7 @@ public class JmlTypes extends Types {
     
     /** True if the type is an integral type including boxed and JML types. */
     public boolean isAnyIntegral(Type t) {
-        if (t.tsym == BIGINTsym(context)) return true;
+        if (t.tsym == BIGINTsym) return true;
         if (t instanceof Type.TypeVar) return false;
         if (t.toString().equals("java.math.BigInteger")) return true; // FIXME - do better than String comparison
         t = unboxedTypeOrType(t);
@@ -208,10 +239,10 @@ public class JmlTypes extends Types {
         List<Type> args = t.getTypeArguments();
         int n = args.length();
         if (n == 0) {
-            if (t.tsym == STRINGsym(context)) return syms.charType;
+            if (t.tsym == STRINGsym) return syms.charType;
             return syms.booleanType; // intset
         } else if (n == 1) {
-            if (t.tsym == SETsym(context)) return syms.booleanType;
+            if (t.tsym == SETsym) return syms.booleanType;
             return args.head;
         } else {
             return args.last();    // map
@@ -221,7 +252,7 @@ public class JmlTypes extends Types {
     /** Returns the index type of a Java array or JML collection type */
     public Type indexType(Type t) {
         if (t instanceof Type.ArrayType) return syms.intType;
-        if (isIntArray(t)) return JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        if (isIntArray(t)) return BIGINTsym.type;
         List<Type> args = t.getTypeArguments();
         return args.head;
     }
@@ -246,15 +277,15 @@ public class JmlTypes extends Types {
                 if (t.getTypeArguments().nonEmpty()) return isSameType(t,s);
                 return true;
             }
-            if (s.tsym == BIGINTsym(context)) {
+            if (s.tsym == BIGINTsym) {
                 return isJavaIntegral(t) || t.tsym == syms.bigIntegerType.tsym;
             }
-            if (s.tsym == REALsym(context)) {
+            if (s.tsym == REALsym) {
                 if (isNumeric(t)) return true;
-                if (t.tsym == BIGINTsym(context) && isJavaIntegral(t)) return true;
+                if (t.tsym == BIGINTsym && isJavaIntegral(t)) return true;
                 return false;
             }
-            if (s.tsym == STRINGsym(context)) {
+            if (s.tsym == STRINGsym) {
                 if (t.tsym == syms.stringType.tsym) return true;
                 if (t.tsym == syms.charType.tsym) return true;
                 return false;
@@ -347,8 +378,8 @@ public class JmlTypes extends Types {
             if (isConvertible(t,s)) return true;
             if (t.tsym == s.tsym) return false;
             // allow explicit cast (that are not already allowed implicitly)
-            var BIGINT = BIGINTsym(context);
-            var REAL = REALsym(context);
+            var BIGINT = BIGINTsym;
+            var REAL = REALsym;
             if (s.tsym == BIGINT) {
                 return isJavaIntegral(t) || t.tsym == REAL;
             }
@@ -408,7 +439,7 @@ public class JmlTypes extends Types {
     /** Return true if this method is JML or declared in a JML file */
     @Override
     public boolean checkJML(MethodSymbol msym) { 
-        if (Utils.instance(context).isJML(msym.flags())) return true;
+        if (Utils.isJML(msym.flags())) return true;
     	var e = com.sun.tools.javac.comp.Enter.instance(context).getEnv((Symbol.TypeSymbol)msym.owner);
     	if (e == null || e.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return true; 
     	return false;
