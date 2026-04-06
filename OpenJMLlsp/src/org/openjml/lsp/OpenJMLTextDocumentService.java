@@ -729,7 +729,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 try {
                     CheckRunner.DirCheckResult result = CheckRunner.runCheckDirWithContext(pathsCopy, snapshot, s);
                     for (var entry : result.diagnosticsByUri().entrySet()) {
-                        checkDiags.put(entry.getKey(), entry.getValue());
+                        storeCheckDiags(entry.getKey(), entry.getValue());
                         publishMerged(entry.getKey());
                     }
                     // Clear stale check diags for paths that produced no diagnostics.
@@ -799,14 +799,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 // handles the final state for all files including fully-verified ones.
                 CheckRunner.DirCheckResult result = CheckRunner.runEscDirWithContext(paths, escSnapshot, s, (uri, diags) -> {
                     if (client == null || diags.isEmpty()) return;
-                    escDiags.put(uri, diags);
+                    storeEscDiags(uri, diags);
                     publishMerged(uri);
                 });
                 if (client == null) return;
                 // After the full run, publish the final state for every affected file
                 // (catches any remaining diagnostics not yet covered by the callback).
                 for (var entry : result.diagnosticsByUri().entrySet()) {
-                    escDiags.put(entry.getKey(), entry.getValue());
+                    storeEscDiags(entry.getKey(), entry.getValue());
                     publishMerged(entry.getKey());
                 }
                 // Clear ESC diagnostics for files that had none but are currently open.
@@ -815,7 +815,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     try { uri = java.nio.file.Path.of(path).toUri().toString(); }
                     catch (Exception e) { continue; }
                     if (!result.diagnosticsByUri().containsKey(uri) && lastContent.containsKey(uri)) {
-                        escDiags.remove(uri);
+                        storeEscDiags(uri, List.of());
                         publishMerged(uri);
                     }
                 }
@@ -1033,7 +1033,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         indexed++;
                         if (!diags.isEmpty()) {
                             totalDiags += diags.size();
-                            checkDiags.put(uri, diags);
+                            storeCheckDiags(uri, diags);
                             publishMerged(uri);
                         }
                         // Log progress every 50 files for large workspaces.
@@ -1141,7 +1141,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             executor.submit(() -> {
                 try {
                     CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, s);
-                    checkDiags.put(uri, result.diagnostics());
+                    storeCheckDiags(uri, result.diagnostics());
                     publishMerged(uri);
                 } catch (Throwable e) {
                     System.err.println("[OpenJML] checkForUri failed: " + e);
@@ -1208,7 +1208,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         cf.thenAccept(result -> {
             if (escGen.get(uri).get() != myGen) return;
-            escDiags.put(uri, result.diagnostics());
+            storeEscDiags(uri, result.diagnostics());
             if (result.isInternalError()) {
                 System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
                 markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
@@ -1345,7 +1345,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
                 if (result.isInternalError()) {
                     System.err.println("[OpenJML] ESC for method: internal error (exit code " + result.exitCode() + ")");
-                    escDiags.put(uri, result.diagnostics());
+                    storeEscDiags(uri, result.diagnostics());
                     publishMerged(uri);
                     if (target != null) {
                         Map<Integer, MethodStatus> statuses =
@@ -1366,6 +1366,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             escDiags.getOrDefault(uri, List.of()));
                     kept.removeIf(d -> target.contains(d.getRange().getStart().getLine()));
                     kept.addAll(diags);
+                    checkDiags.remove(uri);  // ESC subsumes check
                     escDiags.put(uri, kept);
 
                     // Update only the target method's code-lens status using
@@ -1379,7 +1380,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     statuses.put(start, ms);
                     methodEscStatus.put(uri, statuses);
                 } else {
-                    escDiags.put(uri, diags);
+                    storeEscDiags(uri, diags);
                     updateEscStatus(uri, diags, result.proofResults(), result.exitCode(),
                                         result.foreignMessages());
                 }
@@ -1606,7 +1607,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC for " + uri);
                 // Only publish if this task is still the latest for this URI.
                 if (escGen.get(uri).get() == myGen) {
-                    escDiags.put(uri, result.diagnostics());
+                    storeEscDiags(uri, result.diagnostics());
                     if (result.isInternalError()) {
                         System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
                         markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
@@ -1729,14 +1730,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     uri, content, snapshot, s);
             // Publish diagnostics for all compiled files (primary + companions) uniformly.
             result.allDiagnostics().forEach((diagUri, diags) -> {
-                checkDiags.put(diagUri, diags);
+                storeCheckDiags(diagUri, diags);
                 publishMerged(diagUri);
                 String c = lastContent.get(diagUri);
                 if (c != null) lastCheckedContent.put(diagUri, c);
             });
             // If allDiagnostics is empty (non-context check), fall back to primary.
             if (result.allDiagnostics().isEmpty()) {
-                checkDiags.put(uri, result.diagnostics());
+                storeCheckDiags(uri, result.diagnostics());
                 publishMerged(uri);
             }
             // Do NOT call refreshCodeLenses() here.
@@ -1748,7 +1749,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void runCheckFile(String filePath, String uri) {
         try {
             CheckRunner.CheckResult result = CheckRunner.checkFile(filePath, uri, settings);
-            checkDiags.put(uri, result.diagnostics());
+            storeCheckDiags(uri, result.diagnostics());
             publishMerged(uri);
             // runOnFile does not use the context path so no companion diagnostics.
             // Do NOT call refreshCodeLenses() here.
@@ -1894,6 +1895,38 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
         if (diags.isEmpty()) markedUris.remove(uri);
         else                 markedUris.add(uri);
+    }
+
+    /**
+     * Store ESC diagnostics for {@code uri}, clearing any stale {@code --check}
+     * results.  ESC subsumes check (it performs all the same type and annotation
+     * checks), so check diagnostics are no longer useful once ESC has run.
+     * An empty {@code diags} list removes both stores.
+     */
+    private void storeEscDiags(String uri, List<Diagnostic> diags) {
+        checkDiags.remove(uri);
+        if (diags.isEmpty()) escDiags.remove(uri);
+        else                 escDiags.put(uri, diags);
+    }
+
+    /**
+     * Store {@code --check} diagnostics for {@code uri}, retaining only ESC
+     * <em>verification failures</em> from any previous ESC run.  Check-level
+     * ESC diagnostics (type errors, annotation errors also caught by
+     * {@code --check}) are dropped so that the fresh check result is authoritative
+     * for those categories.  ESC proof-failure diagnostics are kept because they
+     * represent information {@code --check} cannot produce.
+     */
+    private void storeCheckDiags(String uri, List<Diagnostic> diags) {
+        List<Diagnostic> prev = escDiags.get(uri);
+        if (prev != null && !prev.isEmpty()) {
+            List<Diagnostic> kept = prev.stream()
+                    .filter(DiagnosticConverter::isEscVerificationFailure)
+                    .collect(java.util.stream.Collectors.toList());
+            if (kept.isEmpty()) escDiags.remove(uri);
+            else                escDiags.put(uri, kept);
+        }
+        checkDiags.put(uri, diags);
     }
 
     private void publishMerged(String uri) {

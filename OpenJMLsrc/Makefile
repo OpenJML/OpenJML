@@ -198,7 +198,8 @@ userguide-examples:
 	else echo Userguide examples are not available; fi
 
 TEMPDOCS=tempDocs
-DOWNLOADS=~/Desktop  # Mac-specific path; adjust for other platforms
+# Mac-specific path; adjust for other platforms
+DOWNLOADS=~/Desktop
 ## Pulls the JML reference manual and the OpenJML User Guide LaTeX sources from Overleaf and then builds the pdfs locally (not using Overleaf to build)
 ## Requires a local installation of pdflatex
 update-docs:

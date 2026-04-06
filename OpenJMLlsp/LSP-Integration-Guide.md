@@ -276,18 +276,19 @@ Diagnostics are sent via `textDocument/publishDiagnostics`. Both `--check` and `
 results are maintained separately per URI and merged before each publication. Neither
 pass's results overwrite the other's.
 
-Currently, both sets are always sent together in a single notification and neither
-pass clears the other's diagnostics. This is a known limitation. The intended
-behavior is:
+The merging policy is:
 
 - When `--esc` runs it subsumes `--check` (ESC performs all the same type and
-  annotation checks), so an ESC result should replace the `--check` diagnostics
-  entirely, eliminating duplication.
-- When `--check` runs after a previous ESC (e.g. triggered by an edit), it should
-  replace the check-level warnings that ESC produced, but leave the ESC verification
-  failures (postcondition violations, assertion failures) in place. Those may be
-  stale after the edit, but they remain useful to the user until a fresh ESC run
-  either confirms or clears them.
+  annotation checks), so an ESC result replaces the `--check` diagnostics entirely,
+  eliminating duplication.
+- When `--check` runs after a previous ESC (e.g. triggered by an edit), it replaces
+  check-level diagnostics but retains ESC verification failures (postcondition
+  violations, assertion failures). Those may be stale after the edit, but remain
+  useful until a fresh ESC run either confirms or clears them.
+
+ESC verification failures are identified by the `data` field of the LSP `Diagnostic`
+object: the server sets `data` to `"esc-verification"` on any diagnostic produced
+from a proof obligation failure.
 
 ### Diagnostic Format
 
