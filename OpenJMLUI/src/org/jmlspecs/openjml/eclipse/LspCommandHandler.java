@@ -554,8 +554,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
         List<org.eclipse.core.filebuffers.ITextFileBuffer> dirty = new ArrayList<>();
         for (SelectionResolver.Target t : targets) {
             switch (t) {
-                case SelectionResolver.Target.File f   -> checkDirty(f.file(), dirty);
-                case SelectionResolver.Target.Method m -> checkDirty(m.file(), dirty);
+                case SelectionResolver.Target.File f   -> checkDirtyWithSibling(f.file(), dirty);
+                case SelectionResolver.Target.Method m -> checkDirtyWithSibling(m.file(), dirty);
                 case SelectionResolver.Target.Dir d    -> {
                     try {
                         d.container().accept(resource -> {
@@ -573,6 +573,25 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
     private static boolean isSourceFile(String name) {
         return name.endsWith(".java") || name.endsWith(".jml");
+    }
+
+    /** Checks {@code file} and its companion (.java↔.jml sibling) for dirtiness. */
+    private static void checkDirtyWithSibling(IFile file,
+            List<org.eclipse.core.filebuffers.ITextFileBuffer> dirty) {
+        checkDirty(file, dirty);
+        IFile sibling = siblingSourceFile(file);
+        if (sibling != null && sibling.exists()) checkDirty(sibling, dirty);
+    }
+
+    /** Returns the .jml sibling of a .java file, or the .java sibling of a .jml file. */
+    private static IFile siblingSourceFile(IFile file) {
+        String name = file.getName();
+        String siblingName;
+        if (name.endsWith(".java"))     siblingName = name.substring(0, name.length() - 5) + ".jml";
+        else if (name.endsWith(".jml")) siblingName = name.substring(0, name.length() - 4) + ".java";
+        else return null;
+        org.eclipse.core.resources.IResource member = file.getParent().findMember(siblingName);
+        return member instanceof IFile f ? f : null;
     }
 
     private static void checkDirty(IFile file,
@@ -612,7 +631,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 Display.getDefault().getActiveShell(),
                 "OpenJML — Unsaved Changes",
                 null,
-                "Some files have unsaved changes.\n\n"
+                dirtyBuffers.size() + " file(s) have unsaved changes:\n"
+                + formatDirtyFileList(dirtyBuffers) + "\n"
                 + "Choose how ESC should handle the edited content:",
                 MessageDialog.QUESTION,
                 // NOTE: Eclipse always assigns IDialogConstants.CANCEL_ID (1) to any
@@ -644,6 +664,16 @@ public abstract class LspCommandHandler extends AbstractHandler {
         if (result == ACT_ID)  return true;                        // "Act on Edited Content"
         if (result == SAVE_ID) { saveBuffers(dirtyBuffers); return true; }  // "Save and Run ESC"
         return false;  // Cancel (IDialogConstants.CANCEL_ID = 1) or window closed
+    }
+
+    /** Returns a bullet list of filenames for dirty-file dialog messages. */
+    private static String formatDirtyFileList(
+            List<org.eclipse.core.filebuffers.ITextFileBuffer> buffers) {
+        StringBuilder sb = new StringBuilder();
+        for (org.eclipse.core.filebuffers.ITextFileBuffer buf : buffers) {
+            sb.append("  \u2022 ").append(buf.getLocation().lastSegment()).append("\n");
+        }
+        return sb.toString();
     }
 
     private static void saveBuffers(List<org.eclipse.core.filebuffers.ITextFileBuffer> buffers) {
@@ -687,8 +717,9 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 Display.getDefault().getActiveShell(),
                 "OpenJML — Unsaved Changes",
                 null,
-                "Some files have unsaved changes. RAC requires saved files.\n\n"
-                + "Save the files and run RAC, or cancel?\n\n"
+                dirtyBuffers.size() + " file(s) have unsaved changes:\n"
+                + formatDirtyFileList(dirtyBuffers) + "\n"
+                + "RAC requires saved files. Save and run RAC, or cancel?\n\n"
                 + "The Java+RAC compilation will be executed in an Eclipse background job.",
                 MessageDialog.QUESTION,
                 new String[] { "Save and Run RAC", IDialogConstants.CANCEL_LABEL },
