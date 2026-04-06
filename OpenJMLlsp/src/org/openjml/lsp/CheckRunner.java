@@ -309,21 +309,36 @@ public class CheckRunner {
     }
 
     /**
+     * Callback invoked after each method's proof completes during an ESC run.
+     * Receives the file URI, the diagnostics accumulated so far for that file,
+     * and a snapshot of the proof results recorded so far (all methods that have
+     * finished, keyed by simple method name).  Use the snapshot to update
+     * per-method code-lens status incrementally without waiting for the full run.
+     */
+    @FunctionalInterface
+    public interface EscProgressCallback {
+        void accept(String uri,
+                    List<org.eclipse.lsp4j.Diagnostic> diagsSoFar,
+                    Map<String, IProverResult.Kind> proofResultsSoFar);
+    }
+
+    /**
      * Run {@code --esc --dirs path1 path2 ...}.
      *
      * @param perFileCallback  called after each method's proof completes with the
-     *                         file URI and the diagnostics accumulated so far for
-     *                         that file.  Lets the caller publish markers
-     *                         progressively rather than waiting for the full run.
-     *                         Pass {@code null} to skip progressive publishing.
+     *                         file URI, the diagnostics accumulated so far for that
+     *                         file, and a snapshot of proof results so far.
+     *                         Lets the caller update code-lens status and publish
+     *                         markers progressively.  Pass {@code null} to skip.
      */
     public static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings,
-            java.util.function.BiConsumer<String, List<org.eclipse.lsp4j.Diagnostic>> perFileCallback) {
+            EscProgressCallback perFileCallback) {
         var listener = new LspDiagnosticListener();
         listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
-        var prc = new ProofResultCollector(perFileCallback == null ? null : msym -> {
+        ProofResultCollector[] prcRef = {null};
+        prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : msym -> {
             javax.tools.JavaFileObject src =
                     msym.enclClass() != null ? msym.enclClass().sourcefile : null;
             if (src == null) { log("[runEscDir callback] src is null for " + msym); return; }
@@ -331,8 +346,9 @@ public class CheckRunner {
             try { uri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
             catch (Exception e) { log("[runEscDir callback] URI conversion failed: " + e); return; }
             List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(uri);
-            perFileCallback.accept(uri, diags);
+            perFileCallback.accept(uri, diags, Map.copyOf(prcRef[0].getResults()));
         });
+        ProofResultCollector prc = prcRef[0];
         api.setProofResultListener(prc);
 
         List<String> args = buildArgs(settings, "--esc");
@@ -361,11 +377,11 @@ public class CheckRunner {
      * so callers can publish progressive diagnostics without remapping.
      *
      * <p>Fast path: when {@code snapshot} is empty, delegates to
-     * {@link #runEscDir(List, OpenJMLSettings, java.util.function.BiConsumer)}.
+     * {@link #runEscDir(List, OpenJMLSettings, EscProgressCallback)}.
      */
     public static DirCheckResult runEscDirWithContext(
             List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings,
-            java.util.function.BiConsumer<String, List<org.eclipse.lsp4j.Diagnostic>> perFileCallback) {
+            EscProgressCallback perFileCallback) {
         if (snapshot.isEmpty()) return runEscDir(paths, settings, perFileCallback);
         Path tempDir = null;
         try {
@@ -440,7 +456,8 @@ public class CheckRunner {
             listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
             var out = new PrintWriter(new StringWriter());
             var api = IAPI.make(out, listener);
-            var prc = new ProofResultCollector(perFileCallback == null ? null : msym -> {
+            ProofResultCollector[] prcRef = {null};
+            prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : msym -> {
                 javax.tools.JavaFileObject src =
                         msym.enclClass() != null ? msym.enclClass().sourcefile : null;
                 if (src == null) { log("[runEscDirWithContext callback] src is null for " + msym); return; }
@@ -452,8 +469,9 @@ public class CheckRunner {
                 String realUri = finalAllPathToRealUri.get(srcName);
                 if (realUri == null) realUri = lookupUri;
                 List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
-                perFileCallback.accept(realUri, diags);
+                perFileCallback.accept(realUri, diags, Map.copyOf(prcRef[0].getResults()));
             });
+            ProofResultCollector prc = prcRef[0];
             api.setProofResultListener(prc);
 
             List<String> args = buildArgs(settings, "--esc", tempDir);

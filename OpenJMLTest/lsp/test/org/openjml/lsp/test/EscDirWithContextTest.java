@@ -226,7 +226,7 @@ public class EscDirWithContextTest extends LspTestBase {
                 List.of(f.getAbsolutePath()),
                 Map.of(fileUri(f), dirtyContent),
                 new OpenJMLSettings(),
-                (uri, diags) -> {
+                (uri, diags, partialResults) -> {
                     callbackUris.add(uri);
                     callbackCount.incrementAndGet();
                 });

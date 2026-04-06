@@ -591,11 +591,11 @@ arguments: ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
 ```
 
 Cancels any currently running ESC for the same URIs. Marks all methods as CHECKING
-immediately. OpenJML checks each file in a single invocation; results are published
-and code lenses refreshed once when the entire file completes. Per-method proof
-results do arrive incrementally via `IProofResultListener` as each method's proof
-finishes (the same mechanism used to stream status to the Console), so streaming
-code lens updates per method as they arrive is a planned improvement.
+immediately. As each method's proof finishes, its code lens is updated in real time
+(via `IProofResultListener`) so the user sees individual methods flip from
+⧗ Checking… to their final state rather than all updating at once. Accumulated
+diagnostics are also published progressively per file. A final pass after the run
+reconciles any remaining state.
 
 A path that starts with `file://` is treated as a document URI and checked against
 in-memory content rather than the on-disk file.

@@ -800,10 +800,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 // listener's collected list at that instant.  Publishing empty mid-run would
                 // prematurely clear any previously-shown diagnostics; the post-run loop below
                 // handles the final state for all files including fully-verified ones.
-                CheckRunner.DirCheckResult result = CheckRunner.runEscDirWithContext(paths, escSnapshot, s, (uri, diags) -> {
-                    if (client == null || diags.isEmpty()) return;
-                    storeEscDiags(uri, diags);
-                    publishMerged(uri);
+                CheckRunner.DirCheckResult result = CheckRunner.runEscDirWithContext(
+                        paths, escSnapshot, s, (uri, diags, partialResults) -> {
+                    if (client == null) return;
+                    if (!diags.isEmpty()) {
+                        storeEscDiags(uri, diags);
+                        publishMerged(uri);
+                    }
+                    updateEscStatusPartial(uri, diags, partialResults);
+                    refreshCodeLenses();
                 });
                 if (client == null) return;
                 // After the full run, publish the final state for every affected file
@@ -1813,6 +1818,38 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             clientWarn("OpenJML: ESC on " + fileName
                     + " could not run — type errors in: " + String.join(", ", foreignFiles));
         }
+    }
+
+    /**
+     * Update per-method ESC status for {@code uri} using a <em>partial</em> proof-result
+     * snapshot produced mid-run.  Only methods that already have a proof result are
+     * updated; methods not yet proven retain their current status (typically CHECKING).
+     *
+     * <p>This is called from the per-method callback inside {@link CheckRunner#runEscDirWithContext}
+     * so that code lenses flip from ⧗ Checking… to their final state as each proof
+     * finishes, rather than all at once when the entire file completes.
+     *
+     * @param uri                 document URI
+     * @param diags               diagnostics accumulated so far (used for issue count)
+     * @param partialProofResults proof results for methods that have finished so far
+     */
+    private void updateEscStatusPartial(String uri, List<Diagnostic> diags,
+            Map<String, IProverResult.Kind> partialProofResults) {
+        String content = lastContent.get(uri);
+        if (content == null) return;
+        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        if (methods.isEmpty()) return;
+        Map<Integer, MethodStatus> current = new HashMap<>(
+                methodEscStatus.getOrDefault(uri, Map.of()));
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            IProverResult.Kind kind = partialProofResults.get(m.name());
+            if (kind == null) continue;   // not yet proven — leave as CHECKING
+            // exitCode=0: the run is in progress; kind != null so exitCode is not used
+            // by proofResultToStatus (null-kind is the only path that reads exitCode).
+            current.put(m.startLine(),
+                    proofResultToStatus(kind, diags, m.startLine(), m.endLine(), 0, false));
+        }
+        methodEscStatus.put(uri, current);
     }
 
     /**
