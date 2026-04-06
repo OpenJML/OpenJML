@@ -357,4 +357,163 @@ public class IncrementalSyncApplierTest {
                       inc(0, 10, 0, 5, "fallback"),  // invalid range → full replacement
                       inc(0, 8, 0, 8, "X")));
     }
+
+    // -----------------------------------------------------------------------
+    // Performance / timing tests
+    //
+    // These tests measure the server-side overhead of incremental reconstruction
+    // for documents of varying sizes and edit patterns.  Results are printed to
+    // stdout so they appear in the test log for manual inspection.
+    //
+    // Comparison points:
+    //   incremental  — IncrementalSyncApplier.apply() with a ranged change
+    //   naive-concat — prefix.substring() + newText + suffix.substring()
+    //                  (what a simpler implementation would do)
+    //   full-store   — just store the pre-built result string (baseline: this is
+    //                  the server-side cost when the client sends the full document)
+    //
+    // The incremental path's CPU overhead is the difference between "incremental"
+    // and "full-store"; the payoff is reduced IPC transmission (not measurable here).
+    // -----------------------------------------------------------------------
+
+    private static final int[] TIMING_DOC_SIZES = {1_000, 10_000, 100_000, 1_000_000};
+
+    /**
+     * Generate a synthetic Java-like document of approximately {@code targetSize}
+     * characters, with newlines so line/col conversions work correctly.
+     */
+    private static String generateDoc(int targetSize) {
+        StringBuilder sb = new StringBuilder(targetSize + 80);
+        int line = 0;
+        while (sb.length() < targetSize) {
+            // Each line is ~72 chars including newline
+            sb.append(String.format("    // line %06d: padding content abcdefghijklmnopqrstuvwxyz 0123456789%n",
+                    line++));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Offset of the character at 0-indexed (line, col) in {@code doc}.
+     * Used to build test change events from a known document.
+     */
+    private static int offsetOf(String doc, int line, int col) {
+        int cur = 0, l = 0;
+        while (l < line) { cur = doc.indexOf('\n', cur) + 1; l++; }
+        return cur + col;
+    }
+
+    /** Build an incremental change at an absolute offset in a document. */
+    private static TextDocumentContentChangeEvent incAt(String doc, int offset,
+                                                         int deleteLen, String insert) {
+        // Walk to find (line, col) for offset
+        int line = 0, lineStart = 0;
+        for (int i = 0; i < offset; i++) {
+            if (doc.charAt(i) == '\n') { line++; lineStart = i + 1; }
+        }
+        int startCol = offset - lineStart;
+
+        // Walk to find (line, col) for offset+deleteLen
+        int endLine = line, endLineStart = lineStart;
+        for (int i = offset; i < offset + deleteLen; i++) {
+            if (doc.charAt(i) == '\n') { endLine++; endLineStart = i + 1; }
+        }
+        int endCol = (offset + deleteLen) - endLineStart;
+
+        return inc(line, startCol, endLine, endCol, insert);
+    }
+
+    /** Apply a list of changes naively using substring concatenation (baseline). */
+    private static String applyNaive(String current,
+                                     List<TextDocumentContentChangeEvent> changes) {
+        for (TextDocumentContentChangeEvent change : changes) {
+            if (change.getRange() == null) { current = change.getText(); continue; }
+            String newText = change.getText() != null ? change.getText() : "";
+            // Resolve offsets (simplified: single-line only, for test purposes)
+            Range r = change.getRange();
+            int start = offsetOf(current, r.getStart().getLine(), r.getStart().getCharacter());
+            int end   = offsetOf(current, r.getEnd().getLine(),   r.getEnd().getCharacter());
+            current = current.substring(0, start) + newText + current.substring(end);
+        }
+        return current;
+    }
+
+    /**
+     * Run a timing trial and return nanoseconds per operation (median of {@code reps} runs).
+     */
+    @FunctionalInterface interface TimedOp { String run(); }
+
+    private static long timeOp(TimedOp op, int warmup, int reps) {
+        for (int i = 0; i < warmup; i++) op.run();
+        long[] times = new long[reps];
+        for (int i = 0; i < reps; i++) {
+            long t = System.nanoTime();
+            op.run();
+            times[i] = System.nanoTime() - t;
+        }
+        java.util.Arrays.sort(times);
+        return times[reps / 2]; // median
+    }
+
+    private static int reps(int docSize) {
+        // Scale iterations so each scenario takes ~100 ms total
+        return Math.max(3, 100_000_000 / Math.max(1, docSize));
+    }
+
+    private void runTimingScenario(String label, String doc,
+                                   List<TextDocumentContentChangeEvent> changes) {
+        // Pre-build the expected result so full-store baseline is fair
+        String expected = IncrementalSyncApplier.apply(doc, changes);
+        int r = reps(doc.length());
+
+        long incr  = timeOp(() -> IncrementalSyncApplier.apply(doc, changes), 5, r);
+        long naive = timeOp(() -> applyNaive(doc, changes), 5, r);
+        long store = timeOp(() -> { String s = expected; return s; }, 5, r);
+
+        System.out.printf("  %-60s  incr=%,8d ns  naive=%,8d ns  store=%,4d ns%n",
+                label, incr, naive, store);
+
+        // Correctness: incremental and naive must agree
+        assertEquals("incremental and naive produce different results for: " + label,
+                expected, applyNaive(doc, changes));
+    }
+
+    @Test
+    public void timingTests() {
+        System.out.println("\n[TIMING] IncrementalSyncApplier — server-side reconstruction cost");
+        System.out.printf("  %-60s  %18s  %18s  %10s%n",
+                "Scenario", "incremental", "naive-concat", "full-store");
+        System.out.println("  " + "-".repeat(116));
+
+        for (int size : TIMING_DOC_SIZES) {
+            String doc = generateDoc(size);
+            int n = doc.length();
+            int mid = n / 2;
+
+            // --- 1 edit: insert 1 char in the middle ---
+            List<TextDocumentContentChangeEvent> oneEdit = List.of(incAt(doc, mid, 0, "X"));
+            runTimingScenario(String.format("size=%,7d  1 insert at middle", n), doc, oneEdit);
+
+            // --- 1 edit: delete 1 char in the middle ---
+            List<TextDocumentContentChangeEvent> oneDel = List.of(incAt(doc, mid, 1, ""));
+            runTimingScenario(String.format("size=%,7d  1 delete at middle", n), doc, oneDel);
+
+            // --- 1 edit: replace 10 chars in the middle ---
+            List<TextDocumentContentChangeEvent> oneRepl = List.of(incAt(doc, mid, 10, "REPLACED**"));
+            runTimingScenario(String.format("size=%,7d  1 replace(10) at middle", n), doc, oneRepl);
+
+            // --- 3 edits at arbitrary offsets, sent bottom-to-top so offsets
+            //     remain valid for sequential application (editors typically send
+            //     changes in descending offset order within a single event).
+            // Change positions: 3/4, 1/2, 1/4 of document length
+            int p1 = n * 3 / 4, p2 = n / 2, p3 = n / 4;
+            List<TextDocumentContentChangeEvent> threeEdits = List.of(
+                    incAt(doc, p1, 0, "A"),   // at 3/4
+                    incAt(doc, p2, 0, "B"),   // at 1/2 of original (doc is now n+1)
+                    incAt(doc, p3, 0, "C"));  // at 1/4 of original (doc is now n+2)
+            runTimingScenario(String.format("size=%,7d  3 inserts at 3/4,1/2,1/4", n), doc, threeEdits);
+        }
+
+        System.out.println();
+    }
 }

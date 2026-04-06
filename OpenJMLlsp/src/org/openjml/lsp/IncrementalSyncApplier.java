@@ -73,6 +73,16 @@ public final class IncrementalSyncApplier {
         // If all changes were full-replacements the last one is already in current.
         if (firstIdx == changes.size()) return current;
 
+        // Log when a single event carries multiple incremental changes — this is
+        // unusual in practice (most editors send one change per keystroke) and helps
+        // detect whether clients are batching edits in ways that exercise the
+        // multi-change sb.replace() path.
+        int numIncremental = changes.size() - firstIdx;
+        if (numIncremental > 1) {
+            System.err.println("[IncrementalSyncApplier] " + numIncremental
+                    + " incremental changes in one didChange event");
+        }
+
         // --- Phase 2: compute conservative capacity ---
         // current.length() + sum(newText.length()) never requires a resize,
         // because deletions only shrink and this adds all insertion lengths.
