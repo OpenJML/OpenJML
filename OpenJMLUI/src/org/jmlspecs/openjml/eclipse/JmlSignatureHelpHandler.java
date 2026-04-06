@@ -5,6 +5,8 @@
 package org.jmlspecs.openjml.eclipse;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.WeakHashMap;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -45,8 +47,11 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * Eclipse's Java editor does not automatically send {@code signatureHelp}
  * requests (because JML text lives in comment partitions).
  *
- * <p>The popup is dismissed automatically after 6 seconds or when the user
- * presses any key.
+ * <p>The popup remains visible while the user types the arguments and is
+ * dismissed when {@code )}, {@code Escape}, or {@code Enter} is pressed, or
+ * after a 30-second idle timeout.  A {@code ,} keystroke replaces the popup
+ * with an updated hint (via {@link JmlAutoEditStrategy}) highlighting the next
+ * parameter.
  */
 public class JmlSignatureHelpHandler extends AbstractHandler {
 
@@ -105,8 +110,20 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
         showPopup(st, help);
     }
 
+    /**
+     * Tracks the active popup per {@link StyledText} widget so that a new popup
+     * triggered by {@code ,} disposes the previous one before showing the update.
+     * Uses a weak map so disposed editor widgets do not prevent GC.
+     */
+    private static final java.util.Map<StyledText, Shell> activePopups =
+            Collections.synchronizedMap(new WeakHashMap<>());
+
     /** Package-private entry point used by {@link JmlAutoEditStrategy}. */
     static void showPopup(StyledText st, SignatureHelp help) {
+        // Replace any existing popup for this widget (e.g. from a previous ',')
+        Shell old = activePopups.remove(st);
+        if (old != null && !old.isDisposed()) old.dispose();
+
         String text = buildDisplayText(help);
 
         // Position popup just below the caret line
@@ -129,16 +146,25 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
         popup.pack();
         popup.setLocation(screenPt);
         popup.setVisible(true);
+        activePopups.put(st, popup);
 
-        // Dismiss on next keystroke or after 6 seconds
-        Display.getDefault().timerExec(6000, () -> {
+        // Auto-dismiss after 30 seconds
+        Display.getDefault().timerExec(30_000, () -> {
+            activePopups.remove(st, popup);
             if (!popup.isDisposed()) popup.dispose();
         });
+
+        // Dismiss on Escape, Enter, or ')'; stay alive while the user types arguments
         st.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                st.removeKeyListener(this);
-                if (!popup.isDisposed()) popup.dispose();
+                if (e.keyCode == SWT.ESC || e.character == ')' || e.character == '\r') {
+                    st.removeKeyListener(this);
+                    activePopups.remove(st, popup);
+                    if (!popup.isDisposed()) popup.dispose();
+                }
+                // Normal characters (letters, digits, ',', ' ', etc.) keep the popup
+                // alive; JmlAutoEditStrategy will replace it with an updated hint on ','.
             }
         });
     }
