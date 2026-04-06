@@ -161,26 +161,25 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
         // caret is immediately after '(' (meaning the upcoming Backspace will delete
         // it), then dismiss in keyReleased once the character is actually gone.
         // This avoids dismissing one keystroke too early while '(' is still present.
-        boolean[] caretWasAfterParen = {false};
+        // Dismiss on Escape, Enter, or ')' immediately (keyPressed).
+        // For Backspace, check in keyReleased — which always fires after the text
+        // has been modified — whether there is still an unclosed '(' before the
+        // cursor.  This correctly dismisses when '(' is deleted (no unclosed paren
+        // remains) but keeps the popup when only an argument character was deleted.
         st.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                if (e.keyCode == SWT.BS) {
-                    caretWasAfterParen[0] = caretIsJustAfterOpenParen(st);
-                    return; // decision deferred to keyReleased
-                }
                 if (e.keyCode == SWT.ESC || e.character == ')' || e.character == '\r') {
                     dismiss();
                 }
+                // Backspace is handled in keyReleased after the text has changed.
                 // Normal characters keep the popup alive; ',' will retrigger via
-                // JmlAutoEditStrategy, which replaces the popup with the updated hint.
+                // JmlAutoEditStrategy and replace the popup with an updated hint.
             }
 
             @Override
             public void keyReleased(KeyEvent e) {
-                // After the Backspace has been applied: if the character that was just
-                // before the caret was '(', that '(' has now been deleted → dismiss.
-                if (e.keyCode == SWT.BS && caretWasAfterParen[0]) {
+                if (e.keyCode == SWT.BS && !isStillInCall(st)) {
                     dismiss();
                 }
             }
@@ -194,18 +193,34 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
     }
 
     /**
-     * Returns {@code true} when the character immediately before the caret is
-     * {@code (}, i.e. a Backspace keystroke is about to delete the open-paren.
+     * Returns {@code true} when there is still an unclosed {@code (} before the
+     * caret on the current logical line, i.e. the caret is still inside a method
+     * call argument list.  Called after a Backspace key release to decide whether
+     * the popup should be dismissed.
      */
-    private static boolean caretIsJustAfterOpenParen(StyledText st) {
+    private static boolean isStillInCall(StyledText st) {
         if (st == null || st.isDisposed()) return false;
         int caret = st.getCaretOffset();
         if (caret <= 0) return false;
+        int start = Math.max(0, caret - 500);
+        String text;
         try {
-            return "(".equals(st.getTextRange(caret - 1, 1));
+            text = st.getTextRange(start, caret - start);
         } catch (IllegalArgumentException e) {
             return false;
         }
+        int depth = 0;
+        for (int i = text.length() - 1; i >= 0; i--) {
+            char c = text.charAt(i);
+            if (c == ')') depth++;
+            else if (c == '(') {
+                if (depth > 0) depth--;
+                else return true;
+            } else if (c == ';' || c == '{' || c == '}' || c == '\n') {
+                return false;
+            }
+        }
+        return false;
     }
 
     /**
