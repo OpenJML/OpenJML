@@ -48,10 +48,13 @@ public abstract class TCBase extends JmlTestSuite {
 
     public void helpTCText(/*@ nullable*/String mockFilename, String content, Object ... expected) {
         JavaFileObject f = new MockJavaFileObject(mockFilename,content);
-        List<JavaFileObject> files = List.of(f);
-        
+        // Register by URI in the existing mockFiles (same object as main.mockFiles),
+        // preserving any .jml spec mocks already added via addMockFile().
+        mockFiles.addMockByUri(f.toUri().normalize(), f);
+
         // Includes any options already added through addOptions() -- FIXME - verify this; check in tcharness
-        int ex = main.compile(new String[]{ }, files).exitCode; // FIXME - get rid of first argument?
+        // Use f.getName() rather than mockFilename: handles null and gives the URI path that matches the uriMap key.
+        int ex = main.compile(new String[]{ f.getName() }, mockFiles).exitCode;
         
         if (print) printDiagnostics();
         outputCompare.compareResults(expected, collector, true);

@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.PrintWriter;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -446,11 +445,7 @@ public abstract class JmlTestSuite {
      * @param content the String constituting the content of the pseudo-file
      */
     protected void addMockFile(/*@ non_null */ String filename, /*@ non_null */String content) {
-        try {
-            addMockFile(filename,new MockJavaFileObject(new URI("file:///" + filename),content));
-        } catch (Exception e) {
-            fail("Exception in creating a URI: " + e);
-        }
+        addMockFile(filename, new MockJavaFileObject(filename, content));
     }
 
     /** Used to add a pseudo file to the file system. Note that for testing, a 

@@ -214,6 +214,11 @@ public class API implements IAPI {
         int x = main.compile(args, main.context()).exitCode;
         return x;
     }
+
+    @Override
+    public int execute(String[] args, org.openjml.MockFiles mockFiles) {
+        return main.compile(args, mockFiles).exitCode;
+    }
     
 
     

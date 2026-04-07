@@ -441,9 +441,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
         // args is now the original 'args' without JML arguments -- leaving  any Java options and files
         if (JmlOptions.instance(context).get("-?") != null) return Result.OK; // Help output is already written
-        if (args.length == 0 && fileObjects == null) {  // in API mode there might have already been args added
-                                                        // and there would be no additional arguments here,
-                                                        // but then fileObjects would not be null -- it might be an empty list
+        if (args.length == 0) {
             if (hasArgs) {
                 Log.instance(context).error(Errors.NoSourceFiles);
                 return Result.CMDERR;
@@ -490,18 +488,23 @@ public class Main extends com.sun.tools.javac.main.Main {
         return exit;
     }
 
-    /** This method is called programmatically, in which case the set of files is 
-        separate from the command-line options. This entry point is useful for test cases
-        in which the fileObjects may be mock files. */
-    public Main.Result compile(String[] args, java.util.Collection<JavaFileObject> fileObjects)  {
+    /** Called programmatically (e.g. from test suites) with URI-keyed mock file
+     * interception via {@link org.openjml.MockAwareFileManager}.
+     * The set of source files to process must appear in {@code args} as usual;
+     * {@code mockFiles} provides in-memory content keyed by URI so that test or
+     * dirty (unsaved) files can be type-checked without writing to disk.
+     * Pass {@code null} if there are no dirty files. */
+    public Main.Result compile(String[] args, org.openjml.MockFiles mockFiles)  {
         try {
-            this.fileObjects = fileObjects;
-            if (args.length == 0) args = new String[]{"-g"}; // This is just to avoid the call below from exiting by producing help info if there are no arguments
+            this.mockFiles = (mockFiles != null) ? mockFiles : new org.openjml.MockFiles();
+            if (args.length == 0) args = new String[]{"-g"}; // Avoids exiting with help info when there are no arguments
             return compile(args, context());
         } catch (JmlInternalAbort e) {
             log.error("jml.message", "Unrecoverable compilation problem");
             if (System.getenv("STACK") != null) e.printStackTrace(System.out);
             return Main.Result.CMDERR;
+        } finally {
+            this.mockFiles = new org.openjml.MockFiles();
         }
     }
 
@@ -528,26 +531,6 @@ public class Main extends com.sun.tools.javac.main.Main {
         if (Utils.debug("options")) JmlOptions.instance(context).dumpOptions();
     }
 
-    /** The field is not used in regular command-line processing, but when openjml is called
-     * programmatically, such as from test suites, then in-memory files might be created and
-     * passed in vis this list. In particular, the list might contain mock files rather than
-     * (or in addition to) file system files.
-     */
-    public java.util.Collection<JavaFileObject> fileObjects;
-
-    /** This call adds fileObjects supplied by the programmatic compile call (in this.fileObjects)
-     * with those created from the command-line (in args.getFileObjects()), unifying 
-     * command-line processing with programmatic calls to compile.
-     */
-    @Override
-    protected void adjustArgs(Arguments args)  {
-        if (fileObjects != null) {
-            args.allowEmpty();
-            args.getFileObjects().addAll(fileObjects);
-        }
-    }
-
-
     /** This registers the JML versions of many of the tools (e.g. scanner, parser,
      * specifications database,...) used by the compiler.  They must be registered
      * before the Java versions are invoked, since in most cases singleton
@@ -560,15 +543,15 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         // Notes on tool instantiation:
         // JavacMessages is needed in order to write out any (javac) error messages, such as might happen in processing options
-        // JavacMessage automatically reads in the messages bundel when it is created
+        // JavacMessage automatically reads in the messages bundle when it is created
         // JavacMessages reads an option -- so JmlOptions must be registered before JavacMessages is instantiated
-        // Similarly Log reads an option; lso Log instantiates JavacMessages
+        // Similarly Log reads an option; so Log instantiates JavacMessages
         // Thus both Log and JavacMessages must have their diagFormatter reset after options are processed
         // and any messages printed during option processing will not use any formatter specified on the command-line
 
         JmlOptions.preRegister(context); // Creates a JmlOptions instance (not a factory) -- must precede getting JavacMessages
         // because JavacMessages access Options
-        JavacFileManager.preRegister(context); // creates a JavacFileManager factory for the context - required for processing options
+        MockAwareFileManager.preRegister(context); // creates a file manager factory - required for processing options
 
         // The next call creates the compiler tool chain. The problem is that some Java components cache values of options
         // during tool creation, rather than tool use. All the registration of JML tools is by Context factories, so no Javac tool
