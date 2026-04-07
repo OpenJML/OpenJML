@@ -32,5 +32,7 @@ import org.junit.runners.Suite;
     JmlKeywordSyncTest.class,
     IncrementalSyncApplierTest.class,
     InlayHintsVarTypesTest.class,
+    WatchedFilesTest.class,
+    org.openjml.lsp.WatchedFilesHandlerTest.class,
 })
 public class FastTests {}

@@ -131,7 +131,7 @@ public class InlayHintsVarTypesTest extends LspTestBase {
         String source = "public class NeverChecked { public void m() { var x = 1; } }\n";
         // Do NOT call checkContent — leave the cache empty for this URI.
         List<InlayHint> hints = InlayHintProvider.compute(params(uncachedUri), source,
-                new ASTCache());
+                new ASTCache(), false);
         assertTrue("Expected empty list when no AST is cached", hints.isEmpty());
     }
 

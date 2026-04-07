@@ -20,6 +20,9 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
     /** The registered part listener; kept so it can be disposed on stop. */
     private static volatile org.jmlspecs.openjml.eclipse.LspPartListener partListener;
 
+    /** The registered resource change listener; kept so it can be removed on stop. */
+    private static volatile org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener resourceChangeListener;
+
     /**
      * The constructor
      */
@@ -57,6 +60,15 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
                 org.jmlspecs.openjml.eclipse.LspPartListener.sendSettingsToServer();
             }
         });
+
+        // Register resource change listener to detect classpath/property/dependency
+        // changes in JML-natured projects and offer to re-check accordingly.
+        org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener rcl =
+                new org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener();
+        resourceChangeListener = rcl;
+        org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
+                .addResourceChangeListener(rcl,
+                        org.eclipse.core.resources.IResourceChangeEvent.POST_CHANGE);
 
         // Note: if openjml-lsp is not reachable, the looping dialog in
         // OpenJMLStreamConnectionProvider.start() will handle it when LSP4E
@@ -112,6 +124,13 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
 
     @Override
     public void stop(BundleContext context) throws Exception {
+        org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener rcl = resourceChangeListener;
+        if (rcl != null) {
+            org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
+                    .removeResourceChangeListener(rcl);
+            rcl.dispose();
+            resourceChangeListener = null;
+        }
         org.jmlspecs.openjml.eclipse.LspPartListener pl = partListener;
         if (pl != null) { pl.dispose(); partListener = null; }
         plugin = null;

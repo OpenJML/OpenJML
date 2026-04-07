@@ -118,6 +118,8 @@ public class JmlNature implements IProjectNature {
             project.setDescription(desc, null);
             Console.log("JML nature added to " + project.getName());
             refreshDecorator();
+            // Notify the server of the updated project roots.
+            LspPartListener.sendSettingsToServer();
         } catch (CoreException e) {
             Console.log("Failed to enable JML nature on " + project.getName() + ": " + e);
         }
@@ -149,6 +151,8 @@ public class JmlNature implements IProjectNature {
             Console.log("JML nature removed from " + project.getName());
             refreshDecorator();
             cleanupForProject(project);
+            // Notify the server of the updated project roots (project is now excluded).
+            LspPartListener.sendSettingsToServer();
         } catch (CoreException e) {
             Console.log("Failed to disable JML nature on " + project.getName() + ": " + e);
         }

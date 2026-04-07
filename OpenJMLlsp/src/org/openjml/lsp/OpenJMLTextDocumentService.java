@@ -38,6 +38,7 @@ import org.eclipse.lsp4j.PrepareRenameDefaultBehavior;
 import org.eclipse.lsp4j.PrepareRenameParams;
 import org.eclipse.lsp4j.PrepareRenameResult;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
+import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FoldingRange;
 import org.eclipse.lsp4j.FoldingRangeRequestParams;
 import org.eclipse.lsp4j.InlayHint;
@@ -1430,6 +1431,81 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
         });
         runningEscTasks.put(uri, f);
+    }
+
+    // --- disk file-change handlers (called from OpenJMLWorkspaceService) ---
+
+    /**
+     * Called when a {@code .jml} file changes on disk outside the editor.
+     * If the file is already open in the editor the editor path handles it and
+     * this method returns immediately to avoid a double-check.
+     */
+    void handleWatchedJmlChange(String uri, FileChangeType type) {
+        if (lastContent.containsKey(uri)) return;  // editor path already handles it
+
+        if (type == FileChangeType.Deleted) {
+            String javaUri = resolveCompanionJavaUri(uri, "");
+            if (javaUri != null && client != null)
+                client.publishDiagnostics(new PublishDiagnosticsParams(javaUri, List.of()));
+            CheckRunner.getASTCache().remove(uri);
+            return;
+        }
+        // Created or Changed: read content from disk, re-check companion .java.
+        String jmlContent = readFileFromDisk(uri);
+        if (jmlContent == null) return;
+        // Temporarily register the content so resolveCompanionJavaUri can parse it.
+        lastContent.put(uri, jmlContent);
+        String javaUri = resolveCompanionJavaUri(uri, jmlContent);
+        lastContent.remove(uri);
+        if (javaUri == null) return;
+        String javaContent = lastContent.containsKey(javaUri)
+                ? lastContent.get(javaUri) : readFileFromDisk(javaUri);
+        if (javaContent == null) return;
+        scheduleCheckNow(javaUri, javaContent);
+    }
+
+    /**
+     * Called when a {@code .java} file is created or deleted on disk outside the editor.
+     * Created files are indexed into the workspace cache for symbol search.
+     * Deleted files have their AST cache entry and diagnostics cleared.
+     * Changed-but-not-open files are ignored — the user opens the file to trigger a check.
+     */
+    void handleWatchedJavaChange(String uri, FileChangeType type) {
+        if (lastContent.containsKey(uri)) return;  // editor handles it
+        if (type == FileChangeType.Deleted) {
+            CheckRunner.getASTCache().remove(uri);
+            if (client != null)
+                client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+        } else if (type == FileChangeType.Created) {
+            String path = CheckRunner.uriToPath(uri);
+            if (path != null) {
+                final OpenJMLSettings snap = new OpenJMLSettings(settings);
+                indexExecutor.submit(() -> {
+                    List<Diagnostic> diags = CheckRunner.indexOneFile(path, uri, snap);
+                    if (!diags.isEmpty()) {
+                        storeCheckDiags(uri, diags);
+                        publishMerged(uri);
+                    }
+                });
+            }
+        }
+        // FileChangeType.Changed (not open): no action — let user open to trigger re-check
+    }
+
+    /**
+     * Read the contents of a file identified by its LSP {@code file://} URI.
+     * Returns {@code null} if the URI cannot be resolved or the file cannot be read.
+     */
+    private String readFileFromDisk(String uri) {
+        String path = CheckRunner.uriToPath(uri);
+        if (path == null) return null;
+        try {
+            return new String(java.nio.file.Files.readAllBytes(java.nio.file.Path.of(path)),
+                    java.nio.charset.StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            System.err.println("[OpenJML] readFileFromDisk failed for " + path + ": " + e);
+            return null;
+        }
     }
 
     // --- scheduling helpers ---

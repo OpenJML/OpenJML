@@ -1,5 +1,8 @@
 package org.openjml.lsp;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * User-configurable settings for the OpenJML language server.
  *
@@ -54,6 +57,34 @@ public class OpenJMLSettings {
      * directory but before the user-supplied {@link #sourcePath}.
      */
     public volatile String workspaceFolderPaths;
+
+    /**
+     * Explicit list of filesystem root paths for JML-relevant projects,
+     * path-separator-separated.  Supplied by the client in
+     * {@code initializationOptions} or {@code workspace/didChangeConfiguration}.
+     *
+     * <p>When present, the server uses these paths in preference to
+     * {@link #workspaceFolderPaths} for workspace indexing, source-path
+     * construction, and file-change event filtering.
+     *
+     * <p>The Eclipse plugin populates this with the paths of all open projects
+     * that carry the JML nature.  Other clients should populate it with
+     * whatever project roots are JML-relevant.  If absent the server falls
+     * back to {@link #workspaceFolderPaths}.
+     */
+    public volatile String jmlWorkspaceRoots;
+
+    /**
+     * Returns the effective list of root paths for JML work:
+     * {@link #jmlWorkspaceRoots} if set, otherwise {@link #workspaceFolderPaths}.
+     * Returns an empty list if neither is set.
+     */
+    public List<String> effectiveRoots() {
+        String raw = (jmlWorkspaceRoots != null && !jmlWorkspaceRoots.isBlank())
+                ? jmlWorkspaceRoots : workspaceFolderPaths;
+        if (raw == null || raw.isBlank()) return List.of();
+        return Arrays.asList(raw.split(java.io.File.pathSeparator));
+    }
 
     /**
      * Classpath for pre-compiled dependencies, passed as {@code -classpath}.
@@ -252,6 +283,7 @@ public class OpenJMLSettings {
         this.solversPath             = src.solversPath;
         this.sourcePath              = src.sourcePath;
         this.workspaceFolderPaths    = src.workspaceFolderPaths;
+        this.jmlWorkspaceRoots       = src.jmlWorkspaceRoots;
         this.classPath               = src.classPath;
         this.useIntegratedOutline    = src.useIntegratedOutline;
         this.checkTriggerOn          = src.checkTriggerOn;

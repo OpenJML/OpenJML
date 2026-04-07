@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.ExecuteCommandParams;
+import org.eclipse.lsp4j.FileChangeType;
+import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.WorkspaceSymbolParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -13,6 +15,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
@@ -32,19 +35,32 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final OpenJMLSettings settings;
     private final CommandRegistry commands;
     private final Function<String, List<SymbolInformation>> symbolsRequester;
+    private final BiConsumer<String, FileChangeType> jmlFileChangeHandler;
+    private final BiConsumer<String, FileChangeType> javaFileChangeHandler;
+    private final Runnable watcherReregistrar;
 
     /**
-     * @param settings         shared settings object (mutated by didChangeConfiguration)
-     * @param commands         registry of command-name → handler mappings
-     * @param symbolsRequester called with a query string for {@code workspace/symbol} requests;
-     *                         returns matching {@link SymbolInformation} list
+     * @param settings              shared settings object (mutated by didChangeConfiguration)
+     * @param commands              registry of command-name → handler mappings
+     * @param symbolsRequester      called with a query string for {@code workspace/symbol} requests;
+     *                              returns matching {@link SymbolInformation} list
+     * @param jmlFileChangeHandler  called when a watched {@code .jml} file changes on disk
+     * @param javaFileChangeHandler called when a watched {@code .java} file is created/deleted on disk
+     * @param watcherReregistrar    called when {@code jmlWorkspaceRoots} changes so file watchers
+     *                              are re-registered with the updated scope
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
                                    CommandRegistry commands,
-                                   Function<String, List<SymbolInformation>> symbolsRequester) {
-        this.settings          = settings;
-        this.commands          = commands;
-        this.symbolsRequester  = symbolsRequester;
+                                   Function<String, List<SymbolInformation>> symbolsRequester,
+                                   BiConsumer<String, FileChangeType> jmlFileChangeHandler,
+                                   BiConsumer<String, FileChangeType> javaFileChangeHandler,
+                                   Runnable watcherReregistrar) {
+        this.settings               = settings;
+        this.commands               = commands;
+        this.symbolsRequester       = symbolsRequester;
+        this.jmlFileChangeHandler   = jmlFileChangeHandler;
+        this.javaFileChangeHandler  = javaFileChangeHandler;
+        this.watcherReregistrar     = watcherReregistrar;
     }
 
     @Override
@@ -112,6 +128,12 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
             settings.escPool = java.util.concurrent.Executors.newFixedThreadPool(src.escThreads);
             old.shutdown();
         }
+        // If jmlWorkspaceRoots changed, re-register file watchers with the new scope.
+        if (src.jmlWorkspaceRoots != null
+                && !src.jmlWorkspaceRoots.equals(settings.jmlWorkspaceRoots)) {
+            settings.jmlWorkspaceRoots = src.jmlWorkspaceRoots;
+            if (watcherReregistrar != null) watcherReregistrar.run();
+        }
     }
 
     /**
@@ -130,5 +152,28 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     }
 
     @Override
-    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {}
+    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
+        for (FileEvent event : params.getChanges()) {
+            String uri  = event.getUri();
+            FileChangeType type = event.getType();
+            if (!isUnderEffectiveRoot(uri)) continue;
+            if (uri.endsWith(".jml") && jmlFileChangeHandler != null) {
+                jmlFileChangeHandler.accept(uri, type);
+            } else if (uri.endsWith(".java") && javaFileChangeHandler != null) {
+                javaFileChangeHandler.accept(uri, type);
+            }
+        }
+    }
+
+    /** Returns {@code true} if {@code uri} falls under one of the effective workspace roots. */
+    private boolean isUnderEffectiveRoot(String uri) {
+        List<String> roots = settings.effectiveRoots();
+        if (roots.isEmpty()) return true;   // no filter configured — accept everything
+        String path = CheckRunner.uriToPath(uri);
+        if (path == null) return false;
+        for (String root : roots) {
+            if (path.startsWith(root)) return true;
+        }
+        return false;
+    }
 }

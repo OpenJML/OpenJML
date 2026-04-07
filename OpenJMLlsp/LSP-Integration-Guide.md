@@ -209,6 +209,7 @@ Example `workspace/didChangeConfiguration` payload:
 | `incrementalSync` | boolean | `true` | When `true`, advertise `Incremental` sync and apply ranged edits internally; when `false`, revert to `Full` sync |
 | `javaMode` | string | `"full"` | Java-capability mode: `"full"` enables all Java+JML capabilities; `"jml-only"` suppresses capabilities that duplicate a co-present Java language server (e.g. JDT, Red Hat Java). See note below. |
 | `client` | string | `"generic"` | Known-client hint for default tuning. Values: `"generic"` (no assumptions), `"eclipse-jdt"`, `"vscode-java"`, `"intellij"`. When set to a known Java-capable client, `javaMode` defaults to `"jml-only"` unless explicitly overridden. |
+| `jmlWorkspaceRoots` | string | none | Path-separator-separated list of filesystem paths the server should treat as its JML workspace. The server uses these paths to scope file-watcher events and workspace indexing. If absent or blank, the server falls back to the workspace folders reported in the `initialize` request. The Eclipse plugin populates this automatically from the set of open projects that carry JML nature. |
 
 `null` or absent fields leave the current value unchanged.
 
@@ -597,9 +598,33 @@ Handled as described in the [Configuration](#configuration) section.
 
 ### `workspace/didChangeWatchedFiles`
 
-Accepted but treated as a no-op. The server does not watch files independently.
+The server registers two file watchers during `initialized()` via
+`client/registerCapability`:
 
-FIXME _ think about watching files
+| Glob | Events watched |
+|------|---------------|
+| `**/*.jml` | Created, Changed, Deleted |
+| `**/*.java` | Created, Deleted |
+
+**`.jml` events** — the server reads the updated spec file from disk and
+re-checks the companion `.java` file.  On Deleted, diagnostics for the
+companion `.java` are cleared.  Events for files that are currently open in
+the editor are ignored (the editor's `textDocument/did*` path handles them).
+
+**`.java` events** — Created: the file is indexed into the workspace symbol
+table.  Deleted: the AST cache entry and diagnostics for the file are
+cleared.  Changed-while-not-open: ignored (the user opens the file to
+trigger a re-check).
+
+**Root filtering** — if `jmlWorkspaceRoots` is configured, only events whose
+file path begins with one of those roots are acted upon.  Events for files
+outside the effective roots (e.g. non-JML projects in a multi-project
+workspace) are silently dropped.  When `jmlWorkspaceRoots` is absent the
+filter is disabled and all events are processed.
+
+**Watcher re-registration** — when `jmlWorkspaceRoots` changes via
+`workspace/didChangeConfiguration`, the server unregisters the old watchers
+and re-registers them immediately so the new scope takes effect.
 
 
 ---

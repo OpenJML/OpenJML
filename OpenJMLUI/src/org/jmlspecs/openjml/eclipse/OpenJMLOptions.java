@@ -4,6 +4,11 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 /**
@@ -421,6 +426,11 @@ public class OpenJMLOptions {
     public static java.util.Map<String, Object> buildInitializationOptions() {
         var opts = new java.util.LinkedHashMap<String, Object>();
 
+        // Client identification and JML project roots — always sent so the server
+        // can apply correct capability defaults and scope file watching correctly.
+        opts.put("client",              "eclipse-jdt");
+        opts.put("jmlWorkspaceRoots",   buildJmlProjectRoots());
+
         // Tab 1 — plugin / LSP settings (always sent individually)
         opts.put("checkTriggerOn",         nonBlank(value(checkTriggerOnKey),  "edit"));
         opts.put("escTriggerOn",           nonBlank(value(escTriggerOnKey),    "manual"));
@@ -450,5 +460,18 @@ public class OpenJMLOptions {
         }
 
         return opts;
+    }
+
+    /**
+     * Returns a path-separator-separated string of filesystem paths for all open
+     * Eclipse projects that carry the JML nature.  Used as the {@code jmlWorkspaceRoots}
+     * setting so the server watches and indexes only JML-relevant projects.
+     */
+    public static String buildJmlProjectRoots() {
+        return Arrays.stream(ResourcesPlugin.getWorkspace().getRoot().getProjects())
+                .filter(IProject::isOpen)
+                .filter(JmlNature::hasNature)
+                .map(p -> p.getLocation().toOSString())
+                .collect(Collectors.joining(java.io.File.pathSeparator));
     }
 }

@@ -2,11 +2,18 @@ package org.openjml.lsp;
 
 import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.CompletionOptions;
+import org.eclipse.lsp4j.DidChangeWatchedFilesRegistrationOptions;
+import org.eclipse.lsp4j.FileSystemWatcher;
 import org.eclipse.lsp4j.InlayHintRegistrationOptions;
+import org.eclipse.lsp4j.Registration;
+import org.eclipse.lsp4j.RegistrationParams;
 import org.eclipse.lsp4j.RenameOptions;
 import org.eclipse.lsp4j.SignatureHelpOptions;
 import org.eclipse.lsp4j.SemanticTokensLegend;
 import org.eclipse.lsp4j.SemanticTokensWithRegistrationOptions;
+import org.eclipse.lsp4j.Unregistration;
+import org.eclipse.lsp4j.UnregistrationParams;
+import org.eclipse.lsp4j.WatchKind;
 import org.eclipse.lsp4j.InitializeParams;
 import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
@@ -20,6 +27,7 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -42,12 +50,15 @@ import java.util.concurrent.CompletableFuture;
  */
 public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAware {
 
+    private static final String WATCHER_REGISTRATION_ID = "openjml-file-watchers";
+
     private final OpenJMLSettings             settings;
     private final OpenJMLTextDocumentService  textDocumentService;
     private final OpenJMLWorkspaceService     workspaceService;
 
-    private int    exitCode = 1;
-    private String rootUri  = null;
+    private LanguageClient client   = null;
+    private int            exitCode = 1;
+    private String         rootUri  = null;
 
     /**
      * Constructs the server, wiring all command names from {@link OpenJMLCommands}.
@@ -114,7 +125,10 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
 
         this.workspaceService = new OpenJMLWorkspaceService(settings, registry,
-                textDocumentService::symbols);
+                textDocumentService::symbols,
+                textDocumentService::handleWatchedJmlChange,
+                textDocumentService::handleWatchedJavaChange,
+                this::reregisterFileWatchers);
     }
 
     @Override
@@ -198,6 +212,36 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // Kick off a background pass over all .java files in the workspace so
         // that workspace/symbol can find symbols in files not yet opened.
         if (rootUri != null) textDocumentService.scheduleWorkspaceIndex(rootUri);
+        // Register file watchers so the server is notified when .jml/.java files
+        // change on disk outside the editor.
+        registerFileWatchers();
+    }
+
+    /** Register (or re-register after unregistering) LSP file watchers. */
+    private void registerFileWatchers() {
+        if (client == null) return;
+        var watchers = List.of(
+            new FileSystemWatcher(Either.forLeft("**/*.jml")),
+            new FileSystemWatcher(Either.forLeft("**/*.java"),
+                    WatchKind.Create + WatchKind.Delete)
+        );
+        var reg = new Registration(WATCHER_REGISTRATION_ID,
+                "workspace/didChangeWatchedFiles",
+                new DidChangeWatchedFilesRegistrationOptions(watchers));
+        client.registerCapability(new RegistrationParams(List.of(reg)));
+    }
+
+    /**
+     * Called when {@code jmlWorkspaceRoots} changes via {@code didChangeConfiguration}.
+     * Unregisters the current file watchers then immediately re-registers them.
+     * The brief overlap window is harmless because all events are root-filtered.
+     */
+    void reregisterFileWatchers() {
+        if (client == null) return;
+        client.unregisterCapability(new UnregistrationParams(List.of(
+                new Unregistration(WATCHER_REGISTRATION_ID,
+                        "workspace/didChangeWatchedFiles"))));
+        registerFileWatchers();
     }
 
     @Override
@@ -224,6 +268,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     @Override
     public void connect(LanguageClient client) {
+        this.client = client;
         textDocumentService.connect(client);
     }
 
