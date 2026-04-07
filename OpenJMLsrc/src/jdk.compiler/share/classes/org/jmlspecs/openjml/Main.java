@@ -490,7 +490,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         return exit;
     }
 
-    /** This method is called programmatically, in which case the set of files is 
+    /** This method is called programmatically, in which case the set of files is
         separate from the command-line options. This entry point is useful for test cases
         in which the fileObjects may be mock files. */
     public Main.Result compile(String[] args, java.util.Collection<JavaFileObject> fileObjects)  {
@@ -502,6 +502,25 @@ public class Main extends com.sun.tools.javac.main.Main {
             log.error("jml.message", "Unrecoverable compilation problem");
             if (System.getenv("STACK") != null) e.printStackTrace(System.out);
             return Main.Result.CMDERR;
+        }
+    }
+
+    /** Like {@link #compile(String[], java.util.Collection)}, but uses URI-keyed
+     * mock file interception via {@link JmlOptions.JmlArguments} and
+     * {@link org.openjml.MockAwareFileManager}.
+     * Mock .java file paths must appear in {@code args}; mock content is served
+     * from {@code mockFiles.uriMap} without requiring files to exist on disk. */
+    public Main.Result compile(String[] args, org.openjml.MockFiles mockFiles)  {
+        try {
+            this.mockFiles = (mockFiles != null) ? mockFiles : new org.openjml.MockFiles();
+            if (args.length == 0) args = new String[]{"-g"};
+            return compile(args, context());
+        } catch (JmlInternalAbort e) {
+            log.error("jml.message", "Unrecoverable compilation problem");
+            if (System.getenv("STACK") != null) e.printStackTrace(System.out);
+            return Main.Result.CMDERR;
+        } finally {
+            this.mockFiles = new org.openjml.MockFiles();
         }
     }
 

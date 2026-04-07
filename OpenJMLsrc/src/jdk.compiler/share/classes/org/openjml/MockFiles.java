@@ -61,10 +61,18 @@ public class MockFiles {
         uriMap.clear();
     }
 
-    /** Creates a new MockFileTree that belongs to the given context;
-     * a context may have more than one MockFileTree.
-     */
     public MockFiles() {
+    }
+
+    /** Convenience constructor: registers each file by its normalized URI
+     * in the URI map, ready for interception by
+     * {@code MockAwareFileManager} and {@code JmlOptions.JmlArguments}.
+     * URI matching mirrors {@code MockJavaFileObject.makeURI}. */
+    @SuppressWarnings("this-escape")
+    public MockFiles(java.util.Collection<? extends JavaFileObject> files) {
+        for (JavaFileObject jfo : files) {
+            addMockByUri(jfo.toUri().normalize(), jfo);
+        }
     }
 
 }

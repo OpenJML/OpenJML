@@ -222,10 +222,7 @@ public class API implements IAPI {
 
     @Override
     public int execute(String[] args, org.openjml.MockFiles mockFiles) {
-        main.mockFiles = (mockFiles != null) ? mockFiles : new MockFiles();
-        int result = main.compile(args, main.context()).exitCode;
-        main.mockFiles = new MockFiles();
-        return result;
+        return main.compile(args, mockFiles).exitCode;
     }
     
 

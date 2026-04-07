@@ -149,7 +149,14 @@ public abstract class RacBase extends JmlTestSuite {
 
             Log.instance(context).useSource(files.first());
 
-            int ex = main.compile(new String[]{"-d", destdir},files.toList()).exitCode;
+            // Register each file by URI in the existing mockFiles (same object as main.mockFiles).
+            for (JavaFileObject jfo : files.toList()) mockFiles.addMockByUri(jfo.toUri().normalize(), jfo);
+            String[] fileArgs = files.toList().stream()
+                    .map(JavaFileObject::getName).toArray(String[]::new);
+            String[] allArgs = new String[2 + fileArgs.length];
+            allArgs[0] = "-d"; allArgs[1] = destdir;
+            System.arraycopy(fileArgs, 0, allArgs, 2, fileArgs.length);
+            int ex = main.compile(allArgs, mockFiles).exitCode;
             if (print) printDiagnostics();
 
             int expectedUsed = new OutputCompare().compareResults(expectedDiagnostics, collector, false);
