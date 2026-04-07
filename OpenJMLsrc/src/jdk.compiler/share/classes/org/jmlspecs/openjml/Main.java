@@ -560,15 +560,15 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         // Notes on tool instantiation:
         // JavacMessages is needed in order to write out any (javac) error messages, such as might happen in processing options
-        // JavacMessage automatically reads in the messages bundel when it is created
+        // JavacMessage automatically reads in the messages bundle when it is created
         // JavacMessages reads an option -- so JmlOptions must be registered before JavacMessages is instantiated
-        // Similarly Log reads an option; lso Log instantiates JavacMessages
+        // Similarly Log reads an option; so Log instantiates JavacMessages
         // Thus both Log and JavacMessages must have their diagFormatter reset after options are processed
         // and any messages printed during option processing will not use any formatter specified on the command-line
 
         JmlOptions.preRegister(context); // Creates a JmlOptions instance (not a factory) -- must precede getting JavacMessages
         // because JavacMessages access Options
-        JavacFileManager.preRegister(context); // creates a JavacFileManager factory for the context - required for processing options
+        MockAwareFileManager.preRegister(context); // creates a file manager factory - required for processing options
 
         // The next call creates the compiler tool chain. The problem is that some Java components cache values of options
         // during tool creation, rather than tool use. All the registration of JML tools is by Context factories, so no Javac tool

@@ -214,6 +214,19 @@ public class API implements IAPI {
         int x = main.compile(args, main.context()).exitCode;
         return x;
     }
+
+    @Override
+    public int execute(String[] args, java.util.Collection<javax.tools.JavaFileObject> fileObjects) {
+        return main.compile(args, fileObjects).exitCode;
+    }
+
+    @Override
+    public int execute(String[] args, org.openjml.MockFiles mockFiles) {
+        main.mockFiles = (mockFiles != null) ? mockFiles : new MockFiles();
+        int result = main.compile(args, main.context()).exitCode;
+        main.mockFiles = new MockFiles();
+        return result;
+    }
     
 
     

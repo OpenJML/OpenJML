@@ -1,10 +1,9 @@
 package org.openjml;
 import java.net.URI;
+import java.nio.file.Path;
 
 import javax.tools.JavaFileObject;
 import javax.tools.SimpleJavaFileObject;
-
-import org.jmlspecs.openjml.Utils;
 
 /** This class makes a mock JavaFileObject.  It holds a String as its content
  * and is given a pseudo-filename to use, but does not represent an actual file in 
@@ -42,12 +41,17 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
     }
 
     /** A utility method to make a URI, so it can handle the exceptions;
-     * only make one of these for a given filename per compilation context 
-     * We don't try to recover gracefully if the exception occurs - this is
-     * primarily used in testing anyway. */
+     * only make one of these for a given filename per compilation context.
+     * For absolute paths, delegates to {@link Path#toUri()} which handles
+     * spaces and the correct number of slashes.  For relative paths (typical
+     * in test code), prepends {@code file:///} directly so that the resulting
+     * URI path matches the filename string exactly (e.g. {@code /A.java}).
+     */
     private static URI makeURI(String filename) {
         try {
-            return new URI("file:///" + filename);
+            Path p = Path.of(filename);
+            if (p.isAbsolute()) return p.toUri();
+            return new URI("file:///" + filename).normalize();
         } catch (Exception e) {
             // If this exception is ever thrown, the TestJavaFileObject class will fail to be instantiated,
             // aborting tests and any execution of openjml on startup.
@@ -84,7 +88,7 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
      * @param content the content of the pseudo file
      */
     public MockJavaFileObject(/*@ non_null */URI uri, /*@ non_null */String content) {
-        super(uri,uri.getPath().endsWith(".java") ? Kind.SOURCE : Kind.OTHER);
+        super(uri.normalize(), uri.getPath().endsWith(".java") ? Kind.SOURCE : Kind.OTHER);
         this.content = content;
     }
 
@@ -114,18 +118,20 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
 //        }
 //    }
     
-    /** Returns true if the receiver and argument represent the same file */
+    /** Returns true if the receiver and argument represent the same file.
+     * The stored URI is always normalized (see constructors), so only the
+     * other side needs normalizing to handle callers that do not normalize. */
+    @Override
     public boolean equals(Object o) {
         if (!(o instanceof JavaFileObject jfo)) return false;
-        return Utils.ifFilepathsEqual(this, jfo);
+        return toUri().equals(jfo.toUri().normalize());
     }
-    
-    /** A definition of hashCode, since we have a definition of equals */
+
+    /** Hash code consistent with {@link #equals}: the stored URI is normalized,
+     * so no extra {@code normalize()} call is needed here. */
+    @Override
     public int hashCode() {
-        // Two things are equal if they have the same string, so we'll
-        // use that for the hashCode
-        return uri.normalize().getPath().hashCode();
-        // FIXME -0 this is not right, since if one is a suffix of the other they are equal and should have the same hashCode
+        return toUri().hashCode();
     }
     
     public String toString() {

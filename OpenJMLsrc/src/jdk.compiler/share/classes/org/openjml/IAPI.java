@@ -181,7 +181,31 @@ public interface IAPI {
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
     public int execute(/*@non_null*/ String ... args);
+
+    /** Executes OpenJML with explicit in-memory file objects added as primary
+     * compilation units alongside any file paths in {@code args}.
+     * Use {@link MockJavaFileObject} to supply dirty (unsaved) file content
+     * without writing temporary files to disk.
+     * @param args        command-line arguments (mode flags, settings, clean file paths)
+     * @param fileObjects in-memory file objects; added to the compilation batch
+     * @return the exit code
+     */
+    public int execute(String[] args, java.util.Collection<javax.tools.JavaFileObject> fileObjects);
     
+    /**
+     * Executes OpenJML with file-manager interception for dirty source files.
+     * The real file paths must appear in {@code args} as usual; {@code mockFiles}
+     * provides in-memory content keyed by normalized URI (for {@code .java} files
+     * intercepted by {@link MockAwareFileManager}) and by {@code "$dir/relPath"}
+     * (for {@code .jml} files served via MockDir on the specs path).
+     * Pass {@code null} if there are no dirty files.
+     *
+     * @param args      command-line arguments including real file paths
+     * @param mockFiles mock content registry; may be {@code null}
+     * @return the exit code
+     */
+    public int execute(String[] args, org.openjml.MockFiles mockFiles);
+
     /** Executes the command-line version of openjml, in a new context, returning the exit code.
      * The arguments are used to initialize the options and files just as
      * described for initOptions() and the constructor for Main().

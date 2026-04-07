@@ -1,6 +1,7 @@
 package org.openjml.lsp;
 
 import org.openjml.IAPI;
+import org.openjml.MockJavaFileObject;
 import org.openjml.IProverResult;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
@@ -50,6 +51,14 @@ import java.util.function.Consumer;
  * directly to OpenJML — no temp file needed.
  */
 public class CheckRunner {
+
+    /**
+     * When {@code true} (default), dirty {@code .java} files in the snapshot are
+     * served as in-memory {@link MockJavaFileObject} instances — no temporary files
+     * are written to disk for them.  Set to {@code false} to fall back to the
+     * original temp-file behaviour for regression testing or debugging.
+     */
+    static boolean useMockFiles = true;
 
     /**
      * Shared AST cache populated by every check run.
@@ -205,10 +214,10 @@ public class CheckRunner {
      * Run {@code --check} on one or more files/directories, substituting dirty
      * in-memory files from {@code snapshot} for their on-disk counterparts.
      *
-     * <p>Each dirty file in {@code snapshot} is written to a shared temp directory
-     * and passed explicitly to OpenJML; clean on-disk files are passed directly.
-     * The temp directory is prepended to {@code -sourcepath} so cross-file
-     * references resolve against dirty versions of their dependencies.
+     * <p>When {@link #useMockFiles} is {@code true} (default), dirty {@code .java}
+     * files are served as in-memory {@link MockJavaFileObject} instances — no
+     * temporary files are created for them.  Dirty {@code .jml} files still use
+     * a temp directory for now.
      *
      * <p>Fast path: when {@code snapshot} is empty, delegates to
      * {@link #runCheckDir(List, OpenJMLSettings)}.
@@ -216,68 +225,62 @@ public class CheckRunner {
     public static DirCheckResult runCheckDirWithContext(
             List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings) {
         if (snapshot.isEmpty()) return runCheckDir(paths, settings);
+        if (!useMockFiles) return runCheckDirWithContextLegacy(paths, snapshot, settings);
+
         Path tempDir = null;
         try {
-            tempDir = Files.createTempDirectory("openjml-lsp-check-");
-
-            // Write all dirty files to the temp dir and record path→URI mappings.
-            Map<String, String> uriToTempPath  = new java.util.HashMap<>();
             Map<String, String> allPathToRealUri = new java.util.LinkedHashMap<>();
+            org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
+
+            // Dirty .java files → MockJavaFileObject registered by URI (file-manager
+            // interception); real path goes on the arg list so javac treats it as a
+            // primary compilation unit.  Dirty .jml files → temp dir.
+            Map<String, String> uriToTempPath = new java.util.HashMap<>();
             for (Map.Entry<String, String> e : snapshot.entrySet()) {
                 String uri     = e.getKey();
                 String content = e.getValue();
-                try {
+                if (uri.endsWith(".java")) {
+                    java.net.URI javaUri = java.net.URI.create(uri);
+                    MockJavaFileObject jfo = new MockJavaFileObject(javaUri, content);
+                    mockFiles.addMockByUri(javaUri.normalize(), jfo);
+                    allPathToRealUri.put(jfo.getName(), uri);
+                } else {
+                    if (tempDir == null) tempDir = Files.createTempDirectory("openjml-lsp-check-");
                     Path tempFile = writeToTempDir(tempDir, uri, content);
                     uriToTempPath.put(uri, tempFile.toString());
                     allPathToRealUri.put(tempFile.toString(), uri);
-                } catch (IOException ex) {
-                    System.err.println("[CheckRunner.runCheckDirWithContext] write failed for " + uri + ": " + ex);
                 }
             }
 
-            // Walk requested paths to build the explicit file list.
+            // Walk requested paths: skip dirty files already covered above;
+            // add .java files (dirty or clean) to the explicit arg list.
+            java.util.Set<String> snapshotUris = snapshot.keySet();
             List<String> fileList = new ArrayList<>();
             for (String path : paths) {
                 java.nio.file.Path p = java.nio.file.Path.of(path);
                 if (Files.isDirectory(p)) {
                     try (var stream = Files.walk(p)) {
-                        stream.filter(f -> {
-                                  String s = f.toString();
-                                  return s.endsWith(".java") || s.endsWith(".jml");
-                              })
+                        stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
                               .forEach(f -> {
                                   String diskPath = f.toString();
                                   String diskUri  = f.toUri().toString();
-                                  String tempPath = uriToTempPath.get(diskUri);
                                   if (diskPath.endsWith(".java")) {
-                                      if (tempPath != null) {
-                                          fileList.add(tempPath);   // already in allPathToRealUri
-                                      } else {
-                                          fileList.add(diskPath);
-                                          allPathToRealUri.put(diskPath, diskUri);
-                                      }
+                                      fileList.add(diskPath);
+                                      allPathToRealUri.put(diskPath, diskUri);
                                   } else {
-                                      // .jml companion spec: register for diagnostic routing,
-                                      // but not compiled directly (loaded via specs/source path)
-                                      if (tempPath == null) allPathToRealUri.put(diskPath, diskUri);
+                                      allPathToRealUri.put(diskPath, diskUri); // .jml: diagnostic routing only
                                   }
                               });
                     } catch (IOException ex) {
                         System.err.println("[CheckRunner.runCheckDirWithContext] walk failed for " + path + ": " + ex);
                     }
                 } else {
-                    String diskUri  = p.toUri().toString();
-                    String tempPath = uriToTempPath.get(diskUri);
+                    String diskUri = p.toUri().toString();
                     if (path.endsWith(".jml")) {
-                        // .jml spec file: register for diagnostic routing but not compiled directly
-                        if (tempPath == null) allPathToRealUri.put(path, diskUri);
+                        allPathToRealUri.put(path, diskUri);
                     } else {
-                        if (tempPath != null) {
-                            fileList.add(tempPath);   // already in allPathToRealUri
-                        } else {
-                            fileList.add(path);
-                            allPathToRealUri.put(path, diskUri);
-                        }
+                        fileList.add(path);
+                        allPathToRealUri.put(path, diskUri);
                     }
                 }
             }
@@ -290,21 +293,89 @@ public class CheckRunner {
             List<String> args = buildArgs(settings, "--check", tempDir);
             args.addAll(fileList);
             logInvocation("runCheckDirWithContext", args);
-            int rc = api.execute(args.toArray(new String[0]));
+            int rc = api.execute(args.toArray(new String[0]), mockFiles);
             System.err.println("[CheckRunner.runCheckDirWithContext] exit code " + rc
                     + " for " + fileList.size() + " file(s)");
             return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of());
         } catch (IOException e) {
             System.err.println("[CheckRunner.runCheckDirWithContext] I/O error: " + e);
-            return runCheckDir(paths, settings);  // fallback
+            return runCheckDir(paths, settings);
         } finally {
-            if (tempDir != null) {
+            deleteTempDir(tempDir);
+        }
+    }
+
+    /** Legacy temp-file implementation of {@link #runCheckDirWithContext}, used when
+     *  {@link #useMockFiles} is {@code false}. */
+    private static DirCheckResult runCheckDirWithContextLegacy(
+            List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings) {
+        Path tempDir = null;
+        try {
+            tempDir = Files.createTempDirectory("openjml-lsp-check-");
+
+            Map<String, String> uriToTempPath  = new java.util.HashMap<>();
+            Map<String, String> allPathToRealUri = new java.util.LinkedHashMap<>();
+            for (Map.Entry<String, String> e : snapshot.entrySet()) {
+                String uri     = e.getKey();
+                String content = e.getValue();
                 try {
-                    Files.walk(tempDir)
-                         .sorted(Comparator.reverseOrder())
-                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
-                } catch (IOException ignored) {}
+                    Path tempFile = writeToTempDir(tempDir, uri, content);
+                    uriToTempPath.put(uri, tempFile.toString());
+                    allPathToRealUri.put(tempFile.toString(), uri);
+                } catch (IOException ex) {
+                    System.err.println("[CheckRunner.runCheckDirWithContextLegacy] write failed for " + uri + ": " + ex);
+                }
             }
+
+            List<String> fileList = new ArrayList<>();
+            for (String path : paths) {
+                java.nio.file.Path p = java.nio.file.Path.of(path);
+                if (Files.isDirectory(p)) {
+                    try (var stream = Files.walk(p)) {
+                        stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
+                              .forEach(f -> {
+                                  String diskPath = f.toString();
+                                  String diskUri  = f.toUri().toString();
+                                  String tempPath = uriToTempPath.get(diskUri);
+                                  if (diskPath.endsWith(".java")) {
+                                      if (tempPath != null) fileList.add(tempPath);
+                                      else { fileList.add(diskPath); allPathToRealUri.put(diskPath, diskUri); }
+                                  } else {
+                                      if (tempPath == null) allPathToRealUri.put(diskPath, diskUri);
+                                  }
+                              });
+                    } catch (IOException ex) {
+                        System.err.println("[CheckRunner.runCheckDirWithContextLegacy] walk failed for " + path + ": " + ex);
+                    }
+                } else {
+                    String diskUri  = p.toUri().toString();
+                    String tempPath = uriToTempPath.get(diskUri);
+                    if (path.endsWith(".jml")) {
+                        if (tempPath == null) allPathToRealUri.put(path, diskUri);
+                    } else {
+                        if (tempPath != null) fileList.add(tempPath);
+                        else { fileList.add(path); allPathToRealUri.put(path, diskUri); }
+                    }
+                }
+            }
+
+            if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of());
+
+            var listener = new LspDiagnosticListener();
+            var out = new PrintWriter(new StringWriter());
+            var api = IAPI.make(out, listener);
+            List<String> args = buildArgs(settings, "--check", tempDir);
+            args.addAll(fileList);
+            logInvocation("runCheckDirWithContextLegacy", args);
+            int rc = api.execute(args.toArray(new String[0]));
+            System.err.println("[CheckRunner.runCheckDirWithContextLegacy] exit code " + rc
+                    + " for " + fileList.size() + " file(s)");
+            return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of());
+        } catch (IOException e) {
+            System.err.println("[CheckRunner.runCheckDirWithContextLegacy] I/O error: " + e);
+            return runCheckDir(paths, settings);
+        } finally {
+            deleteTempDir(tempDir);
         }
     }
 
@@ -372,9 +443,10 @@ public class CheckRunner {
      * Run {@code --esc} on one or more files/directories, substituting dirty
      * in-memory files from {@code snapshot} for their on-disk counterparts.
      *
-     * <p>Same dirty-file substitution logic as {@link #runCheckDirWithContext}.
-     * The {@code perFileCallback} receives the <em>real</em> URI (not the temp path)
-     * so callers can publish progressive diagnostics without remapping.
+     * <p>When {@link #useMockFiles} is {@code true} (default), dirty {@code .java}
+     * files are served as in-memory {@link MockJavaFileObject} instances.
+     * The {@code perFileCallback} receives the <em>real</em> URI so callers can
+     * publish progressive diagnostics without remapping.
      *
      * <p>Fast path: when {@code snapshot} is empty, delegates to
      * {@link #runEscDir(List, OpenJMLSettings, EscProgressCallback)}.
@@ -383,21 +455,29 @@ public class CheckRunner {
             List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings,
             EscProgressCallback perFileCallback) {
         if (snapshot.isEmpty()) return runEscDir(paths, settings, perFileCallback);
+        if (!useMockFiles) return runEscDirWithContextLegacy(paths, snapshot, settings, perFileCallback);
+
         Path tempDir = null;
         try {
-            tempDir = Files.createTempDirectory("openjml-lsp-esc-");
-
-            Map<String, String> uriToTempPath   = new java.util.HashMap<>();
             Map<String, String> allPathToRealUri = new java.util.LinkedHashMap<>();
+            org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
+
+            // Dirty .java files → MockJavaFileObject registered by URI; real path on
+            // arg list.  Dirty .jml files → temp dir.
+            Map<String, String> uriToTempPath = new java.util.HashMap<>();
             for (Map.Entry<String, String> e : snapshot.entrySet()) {
                 String uri     = e.getKey();
                 String content = e.getValue();
-                try {
+                if (uri.endsWith(".java")) {
+                    java.net.URI javaUri = java.net.URI.create(uri);
+                    MockJavaFileObject jfo = new MockJavaFileObject(javaUri, content);
+                    mockFiles.addMockByUri(javaUri.normalize(), jfo);
+                    allPathToRealUri.put(jfo.getName(), uri);
+                } else {
+                    if (tempDir == null) tempDir = Files.createTempDirectory("openjml-lsp-esc-");
                     Path tempFile = writeToTempDir(tempDir, uri, content);
                     uriToTempPath.put(uri, tempFile.toString());
                     allPathToRealUri.put(tempFile.toString(), uri);
-                } catch (IOException ex) {
-                    System.err.println("[CheckRunner.runEscDirWithContext] write failed for " + uri + ": " + ex);
                 }
             }
 
@@ -406,44 +486,24 @@ public class CheckRunner {
                 java.nio.file.Path p = java.nio.file.Path.of(path);
                 if (Files.isDirectory(p)) {
                     try (var stream = Files.walk(p)) {
-                        stream.filter(f -> {
-                                  String s = f.toString();
-                                  return s.endsWith(".java") || s.endsWith(".jml");
-                              })
+                        stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
                               .forEach(f -> {
                                   String diskPath = f.toString();
                                   String diskUri  = f.toUri().toString();
-                                  String tempPath = uriToTempPath.get(diskUri);
                                   if (diskPath.endsWith(".java")) {
-                                      if (tempPath != null) {
-                                          fileList.add(tempPath);
-                                      } else {
-                                          fileList.add(diskPath);
-                                          allPathToRealUri.put(diskPath, diskUri);
-                                      }
+                                      fileList.add(diskPath);
+                                      allPathToRealUri.put(diskPath, diskUri);
                                   } else {
-                                      // .jml companion spec: register for diagnostic routing,
-                                      // but not compiled directly (loaded via specs/source path)
-                                      if (tempPath == null) allPathToRealUri.put(diskPath, diskUri);
+                                      allPathToRealUri.put(diskPath, diskUri);
                                   }
                               });
                     } catch (IOException ex) {
                         System.err.println("[CheckRunner.runEscDirWithContext] walk failed for " + path + ": " + ex);
                     }
                 } else {
-                    String diskUri  = p.toUri().toString();
-                    String tempPath = uriToTempPath.get(diskUri);
-                    if (path.endsWith(".jml")) {
-                        // .jml spec file: register for diagnostic routing but not compiled directly
-                        if (tempPath == null) allPathToRealUri.put(path, diskUri);
-                    } else {
-                        if (tempPath != null) {
-                            fileList.add(tempPath);
-                        } else {
-                            fileList.add(path);
-                            allPathToRealUri.put(path, diskUri);
-                        }
-                    }
+                    String diskUri = p.toUri().toString();
+                    if (path.endsWith(".jml")) allPathToRealUri.put(path, diskUri);
+                    else { fileList.add(path); allPathToRealUri.put(path, diskUri); }
                 }
             }
 
@@ -464,10 +524,8 @@ public class CheckRunner {
                 String srcName = src.getName();
                 String lookupUri;
                 try { lookupUri = java.nio.file.Path.of(srcName).toUri().toString(); }
-                catch (Exception ex) { log("[runEscDirWithContext callback] URI conversion failed: " + ex); return; }
-                // Remap temp path to real URI; fall back to disk URI for non-dirty files.
-                String realUri = finalAllPathToRealUri.get(srcName);
-                if (realUri == null) realUri = lookupUri;
+                catch (Exception ex) { log("[runEscDirWithContext callback] URI failed: " + ex); return; }
+                String realUri = finalAllPathToRealUri.getOrDefault(srcName, lookupUri);
                 List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
                 perFileCallback.accept(realUri, diags, Map.copyOf(prcRef[0].getResults()));
             });
@@ -477,7 +535,7 @@ public class CheckRunner {
             List<String> args = buildArgs(settings, "--esc", tempDir);
             args.addAll(fileList);
             logInvocation("runEscDirWithContext", args);
-            int rc = api.execute(args.toArray(new String[0]));
+            int rc = api.execute(args.toArray(new String[0]), mockFiles);
             Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri =
                     listener.toLspDiagnosticsAll(finalAllPathToRealUri);
             Map<String, IProverResult.Kind> proofResults = prc.getResults();
@@ -486,15 +544,9 @@ public class CheckRunner {
             return new DirCheckResult(diagsByUri, rc, proofResults);
         } catch (IOException e) {
             System.err.println("[CheckRunner.runEscDirWithContext] I/O error: " + e);
-            return runEscDir(paths, settings, perFileCallback);  // fallback
+            return runEscDir(paths, settings, perFileCallback);
         } finally {
-            if (tempDir != null) {
-                try {
-                    Files.walk(tempDir)
-                         .sorted(Comparator.reverseOrder())
-                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
-                } catch (IOException ignored) {}
-            }
+            deleteTempDir(tempDir);
         }
     }
 
@@ -502,6 +554,104 @@ public class CheckRunner {
     public static DirCheckResult runEscDirWithContext(
             List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings) {
         return runEscDirWithContext(paths, snapshot, settings, null);
+    }
+
+    /** Legacy temp-file implementation of {@link #runEscDirWithContext}, used when
+     *  {@link #useMockFiles} is {@code false}. */
+    private static DirCheckResult runEscDirWithContextLegacy(
+            List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings,
+            EscProgressCallback perFileCallback) {
+        Path tempDir = null;
+        try {
+            tempDir = Files.createTempDirectory("openjml-lsp-esc-");
+
+            Map<String, String> uriToTempPath   = new java.util.HashMap<>();
+            Map<String, String> allPathToRealUri = new java.util.LinkedHashMap<>();
+            for (Map.Entry<String, String> e : snapshot.entrySet()) {
+                String uri     = e.getKey();
+                String content = e.getValue();
+                try {
+                    Path tempFile = writeToTempDir(tempDir, uri, content);
+                    uriToTempPath.put(uri, tempFile.toString());
+                    allPathToRealUri.put(tempFile.toString(), uri);
+                } catch (IOException ex) {
+                    System.err.println("[CheckRunner.runEscDirWithContextLegacy] write failed for " + uri + ": " + ex);
+                }
+            }
+
+            List<String> fileList = new ArrayList<>();
+            for (String path : paths) {
+                java.nio.file.Path p = java.nio.file.Path.of(path);
+                if (Files.isDirectory(p)) {
+                    try (var stream = Files.walk(p)) {
+                        stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
+                              .forEach(f -> {
+                                  String diskPath = f.toString();
+                                  String diskUri  = f.toUri().toString();
+                                  String tempPath = uriToTempPath.get(diskUri);
+                                  if (diskPath.endsWith(".java")) {
+                                      if (tempPath != null) fileList.add(tempPath);
+                                      else { fileList.add(diskPath); allPathToRealUri.put(diskPath, diskUri); }
+                                  } else {
+                                      if (tempPath == null) allPathToRealUri.put(diskPath, diskUri);
+                                  }
+                              });
+                    } catch (IOException ex) {
+                        System.err.println("[CheckRunner.runEscDirWithContextLegacy] walk failed for " + path + ": " + ex);
+                    }
+                } else {
+                    String diskUri  = p.toUri().toString();
+                    String tempPath = uriToTempPath.get(diskUri);
+                    if (path.endsWith(".jml")) {
+                        if (tempPath == null) allPathToRealUri.put(path, diskUri);
+                    } else {
+                        if (tempPath != null) fileList.add(tempPath);
+                        else { fileList.add(path); allPathToRealUri.put(path, diskUri); }
+                    }
+                }
+            }
+
+            if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of());
+
+            final Map<String, String> finalAllPathToRealUri =
+                    java.util.Collections.unmodifiableMap(allPathToRealUri);
+
+            var listener = new LspDiagnosticListener();
+            listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
+            var out = new PrintWriter(new StringWriter());
+            var api = IAPI.make(out, listener);
+            ProofResultCollector[] prcRef = {null};
+            prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : msym -> {
+                javax.tools.JavaFileObject src =
+                        msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+                if (src == null) { log("[runEscDirWithContextLegacy callback] src is null for " + msym); return; }
+                String srcName = src.getName();
+                String lookupUri;
+                try { lookupUri = java.nio.file.Path.of(srcName).toUri().toString(); }
+                catch (Exception ex) { log("[runEscDirWithContextLegacy callback] URI failed: " + ex); return; }
+                String realUri = finalAllPathToRealUri.getOrDefault(srcName, lookupUri);
+                List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
+                perFileCallback.accept(realUri, diags, Map.copyOf(prcRef[0].getResults()));
+            });
+            ProofResultCollector prc = prcRef[0];
+            api.setProofResultListener(prc);
+
+            List<String> args = buildArgs(settings, "--esc", tempDir);
+            args.addAll(fileList);
+            logInvocation("runEscDirWithContextLegacy", args);
+            int rc = api.execute(args.toArray(new String[0]));
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri =
+                    listener.toLspDiagnosticsAll(finalAllPathToRealUri);
+            Map<String, IProverResult.Kind> proofResults = prc.getResults();
+            int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
+            log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+            return new DirCheckResult(diagsByUri, rc, proofResults);
+        } catch (IOException e) {
+            System.err.println("[CheckRunner.runEscDirWithContextLegacy] I/O error: " + e);
+            return runEscDir(paths, settings, perFileCallback);
+        } finally {
+            deleteTempDir(tempDir);
+        }
     }
 
     /**
@@ -1833,6 +1983,16 @@ public class CheckRunner {
      * <p>Example: {@code package com.example; class Foo} in {@code Foo.java}
      * → {@code tempDir/com/example/Foo.java}.
      */
+    /** Delete a temporary directory tree; silently ignores a {@code null} argument. */
+    private static void deleteTempDir(Path tempDir) {
+        if (tempDir == null) return;
+        try {
+            Files.walk(tempDir)
+                 .sorted(Comparator.reverseOrder())
+                 .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
+        } catch (IOException ignored) {}
+    }
+
     static Path writeToTempDir(Path tempDir, String uri, String content) throws IOException {
         String pkg      = extractPackage(content);
         String baseName = extractBaseName(uri);
