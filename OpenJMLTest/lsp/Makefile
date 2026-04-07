@@ -50,33 +50,37 @@ INFRA_SRCS := $(shell find $(LSPTEST)/src  -name '*.java')
 TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
 
 ## All test classes — each runs in its own JVM process.
-## ESC-heavy classes (DoEscTest, EscStatusTest, MultiFileEscTest, DiagnosticsTest)
-## each run alone so that running with -j5 never starts more than 5 ESC processes.
 ## Ordered longest-first so -j5 keeps the pool busy and finishes sooner.
-## Timings (approximate, single run): RenameTest[1-3] ~41s each, DefinitionFinderTest 37s,
-## DoEscTest 31s, ReferenceFinderTest 28s, DiagnosticsTest 26s, DocumentSymbolTest 24s,
-## EscStatusTest 17s, MultiFileEscTest 15s, CommandDispatchTest ~60s (ESC×3 + RAC),
-## FastTests (FoldingRange+LspProtocol+SemanticTokens+CheckRunnerDirTest) ~10s.
+## Approximate sequential timings: PropertiesFileOptionsTest 121s, FastTests 108s,
+## RenameTest1 75s, RenameTest2 71s, ReferenceFinderJmlTest 54s, DoEscTest 53s,
+## DiagnosticsTest 49s, EscStatusTest 44s, MethodAndClassTest 40s,
+## DefinitionFinderJmlTest 34s, DefinitionFinderTest 34s,
+## CommandDispatchTest 31s, DocumentSymbolTest 31s,
+## RenameJmlTest 24s, RenameTest3 24s, ReferenceFinderTest 24s,
+## RenameTest4 23s, RacTest 23s, RenameJmlTest2 22s,
+## MultiFileEscTest 19s, DocumentLifecycleTest 18s.
 TEST_CLASSES := \
+  PropertiesFileOptionsTest \
+  FastTests \
   RenameTest1 \
   RenameTest2 \
-  RenameTest3 \
-  RenameJmlTest \
-  MethodAndClassTest \
-  DefinitionFinderTest \
-  DefinitionFinderJmlTest \
-  DoEscTest \
-  ReferenceFinderTest \
   ReferenceFinderJmlTest \
+  DoEscTest \
   DiagnosticsTest \
-  DocumentSymbolTest \
-  PropertiesFileOptionsTest \
   EscStatusTest \
-  MultiFileEscTest \
+  MethodAndClassTest \
+  DefinitionFinderJmlTest \
+  DefinitionFinderTest \
   CommandDispatchTest \
-  DocumentLifecycleTest \
+  DocumentSymbolTest \
+  RenameJmlTest \
+  RenameTest3 \
+  ReferenceFinderTest \
+  RenameTest4 \
   RacTest \
-  FastTests
+  RenameJmlTest2 \
+  MultiFileEscTest \
+  DocumentLifecycleTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 
