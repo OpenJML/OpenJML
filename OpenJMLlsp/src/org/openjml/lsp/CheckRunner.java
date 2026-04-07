@@ -58,7 +58,7 @@ public class CheckRunner {
      * are written to disk for them.  Set to {@code false} to fall back to the
      * original temp-file behaviour for regression testing or debugging.
      */
-    static boolean useMockFiles = true;
+    public static boolean useMockFiles = true;
 
     /**
      * Shared AST cache populated by every check run.

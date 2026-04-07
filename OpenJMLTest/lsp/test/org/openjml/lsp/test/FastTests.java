@@ -27,6 +27,8 @@ import org.junit.runners.Suite;
     CodeLensTest.class,
     CheckRunnerDirTest.class,
     EscDirWithContextTest.class,
+    MockFileCornerCasesTest.class,
+    LegacyDiskIOSmokeTest.class,
     JmlKeywordSyncTest.class,
     IncrementalSyncApplierTest.class,
 })
