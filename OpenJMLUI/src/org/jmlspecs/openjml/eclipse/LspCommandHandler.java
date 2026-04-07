@@ -990,6 +990,21 @@ public abstract class LspCommandHandler extends AbstractHandler {
             } catch (org.eclipse.core.runtime.CoreException e) {
                 Console.log("ClearMarkers failed: " + e);
             }
+            // Tell the server to clear its internal diagnostic state so that
+            // stale diagnostics are not re-published on the next LSP4E event.
+            org.eclipse.lsp4j.ExecuteCommandParams p =
+                    new org.eclipse.lsp4j.ExecuteCommandParams(
+                            OpenJMLConstants.CMD_CLEAR_MARKERS, java.util.List.of());
+            for (org.eclipse.core.resources.IProject proj :
+                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
+                            .getRoot().getProjects()) {
+                if (proj.isOpen() && JmlNature.hasNature(proj)) {
+                    org.eclipse.lsp4e.LanguageServers.forProject(proj)
+                            .computeFirst(server ->
+                                    server.getWorkspaceService().executeCommand(p));
+                    break;  // one server instance handles all projects
+                }
+            }
             return null;
         }
     }
