@@ -35,3 +35,5 @@ full path of the `openjml-lsp` launcher script from the OpenJML distribution.
 | `openjml.sourcePath` | `` | Source roots for cross-file references |
 | `openjml.classPath` | `` | Classpath for pre-compiled dependencies |
 | `openjml.dirtyFileAction` | `ask` | What to do when ESC is invoked on unsaved changes |
+| `openjml.javaMode` | `full` | `"full"` enables all Java+JML features; `"jml-only"` suppresses features that duplicate another Java extension (e.g. Red Hat Java) |
+| `openjml.client` | `generic` | Known-client hint; set to `"vscode-java"` when the Red Hat Java extension is also active to auto-select `jml-only` defaults |

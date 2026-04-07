@@ -40,6 +40,8 @@ import org.eclipse.lsp4j.PrepareRenameResult;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.FoldingRange;
 import org.eclipse.lsp4j.FoldingRangeRequestParams;
+import org.eclipse.lsp4j.InlayHint;
+import org.eclipse.lsp4j.InlayHintParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
@@ -420,14 +422,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         String uri = params.getTextDocument().getUri();
-        System.err.println("[hover] uri=" + uri);
         String content = lastContent.get(uri);
         if (content == null) return CompletableFuture.completedFuture(null);
 
         int line = params.getPosition().getLine();
-        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        int col  = params.getPosition().getCharacter();
 
-        // Find the innermost method containing the cursor line.
+        // If the cursor is on a var-declared variable, return its inferred type.
+        String varType = InlayHintProvider.findVarTypeAtPosition(
+                uri, content, line, col, CheckRunner.getASTCache());
+        if (varType != null) {
+            var hover = new Hover(new MarkupContent(MarkupKind.PLAINTEXT, varType));
+            return CompletableFuture.completedFuture(hover);
+        }
+
+        // Otherwise show the JML spec of the enclosing method.
+        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
         JavaSourceScanner.MethodInfo method = null;
         for (JavaSourceScanner.MethodInfo m : methods) {
             if (line >= m.startLine() && line <= m.endLine()) {
@@ -453,6 +463,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = lastContent.get(uri);
         return CompletableFuture.completedFuture(
                 SignatureHelpProvider.compute(params, content, CheckRunner.getASTCache()));
+    }
+
+    // --- inlay hints ---
+
+    @Override
+    public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
+        String uri     = params.getTextDocument().getUri();
+        String content = lastContent.get(uri);
+        if (content == null) return CompletableFuture.completedFuture(List.of());
+        return CompletableFuture.completedFuture(
+                InlayHintProvider.compute(params, content, CheckRunner.getASTCache(),
+                        settings.isJmlOnly()));
     }
 
     // --- go to definition ---

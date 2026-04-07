@@ -104,6 +104,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.escEngine              != null) settings.escEngine              = src.escEngine;
         if (src.racOutputDir         != null) settings.racOutputDir         = src.racOutputDir;
         if (src.useIntegratedOutline != null) settings.useIntegratedOutline = src.useIntegratedOutline;
+        if (src.javaMode != null) settings.javaMode = src.javaMode;
+        if (src.client  != null) settings.client   = src.client;
         if (src.escThreads > 0 && src.escThreads != settings.escThreads) {
             settings.escThreads = src.escThreads;
             var old = settings.escPool;

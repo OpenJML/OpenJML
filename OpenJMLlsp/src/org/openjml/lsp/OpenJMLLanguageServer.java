@@ -2,6 +2,7 @@ package org.openjml.lsp;
 
 import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.CompletionOptions;
+import org.eclipse.lsp4j.InlayHintRegistrationOptions;
 import org.eclipse.lsp4j.RenameOptions;
 import org.eclipse.lsp4j.SignatureHelpOptions;
 import org.eclipse.lsp4j.SemanticTokensLegend;
@@ -11,6 +12,7 @@ import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -183,6 +185,10 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         var stOpts = new SemanticTokensWithRegistrationOptions(stLegend, Boolean.TRUE);
         caps.setSemanticTokensProvider(stOpts);
         System.err.println("[initialize] semanticTokensProvider.full=" + stOpts.getFull());
+
+        var inlayHintsOpts = new InlayHintRegistrationOptions();
+        inlayHintsOpts.setResolveProvider(false);
+        caps.setInlayHintProvider(Either.forRight(inlayHintsOpts));
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }

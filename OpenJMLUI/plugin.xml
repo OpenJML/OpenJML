@@ -1803,6 +1803,20 @@
   </extension>
   -->
 
+  <!-- LSP-based hover for JML specs in the JDT Java editor.
+       LSP4E's hover is registered only for the generic text editor;
+       this extension hooks into JDT's own hover framework so it fires
+       for .java files, including positions inside JML comments. -->
+  <extension point="org.eclipse.jdt.ui.javaEditorTextHovers">
+     <hover
+           activate="true"
+           class="org.jmlspecs.openjml.eclipse.OpenJMLJavaHover"
+           description="OpenJML JML specification hover"
+           id="org.openjml.jmlHover"
+           label="JML">
+     </hover>
+  </extension>
+
   <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
       id="openjml_proposals"
       name="%extension.name.7">
@@ -1905,6 +1919,19 @@
         class="org.jmlspecs.openjml.eclipse.OpenJMLCodeMiningProvider"
         id="org.openjml.OpenJMLUI.codelens"
         label="OpenJML ESC Status">
+      <enabledWhen>
+        <with variable="editor">
+          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
+        </with>
+      </enabledWhen>
+    </codeMiningProvider>
+
+    <!-- Inlay hints (var type inference) for the JDT Java editor.
+         LineContentCodeMining placement in the JDT Java editor. -->
+    <codeMiningProvider
+        class="org.jmlspecs.openjml.eclipse.OpenJMLInlayHintProvider"
+        id="org.openjml.OpenJMLUI.inlayhints"
+        label="OpenJML Inlay Hints (var types)">
       <enabledWhen>
         <with variable="editor">
           <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>

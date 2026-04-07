@@ -161,6 +161,7 @@ The server advertises the following capabilities:
 | `renameProvider` | `{ "prepareProvider": true }` |
 | `signatureHelpProvider` | trigger characters: `(`, `,` |
 | `semanticTokensProvider` | full-file; see legend in response |
+| `inlayHintProvider` | `{ "resolveProvider": false }` — shows inferred types of `var`-declared locals |
 
 `textDocumentSync: Incremental` (default) means the client sends only the changed
 ranges on each `textDocument/didChange` notification; the server applies them
@@ -206,8 +207,22 @@ Example `workspace/didChangeConfiguration` payload:
 | `checkTriggerOn` | string | `"edit"` | When to run `--check`: `"edit"` or `"save"` |
 | `escTriggerOn` | string | `"manual"` | When to run `--esc`: `"manual"`, `"save"`, or `"edit"` (see note) |
 | `incrementalSync` | boolean | `true` | When `true`, advertise `Incremental` sync and apply ranged edits internally; when `false`, revert to `Full` sync |
+| `javaMode` | string | `"full"` | Java-capability mode: `"full"` enables all Java+JML capabilities; `"jml-only"` suppresses capabilities that duplicate a co-present Java language server (e.g. JDT, Red Hat Java). See note below. |
+| `client` | string | `"generic"` | Known-client hint for default tuning. Values: `"generic"` (no assumptions), `"eclipse-jdt"`, `"vscode-java"`, `"intellij"`. When set to a known Java-capable client, `javaMode` defaults to `"jml-only"` unless explicitly overridden. |
 
 `null` or absent fields leave the current value unchanged.
+
+**Note on `javaMode` and `client`:** OpenJML's LSP server implements capabilities that
+overlap with those of full Java language servers (JDT, Red Hat Java, etc.).  By default
+all capabilities are active (`javaMode: "full"`).  If another Java LS is active for the
+same workspace, clients can avoid duplicate hints, signature help, etc. by setting
+`javaMode: "jml-only"` or by naming the client (`client: "eclipse-jdt"`).
+
+Integrators building a plugin that co-exists with a known Java LS should set `client`
+in `initializationOptions` — the server then applies the appropriate defaults
+automatically.  For example, the OpenJMLUI Eclipse plugin sets `client: "eclipse-jdt"`
+so that Java-overlapping features are suppressed by default, with no configuration
+required from the end user.
 
 **Note on effective `-sourcepath`:** The server does not pass `sourcePath` directly
 to OpenJML. It constructs an effective sourcepath by joining (in order, omitting
@@ -327,12 +342,50 @@ These exit codes are logged to stderr and influence how the server interprets re
 
 ### Hover — `textDocument/hover`
 
-When the cursor is inside a method, the server returns the JML specification lines
-(consecutive `//@ ...` comment lines) immediately preceding the method declaration,
-formatted as a Markdown code block.
+Two cases are handled:
 
-Returns null (no hover) if the cursor is not inside a method body or if the method
-has no preceding JML annotations.
+1. **`var` declaration** — if the cursor is on the `var` keyword or the variable name
+   of a `var`-declared local, the server returns the inferred type as a plain-text
+   string of the form `: TypeName` (e.g. `: int`, `: String`).  Type names are
+   shortened by stripping `java.lang.`, `org.jmlspecs.lang.internal.` (JML built-in
+   types appear as `\bigint`, `\real`, etc.), and the containing file's own package
+   prefix.  This hover is always active regardless of `javaMode`.
+
+2. **Method body / JML spec** — if the cursor is anywhere else inside a method, the
+   server returns the JML specification lines (consecutive `//@ ...` comment lines)
+   immediately preceding the method declaration, formatted as a Markdown code block.
+
+Returns null if none of the above conditions are met (e.g. cursor is outside any
+method, or the method has no JML annotations).
+
+### Inlay Hints — `textDocument/inlayHint`
+
+Returns `InlayHint` objects of kind `Type` for `var`-declared local variables,
+showing the inferred type immediately after the variable name in the form `: TypeName`.
+Type names are shortened identically to the hover case above.
+
+**`javaMode` interaction:**
+- `"full"` (default): hints are returned for all `var`-declared variables.
+- `"jml-only"`: hints for plain Java `var` declarations are suppressed (a co-present
+  Java LS such as JDT or Red Hat Java already provides those).  Hints for JML
+  `ghost` and `model` `var` declarations are always emitted regardless of `javaMode`,
+  because no other language server is aware of them.
+
+**Client notes:**
+- Standard LSP clients (VS Code, Neovim, Helix, etc.) display these as inline
+  annotations natively.
+- **VS Code with vscode-java**: `client: "vscode-java"` defaults `javaMode` to
+  `"jml-only"`, so only JML ghost/model var hints are shown (vscode-java handles
+  Java vars itself).
+- **IntelliJ**: IntelliJ has its own built-in Java type inference display.  Whether
+  LSP inlay hints from OpenJML are also shown depends on the LSP plugin in use;
+  `client: "intellij"` defaults to `"jml-only"` as a conservative default.
+- **Eclipse with OpenJMLUI**: LSP4E does not route `textDocument/inlayHint` responses
+  to the JDT Java editor.  The OpenJMLUI plugin works around this via a direct call
+  from a code mining provider, but `LineContentCodeMining` does not visually render
+  in the JDT Java editor from external providers.  The inferred type is accessible
+  instead via the hover described above.  `client: "eclipse-jdt"` defaults to
+  `"jml-only"`.
 
 ### Code Lens Refresh — `workspace/codeLens/refresh` (server → client)
 
@@ -688,7 +741,6 @@ them being available.
 | `textDocument/documentHighlight` | Highlight all occurrences of a symbol |
 | `textDocument/implementation` | Go to implementation |
 | `textDocument/typeDefinition` | Go to type definition |
-| `textDocument/inlayHint` | Inlay hints |
 
 ---
 

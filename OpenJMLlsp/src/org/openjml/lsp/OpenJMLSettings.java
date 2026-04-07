@@ -188,6 +188,54 @@ public class OpenJMLSettings {
     public volatile java.util.List<String> toolArgs;
 
     /**
+     * Java-vs-JML-only master switch.
+     * <ul>
+     *   <li>{@code "full"} (default) — OpenJML emits all Java + JML capabilities
+     *       (inlay hints, signature help, etc.).</li>
+     *   <li>{@code "jml-only"} — suppress capabilities that duplicate a co-present
+     *       Java language server (JDT, Red Hat Java, IntelliJ Java, etc.).</li>
+     * </ul>
+     * Individual capabilities check this setting and return empty results when it
+     * is {@code "jml-only"}.  The value is also influenced by {@link #client}: for
+     * known Java-capable clients the default shifts to {@code "jml-only"} unless
+     * the user explicitly sets this field to {@code "full"}.
+     *
+     * @see #resolveDefaults()
+     */
+    public volatile String javaMode;   // null = unset by client; use resolveDefaults()
+
+    /**
+     * Known-client hint — lets the server tailor capability defaults without the
+     * user having to set every flag manually.
+     * <ul>
+     *   <li>{@code "generic"} (default) — no assumptions; all capabilities enabled.</li>
+     *   <li>{@code "eclipse-jdt"} — Eclipse with JDT active; default {@code javaMode}
+     *       to {@code "jml-only"}.  The OpenJMLUI Eclipse plugin sets this automatically
+     *       in its {@code initializationOptions}.</li>
+     *   <li>{@code "vscode-java"} — VS Code with Red Hat Java extension; likewise.</li>
+     *   <li>{@code "intellij"} — IntelliJ IDEA; likewise.</li>
+     * </ul>
+     */
+    public volatile String client = "generic";
+
+    /**
+     * Return the effective {@code javaMode} after applying client-based defaults.
+     * If {@link #javaMode} was explicitly set by the client, that value is returned
+     * directly.  Otherwise the mode is inferred from {@link #client}:
+     * {@code "eclipse-jdt"}, {@code "vscode-java"}, and {@code "intellij"} default
+     * to {@code "jml-only"}; everything else defaults to {@code "full"}.
+     */
+    public String effectiveJavaMode() {
+        if (javaMode != null && !javaMode.isEmpty()) return javaMode;
+        if ("eclipse-jdt".equals(client) || "vscode-java".equals(client)
+                || "intellij".equals(client)) return "jml-only";
+        return "full";
+    }
+
+    /** Returns {@code true} when Java-overlapping capabilities should be suppressed. */
+    public boolean isJmlOnly() { return "jml-only".equals(effectiveJavaMode()); }
+
+    /**
      * No-arg constructor.  Used by Gson deserialization (initializationOptions /
      * didChangeConfiguration) and by test code that creates default settings.
      */
@@ -216,5 +264,7 @@ public class OpenJMLSettings {
         this.generatedPropertiesFile = src.generatedPropertiesFile;
         this.toolArgs                = src.toolArgs;
         this.incrementalSync         = src.incrementalSync;
+        this.javaMode                = src.javaMode;
+        this.client                  = src.client;
     }
 }

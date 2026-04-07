@@ -29,5 +29,6 @@ import org.junit.runners.Suite;
     EscDirWithContextTest.class,
     JmlKeywordSyncTest.class,
     IncrementalSyncApplierTest.class,
+    InlayHintsVarTypesTest.class,
 })
 public class FastTests {}
