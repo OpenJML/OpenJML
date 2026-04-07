@@ -441,9 +441,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         args = JmlOptions.instance(context).processJmlArgs(args, Options.instance(context), null);
         // args is now the original 'args' without JML arguments -- leaving  any Java options and files
         if (JmlOptions.instance(context).get("-?") != null) return Result.OK; // Help output is already written
-        if (args.length == 0 && fileObjects == null) {  // in API mode there might have already been args added
-                                                        // and there would be no additional arguments here,
-                                                        // but then fileObjects would not be null -- it might be an empty list
+        if (args.length == 0) {
             if (hasArgs) {
                 Log.instance(context).error(Errors.NoSourceFiles);
                 return Result.CMDERR;
@@ -490,30 +488,16 @@ public class Main extends com.sun.tools.javac.main.Main {
         return exit;
     }
 
-    /** This method is called programmatically, in which case the set of files is
-        separate from the command-line options. This entry point is useful for test cases
-        in which the fileObjects may be mock files. */
-    public Main.Result compile(String[] args, java.util.Collection<JavaFileObject> fileObjects)  {
-        try {
-            this.fileObjects = fileObjects;
-            if (args.length == 0) args = new String[]{"-g"}; // This is just to avoid the call below from exiting by producing help info if there are no arguments
-            return compile(args, context());
-        } catch (JmlInternalAbort e) {
-            log.error("jml.message", "Unrecoverable compilation problem");
-            if (System.getenv("STACK") != null) e.printStackTrace(System.out);
-            return Main.Result.CMDERR;
-        }
-    }
-
-    /** Like {@link #compile(String[], java.util.Collection)}, but uses URI-keyed
-     * mock file interception via {@link JmlOptions.JmlArguments} and
-     * {@link org.openjml.MockAwareFileManager}.
-     * Mock .java file paths must appear in {@code args}; mock content is served
-     * from {@code mockFiles.uriMap} without requiring files to exist on disk. */
+    /** Called programmatically (e.g. from test suites) with URI-keyed mock file
+     * interception via {@link org.openjml.MockAwareFileManager}.
+     * The set of source files to process must appear in {@code args} as usual;
+     * {@code mockFiles} provides in-memory content keyed by URI so that test or
+     * dirty (unsaved) files can be type-checked without writing to disk.
+     * Pass {@code null} if there are no dirty files. */
     public Main.Result compile(String[] args, org.openjml.MockFiles mockFiles)  {
         try {
             this.mockFiles = (mockFiles != null) ? mockFiles : new org.openjml.MockFiles();
-            if (args.length == 0) args = new String[]{"-g"};
+            if (args.length == 0) args = new String[]{"-g"}; // Avoids exiting with help info when there are no arguments
             return compile(args, context());
         } catch (JmlInternalAbort e) {
             log.error("jml.message", "Unrecoverable compilation problem");
@@ -546,26 +530,6 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         if (Utils.debug("options")) JmlOptions.instance(context).dumpOptions();
     }
-
-    /** The field is not used in regular command-line processing, but when openjml is called
-     * programmatically, such as from test suites, then in-memory files might be created and
-     * passed in vis this list. In particular, the list might contain mock files rather than
-     * (or in addition to) file system files.
-     */
-    public java.util.Collection<JavaFileObject> fileObjects;
-
-    /** This call adds fileObjects supplied by the programmatic compile call (in this.fileObjects)
-     * with those created from the command-line (in args.getFileObjects()), unifying 
-     * command-line processing with programmatic calls to compile.
-     */
-    @Override
-    protected void adjustArgs(Arguments args)  {
-        if (fileObjects != null) {
-            args.allowEmpty();
-            args.getFileObjects().addAll(fileObjects);
-        }
-    }
-
 
     /** This registers the JML versions of many of the tools (e.g. scanner, parser,
      * specifications database,...) used by the compiler.  They must be registered

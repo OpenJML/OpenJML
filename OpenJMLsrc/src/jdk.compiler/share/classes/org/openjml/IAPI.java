@@ -182,16 +182,6 @@ public interface IAPI {
      */
     public int execute(/*@non_null*/ String ... args);
 
-    /** Executes OpenJML with explicit in-memory file objects added as primary
-     * compilation units alongside any file paths in {@code args}.
-     * Use {@link MockJavaFileObject} to supply dirty (unsaved) file content
-     * without writing temporary files to disk.
-     * @param args        command-line arguments (mode flags, settings, clean file paths)
-     * @param fileObjects in-memory file objects; added to the compilation batch
-     * @return the exit code
-     */
-    public int execute(String[] args, java.util.Collection<javax.tools.JavaFileObject> fileObjects);
-    
     /**
      * Executes OpenJML with file-manager interception for dirty source files.
      * The real file paths must appear in {@code args} as usual; {@code mockFiles}
