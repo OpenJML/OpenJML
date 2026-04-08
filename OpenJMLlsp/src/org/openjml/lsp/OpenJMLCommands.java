@@ -96,26 +96,27 @@ public final class OpenJMLCommands {
     /**
      * Cancel ESC: {@code openjml.cancelEsc}.
      *
-     * <p>Cancels the running ESC task for the given file URI, or all running ESC
-     * tasks if no URI is supplied.  Also kills the in-progress SMT solver process
-     * so the ESC thread is unblocked immediately.
+     * <p>Cancels a specific running ESC task or all running ESC tasks.
+     * Also kills the in-progress SMT solver process so the ESC thread is
+     * unblocked immediately.
      *
-     * <p>Arguments: {@code [uri]} (optional).  If {@code uri} is absent or empty
-     * all running ESC tasks are cancelled.
-     *
-     * <p>Note: cancellation granularity is per file URI.  Two concurrent method
-     * proofs on different files can be cancelled independently; two proofs on the
-     * same file share one task slot (the newer submission cancels the older one).
-     * Per-(file,method) granularity requires future work on the task-tracking design.
+     * <p>Arguments: {@code [target]} (optional).  Granularity:
+     * <ul>
+     *   <li>absent or empty — cancel all per-file and per-method tasks.</li>
+     *   <li>bare URI (no {@code #}) — cancel the whole-file run for that URI.</li>
+     *   <li>{@code "uri#methodName"} — cancel only that specific method's run.</li>
+     * </ul>
      */
     public static final String CANCEL_ESC         = "openjml.cancelEsc";
 
     /**
      * Get running ESC tasks: {@code openjml.getRunningEscTasks}.
      *
-     * <p>Returns a {@code List<String>} of file URIs for which an ESC task is
-     * currently in progress.  Intended for use by the client to populate a
-     * confirmation dialog before calling {@link #CANCEL_ESC}.
+     * <p>Returns a {@code List<String>} of task keys for all currently-running
+     * ESC tasks.  Whole-file runs are identified by bare URI; per-method runs
+     * use the format {@code "uri#methodName"}.
+     * Intended for use by the client to populate a cancel dialog before calling
+     * {@link #CANCEL_ESC}.
      *
      * <p>Arguments: none.
      */

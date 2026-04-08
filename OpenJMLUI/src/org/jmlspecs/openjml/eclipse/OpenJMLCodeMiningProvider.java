@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.eclipse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.BadLocationException;
@@ -17,9 +18,11 @@ import org.eclipse.jface.text.codemining.ICodeMining;
 import org.eclipse.jface.text.codemining.LineHeaderCodeMining;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CodeLensParams;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4e.LSPEclipseUtils;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 
@@ -84,8 +87,19 @@ public class OpenJMLCodeMiningProvider extends AbstractCodeMiningProvider {
             if (lens.getCommand() == null || lens.getCommand().getTitle() == null) continue;
             int line = lens.getRange().getStart().getLine();
             final String title = lens.getCommand().getTitle();
+            final String commandId = lens.getCommand().getCommand();
+            final List<Object> commandArgs = lens.getCommand().getArguments() != null
+                    ? new ArrayList<>(lens.getCommand().getArguments()) : List.of();
             try {
-                LineHeaderCodeMining mining = new LineHeaderCodeMining(line, doc, this) {
+                // Wire a click action when the lens has an executable command.
+                Consumer<MouseEvent> action = (commandId != null && !commandId.isEmpty()) ? e -> {
+                    OpenJMLLanguageClient lc = languageClient;
+                    LanguageServer ls = lc != null ? lc.server() : null;
+                    if (ls == null) return;
+                    ls.getWorkspaceService().executeCommand(
+                            new ExecuteCommandParams(commandId, commandArgs));
+                } : null;
+                LineHeaderCodeMining mining = new LineHeaderCodeMining(line, doc, this, action) {
                     { setLabel(title); }
                 };
                 result.add(mining);

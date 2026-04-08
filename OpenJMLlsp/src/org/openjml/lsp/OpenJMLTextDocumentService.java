@@ -196,6 +196,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private final Map<String, IAPI> runningEscApis = new ConcurrentHashMap<>();
 
+    /**
+     * Currently running per-method ESC Future, keyed by {@code "uri#methodName"}.
+     * Parallel to {@link #runningEscTasks} but for single-method runs.
+     * Multiple per-method runs on the same file run concurrently without cancelling
+     * each other or the whole-file run.
+     */
+    private final Map<String, Future<?>> runningEscMethodTasks = new ConcurrentHashMap<>();
+
+    /**
+     * IAPI instance for the actively-executing per-method ESC subprocess,
+     * keyed by {@code "uri#methodName"}.
+     */
+    private final Map<String, IAPI> runningEscMethodApis = new ConcurrentHashMap<>();
+
     /** Per-method ESC status, keyed by URI then method start line. */
     private final Map<String, Map<Integer, MethodStatus>> methodEscStatus = new ConcurrentHashMap<>();
 
@@ -1376,12 +1390,31 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             java.util.function.Function<java.util.function.Consumer<IAPI>,
                                         CheckRunner.CheckResult> task,
             ExecutorService pool) {
-        Future<?> prev = runningEscTasks.remove(uri);
-        if (prev != null) prev.cancel(false);
-        IAPI prevApi = runningEscApis.remove(uri);
-        if (prevApi != null) prevApi.cancelEsc();
 
-        long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
+        // Determine the tracking key and cancel any in-flight predecessor.
+        // Per-method runs use a "uri#methodName" key so concurrent runs on
+        // different methods (or concurrent with a whole-file run) coexist.
+        final String methodKey;
+        if (target != null) {
+            methodKey = uri + "#" + target.name();
+            Future<?> prev = runningEscMethodTasks.remove(methodKey);
+            if (prev != null) prev.cancel(false);
+            IAPI prevApi = runningEscMethodApis.remove(methodKey);
+            if (prevApi != null) prevApi.cancelEsc();
+        } else {
+            // Whole-file run: cancel any previous whole-file run for this URI.
+            methodKey = null;
+            Future<?> prev = runningEscTasks.remove(uri);
+            if (prev != null) prev.cancel(false);
+            IAPI prevApi = runningEscApis.remove(uri);
+            if (prevApi != null) prevApi.cancelEsc();
+        }
+
+        // Generation counter is used for whole-file runs only; per-method runs
+        // on the same file coexist and do not supersede each other.
+        final long myGen = (methodKey == null)
+                ? escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet()
+                : -1L;
 
         // Mark only the target method as CHECKING.
         if (target != null) {
@@ -1396,11 +1429,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         Future<?> f = pool.submit(() -> {
             try {
-                java.util.function.Consumer<IAPI> hook = api -> runningEscApis.put(uri, api);
+                java.util.function.Consumer<IAPI> hook = api -> {
+                    if (methodKey != null) runningEscMethodApis.put(methodKey, api);
+                    else                   runningEscApis.put(uri, api);
+                };
                 CheckRunner.CheckResult result = task.apply(hook);
                 if (result.isCommandLineError())
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC-method for " + uri);
-                if (escGen.get(uri).get() != myGen) return; // superseded
+                // Generation guard: only whole-file runs can be superseded.
+                if (myGen >= 0 && escGen.get(uri).get() != myGen) return;
 
                 if (result.isInternalError()) {
                     System.err.println("[OpenJML] ESC for method: internal error (exit code " + result.exitCode() + ")");
@@ -1447,7 +1484,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 refreshCodeLenses();
             } catch (Throwable t) {
                 System.err.println("[OpenJML] ESC for method failed unexpectedly: " + t);
-                if (target != null && escGen.get(uri).get() == myGen) {
+                if (target != null) {
                     Map<Integer, MethodStatus> statuses =
                             new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
                     statuses.put(target.startLine(), MethodStatus.UNKNOWN);
@@ -1455,11 +1492,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     refreshCodeLenses();
                 }
             } finally {
-                runningEscApis.remove(uri);
-                runningEscTasks.remove(uri);
+                if (methodKey != null) {
+                    runningEscMethodApis.remove(methodKey);
+                    runningEscMethodTasks.remove(methodKey);
+                } else {
+                    runningEscApis.remove(uri);
+                    runningEscTasks.remove(uri);
+                }
             }
         });
-        runningEscTasks.put(uri, f);
+
+        if (methodKey != null) runningEscMethodTasks.put(methodKey, f);
+        else                   runningEscTasks.put(uri, f);
     }
 
     // --- disk file-change handlers (called from OpenJMLWorkspaceService) ---
@@ -2133,19 +2177,27 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Cancel the running ESC task for the given file URI, or all running ESC tasks
-     * if {@code uri} is null or empty.  Also kills the in-progress SMT solver process
-     * via {@link org.openjml.IAPI#cancelEsc()} so the ESC thread is unblocked immediately
-     * rather than waiting for the current solver query to complete.
+     * Cancel a specific running ESC task, or all running ESC tasks.
+     * Also kills the in-progress SMT solver process via
+     * {@link org.openjml.IAPI#cancelEsc()} so the ESC thread is unblocked
+     * immediately rather than waiting for the current solver query to complete.
      *
-     * <p>Cancellation granularity is per file URI — one task slot per file.
-     * Per-(file,method) granularity requires future redesign of the task-tracking map.
+     * <p>Cancellation granularity:
+     * <ul>
+     *   <li>{@code target == null} or empty — cancel all per-file and per-method tasks.</li>
+     *   <li>{@code target} is a bare URI — cancel the whole-file run for that file.</li>
+     *   <li>{@code target} contains {@code '#'} (format {@code "uri#methodName"}) —
+     *       cancel only that specific method's run.</li>
+     * </ul>
      */
-    void cancelEsc(String uri) {
-        if (uri != null && !uri.isEmpty()) {
-            abortEscForUri(uri);
+    void cancelEsc(String target) {
+        if (target != null && target.contains("#")) {
+            abortEscForMethodKey(target);
+        } else if (target != null && !target.isEmpty()) {
+            abortEscForUri(target);
         } else {
             new ArrayList<>(runningEscTasks.keySet()).forEach(this::abortEscForUri);
+            new ArrayList<>(runningEscMethodTasks.keySet()).forEach(this::abortEscForMethodKey);
         }
     }
 
@@ -2167,9 +2219,29 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
     }
 
-    /** Returns the URIs of all currently-running ESC tasks (snapshot). */
+    private void abortEscForMethodKey(String methodKey) {
+        Future<?> f = runningEscMethodTasks.remove(methodKey);
+        if (f != null) f.cancel(false);
+        IAPI api = runningEscMethodApis.remove(methodKey);
+        if (api != null) {
+            String name = methodKey.contains("/") ? methodKey.substring(methodKey.lastIndexOf('/') + 1) : methodKey;
+            System.err.println("[OpenJML] ESC cancelled for " + name);
+            api.cancelEsc();
+        } else if (f != null) {
+            String name = methodKey.contains("/") ? methodKey.substring(methodKey.lastIndexOf('/') + 1) : methodKey;
+            System.err.println("[OpenJML] ESC task cancelled (queued, not yet running) for " + name);
+        }
+    }
+
+    /**
+     * Returns a snapshot of all currently-running ESC task keys.
+     * Whole-file runs are identified by bare URI; per-method runs use
+     * {@code "uri#methodName"} format.
+     */
     List<String> getRunningEscUris() {
-        return List.copyOf(runningEscTasks.keySet());
+        List<String> result = new ArrayList<>(runningEscTasks.keySet());
+        result.addAll(runningEscMethodTasks.keySet());
+        return List.copyOf(result);
     }
 
     /**

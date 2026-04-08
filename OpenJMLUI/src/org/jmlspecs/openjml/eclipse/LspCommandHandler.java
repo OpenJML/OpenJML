@@ -1065,47 +1065,288 @@ public abstract class LspCommandHandler extends AbstractHandler {
     }
 
     /**
-     * Cancels all running ESC verification tasks after showing a confirmation dialog
-     * that lists which files are currently being verified.
+     * Cancels running ESC verification tasks.
      *
-     * <p>First queries the server via {@code openjml.getRunningEscTasks} to get the
-     * live list, then shows a modal confirmation dialog.  If the user confirms, sends
-     * {@code openjml.cancelEsc} (no URI argument = cancel all).
+     * <p>Queries the server for the live list of running tasks, then shows a
+     * modal dialog with checkboxes (one row per task).  Initial check state is
+     * derived from the current Eclipse selection.  Three buttons:
+     * <ul>
+     *   <li><b>Cancel selected</b> — sends {@code openjml.cancelEsc(key)} for
+     *       each checked task.</li>
+     *   <li><b>Cancel all</b> — sends {@code openjml.cancelEsc} with no argument,
+     *       cancelling everything regardless of checkbox state.</li>
+     *   <li><b>Don't cancel</b> — dismisses without sending anything.</li>
+     * </ul>
      */
     public static final class CancelEsc extends org.eclipse.core.commands.AbstractHandler {
 
         @Override
         public Object execute(org.eclipse.core.commands.ExecutionEvent event) throws org.eclipse.core.commands.ExecutionException {
-            // Show a simple "are you sure?" dialog immediately on the UI thread —
-            // no async server query needed just to ask for confirmation.
-            org.eclipse.swt.widgets.Shell shell =
-                    org.eclipse.ui.handlers.HandlerUtil.getActiveShell(event);
-            if (shell == null)
-                shell = org.eclipse.swt.widgets.Display.getDefault().getActiveShell();
+            // Resolve current selection now (on the UI thread) for pre-checking.
+            Set<String> selectionKeys = resolveSelectionKeys(event);
+            IProject project = findJmlProject();
 
-            org.eclipse.jface.dialogs.MessageDialog dlg =
-                    new org.eclipse.jface.dialogs.MessageDialog(
-                            shell,
-                            "Cancel ESC", null,
-                            "Cancel all running ESC verification tasks?",
-                            org.eclipse.jface.dialogs.MessageDialog.QUESTION,
-                            new String[]{ "Cancel ESC",
-                                          org.eclipse.jface.dialogs.IDialogConstants.CANCEL_LABEL },
-                            0);
-            if (dlg.open() != 0) return null;  // user dismissed or chose "Cancel"
-
-            // Find a project to route the command through.
-            org.eclipse.core.resources.IProject project = null;
-            for (org.eclipse.core.resources.IProject p :
-                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-                if (p.isOpen() && JmlNature.hasNature(p)) { project = p; break; }
-            }
-
-            ExecuteCommandParams params = new ExecuteCommandParams(
-                    OpenJMLConstants.CMD_CANCEL_ESC, java.util.List.of());
-            dispatchCommand(params, null, project);
-            Console.log("Cancel ESC sent.");
+            // Query server on a background thread, then open the dialog.
+            Job.create("Query running ESC tasks", monitor -> {
+                List<String> tasks = queryRunningTasks(project);
+                Display.getDefault().syncExec(
+                        () -> showCancelDialog(event, tasks, selectionKeys, project));
+                return Status.OK_STATUS;
+            }).schedule();
             return null;
         }
+
+        /** Converts the current Eclipse selection into a set of ESC task keys. */
+        private static Set<String> resolveSelectionKeys(org.eclipse.core.commands.ExecutionEvent event) {
+            List<SelectionResolver.Target> targets = SelectionResolver.resolve(
+                    HandlerUtil.getCurrentSelection(event),
+                    HandlerUtil.getActiveEditor(event));
+            Set<String> keys = new LinkedHashSet<>();
+            for (SelectionResolver.Target t : targets) {
+                switch (t) {
+                    case SelectionResolver.Target.File f -> {
+                        java.net.URI u = org.eclipse.lsp4e.LSPEclipseUtils.toUri(f.file());
+                        if (u != null) keys.add(u.toString());
+                    }
+                    case SelectionResolver.Target.Method m -> {
+                        java.net.URI u = org.eclipse.lsp4e.LSPEclipseUtils.toUri(m.file());
+                        if (u != null) {
+                            String fqn = m.methodFqn();
+                            String simple = fqn.contains(".")
+                                    ? fqn.substring(fqn.lastIndexOf('.') + 1) : fqn;
+                            keys.add(u.toString() + "#" + simple);
+                        }
+                    }
+                    default -> {} // Dir targets have no direct task-key match
+                }
+            }
+            return keys;
+        }
+
+        /** Queries {@code openjml.getRunningEscTasks} and returns the task-key list. */
+        @SuppressWarnings("unchecked")
+        private static List<String> queryRunningTasks(IProject project) {
+            try {
+                // Prefer direct server access (same JVM, fastest path).
+                org.jmlspecs.openjml.eclipse.OpenJMLLanguageClient lc =
+                        org.jmlspecs.openjml.eclipse.OpenJMLCodeMiningProvider.languageClient;
+                LanguageServer ls = lc != null ? lc.server() : null;
+                if (ls != null) {
+                    Object raw = ls.getWorkspaceService()
+                            .executeCommand(new ExecuteCommandParams(
+                                    OpenJMLConstants.CMD_GET_RUNNING_ESC_TASKS, List.of()))
+                            .get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    return toStringList(raw);
+                }
+                // Fall back to LSP4E routing.
+                if (project != null) {
+                    Object raw = LanguageServers.forProject(project)
+                            .computeFirst(s -> s.getWorkspaceService()
+                                    .executeCommand(new ExecuteCommandParams(
+                                            OpenJMLConstants.CMD_GET_RUNNING_ESC_TASKS, List.of())))
+                            .get(5, java.util.concurrent.TimeUnit.SECONDS)
+                            .orElse(null);
+                    return toStringList(raw);
+                }
+            } catch (Throwable t) {
+                Console.log("getRunningEscTasks failed: " + t);
+            }
+            return List.of();
+        }
+
+        /** Extracts {@code List<String>} from a Gson-deserialized command result. */
+        private static List<String> toStringList(Object raw) {
+            if (raw instanceof List<?> list) {
+                List<String> result = new ArrayList<>();
+                for (Object e : list) result.add(String.valueOf(e));
+                return result;
+            }
+            try {
+                if (raw instanceof com.google.gson.JsonArray arr) {
+                    List<String> result = new ArrayList<>();
+                    for (com.google.gson.JsonElement e : arr) result.add(e.getAsString());
+                    return result;
+                }
+            } catch (NoClassDefFoundError ignored) {}
+            return List.of();
+        }
+
+        /** Opens the cancel dialog on the UI thread. */
+        private static void showCancelDialog(org.eclipse.core.commands.ExecutionEvent event,
+                List<String> tasks, Set<String> selectionKeys, IProject project) {
+            org.eclipse.swt.widgets.Shell shell = HandlerUtil.getActiveShell(event);
+            if (shell == null) shell = Display.getDefault().getActiveShell();
+
+            if (tasks.isEmpty()) {
+                new MessageDialog(shell, "Cancel ESC", null,
+                        "No ESC verification tasks are currently running.",
+                        MessageDialog.INFORMATION, new String[]{"OK"}, 0).open();
+                return;
+            }
+
+            // Determine initial check state from the current Eclipse selection.
+            // Pre-select matching tasks; fall back to all if nothing matches.
+            Set<String> preChecked;
+            if (!selectionKeys.isEmpty()) {
+                preChecked = new LinkedHashSet<>();
+                for (String task : tasks) {
+                    if (selectionKeys.contains(task)) {
+                        preChecked.add(task);
+                    } else {
+                        // A bare-URI selection key pre-selects matching "uri#method" tasks.
+                        for (String sk : selectionKeys) {
+                            if (task.startsWith(sk + "#") || task.equals(sk)) {
+                                preChecked.add(task);
+                                break;
+                            }
+                        }
+                    }
+                }
+                if (preChecked.isEmpty()) preChecked = new LinkedHashSet<>(tasks);
+            } else {
+                preChecked = new LinkedHashSet<>(tasks);
+            }
+
+            CancelEscDialog dlg = new CancelEscDialog(shell, tasks, preChecked);
+            int result = dlg.open();
+
+            if (result == CancelEscDialog.CANCEL_ALL_ID) {
+                sendCancelCommand(null, project);
+                Console.log("Cancel ESC: cancelled all tasks.");
+            } else if (result == IDialogConstants.OK_ID) {
+                List<String> checked = dlg.getCheckedTasks();
+                for (String key : checked) sendCancelCommand(key, project);
+                Console.log("Cancel ESC: cancelled " + checked.size() + " task(s).");
+            }
+            // IDialogConstants.CANCEL_ID (Don't cancel) — no action.
+        }
+
+        /** Sends {@code openjml.cancelEsc} for the given key (null = cancel all). */
+        private static void sendCancelCommand(String key, IProject project) {
+            List<Object> args = (key != null) ? List.of(key) : List.of();
+            ExecuteCommandParams params = new ExecuteCommandParams(
+                    OpenJMLConstants.CMD_CANCEL_ESC, args);
+            if (!sendViaWrapper(org.jmlspecs.openjml.eclipse.LspPartListener.cachedWrapper, params)) {
+                dispatchCommand(params, null, project);
+            }
+        }
+    }
+
+    /** Returns the first open project that has the OpenJML JML nature. */
+    private static IProject findJmlProject() {
+        for (IProject p : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+            if (p.isOpen() && JmlNature.hasNature(p)) return p;
+        }
+        return null;
+    }
+
+    /**
+     * Converts a running-task key to a human-readable label for the cancel dialog.
+     * <ul>
+     *   <li>{@code "file:///path/Foo.java"} → {@code "Foo.java  (all methods)"}</li>
+     *   <li>{@code "file:///path/Foo.java#bar"} → {@code "Foo.java  \u2014 bar"}</li>
+     * </ul>
+     */
+    static String taskLabel(String key) {
+        int hash = key.lastIndexOf('#');
+        if (hash >= 0) {
+            String uriPart = key.substring(0, hash);
+            String method  = key.substring(hash + 1);
+            int slash = uriPart.lastIndexOf('/');
+            String file = slash >= 0 ? uriPart.substring(slash + 1) : uriPart;
+            return file + "  \u2014 " + method;
+        }
+        int slash = key.lastIndexOf('/');
+        String file = slash >= 0 ? key.substring(slash + 1) : key;
+        return file + "  (all methods)";
+    }
+
+    /**
+     * Checkbox dialog for selecting which running ESC tasks to cancel.
+     *
+     * <p>Return codes:
+     * <ul>
+     *   <li>{@link IDialogConstants#OK_ID} (0) — "Cancel selected" button pressed.</li>
+     *   <li>{@link #CANCEL_ALL_ID} — "Cancel all" button pressed.</li>
+     *   <li>{@link IDialogConstants#CANCEL_ID} (1) — "Don't cancel" or Escape.</li>
+     * </ul>
+     */
+    private static class CancelEscDialog extends org.eclipse.jface.dialogs.Dialog {
+
+        static final int CANCEL_ALL_ID = IDialogConstants.CLIENT_ID;
+
+        private final List<String> tasks;
+        private final Set<String> preChecked;
+        private org.eclipse.jface.viewers.CheckboxTableViewer tableViewer;
+        private List<String> checkedTasks = List.of();
+
+        CancelEscDialog(org.eclipse.swt.widgets.Shell shell,
+                        List<String> tasks, Set<String> preChecked) {
+            super(shell);
+            this.tasks = tasks;
+            this.preChecked = preChecked;
+            setShellStyle(getShellStyle() | org.eclipse.swt.SWT.RESIZE);
+        }
+
+        @Override
+        protected void configureShell(org.eclipse.swt.widgets.Shell newShell) {
+            super.configureShell(newShell);
+            newShell.setText("Cancel ESC Verification");
+        }
+
+        @Override
+        protected org.eclipse.swt.widgets.Control createDialogArea(
+                org.eclipse.swt.widgets.Composite parent) {
+            org.eclipse.swt.widgets.Composite container =
+                    (org.eclipse.swt.widgets.Composite) super.createDialogArea(parent);
+
+            org.eclipse.swt.widgets.Label label =
+                    new org.eclipse.swt.widgets.Label(container, org.eclipse.swt.SWT.WRAP);
+            label.setText("Select the ESC tasks to cancel:");
+            label.setLayoutData(new org.eclipse.swt.layout.GridData(
+                    org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.TOP, true, false));
+
+            tableViewer = org.eclipse.jface.viewers.CheckboxTableViewer.newCheckList(
+                    container,
+                    org.eclipse.swt.SWT.BORDER | org.eclipse.swt.SWT.V_SCROLL);
+            org.eclipse.swt.layout.GridData gd = new org.eclipse.swt.layout.GridData(
+                    org.eclipse.swt.SWT.FILL, org.eclipse.swt.SWT.FILL, true, true);
+            gd.heightHint = 150;
+            gd.widthHint  = 450;
+            tableViewer.getTable().setLayoutData(gd);
+
+            tableViewer.setContentProvider(
+                    new org.eclipse.jface.viewers.ArrayContentProvider());
+            tableViewer.setLabelProvider(
+                    new org.eclipse.jface.viewers.LabelProvider() {
+                        @Override public String getText(Object element) {
+                            return taskLabel((String) element);
+                        }
+                    });
+            tableViewer.setInput(tasks.toArray());
+            for (String task : tasks) {
+                tableViewer.setChecked(task, preChecked.contains(task));
+            }
+            return container;
+        }
+
+        @Override
+        protected void createButtonsForButtonBar(org.eclipse.swt.widgets.Composite parent) {
+            createButton(parent, IDialogConstants.OK_ID,     "Cancel selected", true);
+            createButton(parent, CANCEL_ALL_ID,              "Cancel all",      false);
+            createButton(parent, IDialogConstants.CANCEL_ID, "Don't cancel",    false);
+        }
+
+        @Override
+        protected void buttonPressed(int buttonId) {
+            if (buttonId == IDialogConstants.OK_ID) {
+                checkedTasks = java.util.Arrays.stream(tableViewer.getCheckedElements())
+                        .map(o -> (String) o)
+                        .collect(Collectors.toList());
+            }
+            super.buttonPressed(buttonId);
+        }
+
+        List<String> getCheckedTasks() { return checkedTasks; }
     }
 }
