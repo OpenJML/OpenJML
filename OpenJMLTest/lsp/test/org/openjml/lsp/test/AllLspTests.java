@@ -40,6 +40,7 @@ import org.junit.runners.Suite;
     DocumentSymbolTest.class,
     DoEscTest.class,
     EscCancellationTest.class,
+    ConcurrentEscTest.class,
     CheckRunnerEscAndRacTest.class,
     PropertiesFileOptionsTest.class,
     RacTest.class,

@@ -2210,11 +2210,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (f != null) f.cancel(false);
         IAPI api = runningEscApis.remove(uri);
         if (api != null) {
-            String name = uri.contains("/") ? uri.substring(uri.lastIndexOf('/') + 1) : uri;
+            int k = uri.lastIndexOf('/');
+            String name = k == -1 ? uri : uri.substring(k+1);
             System.err.println("[OpenJML] ESC cancelled for " + name);
             api.cancelEsc();
         } else if (f != null) {
-            String name = uri.contains("/") ? uri.substring(uri.lastIndexOf('/') + 1) : uri;
+            int k = uri.lastIndexOf('/');
+            String name = k == -1 ? uri : uri.substring(k+1);
             System.err.println("[OpenJML] ESC task cancelled (queued, not yet running) for " + name);
         }
     }
@@ -2224,11 +2226,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (f != null) f.cancel(false);
         IAPI api = runningEscMethodApis.remove(methodKey);
         if (api != null) {
-            String name = methodKey.contains("/") ? methodKey.substring(methodKey.lastIndexOf('/') + 1) : methodKey;
+            int k = methodKey.lastIndexOf('/');
+            String name = k == -1 ? methodKey : methodKey.substring(k+1);
             System.err.println("[OpenJML] ESC cancelled for " + name);
             api.cancelEsc();
         } else if (f != null) {
-            String name = methodKey.contains("/") ? methodKey.substring(methodKey.lastIndexOf('/') + 1) : methodKey;
+            int k = methodKey.lastIndexOf('/');
+            String name = k == -1 ? methodKey : methodKey.substring(k+1);
             System.err.println("[OpenJML] ESC task cancelled (queued, not yet running) for " + name);
         }
     }

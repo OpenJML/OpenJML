@@ -67,6 +67,7 @@ TEST_CLASSES := \
   ReferenceFinderJmlTest \
   DoEscTest \
   EscCancellationTest \
+  ConcurrentEscTest \
   CheckRunnerEscAndRacTest \
   DiagnosticsTest \
   EscStatusTest \
@@ -170,8 +171,8 @@ clean: .FORCE
 ## Run all LSP tests under JaCoCo and generate an HTML coverage report.
 ## Usage: make cov-test   (writes report to $(LSPTEST)/cov/html/)
 cov-test: .FORCE
+	@rm -f $(LSPTEST)/cov
 	@mkdir -p $(LSPTEST)/cov
-	@rm -f $(LSPTEST)/cov/lsp-*.exec
 	@$(MAKE) --no-print-directory COV=1 COV_DIR=$(LSPTEST)/cov run-tests
 	@$(MAKE) --no-print-directory COV_DIR=$(LSPTEST)/cov cov-report
 
