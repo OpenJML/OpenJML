@@ -708,12 +708,12 @@ public class CheckRunner {
     public static CheckResult checkWithContext(
             String uri, String content,
             Map<String, String> openContent, OpenJMLSettings settings) {
-        return runOnContentWithContext(uri, content, openContent, settings, "--check", null, false);
+        return runOnContentWithContext(uri, content, openContent, settings, "--check", null, false, null);
     }
 
     /** Run {@code --check} on a file already on disk. */
     public static CheckResult checkFile(String filePath, String uri, OpenJMLSettings settings) {
-        return runOnFile(filePath, uri, settings, "--check", null, false);
+        return runOnFile(filePath, uri, settings, "--check", null, false, null);
     }
 
     /**
@@ -725,7 +725,15 @@ public class CheckRunner {
     public static CheckResult escWithContext(
             String uri, String content,
             Map<String, String> openContent, OpenJMLSettings settings) {
-        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true);
+        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, null);
+    }
+
+    /** Like {@link #escWithContext} but fires {@code onApiReady} after the IAPI is set up. */
+    public static CheckResult escWithContext(
+            String uri, String content,
+            Map<String, String> openContent, OpenJMLSettings settings,
+            Consumer<IAPI> onApiReady) {
+        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, onApiReady);
     }
 
     /**
@@ -735,7 +743,15 @@ public class CheckRunner {
     public static CheckResult escMethodWithContext(
             String uri, String content, String methodName,
             Map<String, String> openContent, OpenJMLSettings settings) {
-        return runOnContentWithContext(uri, content, openContent, settings, "--esc", methodName, true);
+        return runOnContentWithContext(uri, content, openContent, settings, "--esc", methodName, true, null);
+    }
+
+    /** Like {@link #escMethodWithContext} but fires {@code onApiReady} after the IAPI is set up. */
+    public static CheckResult escMethodWithContext(
+            String uri, String content, String methodName,
+            Map<String, String> openContent, OpenJMLSettings settings,
+            Consumer<IAPI> onApiReady) {
+        return runOnContentWithContext(uri, content, openContent, settings, "--esc", methodName, true, onApiReady);
     }
 
     /**
@@ -1016,13 +1032,25 @@ public class CheckRunner {
 
     /** Run {@code --esc} on a file already on disk. */
     public static CheckResult runEscFile(String filePath, String uri, OpenJMLSettings settings) {
-        return runOnFile(filePath, uri, settings, "--esc", null, true);
+        return runOnFile(filePath, uri, settings, "--esc", null, true, null);
+    }
+
+    /** Like {@link #runEscFile} but fires {@code onApiReady} after the IAPI is set up. */
+    public static CheckResult runEscFile(String filePath, String uri, OpenJMLSettings settings,
+                                         Consumer<IAPI> onApiReady) {
+        return runOnFile(filePath, uri, settings, "--esc", null, true, onApiReady);
     }
 
     /** Run {@code --esc} on a single method in a file already on disk. */
     public static CheckResult runEscFileMethod(String filePath, String uri, String methodName,
                                                OpenJMLSettings settings) {
-        return runOnFile(filePath, uri, settings, "--esc", methodName, true);
+        return runOnFile(filePath, uri, settings, "--esc", methodName, true, null);
+    }
+
+    /** Like {@link #runEscFileMethod} but fires {@code onApiReady} after the IAPI is set up. */
+    public static CheckResult runEscFileMethod(String filePath, String uri, String methodName,
+                                               OpenJMLSettings settings, Consumer<IAPI> onApiReady) {
+        return runOnFile(filePath, uri, settings, "--esc", methodName, true, onApiReady);
     }
 
     // --- public API: --rac ---
@@ -1218,7 +1246,8 @@ public class CheckRunner {
     private static CheckResult runOnContentWithContext(
             String uri, String content,
             Map<String, String> openContent, OpenJMLSettings settings,
-            String modeFlag, String methodName, boolean collectProofResults) {
+            String modeFlag, String methodName, boolean collectProofResults,
+            Consumer<IAPI> onApiReady) {
 
         var listener = new LspDiagnosticListener();
         listener.setSourceContent(content);   // precompute line-start offsets for accurate columns
@@ -1231,6 +1260,7 @@ public class CheckRunner {
             prc = new ProofResultCollector();
             api.setProofResultListener(prc);
         }
+        if (onApiReady != null) onApiReady.accept(api);
 
         Path tempDir = null;
         try {
@@ -1460,7 +1490,7 @@ public class CheckRunner {
 
     private static CheckResult runOnFile(
             String filePath, String uri, OpenJMLSettings settings, String modeFlag,
-            String methodName, boolean collectProofResults) {
+            String methodName, boolean collectProofResults, Consumer<IAPI> onApiReady) {
         var listener = new LspDiagnosticListener();
         if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
@@ -1471,6 +1501,7 @@ public class CheckRunner {
             prc = new ProofResultCollector();
             api.setProofResultListener(prc);
         }
+        if (onApiReady != null) onApiReady.accept(api);
 
         List<String> args = buildArgs(settings, modeFlag);
         if (methodName != null && !methodName.isEmpty()) {

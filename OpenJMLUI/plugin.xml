@@ -323,6 +323,11 @@
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Delete all OpenJML diagnostic markers from the workspace"/>
      <command
+           id="org.jmlspecs.openjml.commands.cancelEsc"
+           name="Cancel ESC"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Cancel all running ESC verification tasks"/>
+     <command
            id="org.jmlspecs.openjml.commands.enableJmlNature"
            name="Add OpenJML Nature"
            categoryId="org.jmlspecs.openjml.commands.category"
@@ -368,6 +373,8 @@
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearAndReindex"/>
      <handler commandId="org.jmlspecs.openjml.commands.clearMarkers"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearMarkers"/>
+     <handler commandId="org.jmlspecs.openjml.commands.cancelEsc"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$CancelEsc"/>
      <handler commandId="org.jmlspecs.openjml.commands.enableJmlNature"
               class="org.jmlspecs.openjml.eclipse.JmlNatureHandler$EnableJmlNature"/>
      <handler commandId="org.jmlspecs.openjml.commands.disableJmlNature"
@@ -455,6 +462,8 @@
                     label="Clear Markers"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
            <separator name="sep3"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>
@@ -487,6 +496,8 @@
                     label="Clear Markers"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
            <separator name="sep2"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>
@@ -494,7 +505,7 @@
                     label="Remove OpenJML Nature"/>
         </menu>
      </menuContribution>
-     
+
      <!-- View popup: right-click in Package Explorer, Project Explorer, Outline -->
      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
         <menu id="org.jmlspecs.openjml.viewPopupMenu" label="OpenJML"
@@ -528,6 +539,8 @@
                     label="Clear Markers"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
            <separator name="sep2"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>

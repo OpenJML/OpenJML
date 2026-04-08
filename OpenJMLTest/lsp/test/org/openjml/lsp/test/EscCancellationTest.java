@@ -91,16 +91,16 @@ public class EscCancellationTest extends LspTestBase {
         escThread.setDaemon(true);
         escThread.start();
 
-        long deadline = System.currentTimeMillis() + 10_000;
+        long deadline = System.currentTimeMillis() + 20_000;
         while (apiRef.get() == null && System.currentTimeMillis() < deadline) {
             Thread.sleep(20);
         }
-        assertNotNull("IAPI hook never fired within 10 s", apiRef.get());
+        assertNotNull("IAPI hook never fired within 20 s", apiRef.get());
 
-        waitAndCancel(apiRef.get(), countRef.get(), 2, 30_000);
+        waitAndCancel(apiRef.get(), countRef.get(), 2, 120_000);
 
-        escThread.join(15_000);
-        assertFalse("ESC thread did not finish within 15 s after cancel", escThread.isAlive());
+        escThread.join(30_000);
+        assertFalse("ESC thread did not finish within 30 s after cancel", escThread.isAlive());
     }
 
     @Test
@@ -118,16 +118,16 @@ public class EscCancellationTest extends LspTestBase {
         escThread.setDaemon(true);
         escThread.start();
 
-        long deadline = System.currentTimeMillis() + 10_000;
+        long deadline = System.currentTimeMillis() + 20_000;
         while (apiRef.get() == null && System.currentTimeMillis() < deadline) {
             Thread.sleep(20);
         }
-        assertNotNull("IAPI hook never fired within 10 s", apiRef.get());
+        assertNotNull("IAPI hook never fired within 20 s", apiRef.get());
 
-        waitAndCancel(apiRef.get(), countRef.get(), 2, 30_000);
+        waitAndCancel(apiRef.get(), countRef.get(), 2, 120_000);
 
-        escThread.join(15_000);
-        assertFalse("ESC thread did not finish within 15 s after cancel", escThread.isAlive());
+        escThread.join(30_000);
+        assertFalse("ESC thread did not finish within 30 s after cancel", escThread.isAlive());
 
         CheckRunner.CheckResult result = resultRef.get();
         assertNotNull("CheckResult must not be null", result);

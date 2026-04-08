@@ -48,6 +48,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
+import org.openjml.IAPI;
 import org.openjml.IProverResult;
 
 import java.util.ArrayList;
@@ -185,6 +186,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     /** Currently running ESC Future per URI (for cancellation). */
     private final Map<String, Future<?>> runningEscTasks = new ConcurrentHashMap<>();
+
+    /**
+     * IAPI instance for the actively-executing ESC subprocess, per URI.
+     * Populated by the {@code onApiReady} hook in {@link #submitEsc} once the
+     * fresh IAPI has been created; removed when the task completes or is cancelled.
+     * Used by {@link #abortEscForUri} to kill the underlying z3 process immediately.
+     */
+    private final Map<String, IAPI> runningEscApis = new ConcurrentHashMap<>();
 
     /** Per-method ESC status, keyed by URI then method start line. */
     private final Map<String, Map<Integer, MethodStatus>> methodEscStatus = new ConcurrentHashMap<>();
@@ -1299,8 +1308,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (s.isEscApiMode()) {
             // Submit through escPool so this request joins the same shared queue
             // as any in-flight runDoEscFileAsync tasks for the same URI.
+            // doESC path uses the cached IAPI directly; hook not applicable here.
             submitEscForMethod(uri, target,
-                    () -> CheckRunner.runDoEscMethod(uri, methodName, s),
+                    hook -> CheckRunner.runDoEscMethod(uri, methodName, s),
                     s.escPool);
         } else {
             String contentForMethod = lastContent.get(uri);
@@ -1308,13 +1318,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (contentForMethod != null) {
                 final String c = contentForMethod;
                 submitEscForMethod(uri, target,
-                        () -> CheckRunner.escMethodWithContext(uri, c, methodName, snapshot, s),
+                        hook -> CheckRunner.escMethodWithContext(uri, c, methodName, snapshot, s, hook),
                         executor);
             } else {
                 String filePath = CheckRunner.uriToPath(uri);
                 if (filePath != null)
                     submitEscForMethod(uri, target,
-                            () -> CheckRunner.runEscFileMethod(filePath, uri, methodName, s),
+                            hook -> CheckRunner.runEscFileMethod(filePath, uri, methodName, s, hook),
                             executor);
             }
         }
@@ -1349,10 +1359,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * </ul>
      */
     private void submitEscForMethod(String uri, JavaSourceScanner.MethodInfo target,
-                                    Supplier<CheckRunner.CheckResult> task,
-                                    ExecutorService pool) {
+            java.util.function.Function<java.util.function.Consumer<IAPI>,
+                                        CheckRunner.CheckResult> task,
+            ExecutorService pool) {
         Future<?> prev = runningEscTasks.remove(uri);
         if (prev != null) prev.cancel(true);
+        IAPI prevApi = runningEscApis.remove(uri);
+        if (prevApi != null) prevApi.cancelEsc();
 
         long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
 
@@ -1369,7 +1382,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         Future<?> f = pool.submit(() -> {
             try {
-                CheckRunner.CheckResult result = task.get();
+                java.util.function.Consumer<IAPI> hook = api -> runningEscApis.put(uri, api);
+                CheckRunner.CheckResult result = task.apply(hook);
                 if (result.isCommandLineError())
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC-method for " + uri);
                 if (escGen.get(uri).get() != myGen) return; // superseded
@@ -1427,6 +1441,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     refreshCodeLenses();
                 }
             } finally {
+                runningEscApis.remove(uri);
                 runningEscTasks.remove(uri);
             }
         });
@@ -1639,10 +1654,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = lastContent.get(uri);
         if (content != null) {
             Map<String, String> snapshot = Map.copyOf(lastContent);
-            submitEsc(uri, () -> CheckRunner.escWithContext(uri, content, snapshot, settings));
+            submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, settings, hook));
         } else {
             String filePath = CheckRunner.uriToPath(uri);
-            if (filePath != null) submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, settings));
+            if (filePath != null) submitEsc(uri, hook -> CheckRunner.runEscFile(filePath, uri, settings, hook));
         }
     }
 
@@ -1670,18 +1685,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = lastContent.get(uri);
         if (content != null) {
             Map<String, String> snapshot = Map.copyOf(lastContent);
-            submitEsc(uri, () -> CheckRunner.escWithContext(uri, content, snapshot, s));
+            submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, s, hook));
             return;
         }
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
-        submitEsc(uri, () -> CheckRunner.runEscFile(filePath, uri, s));
+        submitEsc(uri, hook -> CheckRunner.runEscFile(filePath, uri, s, hook));
     }
 
 
     private void startEscContent(String uri, String content) {
         Map<String, String> snapshot = Map.copyOf(lastContent);
-        submitEsc(uri, () -> CheckRunner.escWithContext(uri, content, snapshot, settings));
+        submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, settings, hook));
     }
 
 
@@ -1697,18 +1712,26 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *       silently discarded via a generation counter.</li>
      * </ul>
      */
-    private void submitEsc(String uri, Supplier<CheckRunner.CheckResult> task) {
+    private void submitEsc(String uri,
+            java.util.function.Function<java.util.function.Consumer<IAPI>,
+                                        CheckRunner.CheckResult> task) {
         // Cancel the previous ESC task for this URI (may not interrupt CPU-bound work,
         // but removes it from the task queue if it hasn't started yet).
         Future<?> prev = runningEscTasks.remove(uri);
         if (prev != null) prev.cancel(true);
+        // Also kill any live z3 process for the previous task.
+        IAPI prevApi = runningEscApis.remove(uri);
+        if (prevApi != null) prevApi.cancelEsc();
 
         long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
         markEscChecking(uri);
 
         Future<?> f = executor.submit(() -> {
             try {
-                CheckRunner.CheckResult result = task.get();
+                // Hook fires inside CheckRunner once the fresh IAPI is created and
+                // the ProofResultCollector is installed — before execute() is called.
+                java.util.function.Consumer<IAPI> hook = api -> runningEscApis.put(uri, api);
+                CheckRunner.CheckResult result = task.apply(hook);
                 if (result.isCommandLineError())
                     System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC for " + uri);
                 // Only publish if this task is still the latest for this URI.
@@ -1731,6 +1754,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     refreshCodeLenses();
                 }
             } finally {
+                runningEscApis.remove(uri);
                 runningEscTasks.remove(uri);
             }
         });
@@ -2114,11 +2138,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void abortEscForUri(String uri) {
         Future<?> f = runningEscTasks.remove(uri);
         if (f != null) f.cancel(true);
-        // Also abort the in-progress SMT prover so the ESC thread is unblocked
-        // immediately. cancel(true) alone cannot interrupt threads blocked in
-        // native I/O waiting for the solver's response.
-        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
-        if (entry != null) entry.api().cancelEsc();
+        // Kill the live z3 process if one is running for this URI.
+        // cancel(true) alone cannot interrupt a thread blocked in native I/O
+        // waiting for the solver's response pipe; cancelEsc() destroyForcibly()s it.
+        IAPI api = runningEscApis.remove(uri);
+        if (api != null) api.cancelEsc();
+    }
+
+    /** Returns the URIs of all currently-running ESC tasks (snapshot). */
+    List<String> getRunningEscUris() {
+        return List.copyOf(runningEscTasks.keySet());
     }
 
     /**

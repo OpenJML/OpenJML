@@ -648,11 +648,31 @@ async function activate(context) {
     });
     context.subscriptions.push(clearMarkersCmd);
 
-    // Cancel all running ESC tasks (or just the one for the active file if a URI is given).
-    // Sends no URI so the server cancels every in-flight ESC, including any running z3 process.
+    // Cancel all running ESC tasks.
+    // First queries the server for which files are currently being verified so the
+    // confirmation dialog can list them; sends the cancel only if the user confirms.
     const cancelEscCmd = vscode.commands.registerCommand('openjml.cancelEsc', async () => {
         if (!client) { requireServer(); return; }
         try {
+            const uris = await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.getRunningEscTasks',
+                arguments: [],
+            }) || [];
+
+            if (!uris || uris.length === 0) {
+                vscode.window.showInformationMessage('No ESC verification tasks are currently running.');
+                return;
+            }
+
+            const names = uris.map(u => u.replace(/.*\//, ''));
+            const list  = names.map(n => `  \u2022 ${n}`).join('\n');
+            const choice = await vscode.window.showWarningMessage(
+                `Cancel ESC verification of:\n${list}`,
+                { modal: true },
+                'Cancel ESC'
+            );
+            if (choice !== 'Cancel ESC') return;
+
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.cancelEsc',
                 arguments: [],

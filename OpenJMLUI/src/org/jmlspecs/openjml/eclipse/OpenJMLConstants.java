@@ -141,6 +141,21 @@ public final class OpenJMLConstants {
     public static final String CMD_CLEAR_MARKERS = "openjml.clearMarkers";
 
     /**
+     * Cancel-ESC command sent via {@code workspace/executeCommand}.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.CANCEL_ESC}.
+     */
+    public static final String CMD_CANCEL_ESC = "openjml.cancelEsc";
+
+    /**
+     * Get-running-ESC-tasks query sent via {@code workspace/executeCommand}.
+     * Returns a {@code List<String>} of file URIs currently being verified.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.GET_RUNNING_ESC_TASKS}.
+     */
+    public static final String CMD_GET_RUNNING_ESC_TASKS = "openjml.getRunningEscTasks";
+
+    /**
      * Focus-file notification sent via {@code workspace/executeCommand}.
      *
      * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.FOCUS_FILE}.

@@ -127,6 +127,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             textDocumentService.cancelEsc(args.isEmpty() ? null : (String) args.get(0));
             return null;
         });
+        registry.on          (OpenJMLCommands.GET_RUNNING_ESC_TASKS,
+                              args -> textDocumentService.getRunningEscUris());
 
         this.workspaceService = new OpenJMLWorkspaceService(settings, registry,
                 textDocumentService::symbols,

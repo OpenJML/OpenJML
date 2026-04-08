@@ -110,5 +110,16 @@ public final class OpenJMLCommands {
      */
     public static final String CANCEL_ESC         = "openjml.cancelEsc";
 
+    /**
+     * Get running ESC tasks: {@code openjml.getRunningEscTasks}.
+     *
+     * <p>Returns a {@code List<String>} of file URIs for which an ESC task is
+     * currently in progress.  Intended for use by the client to populate a
+     * confirmation dialog before calling {@link #CANCEL_ESC}.
+     *
+     * <p>Arguments: none.
+     */
+    public static final String GET_RUNNING_ESC_TASKS = "openjml.getRunningEscTasks";
+
     private OpenJMLCommands() {}
 }
