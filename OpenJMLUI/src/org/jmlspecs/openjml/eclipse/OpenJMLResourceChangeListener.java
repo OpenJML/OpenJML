@@ -88,11 +88,15 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                 public boolean visit(IResourceDelta d) throws CoreException {
                     IResource resource = d.getResource();
 
-                    // Project level: detect description changes (dependencies, natures)
+                    // Project level: detect description changes (dependencies, natures).
+                    // Ignore DESCRIPTION changes that also carry OPEN — those are
+                    // workspace-restore / project-open events, not real config edits.
                     if (resource.getType() == IResource.PROJECT) {
                         IProject project = (IProject) resource;
                         if (project.isOpen() && JmlNature.hasNature(project)) {
-                            if ((d.getFlags() & IResourceDelta.DESCRIPTION) != 0) {
+                            boolean descChanged = (d.getFlags() & IResourceDelta.DESCRIPTION) != 0;
+                            boolean isOpen      = (d.getFlags() & IResourceDelta.OPEN) != 0;
+                            if (descChanged && !isOpen) {
                                 affected.add(project);
                             }
                         }

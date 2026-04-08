@@ -95,10 +95,22 @@ public class CheckRunner {
     }
 
     /** Translate a raw proof-result kind to a user-friendly label. */
+    /** Formats the per-run cancellation summary for the console log. */
+    private static String cancelSummary(Map<String, IProverResult.Kind> proofResults) {
+        long completed = proofResults.values().stream()
+                .filter(k -> k != IProverResult.CANCELLED).count();
+        boolean hasCancelled = proofResults.containsValue(IProverResult.CANCELLED);
+        return completed + " method(s) completed before cancel"
+                + (hasCancelled ? ", 1 cancelled" : "");
+    }
+
     private static String kindLabel(IProverResult.Kind kind) {
-        if (kind == null)              return "unknown";
-        if (kind == IProverResult.UNSAT) return "Verified";
-        if (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) return "Not Verified";
+        if (kind == null)                                                      return "unknown";
+        if (kind == IProverResult.UNSAT)                                       return "Verified";
+        if (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT)   return "Not Verified";
+        if (kind == IProverResult.CANCELLED)                                   return "Cancelled";
+        if (kind == IProverResult.TIMEOUT)                                     return "Timeout";
+        if (kind == IProverResult.SKIPPED)                                     return "Skipped";
         return kind.toString();
     }
 
@@ -388,6 +400,11 @@ public class CheckRunner {
      */
     public static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings,
             EscProgressCallback perFileCallback) {
+        return runEscDir(paths, settings, perFileCallback, null);
+    }
+
+    static DirCheckResult runEscDir(List<String> paths, OpenJMLSettings settings,
+            EscProgressCallback perFileCallback, Consumer<IAPI> onApiReady) {
         var listener = new LspDiagnosticListener();
         listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
@@ -405,6 +422,7 @@ public class CheckRunner {
         });
         ProofResultCollector prc = prcRef[0];
         api.setProofResultListener(prc);
+        if (onApiReady != null) onApiReady.accept(api);
 
         List<String> args = buildArgs(settings, "--esc");
         args.add("--dirs");
@@ -414,7 +432,10 @@ public class CheckRunner {
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri = listener.toLspDiagnosticsByFile();
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
         int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
-        log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+        if (rc == 5)
+            log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
+        else
+            log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
         return new DirCheckResult(diagsByUri, rc, proofResults);
     }
 
@@ -438,8 +459,14 @@ public class CheckRunner {
     public static DirCheckResult runEscDirWithContext(
             List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings,
             EscProgressCallback perFileCallback) {
-        if (snapshot.isEmpty()) return runEscDir(paths, settings, perFileCallback);
-        if (!useMockFiles) return runEscDirWithContextLegacy(paths, snapshot, settings, perFileCallback);
+        return runEscDirWithContext(paths, snapshot, settings, perFileCallback, null);
+    }
+
+    static DirCheckResult runEscDirWithContext(
+            List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings,
+            EscProgressCallback perFileCallback, Consumer<IAPI> onApiReady) {
+        if (snapshot.isEmpty()) return runEscDir(paths, settings, perFileCallback, onApiReady);
+        if (!useMockFiles) return runEscDirWithContextLegacy(paths, snapshot, settings, perFileCallback, onApiReady);
 
         Map<String, String> allPathToRealUri = new java.util.LinkedHashMap<>();
         org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
@@ -506,6 +533,7 @@ public class CheckRunner {
         });
         ProofResultCollector prc = prcRef[0];
         api.setProofResultListener(prc);
+        if (onApiReady != null) onApiReady.accept(api);
 
         List<String> args = buildArgs(settings, "--esc");
         args.addAll(fileList);
@@ -515,7 +543,10 @@ public class CheckRunner {
                 listener.toLspDiagnosticsAll(finalAllPathToRealUri);
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
         int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
-        log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+        if (rc == 5)
+            log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
+        else
+            log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
         return new DirCheckResult(diagsByUri, rc, proofResults);
     }
 
@@ -529,7 +560,7 @@ public class CheckRunner {
      *  {@link #useMockFiles} is {@code false}. */
     private static DirCheckResult runEscDirWithContextLegacy(
             List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings,
-            EscProgressCallback perFileCallback) {
+            EscProgressCallback perFileCallback, Consumer<IAPI> onApiReady) {
         Path tempDir = null;
         try {
             tempDir = Files.createTempDirectory("openjml-lsp-esc-");
@@ -604,6 +635,7 @@ public class CheckRunner {
             });
             ProofResultCollector prc = prcRef[0];
             api.setProofResultListener(prc);
+            if (onApiReady != null) onApiReady.accept(api);
 
             List<String> args = buildArgs(settings, "--esc", tempDir);
             args.addAll(fileList);
@@ -613,6 +645,9 @@ public class CheckRunner {
                     listener.toLspDiagnosticsAll(finalAllPathToRealUri);
             Map<String, IProverResult.Kind> proofResults = prc.getResults();
             int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
+            if (rc == 5)
+            log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
+        else
             log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
             return new DirCheckResult(diagsByUri, rc, proofResults);
         } catch (IOException e) {
@@ -1471,6 +1506,8 @@ public class CheckRunner {
                     listener.toLspDiagnostics(tempFile.toString(), uri);
             if ("--check".equals(modeFlag))
                 log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
+            else if (rc == 5)
+                log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
             else
                 log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + diags.size() + " diagnostic(s)");
             return new CheckResult(diags, rc,
@@ -1558,6 +1595,8 @@ public class CheckRunner {
         List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
         if ("--check".equals(modeFlag))
             log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
+        else if (rc == 5)
+            log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
         else if (proofResults.isEmpty())
             log(ts() + " --esc " + fname + ": " + diags.size() + " diagnostic(s)");
         return new CheckResult(diags, rc,

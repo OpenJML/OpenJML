@@ -1076,82 +1076,36 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         @Override
         public Object execute(org.eclipse.core.commands.ExecutionEvent event) throws org.eclipse.core.commands.ExecutionException {
-            // Find the first open JML-natured project to reach the server.
+            // Show a simple "are you sure?" dialog immediately on the UI thread —
+            // no async server query needed just to ask for confirmation.
+            org.eclipse.swt.widgets.Shell shell =
+                    org.eclipse.ui.handlers.HandlerUtil.getActiveShell(event);
+            if (shell == null)
+                shell = org.eclipse.swt.widgets.Display.getDefault().getActiveShell();
+
+            org.eclipse.jface.dialogs.MessageDialog dlg =
+                    new org.eclipse.jface.dialogs.MessageDialog(
+                            shell,
+                            "Cancel ESC", null,
+                            "Cancel all running ESC verification tasks?",
+                            org.eclipse.jface.dialogs.MessageDialog.QUESTION,
+                            new String[]{ "Cancel ESC",
+                                          org.eclipse.jface.dialogs.IDialogConstants.CANCEL_LABEL },
+                            0);
+            if (dlg.open() != 0) return null;  // user dismissed or chose "Cancel"
+
+            // Find a project to route the command through.
             org.eclipse.core.resources.IProject project = null;
             for (org.eclipse.core.resources.IProject p :
                     org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
                 if (p.isOpen() && JmlNature.hasNature(p)) { project = p; break; }
             }
-            if (project == null) {
-                org.eclipse.swt.widgets.Display.getDefault().asyncExec(() ->
-                        new org.eclipse.jface.dialogs.MessageDialog(
-                                org.eclipse.swt.widgets.Display.getDefault().getActiveShell(),
-                                "Cancel ESC", null,
-                                "No OpenJML project found.", org.eclipse.jface.dialogs.MessageDialog.INFORMATION,
-                                new String[]{"OK"}, 0).open());
-                return null;
-            }
 
-            final org.eclipse.core.resources.IProject proj = project;
-            org.eclipse.lsp4j.ExecuteCommandParams queryParams =
-                    new org.eclipse.lsp4j.ExecuteCommandParams(
-                            OpenJMLConstants.CMD_GET_RUNNING_ESC_TASKS, java.util.List.of());
-
-            org.eclipse.lsp4e.LanguageServers.forProject(proj)
-                .<java.util.Optional<Object>>computeFirst(s ->
-                        s.getWorkspaceService().executeCommand(queryParams))
-                .thenAccept(opt -> {
-                    @SuppressWarnings("unchecked")
-                    java.util.List<String> uris =
-                            (opt != null && opt.isPresent() && opt.get() instanceof java.util.List)
-                            ? (java.util.List<String>) opt.get()
-                            : java.util.List.of();
-                    org.eclipse.swt.widgets.Display.getDefault().asyncExec(
-                            () -> showConfirmAndCancel(proj, uris));
-                })
-                .exceptionally(t -> {
-                    Console.log("CancelEsc: query failed — " + t);
-                    org.eclipse.swt.widgets.Display.getDefault().asyncExec(
-                            () -> showConfirmAndCancel(proj, java.util.List.of()));
-                    return null;
-                });
+            ExecuteCommandParams params = new ExecuteCommandParams(
+                    OpenJMLConstants.CMD_CANCEL_ESC, java.util.List.of());
+            dispatchCommand(params, null, project);
+            Console.log("Cancel ESC sent.");
             return null;
-        }
-
-        private static void showConfirmAndCancel(org.eclipse.core.resources.IProject proj,
-                                                 java.util.List<String> uris) {
-            String msg;
-            String[] buttons;
-            int imageKind;
-            if (uris.isEmpty()) {
-                msg = "No ESC verification tasks are currently running.";
-                buttons = new String[]{ "OK" };
-                imageKind = org.eclipse.jface.dialogs.MessageDialog.INFORMATION;
-            } else {
-                StringBuilder sb = new StringBuilder("Cancel the following ESC verification tasks?\n");
-                for (String uri : uris) {
-                    String name = uri.contains("/") ? uri.substring(uri.lastIndexOf('/') + 1) : uri;
-                    sb.append("  \u2022 ").append(name).append("\n");
-                }
-                msg = sb.toString().stripTrailing();
-                buttons = new String[]{ "Cancel ESC", org.eclipse.jface.dialogs.IDialogConstants.CANCEL_LABEL };
-                imageKind = org.eclipse.jface.dialogs.MessageDialog.QUESTION;
-            }
-
-            org.eclipse.jface.dialogs.MessageDialog dlg =
-                    new org.eclipse.jface.dialogs.MessageDialog(
-                            org.eclipse.swt.widgets.Display.getDefault().getActiveShell(),
-                            "Cancel ESC", null, msg, imageKind, buttons, 0);
-            int result = dlg.open();
-            // "Cancel ESC" is button index 0; Eclipse CANCEL_ID or window-close skips the send.
-            if (uris.isEmpty() || result != 0) return;
-
-            org.eclipse.lsp4j.ExecuteCommandParams cancelParams =
-                    new org.eclipse.lsp4j.ExecuteCommandParams(
-                            OpenJMLConstants.CMD_CANCEL_ESC, java.util.List.of());
-            org.eclipse.lsp4e.LanguageServers.forProject(proj)
-                    .computeFirst(s -> s.getWorkspaceService().executeCommand(cancelParams));
-            Console.log("Cancel ESC sent for " + uris.size() + " task(s).");
         }
     }
 }

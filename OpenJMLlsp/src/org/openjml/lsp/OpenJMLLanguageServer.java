@@ -57,8 +57,11 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private final OpenJMLWorkspaceService     workspaceService;
 
     private LanguageClient client   = null;
-    private int            exitCode = 1;
-    private String         rootUri  = null;
+    private int            exitCode    = 1;
+    private String         rootUri     = null;
+    /** Set to {@code true} when the {@code initialized} notification arrives.
+     *  Guards dynamic-capability calls that must not fire during {@code initialize}. */
+    private volatile boolean serverInitialized = false;
 
     /**
      * Constructs the server, wiring all command names from {@link OpenJMLCommands}.
@@ -215,6 +218,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     @Override
     public void initialized(InitializedParams params) {
+        serverInitialized = true;
         // Kick off a background pass over all .java files in the workspace so
         // that workspace/symbol can find symbols in files not yet opened.
         if (rootUri != null) textDocumentService.scheduleWorkspaceIndex(rootUri);
@@ -225,7 +229,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     /** Register (or re-register after unregistering) LSP file watchers. */
     private void registerFileWatchers() {
-        if (client == null) return;
+        if (client == null || !serverInitialized) return;
         var watchers = List.of(
             new FileSystemWatcher(Either.forLeft("**/*.jml")),
             new FileSystemWatcher(Either.forLeft("**/*.java"),

@@ -64,6 +64,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -824,8 +825,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // do not mutate the context map passed to OpenJML.
         Map<String, String> escSnapshot = Map.copyOf(lastContent);
 
-        executor.submit(() -> {
+        // Use the first path as a sentinel key to track this batch in the running-tasks maps.
+        // cancelEsc(null) iterates all keys, so any unique key causes it to be cancelled.
+        String batchKey = paths.get(0);
+        Future<?> prevBatch = runningEscTasks.remove(batchKey);
+        if (prevBatch != null) prevBatch.cancel(false);
+        IAPI prevBatchApi = runningEscApis.remove(batchKey);
+        if (prevBatchApi != null) prevBatchApi.cancelEsc();
+
+        Future<?> batchFuture = executor.submit(() -> {
             try {
+                Consumer<IAPI> hook = api -> runningEscApis.put(batchKey, api);
                 // Publish ESC diagnostics progressively as each method's proof completes.
                 // Skip publishing when diags is empty: the callback fires after each method's
                 // proof result, but the diagnostic for a failed proof may not yet be in the
@@ -841,7 +851,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     }
                     updateEscStatusPartial(uri, diags, partialResults);
                     refreshCodeLenses();
-                });
+                }, hook);
                 if (client == null) return;
                 // After the full run, publish the final state for every affected file
                 // (catches any remaining diagnostics not yet covered by the callback).
@@ -872,8 +882,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 }
             } catch (Throwable e) {
                 System.err.println("[scheduleEscForPaths] error: " + e.getMessage());
+            } finally {
+                runningEscApis.remove(batchKey);
+                runningEscTasks.remove(batchKey);
             }
         });
+        runningEscTasks.put(batchKey, batchFuture);
     }
 
     /**
@@ -1232,7 +1246,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private void submitEscApiWorkList(String uri, OpenJMLSettings s) {
         Future<?> prev = runningEscTasks.remove(uri);
-        if (prev != null) prev.cancel(true);
+        if (prev != null) prev.cancel(false);
 
         long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
         markEscChecking(uri);
@@ -1363,7 +1377,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                         CheckRunner.CheckResult> task,
             ExecutorService pool) {
         Future<?> prev = runningEscTasks.remove(uri);
-        if (prev != null) prev.cancel(true);
+        if (prev != null) prev.cancel(false);
         IAPI prevApi = runningEscApis.remove(uri);
         if (prevApi != null) prevApi.cancelEsc();
 
@@ -1718,7 +1732,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // Cancel the previous ESC task for this URI (may not interrupt CPU-bound work,
         // but removes it from the task queue if it hasn't started yet).
         Future<?> prev = runningEscTasks.remove(uri);
-        if (prev != null) prev.cancel(true);
+        if (prev != null) prev.cancel(false);
         // Also kill any live z3 process for the previous task.
         IAPI prevApi = runningEscApis.remove(uri);
         if (prevApi != null) prevApi.cancelEsc();
@@ -2137,12 +2151,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private void abortEscForUri(String uri) {
         Future<?> f = runningEscTasks.remove(uri);
-        if (f != null) f.cancel(true);
-        // Kill the live z3 process if one is running for this URI.
-        // cancel(true) alone cannot interrupt a thread blocked in native I/O
-        // waiting for the solver's response pipe; cancelEsc() destroyForcibly()s it.
+        // cancel(false): prevent a queued task from starting, but do NOT interrupt
+        // a running thread.  Thread interruption causes SolverProcess sleeps to throw
+        // "sleep interrupted" which surfaces as an ERROR diagnostic rather than CANCELLED.
+        // The actual kill is handled by api.cancelEsc() below (destroyForcibly).
+        if (f != null) f.cancel(false);
         IAPI api = runningEscApis.remove(uri);
-        if (api != null) api.cancelEsc();
+        if (api != null) {
+            String name = uri.contains("/") ? uri.substring(uri.lastIndexOf('/') + 1) : uri;
+            System.err.println("[OpenJML] ESC cancelled for " + name);
+            api.cancelEsc();
+        } else if (f != null) {
+            String name = uri.contains("/") ? uri.substring(uri.lastIndexOf('/') + 1) : uri;
+            System.err.println("[OpenJML] ESC task cancelled (queued, not yet running) for " + name);
+        }
     }
 
     /** Returns the URIs of all currently-running ESC tasks (snapshot). */
