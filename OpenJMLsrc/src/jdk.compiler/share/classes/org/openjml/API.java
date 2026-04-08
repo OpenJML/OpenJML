@@ -194,12 +194,25 @@ public class API implements IAPI {
 //        return Options.instance(context()).get(name);
 //    }
 //    
-//    // Expected to be called in a different thread
-//    @Override
-//    public void abort() {
-//       if (main != null) JmlEsc.instance(main.context()).abort();
-//    }
-//    
+    @Override
+    public boolean isEscPhaseStarted() {
+        if (main == null) return false;
+        return JmlEsc.getIfCreated(main.context()) != null;
+    }
+
+    // Expected to be called from a different thread than the ESC thread.
+    @Override
+    public void cancelEsc() {
+        if (main == null) return;
+        // Set the flag first so no new methods start even if abort() is a no-op.
+        main.canceled = true;
+        // Kill the active z3 process if one is running.  Use getIfCreated() rather than
+        // instance() to avoid triggering JmlEsc construction from this thread, which would
+        // cause a circular-dependency crash if the ESC context is still being initialised.
+        JmlEsc esc = JmlEsc.getIfCreated(main.context());
+        if (esc != null) esc.abort();
+    }
+
    
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])

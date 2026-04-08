@@ -39,6 +39,7 @@ import org.junit.runners.Suite;
     MethodAndClassTest.class,
     DocumentSymbolTest.class,
     DoEscTest.class,
+    EscCancellationTest.class,
     PropertiesFileOptionsTest.class,
     RacTest.class,
 })

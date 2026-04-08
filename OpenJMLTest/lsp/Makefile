@@ -66,6 +66,7 @@ TEST_CLASSES := \
   RenameTest2 \
   ReferenceFinderJmlTest \
   DoEscTest \
+  EscCancellationTest \
   DiagnosticsTest \
   EscStatusTest \
   MethodAndClassTest \

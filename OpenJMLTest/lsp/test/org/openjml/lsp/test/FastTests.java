@@ -34,5 +34,6 @@ import org.junit.runners.Suite;
     InlayHintsVarTypesTest.class,
     WatchedFilesTest.class,
     org.openjml.lsp.WatchedFilesHandlerTest.class,
+    SuiteVsMakefileTest.class,
 })
 public class FastTests {}

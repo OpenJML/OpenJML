@@ -2095,6 +2095,33 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
+     * Cancel the running ESC task for the given file URI, or all running ESC tasks
+     * if {@code uri} is null or empty.  Also kills the in-progress SMT solver process
+     * via {@link org.openjml.IAPI#cancelEsc()} so the ESC thread is unblocked immediately
+     * rather than waiting for the current solver query to complete.
+     *
+     * <p>Cancellation granularity is per file URI — one task slot per file.
+     * Per-(file,method) granularity requires future redesign of the task-tracking map.
+     */
+    void cancelEsc(String uri) {
+        if (uri != null && !uri.isEmpty()) {
+            abortEscForUri(uri);
+        } else {
+            new ArrayList<>(runningEscTasks.keySet()).forEach(this::abortEscForUri);
+        }
+    }
+
+    private void abortEscForUri(String uri) {
+        Future<?> f = runningEscTasks.remove(uri);
+        if (f != null) f.cancel(true);
+        // Also abort the in-progress SMT prover so the ESC thread is unblocked
+        // immediately. cancel(true) alone cannot interrupt threads blocked in
+        // native I/O waiting for the solver's response.
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        if (entry != null) entry.api().cancelEsc();
+    }
+
+    /**
      * Clear all OpenJML diagnostic markers without scheduling any new checks.
      *
      * <p>Clears {@code checkDiags}, {@code escDiags}, {@code racDiags}, and
@@ -2139,8 +2166,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         pendingEsc.clear();
         ScheduledFuture<?> pcp = pendingCheckPaths;
         if (pcp != null) { pcp.cancel(false); pendingCheckPaths = null; }
-        runningEscTasks.values().forEach(f -> f.cancel(false));
-        runningEscTasks.clear();
+        cancelEsc(null);  // cancel futures and abort any live z3 processes
         lastCheckFuture.clear();
 
         // Clear all diagnostic and status caches.

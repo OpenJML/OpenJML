@@ -224,9 +224,9 @@ themselves.
 
 <H3><A NAME="Markers">Problem markers</A></H3>
 
-The plugin implements its own set of problem markers, using the LSP's mechanism for reporting problems. 
+The plugin implements its own set of problem markers, using the LSP mechanism for reporting problems. 
 JML Markers identify JML syntax and type errors and warnings and informational 
-messages. ESC Markers identify JML Verification failures (as errors) and associated information (as information markers).
+messages. ESC Markers identify JML Verification failures (as errors) and associated information (as warnings).
 The style and coloring of these markers can be set in the General &gt;&gt; Editors &gt;&gt; Text Editors &gt;&gt; Annotations
 settings. 
 
@@ -237,19 +237,19 @@ FIXME
 <H3><A NAME="FindDeclaration">Find Declaration</A></H3>
 
 The standard Java 'Find Declaration' action applies only to Java code and cannot be overridden to apply also to JML text.
-The plugin implements its own Find Declaration action (under OpenJML&gt;&gt;Find Declaration); this action operates much like the Java action
+The plugin implements its own Find Declaration action (under OpenJML &gt;&gt; Find Declaration); this action operates much like the Java action
  but also finds declarations for instances of variables in JML text, whether those declarations are Java or JML declarations.
 
 <H3><A NAME="FindReferences">Find References</A></H3>
 
 The standard Java 'Find References' action applies only to Java code and cannot be overridden to apply also to JML text.
-The plugin implements its own Find References action (under OpenJML&gt;&gt;Find References); this action operates much like the Java action
- but also finds references for instances of variables in JML text, whether those declarations are Java or JML declarations.
+The plugin implements its own Find References action (under OpenJML &gt;&gt; Find References); this action operates much like the Java action
+ but also finds references for instances of variables in JML text, whether the uses or declarations are in Java or JML program text.
 
 <H3><A NAME="Rename">Rename</A></H3>
 
 The standard Java 'Rename' refactoring action applies only to Java code and cannot be overridden to apply also to JML text.
-The plugin implements its own renaming action (under OpenJML&gt;&gt;Rename); this action operates much like the Java rename but renames
+The plugin implements its own renaming action (under OpenJML &gt;&gt; Rename); this action operates much like the Java rename but renames
 the corresponding identifiers in JML text also.
 
 <H3><A NAME="FindIdentifiers">Find identifiers</A></H3>
@@ -264,7 +264,16 @@ with no embedded non-JML non-comment text, other than whitespace.
 
 <H3><A NAME="CodeLens">Code Lens information</A></H3>
 
-FIXME
+Code Lens information is shown in conjunction with a method declaration. The plugin puts there information about the most recent 
+proof (ESC) attempt for that method: either unknown, checking, verified, or not verified. 
+Editing the method does not change these "last attempt" result.
+
+<H3><A NAME="Hover">Hover and inlay information</A></H3>
+
+As hover or inlay information, the plugin shows
+<UL>
+    <LI>the type of a local variable declared with 'var'</LI>
+</UL>
 
 <H2><A NAME="EclipseFeatures">Eclipse functionality adapted to OpenJML</A></H2>
 
@@ -279,12 +288,12 @@ The content type is also associated with the "Generic Code Editor". This editor 
 
 The plugin implements a standard Eclipse Preferences (or Settings) page, with two tabs.
 The options control aspects
-of the plugin itself, the LSP server, and the underlying OpenJML tool.  All the OpenJML tool options are
+of the plugin itself, the LSP server, and the underlying OpenJML tool.  All the non-default OpenJML tool options are
 sent to OpenJML whenever an OpenJML action is requested.
 
 
 <H3><A NAME="HelpPage">A Help page</A></H3>
-The plugin implements a standard Help page to give user guide style information about the Eclipse Plugin.
+The plugin implements a standard Eclipse Help page to give user guide style information about the Eclipse Plugin.
 
 <H3><A NAME="OtherEclipse">Other Eclipse functionality</A></H3>
 
@@ -293,6 +302,8 @@ experience with Eclipse.
 <UL>
 <LI>Keyboard commands: All OpenJML commands are available to be mapped to key combinations on the General &gt;&gt; Keys setting page.</LI>
 </LI>
+<LI>The style and coloring of diagnostic markers can be set in the General &gt;&gt; Editors &gt;&gt; Text Editors &gt;&gt; Annotations
+settings.</LI>
 </UL>
 
 <H2><A NAME="Troubleshooting">Some OpenJML plugin infelicities and troubleshooting</A></H2>
@@ -304,9 +315,8 @@ experience with Eclipse.
     which can cause user confusion.</LI>
 <LI>The JML decorations on projects must be enabled in Eclipse settings: General &gt;&gt; Appearance &gt;&gt; Label Decorations.</LI>
 <LI>Marker appearance is controlled by the Eclipse LSP library, but can be adjusted by a user setting: General &gt;&gt; Editors &gt;&gt; TestEditors &gt;&gt; Annotations.</LI>
-<LI>There is currently no good way to review the results of ESC proof attempts; would also be good to show traces and counterexample information.</LI>
+<LI>There is currently no good way to review the results of ESC proof attempts; it would also be good to show traces and counterexample information.</LI>
 <LI>There should be a way to see the full (inherited) specifications for a method.</LI>
-<LI>Effect of selecting a Working Set.</LI>
 </UL>
 
 </BODY>

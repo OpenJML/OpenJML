@@ -75,7 +75,7 @@ public class Main extends com.sun.tools.javac.main.Main {
 
     /** True if compilation/static-checking has been canceled, by setting this field in some exception handler. 
      *  Used in an interactive environment. */
-    public boolean canceled = false;
+    public volatile boolean canceled = false;
 
     /** Instances of this class are used to abruptly terminate long-running JML operations;
      *  catch clauses typically set the Main.canceled field
@@ -459,8 +459,17 @@ public class Main extends com.sun.tools.javac.main.Main {
         // 'args' must contain just Java options and filepaths; JML options have been processed above
         // The exit result will be Result.OK if there are no outright errors
         // If there are just warnings and verification failures, this super call will give Result.OK
-        Main.Result exit = super.compile(args,context);
- 
+        Main.Result exit;
+        try {
+            exit = super.compile(args, context);
+        } catch (JmlCanceledException e) {
+            // Cancel fired between methods: JmlCanceledException escaped check() via rethrow.
+            return Result.CANCELLED;
+        }
+        // Cancel fired mid-method: PropagatedException was caught inside check(), which set
+        // canceled=true and returned normally; super.compile() completed, but the run was aborted.
+        if (canceled) return Result.CANCELLED;
+
         // Adjust the javac output to include verification failures, and adjust the exit code as well
         int numVerifyWarnings = Utils.instance(context).verifyWarnings;
         //System.out.println("EXITCODE " + numVerifyWarnings + " " + exit.exitCode + " " + JmlOption.EXITVERIFY.value(context) + " " + JmlOption.EXITVERIFY.getInt(context));

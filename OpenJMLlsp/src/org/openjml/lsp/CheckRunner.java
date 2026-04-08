@@ -26,7 +26,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Runs OpenJML {@code --check} or {@code --esc} passes on Java/JML source
@@ -150,9 +152,9 @@ public class CheckRunner {
         @Override
         public void reportProofResult(MethodSymbol msym, IProverResult result) {
             IProverResult.Kind kind = result.result();
-            // Ignore transient lifecycle events — only record final outcomes.
-            if (kind == IProverResult.RUNNING || kind == IProverResult.COMPLETED
-                    || kind == IProverResult.CANCELLED) {
+            // Ignore transient lifecycle notifications; record all terminal outcomes
+            // (including CANCELLED — the method that was mid-proof when cancel fired).
+            if (kind == IProverResult.RUNNING || kind == IProverResult.COMPLETED) {
                 return;
             }
             String name = msym.getSimpleName().toString();
@@ -683,7 +685,7 @@ public class CheckRunner {
 
     /** Run {@code --check} on in-memory content. */
     public static CheckResult check(String uri, String content, OpenJMLSettings settings) {
-        return runOnContent(uri, content, settings, "--check", null, false);
+        return runOnContent(uri, content, settings, "--check", null, false, null);
     }
 
     /**
@@ -981,7 +983,24 @@ public class CheckRunner {
 
     /** Run {@code --esc} on in-memory content. */
     public static CheckResult runEsc(String uri, String content, OpenJMLSettings settings) {
-        return runOnContent(uri, content, settings, "--esc", null, true);
+        return runOnContent(uri, content, settings, "--esc", null, true, null);
+    }
+
+    /**
+     * Run {@code --esc} on in-memory content, calling {@code onApiCreated} with the
+     * freshly-constructed {@link IAPI} and a live proof-count supplier, just before
+     * {@code api.execute()} is invoked.  The supplier returns the number of final
+     * proof results recorded by this run's {@link ProofResultCollector} so far;
+     * it is updated in real time as each method proof completes.
+     *
+     * <p>Tests use this to capture the IAPI for cancellation and to wait until
+     * at least N proofs have completed — confirming z3 is actively working on
+     * <em>this</em> run — before calling {@link IAPI#cancelEsc()}.
+     */
+    public static CheckResult runEscWithHook(String uri, String content,
+                                             OpenJMLSettings settings,
+                                             BiConsumer<IAPI, Supplier<Integer>> onApiCreated) {
+        return runOnContent(uri, content, settings, "--esc", null, true, onApiCreated);
     }
 
     /** Run {@code --esc} on a single method in in-memory content with default settings. */
@@ -992,7 +1011,7 @@ public class CheckRunner {
     /** Run {@code --esc} on a single method in in-memory content. */
     public static CheckResult runEscMethod(String uri, String content, String methodName,
                                            OpenJMLSettings settings) {
-        return runOnContent(uri, content, settings, "--esc", methodName, true);
+        return runOnContent(uri, content, settings, "--esc", methodName, true, null);
     }
 
     /** Run {@code --esc} on a file already on disk. */
@@ -1345,7 +1364,8 @@ public class CheckRunner {
 
     private static CheckResult runOnContent(
             String uri, String content, OpenJMLSettings settings, String modeFlag,
-            String methodName, boolean collectProofResults) {
+            String methodName, boolean collectProofResults,
+            BiConsumer<IAPI, Supplier<Integer>> onApiCreated) {
         var listener = new LspDiagnosticListener();
         listener.setSourceContent(content);   // precompute line-start offsets for accurate columns
         if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
@@ -1356,6 +1376,12 @@ public class CheckRunner {
         if (collectProofResults) {
             prc = new ProofResultCollector();
             api.setProofResultListener(prc);
+        }
+        // Fire the hook after ProofResultCollector is installed so the count supplier
+        // reflects live proof completions from the very start of execute().
+        if (onApiCreated != null) {
+            final ProofResultCollector prcFinal = prc;
+            onApiCreated.accept(api, () -> prcFinal == null ? 0 : prcFinal.getResults().size());
         }
 
         Path tempDir = null;

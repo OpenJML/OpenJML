@@ -73,6 +73,15 @@ public class JmlEsc extends JmlTreeScanner {
         return instance;
     }
 
+    /**
+     * Returns the JmlEsc instance for this context if it has already been created,
+     * or {@code null} if it has not.  Unlike {@link #instance}, this method never
+     * triggers construction and is therefore safe to call from a cancellation thread.
+     */
+    public static JmlEsc getIfCreated(Context context) {
+        return context.get(escKey);
+    }
+
     /** Used to obtain cached symbols, such as basic types */
     /*@non_null*/ Symtab syms;
     
@@ -228,10 +237,11 @@ public class JmlEsc extends JmlTreeScanner {
 
         JmlOptions.instance(context).pushOptions(decl.mods);
         try {
+            // Stop immediately if ESC was cancelled between methods.
+            if (Main.instance(context).canceled) throw new Main.JmlCanceledException("");
             doMethod(methodDecl);
         } catch (PropagatedException e) {
-            IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
-            if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
+            // CANCELLED was already reported by doMethod's finally block; just propagate.
             throw e;
         } finally {
             JmlOptions.instance(context).popOptions();
@@ -282,8 +292,8 @@ public class JmlEsc extends JmlTreeScanner {
         return proverToUse;
     }
     
-    // FIXME _ need synchronization on this field
-    MethodProverSMT currentMethodProver = null;
+    // volatile ensures the cancel-handler thread sees the value written by the ESC thread
+    volatile MethodProverSMT currentMethodProver = null;
 
     public void abort() {
         if (currentMethodProver != null) currentMethodProver.abort();
@@ -339,6 +349,9 @@ public class JmlEsc extends JmlTreeScanner {
         IProverResult res = null;
         try {
         	{
+        	    // Check again immediately before starting the prover, closing the race
+        	    // window between the visitMethodDef check and currentMethodProver being set.
+        	    if (Main.instance(context).canceled) throw new Main.JmlCanceledException("");
                 currentMethodProver = new MethodProverSMT(this);
                 res = currentMethodProver.prove(methodDecl,proverToUse);
                 currentMethodProver = null;
@@ -355,7 +368,7 @@ public class JmlEsc extends JmlTreeScanner {
             count(res.result(), methodDecl.sym);
             
         } catch (Main.JmlCanceledException | PropagatedException e) {
-            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
+            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym);
            // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
             utils.progress(1,Utils.PROGRESS,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
             + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 

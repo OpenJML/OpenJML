@@ -648,6 +648,21 @@ async function activate(context) {
     });
     context.subscriptions.push(clearMarkersCmd);
 
+    // Cancel all running ESC tasks (or just the one for the active file if a URI is given).
+    // Sends no URI so the server cancels every in-flight ESC, including any running z3 process.
+    const cancelEscCmd = vscode.commands.registerCommand('openjml.cancelEsc', async () => {
+        if (!client) { requireServer(); return; }
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.cancelEsc',
+                arguments: [],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML cancel ESC failed: ' + err);
+        }
+    });
+    context.subscriptions.push(cancelEscCmd);
+
     // Warn if java.format.enabled is on — it adds a space after // in line comments,
     // changing //@ to // @ and silently disabling all JML annotations.
     // Use workspace state so the user is only asked once per workspace.

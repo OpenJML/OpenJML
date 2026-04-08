@@ -587,7 +587,29 @@ public interface IAPI {
     @SuppressWarnings("exports")
     public IProverResult doESC(JmlTree.JmlMethodDecl methodDecl);
 
-    /** Executes static checking on the methods of the given class; assumes that all 
+    /**
+     * Requests cancellation of any in-progress ESC run on this IAPI instance.
+     * Safe to call from a different thread than the one running the ESC.
+     * If no ESC is currently running the call is a no-op.
+     * Cancellation is best-effort: it aborts the current method proof and prevents
+     * further methods from being started, but the ESC thread may take a short time
+     * to unwind after this call returns.
+     */
+    public void cancelEsc();
+
+    /**
+     * Returns {@code true} once the ESC engine ({@link JmlEsc}) has been constructed
+     * inside the compiler context for the current {@link #execute} call.  This is a
+     * best-effort signal that proving is underway; it does <em>not</em> guarantee that
+     * any method proof has actually completed yet, and in principle a JmlEsc instance
+     * could be created before active proving begins.  A stronger signal would be
+     * waiting until at least one (or two) proof results have been delivered to the
+     * registered {@link IProofResultListener}.
+     * Safe to call from any thread.
+     */
+    public boolean isEscPhaseStarted();
+
+    /** Executes static checking on the methods of the given class; assumes that all
      * relevant ASTs have been typechecked
      * @param csym the class to check
      */

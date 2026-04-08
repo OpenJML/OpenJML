@@ -57,6 +57,11 @@
         "command": "openjml.clearMarkers",
         "title": "Clear Markers",
         "category": "OpenJML"
+      },
+      {
+        "command": "openjml.cancelEsc",
+        "title": "Cancel ESC",
+        "category": "OpenJML"
       }
     ],
     "keybindings": [
@@ -110,6 +115,11 @@
           "command": "openjml.clearMarkers",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@6"
+        },
+        {
+          "command": "openjml.cancelEsc",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@7"
         }
       ],
       "editor/context": [
@@ -142,6 +152,11 @@
           "command": "openjml.clearMarkers",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@6"
+        },
+        {
+          "command": "openjml.cancelEsc",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@7"
         }
       ],
       "commandPalette": [
@@ -166,6 +181,9 @@
         },
         {
           "command": "openjml.clearMarkers"
+        },
+        {
+          "command": "openjml.cancelEsc"
         }
       ]
     },

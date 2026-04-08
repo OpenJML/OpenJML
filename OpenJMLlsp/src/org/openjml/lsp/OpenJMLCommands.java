@@ -93,5 +93,22 @@ public final class OpenJMLCommands {
      */
     public static final String CLEAR_MARKERS      = "openjml.clearMarkers";
 
+    /**
+     * Cancel ESC: {@code openjml.cancelEsc}.
+     *
+     * <p>Cancels the running ESC task for the given file URI, or all running ESC
+     * tasks if no URI is supplied.  Also kills the in-progress SMT solver process
+     * so the ESC thread is unblocked immediately.
+     *
+     * <p>Arguments: {@code [uri]} (optional).  If {@code uri} is absent or empty
+     * all running ESC tasks are cancelled.
+     *
+     * <p>Note: cancellation granularity is per file URI.  Two concurrent method
+     * proofs on different files can be cancelled independently; two proofs on the
+     * same file share one task slot (the newer submission cancels the older one).
+     * Per-(file,method) granularity requires future work on the task-tracking design.
+     */
+    public static final String CANCEL_ESC         = "openjml.cancelEsc";
+
     private OpenJMLCommands() {}
 }

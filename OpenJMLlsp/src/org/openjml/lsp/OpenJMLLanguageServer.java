@@ -123,6 +123,10 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.onUriReturn (OpenJMLCommands.GET_SEMANTIC_TOKENS, textDocumentService::getSemanticTokens);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
+        registry.on          (OpenJMLCommands.CANCEL_ESC, args -> {
+            textDocumentService.cancelEsc(args.isEmpty() ? null : (String) args.get(0));
+            return null;
+        });
 
         this.workspaceService = new OpenJMLWorkspaceService(settings, registry,
                 textDocumentService::symbols,
