@@ -45,8 +45,11 @@ are sent to the client using a `textDocument/publishDiagnostics` notification.
 The server communicates with the client exclusively over **stdio** (JSON-RPC on stdin/
 stdout). There is no TCP socket or named-pipe option.
 
-Stderr from the server and openjml is redirected to `/tmp/openjml-lsp-debug.log` by the launcher script, so Java
+Stderr from the server and openjml is redirected to a log file by the launcher script, so Java
 stack traces and internal debug messages go there, not to the client.
+In the dev launcher (no bundled `jdk/` directory) the log is `/tmp/openjml-lsp-debug.log`, truncated on each restart.
+In a release installation the log is `~/.openjml/logs/openjml-lsp-<pid>.log`, unique per server instance.
+Either default can be overridden by setting `OPENJML_LSP_LOG` before starting the server.
 
 ### Launcher Script
 
@@ -788,8 +791,9 @@ so in-progress edits do not disturb the ESC status badges visible to the user.
 
 ## Error Handling and Logging
 
-All diagnostic output goes to `/tmp/openjml-lsp-debug.log`. The JSON-RPC stream on
-stdout is protected by two complementary redirections:
+All diagnostic output goes to the log file described above
+(`~/.openjml/logs/openjml-lsp-<pid>.log` in production, `/tmp/openjml-lsp-debug.log` in dev).
+The JSON-RPC stream on stdout is protected by two complementary redirections:
 
 1. The launcher script redirects the process's stderr to the log file
    (`exec 2>>"$LOG"`) before starting Java.
