@@ -156,34 +156,28 @@ public class CheckRunnerEscAndRacTest extends LspTestBase {
     // -----------------------------------------------------------------------
 
     /**
-     * Tests that {@code runEscFile} reads a disk file, invokes ESC, and populates
-     * {@code proofResults}.  The exact kind (UNSAT vs POSSIBLY_SAT) depends on the
-     * solver environment; we assert only that ESC ran (non-empty proofResults) and
-     * that it did not fail with a type error (exit code != 1).
+     * Tests that {@code runEscFile} reads a disk file, invokes ESC, and verifies
+     * the method as UNSAT (exit 0).
+     *
+     * <p>Uses an identity method ({@code return x}) rather than arithmetic to
+     * avoid implicit integer-overflow proof obligations, which would produce
+     * POSSIBLY_SAT without range preconditions.
      */
     @Test
-    public void testRunEscFileProofResultsPopulated() throws Exception {
+    public void testRunEscFileVerified() throws Exception {
         File f = writeJava("EscFileOk.java",
                 "public class EscFileOk {\n" +
-                "    //@ ensures true;\n" +
-                "    public int add(int a, int b) { return a + b; }\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int identity(int x) { return x; }\n" +
                 "}\n");
         CheckRunner.CheckResult result = CheckRunner.runEscFile(
                 f.getAbsolutePath(), fileUri(f), new OpenJMLSettings());
 
-        // Exit 0 = all verified, 6 = verification failure; both mean ESC ran.
-        assertNotEquals("ESC on a type-correct file must not exit 1 (type error)",
-                1, result.exitCode());
-        assertFalse("ESC must produce at least one proof result", result.proofResults().isEmpty());
-        assertTrue("add must appear in proofResults",
-                result.proofResults().containsKey("add"));
-        // All returned kinds must be recognised terminal states.
-        for (IProverResult.Kind k : result.proofResults().values()) {
-            assertTrue("Unexpected proof kind: " + k,
-                    k == IProverResult.UNSAT || k == IProverResult.SAT
-                    || k == IProverResult.POSSIBLY_SAT || k == IProverResult.SKIPPED
-                    || k == IProverResult.TIMEOUT || k == IProverResult.CANCELLED);
-        }
+        assertEquals("Verified method should exit with code 0", 0, result.exitCode());
+        assertTrue("identity must appear in proofResults",
+                result.proofResults().containsKey("identity"));
+        assertEquals("identity should be UNSAT (verified)",
+                IProverResult.UNSAT, result.proofResults().get("identity"));
     }
 
     @Test
@@ -211,32 +205,30 @@ public class CheckRunnerEscAndRacTest extends LspTestBase {
     // runEscMethod — target a single named method
     // -----------------------------------------------------------------------
 
+    /**
+     * Targeting a single method via {@code runEscFileMethod} must produce a proof
+     * result for that method.
+     *
+     * <p>Uses an identity method ({@code return x}) for the targeted method to
+     * avoid overflow proof obligations that would prevent UNSAT without range
+     * preconditions.
+     */
     @Test
     public void testRunEscMethodTargetedMethodInResults() throws Exception {
-        // Two methods: one with a correct spec, one with a broken spec.
-        // We target only 'add'; it must appear in proofResults as UNSAT.
-        // Whether 'sub' also appears depends on OpenJML's --method flag semantics;
-        // we do not assert its absence, only that 'add' is present and verified.
         File f = writeJava("EscMethod.java",
                 "public class EscMethod {\n" +
-                "    //@ ensures true;\n" +
-                "    public int add(int a, int b) { return a + b; }\n" +
-                "    //@ ensures \\result == a - b;\n" +
-                "    public int sub(int a, int b) { return a + b; }\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int identity(int x) { return x; }\n" +
+                "    //@ ensures \\result == a - b;\n" +  // wrong — not targeted
+                "    public int badSub(int a, int b) { return a + b; }\n" +
                 "}\n");
         CheckRunner.CheckResult result = CheckRunner.runEscFileMethod(
-                f.getAbsolutePath(), fileUri(f), "add", new OpenJMLSettings());
+                f.getAbsolutePath(), fileUri(f), "identity", new OpenJMLSettings());
 
-        assertFalse("Targeted method must have a proof result",
-                result.proofResults().isEmpty());
-        assertTrue("Targeted method 'add' must appear in proofResults",
-                result.proofResults().containsKey("add"));
-        // Exact kind depends on solver environment; any recognised terminal state is fine.
-        IProverResult.Kind addKind = result.proofResults().get("add");
-        assertTrue("Unexpected kind for 'add': " + addKind,
-                addKind == IProverResult.UNSAT || addKind == IProverResult.SAT
-                || addKind == IProverResult.POSSIBLY_SAT || addKind == IProverResult.SKIPPED
-                || addKind == IProverResult.TIMEOUT);
+        assertTrue("Targeted method 'identity' must appear in proofResults",
+                result.proofResults().containsKey("identity"));
+        assertEquals("Targeted method 'identity' should be UNSAT (verified)",
+                IProverResult.UNSAT, result.proofResults().get("identity"));
     }
 
     // -----------------------------------------------------------------------
