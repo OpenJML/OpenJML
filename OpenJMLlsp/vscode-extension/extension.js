@@ -404,6 +404,9 @@ async function checkDirtyAndProceed(document) {
 
 function getSettings() {
     const cfg = vscode.workspace.getConfiguration('openjml');
+    const sep = process.platform === 'win32' ? ';' : ':';
+    const folders = vscode.workspace.workspaceFolders || [];
+    const jmlWorkspaceRoots = folders.map(f => f.uri.fsPath).join(sep);
     return {
         checkTriggerOn:          cfg.get('checkTriggerOn',          'edit'),
         escTriggerOn:            cfg.get('escTriggerOn',            'manual'),
@@ -417,6 +420,8 @@ function getSettings() {
         escEngine:               cfg.get('escEngine',               'subprocess'),
         escThreads:              cfg.get('escThreads',              5),
         useIntegratedOutline:    cfg.get('useIntegratedOutline',    true),
+        client:                  'vscode-java',
+        jmlWorkspaceRoots:       jmlWorkspaceRoots,
     };
 }
 
@@ -686,11 +691,26 @@ async function activate(context) {
         })
     );
 
+    // When workspace folders are added or removed, notify the server so it can
+    // update its jmlWorkspaceRoots and re-register file watchers accordingly.
+    // Workspace folders are not part of openjml.* config, so we send manually.
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeWorkspaceFolders(() => {
+            if (!client) return;
+            const sep = process.platform === 'win32' ? ';' : ':';
+            const folders = vscode.workspace.workspaceFolders || [];
+            const roots = folders.map(f => f.uri.fsPath).join(sep);
+            client.sendNotification('workspace/didChangeConfiguration', {
+                settings: { openjml: { jmlWorkspaceRoots: roots } }
+            });
+        })
+    );
+
     // Register a direct DocumentSemanticTokensProvider for JML syntax colouring.
     // This runs independently of (and merges additively with) the Red Hat Java
     // extension's semantic tokens, avoiding the LSP-channel provider race.
     // Token types must match SemanticTokensProvider.TOKEN_TYPES on the server.
-    const jmlLegend = new vscode.SemanticTokensLegend(['keyword', 'macro'], []);
+    const jmlLegend = new vscode.SemanticTokensLegend(['keyword', 'macro', 'variable'], []);
     const jmlTokensProvider = vscode.languages.registerDocumentSemanticTokensProvider(
         [{ language: 'java' }, { language: 'jml' }],
         {

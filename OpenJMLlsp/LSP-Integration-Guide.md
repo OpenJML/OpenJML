@@ -811,6 +811,51 @@ the debug log; this always indicates a bug in the server.
 
 ---
 
+## VS Code Extension Notes
+
+The bundled VS Code extension (`OpenJMLlsp/vscode-extension/`) has several design decisions that differ from a generic LSP client. This section documents them for extension maintainers and third-party client authors.
+
+### Client identifier and `javaMode` default
+
+The extension passes `client: "vscode-java"` in `initializationOptions`. This causes the server to default `javaMode` to `"jml-only"`, which suppresses features that overlap with the Red Hat Java extension (`documentSymbol` Java members, Java hover, Java inlay hints). The `openjml.javaMode` and `openjml.client` settings in `package.json` let users override these if they want full coverage (e.g., when Red Hat Java is not installed).
+
+### `jmlWorkspaceRoots`
+
+VS Code has no concept of JML-natured projects. The extension therefore sends all open workspace folders as `jmlWorkspaceRoots` (path-separator-separated, `;` on Windows, `:` on Unix). An `onDidChangeWorkspaceFolders` listener pushes an updated value via `workspace/didChangeConfiguration` when folders are added or removed at runtime.
+
+### Semantic tokens — additive merge with Red Hat Java
+
+The vscode-languageclient library's built-in semantic tokens feature competes with the Red Hat Java extension's semantic tokens provider via a provider race that VS Code resolves non-deterministically. To avoid this:
+
+1. The LSP-channel semantic tokens response is suppressed in middleware:
+   ```js
+   provideDocumentSemanticTokens: (_document, _token, _next) =>
+       new vscode.SemanticTokens(new Uint32Array([]))
+   ```
+2. A separate `DocumentSemanticTokensProvider` is registered directly with VS Code via `vscode.languages.registerDocumentSemanticTokensProvider`. It fetches tokens by calling the `openjml.getSemanticTokens` custom command and returns them as a `vscode.SemanticTokens` object.
+
+This approach merges the JML tokens additively on top of whatever Red Hat produces. The legend must include all three server token types in order: `['keyword', 'macro', 'variable']`.
+
+### `prepareRename` middleware
+
+The extension overrides `prepareRename` in middleware to return the word range at the cursor immediately for Java identifiers, bypassing the server round-trip. This is required because the Red Hat extension's rename provider would otherwise race with ours and win. For non-identifier positions the call falls through to the server.
+
+### `java.format.enabled` caveat
+
+The Red Hat Java formatter rewrites `//@ ` to `// @` (inserts a space after `//`), silently disabling all JML annotations. The extension warns once per workspace on activation and offers to disable `java.format.enabled`. Users who need formatting can still invoke it manually via Shift+Alt+F; they should configure a formatter profile that excludes line-comment reformatting.
+
+### Type-checking triggers
+
+`--check` (JML type-check) is triggered automatically:
+- On `textDocument/didOpen` — unconditionally
+- On `textDocument/didChange` — debounced (250 ms) when `checkTriggerOn == "edit"`
+- On `textDocument/didSave` — unconditionally
+- On tab focus (`openjml.focusFile`) — debounced (200 ms) when returning to an already-open file
+
+There is no manual "run check" command; checking is always automatic. ESC (`--esc`) is separate and has its own trigger setting (`openjml.escTriggerOn`).
+
+---
+
 ## Known Limitations
 
 - **Single-file scope**: Each check or ESC invocation processes one file at a time.

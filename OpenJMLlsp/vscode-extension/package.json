@@ -301,10 +301,32 @@
           "order": 12,
           "markdownDescription": "When `true` (default), the Outline panel shows all Java and JML symbols together. When `false`, only JML-specific symbols (ghost, model) are shown, complementing the Red Hat Java extension's outline. Users can collapse irrelevant sections in either mode."
         },
+        "openjml.javaMode": {
+          "type": "string",
+          "enum": [
+            "full",
+            "jml-only"
+          ],
+          "default": "jml-only",
+          "order": 13,
+          "markdownDescription": "Controls which LSP features overlap with Java tooling:\n- `jml-only` (default for VS Code) — only JML-specific symbols and features; defers Java navigation to the Red Hat Java extension\n- `full` — all features including Java symbols, hover, etc.; useful without a Java extension installed"
+        },
+        "openjml.client": {
+          "type": "string",
+          "enum": [
+            "generic",
+            "eclipse-jdt",
+            "vscode-java",
+            "intellij"
+          ],
+          "default": "vscode-java",
+          "order": 14,
+          "markdownDescription": "Client identifier sent to the server at startup. Controls `javaMode` defaults. Normally leave as `vscode-java`."
+        },
         "openjml.racOutputDir": {
           "type": "string",
           "default": "",
-          "order": 13,
+          "order": 15,
           "description": "Output directory for RAC-compiled class files (-d option). Relative paths are resolved against the workspace root. Leave empty to use 'rac-classes' in the workspace root."
         }
       }
