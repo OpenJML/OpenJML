@@ -40,6 +40,9 @@ import static org.junit.Assert.*;
  * method body is unchanged).  Tests write to a temp folder with no matching
  * {@code .jml} files, so this does not affect the results here — but it is
  * worth knowing when debugging unexpected proof outcomes.
+ * <p>Best practice: if a class has a companion {@code .jml} file, do not put
+ * specs in the {@code .java} file at all, or add a comment such as
+ * {@code // specs in Foo.jml} to make the split explicit.
  */
 public class CheckRunnerEscAndRacTest extends LspTestBase {
 
