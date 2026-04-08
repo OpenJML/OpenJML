@@ -67,6 +67,7 @@ TEST_CLASSES := \
   ReferenceFinderJmlTest \
   DoEscTest \
   EscCancellationTest \
+  CheckRunnerEscAndRacTest \
   DiagnosticsTest \
   EscStatusTest \
   MethodAndClassTest \
