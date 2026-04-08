@@ -26,8 +26,20 @@ import static org.junit.Assert.*;
  * <p>These tests write real {@code .java} files to a {@link TemporaryFolder},
  * invoke the relevant CheckRunner method, and assert on exit codes and diagnostics.
  *
- * <p>The ESC tests use methods whose proofs are trivial so that z3 finishes
- * quickly (all linear arithmetic, no non-linear multiplication).
+ * <h3>Arithmetic and overflow</h3>
+ * <p>OpenJML adds implicit overflow proof obligations for integer arithmetic by
+ * default.  A method body like {@code return a + b} will produce POSSIBLY_SAT
+ * even with {@code ensures true} unless the ranges of {@code a} and {@code b}
+ * are constrained by {@code requires} clauses or {@code code_java_math} is used.
+ * ESC tests here use identity methods ({@code return x}) to avoid this.
+ *
+ * <h3>JML spec files ({@code .jml})</h3>
+ * <p>If a {@code .jml} file with the same base name as the class is visible on
+ * the specs path, OpenJML silently uses its method specs in place of the
+ * {@code //@ ensures/requires} clauses written in the {@code .java} file (the
+ * method body is unchanged).  Tests write to a temp folder with no matching
+ * {@code .jml} files, so this does not affect the results here — but it is
+ * worth knowing when debugging unexpected proof outcomes.
  */
 public class CheckRunnerEscAndRacTest extends LspTestBase {
 
