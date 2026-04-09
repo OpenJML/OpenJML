@@ -88,6 +88,31 @@ public class ASTCache {
     }
 
     // -----------------------------------------------------------------------
+    // Nav tier — project-wide check for navigation (go-to-declaration etc.)
+    // -----------------------------------------------------------------------
+
+    /**
+     * URI → attributed AST from the most recent project-wide {@code --check --dirs} pass.
+     * All entries share a single IAPI compilation context, so symbol identity ({@code ==})
+     * holds across files and cross-file navigation works reliably.
+     *
+     * <p>Written only by {@link #putNav}; never touched by per-file checks so it is
+     * immune to IAPI-context fragmentation.
+     */
+    private final Map<String, Entry> navCache = new ConcurrentHashMap<>();
+
+    /**
+     * Cross-file Symbol → declaration location built exclusively from the most
+     * recent project-wide {@code --check --dirs} pass.  Because all files in
+     * that pass share a single IAPI compilation context, symbol identity ({@code ==})
+     * holds across files and navigation works reliably.
+     *
+     * <p>Populated only by {@link #rebuildNavIndex()}; never written by individual
+     * file checks so it is immune to IAPI-context fragmentation.
+     */
+    private final Map<Symbol, SymbolLocation> navDeclarationIndex = new ConcurrentHashMap<>();
+
+    // -----------------------------------------------------------------------
     // Live tier — user-triggered --check / --esc runs
     // -----------------------------------------------------------------------
 
@@ -124,6 +149,54 @@ public class ASTCache {
 
     /** Return {@code true} while the background workspace index is still running. */
     public boolean isIndexing() { return indexing.get(); }
+
+    // -----------------------------------------------------------------------
+    // Nav-tier writes
+    // -----------------------------------------------------------------------
+
+    /**
+     * Clear the nav cache before starting a new project-wide check run.
+     * Called by {@link CheckRunner#runCheckDirWithContext} before submitting
+     * the {@code IAPI.execute} call so that stale entries from a previous run
+     * do not linger if fewer files are checked this time.
+     */
+    public void clearNav() {
+        navCache.clear();
+    }
+
+    /**
+     * Store an AST into the nav cache.  Called by the per-instance
+     * {@code IASTListener} registered in {@link CheckRunner#runCheckDirWithContext}.
+     * All entries stored by a single project-wide run share one IAPI compilation
+     * context, so symbol identity holds across all of them.
+     */
+    public void putNav(String uri, Context ctx, JmlCompilationUnit ast) {
+        navCache.put(uri, Entry.basic(ast, ctx));
+    }
+
+    /**
+     * Return the nav-cache entry for {@code uri}, falling back to the live
+     * cache then init cache if absent.
+     */
+    public Entry getNav(String uri) {
+        Entry nav = navCache.get(uri);
+        if (nav != null) return nav;
+        Entry live = liveCache.get(uri);
+        return live != null ? live : initCache.get(uri);
+    }
+
+    /**
+     * Iterate over nav-cache entries (URI → Entry) for cross-file navigation
+     * operations (find-references, rename).  Falls back to the live cache if
+     * the nav cache has not yet been populated.
+     */
+    public void forEachNav(java.util.function.BiConsumer<String, Entry> action) {
+        if (!navCache.isEmpty()) {
+            navCache.forEach(action);
+        } else {
+            liveCache.forEach(action);
+        }
+    }
 
     // -----------------------------------------------------------------------
     // Live-tier writes
@@ -186,18 +259,71 @@ public class ASTCache {
         return live != null ? live : initCache.get(uri);
     }
 
+    /**
+     * Rebuild the nav declaration index from all live-tier ASTs.
+     *
+     * <p>Called by {@code runProjectCheck()} after a project-wide
+     * {@code --check --dirs} pass.  At that point every live-cache entry was
+     * produced by the same IAPI invocation, so all symbol objects are identity-
+     * compatible and cross-file navigation works reliably.
+     *
+     * <p>Individual file checks ({@code recheckUri}, {@code didSave}) never call
+     * this method, so the nav index is only ever updated by project-wide checks.
+     */
+    public void rebuildNavIndex() {
+        navDeclarationIndex.clear();
+        navCache.forEach((uri, entry) ->
+                new DeclarationIndexer(navDeclarationIndex, uri).scan(entry.ast()));
+        System.err.println("[ASTCache] nav index rebuilt: " + navDeclarationIndex.size()
+                + " declarations from " + navCache.size() + " files");
+    }
+
     /** Return the declaration location for {@code sym}, or {@code null} if unknown. */
     public SymbolLocation getDeclarationLocation(Symbol sym) {
+        // Nav index is built from a single project-wide IAPI — check it first.
+        SymbolLocation nav = navDeclarationIndex.get(sym);
+        if (nav != null) return nav;
         SymbolLocation live = liveDeclarationIndex.get(sym);
-        return live != null ? live : initDeclarationIndex.get(sym);
+        if (live != null) return live;
+        SymbolLocation init = initDeclarationIndex.get(sym);
+        if (init != null) return init;
+
+        // Identity lookup failed: the cursor symbol comes from a different IAPI
+        // invocation than the nav index (e.g. a per-file check ran after the
+        // project-wide check that built the index).  Fall back to a name-based
+        // match in the nav index using qualified name + owner + symbol kind.
+        // If exactly one entry matches, use it.  Ambiguous matches (e.g. two
+        // overloads with the same name) are skipped to avoid returning the wrong
+        // declaration.
+        String qn      = sym.getQualifiedName().toString();
+        String ownerQn = sym.owner != null ? sym.owner.getQualifiedName().toString() : "";
+        String kind    = sym.getClass().getSimpleName();
+        if (!qn.isEmpty() && !navDeclarationIndex.isEmpty()) {
+            SymbolLocation match = null;
+            boolean ambiguous = false;
+            for (Map.Entry<Symbol, SymbolLocation> e : navDeclarationIndex.entrySet()) {
+                Symbol s = e.getKey();
+                if (qn.equals(s.getQualifiedName().toString())
+                        && kind.equals(s.getClass().getSimpleName())
+                        && ownerQn.equals(s.owner != null
+                                ? s.owner.getQualifiedName().toString() : "")) {
+                    if (match != null) { ambiguous = true; break; }
+                    match = e.getValue();
+                }
+            }
+            if (!ambiguous && match != null) return match;
+        }
+        return null;
     }
 
     // -----------------------------------------------------------------------
     // Removals
     // -----------------------------------------------------------------------
 
-    /** Remove the cached entry and its indexed declarations from both tiers (e.g. on didClose). */
+    /** Remove the cached entry and its indexed declarations from all tiers (e.g. on didClose). */
     public void remove(String uri) {
+        navCache.remove(uri);
+        navDeclarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
         liveCache.remove(uri);
         removeLiveDeclarationsForUri(uri);
         initCache.remove(uri);
@@ -205,10 +331,12 @@ public class ASTCache {
     }
 
     /**
-     * Clear all cached entries and declaration indexes from both tiers.
+     * Clear all cached entries and declaration indexes from all tiers.
      * Resets the indexing flag.  Called by the clear-and-reindex command.
      */
     public void clear() {
+        navCache.clear();
+        navDeclarationIndex.clear();
         liveCache.clear();
         liveDeclarationIndex.clear();
         initCache.clear();

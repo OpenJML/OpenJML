@@ -463,15 +463,44 @@ public class OpenJMLOptions {
     }
 
     /**
-     * Returns a path-separator-separated string of filesystem paths for all open
-     * Eclipse projects that carry the JML nature.  Used as the {@code jmlWorkspaceRoots}
-     * setting so the server watches and indexes only JML-relevant projects.
+     * Returns a path-separator-separated string of JDT source-folder filesystem
+     * paths for all open Eclipse projects that carry the JML nature.
+     *
+     * <p>Using source-folder roots (e.g. {@code /project/src/}) rather than project
+     * roots (e.g. {@code /project/}) lets the LSP server pass them directly as
+     * {@code -sourcepath} so that javac can resolve cross-file references during
+     * single-file background checks.  If a project has no JDT source folders
+     * configured (non-Java project or project root as source), its project root
+     * is used as a fallback.
      */
     public static String buildJmlProjectRoots() {
-        return Arrays.stream(ResourcesPlugin.getWorkspace().getRoot().getProjects())
-                .filter(IProject::isOpen)
-                .filter(JmlNature::hasNature)
-                .map(p -> p.getLocation().toOSString())
-                .collect(Collectors.joining(java.io.File.pathSeparator));
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+            if (!project.isOpen() || !JmlNature.hasNature(project)) continue;
+            org.eclipse.jdt.core.IJavaProject jp =
+                    org.eclipse.jdt.core.JavaCore.create(project);
+            boolean addedSrcFolder = false;
+            if (jp != null && jp.exists()) {
+                try {
+                    for (org.eclipse.jdt.core.IPackageFragmentRoot pfr
+                            : jp.getPackageFragmentRoots()) {
+                        if (pfr.getKind() != org.eclipse.jdt.core.IPackageFragmentRoot.K_SOURCE)
+                            continue;
+                        org.eclipse.core.resources.IResource res =
+                                pfr.getCorrespondingResource();
+                        org.eclipse.core.runtime.IPath loc =
+                                res != null ? res.getLocation() : pfr.getPath();
+                        if (loc != null) {
+                            parts.add(loc.toOSString());
+                            addedSrcFolder = true;
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+            if (!addedSrcFolder && project.getLocation() != null) {
+                parts.add(project.getLocation().toOSString());
+            }
+        }
+        return String.join(java.io.File.pathSeparator, parts);
     }
 }

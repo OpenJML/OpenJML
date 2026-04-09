@@ -295,7 +295,24 @@ public class CheckRunner {
         List<String> args = buildArgs(settings, "--check");
         args.addAll(fileList);
         logInvocation("runCheckDirWithContext", args);
-        int rc = api.execute(args.toArray(new String[0]), mockFiles);
+        Map<String, String> normToReal = new java.util.HashMap<>();
+        for (Map.Entry<String, String> e : snapshot.entrySet()) {
+            try { normToReal.put(java.net.URI.create(e.getKey()).normalize().toString(), e.getKey()); }
+            catch (Exception ignored) {}
+        }
+        AST_CACHE.clearNav();
+        IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
+            String jfoUri = jfo.toUri().normalize().toString();
+            String realUri = normToReal.getOrDefault(jfoUri, jfoUri);
+            AST_CACHE.putNav(realUri, astCtx, (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast);
+        };
+        api.setASTListener(astListener);
+        int rc;
+        try {
+            rc = api.execute(args.toArray(new String[0]), mockFiles);
+        } finally {
+            api.removeASTListener(astListener);
+        }
         System.err.println("[CheckRunner.runCheckDirWithContext] exit code " + rc
                 + " for " + fileList.size() + " file(s)");
         return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of());
@@ -955,7 +972,7 @@ public class CheckRunner {
                     freshCache.put(jfoPath, astCtx, (JmlCompilationUnit) ast);
                 }
             };
-            IAPI.setASTListener(astListener);
+            api.setASTListener(astListener);
             List<String> args = buildArgs(modifiedSettings, "--check");
             args.addAll(filePaths);
             logInvocation("checkModifiedFilesAndGetCache", args);
@@ -964,7 +981,7 @@ public class CheckRunner {
             } catch (Throwable t) {
                 System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] execute failed: " + t);
             } finally {
-                IAPI.removeASTListener(astListener);
+                api.removeASTListener(astListener);
             }
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
             for (List<org.eclipse.lsp4j.Diagnostic> diags :
@@ -1006,7 +1023,7 @@ public class CheckRunner {
                     freshCache.put(jfoPath, astCtx, (JmlCompilationUnit) ast);
                 }
             };
-            IAPI.setASTListener(astListener);
+            api.setASTListener(astListener);
             List<String> args = buildArgs(modifiedSettings, "--check");
             args.addAll(filePaths);
             logInvocation("checkModifiedFilesAndGetCache", args);
@@ -1015,7 +1032,7 @@ public class CheckRunner {
             } catch (Throwable t) {
                 System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] execute failed: " + t);
             } finally {
-                IAPI.removeASTListener(astListener);
+                api.removeASTListener(astListener);
             }
 
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
@@ -1462,12 +1479,12 @@ public class CheckRunner {
                     } catch (Exception ignored) {}
                 }
             };
-            IAPI.setASTListener(astListener);
+            api.setASTListener(astListener);
             int rc;
             try {
                 rc = api.execute(args.toArray(new String[0]), mockFiles);
             } finally {
-                IAPI.removeASTListener(astListener);
+                api.removeASTListener(astListener);
             }
             System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc + " (" + modeFlag + ")");
 
@@ -1575,12 +1592,12 @@ public class CheckRunner {
                     }
                 }
             };
-            IAPI.setASTListener(astListener);
+            api.setASTListener(astListener);
             int rc;
             try {
                 rc = api.execute(args.toArray(new String[0]));
             } finally {
-                IAPI.removeASTListener(astListener);
+                api.removeASTListener(astListener);
             }
             System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc
                     + " (" + modeFlag + ")");
@@ -1699,14 +1716,14 @@ public class CheckRunner {
                     capturedCtx[0] = ctx;
                 }
             };
-            IAPI.setASTListener(astListener);
+            api.setASTListener(astListener);
             int rc;
             try {
                 rc = mockFilesObj != null
                         ? api.execute(args.toArray(new String[0]), mockFilesObj)
                         : api.execute(args.toArray(new String[0]));
             } finally {
-                IAPI.removeASTListener(astListener);
+                api.removeASTListener(astListener);
             }
             System.err.println("[CheckRunner.runOnContent] exit code " + rc
                     + " (" + modeFlag + ")");
@@ -1808,12 +1825,12 @@ public class CheckRunner {
                 cacheSpecsCu(cu, ctx, null, null, true);
             }
         };
-        IAPI.setASTListener(astListener);
+        api.setASTListener(astListener);
         int rc;
         try {
             rc = api.execute(args.toArray(new String[0]));
         } finally {
-            IAPI.removeASTListener(astListener);
+            api.removeASTListener(astListener);
         }
         System.err.println("[CheckRunner.runOnFile] exit code " + rc
                 + " (" + modeFlag + ")");
@@ -1869,13 +1886,13 @@ public class CheckRunner {
             AST_CACHE.putInit(jfo.toUri().toString(), ctx, cu);
             cacheSpecsCu(cu, ctx, null, null, false);
         };
-        IAPI.setASTListener(astListener);
+        api.setASTListener(astListener);
         try {
             api.execute(args.toArray(new String[0]));
         } catch (Throwable e) {
             System.err.println("[CheckRunner.indexOneFile] " + filePath + ": " + e);
         } finally {
-            IAPI.removeASTListener(astListener);
+            api.removeASTListener(astListener);
         }
         return listener.toLspDiagnostics(filePath, uri);
     }
@@ -2276,12 +2293,13 @@ public class CheckRunner {
      * <ol>
      *   <li>{@code prefixDir} — temp directory holding in-memory file contents
      *       (may be {@code null} when there is no temp dir, e.g. for on-disk checks)</li>
-     *   <li>{@link OpenJMLSettings#workspaceFolderPaths} — workspace folders
-     *       reported by the editor at {@code initialize} time</li>
      *   <li>{@link OpenJMLSettings#sourcePath} — explicit user setting, if non-empty</li>
-     *   <li>{@link OpenJMLSettings#classPath} — only appended when
-     *       {@link OpenJMLSettings#sourcePath} is absent, so compiled dependencies
-     *       can serve as a source fallback when no explicit source root is configured</li>
+     *   <li>{@link OpenJMLSettings#jmlWorkspaceRoots} — JDT source-folder roots sent by
+     *       the Eclipse plugin (preferred fallback: already the correct package roots)</li>
+     *   <li>{@link OpenJMLSettings#workspaceFolderPaths} — raw workspace folders from the
+     *       LSP {@code initialize} request (last resort: may be project roots, not source roots)</li>
+     *   <li>{@link OpenJMLSettings#classPath} — only appended when no source root is
+     *       configured, so compiled dependencies can serve as a source fallback</li>
      * </ol>
      */
     static String buildEffectiveSourcePath(Path prefixDir, OpenJMLSettings settings) {
@@ -2290,15 +2308,21 @@ public class CheckRunner {
         boolean hasSourcePath = settings.sourcePath != null && !settings.sourcePath.isEmpty();
         if (hasSourcePath) {
             // JDT-resolved source path already covers this project and its dependencies.
-            // Do NOT also add workspaceFolderPaths (project roots) — for default-package
+            // Do NOT also add jmlWorkspaceRoots/workspaceFolderPaths — for default-package
             // files that would introduce a duplicate class source alongside the temp dir,
             // causing javac to silently suppress diagnostics.
             parts.add(settings.sourcePath);
         } else {
-            // No explicit source path: fall back to workspace folder roots as a
-            // best-effort dependency search (used for content-based single-file checks).
-            if (settings.workspaceFolderPaths != null && !settings.workspaceFolderPaths.isEmpty())
+            // No explicit source path: prefer jmlWorkspaceRoots (Eclipse source-folder
+            // roots, e.g. /project/src/) over workspaceFolderPaths (project roots).
+            boolean hasJmlRoots = settings.jmlWorkspaceRoots != null
+                    && !settings.jmlWorkspaceRoots.isEmpty();
+            if (hasJmlRoots) {
+                parts.add(settings.jmlWorkspaceRoots);
+            } else if (settings.workspaceFolderPaths != null
+                    && !settings.workspaceFolderPaths.isEmpty()) {
                 parts.add(settings.workspaceFolderPaths);
+            }
             if (settings.classPath != null && !settings.classPath.isEmpty())
                 parts.add(settings.classPath);
         }

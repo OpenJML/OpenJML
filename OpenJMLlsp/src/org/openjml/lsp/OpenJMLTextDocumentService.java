@@ -240,6 +240,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final Map<String, CompletableFuture<Void>> lastCheckFuture = new ConcurrentHashMap<>();
 
     /**
+     * Set to {@code true} when any open document is edited ({@link #didChange}).
+     * Cleared after a project-wide {@code --check} pass completes.  Navigation
+     * operations ({@code definition}, {@code declaration}, {@code references},
+     * {@code rename}) trigger a fresh project-wide check when this flag is set,
+     * ensuring all files share a single IAPI compilation context so that
+     * cross-file symbol identity holds.
+     *
+     * <p>Focus changes and saves do NOT set this flag: they do not alter
+     * in-memory content and therefore cannot invalidate the nav context.
+     */
+    private volatile boolean navCacheDirty = true;
+
+    /**
      * @param settings        shared settings object
      * @param codeLensCommand the command name to embed in code-lens actions (e.g. run ESC for method)
      */
@@ -281,6 +294,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                                params.getContentChanges())
                 : params.getContentChanges().get(0).getText();
         lastContent.put(uri, content);
+        // Mark nav cache dirty: the next navigation will trigger a project-wide check.
+        navCacheDirty = true;
         // Invalidate cached check state for all other open files so that focus-triggered
         // rechecks pick up this change in their cross-file context.  When the primary
         // check completes, companion files that were actually compiled will be re-marked
@@ -517,59 +532,61 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             definition(DefinitionParams params) {
         String uri = params.getTextDocument().getUri();
         String source = lastContent.get(uri);
-        ASTCache cache = CheckRunner.getASTCache();
-        boolean hasAst = cache.get(uri) != null;
-        System.err.println("[OpenJML] definition: uri=" + uri
-                + "  hasContent=" + (source != null)
-                + "  hasAST=" + hasAst);
         if (source == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        // For .jml spec files: if the .jml AST is cached directly (via cacheSpecsCu),
-        // use it directly (normal path below).  If not yet cached, redirect lookup to
-        // the companion .java AST (which has specsCompilationUnit pointing to the .jml
-        // AST), using .jml source for cursor-offset computation.
-        if (uri.endsWith(".jml") && !hasAst) {
-            String javaUri = resolveCompanionJavaUri(uri, source);
-            if (javaUri != null) {
-                String jmlSource = source;
-                CompletableFuture<Void> pending = lastCheckFuture.get(javaUri);
-                CompletableFuture<Void> ready = (pending != null && !pending.isDone())
-                        ? pending : CompletableFuture.completedFuture(null);
-                return ready.thenApply(v -> {
-                    ASTCache.Entry entry = cache.get(javaUri);
-                    if (entry == null) {
-                        System.err.println("[OpenJML] definition: no AST for " + javaUri);
+        return ensureNavCacheReady().thenCompose(v -> {
+            ASTCache cache = CheckRunner.getASTCache();
+            boolean hasAst = cache.get(uri) != null;
+            System.err.println("[OpenJML] definition: uri=" + uri
+                    + "  hasContent=true  hasAST=" + hasAst);
+
+            // For .jml spec files: if the .jml AST is cached directly (via cacheSpecsCu),
+            // use it directly (normal path below).  If not yet cached, redirect lookup to
+            // the companion .java AST (which has specsCompilationUnit pointing to the .jml
+            // AST), using .jml source for cursor-offset computation.
+            if (uri.endsWith(".jml") && !hasAst) {
+                String javaUri = resolveCompanionJavaUri(uri, source);
+                if (javaUri != null) {
+                    String jmlSource = source;
+                    CompletableFuture<Void> pending = lastCheckFuture.get(javaUri);
+                    CompletableFuture<Void> ready = (pending != null && !pending.isDone())
+                            ? pending : CompletableFuture.completedFuture(null);
+                    return ready.thenApply(v2 -> {
+                        ASTCache.Entry entry = cache.get(javaUri);
+                        if (entry == null) {
+                            System.err.println("[OpenJML] definition: no AST for " + javaUri);
+                            return Either.<List<? extends Location>, List<? extends LocationLink>>
+                                    forLeft(List.of());
+                        }
+                        System.err.println("[OpenJML] definition: redirecting to java AST " + javaUri);
+                        Map<String, String> synthetic = new java.util.HashMap<>(lastContent);
+                        synthetic.put(javaUri, jmlSource);
+                        Location loc = DefinitionFinder.findDefinition(
+                                javaUri,
+                                params.getPosition().getLine(),
+                                params.getPosition().getCharacter(),
+                                synthetic,
+                                cache);
+                        System.err.println("[OpenJML] definition result (jml): " + loc);
+                        List<Location> res = loc != null ? List.of(loc) : List.of();
                         return Either.<List<? extends Location>, List<? extends LocationLink>>
-                                forLeft(List.of());
-                    }
-                    System.err.println("[OpenJML] definition: redirecting to java AST " + javaUri);
-                    Map<String, String> synthetic = new java.util.HashMap<>(lastContent);
-                    synthetic.put(javaUri, jmlSource);
-                    Location loc = DefinitionFinder.findDefinition(
-                            javaUri,
-                            params.getPosition().getLine(),
-                            params.getPosition().getCharacter(),
-                            synthetic,
-                            cache);
-                    System.err.println("[OpenJML] definition result (jml): " + loc);
-                    List<Location> res = loc != null ? List.of(loc) : List.of();
-                    return Either.<List<? extends Location>, List<? extends LocationLink>>
-                            forLeft(res);
-                });
+                                forLeft(res);
+                    });
+                }
             }
-        }
 
-        Location loc = DefinitionFinder.findDefinition(
-                uri,
-                params.getPosition().getLine(),
-                params.getPosition().getCharacter(),
-                lastContent,
-                cache);
+            Location loc = DefinitionFinder.findDefinition(
+                    uri,
+                    params.getPosition().getLine(),
+                    params.getPosition().getCharacter(),
+                    lastContent,
+                    cache);
 
-        System.err.println("[OpenJML] definition result: " + loc);
-        List<Location> result = loc != null ? List.of(loc) : List.of();
-        return CompletableFuture.completedFuture(Either.forLeft(result));
+            System.err.println("[OpenJML] definition result: " + loc);
+            List<Location> result = loc != null ? List.of(loc) : List.of();
+            return CompletableFuture.completedFuture(Either.forLeft(result));
+        });
     }
 
     // --- find references ---
@@ -624,43 +641,45 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (source == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
 
-        ASTCache cache = CheckRunner.getASTCache();
-        if (uri.endsWith(".jml") && cache.get(uri) == null) {
-            String javaUri = resolveCompanionJavaUri(uri, source);
-            if (javaUri != null) {
-                String jmlSource = source;
-                CompletableFuture<Void> pending = lastCheckFuture.get(javaUri);
-                CompletableFuture<Void> ready = (pending != null && !pending.isDone())
-                        ? pending : CompletableFuture.completedFuture(null);
-                return ready.thenApply(v -> {
-                    ASTCache.Entry entry = cache.get(javaUri);
-                    if (entry == null)
+        return ensureNavCacheReady().thenCompose(v -> {
+            ASTCache cache = CheckRunner.getASTCache();
+            if (uri.endsWith(".jml") && cache.get(uri) == null) {
+                String javaUri = resolveCompanionJavaUri(uri, source);
+                if (javaUri != null) {
+                    String jmlSource = source;
+                    CompletableFuture<Void> pending = lastCheckFuture.get(javaUri);
+                    CompletableFuture<Void> ready = (pending != null && !pending.isDone())
+                            ? pending : CompletableFuture.completedFuture(null);
+                    return ready.thenApply(v2 -> {
+                        ASTCache.Entry entry = cache.get(javaUri);
+                        if (entry == null)
+                            return Either.<List<? extends Location>, List<? extends LocationLink>>
+                                    forLeft(List.of());
+                        Map<String, String> synthetic = new java.util.HashMap<>(lastContent);
+                        synthetic.put(javaUri, jmlSource);
+                        Location loc = DefinitionFinder.findDefinition(
+                                javaUri,
+                                params.getPosition().getLine(),
+                                params.getPosition().getCharacter(),
+                                synthetic,
+                                cache);
+                        List<Location> res = loc != null ? List.of(loc) : List.of();
                         return Either.<List<? extends Location>, List<? extends LocationLink>>
-                                forLeft(List.of());
-                    Map<String, String> synthetic = new java.util.HashMap<>(lastContent);
-                    synthetic.put(javaUri, jmlSource);
-                    Location loc = DefinitionFinder.findDefinition(
-                            javaUri,
-                            params.getPosition().getLine(),
-                            params.getPosition().getCharacter(),
-                            synthetic,
-                            cache);
-                    List<Location> res = loc != null ? List.of(loc) : List.of();
-                    return Either.<List<? extends Location>, List<? extends LocationLink>>
-                            forLeft(res);
-                });
+                                forLeft(res);
+                    });
+                }
             }
-        }
 
-        Location loc = DefinitionFinder.findDefinition(
-                uri,
-                params.getPosition().getLine(),
-                params.getPosition().getCharacter(),
-                lastContent,
-                cache);
+            Location loc = DefinitionFinder.findDefinition(
+                    uri,
+                    params.getPosition().getLine(),
+                    params.getPosition().getCharacter(),
+                    lastContent,
+                    cache);
 
-        List<Location> result = loc != null ? List.of(loc) : List.of();
-        return CompletableFuture.completedFuture(Either.forLeft(result));
+            List<Location> result = loc != null ? List.of(loc) : List.of();
+            return CompletableFuture.completedFuture(Either.forLeft(result));
+        });
     }
 
     // --- prepareRename / rename ---
@@ -1114,11 +1133,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (!settings.isRegexColoring() && !uri.endsWith(".jml")) {
             ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
             if (entry != null) {
-                System.err.println("[getSemanticTokens] strategy=AST uri=" + uri);
                 return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
             }
         }
-        System.err.println("[getSemanticTokens] strategy=regex uri=" + uri);
         return SemanticTokensProvider.computeTokens(content).getData();
     }
 
@@ -1132,7 +1149,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return CompletableFuture.supplyAsync(() -> {
             String uri = params.getTextDocument().getUri();
             List<Integer> data = getSemanticTokens(uri);
-            System.err.println("[semanticTokensFull] uri=" + uri + " tokens=" + data.size() / 5);
             return new org.eclipse.lsp4j.SemanticTokens(data);
         });
     }
@@ -1860,6 +1876,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void scheduleCheckFile(String uri) {
+        // If the nav cache is clean, the project-wide check already covered all files
+        // with current content.  Saves do not change in-memory content, so re-checking
+        // here would only create a new IAPI context that invalidates the nav context.
+        if (!navCacheDirty) return;
         // .jml files are spec files; redirect check to companion .java.
         // Use content-based check so companion diagnostics (including .jml markers) are updated.
         if (uri.endsWith(".jml")) {
@@ -2000,6 +2020,59 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // the ESC code-lens status that the user sees.
 
     /**
+     * Run a project-wide {@code --check --dirs} pass over all roots in
+     * {@link OpenJMLSettings#effectiveRoots()}, supplying current in-memory
+     * content as context.  All files are compiled in a single IAPI invocation
+     * so their symbols share the same compilation context, enabling reliable
+     * cross-file navigation (go-to-declaration, find-references, rename).
+     *
+     * <p>After the check completes, {@link #lastCheckedContent} is updated for
+     * every currently-open file so that focus-triggered {@link #recheckUri}
+     * calls (which skip files whose content is unchanged) become no-ops until
+     * the next real edit.
+     *
+     * <p>If no roots are configured, falls back to a no-op (returns {@code false}).
+     *
+     * @return {@code true} if a project check was performed, {@code false} if
+     *         no roots are configured and nothing was done
+     */
+    private boolean runProjectCheck() {
+        List<String> roots = settings.effectiveRoots();
+        if (roots.isEmpty()) return false;
+        Map<String, String> snapshot = Map.copyOf(lastContent);
+        try {
+            CheckRunner.DirCheckResult result =
+                    CheckRunner.runCheckDirWithContext(roots, snapshot, settings);
+            result.diagnosticsByUri().forEach((diagUri, diags) -> {
+                storeCheckDiags(diagUri, diags);
+                publishMerged(diagUri);
+            });
+            // Mark every currently-open file as checked with its current content.
+            // This suppresses redundant focus-triggered rechecks until the next edit.
+            lastCheckedContent.putAll(snapshot);
+            navCacheDirty = false;
+            // Rebuild the nav declaration index from the live-cache ASTs just updated
+            // by the project check.  All share one IAPI context so symbol identity
+            // holds across files and cross-file navigation works correctly.
+            CheckRunner.getASTCache().rebuildNavIndex();
+        } catch (Throwable t) {
+            System.err.println("[runProjectCheck] error: " + t);
+        }
+        return true;
+    }
+
+    /**
+     * Ensure the project-wide nav cache is up to date before a navigation
+     * operation.  If {@link #navCacheDirty} is set, schedules a
+     * {@link #runProjectCheck()} on the executor and returns a future that
+     * completes when it finishes.  Otherwise completes immediately.
+     */
+    private CompletableFuture<Void> ensureNavCacheReady() {
+        if (!navCacheDirty) return CompletableFuture.completedFuture(null);
+        return CompletableFuture.runAsync(this::runProjectCheck, executor);
+    }
+
+    /**
      * Returns {@code true} if any currently-open document has in-memory content
      * that has not yet been processed by a completed {@code --check} pass.
      */
@@ -2045,12 +2118,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private CompletableFuture<Boolean> ensureFreshAndConfirm(
             String primaryUri, String operationName) {
         CompletableFuture<Void> checkFuture;
-        if (isWorkspaceStale()) {
-            String content = lastContent.get(primaryUri);
-            if (content == null)
-                return CompletableFuture.completedFuture(false);
-            checkFuture = CompletableFuture.runAsync(
-                    () -> runCheckContent(primaryUri, content), executor);
+        if (navCacheDirty) {
+            checkFuture = CompletableFuture.runAsync(() -> {
+                if (!runProjectCheck()) {
+                    // No roots configured: fall back to single-file check.
+                    String content = lastContent.get(primaryUri);
+                    if (content != null) runCheckContent(primaryUri, content);
+                }
+            }, executor);
         } else {
             checkFuture = CompletableFuture.completedFuture(null);
         }

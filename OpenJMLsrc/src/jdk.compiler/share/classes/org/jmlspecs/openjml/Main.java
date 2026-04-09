@@ -153,6 +153,9 @@ public class Main extends com.sun.tools.javac.main.Main {
     /** The key for storing this instance in the context */
     public static Context.Key<Main> key = new Context.Key<Main>();
 
+    /** Per-instance AST listeners, fired by JmlCompiler after each file is attributed. */
+    public final java.util.List<IAPI.IASTListener> astListeners = new java.util.LinkedList<>();
+
     /** Returns the singleton instance of Main for the given context */
     public static Main instance(Context context) {
         return context.get(key);

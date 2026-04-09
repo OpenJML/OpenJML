@@ -130,6 +130,18 @@ public class API implements IAPI {
     public /*@nullable*/ Context context() {
         return main == null ? null : main.context();
     }
+
+    @Override
+    public void setASTListener(IASTListener listener) {
+        org.jmlspecs.openjml.Main m = main;
+        if (m != null) synchronized (m.astListeners) { m.astListeners.add(listener); }
+    }
+
+    @Override
+    public void removeASTListener(IASTListener listener) {
+        org.jmlspecs.openjml.Main m = main;
+        if (m != null) synchronized (m.astListeners) { m.astListeners.remove(listener); }
+    }
 //
 //    /** Returns the compiler object for this context. */
 //    @Override /*@pure*/ /*@nullable*/

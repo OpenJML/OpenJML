@@ -583,9 +583,12 @@ public class JmlCompiler extends JavaCompiler {
             return super.attribute(env);
         } finally {
             if (!env.toplevel.sourcefile.toString().contains(".jml")) {
-                synchronized (org.openjml.API.astListeners) { 
-                    for (var listener: org.openjml.API.astListeners) {
-                        listener.notify(context, env.toplevel.sourcefile, (JmlCompilationUnit)env.toplevel);
+                org.jmlspecs.openjml.Main main = org.jmlspecs.openjml.Main.instance(context);
+                if (main != null) {
+                    synchronized (main.astListeners) {
+                        for (var listener : main.astListeners) {
+                            listener.notify(context, env.toplevel.sourcefile, (JmlCompilationUnit)env.toplevel);
+                        }
                     }
                 }
             }

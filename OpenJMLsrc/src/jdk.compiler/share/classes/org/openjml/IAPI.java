@@ -59,15 +59,13 @@ public interface IAPI {
 //    public Main main();
 //
     
-    public final static java.util.List<IASTListener> astListeners = new java.util.LinkedList<>();
-    
-    public static void setASTListener(IASTListener listener) {
-        synchronized (astListeners) { astListeners.add(listener); }
-    }
+    /** Register an AST listener on this IAPI instance.  Each instance has its
+     *  own listener list (stored on its {@code Main}), so concurrent IAPI
+     *  executions cannot interfere with each other. */
+    void setASTListener(IASTListener listener);
 
-    public static void removeASTListener(IASTListener listener) {
-        synchronized (astListeners) { astListeners.remove(listener); }
-    }
+    /** Remove a previously registered AST listener from this IAPI instance. */
+    void removeASTListener(IASTListener listener);
 
     /** An interface for progress information; the implementation reports progress
      * by calling report(...); clients will receive notification of progress

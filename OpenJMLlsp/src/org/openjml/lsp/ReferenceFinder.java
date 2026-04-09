@@ -59,7 +59,7 @@ public class ReferenceFinder {
 
         List<Location> results = new ArrayList<>();
 
-        cache.forEach((entryUri, entry) -> {
+        cache.forEachNav((entryUri, entry) -> {
             String src = openContent.get(entryUri);
             if (src == null) {
                 try { src = entry.ast().sourcefile.getCharContent(false).toString(); }

@@ -284,6 +284,39 @@ public class FoldingRangeTest {
         assertTrue(folds(source).isEmpty());
     }
 
+    @Test
+    public void testJmlBlockWithProgramTextSplitsRegion() {
+        // A "/*@ ... */ programtext" line ends the preceding JML region (without
+        // including itself) and starts a new region that subsequent JML lines extend.
+        String source =
+                "    //@ // asd\n" +                       // line 0
+                "    //@ // asd\n" +                       // line 1
+                "    /*@ ghost int z; */ int g;\n" +       // line 2 -- JML + program text
+                "    //@ // asd\n" +                       // line 3
+                "    //@ // asd\n" +                       // line 4
+                "    //@ // asd\n";                        // line 5
+        List<FoldingRange> fs = folds(source);
+        assertEquals(2, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(1, fs.get(0).getEndLine());
+        assertEquals(2, fs.get(1).getStartLine());
+        assertEquals(5, fs.get(1).getEndLine());
+    }
+
+    @Test
+    public void testProgramTextBeforeJmlBlockStartsRegion() {
+        // A line that begins with program text but contains a "/*@" mid-line starts
+        // a folding region; the block comment continues on the next line.
+        String source =
+                "    public int i; /*@ // asd\n" +   // line 0 -- program text, then JML block
+                "    */ // asd\n" +                  // line 1 -- closes block
+                "    //@ // sdf\n";                  // line 2 -- extends region
+        List<FoldingRange> fs = folds(source);
+        assertEquals(1, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(2, fs.get(0).getEndLine());
+    }
+
     // -----------------------------------------------------------------------
     // Java block comment outside any active region
     // -----------------------------------------------------------------------

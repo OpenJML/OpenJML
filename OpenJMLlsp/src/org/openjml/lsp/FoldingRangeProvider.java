@@ -12,51 +12,35 @@ import java.util.regex.Pattern;
  *
  * <h3>Algorithm</h3>
  *
- * <p>A JML folding range starts on a line that <em>ends with</em> a JML comment:
- * <ul>
- *   <li>a JML line comment ({@code //@}, {@code // @}, {@code //+KEY@}, etc.), or</li>
- *   <li>an unterminated JML block comment ({@code /*@} without a closing
- *       {@code *}{@code /} on the same line), or</li>
- *   <li>a terminated JML block comment ({@code /*@ ... *}{@code /}) followed only
- *       by whitespace and/or Java comments.</li>
- * </ul>
+ * <ol>
+ *   <li>Scan character by character to find the next JML comment start —
+ *       a JML line comment ({@code //@}, {@code // @}, {@code //+KEY@}, etc.)
+ *       or a JML block comment ({@code /*@}, {@code /* @}, {@code /*+KEY@},
+ *       etc.) anywhere on a line.  Non-JML Java comments are skipped.</li>
+ *   <li>Record {@code startLine}.  Consume the initial JML comment.  For a
+ *       block comment followed by program text on the same line (after
+ *       {@code *}{@code /}), skip to end of line and begin extending from the
+ *       next line.</li>
+ *   <li>Skip horizontal whitespace.  If the next character is a newline,
+ *       consume it, skip leading whitespace on the new line, and stop if that
+ *       line is blank.</li>
+ *   <li>While the next two characters start a comment ({@code //} or
+ *       {@code /*}): consume it.  For a block comment followed by program text
+ *       on the same line, stop and rewind to just before the {@code /*} so
+ *       the outer scan can treat it as a new fold start.  Then go to step 3.</li>
+ *   <li>Emit a {@link FoldingRangeKind#Comment} range when
+ *       {@code endLine > startLine}; continue outer scan.</li>
+ * </ol>
  *
- * <p>The range continues forward as long as each successive line contains only
- * JML comments, Java comments (line or block), or whitespace.  Two conditions
- * terminate the range:
- * <ul>
- *   <li>A blank line (only whitespace) that is <em>not</em> inside an ongoing
- *       multi-line block comment (JML or Java).</li>
- *   <li>A line with non-whitespace, non-comment program text.</li>
- * </ul>
- * Blank lines that fall inside a multi-line block comment are part of that
- * comment and do <em>not</em> terminate the range.
- *
- * <p>Java-only comments (no JML) do <em>not</em> start a folding range; they
- * can only extend one that has already started.
- *
- * <p>Only ranges spanning two or more lines are emitted; single-line JML
- * comments need no fold handle.  The kind is set to
- * {@link FoldingRangeKind#Comment}.  This is a pure text scan -- no AST is
- * required.
+ * <p>This is a pure text scan — no AST is required.
  */
 public class FoldingRangeProvider {
 
-    /**
-     * JML line-comment marker: {@code //} followed by optional whitespace,
-     * optional conditional keys ({@code [+-]identifier}), then {@code @}.
-     * Applied to the leading-whitespace-stripped line.
-     * Examples: {@code //@}, {@code // @}, {@code //+ESC@}, {@code //-JML@}.
-     */
+    /** JML line-comment marker: {@code //} + optional spaces/keys + {@code @}. */
     private static final Pattern JML_LINE =
             Pattern.compile("^//[ \\t]*([+-][a-zA-Z][a-zA-Z0-9_]*)*@");
 
-    /**
-     * JML block-comment start marker: {@code /*} followed by optional
-     * whitespace, optional conditional keys, then {@code @}.
-     * Applied to the leading-whitespace-stripped line.
-     * Examples: {@code /*@}, {@code /* @}, {@code /*+ESC@}.
-     */
+    /** JML block-comment start marker: {@code /*} + optional spaces/keys + {@code @}. */
     private static final Pattern JML_BLOCK =
             Pattern.compile("^/\\*[ \\t]*([+-][a-zA-Z][a-zA-Z0-9_]*)*@");
 
@@ -71,122 +55,98 @@ public class FoldingRangeProvider {
      * @return list of {@link FoldingRange}s, may be empty
      */
     public static List<FoldingRange> fromSource(String source) {
-        String[] lines = source.split("\\r?\\n", -1);
         List<FoldingRange> result = new ArrayList<>();
+        int n   = source.length();
+        int pos = 0;
+        int line = 0;
 
-        int regionStart = -1;    // first line of active JML fold (-1 = none)
-        int regionEnd   = -1;    // last  line included in the active fold
-        boolean inBlock = false; // inside a multi-line block comment (JML or Java)
+        while (pos < n) {
+            // ---- Phase 1: find the next JML comment start ----
+            int[] jmlStart = findJmlCommentStart(source, n, pos, line);
+            if (jmlStart == null) break;
 
-        for (int i = 0; i < lines.length; i++) {
-            String line = lines[i];
+            pos  = jmlStart[0];
+            line = jmlStart[1];
+            boolean isLineComment = (jmlStart[2] == 0);
+            int startLine = line;
+            int endLine   = startLine;
 
-            if (inBlock) {
-                // -------------------------------------------------------
-                // Interior of an ongoing multi-line block comment.
-                // Any line here (even blank) extends the active region.
-                // When "*/" is found, check trailing content.
-                // -------------------------------------------------------
-                int closePos = line.indexOf("*/");
-                if (closePos < 0) {
-                    // Block not yet closed -- extend region.
-                    if (regionStart != -1) regionEnd = i;
-                } else {
-                    // Block closes on this line.
-                    inBlock = false;
-                    String tail = line.substring(closePos + 2);
-                    if (hasProgramText(tail)) {
-                        // Program text follows "*/" -- terminate region
-                        // without including this line.
-                        emitIfMultiLine(result, regionStart, regionEnd);
-                        regionStart = -1;
-                        regionEnd   = -1;
-                    } else {
-                        // Tail is whitespace/comments only -- include line.
-                        if (regionStart != -1) regionEnd = i;
-                    }
-                }
-                continue;
-            }
-
-            // ---------------------------------------------------------------
-            // Not inside a block comment -- classify the line.
-            // ---------------------------------------------------------------
-            String trimmed = line.stripLeading();
-
-            if (trimmed.isEmpty()) {
-                // Blank line outside a block comment: terminates active region.
-                emitIfMultiLine(result, regionStart, regionEnd);
-                regionStart = -1;
-                regionEnd   = -1;
-
-            } else if (JML_LINE.matcher(trimmed).lookingAt()) {
-                // JML line comment -- starts or extends a region.
-                if (regionStart == -1) regionStart = i;
-                regionEnd = i;
-
-            } else if (JML_BLOCK.matcher(trimmed).lookingAt()) {
-                // JML block comment -- starts or extends a region.
-                if (regionStart == -1) regionStart = i;
-                regionEnd = i;
-                int closePos = line.indexOf("*/");
-                if (closePos < 0) {
-                    // Block continues onto subsequent lines.
-                    inBlock = true;
-                } else {
-                    // Terminated on this line: check trailing content.
-                    String tail = line.substring(closePos + 2);
-                    if (hasProgramText(tail)) {
-                        // Program text follows -- terminate immediately.
-                        emitIfMultiLine(result, regionStart, regionEnd);
-                        regionStart = -1;
-                        regionEnd   = -1;
-                    }
-                    // else region continues normally
-                }
-
-            } else if (trimmed.startsWith("//")) {
-                // Java line comment -- extends an active region; does NOT start one.
-                if (regionStart != -1) regionEnd = i;
-
-            } else if (trimmed.startsWith("/*")) {
-                // Java block comment -- extends an active region; does NOT start one.
-                if (regionStart != -1) {
-                    int closePos = line.indexOf("*/");
-                    if (closePos < 0) {
-                        // Block continues onto subsequent lines.
-                        regionEnd = i;
-                        inBlock = true;
-                    } else {
-                        // Terminated on this line: check trailing content.
-                        String tail = line.substring(closePos + 2);
-                        if (hasProgramText(tail)) {
-                            // Program text after close -- terminate without including line.
-                            emitIfMultiLine(result, regionStart, regionEnd);
-                            regionStart = -1;
-                            regionEnd   = -1;
-                        } else {
-                            regionEnd = i;
-                        }
-                    }
-                } else {
-                    // No active region: still track the block so that interior
-                    // lines (which might look like JML) are not misclassified.
-                    if (!line.contains("*/")) {
-                        inBlock = true;
-                    }
-                }
-
+            // ---- Consume the initial JML comment ----
+            if (isLineComment) {
+                pos = skipToNewline(source, n, pos); // pos at \n or EOF
             } else {
-                // Non-comment program text -- terminates active region.
-                emitIfMultiLine(result, regionStart, regionEnd);
-                regionStart = -1;
-                regionEnd   = -1;
+                int[] after = skipBlockComment(source, n, pos, line);
+                pos  = after[0];
+                line = after[1];
+                endLine = line;
+                if (hasProgramText(source, n, pos)) {
+                    // Program text after */: skip rest of line; extend from next line.
+                    pos = skipToNewline(source, n, pos);
+                }
             }
+
+            // ---- Extension loop ----
+            while (true) {
+                // Skip trailing spaces/tabs on current line.
+                while (pos < n && isSpaceOrTab(source.charAt(pos))) pos++;
+
+                if (pos >= n) break;
+
+                char c = source.charAt(pos);
+
+                if (c == '\n' || c == '\r') {
+                    // Consume newline and advance to the next line.
+                    if (c == '\r' && pos + 1 < n && source.charAt(pos + 1) == '\n') pos++;
+                    pos++; line++;
+
+                    // Skip leading spaces/tabs on the new line.
+                    while (pos < n && isSpaceOrTab(source.charAt(pos))) pos++;
+
+                    if (pos >= n) break; // EOF
+                    c = source.charAt(pos);
+                    if (c == '\n' || c == '\r') break; // blank line: stop
+
+                    // Fall through: c is the first non-space-tab char of the new line.
+                }
+
+                // Is c the start of a comment?
+                if (c == '/' && pos + 1 < n) {
+                    char c2 = source.charAt(pos + 1);
+                    if (c2 == '/') {
+                        // Any line comment extends the fold.
+                        endLine = line;
+                        pos = skipToNewline(source, n, pos);
+                        continue;
+                    }
+                    if (c2 == '*') {
+                        int savePos  = pos;
+                        int saveLine = line;
+                        int[] after = skipBlockComment(source, n, pos, line);
+                        int posAfter  = after[0];
+                        int lineAfter = after[1];
+                        if (hasProgramText(source, n, posAfter)) {
+                            // Program text after */: stop and rewind so outer scan
+                            // treats this /* as a new fold start.
+                            emitIfMultiLine(result, startLine, saveLine);
+                            pos  = savePos;
+                            line = saveLine;
+                            break;
+                        }
+                        endLine = lineAfter;
+                        pos  = posAfter;
+                        line = lineAfter;
+                        continue;
+                    }
+                }
+
+                // Not a comment: terminate fold.
+                break;
+            }
+
+            emitIfMultiLine(result, startLine, endLine);
+            // Outer loop continues from current pos/line.
         }
 
-        // Emit any region that reaches the end of the file.
-        emitIfMultiLine(result, regionStart, regionEnd);
         return result;
     }
 
@@ -195,24 +155,104 @@ public class FoldingRangeProvider {
     // -------------------------------------------------------------------
 
     /**
-     * Returns {@code true} if {@code s} contains non-whitespace, non-comment
-     * content (i.e., program text).  Handles arbitrarily many leading Java
-     * line or block comments before deciding.
+     * Scans forward from {@code pos} to find the next JML comment start.
+     * Non-JML Java {@code //} and {@code /*} comments are skipped entirely.
+     *
+     * @return {@code [pos, line, type]} — type 0 = line comment, 1 = block
+     *         comment — or {@code null} if none remains.
      */
-    private static boolean hasProgramText(String s) {
-        while (true) {
-            s = s.stripLeading();
-            if (s.isEmpty())         return false;
-            if (s.startsWith("//")) return false;  // line comment consumes rest
-            if (s.startsWith("/*")) {
-                int close = s.indexOf("*/", 2);
-                if (close < 0) return false;        // unclosed block -- treat as comment
-                s = s.substring(close + 2);         // skip block, keep scanning
-            } else {
-                return true;                        // non-whitespace non-comment
+    private static int[] findJmlCommentStart(String source, int n, int pos, int line) {
+        while (pos < n) {
+            char c = source.charAt(pos);
+            if (c == '\n') { pos++; line++; continue; }
+            if (c == '\r') {
+                pos++;
+                if (pos < n && source.charAt(pos) == '\n') pos++;
+                line++;
+                continue;
             }
+            if (c == '/' && pos + 1 < n) {
+                char c2 = source.charAt(pos + 1);
+                if (c2 == '/') {
+                    if (isJmlLineStart(source, n, pos)) return new int[]{pos, line, 0};
+                    pos = skipToNewline(source, n, pos); // skip regular // comment
+                    continue;
+                }
+                if (c2 == '*') {
+                    if (isJmlBlockStart(source, n, pos)) return new int[]{pos, line, 1};
+                    int[] after = skipBlockComment(source, n, pos, line); // skip regular /* comment
+                    pos = after[0]; line = after[1];
+                    continue;
+                }
+            }
+            pos++;
         }
+        return null;
     }
+
+    /** Returns true if {@code //} at {@code pos} starts a JML line comment. */
+    private static boolean isJmlLineStart(String source, int n, int pos) {
+        return JML_LINE.matcher(source).region(pos, n).lookingAt();
+    }
+
+    /** Returns true if {@code /*} at {@code pos} starts a JML block comment. */
+    private static boolean isJmlBlockStart(String source, int n, int pos) {
+        return JML_BLOCK.matcher(source).region(pos, n).lookingAt();
+    }
+
+    /**
+     * Advances to just before the next newline (or EOF), without consuming it.
+     */
+    private static int skipToNewline(String source, int n, int pos) {
+        while (pos < n && source.charAt(pos) != '\n' && source.charAt(pos) != '\r') pos++;
+        return pos;
+    }
+
+    /**
+     * Skips a block comment starting at {@code pos} (which must be at
+     * {@code /*}).  Handles unclosed comments by returning EOF.
+     *
+     * @return {@code [newPos, newLine]} — {@code newPos} just after
+     *         {@code *}{@code /}, or {@code n} if unclosed.
+     */
+    private static int[] skipBlockComment(String source, int n, int pos, int line) {
+        pos += 2; // skip /*
+        while (pos < n) {
+            char c = source.charAt(pos);
+            if (c == '\n') { pos++; line++; continue; }
+            if (c == '\r') { pos++; if (pos < n && source.charAt(pos) == '\n') pos++; line++; continue; }
+            if (c == '*' && pos + 1 < n && source.charAt(pos + 1) == '/') {
+                return new int[]{pos + 2, line};
+            }
+            pos++;
+        }
+        return new int[]{n, line}; // unclosed
+    }
+
+    /**
+     * Returns {@code true} if the text from {@code pos} to end of line
+     * contains non-whitespace, non-comment content (program text).
+     */
+    private static boolean hasProgramText(String source, int n, int pos) {
+        while (pos < n) {
+            char c = source.charAt(pos);
+            if (c == '\n' || c == '\r') return false;
+            if (c == ' ' || c == '\t') { pos++; continue; }
+            if (c == '/' && pos + 1 < n) {
+                char c2 = source.charAt(pos + 1);
+                if (c2 == '/') return false; // line comment: rest of line is comment
+                if (c2 == '*') {
+                    int[] after = skipBlockComment(source, n, pos, 0);
+                    pos = after[0];
+                    continue;
+                }
+            }
+            return true; // non-whitespace, non-comment
+        }
+        return false; // EOF
+    }
+
+    private static boolean isSpaceOrTab(char c) { return c == ' ' || c == '\t'; }
 
     private static void emitIfMultiLine(List<FoldingRange> out, int start, int end) {
         if (start >= 0 && end > start) {

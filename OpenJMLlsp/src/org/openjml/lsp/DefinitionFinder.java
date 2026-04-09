@@ -55,7 +55,7 @@ public class DefinitionFinder {
     public static Location findDefinition(String uri, int line, int col,
                                           Map<String, String> openContent,
                                           ASTCache cache) {
-        ASTCache.Entry entry = cache.get(uri);
+        ASTCache.Entry entry = cache.getNav(uri);
         if (entry == null) return null;
 
         String source = openContent.get(uri);
@@ -69,9 +69,20 @@ public class DefinitionFinder {
         // Only scan specsCompilationUnit when the cursor is already in a .jml file:
         // specsCompilationUnit positions are in .jml coordinate space, not .java coordinate space.
         NodeMatch match = findNodeAt(entry.ast(), targetOffset, source, uri.endsWith(".jml"));
-        if (match == null || match.sym() == null) return null;
+        if (match == null || match.sym() == null) {
+            System.err.println("[DefinitionFinder] no symbol found at offset " + targetOffset);
+            return null;
+        }
 
-        ASTCache.SymbolLocation decl = cache.getDeclarationLocation(match.sym());
+        com.sun.tools.javac.code.Symbol sym = match.sym();
+        System.err.println("[DefinitionFinder] symbol=" + sym
+                + "  class=" + sym.getClass().getSimpleName()
+                + "  owner=" + sym.owner
+                + "  ownerClass=" + (sym.owner == null ? "null" : sym.owner.getClass().getSimpleName())
+                + "  qualifiedName=" + sym.getQualifiedName());
+
+        ASTCache.SymbolLocation decl = cache.getDeclarationLocation(sym);
+        System.err.println("[DefinitionFinder] declarationLocation=" + decl);
         if (decl == null) return null;
 
         // For the declaration source, prefer the actual file content (AST or disk)
@@ -98,7 +109,7 @@ public class DefinitionFinder {
     static com.sun.tools.javac.code.Symbol findSymbolAt(
             String uri, int line, int col,
             Map<String, String> openContent, ASTCache cache) {
-        ASTCache.Entry entry = cache.get(uri);
+        ASTCache.Entry entry = cache.getNav(uri);
         if (entry == null) return null;
 
         String source = openContent.get(uri);
@@ -384,7 +395,7 @@ public class DefinitionFinder {
      * then fall back to reading from disk.
      */
     private static String getSource(String uri, ASTCache cache) {
-        ASTCache.Entry entry = cache.get(uri);
+        ASTCache.Entry entry = cache.getNav(uri);
         if (entry != null) {
             String s = readFromAst(entry);
             if (s != null) return s;
