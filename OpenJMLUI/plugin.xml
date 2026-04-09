@@ -157,9 +157,10 @@
 
   <!-- Annotation types for OpenJML markers.
        markerSeverity: 0=info  1=warning  2=error
-       ESC markers (JMLESCProblem) come in two severities:
-         ERROR  — verification failure (proof obligation not satisfied)
-         INFO   — associated-declaration message accompanying a failure
+       ESC markers (JMLESCProblem) come in three severities:
+         ERROR   — verification failure (proof obligation not satisfied)
+         WARNING — partial/inconclusive result (timeout, unknown, possibly-sat)
+         INFO    — verified successfully (UNSAT)
        JML check markers (JMLProblem) come in three severities:
          ERROR, WARNING, INFO -->
   <extension point="org.eclipse.ui.editors.annotationTypes">
@@ -168,7 +169,12 @@
           name="org.openjml.OpenJMLUI.ESCErrorAnnotation"
           markerType="org.openjml.OpenJMLUI.JMLESCProblem"
           markerSeverity="2"/>
-    <!-- ESC associated info: JMLESCProblem + INFO severity → blue -->
+    <!-- ESC additional location to verification failure: JMLESCProblem + WARNING severity → yellow -->
+    <type
+          name="org.openjml.OpenJMLUI.ESCWarningAnnotation"
+          markerType="org.openjml.OpenJMLUI.JMLESCProblem"
+          markerSeverity="1"/>
+    <!-- ESC verified successfully: JMLESCProblem + INFO severity → green -->
     <type
           name="org.openjml.OpenJMLUI.ESCInfoAnnotation"
           markerType="org.openjml.OpenJMLUI.JMLESCProblem"
@@ -193,7 +199,7 @@
   <!-- Annotation display preferences for OpenJML markers (Annotations preference page).
        Users can change colour, underline, highlight, and ruler visibility at
        General > Editors > Text Editors > Annotations.
-       Colours: ESC failure=orange, ESC info=blue, JML error=red, JML warning=yellow, JML info=blue -->
+       Colours: ESC failure=orange, ESC warning=yellow, ESC info=green, JML error=red, JML warning=yellow, JML info=blue -->
   <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
     <!-- ESC verification failure: orange (distinguishable from JML error=red) -->
     <specification
@@ -213,18 +219,36 @@
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeKey"
           verticalRulerPreferenceValue="true">
     </specification>
-    <!-- ESC associated info: blue, no highlight by default (informational only) -->
+    <!-- ESC additional error location result: yellow -->
+    <specification
+          annotationType="org.openjml.OpenJMLUI.ESCWarningAnnotation"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpewKey"
+          colorPreferenceValue="255,255,128"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpewKey"
+          highlightPreferenceValue="true"
+          icon="icons/jml_warning.gif"
+          includeOnPreferencePage="true"
+          label="%specification.label.8"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpewKey"
+          overviewRulerPreferenceValue="true"
+          presentationLayer="3"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpewKey"
+          textPreferenceValue="true"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpewKey"
+          verticalRulerPreferenceValue="true">
+    </specification>
+    <!-- ESC verified successfully: green, highlight and text enabled -->
     <specification
           annotationType="org.openjml.OpenJMLUI.ESCInfoAnnotation"
           colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeiKey"
-          colorPreferenceValue="192,192,255"
+          colorPreferenceValue="128,255,128"
           highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeiKey"
-          highlightPreferenceValue="false"
-          icon="icons/jml_blue.gif"
+          highlightPreferenceValue="true"
+          icon="icons/jml_green.gif"
           includeOnPreferencePage="true"
           label="%specification.label.7"
           overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpeiKey"
-          overviewRulerPreferenceValue="false"
+          overviewRulerPreferenceValue="true"
           presentationLayer="3"
           textPreferenceKey="org.jmlspecs.openjml.eclipse.trpeiKey"
           textPreferenceValue="true"

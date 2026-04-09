@@ -89,14 +89,17 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                     IResource resource = d.getResource();
 
                     // Project level: detect description changes (dependencies, natures).
-                    // Ignore DESCRIPTION changes that also carry OPEN — those are
-                    // workspace-restore / project-open events, not real config edits.
+                    // Ignore events that carry OPEN — those are workspace-restore /
+                    // project-open events, not real config edits.  Returning false
+                    // also prevents descending into the project's children (e.g.
+                    // .classpath) so those file-level checks are not triggered either.
                     if (resource.getType() == IResource.PROJECT) {
                         IProject project = (IProject) resource;
+                        boolean isOpen = (d.getFlags() & IResourceDelta.OPEN) != 0;
+                        if (isOpen) return false;  // workspace restore — skip children
                         if (project.isOpen() && JmlNature.hasNature(project)) {
                             boolean descChanged = (d.getFlags() & IResourceDelta.DESCRIPTION) != 0;
-                            boolean isOpen      = (d.getFlags() & IResourceDelta.OPEN) != 0;
-                            if (descChanged && !isOpen) {
+                            if (descChanged) {
                                 affected.add(project);
                             }
                         }

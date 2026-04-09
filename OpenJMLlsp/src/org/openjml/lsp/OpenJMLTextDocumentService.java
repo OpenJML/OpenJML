@@ -43,6 +43,7 @@ import org.eclipse.lsp4j.FoldingRange;
 import org.eclipse.lsp4j.FoldingRangeRequestParams;
 import org.eclipse.lsp4j.InlayHint;
 import org.eclipse.lsp4j.InlayHintParams;
+import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
@@ -892,6 +893,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                 result.diagnosticsByUri().getOrDefault(uri, List.of());
                         updateEscStatus(uri, diags,
                                 result.proofResults(), result.exitCode(), List.of());
+                        publishMerged(uri);
                     }
                 }
             } catch (Throwable e) {
@@ -1527,6 +1529,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
                     statuses.put(start, ms);
                     methodEscStatus.put(uri, statuses);
+                    addVerifiedDiagnostics(uri, result.proofResults());
                 } else {
                     storeEscDiags(uri, diags);
                     updateEscStatus(uri, diags, result.proofResults(), result.exitCode(),
@@ -2043,6 +2046,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                         exitCode, hasForeignErrors));
         }
         methodEscStatus.put(uri, statuses);
+        addVerifiedDiagnostics(uri, proofResults);
         refreshCodeLenses();
 
         if (hasForeignErrors) {
@@ -2050,6 +2054,45 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             clientWarn("OpenJML: ESC on " + fileName
                     + " could not run — type errors in: " + String.join(", ", foreignFiles));
         }
+    }
+
+    /**
+     * For each method in {@code uri} whose proof result is UNSAT (verified),
+     * append a Hint-severity diagnostic at the method-name token so that the
+     * Eclipse client can attach a green {@code ESCInfoAnnotation} marker there.
+     *
+     * <p>The diagnostic range spans the method name on the declaration line.
+     * The source is {@link DiagnosticConverter#SOURCE_ESC} so it is routed to
+     * the ESC marker type ({@code JMLESCProblem}) by {@code OpenJMLLanguageClient}.
+     */
+    private void addVerifiedDiagnostics(String uri,
+                                        Map<String, IProverResult.Kind> proofResults) {
+        String content = lastContent.get(uri);
+        if (content == null || proofResults.isEmpty()) return;
+        String[] lines = content.split("\n", -1);
+
+        List<Diagnostic> verified = new ArrayList<>();
+        for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+            if (proofResults.get(m.name()) != IProverResult.UNSAT) continue;
+            int line = m.startLine();   // 0-based
+            if (line >= lines.length) continue;
+            String lineText = lines[line];
+            int col = lineText.indexOf(m.name());
+            if (col < 0) col = 0;
+            int endCol = col + m.name().length();
+            Range range = new Range(new Position(line, col), new Position(line, endCol));
+            Diagnostic d = new Diagnostic(range, "Verified",
+                    DiagnosticSeverity.Hint, DiagnosticConverter.SOURCE_ESC);
+            verified.add(d);
+        }
+        if (verified.isEmpty()) return;
+
+        List<Diagnostic> existing = new ArrayList<>(escDiags.getOrDefault(uri, List.of()));
+        // Remove any stale verified-markers before adding fresh ones.
+        existing.removeIf(d -> DiagnosticSeverity.Hint.equals(d.getSeverity())
+                && DiagnosticConverter.SOURCE_ESC.equals(d.getSource()));
+        existing.addAll(verified);
+        escDiags.put(uri, existing);
     }
 
     /**
