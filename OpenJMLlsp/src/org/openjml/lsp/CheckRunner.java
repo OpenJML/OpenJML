@@ -804,6 +804,44 @@ public class CheckRunner {
      */
     public static List<org.eclipse.lsp4j.Diagnostic> checkModifiedFiles(
             Map<String, String> modifiedContent, OpenJMLSettings settings) {
+        if (useMockFiles) {
+            org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
+            Map<String, String> fileArgToRealUri = new java.util.LinkedHashMap<>();
+            List<String> filePaths = new ArrayList<>();
+            for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
+                java.net.URI fileUri = java.net.URI.create(e.getKey());
+                MockJavaFileObject jfo = new MockJavaFileObject(fileUri, e.getValue());
+                mockFiles.addMockByUri(fileUri.normalize(), jfo);
+                fileArgToRealUri.put(jfo.getName(), e.getKey());
+                filePaths.add(jfo.getName());
+            }
+            // With MockFiles, modified content is served in-memory; no temp dir is needed
+            // and MockAwareFileManager intercepts lookups before reaching the sourcepath,
+            // so no duplicate-class conflict can arise.
+            OpenJMLSettings modifiedSettings = new OpenJMLSettings();
+            modifiedSettings.sourcePath  = settings.sourcePath;
+            modifiedSettings.specsPath   = buildEffectiveSpecsPath(null, settings);
+            modifiedSettings.solversPath = settings.solversPath;
+            modifiedSettings.classPath   = settings.classPath;
+            var listener = new LspDiagnosticListener();
+            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var api = IAPI.make(out, listener);
+            List<String> args = buildArgs(modifiedSettings, "--check");
+            args.addAll(filePaths);
+            logInvocation("checkModifiedFiles", args);
+            try {
+                api.execute(args.toArray(new String[0]), mockFiles);
+            } catch (Throwable t) {
+                System.err.println("[CheckRunner.checkModifiedFiles] execute failed: " + t);
+            }
+            List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
+            for (List<org.eclipse.lsp4j.Diagnostic> diags :
+                    listener.toLspDiagnosticsAll(fileArgToRealUri).values()) {
+                allDiags.addAll(diags);
+            }
+            return allDiags;
+        }
+
         Path tempDir = null;
         try {
             tempDir = Files.createTempDirectory("openjml-lsp-rename-");
@@ -894,6 +932,51 @@ public class CheckRunner {
      */
     public static CheckAndCacheResult checkModifiedFilesAndGetCache(
             Map<String, String> modifiedContent, OpenJMLSettings settings) {
+        if (useMockFiles) {
+            org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
+            Map<String, String> fileArgToRealUri = new java.util.LinkedHashMap<>();
+            List<String> filePaths = new ArrayList<>();
+            for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
+                java.net.URI fileUri = java.net.URI.create(e.getKey());
+                MockJavaFileObject jfo = new MockJavaFileObject(fileUri, e.getValue());
+                mockFiles.addMockByUri(fileUri.normalize(), jfo);
+                fileArgToRealUri.put(jfo.getName(), e.getKey());
+                filePaths.add(jfo.getName());
+            }
+            OpenJMLSettings modifiedSettings = new OpenJMLSettings();
+            modifiedSettings.sourcePath  = buildEffectiveSourcePath(null, settings);
+            modifiedSettings.specsPath   = buildEffectiveSpecsPath(null, settings);
+            modifiedSettings.solversPath = settings.solversPath;
+            modifiedSettings.classPath   = settings.classPath;
+            var listener = new LspDiagnosticListener();
+            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var api = IAPI.make(out, listener);
+            ASTCache freshCache = new ASTCache();
+            IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
+                String jfoPath = jfo.toUri().getPath();
+                if (fileArgToRealUri.containsKey(jfoPath)) {
+                    freshCache.put(jfoPath, astCtx, (JmlCompilationUnit) ast);
+                }
+            };
+            IAPI.setASTListener(astListener);
+            List<String> args = buildArgs(modifiedSettings, "--check");
+            args.addAll(filePaths);
+            logInvocation("checkModifiedFilesAndGetCache", args);
+            try {
+                api.execute(args.toArray(new String[0]), mockFiles);
+            } catch (Throwable t) {
+                System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] execute failed: " + t);
+            } finally {
+                IAPI.removeASTListener(astListener);
+            }
+            List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
+            for (List<org.eclipse.lsp4j.Diagnostic> diags :
+                    listener.toLspDiagnosticsAll(fileArgToRealUri).values()) {
+                allDiags.addAll(diags);
+            }
+            return new CheckAndCacheResult(allDiags, freshCache, fileArgToRealUri);
+        }
+
         Path tempDir = null;
         try {
             tempDir = Files.createTempDirectory("openjml-lsp-rename-");
@@ -988,6 +1071,28 @@ public class CheckRunner {
         var api = IAPI.make(out, listener);
         var prc = new ProofResultCollector();
         api.setProofResultListener(prc);
+
+        if (useMockFiles) {
+            org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
+            java.net.URI primaryFileUri = java.net.URI.create(primaryUri);
+            MockJavaFileObject primaryJfo = new MockJavaFileObject(primaryFileUri, primaryContent);
+            mockFiles.addMockByUri(primaryFileUri.normalize(), primaryJfo);
+            List<String> args = buildArgs(settings, "--esc");
+            args.add(primaryJfo.getName());
+            for (Map.Entry<String, String> e : extraSources.entrySet()) {
+                java.net.URI extraUri = java.net.URI.create("file:///" + e.getKey());
+                MockJavaFileObject extraJfo = new MockJavaFileObject(extraUri, e.getValue());
+                mockFiles.addMockByUri(extraUri.normalize(), extraJfo);
+                args.add(extraJfo.getName());
+            }
+            logInvocation("runEscWithSources", args, primaryContent);
+            int rc = api.execute(args.toArray(new String[0]), mockFiles);
+            System.err.println("[CheckRunner.runEscWithSources] exit code " + rc);
+            return new CheckResult(
+                    listener.toLspDiagnostics(primaryJfo.getName(), primaryUri),
+                    rc, prc.getResults(),
+                    listener.toForeignMessages(primaryJfo.getName()), Map.of());
+        }
 
         Path tempDir = null;
         try {
@@ -1299,6 +1404,103 @@ public class CheckRunner {
             api.setProofResultListener(prc);
         }
         if (onApiReady != null) onApiReady.accept(api);
+
+        if (useMockFiles) {
+            org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
+            // mockUriToRealUri maps mock URI string → real URI for companion files.
+            Map<String, String> mockUriToRealUri = new java.util.HashMap<>();
+            for (Map.Entry<String, String> e : openContent.entrySet()) {
+                if (e.getKey().equals(uri)) continue;
+                java.net.URI compUri = java.net.URI.create(e.getKey());
+                MockJavaFileObject compJfo = new MockJavaFileObject(compUri, e.getValue());
+                mockFiles.addMockByUri(compUri.normalize(), compJfo);
+                mockUriToRealUri.put(compJfo.toUri().toString(), e.getKey());
+            }
+            java.net.URI primaryFileUri = java.net.URI.create(uri);
+            MockJavaFileObject primaryJfo = new MockJavaFileObject(primaryFileUri, content);
+            mockFiles.addMockByUri(primaryFileUri.normalize(), primaryJfo);
+            final String primaryMockUri = primaryJfo.toUri().toString();
+
+            List<String> args = buildArgs(settings, modeFlag);  // no temp dir prefix
+            if (methodName != null && !methodName.isEmpty()) {
+                args.add("--method");
+                args.add(methodName);
+            }
+            args.add(primaryJfo.getName());
+            logInvocation("runOnContentWithContext", args, content);
+
+            String fname = fileName(uri);
+            String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
+            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
+            else log(ts() + " --esc " + fname + methodDesc);
+
+            final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
+            compiledPathToRealUri.put(primaryJfo.getName(), uri);
+            for (Map.Entry<String, String> e : mockUriToRealUri.entrySet()) {
+                try {
+                    Path p = java.nio.file.Paths.get(java.net.URI.create(e.getKey()));
+                    compiledPathToRealUri.put(p.toString(), e.getValue());
+                } catch (Exception ignored) {}
+            }
+
+            final JmlCompilationUnit[] capturedAst = { null };
+            final com.sun.tools.javac.util.Context[] capturedCtx = { null };
+            IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
+                String jfoUri = jfo.toUri().toString();
+                if (jfoUri.equals(primaryMockUri)) {
+                    capturedAst[0] = (JmlCompilationUnit) ast;
+                    capturedCtx[0] = astCtx;
+                } else {
+                    String realUri = mockUriToRealUri.get(jfoUri);
+                    if (realUri == null) {
+                        // Disk file found via sourcepath — map directly.
+                        realUri = jfoUri;
+                    }
+                    JmlCompilationUnit cu = (JmlCompilationUnit) ast;
+                    AST_CACHE.put(realUri, astCtx, cu);
+                    cacheSpecsCu(cu, astCtx, mockUriToRealUri, null, true);
+                    try {
+                        Path p = java.nio.file.Paths.get(java.net.URI.create(jfoUri));
+                        compiledPathToRealUri.put(p.toString(), realUri);
+                    } catch (Exception ignored) {}
+                }
+            };
+            IAPI.setASTListener(astListener);
+            int rc;
+            try {
+                rc = api.execute(args.toArray(new String[0]), mockFiles);
+            } finally {
+                IAPI.removeASTListener(astListener);
+            }
+            System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc + " (" + modeFlag + ")");
+
+            if (capturedAst[0] != null && "--check".equals(modeFlag)) {
+                if (rc == 0) {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                  api, listener, primaryJfo.getName());
+                } else {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                }
+                cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null, true);
+            }
+
+            Map<String, IProverResult.Kind> proofResults = prc != null ? prc.getResults() : Map.of();
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> allDiags =
+                    listener.toLspDiagnosticsAll(compiledPathToRealUri);
+            List<org.eclipse.lsp4j.Diagnostic> primaryDiags = allDiags.getOrDefault(uri, List.of());
+            if ("--check".equals(modeFlag)) {
+                int companionFiles = allDiags.size() - 1;
+                int companionTotal = allDiags.values().stream().mapToInt(List::size).sum() - primaryDiags.size();
+                String companionNote = companionFiles > 0
+                        ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
+                        : "";
+                log(ts() + " --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
+            } else if (proofResults.isEmpty()) {
+                log(ts() + " --esc " + fname + ": " + primaryDiags.size() + " diagnostic(s)");
+            }
+            return new CheckResult(primaryDiags, rc, proofResults,
+                    listener.toForeignMessages(primaryJfo.getName()), allDiags);
+        }
 
         Path tempDir = null;
         try {
