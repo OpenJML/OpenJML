@@ -166,10 +166,7 @@ public class CheckRunner {
             IProverResult.Kind kind = result.result();
             // Ignore transient lifecycle notifications; record all terminal outcomes
             // (including CANCELLED — the method that was mid-proof when cancel fired).
-            // SKIPPED means the method was bypassed (e.g. --method targeted another
-            // method); suppress it so callers only see substantive proof results.
-            if (kind == IProverResult.RUNNING || kind == IProverResult.COMPLETED
-                    || kind == IProverResult.SKIPPED) {
+            if (kind == IProverResult.RUNNING || kind == IProverResult.COMPLETED) {
                 return;
             }
             String name = msym.getSimpleName().toString();
@@ -1729,6 +1726,18 @@ public class CheckRunner {
 
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
+            // When --method targets a specific method, retain only that method's result;
+            // other methods are SKIPPED by OpenJML and are not meaningful to the caller.
+            if (methodName != null && !methodName.isEmpty()) {
+                String simpleTarget = methodName.contains(".")
+                        ? methodName.substring(methodName.lastIndexOf('.') + 1)
+                        : methodName;
+                proofResults = proofResults.entrySet().stream()
+                        .filter(e -> e.getKey().equals(simpleTarget))
+                        .collect(java.util.stream.Collectors.toMap(
+                                Map.Entry::getKey, Map.Entry::getValue,
+                                (a, b) -> a, java.util.LinkedHashMap::new));
+            }
             List<org.eclipse.lsp4j.Diagnostic> diags =
                     listener.toLspDiagnostics(fileArg, uri);
             if ("--check".equals(modeFlag))

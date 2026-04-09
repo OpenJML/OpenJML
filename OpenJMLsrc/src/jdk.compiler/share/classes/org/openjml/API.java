@@ -124,6 +124,7 @@ public class API implements IAPI {
      * @see org.jmlspecs.openjml.IAPI#context()
      */
     @Override
+    @SuppressWarnings("exports")
     //@ ensures \result == main.context;
     /*@pure*/
     public /*@nullable*/ Context context() {
