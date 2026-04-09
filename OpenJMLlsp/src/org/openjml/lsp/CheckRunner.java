@@ -2101,7 +2101,8 @@ public class CheckRunner {
                         allDiags.addAll(r.diags());
                         if (r.exitCode() != 0) exitCode = r.exitCode();
                     }
-                    logEscResults(fname, proofResults, allDiags.size());
+                    log(ts() + " --esc " + fname + " [fresh-parallel] complete: "
+                            + proofResults.size() + " method(s), " + allDiags.size() + " diagnostic(s)");
                     return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of());
                 });
     }

@@ -68,6 +68,7 @@ TEST_CLASSES := \
   DoEscTest \
   EscCancellationTest \
   ConcurrentEscTest \
+  FreshParallelEscTest \
   CheckRunnerEscAndRacTest \
   DiagnosticsTest \
   EscStatusTest \

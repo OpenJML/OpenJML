@@ -223,11 +223,20 @@ public class ConcurrentEscTest extends LspTestBase {
         OpenJMLSettings settings = new OpenJMLSettings();
 
         // Start the slow method run and capture its IAPI for cancellation.
+        // Cancel is triggered via a proof-result listener that fires on RUNNING —
+        // this is reliable regardless of how fast z3 solves the formula, because
+        // the canceled flag is set synchronously on the ESC thread before the
+        // prover is invoked (line 362 of doMethod checks it after RUNNING is reported).
         AtomicReference<IAPI> slowApi = new AtomicReference<>();
         AtomicReference<CheckRunner.CheckResult> slowResult = new AtomicReference<>();
         Thread slowThread = new Thread(() -> {
             CheckRunner.CheckResult r = CheckRunner.runEscFileMethod(
-                    filePath, uri, "slow", settings, api -> slowApi.set(api));
+                    filePath, uri, "slow", settings, api -> {
+                        slowApi.set(api);
+                        api.setProofResultListener((sym, result) -> {
+                            if (result.result() == IProverResult.RUNNING) api.cancelEsc();
+                        });
+                    });
             slowResult.set(r);
         });
         slowThread.setDaemon(true);
@@ -239,13 +248,12 @@ public class ConcurrentEscTest extends LspTestBase {
                 () -> CheckRunner.runEscFileMethod(filePath, uri, "fast", settings));
         fastPool.shutdown();
 
-        // Wait for the slow run's IAPI to be ready, then cancel it.
+        // Wait for the slow run's IAPI hook to fire (it will also self-cancel).
         long deadline = System.currentTimeMillis() + 30_000;
         while (slowApi.get() == null && System.currentTimeMillis() < deadline) {
             Thread.sleep(20);
         }
         assertNotNull("Slow run's IAPI hook never fired within 30 s", slowApi.get());
-        slowApi.get().cancelEsc();
 
         // Slow thread must terminate within 30 s of the cancel.
         slowThread.join(30_000);
