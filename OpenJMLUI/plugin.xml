@@ -319,9 +319,14 @@
            description="Clear all OpenJML server caches and reindex the workspace"/>
      <command
            id="org.jmlspecs.openjml.commands.clearMarkers"
-           name="Clear Markers"
+           name="Clear All Markers"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Delete all OpenJML diagnostic markers from the workspace"/>
+     <command
+           id="org.jmlspecs.openjml.commands.clearMarkersSelected"
+           name="Clear Markers in Selected Files"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Delete OpenJML diagnostic markers from the selected files"/>
      <command
            id="org.jmlspecs.openjml.commands.cancelEsc"
            name="Cancel ESC"
@@ -373,6 +378,8 @@
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearAndReindex"/>
      <handler commandId="org.jmlspecs.openjml.commands.clearMarkers"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearMarkers"/>
+     <handler commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearMarkersSelected"/>
      <handler commandId="org.jmlspecs.openjml.commands.cancelEsc"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$CancelEsc"/>
      <handler commandId="org.jmlspecs.openjml.commands.enableJmlNature"
@@ -458,8 +465,12 @@
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
            <separator name="sep2"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
-                    label="Clear Markers"/>
+           <menu id="org.jmlspecs.openjml.editorPopupMenu.clearMarkers" label="Clear Markers">
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                       label="All"/>
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+                       label="Selected Files"/>
+           </menu>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
            <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
@@ -492,8 +503,12 @@
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
            <separator name="sep1"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
-                    label="Clear Markers"/>
+           <menu id="org.jmlspecs.openjml.mainMenu.clearMarkers" label="Clear Markers">
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                       label="All"/>
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+                       label="Selected Files"/>
+           </menu>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
            <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
@@ -535,8 +550,12 @@
                     label="Compile RAC"
                     tooltip="%command.tooltip.15"/>
            <separator name="sep1"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
-                    label="Clear Markers"/>
+           <menu id="org.jmlspecs.openjml.viewPopupMenu.clearMarkers" label="Clear Markers">
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                       label="All"/>
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+                       label="Selected Files"/>
+           </menu>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
            <command commandId="org.jmlspecs.openjml.commands.cancelEsc"

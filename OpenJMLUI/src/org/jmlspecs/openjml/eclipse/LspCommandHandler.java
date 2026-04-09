@@ -1010,6 +1010,49 @@ public abstract class LspCommandHandler extends AbstractHandler {
     }
 
     /**
+     * Deletes OpenJML diagnostic markers from the selected files/directories only.
+     * Uses the same target-resolution logic as Check/ESC/RAC.
+     */
+    public static final class ClearMarkersSelected extends AbstractHandler {
+        @Override
+        public Object execute(ExecutionEvent event) {
+            List<SelectionResolver.Target> targets = SelectionResolver.resolve(
+                    HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+            int deleted = 0;
+            try {
+                for (SelectionResolver.Target t : targets) {
+                    org.eclipse.core.resources.IResource res = switch (t) {
+                        case SelectionResolver.Target.File   f -> f.file();
+                        case SelectionResolver.Target.Method m -> m.file();
+                        case SelectionResolver.Target.Dir    d -> d.container();
+                    };
+                    deleted += clearFromResource(res);
+                }
+            } catch (CoreException e) {
+                Console.log("ClearMarkersSelected failed: " + e);
+            }
+            Console.log("Cleared " + deleted + " OpenJML marker(s) from selected files.");
+            return null;
+        }
+
+        private static int clearFromResource(org.eclipse.core.resources.IResource res)
+                throws CoreException {
+            int deleted = 0;
+            for (org.eclipse.core.resources.IMarker m : res.findMarkers(
+                    OpenJMLConstants.JML_PROBLEM_MARKER, true,
+                    org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
+                m.delete(); deleted++;
+            }
+            for (org.eclipse.core.resources.IMarker m : res.findMarkers(
+                    OpenJMLConstants.JML_ESC_MARKER, false,
+                    org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
+                m.delete(); deleted++;
+            }
+            return deleted;
+        }
+    }
+
+    /**
      * Clears all cached state (Eclipse markers, server index, AST cache) and
      * reindexes the workspace.
      */
