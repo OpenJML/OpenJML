@@ -6,6 +6,7 @@ package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.*;
@@ -49,7 +50,6 @@ public class ReachableStatement extends JmlExtension {
         // FIXME - is a missing semicolon ever warned about? Are expressions ever used?
         @Override
         public JCTree parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int pp = parser.pos();
             int p = parser.getScanner().currentPos(); // FIXME - why do we get this position from the scanner?
             boolean noExpression = keyword.equals(haltID) || keyword.equals(reachableID) || keyword.equals(unreachableID);
@@ -60,7 +60,7 @@ public class ReachableStatement extends JmlExtension {
             if (parser.token().kind == TokenKind.SEMI) {
                 parser.nextToken();
             } else if (parser.isEndJml()) {
-                if (semiWarning) utils.warning(p-1, "jml.missing.semi", keyword);
+                if (semiWarning) Utils.instance(parser.context).warning(p-1, "jml.missing.semi", keyword);
             } else if (noExpression) {
                 // continue
             } else {
@@ -76,9 +76,9 @@ public class ReachableStatement extends JmlExtension {
                 }
 
                 if (parser.isEndJml()) {
-                    if (semiWarning) utils.warning(p-2, "jml.missing.semi", keyword);
+                    if (semiWarning) Utils.instance(parser.context).warning(p-2, "jml.missing.semi", keyword);
                 } else if (parser.token().kind != TokenKind.SEMI) {
-                    utils.error(p, "jml.missing.semi", keyword);
+                    Utils.instance(parser.context).error(p, "jml.missing.semi", keyword);
                 } else {
                     parser.nextToken(); // skip over semicolon
                 }
