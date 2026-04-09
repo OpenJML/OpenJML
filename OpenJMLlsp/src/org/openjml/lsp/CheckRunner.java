@@ -1454,15 +1454,33 @@ public class CheckRunner {
 
         Path tempDir = null;
         try {
-            tempDir = Files.createTempDirectory("openjml-lsp-");
-            Path tempFile = writeToTempDir(tempDir, uri, content);
+            // Determine the file argument passed to execute(), and optionally a MockFiles
+            // container.  When useMockFiles is true the content is served in-memory and
+            // no temp directory is created; when false, write a temp file as before.
+            final String fileArg;
+            final String targetUriStr;
+            final org.openjml.MockFiles mockFilesObj;
+            if (useMockFiles) {
+                java.net.URI fileUri = java.net.URI.create(uri);
+                MockJavaFileObject mockJfo = new MockJavaFileObject(fileUri, content);
+                mockFilesObj = new org.openjml.MockFiles();
+                mockFilesObj.addMockByUri(fileUri.normalize(), mockJfo);
+                fileArg = mockJfo.getName();
+                targetUriStr = mockJfo.toUri().toString();
+            } else {
+                tempDir = Files.createTempDirectory("openjml-lsp-");
+                Path tempFile = writeToTempDir(tempDir, uri, content);
+                mockFilesObj = null;
+                fileArg = tempFile.toString();
+                targetUriStr = tempFile.toUri().toString();
+            }
 
             List<String> args = buildArgs(settings, modeFlag);
             if (methodName != null && !methodName.isEmpty()) {
                 args.add("--method");
                 args.add(methodName);
             }
-            args.add(tempFile.toString());
+            args.add(fileArg);
             logInvocation("runOnContent", args, content);
 
             String fname = fileName(uri);
@@ -1471,11 +1489,13 @@ public class CheckRunner {
             else log(ts() + " --esc " + fname + methodDesc);
 
             // Capture AST in local vars so we can store with IAPI after execution.
-            final String tempUriStr = tempFile.toUri().toString();
+            // Context guard prevents cross-contamination between concurrent runs that
+            // share the same URI (possible when useMockFiles is true).
             final JmlCompilationUnit[] capturedAst = { null };
             final com.sun.tools.javac.util.Context[] capturedCtx = { null };
             IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
-                if (jfo.toUri().toString().equals(tempUriStr)) {
+                if (ctx != api.context()) return;
+                if (jfo.toUri().toString().equals(targetUriStr)) {
                     capturedAst[0] = (JmlCompilationUnit) ast;
                     capturedCtx[0] = ctx;
                 }
@@ -1483,7 +1503,9 @@ public class CheckRunner {
             IAPI.setASTListener(astListener);
             int rc;
             try {
-                rc = api.execute(args.toArray(new String[0]));
+                rc = mockFilesObj != null
+                        ? api.execute(args.toArray(new String[0]), mockFilesObj)
+                        : api.execute(args.toArray(new String[0]));
             } finally {
                 IAPI.removeASTListener(astListener);
             }
@@ -1496,7 +1518,7 @@ public class CheckRunner {
             if (capturedAst[0] != null && "--check".equals(modeFlag)) {
                 if (rc == 0) {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
-                                  api, listener, tempFile.toString());
+                                  api, listener, fileArg);
                 } else {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);  // failed check: basic entry
                 }
@@ -1506,7 +1528,7 @@ public class CheckRunner {
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
             List<org.eclipse.lsp4j.Diagnostic> diags =
-                    listener.toLspDiagnostics(tempFile.toString(), uri);
+                    listener.toLspDiagnostics(fileArg, uri);
             if ("--check".equals(modeFlag))
                 log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
             else if (rc == 5)
@@ -1514,7 +1536,7 @@ public class CheckRunner {
             else
                 log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + diags.size() + " diagnostic(s)");
             return new CheckResult(diags, rc,
-                    proofResults, listener.toForeignMessages(tempFile.toString()), Map.of());
+                    proofResults, listener.toForeignMessages(fileArg), Map.of());
         } catch (IOException e) {
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         } finally {
