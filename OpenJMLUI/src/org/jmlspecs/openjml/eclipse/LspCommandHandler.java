@@ -1262,20 +1262,13 @@ public abstract class LspCommandHandler extends AbstractHandler {
             return List.of();
         }
 
-        /** Extracts {@code List<String>} from a Gson-deserialized command result. */
+        /** Extracts {@code List<String>} from a command result (LSP4E returns {@code List<Object>}). */
         private static List<String> toStringList(Object raw) {
             if (raw instanceof List<?> list) {
                 List<String> result = new ArrayList<>();
                 for (Object e : list) result.add(String.valueOf(e));
                 return result;
             }
-            try {
-                if (raw instanceof com.google.gson.JsonArray arr) {
-                    List<String> result = new ArrayList<>();
-                    for (com.google.gson.JsonElement e : arr) result.add(e.getAsString());
-                    return result;
-                }
-            } catch (NoClassDefFoundError ignored) {}
             return List.of();
         }
 
@@ -1318,10 +1311,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             CancelEscDialog dlg = new CancelEscDialog(shell, tasks, preChecked);
             int result = dlg.open();
 
-            if (result == CancelEscDialog.CANCEL_ALL_ID) {
-                sendCancelCommand(null, project);
-                Console.log("Cancel ESC: cancelled all tasks.");
-            } else if (result == IDialogConstants.OK_ID) {
+            if (result == IDialogConstants.OK_ID) {
                 List<String> checked = dlg.getCheckedTasks();
                 for (String key : checked) sendCancelCommand(key, project);
                 Console.log("Cancel ESC: cancelled " + checked.size() + " task(s).");
@@ -1381,8 +1371,6 @@ public abstract class LspCommandHandler extends AbstractHandler {
      */
     private static class CancelEscDialog extends org.eclipse.jface.dialogs.Dialog {
 
-        static final int CANCEL_ALL_ID = IDialogConstants.CLIENT_ID;
-
         private final List<String> tasks;
         private final Set<String> preChecked;
         private org.eclipse.jface.viewers.CheckboxTableViewer tableViewer;
@@ -1435,24 +1423,48 @@ public abstract class LspCommandHandler extends AbstractHandler {
             for (String task : tasks) {
                 tableViewer.setChecked(task, preChecked.contains(task));
             }
+
+            org.eclipse.swt.widgets.Composite selBtns = new org.eclipse.swt.widgets.Composite(
+                    container, org.eclipse.swt.SWT.NONE);
+            selBtns.setLayout(new org.eclipse.swt.layout.RowLayout());
+            selBtns.setLayoutData(new org.eclipse.swt.layout.GridData(
+                    org.eclipse.swt.SWT.LEFT, org.eclipse.swt.SWT.CENTER, false, false));
+
+            org.eclipse.swt.widgets.Button selectAllBtn =
+                    new org.eclipse.swt.widgets.Button(selBtns, org.eclipse.swt.SWT.PUSH);
+            selectAllBtn.setText("Select all");
+            selectAllBtn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
+                @Override
+                public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+                    tableViewer.setAllChecked(true);
+                }
+            });
+
+            org.eclipse.swt.widgets.Button selectNoneBtn =
+                    new org.eclipse.swt.widgets.Button(selBtns, org.eclipse.swt.SWT.PUSH);
+            selectNoneBtn.setText("Select none");
+            selectNoneBtn.addSelectionListener(new org.eclipse.swt.events.SelectionAdapter() {
+                @Override
+                public void widgetSelected(org.eclipse.swt.events.SelectionEvent e) {
+                    tableViewer.setAllChecked(false);
+                }
+            });
+
             return container;
         }
 
         @Override
         protected void createButtonsForButtonBar(org.eclipse.swt.widgets.Composite parent) {
             createButton(parent, IDialogConstants.OK_ID,     "Cancel selected", true);
-            createButton(parent, CANCEL_ALL_ID,              "Cancel all",      false);
             createButton(parent, IDialogConstants.CANCEL_ID, "Don't cancel",    false);
         }
 
         @Override
-        protected void buttonPressed(int buttonId) {
-            if (buttonId == IDialogConstants.OK_ID) {
-                checkedTasks = java.util.Arrays.stream(tableViewer.getCheckedElements())
-                        .map(o -> (String) o)
-                        .collect(Collectors.toList());
-            }
-            super.buttonPressed(buttonId);
+        protected void okPressed() {
+            checkedTasks = java.util.Arrays.stream(tableViewer.getCheckedElements())
+                    .map(o -> (String) o)
+                    .collect(Collectors.toList());
+            super.okPressed();
         }
 
         List<String> getCheckedTasks() { return checkedTasks; }

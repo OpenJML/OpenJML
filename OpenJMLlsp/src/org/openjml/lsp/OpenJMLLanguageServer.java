@@ -143,7 +143,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
         registry.on          (OpenJMLCommands.CANCEL_ESC, args -> {
-            textDocumentService.cancelEsc(args.isEmpty() ? null : (String) args.get(0));
+            textDocumentService.cancelEsc(str(args, 0));
             return null;
         });
         registry.on          (OpenJMLCommands.GET_RUNNING_ESC_TASKS,
