@@ -114,6 +114,22 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                     uri, method, str(args, 0), str(args, 1), str(args, 2), str(args, 3));
             return null;
         });
+        registry.on(OpenJMLCommands.RUN_ESC_SPLIT_BY_FILE, args -> {
+            List<String> paths = extractPaths(args, 4);
+            String src = str(args, 0), cp = str(args, 1),
+                   sp  = str(args, 2), pf = str(args, 3);
+            if (!paths.isEmpty())
+                textDocumentService.scheduleEscSplitByFile(paths, src, cp, sp, pf);
+            return null;
+        });
+        registry.on(OpenJMLCommands.RUN_ESC_SPLIT_BY_METHOD, args -> {
+            List<String> paths = extractPaths(args, 4);
+            String src = str(args, 0), cp = str(args, 1),
+                   sp  = str(args, 2), pf = str(args, 3);
+            if (!paths.isEmpty())
+                textDocumentService.scheduleEscSplitByMethod(paths, src, cp, sp, pf);
+            return null;
+        });
         registry.on(OpenJMLCommands.RUN_RAC, args -> {
             // [sourcePath, classPath, specsPath, propertiesFile, outputDir, path1, path2, ...]
             List<String> paths = extractPaths(args, 5);

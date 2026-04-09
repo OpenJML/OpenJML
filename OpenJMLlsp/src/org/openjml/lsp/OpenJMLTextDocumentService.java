@@ -848,7 +848,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         IAPI prevBatchApi = runningEscApis.remove(batchKey);
         if (prevBatchApi != null) prevBatchApi.cancelEsc();
 
-        Future<?> batchFuture = executor.submit(() -> {
+        Future<?> batchFuture = s.escPool.submit(() -> {
             try {
                 Consumer<IAPI> hook = api -> runningEscApis.put(batchKey, api);
                 // Publish ESC diagnostics progressively as each method's proof completes.
@@ -904,6 +904,117 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
         });
         runningEscTasks.put(batchKey, batchFuture);
+    }
+
+    /**
+     * Recursively walk {@code paths} (OS files or directories) collecting all
+     * {@code .java} files, deduplicating by path.
+     */
+    private static List<java.nio.file.Path> collectJavaFiles(List<String> paths) {
+        List<java.nio.file.Path> result = new java.util.ArrayList<>();
+        java.util.Set<java.nio.file.Path> seen = new java.util.LinkedHashSet<>();
+        for (String p : paths) {
+            java.nio.file.Path root = java.nio.file.Path.of(p);
+            if (!java.nio.file.Files.exists(root)) continue;
+            try (var stream = java.nio.file.Files.walk(root)) {
+                stream.filter(f -> java.nio.file.Files.isRegularFile(f)
+                                && f.toString().endsWith(".java"))
+                      .forEach(f -> { if (seen.add(f)) result.add(f); });
+            } catch (java.io.IOException e) {
+                System.err.println("[collectJavaFiles] error walking " + p + ": " + e);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Split-by-file ESC: recursively expand {@code paths} to individual {@code .java}
+     * files and submit each as a separate whole-file ESC task on {@link OpenJMLSettings#escPool},
+     * giving bounded parallelism (default 5 concurrent tasks).
+     */
+    void scheduleEscSplitByFile(List<String> paths, String sourcePath, String classPath,
+                                 String specsPath, String propertiesFile) {
+        if (paths == null || paths.isEmpty()) return;
+        OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
+        Map<String, String> snapshot = Map.copyOf(lastContent);
+
+        for (java.nio.file.Path javaFile : collectJavaFiles(paths)) {
+            String filePath = javaFile.toString();
+            String uri = javaFile.toUri().toString();
+            String content = snapshot.get(uri);
+            markEscChecking(uri);
+            s.escPool.submit(() -> {
+                try {
+                    CheckRunner.CheckResult result = (content != null)
+                            ? CheckRunner.escWithContext(uri, content, snapshot, s,
+                                    api -> runningEscApis.put(uri, api))
+                            : CheckRunner.runEscFile(filePath, uri, s,
+                                    api -> runningEscApis.put(uri, api));
+                    storeEscDiags(uri, result.diagnostics());
+                    updateEscStatus(uri, result.diagnostics(), result.proofResults(),
+                            result.exitCode(), result.foreignMessages());
+                    publishMerged(uri);
+                    refreshCodeLenses();
+                } catch (Throwable t) {
+                    System.err.println("[scheduleEscSplitByFile] error for " + uri + ": " + t);
+                } finally {
+                    runningEscApis.remove(uri);
+                }
+            });
+        }
+    }
+
+    /**
+     * Split-by-method ESC: recursively expand {@code paths} to individual {@code .java}
+     * files, discover methods in each (AST cache preferred, regex fallback), and submit
+     * each method as a separate ESC task on {@link OpenJMLSettings#escPool}.
+     *
+     * <p>File content is read synchronously before task submission so that method
+     * discovery and all per-method lambdas share a coherent snapshot.
+     */
+    void scheduleEscSplitByMethod(List<String> paths, String sourcePath, String classPath,
+                                   String specsPath, String propertiesFile) {
+        if (paths == null || paths.isEmpty()) return;
+        OpenJMLSettings s = withContext(sourcePath, classPath, specsPath, propertiesFile, null);
+        Map<String, String> snapshot = Map.copyOf(lastContent);
+
+        for (java.nio.file.Path javaFile : collectJavaFiles(paths)) {
+            String uri = javaFile.toUri().toString();
+
+            // Resolve content: prefer in-memory, fall back to reading disk now so that
+            // method discovery and task lambdas all see the same file version.
+            String content = snapshot.get(uri);
+            if (content == null) {
+                try { content = java.nio.file.Files.readString(javaFile); }
+                catch (Exception e) {
+                    System.err.println("[scheduleEscSplitByMethod] cannot read " + javaFile + ": " + e);
+                    continue;
+                }
+            }
+            final String finalContent = content;
+
+            // Discover methods: AST cache preferred, regex fallback (same as codeLens).
+            ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
+            List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
+                    ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
+                    : JavaSourceScanner.findMethods(content);
+            if (methods.isEmpty()) continue;
+
+            // Mark all methods in this file as CHECKING before submitting.
+            Map<Integer, MethodStatus> checking = new java.util.HashMap<>();
+            for (JavaSourceScanner.MethodInfo m : methods)
+                checking.put(m.startLine(), MethodStatus.CHECKING);
+            methodEscStatus.put(uri, checking);
+            refreshCodeLenses();
+
+            for (JavaSourceScanner.MethodInfo method : methods) {
+                final String methodName = method.name();
+                submitEscForMethod(uri, method,
+                        hook -> CheckRunner.escMethodWithContext(
+                                uri, finalContent, methodName, snapshot, s, hook),
+                        s.escPool);
+            }
+        }
     }
 
     /**
@@ -1401,13 +1512,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 final String c = contentForMethod;
                 submitEscForMethod(uri, target,
                         hook -> CheckRunner.escMethodWithContext(uri, c, methodName, snapshot, s, hook),
-                        executor);
+                        s.escPool);
             } else {
                 String filePath = CheckRunner.uriToPath(uri);
                 if (filePath != null)
                     submitEscForMethod(uri, target,
                             hook -> CheckRunner.runEscFileMethod(filePath, uri, methodName, s, hook),
-                            executor);
+                            s.escPool);
             }
         }
     }
@@ -1446,11 +1557,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             ExecutorService pool) {
 
         // Determine the tracking key and cancel any in-flight predecessor.
-        // Per-method runs use a "uri#methodName" key so concurrent runs on
-        // different methods (or concurrent with a whole-file run) coexist.
+        // Per-method runs use a "uri#methodName@startLine" key so concurrent runs on
+        // different methods (or overloads with the same name) coexist.
         final String methodKey;
         if (target != null) {
-            methodKey = uri + "#" + target.name();
+            methodKey = uri + "#" + target.name() + "@" + target.startLine();
             Future<?> prev = runningEscMethodTasks.remove(methodKey);
             if (prev != null) prev.cancel(false);
             IAPI prevApi = runningEscMethodApis.remove(methodKey);
@@ -1839,7 +1950,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
         markEscChecking(uri);
 
-        Future<?> f = executor.submit(() -> {
+        Future<?> f = settings.escPool.submit(() -> {
             try {
                 // Hook fires inside CheckRunner once the fresh IAPI is created and
                 // the ProofResultCollector is installed — before execute() is called.

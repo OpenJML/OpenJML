@@ -47,6 +47,27 @@ public final class OpenJMLCommands {
     public static final String RUN_ESC_FOR_METHOD = "openjml.runEscForMethod";
 
     /**
+     * Split-by-file ESC: {@code openjml.runEscSplitByFile}.
+     *
+     * <p>Arguments: same format as {@link #RUN_ESC}:
+     * {@code [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]}.
+     * The server recursively walks each path for {@code .java} files and submits
+     * each file as a separate task to the bounded ESC thread pool.
+     */
+    public static final String RUN_ESC_SPLIT_BY_FILE   = "openjml.runEscSplitByFile";
+
+    /**
+     * Split-by-method ESC: {@code openjml.runEscSplitByMethod}.
+     *
+     * <p>Arguments: same format as {@link #RUN_ESC}:
+     * {@code [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]}.
+     * The server expands paths to {@code .java} files, discovers methods in each
+     * (AST cache preferred, regex fallback), and submits each method as a separate
+     * task to the bounded ESC thread pool.
+     */
+    public static final String RUN_ESC_SPLIT_BY_METHOD = "openjml.runEscSplitByMethod";
+
+    /**
      * Multi-target RAC: {@code openjml.runRac}.
      *
      * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, outputDir, path1, path2, ...]}.

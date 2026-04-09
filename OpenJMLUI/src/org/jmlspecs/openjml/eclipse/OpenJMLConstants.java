@@ -120,6 +120,20 @@ public final class OpenJMLConstants {
     public static final String CMD_RUN_ESC_FOR_METHOD = "openjml.runEscForMethod";
 
     /**
+     * Split-by-file ESC command sent via {@code workspace/executeCommand}.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.RUN_ESC_SPLIT_BY_FILE}.
+     */
+    public static final String CMD_RUN_ESC_SPLIT_BY_FILE = "openjml.runEscSplitByFile";
+
+    /**
+     * Split-by-method ESC command sent via {@code workspace/executeCommand}.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.RUN_ESC_SPLIT_BY_METHOD}.
+     */
+    public static final String CMD_RUN_ESC_SPLIT_BY_METHOD = "openjml.runEscSplitByMethod";
+
+    /**
      * Multi-target RAC compile command sent via {@code workspace/executeCommand}.
      *
      * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.RUN_RAC}.

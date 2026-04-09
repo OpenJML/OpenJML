@@ -326,9 +326,19 @@
            description="Parse and type-check the selected Java/JML files"/>
      <command
            id="org.jmlspecs.openjml.commands.runESC"
-           name="Run ESC on Current File"
+           name="%openjml.ui.command.ESC.asSingleTask"
            categoryId="org.jmlspecs.openjml.commands.category"
-           description="Run extended static checking on the selected Java/JML files"/>
+           description="%openjml.ui.command.ESC.asSingleTask.description"/>
+     <command
+           id="org.jmlspecs.openjml.commands.runEscSplitByFile"
+           name="%openjml.ui.command.ESC.splitByFile"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="%openjml.ui.command.ESC.splitByFile.description"/>
+     <command
+           id="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+           name="%openjml.ui.command.ESC.splitByMethod"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="%openjml.ui.command.ESC.splitByMethod.description"/>
      <command
            id="org.jmlspecs.openjml.commands.runEscForMethod"
            name="Run ESC for Method Under Cursor"
@@ -397,6 +407,10 @@
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$CheckJML"/>
      <handler commandId="org.jmlspecs.openjml.commands.runESC"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEsc"/>
+     <handler commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEscSplitByFile"/>
+     <handler commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEscSplitByMethod"/>
      <handler commandId="org.jmlspecs.openjml.commands.runEscForMethod"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEscForMethod"/>
      <handler commandId="org.jmlspecs.openjml.commands.RAC"
@@ -478,10 +492,15 @@
            </visibleWhen>
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
                     label="Check JML in File" />
-           <command commandId="org.jmlspecs.openjml.commands.runESC"
-                    label="Run ESC on File" icon="icons/jml-logo-16x16.png"/>
-           <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
-                    label="Run ESC for Method Under Cursor"/>
+           <menu id="org.jmlspecs.openjml.editorPopupMenu.runEsc"
+                 label="Static check (ESC)" icon="icons/jml-logo-16x16.png">
+              <command commandId="org.jmlspecs.openjml.commands.runESC"
+                       label="As Single Task"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+                       label="Split by File"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+                       label="Split by Method"/>
+           </menu>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"/>
            <separator name="sep1"/>
@@ -514,12 +533,15 @@
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
                     label="Check JML in File"
                     tooltip="%command.tooltip.13"/>
-           <command commandId="org.jmlspecs.openjml.commands.runESC"
-                    label="Run ESC on Current File"
-                    icon="icons/jml-logo-16x16.png"
-                    tooltip="%command.tooltip.14"/>
-           <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
-                    label="Run ESC for Method Under Cursor"/>
+           <menu id="org.jmlspecs.openjml.mainMenu.runEsc"
+                 label="Static check (ESC)" icon="icons/jml-logo-16x16.png">
+              <command commandId="org.jmlspecs.openjml.commands.runESC"
+                       label="As Single Task"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+                       label="Split by File"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+                       label="Split by Method"/>
+           </menu>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"
                     tooltip="%command.tooltip.15"/>
@@ -568,11 +590,15 @@
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
                     label="Check JML"
                     tooltip="%command.tooltip.13"/>
-           <command commandId="org.jmlspecs.openjml.commands.runESC"
-                    label="Run ESC"
-                    tooltip="%command.tooltip.14"/>
-           <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
-                    label="Run ESC for Method Under Cursor"/>
+           <menu id="org.jmlspecs.openjml.viewPopupMenu.runEsc"
+                 label="Static check (ESC)" icon="icons/jml-logo-16x16.png">
+              <command commandId="org.jmlspecs.openjml.commands.runESC"
+                       label="As Single Task"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+                       label="Split by File"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+                       label="Split by Method"/>
+           </menu>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"
                     tooltip="%command.tooltip.15"/>

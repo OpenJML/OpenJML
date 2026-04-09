@@ -913,6 +913,71 @@ public abstract class LspCommandHandler extends AbstractHandler {
     }
 
     /**
+     * Sends {@code openjml.runEscSplitByFile} to the server.
+     * The server recursively walks the supplied OS paths for {@code .java} files
+     * and submits each as a separate ESC task on its bounded thread pool.
+     */
+    public static final class RunEscSplitByFile extends LspCommandHandler {
+        public RunEscSplitByFile() { super(OpenJMLConstants.CMD_RUN_ESC_SPLIT_BY_FILE); }
+
+        @Override
+        public Object execute(ExecutionEvent event) throws ExecutionException {
+            List<SelectionResolver.Target> targets = SelectionResolver.resolve(
+                    HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+            if (!handleDirtyFilesForEsc(targets)) return null;
+            dispatchGroupedByProject(targets, event);
+            return null;
+        }
+
+        @Override
+        protected ExecuteCommandParams buildCommand(List<String> osPaths, InvocationContext ctx) {
+            List<Object> args = prefixArgs(ctx);
+            args.addAll(osPaths);
+            return new ExecuteCommandParams(lspCommand, args);
+        }
+
+        /** Method targets fall back to file-path dispatch; server splits by file. */
+        @Override
+        protected ExecuteCommandParams buildMethodCommand(String uri, String fqn,
+                                                          InvocationContext ctx) {
+            return null;
+        }
+    }
+
+    /**
+     * Sends {@code openjml.runEscSplitByMethod} to the server.
+     * The server discovers methods within each {@code .java} file (AST cache
+     * preferred, regex fallback) and submits each as a separate ESC task on
+     * its bounded thread pool.
+     */
+    public static final class RunEscSplitByMethod extends LspCommandHandler {
+        public RunEscSplitByMethod() { super(OpenJMLConstants.CMD_RUN_ESC_SPLIT_BY_METHOD); }
+
+        @Override
+        public Object execute(ExecutionEvent event) throws ExecutionException {
+            List<SelectionResolver.Target> targets = SelectionResolver.resolve(
+                    HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+            if (!handleDirtyFilesForEsc(targets)) return null;
+            dispatchGroupedByProject(targets, event);
+            return null;
+        }
+
+        @Override
+        protected ExecuteCommandParams buildCommand(List<String> osPaths, InvocationContext ctx) {
+            List<Object> args = prefixArgs(ctx);
+            args.addAll(osPaths);
+            return new ExecuteCommandParams(lspCommand, args);
+        }
+
+        /** Method targets fall back to file-path dispatch; server splits by method. */
+        @Override
+        protected ExecuteCommandParams buildMethodCommand(String uri, String fqn,
+                                                          InvocationContext ctx) {
+            return null;
+        }
+    }
+
+    /**
      * Runs {@code openjml.runEscForMethod} on the method under the cursor in
      * the active editor.  Always operates on the active editor — view selections
      * are ignored.
