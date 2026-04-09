@@ -28,7 +28,6 @@ public class TypeInitializerClauseExtension extends JmlExtension {
         public 
         JmlTypeClauseInitializer parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
-            init(parser);
             parser.nextToken(); // skip over initializer token
             JmlTypeClauseInitializer initializer = parser.maker().at(pp).JmlTypeClauseInitializer(clauseType,mods);
             //@ FIXME - parse failure?
@@ -36,7 +35,7 @@ public class TypeInitializerClauseExtension extends JmlExtension {
             parser.currentMethodSpecs = null;
             initializer = parser.to(initializer);
             // FIXME parser.list.append(initializer);
-            wrapup(initializer, clauseType, false, true);
+            wrapup(parser, initializer, clauseType, false, true);
             return initializer;
         }
         

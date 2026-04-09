@@ -47,8 +47,6 @@ public class MethodResourceClauseExtension extends JmlExtension {
         @Override
         public 
         JmlMethodClauseConditional parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
-
             int pp = parser.pos();
 
             parser.nextToken();
@@ -61,7 +59,7 @@ public class MethodResourceClauseExtension extends JmlExtension {
             }
             JmlMethodClauseConditional res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseConditional(keyword, clauseType, e, p));
-            wrapup(res, clauseType, true, true);
+            wrapup(parser, res, clauseType, true, true);
             res.name = n;
             return res;
 

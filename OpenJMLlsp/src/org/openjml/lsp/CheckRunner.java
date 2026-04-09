@@ -166,7 +166,10 @@ public class CheckRunner {
             IProverResult.Kind kind = result.result();
             // Ignore transient lifecycle notifications; record all terminal outcomes
             // (including CANCELLED — the method that was mid-proof when cancel fired).
-            if (kind == IProverResult.RUNNING || kind == IProverResult.COMPLETED) {
+            // SKIPPED means the method was bypassed (e.g. --method targeted another
+            // method); suppress it so callers only see substantive proof results.
+            if (kind == IProverResult.RUNNING || kind == IProverResult.COMPLETED
+                    || kind == IProverResult.SKIPPED) {
                 return;
             }
             String name = msym.getSimpleName().toString();
@@ -1558,6 +1561,9 @@ public class CheckRunner {
         final JmlCompilationUnit[] capturedAst = { null };
         final com.sun.tools.javac.util.Context[] capturedCtx = { null };
         IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
+            // Guard: only handle callbacks belonging to this IAPI's own context.
+            // Necessary when concurrent runs operate on the same real file path.
+            if (ctx != api.context()) return;
             String jfoUri = jfo.toUri().toString();
             if (jfoUri.equals(fileUriStr)) {
                 capturedAst[0] = (JmlCompilationUnit) ast;

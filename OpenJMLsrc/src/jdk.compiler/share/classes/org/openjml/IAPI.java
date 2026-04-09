@@ -38,9 +38,12 @@ public interface IAPI {
     public static final int CANCELLED = Main.Result.CANCELLED.exitCode;
     public static final int VERIFY = Main.Result.VERIFY.exitCode;
     
-//    @SuppressWarnings("exports")
-//    public Context context();
-//     
+    /** Returns the compilation context for this API object.
+     * Each {@link #make} call creates a fresh context; this allows callers
+     * to identify which concurrent invocation produced a given callback. */
+    @SuppressWarnings("exports")
+    public Context context();
+//
 //    //@ public model boolean isOpen; private represents isOpen = main != null;
 //
 //
@@ -50,11 +53,6 @@ public interface IAPI {
 //     */
 //    public /*@non_null*/ String version();
 //
-//
-//    /** The compilation context for this API object */
-//    //@ ensures \result == context;
-//    /*@pure*/
-//    public /*@nullable*/ Context context();
 //
 //    /** The compiler object for this context. */
 //    /*@pure*/

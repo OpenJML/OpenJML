@@ -22,6 +22,7 @@ import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.*;
+import com.sun.tools.javac.util.Context;
 
 /** This class is a wrapper and publicly published API for the OpenJML tool 
  * functionality.  In principle, any external programmatic interaction with
@@ -119,15 +120,15 @@ public class API implements IAPI {
 //        // FIXME - handle options and args
 //    }
 //    
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#context()
-//     */
-//    @Override
-//    //@ ensures \result == main.context;
-//    /*@pure*/
-//    public /*@nullable*/ Context context() {
-//        return main == null ? null : main.context;
-//    }
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#context()
+     */
+    @Override
+    //@ ensures \result == main.context;
+    /*@pure*/
+    public /*@nullable*/ Context context() {
+        return main == null ? null : main.context();
+    }
 //
 //    /** Returns the compiler object for this context. */
 //    @Override /*@pure*/ /*@nullable*/

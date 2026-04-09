@@ -16,6 +16,7 @@ import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.parser.Tokens.TokenKind;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
@@ -37,25 +38,24 @@ public class ShowStatement extends JmlExtension {
         public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             int pe = parser.endPos();
-            init(parser);
-            strictCheck(pp,keyword + " statement");
+            strictCheck(parser.context, pp,keyword + " statement");
             
             parser.nextToken();
 
             ListBuffer<JCExpression> expressions = new ListBuffer<>();
             if (parser.token().kind != TokenKind.SEMI && !parser.isEndJml()) {
                 do {
-                    int n = log.nerrors;
+                    int n = Log.instance(parser.context).nerrors;
                     JCExpression t = parser.parseExpression();
-                    if (n != log.nerrors) {
+                    if (n != Log.instance(parser.context).nerrors) {
                         parser.skipToSemi();
                         break;
                     }
                     expressions.add(t);
                 } while (parser.acceptIf(TokenKind.COMMA));
             }
-            JmlStatementExprList st = toP(parser.maker().at(pp).JmlStatementExprList(clauseType,expressions.toList()));
-            wrapup(st, clauseType, true, true);
+            JmlStatementExprList st = parser.toP(parser.maker().at(pp).JmlStatementExprList(clauseType,expressions.toList()));
+            wrapup(parser, st, clauseType, true, true);
             return st;
         }
         

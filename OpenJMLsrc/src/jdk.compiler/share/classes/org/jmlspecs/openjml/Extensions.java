@@ -287,27 +287,22 @@ public class Extensions {
             return true;
         } catch (Exception e) {
         }
-        
-        // Initializes extension classes that have a constructor taking Context as an argument
-        try {
-            cc.getConstructor(Context.class).newInstance(context);
-            //Utils.instance(context).note("Registered-B " + cc);
-            return true;
-        } catch (Exception e) {
+
+        // For nested extension classes that lack their own no-arg constructor,
+        // loading the outer class is sufficient (static initialization runs there).
+        {
             String s = cce.toString();
             int k = s.indexOf('$');
             if (k > 0) s = s.substring(0, k);
-            try { 
+            try {
                 Class.forName(s);
                 //Utils.instance(context).note("Registered-C " + cc);
-                return true; 
-            } 
-            catch (ClassNotFoundException ee) { 
-            	Utils.instance(context).note("Not found " + s +" " + e.getCause()); 
+                return true;
+            } catch (ClassNotFoundException ee) {
+                Utils.instance(context).note("Not found " + s);
             }
-            //Utils.instance(context).note("Failed " + cc + " " + e.getMessage());
-            return false;
         }
+        return false;
     }
     
     // This method finds all the classes in a given package that are OpenJML
