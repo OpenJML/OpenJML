@@ -237,22 +237,25 @@
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpewKey"
           verticalRulerPreferenceValue="true">
     </specification>
-    <!-- ESC verified successfully: green, highlight and text enabled -->
+    <!-- ESC verified successfully: green, highlight and text enabled.
+         Preference keys use suffix "ei2" so that Eclipse initialises fresh
+         defaults (highlight=true, text=true) regardless of any stale stored
+         values from earlier versions of this annotation. -->
     <specification
           annotationType="org.openjml.OpenJMLUI.ESCInfoAnnotation"
-          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeiKey"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpei2Key"
           colorPreferenceValue="128,255,128"
-          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeiKey"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpei2Key"
           highlightPreferenceValue="true"
           icon="icons/jml_green.gif"
           includeOnPreferencePage="true"
           label="%specification.label.7"
-          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpeiKey"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpei2Key"
           overviewRulerPreferenceValue="true"
           presentationLayer="3"
-          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpeiKey"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpei2Key"
           textPreferenceValue="true"
-          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeiKey"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpei2Key"
           verticalRulerPreferenceValue="true">
     </specification>
     <!-- JML type-check error: red -->

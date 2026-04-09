@@ -94,8 +94,9 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
         // Read file content once for char-offset computation.
         int[] lineOffsets = null;
         try (var stream = file.getContents()) {
-            String content = new String(stream.readAllBytes(),
-                    file.getCharset(false));
+            // getCharset() (checkImplicit=true) always returns a valid charset;
+            // getCharset(false) can return null for files with no explicit charset set.
+            String content = new String(stream.readAllBytes(), file.getCharset());
             lineOffsets = buildLineOffsets(content);
         } catch (Exception e) {
             // Proceed without char offsets (line-only markers).
