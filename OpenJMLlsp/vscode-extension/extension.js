@@ -686,28 +686,33 @@ async function activate(context) {
     // Warn if java.format.enabled is on — it adds a space after // in line comments,
     // changing //@ to // @ and silently disabling all JML annotations.
     // Use workspace state so the user is only asked once per workspace.
-    const JAVA_FORMAT_KEY = 'javaFormatWarningHandled';
-    if (!context.workspaceState.get(JAVA_FORMAT_KEY)
-            && vscode.workspace.getConfiguration('java').get('format.enabled', true)) {
-        const choice = await vscode.window.showWarningMessage(
-            'OpenJML: java.format.enabled is on. It may change //@ to // @, ' +
-            'silently disabling JML annotations.',
-            'Disable for this workspace', 'Ignore'
-        );
-        await context.workspaceState.update(JAVA_FORMAT_KEY, true);
-        if (choice === 'Disable for this workspace') {
-            try {
-                await vscode.workspace.getConfiguration('java')
-                    .update('format.enabled', false,
-                            vscode.ConfigurationTarget.Workspace);
-                vscode.window.showInformationMessage(
-                    'OpenJML: Disabled java.format.enabled in workspace settings. ' +
-                    'You can still format manually with Shift+Alt+F.');
-            } catch (err) {
-                vscode.window.showErrorMessage(
-                    'OpenJML: Could not update settings: ' + err);
+    // Wrap the entire block so that a missing workspace never aborts activation.
+    try {
+        const JAVA_FORMAT_KEY = 'javaFormatWarningHandled';
+        if (!context.workspaceState.get(JAVA_FORMAT_KEY)
+                && vscode.workspace.getConfiguration('java').get('format.enabled', true)) {
+            const choice = await vscode.window.showWarningMessage(
+                'OpenJML: java.format.enabled is on. It may change //@ to // @, ' +
+                'silently disabling JML annotations.',
+                'Disable for this workspace', 'Ignore'
+            );
+            await context.workspaceState.update(JAVA_FORMAT_KEY, true);
+            if (choice === 'Disable for this workspace') {
+                try {
+                    await vscode.workspace.getConfiguration('java')
+                        .update('format.enabled', false,
+                                vscode.ConfigurationTarget.Workspace);
+                    vscode.window.showInformationMessage(
+                        'OpenJML: Disabled java.format.enabled in workspace settings. ' +
+                        'You can still format manually with Shift+Alt+F.');
+                } catch (err) {
+                    vscode.window.showErrorMessage(
+                        'OpenJML: Could not update settings: ' + err);
+                }
             }
         }
+    } catch (_) {
+        // No workspace open — skip the java.format.enabled check silently.
     }
 
     // When openjml.serverPath changes, stop the current server and restart at the
