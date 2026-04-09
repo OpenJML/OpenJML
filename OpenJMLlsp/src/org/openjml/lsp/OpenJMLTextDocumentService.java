@@ -942,8 +942,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             String filePath = javaFile.toString();
             String uri = javaFile.toUri().toString();
             String content = snapshot.get(uri);
+            // Cancel any previous whole-file ESC task for this URI.
+            Future<?> prev = runningEscTasks.remove(uri);
+            if (prev != null) prev.cancel(false);
+            IAPI prevApi = runningEscApis.remove(uri);
+            if (prevApi != null) prevApi.cancelEsc();
             markEscChecking(uri);
-            s.escPool.submit(() -> {
+            Future<?> f = s.escPool.submit(() -> {
                 try {
                     CheckRunner.CheckResult result = (content != null)
                             ? CheckRunner.escWithContext(uri, content, snapshot, s,
@@ -958,9 +963,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 } catch (Throwable t) {
                     System.err.println("[scheduleEscSplitByFile] error for " + uri + ": " + t);
                 } finally {
+                    runningEscTasks.remove(uri);
                     runningEscApis.remove(uri);
                 }
             });
+            runningEscTasks.put(uri, f);
         }
     }
 
