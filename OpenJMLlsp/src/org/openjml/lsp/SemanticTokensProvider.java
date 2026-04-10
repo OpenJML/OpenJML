@@ -134,7 +134,7 @@ public class SemanticTokensProvider {
             int off = lineOffsets[tok[0]] + tok[1];
             String text = source.substring(off, Math.min(off + tok[2], source.length()));
             String typeName = (tok[3] >= 0 && tok[3] < TYPE_NAMES.length) ? TYPE_NAMES[tok[3]] : String.valueOf(tok[3]);
-            System.err.println("[semtok] " + typeName + " '" + text + "' L" + (tok[0]+1) + ":" + tok[1]);
+            //System.err.println("[semtok] " + typeName + " '" + text + "' L" + (tok[0]+1) + ":" + tok[1]);
         }
         return deltaEncode(tokens);
     }

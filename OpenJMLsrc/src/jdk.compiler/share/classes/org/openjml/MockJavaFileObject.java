@@ -100,6 +100,26 @@ public class MockJavaFileObject extends SimpleJavaFileObject {
     public CharSequence getCharContent(boolean ignoreEncodingErrors) {
         return content;
     }
+
+    /**
+     * Returns {@link Long#MAX_VALUE} so that this mock is always considered
+     * newer than any on-disk class file ({@code .class}) the compiler might
+     * find on the class path.
+     *
+     * <p>{@link javax.tools.SimpleJavaFileObject#getLastModified()} returns
+     * {@code 0L}.  When javac resolves a type that has both a source file on
+     * the source path and a compiled class file on the class path, it picks
+     * whichever is newer.  A mock with modification time {@code 0} would
+     * always lose to a real class file, causing javac to use the (possibly
+     * stale) class file instead of the in-memory mock source - leading to
+     * "symbol not found" errors after a rename when the class files have not
+     * yet been recompiled.  Returning {@code Long.MAX_VALUE} ensures the mock
+     * is always preferred.
+     */
+    @Override
+    public long getLastModified() {
+        return Long.MAX_VALUE;
+    }
     
 //    /** Overrides the parent method to allow name compatibility between 
 //     * pseudo files of different kinds.  TODO _ better description of what the system uses this for

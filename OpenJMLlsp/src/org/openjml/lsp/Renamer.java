@@ -115,6 +115,11 @@ public class Renamer {
      *                                file come first
      * @return the modified source text
      */
+    /** Convenience wrapper for logging: convert LSP (line, character) to a source offset. */
+    public static int offsetOf(String source, int line, int col) {
+        return DefinitionFinder.lineColToOffset(source, line, col);
+    }
+
     public static String applyEdits(String source, List<TextEdit> sortedEditsDescending) {
         // Resolve all offsets first (against the original, unmodified source).
         record Replacement(int start, int end, String text) {}

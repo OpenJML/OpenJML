@@ -1452,14 +1452,16 @@ public class CheckRunner {
 
         if (useMockFiles) {
             org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
-            // mockUriToRealUri maps mock URI string → real URI for companion files.
+            // mockUriToRealUri maps mock URI string → real URI for every dirty file
+            // other than the primary.  "Dirty" means open in an editor with unsaved
+            // changes — the mock serves in-memory content in place of the on-disk file.
             Map<String, String> mockUriToRealUri = new java.util.HashMap<>();
             for (Map.Entry<String, String> e : openContent.entrySet()) {
                 if (e.getKey().equals(uri)) continue;
-                java.net.URI compUri = java.net.URI.create(e.getKey());
-                MockJavaFileObject compJfo = new MockJavaFileObject(compUri, e.getValue());
-                mockFiles.addMockByUri(compUri.normalize(), compJfo);
-                mockUriToRealUri.put(compJfo.toUri().toString(), e.getKey());
+                java.net.URI dirtyUri = java.net.URI.create(e.getKey());
+                MockJavaFileObject dirtyJfo = new MockJavaFileObject(dirtyUri, e.getValue());
+                mockFiles.addMockByUri(dirtyUri.normalize(), dirtyJfo);
+                mockUriToRealUri.put(dirtyJfo.toUri().toString(), e.getKey());
             }
             // If content is null the file is not open — don't mock it; OpenJML reads from disk.
             final String primaryArg;
@@ -1483,6 +1485,26 @@ public class CheckRunner {
             }
             args.add(primaryArg);
             logInvocation("runOnContentWithContext", args, content);
+
+            // Detailed mock-file diagnostics: log primary + every dirty-file mock with full content.
+            System.err.println("[CheckRunner.runOnContentWithContext] primary uri=" + uri
+                    + (content != null ? " (mocked, " + content.length() + " chars)" : " (from disk)"));
+            if (content != null) {
+                System.err.println("[CheckRunner.runOnContentWithContext]   primary content >>>");
+                System.err.println(content);
+                System.err.println("[CheckRunner.runOnContentWithContext]   <<<");
+            }
+            System.err.println("[CheckRunner.runOnContentWithContext] dirty-file mocks (" + mockUriToRealUri.size() + "):");
+            for (Map.Entry<String, String> e : mockUriToRealUri.entrySet()) {
+                String dirtyContent = openContent.get(e.getValue());
+                System.err.println("[CheckRunner.runOnContentWithContext]   mock uri=" + e.getValue()
+                        + " (" + (dirtyContent != null ? dirtyContent.length() + " chars" : "?") + ")");
+                if (dirtyContent != null) {
+                    System.err.println("[CheckRunner.runOnContentWithContext]   content >>>");
+                    System.err.println(dirtyContent);
+                    System.err.println("[CheckRunner.runOnContentWithContext]   <<<");
+                }
+            }
 
             String fname = fileName(uri);
             String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
@@ -1528,6 +1550,13 @@ public class CheckRunner {
                 api.removeASTListener(astListener);
             }
             System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc + " (" + modeFlag + ")");
+            if (rc != 0) {
+                listener.getDiagnostics().forEach(d -> {
+                    String src = d.getSource() != null ? d.getSource().toUri().toString() : "?";
+                    System.err.println("[CheckRunner.runOnContentWithContext]   diag: "
+                            + src + ":" + d.getLineNumber() + " " + d.getMessage(null));
+                });
+            }
 
             if (capturedAst[0] != null && "--check".equals(modeFlag)) {
                 if (rc == 0) {
@@ -2397,24 +2426,30 @@ public class CheckRunner {
         logInvocation(caller, args, null);
     }
 
+    private static String firstLine(String s) {
+        if (s == null) return "null";
+        int nl = s.indexOf('\n');
+        return nl >= 0 ? s.substring(0, nl) : s;
+    }
+
     private static void logInvocation(String caller, List<String> args, String content) {
         StringBuilder sb = new StringBuilder();
         sb.append("[CheckRunner.").append(caller).append("] args:");
         for (String a : args) sb.append(' ').append(a);
         sb.append('\n');
-        if (content != null) {
-            int nl = content.indexOf('\n');
-            String firstLine = nl >= 0 ? content.substring(0, nl) : content;
-            String preview = content.length() <= 1000
-                    ? content
-                    : content.substring(0, 1000) + "...[truncated]";
-            sb.append("  content: ").append(content.length()).append(" chars, first line: ")
-              .append(firstLine).append('\n');
-            sb.append("  content preview:\n").append(preview).append('\n');
-        }
-        sb.append("  OPENJML_INSTALL=").append(System.getenv("OPENJML_INSTALL")).append('\n');
-        sb.append("  OPENJML_SPECS=").append(System.getenv("OPENJML_SPECS")).append('\n');
-        sb.append("  OPENJML_SOLVERS=").append(System.getenv("OPENJML_SOLVERS")).append('\n');
+        //if (content != null) {
+        //    int nl = content.indexOf('\n');
+        //    String firstLine = nl >= 0 ? content.substring(0, nl) : content;
+        //    String preview = content.length() <= 1000
+        //            ? content
+        //            : content.substring(0, 1000) + "...[truncated]";
+        //    sb.append("  content: ").append(content.length()).append(" chars, first line: ")
+        //      .append(firstLine).append('\n');
+        //    sb.append("  content preview:\n").append(preview).append('\n');
+        //}
+        //sb.append("  OPENJML_INSTALL=").append(System.getenv("OPENJML_INSTALL")).append('\n');
+        //sb.append("  OPENJML_SPECS=").append(System.getenv("OPENJML_SPECS")).append('\n');
+        //sb.append("  OPENJML_SOLVERS=").append(System.getenv("OPENJML_SOLVERS")).append('\n');
         System.err.print(sb);
     }
 

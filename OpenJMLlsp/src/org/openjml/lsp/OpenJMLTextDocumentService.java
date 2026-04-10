@@ -214,7 +214,32 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Per-method ESC status, keyed by URI then method start line. */
     private final Map<String, Map<Integer, MethodStatus>> methodEscStatus = new ConcurrentHashMap<>();
 
-    /** Last-seen source content per URI (for code lens and hover). */
+    /**
+     * Last-seen source content per URI, populated by {@link #didOpen} and
+     * {@link #didChange} and updated by {@link #rename} (see below).
+     *
+     * <p><b>LSP4E / Eclipse tracking note</b>: LSP4E only sends
+     * {@code textDocument/didOpen} for the <em>active</em> editor.  Files that
+     * are open in non-active editor tabs are <em>not</em> registered with the
+     * LSP client and therefore never appear in this map.  Concretely:
+     * <ul>
+     *   <li>A.java (the editor the user renamed from) is in this map — it was
+     *       active when the user initiated the rename.</li>
+     *   <li>A.jml (open in a non-active Generic Editor tab) is <em>not</em> in
+     *       this map even while the file is on screen.</li>
+     *   <li>B.java (not open at all) is not in this map.</li>
+     * </ul>
+     * This is normal and intentional: the LSP protocol does not require clients
+     * to send {@code didOpen} for every file they display.  The server must be
+     * prepared to handle files that are in the workspace but absent from this map.
+     *
+     * <p>For {@code --check} this is fine: absent files are read from disk, and
+     * disk content matches the editor content for non-dirty files.  For rename,
+     * the server proactively patches this map with the post-rename content for
+     * any entry that already exists (see {@link #rename}), because Eclipse does
+     * not send {@code textDocument/didChange} after applying a server-initiated
+     * {@code WorkspaceEdit}.
+     */
     private final Map<String, String> lastContent = new ConcurrentHashMap<>();
 
     /** Content (by identity hash) of the last successfully submitted --check, per URI. */
@@ -273,6 +298,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
+        System.err.println("[didOpen] uri=" + uri);
         lastContent.put(uri, content);
 
         // Notify the client to re-query code lenses now that lastContent is populated.
@@ -289,6 +315,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didChange(DidChangeTextDocumentParams params) {
         if (params.getContentChanges().isEmpty()) return;
         String uri     = params.getTextDocument().getUri();
+        System.err.println("[didChange] uri=" + uri);
         String content = settings.incrementalSync
                 ? IncrementalSyncApplier.apply(lastContent.get(uri),
                                                params.getContentChanges())
@@ -725,6 +752,31 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * <p>If the rename would introduce errors or the new name is invalid a
      * {@link ResponseErrorException} is propagated as a failed future so that
      * the LSP client receives a proper JSON-RPC error response.
+     *
+     * <p><b>WorkspaceEdit application — responsibility split</b>:
+     * The server returns a {@link WorkspaceEdit}; the <em>client</em> is
+     * responsible for applying it.  In the Eclipse plugin,
+     * {@code JmlRenameHandler.applyWorkspaceEditPreservingDirty} handles this:
+     * <ul>
+     *   <li>Files already open in any editor (active <em>or</em> non-active) —
+     *       edits are applied directly to the editor's live {@code IDocument}
+     *       buffer, marking the editor dirty.</li>
+     *   <li>Files not open in any editor — edits are written to disk via
+     *       {@code IFile.setContents} without opening a new editor window,
+     *       matching JDT refactoring behaviour.</li>
+     * </ul>
+     * The plugin does <em>not</em> delegate to
+     * {@code LSPEclipseUtils.applyWorkspaceEdit} because LSP4E only tracks
+     * documents for which it has sent {@code textDocument/didOpen} (i.e. the
+     * active editor); it would write non-active open editors to disk and may
+     * open unexpected new editor windows for closed files.
+     *
+     * <p><b>Server-side lastContent patch</b>:
+     * After computing the edit, the server immediately applies the same edits
+     * to any entries already in {@link #lastContent}.  Eclipse does not send
+     * {@code textDocument/didChange} after applying a server-initiated
+     * {@code WorkspaceEdit}, so without this patch the server's in-memory
+     * snapshot would be stale for the next navigation or check operation.
      */
     @Override
     public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
@@ -735,6 +787,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return ensureFreshAndConfirm(uri, "Rename").thenCompose(proceed -> {
             if (!proceed) return CompletableFuture.completedFuture(null);
             try {
+                System.err.println("[rename] lastContent URIs (" + lastContent.size() + "):");
+                lastContent.keySet().forEach(k -> System.err.println("[rename]   " + k));
                 WorkspaceEdit edit = Renamer.rename(
                         uri,
                         params.getPosition().getLine(),
@@ -743,6 +797,28 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         lastContent,
                         CheckRunner.getASTCache(),
                         settingsForUri(uri));
+                // Proactively update lastContent for open files modified by the rename.
+                // Eclipse (and some other clients) do not send textDocument/didChange
+                // after applying a server-initiated WorkspaceEdit, so the server must
+                // update its own snapshot to avoid serving stale content on the next check.
+                if (edit != null && edit.getChanges() != null) {
+                    System.err.println("[rename] WorkspaceEdit URIs (" + edit.getChanges().size() + "):");
+                    edit.getChanges().forEach((fileUri, edits) -> {
+                        boolean inLastContent = lastContent.containsKey(fileUri);
+                        System.err.println("[rename]   uri=" + fileUri + " edits=" + edits.size() + " inLastContent=" + inLastContent);
+                        // Do NOT patch lastContent for tracked files (inLastContent=true).
+                        // Tracked files will receive a textDocument/didChange from the client
+                        // computed against their pre-rename content.  If we patched here, the
+                        // subsequent didChange delta would be applied on top of the post-rename
+                        // content, double-applying the rename and corrupting the result
+                        // (e.g. "gzzmm" patched to "gzzmm", then delta [gzzx→gzzmm] applied
+                        // to "gzzmm" replaces "gzzm" leaving the trailing "m" → "gzzmmm").
+                        //
+                        // Non-tracked files (inLastContent=false) are skipped here because they
+                        // are not in lastContent; their content arrives via the didOpen/didChange
+                        // that the Eclipse client sends after applying the WorkspaceEdit.
+                    });
+                }
                 return CompletableFuture.completedFuture(edit);
             } catch (ResponseErrorException e) {
                 return CompletableFuture.failedFuture(e);
@@ -2652,6 +2728,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         // Clear the AST cache (both tiers and declaration indexes).
         CheckRunner.getASTCache().clear();
+        // Mark nav cache dirty so the next Rename/FindReferences triggers a fresh project check.
+        navCacheDirty = true;
 
         // Publish empty diagnostics for all marked URIs so stale markers disappear.
         List<String> toClean = new ArrayList<>(markedUris);
