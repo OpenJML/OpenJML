@@ -1,5 +1,6 @@
 package org.openjml.lsp.test;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import org.eclipse.lsp4j.launch.LSPLauncher;
@@ -144,7 +145,7 @@ public class LspProtocolTest {
         Path file = testdataFile("testDidOpenDiskFileTypeError/TypeErrDisk.java");
         String uri = file.toUri().toString();
 
-        openDocument(uri, Files.readString(file));
+        openDocumentFile(uri, Files.readString(file));
 
         JsonObject notification =
                 client.nextNotification("textDocument/publishDiagnostics",
@@ -165,7 +166,7 @@ public class LspProtocolTest {
         Path file = testdataFile("testDidOpenDiskFileClean/CleanDisk.java");
         String uri = file.toUri().toString();
 
-        openDocument(uri, Files.readString(file));
+        openDocumentFile(uri, Files.readString(file));
 
         JsonObject notification =
                 client.nextNotification("textDocument/publishDiagnostics",
@@ -267,6 +268,18 @@ public class LspProtocolTest {
         String params = "{\"textDocument\":{\"uri\":\"" + uri + "\","
                 + "\"languageId\":\"java\",\"version\":1,\"text\":\""
                 + source + "\"}}";
+        client.sendNotification("textDocument/didOpen", params);
+    }
+
+    /**
+     * Send textDocument/didOpen with disk-file content (which may contain
+     * characters that require JSON escaping such as {@code "} and newlines).
+     */
+    private void openDocumentFile(String uri, String source) throws Exception {
+        Gson gson = new Gson();
+        String params = "{\"textDocument\":{\"uri\":" + gson.toJson(uri) + ","
+                + "\"languageId\":\"java\",\"version\":1,\"text\":"
+                + gson.toJson(source) + "}}";
         client.sendNotification("textDocument/didOpen", params);
     }
 
