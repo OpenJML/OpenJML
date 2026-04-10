@@ -58,14 +58,14 @@ import org.eclipse.ui.handlers.HandlerUtil;
  *   <li>Method targets — dispatched individually via {@link #buildMethodCommand}.</li>
  * </ul>
  *
- * <p>All commands use a unified 4-element prefix:
+ * <p>All commands use a single-element prefix:
  * <pre>
- *   args[0]  sourcePath     (per-project JDT source folders + dependency sources)
- *   args[1]  classPath      (per-project JDT dependency output dirs + user pref)
- *   args[2]  specsPath      (global OpenJML specs path preference)
- *   args[3]  propertiesFile (fresh generated properties file from tool-option prefs)
+ *   args[0]  projectId  (Eclipse {@code IProject.getName()}, the server's registry key)
  * </pre>
- * Command-specific arguments follow at position 4+.
+ * Command-specific arguments follow at position 1+.  Per-project paths
+ * (sourcePath, classPath, specsPath, propertiesFile) are sent once to the server
+ * via the {@code projects} list in {@code initializationOptions} /
+ * {@code workspace/didChangeConfiguration}; the server looks them up by projectId.
  *
  * <p>Targets are grouped by owning Eclipse project, projects are sorted in
  * dependency order (so a dependency is processed before the projects that
@@ -273,15 +273,14 @@ public abstract class LspCommandHandler extends AbstractHandler {
     }
 
     /**
-     * Builds the 4-element fixed-prefix argument list
-     * {@code [sourcePath, classPath, specsPath, propertiesFile]} for {@code ctx}.
+     * Builds the single-element prefix argument list {@code [projectId]} for {@code ctx}.
+     * Per-project paths (sourcePath, classPath, etc.) are already known to the server
+     * via the {@code projects} list sent in {@code initializationOptions} /
+     * {@code workspace/didChangeConfiguration}.
      */
     protected static List<Object> prefixArgs(InvocationContext ctx) {
         List<Object> args = new ArrayList<>();
-        args.add(ctx.sourcePath()     != null ? ctx.sourcePath()     : "");
-        args.add(ctx.classPath()      != null ? ctx.classPath()      : "");
-        args.add(ctx.specsPath()      != null ? ctx.specsPath()      : "");
-        args.add(ctx.propertiesFile() != null ? ctx.propertiesFile() : "");
+        args.add(ctx.projectId() != null ? ctx.projectId() : "");
         return args;
     }
 
@@ -389,112 +388,49 @@ public abstract class LspCommandHandler extends AbstractHandler {
     // -----------------------------------------------------------------------
 
     /**
-     * All paths and settings needed for a single project's tool invocation.
+     * Per-project invocation context carried from target resolution to command dispatch.
      *
-     * @param sourcePath      project source folders + transitive dep source folders
-     * @param classPath       transitive dep output dirs + user classpath pref
-     * @param specsPath       global specs path preference
-     * @param propertiesFile  freshly written generated properties file (from tool-option prefs)
-     * @param outputDir       project JDT output folder (for RAC {@code -d})
+     * <p>Per-project paths (sourcePath, classPath, specsPath, propertiesFile) are now
+     * sent to the server via the {@code projects} list in {@code initializationOptions} /
+     * {@code workspace/didChangeConfiguration} and are no longer passed per-command.
+     * Commands carry only the {@code projectId}; the server performs the lookup.
+     *
+     * @param projectId  Eclipse {@code IProject.getName()} — server registry key
+     * @param outputDir  project JDT output folder (for RAC {@code -d}, kept here
+     *                   for backward compatibility with single-project VS Code flow)
      */
-    private record InvocationContext(
-            String sourcePath,
-            String classPath,
-            String specsPath,
-            String propertiesFile,
-            String outputDir) {}
+    private record InvocationContext(String projectId, String outputDir) {}
 
     /**
-     * Computes the {@link InvocationContext} for {@code project} using the JDT model
-     * and global OpenJML preferences.
+     * Computes the {@link InvocationContext} for {@code project}.
+     *
+     * <p>Per-project paths (sourcePath, classPath, specsPath, propertiesFile) are
+     * already known to the server via the {@code projects} list sent in
+     * {@code initializationOptions} / {@code workspace/didChangeConfiguration}.
+     * Only the {@code outputDir} (needed for RAC {@code -d}) is resolved here;
+     * it is retained in the context so {@link RunRac} can include it when needed.
      */
     private static InvocationContext resolveInvocationContext(IProject project) {
+        String outputDir = "";
         try {
             org.eclipse.jdt.core.IJavaProject jp =
                     org.eclipse.jdt.core.JavaCore.create(project);
-            if (jp == null || !jp.exists()) return emptyContext();
-
-            List<String> srcParts = new ArrayList<>();
-            List<String> cpParts  = new ArrayList<>();
-            collectJdtPaths(jp, srcParts, cpParts, new java.util.HashSet<>());
-
-            // Append user-configured classpath preference.
-            String prefCp = OpenJMLOptions.value(OpenJMLOptions.classPathKey);
-            if (prefCp != null && !prefCp.isBlank()) cpParts.add(prefCp);
-
-            // Project's own JDT output location (for RAC -d).
-            String outputDir = null;
-            org.eclipse.core.runtime.IPath outPath = jp.getOutputLocation();
-            org.eclipse.core.resources.IFolder outFolder =
-                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
-                            .getRoot().getFolder(outPath);
-            org.eclipse.core.runtime.IPath outLoc = outFolder.getLocation();
-            if (outLoc != null) outputDir = outLoc.toOSString();
-
-            // Global preferences.
-            String specsPath      = OpenJMLOptions.value(OpenJMLOptions.specsPathKey);
-            String propertiesFile = null;
-            java.nio.file.Path pf = OpenJMLOptions.writePropertiesFile();
-            if (pf != null) propertiesFile = pf.toString();
-
-            return new InvocationContext(
-                    String.join(java.io.File.pathSeparator, srcParts),
-                    String.join(java.io.File.pathSeparator, cpParts),
-                    specsPath      != null ? specsPath      : "",
-                    propertiesFile != null ? propertiesFile : "",
-                    outputDir      != null ? outputDir      : "");
+            if (jp != null && jp.exists()) {
+                org.eclipse.core.runtime.IPath outPath = jp.getOutputLocation();
+                org.eclipse.core.resources.IFolder outFolder =
+                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
+                                .getRoot().getFolder(outPath);
+                org.eclipse.core.runtime.IPath outLoc = outFolder.getLocation();
+                if (outLoc != null) outputDir = outLoc.toOSString();
+            }
         } catch (Exception e) {
             Console.log("resolveInvocationContext failed for " + project.getName() + ": " + e);
-            return emptyContext();
         }
+        return new InvocationContext(project.getName(), outputDir);
     }
 
     private static InvocationContext emptyContext() {
-        return new InvocationContext("", "", "", "", "");
-    }
-
-    /**
-     * Recursively collects source folders into {@code srcParts} and dependency
-     * output directories into {@code cpParts} for {@code jp}.
-     */
-    private static void collectJdtPaths(
-            org.eclipse.jdt.core.IJavaProject jp,
-            List<String> srcParts, List<String> cpParts,
-            Set<String> visited) throws Exception {
-
-        if (!visited.add(jp.getProject().getName())) return;
-
-        org.eclipse.core.resources.IWorkspaceRoot root =
-                org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
-
-        // This project's own source folders.
-        for (org.eclipse.jdt.core.IPackageFragmentRoot pfr : jp.getPackageFragmentRoots()) {
-            if (pfr.getKind() != org.eclipse.jdt.core.IPackageFragmentRoot.K_SOURCE) continue;
-            org.eclipse.core.resources.IResource res = pfr.getCorrespondingResource();
-            org.eclipse.core.runtime.IPath loc =
-                    res != null ? res.getLocation() : pfr.getPath();
-            if (loc != null) srcParts.add(loc.toOSString());
-        }
-
-        // Walk required projects for output dirs (classpath) and recurse for sources.
-        for (org.eclipse.jdt.core.IClasspathEntry entry
-                : jp.getResolvedClasspath(/* ignoreUnresolvedEntry= */ true)) {
-            if (entry.getEntryKind() != org.eclipse.jdt.core.IClasspathEntry.CPE_PROJECT) continue;
-            String depName = entry.getPath().lastSegment();
-            org.eclipse.core.resources.IProject depProject = root.getProject(depName);
-            org.eclipse.jdt.core.IJavaProject depJp =
-                    org.eclipse.jdt.core.JavaCore.create(depProject);
-            if (depJp == null || !depJp.exists()) continue;
-
-            // Dependency output location → classpath.
-            org.eclipse.core.runtime.IPath outputPath = depJp.getOutputLocation();
-            org.eclipse.core.resources.IFolder outputFolder = root.getFolder(outputPath);
-            org.eclipse.core.runtime.IPath outputLoc = outputFolder.getLocation();
-            if (outputLoc != null) cpParts.add(outputLoc.toOSString());
-
-            // Recurse so transitive dependency sources are included.
-            collectJdtPaths(depJp, srcParts, cpParts, visited);
-        }
+        return new InvocationContext("", "");
     }
 
     /**
@@ -864,7 +800,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
         @Override
         protected ExecuteCommandParams buildCommand(List<String> osPaths, InvocationContext ctx) {
             List<Object> args = prefixArgs(ctx);
-            args.add(ctx.outputDir() != null ? ctx.outputDir() : "");
+            // outputDir is in the per-project settings already known to the server;
+            // no need to pass it separately in the new single-prefix format.
             args.addAll(osPaths);
             return new ExecuteCommandParams(lspCommand, args);
         }

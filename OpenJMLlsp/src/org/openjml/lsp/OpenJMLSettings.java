@@ -2,6 +2,7 @@ package org.openjml.lsp;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * User-configurable settings for the OpenJML language server.
@@ -19,6 +20,95 @@ import java.util.List;
  * thread always see values written on the LSP dispatch thread.
  */
 public class OpenJMLSettings {
+
+    // -----------------------------------------------------------------------
+    // Per-project configuration
+    // -----------------------------------------------------------------------
+
+    /**
+     * Per-project configuration sent by the Eclipse plugin in
+     * {@code didChangeConfiguration}.  Each entry corresponds to one open
+     * Eclipse project that has the JML nature.
+     *
+     * <p>When this list is non-empty, the server maintains a per-project
+     * settings registry and ignores the global {@link #sourcePath},
+     * {@link #classPath} fields for source-path construction
+     * (those fields are irrelevant for multi-project clients).
+     *
+     * <p>Single-project clients (e.g. VS Code) do not send this list and
+     * continue to use the global fields.
+     */
+    public volatile List<ProjectConfig> projects;
+
+    /**
+     * Per-project filesystem root paths (path-separator-separated).
+     *
+     * <p>This field is set on <em>per-project</em> {@link OpenJMLSettings}
+     * instances built by
+     * {@link OpenJMLTextDocumentService#updateProjectSettings} — it is NOT
+     * serialized by the Eclipse plugin.  It holds only this project's own
+     * source folders (not dependency sources) so
+     * {@link OpenJMLTextDocumentService#settingsForUri} can map a file URI to
+     * the correct project.
+     */
+    public volatile String rootPaths;
+
+    /**
+     * Per-project configuration record.
+     *
+     * <p>Sent inside the {@link OpenJMLSettings#projects} list by the Eclipse
+     * plugin.  All path fields use the OS path separator (colon on Unix,
+     * semicolon on Windows).
+     */
+    public static class ProjectConfig {
+        /** Eclipse {@code IProject.getName()} — used as the lookup key. */
+        public String id;
+
+        /**
+         * This project's source folders plus its transitive dependency source
+         * folders, passed as {@code -sourcepath}.
+         */
+        public String sourcePath;
+
+        /**
+         * Classpath: transitive dependency output directories plus any
+         * user-configured classpath preference.
+         */
+        public String classPath;
+
+        /**
+         * OpenJML specs path ({@code --specs-path}).  Per-project because the
+         * default is derived from {@link #sourcePath}.
+         */
+        public String specsPath;
+
+        /**
+         * User-supplied {@code --properties} file path (may be {@code null}).
+         */
+        public String propertiesFile;
+
+        /**
+         * Auto-generated properties file built from the Eclipse preference
+         * page (may be {@code null}).
+         */
+        public String generatedPropertiesFile;
+
+        /**
+         * Output directory for RAC-compiled {@code .class} files
+         * ({@code -d}).  Set to the Eclipse project's JDT output folder.
+         */
+        public String outputDir;
+
+        /**
+         * This project's own source folders only (not dependency sources).
+         * Used by the server to map a file URI to its owning project.
+         */
+        public List<String> rootPaths;
+    }
+
+    // -----------------------------------------------------------------------
+    // Global / single-project fields
+    // -----------------------------------------------------------------------
 
     /**
      * Path to an OpenJML {@code .properties} file, passed as {@code --properties}.
@@ -46,6 +136,8 @@ public class OpenJMLSettings {
     /**
      * Source root(s) for resolving cross-file references, passed as
      * {@code -sourcepath}.  Colon-separated on Unix, semicolon on Windows.
+     * Used only by single-project clients (VS Code).  Ignored when
+     * {@link #projects} is non-empty.
      */
     public volatile String sourcePath;
 
@@ -53,42 +145,42 @@ public class OpenJMLSettings {
      * Workspace folder paths supplied by the editor at {@code initialize} time,
      * path-separator-separated.  Not part of the client JSON settings — set
      * programmatically by {@code OpenJMLLanguageServer.initialize()}.
-     * These are appended to the effective {@code -sourcepath} after any temp
-     * directory but before the user-supplied {@link #sourcePath}.
+     * Used only for single-project clients that do not send a {@link #projects}
+     * list; ignored when the registry is populated.
      */
     public volatile String workspaceFolderPaths;
 
     /**
-     * Explicit list of filesystem root paths for JML-relevant projects,
-     * path-separator-separated.  Supplied by the client in
-     * {@code initializationOptions} or {@code workspace/didChangeConfiguration}.
+     * Returns the effective list of root paths for JML work.
      *
-     * <p>When present, the server uses these paths in preference to
-     * {@link #workspaceFolderPaths} for workspace indexing, source-path
-     * construction, and file-change event filtering.
-     *
-     * <p>The Eclipse plugin populates this with the paths of all open projects
-     * that carry the JML nature.  Other clients should populate it with
-     * whatever project roots are JML-relevant.  If absent the server falls
-     * back to {@link #workspaceFolderPaths}.
-     */
-    public volatile String jmlWorkspaceRoots;
-
-    /**
-     * Returns the effective list of root paths for JML work:
-     * {@link #jmlWorkspaceRoots} if set, otherwise {@link #workspaceFolderPaths}.
-     * Returns an empty list if neither is set.
+     * <p>Priority order:
+     * <ol>
+     *   <li>Global settings with {@link #projects} list — union of all projects' rootPaths.</li>
+     *   <li>Per-project settings object — {@link #rootPaths} (this project's own source folders).</li>
+     *   <li>Single-project fallback — {@link #workspaceFolderPaths} (VS Code / generic clients).</li>
+     * </ol>
      */
     public List<String> effectiveRoots() {
-        String raw = (jmlWorkspaceRoots != null && !jmlWorkspaceRoots.isBlank())
-                ? jmlWorkspaceRoots : workspaceFolderPaths;
-        if (raw == null || raw.isBlank()) return List.of();
-        return Arrays.asList(raw.split(java.io.File.pathSeparator));
+        if (projects != null && !projects.isEmpty()) {
+            return projects.stream()
+                    .filter(p -> p.rootPaths != null)
+                    .flatMap(p -> p.rootPaths.stream())
+                    .filter(r -> r != null && !r.isBlank())
+                    .collect(Collectors.toList());
+        }
+        // Per-project settings object (built by updateProjectSettings).
+        if (rootPaths != null && !rootPaths.isBlank())
+            return Arrays.asList(rootPaths.split(java.io.File.pathSeparator));
+        // Single-project / VS Code client.
+        if (workspaceFolderPaths != null && !workspaceFolderPaths.isBlank())
+            return Arrays.asList(workspaceFolderPaths.split(java.io.File.pathSeparator));
+        return List.of();
     }
 
     /**
      * Classpath for pre-compiled dependencies, passed as {@code -classpath}.
      * Colon-separated on Unix, semicolon on Windows.
+     * Used only by single-project clients; ignored when {@link #projects} is non-empty.
      */
     public volatile String classPath;
 
@@ -200,6 +292,8 @@ public class OpenJMLSettings {
      * Output directory for {@code --rac}-compiled class files, passed as {@code -d}.
      * Relative paths are resolved against the workspace root.
      * {@code null} or empty means {@code rac-classes} in the workspace root.
+     * Used only by single-project clients; for Eclipse, outputDir is per-project
+     * inside {@link ProjectConfig#outputDir}.
      */
     public volatile String racOutputDir;
 
@@ -290,8 +384,8 @@ public class OpenJMLSettings {
         this.specsPath               = src.specsPath;
         this.solversPath             = src.solversPath;
         this.sourcePath              = src.sourcePath;
+        this.rootPaths               = src.rootPaths;
         this.workspaceFolderPaths    = src.workspaceFolderPaths;
-        this.jmlWorkspaceRoots       = src.jmlWorkspaceRoots;
         this.classPath               = src.classPath;
         this.useIntegratedOutline    = src.useIntegratedOutline;
         this.checkTriggerOn          = src.checkTriggerOn;
@@ -306,5 +400,6 @@ public class OpenJMLSettings {
         this.incrementalSync         = src.incrementalSync;
         this.javaMode                = src.javaMode;
         this.client                  = src.client;
+        // projects/rootPaths are not copied — per-project instances don't nest
     }
 }

@@ -76,65 +76,56 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
         CommandRegistry registry = new CommandRegistry();
 
-        // All commands share a fixed 4-element prefix:
-        //   args[0] sourcePath, args[1] classPath, args[2] specsPath, args[3] propertiesFile
-        // Command-specific arguments follow at position 4+.
+        // Eclipse plugin (new format): args[0] = projectId, args[1+] = paths/URIs.
+        // VS Code (old format):        args[0..3] = sourcePath/classPath/specsPath/propertiesFile,
+        //                              args[4+]   = paths/URIs.
+        // isNewFormat() distinguishes the two by checking whether args[0] is in the project registry.
 
         registry.on(OpenJMLCommands.CHECK_JML, args -> {
-            // [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]
-            List<String> paths = extractPaths(args, 4);
-            if (!paths.isEmpty()) textDocumentService.scheduleCheckForPaths(
-                    paths, str(args, 0), str(args, 1), str(args, 2), str(args, 3));
+            List<String> paths = cmdPaths(args);
+            if (!paths.isEmpty()) textDocumentService.scheduleCheckForPaths(paths, cmdProject(args));
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC, args -> {
-            // [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]
-            // A "path" that starts with "file://" is treated as a document URI and
-            // routed to scheduleEscForUri (so it works on in-memory content);
-            // all other paths are collected for a single scheduleEscForPaths call.
+            String proj = cmdProject(args);
             List<String> uris = new java.util.ArrayList<>();
             List<String> paths = new java.util.ArrayList<>();
-            for (String p : extractPaths(args, 4)) {
+            for (String p : cmdPaths(args)) {
                 if (p.startsWith("file://")) uris.add(p);
                 else paths.add(p);
             }
-            String src = str(args, 0), cp = str(args, 1),
-                   sp  = str(args, 2), pf = str(args, 3);
             for (String uri : uris)
-                textDocumentService.scheduleEscForUri(uri, src, cp, sp, pf);
+                textDocumentService.scheduleEscForUri(uri, proj);
             if (!paths.isEmpty())
-                textDocumentService.scheduleEscForPaths(paths, src, cp, sp, pf);
+                textDocumentService.scheduleEscForPaths(paths, proj);
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC_FOR_METHOD, args -> {
-            // [sourcePath, classPath, specsPath, propertiesFile, uri, methodFqn]
-            String uri    = str(args, 4);
-            String method = str(args, 5);
-            if (uri != null) textDocumentService.scheduleEscForMethod(
-                    uri, method, str(args, 0), str(args, 1), str(args, 2), str(args, 3));
+            // New: [projectId, uri, methodFqn]   Old: [src, cp, sp, pf, uri, methodFqn]
+            String proj   = cmdProject(args);
+            String uri    = isNewFormat(args) ? str(args, 1) : str(args, 4);
+            String method = isNewFormat(args) ? str(args, 2) : str(args, 5);
+            if (uri != null) textDocumentService.scheduleEscForMethod(uri, method, proj);
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC_SPLIT_BY_FILE, args -> {
-            List<String> paths = extractPaths(args, 4);
-            String src = str(args, 0), cp = str(args, 1),
-                   sp  = str(args, 2), pf = str(args, 3);
+            List<String> paths = cmdPaths(args);
             if (!paths.isEmpty())
-                textDocumentService.scheduleEscSplitByFile(paths, src, cp, sp, pf);
+                textDocumentService.scheduleEscSplitByFile(paths, cmdProject(args));
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC_SPLIT_BY_METHOD, args -> {
-            List<String> paths = extractPaths(args, 4);
-            String src = str(args, 0), cp = str(args, 1),
-                   sp  = str(args, 2), pf = str(args, 3);
+            List<String> paths = cmdPaths(args);
             if (!paths.isEmpty())
-                textDocumentService.scheduleEscSplitByMethod(paths, src, cp, sp, pf);
+                textDocumentService.scheduleEscSplitByMethod(paths, cmdProject(args));
             return null;
         });
         registry.on(OpenJMLCommands.RUN_RAC, args -> {
-            // [sourcePath, classPath, specsPath, propertiesFile, outputDir, path1, path2, ...]
-            List<String> paths = extractPaths(args, 5);
-            if (!paths.isEmpty()) textDocumentService.scheduleRacForPaths(
-                    paths, str(args, 0), str(args, 1), str(args, 2), str(args, 3), str(args, 4));
+            // New: [projectId, path1, ...]   Old: [src, cp, sp, pf, outputDir, path1, ...]
+            List<String> paths = isNewFormat(args) ? cmdPaths(args) : extractPaths(args, 5);
+            String proj = cmdProject(args);
+            String outputDir = isNewFormat(args) ? null : str(args, 4);
+            if (!paths.isEmpty()) textDocumentService.scheduleRacForPaths(paths, proj, outputDir);
             return null;
         });
 
@@ -153,7 +144,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 textDocumentService::symbols,
                 textDocumentService::handleWatchedJmlChange,
                 textDocumentService::handleWatchedJavaChange,
-                this::reregisterFileWatchers);
+                this::reregisterFileWatchers,
+                textDocumentService::updateProjectSettings);
     }
 
     @Override
@@ -258,7 +250,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     }
 
     /**
-     * Called when {@code jmlWorkspaceRoots} changes via {@code didChangeConfiguration}.
+     * Called when watched roots change via {@code didChangeConfiguration} (new projects
+     * list or updated {@code workspaceFolderPaths}).
      * Unregisters the current file watchers then immediately re-registers them.
      * The brief overlap window is harmless because all events are root-filtered.
      */
@@ -316,5 +309,38 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             if (p != null && !p.isEmpty()) result.add(p);
         }
         return result;
+    }
+
+    // -----------------------------------------------------------------------
+    // New-format vs old-format command argument helpers
+    // -----------------------------------------------------------------------
+
+    /**
+     * Returns {@code true} if {@code args} uses the new Eclipse format where
+     * {@code args[0]} is a project ID (a short name with no path separators).
+     *
+     * <p>Old VS Code format: {@code args[0]} is a sourcepath string containing
+     * {@code /} or {@code \} or {@code :} (path separator).
+     */
+    private boolean isNewFormat(java.util.List<?> args) {
+        if (args == null || args.isEmpty()) return false;
+        String first = str(args, 0);
+        if (first == null || first.isEmpty()) return false;
+        // A project ID never contains path characters; a sourcePath always does.
+        return !first.contains("/") && !first.contains("\\") && !first.contains(":")
+                && textDocumentService.isKnownProject(first);
+    }
+
+    /** Returns the project ID from a new-format command, or {@code null} for old-format. */
+    private String cmdProject(java.util.List<?> args) {
+        return isNewFormat(args) ? str(args, 0) : null;
+    }
+
+    /**
+     * Returns the path/URI arguments from a command, abstracting over format:
+     * index 1+ for new format, index 4+ for old format.
+     */
+    private List<String> cmdPaths(java.util.List<?> args) {
+        return isNewFormat(args) ? extractPaths(args, 1) : extractPaths(args, 4);
     }
 }

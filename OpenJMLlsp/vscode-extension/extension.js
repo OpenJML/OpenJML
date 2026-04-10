@@ -406,7 +406,7 @@ function getSettings() {
     const cfg = vscode.workspace.getConfiguration('openjml');
     const sep = process.platform === 'win32' ? ';' : ':';
     const folders = vscode.workspace.workspaceFolders || [];
-    const jmlWorkspaceRoots = folders.map(f => f.uri.fsPath).join(sep);
+    const workspaceFolderPaths = folders.map(f => f.uri.fsPath).join(sep);
     return {
         checkTriggerOn:          cfg.get('checkTriggerOn',          'edit'),
         escTriggerOn:            cfg.get('escTriggerOn',            'manual'),
@@ -421,7 +421,7 @@ function getSettings() {
         escThreads:              cfg.get('escThreads',              5),
         useIntegratedOutline:    cfg.get('useIntegratedOutline',    true),
         client:                  'vscode-java',
-        jmlWorkspaceRoots:       jmlWorkspaceRoots,
+        workspaceFolderPaths:    workspaceFolderPaths,
     };
 }
 
@@ -732,16 +732,16 @@ async function activate(context) {
     );
 
     // When workspace folders are added or removed, notify the server so it can
-    // update its jmlWorkspaceRoots and re-register file watchers accordingly.
+    // update its workspaceFolderPaths and re-register file watchers accordingly.
     // Workspace folders are not part of openjml.* config, so we send manually.
     context.subscriptions.push(
         vscode.workspace.onDidChangeWorkspaceFolders(() => {
             if (!client) return;
             const sep = process.platform === 'win32' ? ';' : ':';
             const folders = vscode.workspace.workspaceFolders || [];
-            const roots = folders.map(f => f.uri.fsPath).join(sep);
+            const paths = folders.map(f => f.uri.fsPath).join(sep);
             client.sendNotification('workspace/didChangeConfiguration', {
-                settings: { openjml: { jmlWorkspaceRoots: roots } }
+                settings: { openjml: { workspaceFolderPaths: paths } }
             });
         })
     );

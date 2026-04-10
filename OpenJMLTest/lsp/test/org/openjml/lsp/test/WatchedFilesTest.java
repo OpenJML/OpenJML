@@ -17,10 +17,10 @@ import static org.junit.Assert.*;
 /**
  * Tests for the {@code workspace/didChangeWatchedFiles} infrastructure:
  * <ul>
- *   <li>{@link OpenJMLSettings#effectiveRoots()} — picks {@code jmlWorkspaceRoots}
- *       over {@code workspaceFolderPaths}, falls back gracefully.</li>
- *   <li>{@link OpenJMLSettings} copy constructor includes {@code jmlWorkspaceRoots}.</li>
- *   <li>{@link OpenJMLWorkspaceService#didChangeConfiguration} — {@code jmlWorkspaceRoots}
+ *   <li>{@link OpenJMLSettings#effectiveRoots()} — uses {@code workspaceFolderPaths},
+ *       falls back gracefully when absent.</li>
+ *   <li>{@link OpenJMLSettings} copy constructor includes {@code workspaceFolderPaths}.</li>
+ *   <li>{@link OpenJMLWorkspaceService#didChangeConfiguration} — {@code workspaceFolderPaths}
  *       change triggers the watcher-reregistrar; unchanged value does not.</li>
  *   <li>{@link OpenJMLWorkspaceService#didChangeWatchedFiles} — routes {@code .jml} and
  *       {@code .java} events to the correct handlers, and filters events outside the
@@ -51,7 +51,8 @@ public class WatchedFilesTest {
             svc = new OpenJMLWorkspaceService(settings, null, null,
                     (uri, type) -> jmlCalls.add(new String[]{uri, type.toString()}),
                     (uri, type) -> javaCalls.add(new String[]{uri, type.toString()}),
-                    reregistrations::incrementAndGet);
+                    reregistrations::incrementAndGet,
+                    null);
         }
     }
 
@@ -68,10 +69,9 @@ public class WatchedFilesTest {
     // -----------------------------------------------------------------------
 
     @Test
-    public void effectiveRootsUsesJmlWorkspaceRootsWhenSet() {
+    public void effectiveRootsUsesWorkspaceFolderPaths() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.jmlWorkspaceRoots    = "/a" + SEP + "/b";
-        s.workspaceFolderPaths = "/c";
+        s.workspaceFolderPaths = "/a" + SEP + "/b";
         List<String> roots = s.effectiveRoots();
         assertEquals(2, roots.size());
         assertEquals("/a", roots.get(0));
@@ -79,49 +79,34 @@ public class WatchedFilesTest {
     }
 
     @Test
-    public void effectiveRootsFallsBackToWorkspaceFolderPaths() {
+    public void effectiveRootsEmptyWhenWorkspaceFolderPathsNull() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.jmlWorkspaceRoots    = null;
-        s.workspaceFolderPaths = "/x" + SEP + "/y";
-        List<String> roots = s.effectiveRoots();
-        assertEquals(2, roots.size());
-        assertEquals("/x", roots.get(0));
-        assertEquals("/y", roots.get(1));
-    }
-
-    @Test
-    public void effectiveRootsEmptyWhenBothNull() {
-        OpenJMLSettings s = new OpenJMLSettings();
-        s.jmlWorkspaceRoots    = null;
         s.workspaceFolderPaths = null;
         assertTrue(s.effectiveRoots().isEmpty());
     }
 
     @Test
-    public void effectiveRootsIgnoresBlankJmlWorkspaceRoots() {
+    public void effectiveRootsEmptyWhenWorkspaceFolderPathsBlank() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.jmlWorkspaceRoots    = "   ";
-        s.workspaceFolderPaths = "/fallback";
-        List<String> roots = s.effectiveRoots();
-        assertEquals(1, roots.size());
-        assertEquals("/fallback", roots.get(0));
+        s.workspaceFolderPaths = "   ";
+        assertTrue(s.effectiveRoots().isEmpty());
     }
 
     // -----------------------------------------------------------------------
-    // Copy constructor includes jmlWorkspaceRoots
+    // Copy constructor includes workspaceFolderPaths
     // -----------------------------------------------------------------------
 
     @Test
-    public void copyConstructorCopiesJmlWorkspaceRoots() {
+    public void copyConstructorCopiesWorkspaceFolderPaths() {
         OpenJMLSettings orig = new OpenJMLSettings();
-        orig.jmlWorkspaceRoots = "/proj/a" + SEP + "/proj/b";
+        orig.workspaceFolderPaths = "/proj/a" + SEP + "/proj/b";
 
         OpenJMLSettings copy = new OpenJMLSettings(orig);
-        assertEquals(orig.jmlWorkspaceRoots, copy.jmlWorkspaceRoots);
+        assertEquals(orig.workspaceFolderPaths, copy.workspaceFolderPaths);
 
         // Mutation of copy must not affect original.
-        copy.jmlWorkspaceRoots = "/other";
-        assertEquals("/proj/a" + SEP + "/proj/b", orig.jmlWorkspaceRoots);
+        copy.workspaceFolderPaths = "/other";
+        assertEquals("/proj/a" + SEP + "/proj/b", orig.workspaceFolderPaths);
     }
 
     // -----------------------------------------------------------------------
@@ -131,10 +116,10 @@ public class WatchedFilesTest {
     @Test
     public void applyUpdateTriggersReregistrarOnRootsChange() {
         TestSetup ts = new TestSetup();
-        ts.settings.jmlWorkspaceRoots = "/old";
+        ts.settings.workspaceFolderPaths = "/old";
 
-        // Send didChangeConfiguration with a new jmlWorkspaceRoots value.
-        String json = "{\"openjml\":{\"jmlWorkspaceRoots\":\"/new\"}}";
+        // Send didChangeConfiguration with a new workspaceFolderPaths value.
+        String json = "{\"openjml\":{\"workspaceFolderPaths\":\"/new\"}}";
         org.eclipse.lsp4j.DidChangeConfigurationParams params =
                 new org.eclipse.lsp4j.DidChangeConfigurationParams(
                         com.google.gson.JsonParser.parseString(json));
@@ -142,15 +127,15 @@ public class WatchedFilesTest {
 
         assertEquals("Reregistrar must be called once when roots change",
                 1, ts.reregistrations.get());
-        assertEquals("/new", ts.settings.jmlWorkspaceRoots);
+        assertEquals("/new", ts.settings.workspaceFolderPaths);
     }
 
     @Test
     public void applyUpdateDoesNotTriggerReregistrarWhenRootsUnchanged() {
         TestSetup ts = new TestSetup();
-        ts.settings.jmlWorkspaceRoots = "/same";
+        ts.settings.workspaceFolderPaths = "/same";
 
-        String json = "{\"openjml\":{\"jmlWorkspaceRoots\":\"/same\"}}";
+        String json = "{\"openjml\":{\"workspaceFolderPaths\":\"/same\"}}";
         org.eclipse.lsp4j.DidChangeConfigurationParams params =
                 new org.eclipse.lsp4j.DidChangeConfigurationParams(
                         com.google.gson.JsonParser.parseString(json));
@@ -163,16 +148,16 @@ public class WatchedFilesTest {
     @Test
     public void applyUpdateDoesNotTriggerReregistrarWhenRootsAbsent() {
         TestSetup ts = new TestSetup();
-        ts.settings.jmlWorkspaceRoots = "/existing";
+        ts.settings.workspaceFolderPaths = "/existing";
 
-        // JSON that does NOT include jmlWorkspaceRoots.
+        // JSON that does NOT include workspaceFolderPaths.
         String json = "{\"openjml\":{\"specsPath\":\"/specs\"}}";
         org.eclipse.lsp4j.DidChangeConfigurationParams params =
                 new org.eclipse.lsp4j.DidChangeConfigurationParams(
                         com.google.gson.JsonParser.parseString(json));
         ts.svc.didChangeConfiguration(params);
 
-        assertEquals("Reregistrar must NOT be called when jmlWorkspaceRoots is absent from update",
+        assertEquals("Reregistrar must NOT be called when workspaceFolderPaths is absent from update",
                 0, ts.reregistrations.get());
     }
 
@@ -215,7 +200,7 @@ public class WatchedFilesTest {
     public void didChangeWatchedFilesFiltersOutOfRootFile() {
         TestSetup ts = new TestSetup();
         // Root is /proj; file is outside /proj.
-        ts.settings.jmlWorkspaceRoots = File.separator + "proj";
+        ts.settings.workspaceFolderPaths = File.separator + "proj";
 
         fireEvent(ts.svc, "file:///other/Foo.java", FileChangeType.Created);
 
@@ -227,7 +212,6 @@ public class WatchedFilesTest {
     public void didChangeWatchedFilesAcceptsAllWhenRootsEmpty() {
         TestSetup ts = new TestSetup();
         // No roots configured — all files accepted.
-        ts.settings.jmlWorkspaceRoots    = null;
         ts.settings.workspaceFolderPaths = null;
 
         fireEvent(ts.svc, "file:///anywhere/Foo.java", FileChangeType.Deleted);

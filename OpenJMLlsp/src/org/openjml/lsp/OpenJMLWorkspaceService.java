@@ -16,6 +16,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -38,6 +39,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final BiConsumer<String, FileChangeType> jmlFileChangeHandler;
     private final BiConsumer<String, FileChangeType> javaFileChangeHandler;
     private final Runnable watcherReregistrar;
+    private final Consumer<List<OpenJMLSettings.ProjectConfig>> projectConfigUpdater;
 
     /**
      * @param settings              shared settings object (mutated by didChangeConfiguration)
@@ -46,21 +48,25 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
      *                              returns matching {@link SymbolInformation} list
      * @param jmlFileChangeHandler  called when a watched {@code .jml} file changes on disk
      * @param javaFileChangeHandler called when a watched {@code .java} file is created/deleted on disk
-     * @param watcherReregistrar    called when {@code jmlWorkspaceRoots} changes so file watchers
+     * @param watcherReregistrar    called when the effective roots change so file watchers
      *                              are re-registered with the updated scope
+     * @param projectConfigUpdater  called with the parsed project list whenever
+     *                              {@code didChangeConfiguration} carries a {@code projects} entry
      */
     public OpenJMLWorkspaceService(OpenJMLSettings settings,
                                    CommandRegistry commands,
                                    Function<String, List<SymbolInformation>> symbolsRequester,
                                    BiConsumer<String, FileChangeType> jmlFileChangeHandler,
                                    BiConsumer<String, FileChangeType> javaFileChangeHandler,
-                                   Runnable watcherReregistrar) {
+                                   Runnable watcherReregistrar,
+                                   Consumer<List<OpenJMLSettings.ProjectConfig>> projectConfigUpdater) {
         this.settings               = settings;
         this.commands               = commands;
         this.symbolsRequester       = symbolsRequester;
         this.jmlFileChangeHandler   = jmlFileChangeHandler;
         this.javaFileChangeHandler  = javaFileChangeHandler;
         this.watcherReregistrar     = watcherReregistrar;
+        this.projectConfigUpdater   = projectConfigUpdater;
     }
 
     @Override
@@ -128,10 +134,16 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
             settings.escPool = java.util.concurrent.Executors.newFixedThreadPool(src.escThreads);
             old.shutdown();
         }
-        // If jmlWorkspaceRoots changed, re-register file watchers with the new scope.
-        if (src.jmlWorkspaceRoots != null
-                && !src.jmlWorkspaceRoots.equals(settings.jmlWorkspaceRoots)) {
-            settings.jmlWorkspaceRoots = src.jmlWorkspaceRoots;
+        // Per-project configs: update the project registry and re-register file watchers.
+        if (src.projects != null) {
+            settings.projects = src.projects;
+            if (projectConfigUpdater != null) projectConfigUpdater.accept(src.projects);
+            if (watcherReregistrar != null) watcherReregistrar.run();
+        }
+        // Single-project clients (VS Code) update workspaceFolderPaths via didChangeConfiguration.
+        if (src.workspaceFolderPaths != null
+                && !src.workspaceFolderPaths.equals(settings.workspaceFolderPaths)) {
+            settings.workspaceFolderPaths = src.workspaceFolderPaths;
             if (watcherReregistrar != null) watcherReregistrar.run();
         }
     }

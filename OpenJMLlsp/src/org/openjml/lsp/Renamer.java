@@ -74,12 +74,20 @@ public class Renamer {
         List<Location> refs = ReferenceFinder.findReferences(
                 uri, line, col, openContent, cache, /* includeDeclaration= */ true);
 
+        System.err.println("[Renamer.computeRefsAndEdits] refs found (" + refs.size() + "):");
+        refs.forEach(loc -> System.err.println("[Renamer]   ref: " + loc.getUri()
+                + " " + loc.getRange().getStart().getLine()
+                + ":" + loc.getRange().getStart().getCharacter()));
+
         Map<String, List<TextEdit>> edits = new HashMap<>();
         for (Location loc : refs) {
             Range r = loc.getRange();
             TextEdit edit = new TextEdit(r, newName);
             edits.computeIfAbsent(loc.getUri(), k -> new ArrayList<>()).add(edit);
         }
+
+        System.err.println("[Renamer.computeRefsAndEdits] edits by URI (" + edits.size() + "):");
+        edits.forEach((u, list) -> System.err.println("[Renamer]   edits: " + u + " (" + list.size() + ")"));
 
         // Sort each list descending: higher line first, then higher character first.
         Comparator<TextEdit> descending = Comparator
@@ -165,14 +173,53 @@ public class Renamer {
                     null));
         }
 
-        // 3. Apply edits to build modified sources.
+        // 3. Build a complete project content map: all files in the nav cache that
+        // belong to the same project as the cursor (scoped by project roots), reading
+        // non-open files from disk.  Open/in-memory content takes precedence.
+        List<String> projectRoots = OpenJMLTextDocumentService.rootsForUri(
+                uri, settings.effectiveRoots());
+        Map<String, String> completeContent = new HashMap<>();
+        cache.forEachNav((navUri, navEntry) -> {
+            // Always include files that carry rename edits (cross-project references).
+            // For other files, apply the project root filter if one is set.
+            if (!projectRoots.isEmpty()
+                    && !isUnderRoots(navUri, projectRoots)
+                    && !editsByUri.containsKey(navUri)) return;
+            String content = openContent.get(navUri);
+            if (content == null) {
+                String path = CheckRunner.uriToPath(navUri);
+                if (path != null) {
+                    try { content = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
+                    catch (Exception ignored) {}
+                }
+            }
+            if (content != null) completeContent.put(navUri, content);
+        });
+        // Also include any open files in the project not covered by the nav cache,
+        // and any open files that carry rename edits (cross-project references).
+        openContent.forEach((openUri, openSrc) -> {
+            if (projectRoots.isEmpty() || isUnderRoots(openUri, projectRoots)
+                    || editsByUri.containsKey(openUri))
+                completeContent.put(openUri, openSrc);
+        });
+
+        // Apply edits to build modified sources (over the complete content map).
+        // If a file has edits but is not in completeContent (e.g. a companion .jml
+        // that is not a nav cache entry and not currently open), read it from disk.
         Map<String, String> modifiedSources = new HashMap<>();
         for (Map.Entry<String, List<TextEdit>> entry : editsByUri.entrySet()) {
             String fileUri = entry.getKey();
-            String originalSource = openContent.get(fileUri);
-            if (originalSource == null) continue;
-            String modified = applyEdits(originalSource, entry.getValue());
-            modifiedSources.put(fileUri, modified);
+            String originalSource = completeContent.get(fileUri);
+            if (originalSource == null) {
+                String path = CheckRunner.uriToPath(fileUri);
+                if (path != null) {
+                    try { originalSource = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
+                    catch (Exception ignored) {}
+                }
+                if (originalSource == null) continue;
+                completeContent.put(fileUri, originalSource);
+            }
+            modifiedSources.put(fileUri, applyEdits(originalSource, entry.getValue()));
         }
 
         // 4. Validate: check that the rename does not INTRODUCE new errors.
@@ -183,16 +230,43 @@ public class Renamer {
         // disappear (e.g., "overrides without 'also'") while new errors appear at
         // the same time (keeping total count equal but hiding a real problem).
         // We also reuse the fresh AST produced here for the stability check below.
-        long baselineErrors = CheckRunner.checkModifiedFiles(openContent, settings).stream()
+        System.err.println("[Renamer] completeContent files (" + completeContent.size() + "):");
+        completeContent.forEach((k, v) -> System.err.println("[Renamer]   BEFORE " + k + " (" + v.length() + " chars)"));
+        System.err.println("[Renamer] modifiedSources files (" + modifiedSources.size() + "):");
+        modifiedSources.forEach((k, v) -> System.err.println("[Renamer]   AFTER " + k + " (" + v.length() + " chars)"));
+
+        List<org.eclipse.lsp4j.Diagnostic> baselineDiags =
+                CheckRunner.checkModifiedFiles(completeContent, settings);
+        long baselineErrors = baselineDiags.stream()
                 .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
                 .count();
-        Map<String, String> allSources = new HashMap<>(openContent);
+        System.err.println("[Renamer] baseline errors: " + baselineErrors);
+        baselineDiags.stream()
+                .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
+                .forEach(d -> {
+                    var m = d.getMessage();
+                    System.err.println("[Renamer]   baseline error: "
+                            + (m.isLeft() ? m.getLeft() : m.getRight().getValue())
+                            + " source=" + d.getSource());
+                });
+
+        Map<String, String> allSources = new HashMap<>(completeContent);
         allSources.putAll(modifiedSources);
         CheckRunner.CheckAndCacheResult checkResult =
                 CheckRunner.checkModifiedFilesAndGetCache(allSources, settings);
         long afterErrors = checkResult.diagnostics().stream()
                 .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
                 .count();
+        System.err.println("[Renamer] after-rename errors: " + afterErrors);
+        checkResult.diagnostics().stream()
+                .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
+                .forEach(d -> {
+                    var m = d.getMessage();
+                    System.err.println("[Renamer]   after error: "
+                            + (m.isLeft() ? m.getLeft() : m.getRight().getValue())
+                            + " source=" + d.getSource());
+                });
+
         if (afterErrors > baselineErrors) {
             org.eclipse.lsp4j.Diagnostic d = checkResult.diagnostics().stream()
                     .filter(di -> di.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
@@ -291,26 +365,6 @@ public class Renamer {
         if (uri.endsWith(".jml")) return;
 
         ASTCache freshCache = checkResult.cache();
-        Map<String, String> tempPathToRealUri = checkResult.tempPathToRealUri();
-
-        // Build reverse map: real URI → temp absolute path.
-        Map<String, String> realUriToTempPath = new HashMap<>();
-        for (Map.Entry<String, String> e : tempPathToRealUri.entrySet()) {
-            realUriToTempPath.put(e.getValue(), e.getKey());
-        }
-
-        // Build content map keyed by temp absolute path (for findReferences).
-        // allSources is keyed by real URIs; we need temp-path keys to match
-        // the fresh cache entries.
-        Map<String, String> tempContentMap = new HashMap<>();
-        for (Map.Entry<String, String> e : allSources.entrySet()) {
-            String tempPath = realUriToTempPath.get(e.getKey());
-            if (tempPath != null) tempContentMap.put(tempPath, e.getValue());
-        }
-
-        // Locate the cursor's temp path.
-        String tempCursorPath = realUriToTempPath.get(uri);
-        if (tempCursorPath == null) return; // no cache entry — skip check
 
         // Compute the shifted cursor position: renames don't add newlines, so
         // only the column shifts for each edit on the same line before the cursor.
@@ -331,19 +385,40 @@ public class Renamer {
         }
 
         // Find references to the renamed symbol in the modified compilation.
+        // freshCache and allSources are both keyed by real URIs, so use uri directly.
+        System.err.println("[Renamer.verifyReferenceStability] uri=" + uri
+                + " shiftedLine=" + shiftedLine + " shiftedCol=" + shiftedCol
+                + " delta=" + delta + " newName=" + newName);
+        System.err.println("[Renamer.verifyReferenceStability] freshCache nav keys:");
+        freshCache.forEachNav((k, v) -> System.err.println("[Renamer]   navKey=" + k));
+        System.err.println("[Renamer.verifyReferenceStability] allSources keys:");
+        allSources.forEach((k, v) -> System.err.println("[Renamer]   srcKey=" + k + " (" + v.length() + " chars)"));
+        // Log what text appears near the shifted cursor in the modified source.
+        String cursorSrc = allSources.get(uri);
+        if (cursorSrc != null) {
+            int cursorOffset = DefinitionFinder.lineColToOffset(cursorSrc, shiftedLine, shiftedCol);
+            int from = Math.max(0, cursorOffset - 20);
+            int to   = Math.min(cursorSrc.length(), cursorOffset + 20);
+            System.err.println("[Renamer.verifyReferenceStability] text near cursor: '"
+                    + cursorSrc.substring(from, to).replace("\n", "\\n") + "' (offset=" + cursorOffset + ")");
+        } else {
+            System.err.println("[Renamer.verifyReferenceStability] uri not found in allSources");
+        }
         List<Location> afterRefs = ReferenceFinder.findReferences(
-                tempCursorPath, shiftedLine, shiftedCol,
-                tempContentMap, freshCache, /* includeDeclaration= */ true);
+                uri, shiftedLine, shiftedCol,
+                allSources, freshCache, /* includeDeclaration= */ true);
+
+        System.err.println("[Renamer.verifyReferenceStability] afterRefs (" + afterRefs.size() + "):");
+        afterRefs.forEach(loc -> System.err.println("[Renamer]   afterRef: " + loc.getUri()
+                + " " + loc.getRange().getStart().getLine()
+                + ":" + loc.getRange().getStart().getCharacter()));
 
         // Count only .java references on each side for the fast-fail comparison.
         // .jml companion files are excluded (see comment above).
         long beforeJavaCount = beforeRefs.stream()
                 .filter(l -> !l.getUri().endsWith(".jml")).count();
         long afterJavaCount  = afterRefs.stream()
-                .filter(l -> {
-                    String real = tempPathToRealUri.getOrDefault(l.getUri(), l.getUri());
-                    return !real.endsWith(".jml");
-                }).count();
+                .filter(l -> !l.getUri().endsWith(".jml")).count();
 
         // Fast-fail: different reference count → capture or loss detected.
         if (afterJavaCount != beforeJavaCount) {
@@ -360,14 +435,14 @@ public class Renamer {
         // fresh pass, so they would produce a spurious count mismatch.
         Set<String> expectedKeys = new HashSet<>();
         for (Location loc : beforeRefs) {
-            String realUri = loc.getUri();
-            if (realUri.endsWith(".jml")) continue;
+            String refUri = loc.getUri();
+            if (refUri.endsWith(".jml")) continue;
             int refLine = loc.getRange().getStart().getLine();
             int refCol  = loc.getRange().getStart().getCharacter();
 
             int shift = 0;
             if (delta != 0) {
-                List<TextEdit> editsForUri = editsByUri.get(realUri);
+                List<TextEdit> editsForUri = editsByUri.get(refUri);
                 if (editsForUri != null) {
                     int k = 0;
                     for (TextEdit e : editsForUri) {
@@ -377,19 +452,18 @@ public class Renamer {
                     shift = k * delta;
                 }
             }
-            expectedKeys.add(realUri + ":" + refLine + ":" + (refCol + shift));
+            expectedKeys.add(refUri + ":" + refLine + ":" + (refCol + shift));
         }
 
-        // Build actual position set: afterRef positions mapped to real URIs.
+        // Build actual position set from afterRefs.
+        // afterRefs locations use real URIs (freshCache is keyed by real URIs).
         // Skip .jml refs (see comment above).
         Set<String> afterKeys = new HashSet<>();
         for (Location loc : afterRefs) {
-            // loc.getUri() is a temp absolute path (matching tempPathToRealUri keys).
-            String realUri = tempPathToRealUri.getOrDefault(loc.getUri(), loc.getUri());
-            if (realUri.endsWith(".jml")) continue;
+            if (loc.getUri().endsWith(".jml")) continue;
             int refLine = loc.getRange().getStart().getLine();
             int refCol  = loc.getRange().getStart().getCharacter();
-            afterKeys.add(realUri + ":" + refLine + ":" + refCol);
+            afterKeys.add(loc.getUri() + ":" + refLine + ":" + refCol);
         }
 
         if (!afterKeys.equals(expectedKeys)) {
@@ -409,6 +483,19 @@ public class Renamer {
      * Returns {@code true} if {@code name} is a non-empty Java identifier that
      * is not a keyword or boolean/null literal.
      */
+    /** Returns true if the given URI falls under any of the given OS-path roots. */
+    private static boolean isUnderRoots(String uri, List<String> roots) {
+        String filePath;
+        try { filePath = java.net.URI.create(uri).getPath(); }
+        catch (Exception e) { return false; }
+        String sep = java.io.File.separator;
+        for (String root : roots) {
+            String r = root.endsWith(sep) ? root : root + sep;
+            if (filePath.startsWith(r)) return true;
+        }
+        return false;
+    }
+
     private static boolean isValidJavaIdentifier(String name) {
         if (name == null || name.isEmpty()) return false;
         if (JAVA_KEYWORDS.contains(name)) return false;

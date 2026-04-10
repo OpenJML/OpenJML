@@ -12,6 +12,7 @@ import org.openjml.lsp.OpenJMLCommands;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
@@ -143,7 +144,7 @@ public class LspProtocolTest {
         Path file = testdataFile("testDidOpenDiskFileTypeError/TypeErrDisk.java");
         String uri = file.toUri().toString();
 
-        openDocument(uri, "");  // content ignored — server reads from disk
+        openDocument(uri, Files.readString(file));
 
         JsonObject notification =
                 client.nextNotification("textDocument/publishDiagnostics",
@@ -164,7 +165,7 @@ public class LspProtocolTest {
         Path file = testdataFile("testDidOpenDiskFileClean/CleanDisk.java");
         String uri = file.toUri().toString();
 
-        openDocument(uri, "");  // content ignored — server reads from disk
+        openDocument(uri, Files.readString(file));
 
         JsonObject notification =
                 client.nextNotification("textDocument/publishDiagnostics",

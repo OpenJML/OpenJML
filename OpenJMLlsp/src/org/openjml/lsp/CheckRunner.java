@@ -304,6 +304,12 @@ public class CheckRunner {
         IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
             String jfoUri = jfo.toUri().normalize().toString();
             String realUri = normToReal.getOrDefault(jfoUri, jfoUri);
+            try {
+                String astSrcUri = ((org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast)
+                        .sourcefile.toUri().normalize().toString();
+                System.err.println("[AST listener] jfo=" + jfoUri
+                        + (jfoUri.equals(astSrcUri) ? "" : " ast.sourcefile=" + astSrcUri));
+            } catch (Exception ignored) {}
             AST_CACHE.putNav(realUri, astCtx, (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast);
         };
         api.setASTListener(astListener);
@@ -826,8 +832,12 @@ public class CheckRunner {
                 java.net.URI fileUri = java.net.URI.create(e.getKey());
                 MockJavaFileObject jfo = new MockJavaFileObject(fileUri, e.getValue());
                 mockFiles.addMockByUri(fileUri.normalize(), jfo);
-                fileArgToRealUri.put(jfo.getName(), e.getKey());
-                filePaths.add(jfo.getName());
+                // .jml files must be in MockFiles so OpenJML finds them as companion specs,
+                // but must NOT be on the command line — OpenJML rejects .jml as explicit args.
+                if (!e.getKey().endsWith(".jml")) {
+                    fileArgToRealUri.put(jfo.getName(), e.getKey());
+                    filePaths.add(jfo.getName());
+                }
             }
             // With MockFiles, modified content is served in-memory; no temp dir is needed
             // and MockAwareFileManager intercepts lookups before reaching the sourcepath,
@@ -861,12 +871,16 @@ public class CheckRunner {
             tempDir = Files.createTempDirectory("openjml-lsp-rename-");
 
             // Write all modified files at their package-relative paths and record the mapping.
+            // .jml files are written to the temp dir so OpenJML discovers them as companion
+            // specs, but are NOT added to filePaths — OpenJML rejects .jml as explicit args.
             Map<String, String> tempPathToRealUri = new java.util.LinkedHashMap<>();
             List<String> filePaths = new ArrayList<>();
             for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
                 Path p = writeToTempDir(tempDir, e.getKey(), e.getValue());
-                tempPathToRealUri.put(p.toString(), e.getKey());
-                filePaths.add(p.toString());
+                if (!e.getKey().endsWith(".jml")) {
+                    tempPathToRealUri.put(p.toString(), e.getKey());
+                    filePaths.add(p.toString());
+                }
             }
 
             // Use tempDir as the sole sourcepath entry.  All modified files have already
@@ -949,14 +963,21 @@ public class CheckRunner {
         if (useMockFiles) {
             org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
             Map<String, String> fileArgToRealUri = new java.util.LinkedHashMap<>();
-            List<String> filePaths = new ArrayList<>();
             for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
                 java.net.URI fileUri = java.net.URI.create(e.getKey());
                 MockJavaFileObject jfo = new MockJavaFileObject(fileUri, e.getValue());
                 mockFiles.addMockByUri(fileUri.normalize(), jfo);
-                fileArgToRealUri.put(jfo.getName(), e.getKey());
-                filePaths.add(jfo.getName());
+                // .jml files must be in MockFiles so OpenJML finds them as companion specs,
+                // but must NOT be on the command line — OpenJML rejects .jml as explicit args.
+                if (!e.getKey().endsWith(".jml"))
+                    fileArgToRealUri.put(jfo.getName(), e.getKey());
             }
+            System.err.println("[CheckRunner.checkModifiedFilesAndGetCache/mock] fileArgToRealUri keys:");
+            fileArgToRealUri.forEach((k, v) -> System.err.println("[CheckRunner]   jfoName='" + k + "' -> realUri='" + v + "'"));
+            // Pass individual files so the IASTListener fires for each compiled file.
+            // The -sourcepath handles cross-file resolution; MockAwareFileManager serves
+            // modified content for files in modifiedContent, real disk for everything else.
+            List<String> filePaths = new ArrayList<>(fileArgToRealUri.keySet());
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
             modifiedSettings.sourcePath  = buildEffectiveSourcePath(null, settings);
             modifiedSettings.specsPath   = buildEffectiveSpecsPath(null, settings);
@@ -968,8 +989,12 @@ public class CheckRunner {
             ASTCache freshCache = new ASTCache();
             IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
                 String jfoPath = jfo.toUri().getPath();
-                if (fileArgToRealUri.containsKey(jfoPath)) {
-                    freshCache.put(jfoPath, astCtx, (JmlCompilationUnit) ast);
+                String jfoName = jfo.getName();
+                String realUri = fileArgToRealUri.get(jfoPath);
+                System.err.println("[CheckRunner.checkModifiedFilesAndGetCache/mock] AST fired:"
+                        + " jfoName='" + jfoName + "' jfoPath='" + jfoPath + "' realUri=" + realUri);
+                if (realUri != null) {
+                    freshCache.put(realUri, astCtx, (JmlCompilationUnit) ast);
                 }
             };
             api.setASTListener(astListener);
@@ -995,12 +1020,17 @@ public class CheckRunner {
         try {
             tempDir = Files.createTempDirectory("openjml-lsp-rename-");
 
+            // .jml files are written to the temp dir so OpenJML discovers them as companion
+            // specs by file-system lookup, but are NOT added to filePaths — OpenJML rejects
+            // .jml as explicit command-line arguments.
             Map<String, String> tempPathToRealUri = new java.util.LinkedHashMap<>();
             List<String> filePaths = new ArrayList<>();
             for (Map.Entry<String, String> e : modifiedContent.entrySet()) {
                 Path p = writeToTempDir(tempDir, e.getKey(), e.getValue());
-                tempPathToRealUri.put(p.toString(), e.getKey());
-                filePaths.add(p.toString());
+                if (!e.getKey().endsWith(".jml")) {
+                    tempPathToRealUri.put(p.toString(), e.getKey());
+                    filePaths.add(p.toString());
+                }
             }
 
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
@@ -1016,11 +1046,12 @@ public class CheckRunner {
             // Populate a fresh (private) AST cache — never touches the shared AST_CACHE.
             ASTCache freshCache = new ASTCache();
             IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
-                // jfo.toUri().getPath() gives the absolute temp-dir path,
-                // matching the keys we stored in tempPathToRealUri.
+                // jfo.toUri().getPath() gives the absolute temp-dir path.
+                // Store under the real URI so findSymbolAt (file:// lookup) works.
                 String jfoPath = jfo.toUri().getPath();
-                if (tempPathToRealUri.containsKey(jfoPath)) {
-                    freshCache.put(jfoPath, astCtx, (JmlCompilationUnit) ast);
+                String realUri = tempPathToRealUri.get(jfoPath);
+                if (realUri != null) {
+                    freshCache.put(realUri, astCtx, (JmlCompilationUnit) ast);
                 }
             };
             api.setASTListener(astListener);
@@ -1407,7 +1438,7 @@ public class CheckRunner {
             Consumer<IAPI> onApiReady) {
 
         var listener = new LspDiagnosticListener();
-        listener.setSourceContent(content);   // precompute line-start offsets for accurate columns
+        if (content != null) listener.setSourceContent(content);
         if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out      = new PrintWriter(new StringWriter());
         var api      = IAPI.make(out, listener);
@@ -1430,17 +1461,27 @@ public class CheckRunner {
                 mockFiles.addMockByUri(compUri.normalize(), compJfo);
                 mockUriToRealUri.put(compJfo.toUri().toString(), e.getKey());
             }
+            // If content is null the file is not open — don't mock it; OpenJML reads from disk.
+            final String primaryArg;
+            final String primaryIdUri;
             java.net.URI primaryFileUri = java.net.URI.create(uri);
-            MockJavaFileObject primaryJfo = new MockJavaFileObject(primaryFileUri, content);
-            mockFiles.addMockByUri(primaryFileUri.normalize(), primaryJfo);
-            final String primaryMockUri = primaryJfo.toUri().toString();
+            if (content != null) {
+                MockJavaFileObject primaryJfo = new MockJavaFileObject(primaryFileUri, content);
+                mockFiles.addMockByUri(primaryFileUri.normalize(), primaryJfo);
+                primaryArg   = primaryJfo.getName();
+                primaryIdUri = primaryJfo.toUri().toString();
+            } else {
+                primaryArg   = uriToPath(uri);
+                if (primaryArg == null) return new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of());
+                primaryIdUri = new java.io.File(primaryArg).toURI().toString();
+            }
 
             List<String> args = buildArgs(settings, modeFlag);  // no temp dir prefix
             if (methodName != null && !methodName.isEmpty()) {
                 args.add("--method");
                 args.add(methodName);
             }
-            args.add(primaryJfo.getName());
+            args.add(primaryArg);
             logInvocation("runOnContentWithContext", args, content);
 
             String fname = fileName(uri);
@@ -1449,7 +1490,7 @@ public class CheckRunner {
             else log(ts() + " --esc " + fname + methodDesc);
 
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
-            compiledPathToRealUri.put(primaryJfo.getName(), uri);
+            compiledPathToRealUri.put(primaryArg, uri);
             for (Map.Entry<String, String> e : mockUriToRealUri.entrySet()) {
                 try {
                     Path p = java.nio.file.Paths.get(java.net.URI.create(e.getKey()));
@@ -1461,7 +1502,7 @@ public class CheckRunner {
             final com.sun.tools.javac.util.Context[] capturedCtx = { null };
             IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
                 String jfoUri = jfo.toUri().toString();
-                if (jfoUri.equals(primaryMockUri)) {
+                if (jfoUri.equals(primaryIdUri)) {
                     capturedAst[0] = (JmlCompilationUnit) ast;
                     capturedCtx[0] = astCtx;
                 } else {
@@ -1491,7 +1532,7 @@ public class CheckRunner {
             if (capturedAst[0] != null && "--check".equals(modeFlag)) {
                 if (rc == 0) {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
-                                  api, listener, primaryJfo.getName());
+                                  api, listener, primaryArg);
                 } else {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
                 }
@@ -1513,7 +1554,7 @@ public class CheckRunner {
                 log(ts() + " --esc " + fname + ": " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
-                    listener.toForeignMessages(primaryJfo.getName()), allDiags);
+                    listener.toForeignMessages(primaryArg), allDiags);
         }
 
         Path tempDir = null;
@@ -1533,15 +1574,22 @@ public class CheckRunner {
                 tempUriToRealUri.put(p.toUri().toString(), e.getKey());
             }
 
-            // Write target file at its package-relative path.
-            Path tempFile = writeToTempDir(tempDir, uri, content);
+            // Write target file at its package-relative path, or use disk path if not open.
+            final String primaryArg;
+            if (content != null) {
+                Path tempFile = writeToTempDir(tempDir, uri, content);
+                primaryArg = tempFile.toString();
+            } else {
+                primaryArg = uriToPath(uri);
+                if (primaryArg == null) return new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of());
+            }
 
             List<String> args = buildArgs(settings, modeFlag, tempDir);
             if (methodName != null && !methodName.isEmpty()) {
                 args.add("--method");
                 args.add(methodName);
             }
-            args.add(tempFile.toString());
+            args.add(primaryArg);
             logInvocation("runOnContentWithContext", args, content);
 
             String fname = fileName(uri);
@@ -1552,7 +1600,7 @@ public class CheckRunner {
             // compiledPathToRealUri is populated by the AST listener — only files
             // that were actually attributed get an entry.  Start with the target.
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
-            compiledPathToRealUri.put(tempFile.toString(), uri);
+            compiledPathToRealUri.put(primaryArg, uri);
             // Pre-populate from all open files (including .jml spec files) so that
             // diagnostics from spec files are routed correctly even if the AST listener
             // does not fire for them (spec CUs are loaded differently from regular CUs).
@@ -1564,7 +1612,7 @@ public class CheckRunner {
             }
 
             // Capture target AST locally so we can store with IAPI after execution.
-            final String tempTargetUri = tempFile.toUri().toString();
+            final String tempTargetUri = new java.io.File(primaryArg).toURI().toString();
             final JmlCompilationUnit[] capturedAst = { null };
             final com.sun.tools.javac.util.Context[] capturedCtx = { null };
             final String tempDirPrefix = tempDir.toUri().toString();
@@ -1606,7 +1654,7 @@ public class CheckRunner {
             if (capturedAst[0] != null && "--check".equals(modeFlag)) {
                 if (rc == 0) {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
-                                  api, listener, tempFile.toString());
+                                  api, listener, primaryArg);
                 } else {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
                 }
@@ -1632,7 +1680,7 @@ public class CheckRunner {
                 log(ts() + " --esc " + fname + ": " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
-                    listener.toForeignMessages(tempFile.toString()), allDiags);
+                    listener.toForeignMessages(primaryArg), allDiags);
         } catch (IOException e) {
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         } finally {
@@ -2294,10 +2342,8 @@ public class CheckRunner {
      *   <li>{@code prefixDir} — temp directory holding in-memory file contents
      *       (may be {@code null} when there is no temp dir, e.g. for on-disk checks)</li>
      *   <li>{@link OpenJMLSettings#sourcePath} — explicit user setting, if non-empty</li>
-     *   <li>{@link OpenJMLSettings#jmlWorkspaceRoots} — JDT source-folder roots sent by
-     *       the Eclipse plugin (preferred fallback: already the correct package roots)</li>
-     *   <li>{@link OpenJMLSettings#workspaceFolderPaths} — raw workspace folders from the
-     *       LSP {@code initialize} request (last resort: may be project roots, not source roots)</li>
+     *   <li>{@link OpenJMLSettings#workspaceFolderPaths} — workspace folders from the
+     *       LSP {@code initialize} request (fallback for single-project / generic clients)</li>
      *   <li>{@link OpenJMLSettings#classPath} — only appended when no source root is
      *       configured, so compiled dependencies can serve as a source fallback</li>
      * </ol>
@@ -2313,16 +2359,12 @@ public class CheckRunner {
             // causing javac to silently suppress diagnostics.
             parts.add(settings.sourcePath);
         } else {
-            // No explicit source path: prefer jmlWorkspaceRoots (Eclipse source-folder
-            // roots, e.g. /project/src/) over workspaceFolderPaths (project roots).
-            boolean hasJmlRoots = settings.jmlWorkspaceRoots != null
-                    && !settings.jmlWorkspaceRoots.isEmpty();
-            if (hasJmlRoots) {
-                parts.add(settings.jmlWorkspaceRoots);
-            } else if (settings.workspaceFolderPaths != null
-                    && !settings.workspaceFolderPaths.isEmpty()) {
-                parts.add(settings.workspaceFolderPaths);
-            }
+            // No explicit source path: fall back to workspaceFolderPaths (single-project
+            // / generic clients) or rootPaths (per-project settings object).
+            String fallback = (settings.rootPaths != null && !settings.rootPaths.isEmpty())
+                    ? settings.rootPaths : settings.workspaceFolderPaths;
+            if (fallback != null && !fallback.isEmpty())
+                parts.add(fallback);
             if (settings.classPath != null && !settings.classPath.isEmpty())
                 parts.add(settings.classPath);
         }

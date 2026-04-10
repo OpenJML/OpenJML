@@ -4,9 +4,6 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
-import java.util.Arrays;
-import java.util.stream.Collectors;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -422,24 +419,23 @@ public class OpenJMLOptions {
      * {@code .properties} file ({@link #USE_PROPERTIES_FILE}{@code = true}) or
      * as a flat {@code toolArgs} list of command-line flags
      * ({@link #USE_PROPERTIES_FILE}{@code = false}).
+     *
+     * <p>Per-project paths (sourcePath, classPath, specsPath, propertiesFile,
+     * rootPaths, outputDir) are now sent inside the {@code projects} list
+     * rather than as global top-level fields.  Commands from the Eclipse plugin
+     * carry only a {@code projectId}; the server looks up the settings.
      */
     public static java.util.Map<String, Object> buildInitializationOptions() {
         var opts = new java.util.LinkedHashMap<String, Object>();
 
-        // Client identification and JML project roots — always sent so the server
-        // can apply correct capability defaults and scope file watching correctly.
-        opts.put("client",              "eclipse-jdt");
-        opts.put("jmlWorkspaceRoots",   buildJmlProjectRoots());
+        // Client identification — always sent so the server applies correct defaults.
+        opts.put("client", "eclipse-jdt");
 
         // Tab 1 — plugin / LSP settings (always sent individually)
         opts.put("checkTriggerOn",         nonBlank(value(checkTriggerOnKey),  "edit"));
         opts.put("escTriggerOn",           nonBlank(value(escTriggerOnKey),    "manual"));
         opts.put("specsPath",              value(specsPathKey));
-        opts.put("sourcePath",             value(sourcePathKey));
-        opts.put("classPath",              value(classPathKey));
         opts.put("solversPath",            value(solversPathKey));
-        opts.put("propertiesFile",         value(propertiesFileKey));
-        opts.put("racOutputDir",           value(racOutputDirKey));
         opts.put("escEngine",              nonBlank(value(escEngineKey), "subprocess"));
         opts.put("useIntegratedOutline",   value(useIntegratedOutlineKey));
         opts.put("syntaxColoringStrategy", nonBlank(value(syntaxColoringStrategyKey), "ast"));
@@ -449,15 +445,19 @@ public class OpenJMLOptions {
             catch (NumberFormatException ignored) {}
         }
 
-        // Tab 2 — tool options communicated via properties file or args list
-        if (USE_PROPERTIES_FILE) {
-            java.nio.file.Path propsFile = writePropertiesFile();
-            if (propsFile != null) {
-                opts.put("generatedPropertiesFile", propsFile.toString());
-            }
-        } else {
+        // Tab 2 — tool options communicated via properties file or args list.
+        // The generated file path is also included per-project below.
+        java.nio.file.Path propsFile = USE_PROPERTIES_FILE ? writePropertiesFile() : null;
+        if (!USE_PROPERTIES_FILE) {
             opts.put("toolArgs", buildToolCommandLineArgs());
         }
+
+        // Per-project configs — each open JML-natured project sends its own
+        // sourcePath, classPath, specsPath, propertiesFile, rootPaths, and outputDir.
+        // The server uses these to look up settings when it receives a projectId command.
+        java.util.List<java.util.Map<String, Object>> projects =
+                buildProjectsList(propsFile);
+        if (!projects.isEmpty()) opts.put("projects", projects);
 
         return opts;
     }
@@ -466,13 +466,11 @@ public class OpenJMLOptions {
      * Returns a path-separator-separated string of JDT source-folder filesystem
      * paths for all open Eclipse projects that carry the JML nature.
      *
-     * <p>Using source-folder roots (e.g. {@code /project/src/}) rather than project
-     * roots (e.g. {@code /project/}) lets the LSP server pass them directly as
-     * {@code -sourcepath} so that javac can resolve cross-file references during
-     * single-file background checks.  If a project has no JDT source folders
-     * configured (non-Java project or project root as source), its project root
-     * is used as a fallback.
+     * @deprecated Use {@link #buildProjectsList} instead.  This method is kept
+     *             only for backward compatibility with older code paths that have
+     *             not yet been converted to the per-project config protocol.
      */
+    @Deprecated
     public static String buildJmlProjectRoots() {
         java.util.List<String> parts = new java.util.ArrayList<>();
         for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
@@ -502,5 +500,148 @@ public class OpenJMLOptions {
             }
         }
         return String.join(java.io.File.pathSeparator, parts);
+    }
+
+    /**
+     * Builds a per-project config list for the LSP {@code projects} field.
+     *
+     * <p>Each entry is a {@code Map<String, Object>} with the following fields:
+     * <ul>
+     *   <li>{@code id} — Eclipse {@code IProject.getName()}, the server's registry key</li>
+     *   <li>{@code sourcePath} — this project's own source folders + transitive dep sources,
+     *       path-separator-separated; passed as {@code -sourcepath}</li>
+     *   <li>{@code classPath} — transitive dep output dirs + user classpath pref,
+     *       path-separator-separated; passed as {@code -classpath}</li>
+     *   <li>{@code specsPath} — global specs path preference</li>
+     *   <li>{@code propertiesFile} — user-supplied properties file preference</li>
+     *   <li>{@code generatedPropertiesFile} — auto-generated tool-option properties file
+     *       ({@code null} if not yet written or {@link #USE_PROPERTIES_FILE} is false)</li>
+     *   <li>{@code outputDir} — JDT output folder for RAC {@code -d}</li>
+     *   <li>{@code rootPaths} — this project's own source folders only (not deps),
+     *       as a {@code List<String>}; used by the server for URI→project lookup</li>
+     * </ul>
+     *
+     * @param generatedPropsFile path to the shared generated properties file, or {@code null}
+     */
+    public static java.util.List<java.util.Map<String, Object>> buildProjectsList(
+            java.nio.file.Path generatedPropsFile) {
+        var result = new java.util.ArrayList<java.util.Map<String, Object>>();
+
+        String globalSpecsPath    = value(specsPathKey);
+        String globalPropsFile    = value(propertiesFileKey);
+        String generatedPropsStr  = generatedPropsFile != null ? generatedPropsFile.toString() : null;
+
+        org.eclipse.core.resources.IWorkspaceRoot wsRoot =
+                ResourcesPlugin.getWorkspace().getRoot();
+
+        for (IProject project : wsRoot.getProjects()) {
+            if (!project.isOpen()) continue;
+            org.eclipse.jdt.core.IJavaProject jp =
+                    org.eclipse.jdt.core.JavaCore.create(project);
+            if (jp == null || !jp.exists()) continue;
+
+            // --- own source folders (for rootPaths) ---
+            var ownSrcFolders = new java.util.ArrayList<String>();
+            try {
+                for (org.eclipse.jdt.core.IPackageFragmentRoot pfr
+                        : jp.getPackageFragmentRoots()) {
+                    if (pfr.getKind() != org.eclipse.jdt.core.IPackageFragmentRoot.K_SOURCE)
+                        continue;
+                    org.eclipse.core.resources.IResource res = pfr.getCorrespondingResource();
+                    org.eclipse.core.runtime.IPath loc =
+                            res != null ? res.getLocation() : pfr.getPath();
+                    if (loc != null) ownSrcFolders.add(loc.toOSString());
+                }
+            } catch (Exception ignored) {}
+
+            // --- all source folders (own + dep) and dep output dirs ---
+            var allSrcParts = new java.util.ArrayList<String>();
+            var cpParts     = new java.util.ArrayList<String>();
+            try {
+                collectJdtPaths(jp, allSrcParts, cpParts, new java.util.HashSet<>());
+            } catch (Exception e) {
+                Console.log("buildProjectsList: collectJdtPaths failed for "
+                        + project.getName() + ": " + e);
+            }
+
+            // Append user-configured classpath preference.
+            String prefCp = value(classPathKey);
+            if (prefCp != null && !prefCp.isBlank()) cpParts.add(prefCp);
+
+            // --- outputDir (for RAC -d) ---
+            String outputDir = null;
+            try {
+                org.eclipse.core.runtime.IPath outPath = jp.getOutputLocation();
+                org.eclipse.core.resources.IFolder outFolder = wsRoot.getFolder(outPath);
+                org.eclipse.core.runtime.IPath outLoc = outFolder.getLocation();
+                if (outLoc != null) outputDir = outLoc.toOSString();
+            } catch (Exception ignored) {}
+
+            var cfg = new java.util.LinkedHashMap<String, Object>();
+            cfg.put("id",         project.getName());
+            cfg.put("sourcePath", String.join(java.io.File.pathSeparator, allSrcParts));
+            cfg.put("classPath",  String.join(java.io.File.pathSeparator, cpParts));
+            if (globalSpecsPath != null && !globalSpecsPath.isBlank())
+                cfg.put("specsPath", globalSpecsPath);
+            if (globalPropsFile != null && !globalPropsFile.isBlank())
+                cfg.put("propertiesFile", globalPropsFile);
+            if (generatedPropsStr != null)
+                cfg.put("generatedPropertiesFile", generatedPropsStr);
+            if (outputDir != null)
+                cfg.put("outputDir", outputDir);
+            cfg.put("rootPaths", ownSrcFolders.isEmpty()
+                    ? (project.getLocation() != null
+                            ? java.util.List.of(project.getLocation().toOSString())
+                            : java.util.List.of())
+                    : ownSrcFolders);
+            result.add(cfg);
+        }
+        return result;
+    }
+
+    /**
+     * Recursively collects source folders into {@code srcParts} and dependency
+     * output directories into {@code cpParts} for {@code jp}.
+     */
+    static void collectJdtPaths(
+            org.eclipse.jdt.core.IJavaProject jp,
+            java.util.List<String> srcParts,
+            java.util.List<String> cpParts,
+            java.util.Set<String> visited) throws Exception {
+
+        if (!visited.add(jp.getProject().getName())) return;
+
+        org.eclipse.core.resources.IWorkspaceRoot root =
+                ResourcesPlugin.getWorkspace().getRoot();
+
+        // This project's own source folders.
+        for (org.eclipse.jdt.core.IPackageFragmentRoot pfr : jp.getPackageFragmentRoots()) {
+            if (pfr.getKind() != org.eclipse.jdt.core.IPackageFragmentRoot.K_SOURCE) continue;
+            org.eclipse.core.resources.IResource res = pfr.getCorrespondingResource();
+            org.eclipse.core.runtime.IPath loc =
+                    res != null ? res.getLocation() : pfr.getPath();
+            if (loc != null) srcParts.add(loc.toOSString());
+        }
+
+        // Walk required projects for output dirs (classpath) and recurse for sources.
+        for (org.eclipse.jdt.core.IClasspathEntry entry
+                : jp.getResolvedClasspath(/* ignoreUnresolvedEntry= */ true)) {
+            if (entry.getEntryKind() != org.eclipse.jdt.core.IClasspathEntry.CPE_PROJECT)
+                continue;
+            String depName = entry.getPath().lastSegment();
+            org.eclipse.core.resources.IProject depProject = root.getProject(depName);
+            org.eclipse.jdt.core.IJavaProject depJp =
+                    org.eclipse.jdt.core.JavaCore.create(depProject);
+            if (depJp == null || !depJp.exists()) continue;
+
+            // Dependency output location → classpath.
+            org.eclipse.core.runtime.IPath outputPath = depJp.getOutputLocation();
+            org.eclipse.core.resources.IFolder outputFolder = root.getFolder(outputPath);
+            org.eclipse.core.runtime.IPath outputLoc = outputFolder.getLocation();
+            if (outputLoc != null) cpParts.add(outputLoc.toOSString());
+
+            // Recurse so transitive dependency sources are included.
+            collectJdtPaths(depJp, srcParts, cpParts, visited);
+        }
     }
 }

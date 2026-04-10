@@ -1,6 +1,7 @@
 package org.openjml.lsp;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -9,6 +10,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.io.IOException;
@@ -57,18 +59,47 @@ public class ReferenceFinder {
         Symbol sym = DefinitionFinder.findSymbolAt(uri, line, col, openContent, cache);
         if (sym == null) return List.of();
 
+        System.err.println("[ReferenceFinder] target sym: " + sym.getClass().getSimpleName()
+                + " " + sym.getQualifiedName() + " @" + System.identityHashCode(sym));
+
         List<Location> results = new ArrayList<>();
+        java.util.concurrent.atomic.AtomicInteger navCount = new java.util.concurrent.atomic.AtomicInteger();
 
         cache.forEachNav((entryUri, entry) -> {
+            navCount.incrementAndGet();
+            System.err.println("[ReferenceFinder] scanning nav entry: " + entryUri);
             String src = openContent.get(entryUri);
             if (src == null) {
                 try { src = entry.ast().sourcefile.getCharContent(false).toString(); }
-                catch (IOException e) { return; }
+                catch (IOException e) { System.err.println("[ReferenceFinder]   source unavailable"); return; }
             }
+            int before = results.size();
             new RefCollector(sym, entryUri, src, includeDeclaration, results)
-                    .scan(entry.ast());
+                    .scanCU(entry.ast());
+            int found = results.size() - before;
+            if (found > 0) System.err.println("[ReferenceFinder]   found " + found + " ref(s)");
+
+            // Also scan the companion .jml specs CU if present — it is not a separate
+            // nav cache entry but shares the same IAPI context so symbol identity holds.
+            var specs = entry.ast().specsCompilationUnit;
+            if (specs != null && specs != entry.ast() && specs.sourcefile != null) {
+                String specsUri = specs.sourcefile.toUri().toString();
+                System.err.println("[ReferenceFinder] scanning companion specs: " + specsUri);
+                String specsSrc = openContent.get(specsUri);
+                if (specsSrc == null) {
+                    try { specsSrc = specs.sourcefile.getCharContent(false).toString(); }
+                    catch (IOException e) { return; }
+                }
+                int beforeSpecs = results.size();
+                new RefCollector(sym, specsUri, specsSrc, includeDeclaration, results)
+                        .scan(specs);
+                int foundSpecs = results.size() - beforeSpecs;
+                if (foundSpecs > 0)
+                    System.err.println("[ReferenceFinder]   found " + foundSpecs + " ref(s) in specs");
+            }
         });
 
+        System.err.println("[ReferenceFinder] scanned " + navCount.get() + " nav entries, total refs: " + results.size());
         return results;
     }
 
@@ -90,6 +121,18 @@ public class ReferenceFinder {
             this.source            = source;
             this.includeDeclaration = includeDeclaration;
             this.results           = results;
+        }
+        
+        public void scanCU(org.jmlspecs.openjml.JmlTree.JmlCompilationUnit t) { 
+            System.err.println("[ReferenceFinder.scanCU] " + t.sourcefile
+                    + (t.specsCompilationUnit == null) + " " + (t.specsCompilationUnit == t));
+
+            if (t.specsCompilationUnit == t) {
+                scan(t);
+            } else {
+                scanMode = AST_JAVA_MODE;
+                scan(t);
+            }
         }
 
         // --- use sites (JCIdent and JCFieldAccess) ---
@@ -200,6 +243,9 @@ public class ReferenceFinder {
         private void addLocation(int charOffset, int nameLen) {
             int[] startLc = DefinitionFinder.offsetToLineCol(source, charOffset);
             int[] endLc   = DefinitionFinder.offsetToLineCol(source, charOffset + nameLen);
+            System.err.println("[ReferenceFinder.addLocation] uri=" + uri
+                    + " offset=" + charOffset + "/" + source.length()
+                    + " line=" + startLc[0] + " col=" + startLc[1]);
             results.add(new Location(uri,
                     new Range(new Position(startLc[0], startLc[1]),
                               new Position(endLc[0],   endLc[1]))));
