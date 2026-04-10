@@ -63,11 +63,15 @@ public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStart
 
         // Register resource change listener to detect classpath/property/dependency
         // changes in JML-natured projects and offer to re-check accordingly.
+        org.eclipse.core.resources.IWorkspace workspace =
+                org.eclipse.core.resources.ResourcesPlugin.getWorkspace();
         org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener rcl =
                 new org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener();
         resourceChangeListener = rcl;
-        org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
-                .addResourceChangeListener(rcl,
+        // Snapshot current project descriptions BEFORE registering so that spurious
+        // DESCRIPTION events from JDT/Eclipse workspace restore are filtered out.
+        rcl.initialize(workspace.getRoot());
+        workspace.addResourceChangeListener(rcl,
                         org.eclipse.core.resources.IResourceChangeEvent.POST_CHANGE);
 
         // Note: if openjml-lsp is not reachable, the looping dialog in

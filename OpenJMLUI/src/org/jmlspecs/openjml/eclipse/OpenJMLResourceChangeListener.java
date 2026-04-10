@@ -4,10 +4,13 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -62,6 +65,70 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
 
     private static final int DEBOUNCE_MS = 500;
 
+    /**
+     * JML-relevant parts of a project description.
+     * Build-spec changes (JDT builder additions/removals) are intentionally excluded —
+     * they do not affect what JML checks would produce.
+     */
+    private record DescSnapshot(String natures, String refs, String dynRefs) {
+        static DescSnapshot of(IProject project) throws org.eclipse.core.runtime.CoreException {
+            org.eclipse.core.resources.IProjectDescription d = project.getDescription();
+            String[] nat = d.getNatureIds().clone();
+            Arrays.sort(nat);
+            String[] ref = Arrays.stream(d.getReferencedProjects())
+                    .map(IProject::getName).sorted().toArray(String[]::new);
+            String[] dyn = Arrays.stream(d.getDynamicReferences())
+                    .map(IProject::getName).sorted().toArray(String[]::new);
+            return new DescSnapshot(Arrays.toString(nat),
+                                    Arrays.toString(ref),
+                                    Arrays.toString(dyn));
+        }
+        boolean relevantlyDifferentFrom(DescSnapshot other) {
+            return !natures.equals(other.natures)
+                || !refs.equals(other.refs)
+                || !dynRefs.equals(other.dynRefs);
+        }
+        void logDiffFrom(DescSnapshot prev, String projectName) {
+            if (!natures.equals(prev.natures))
+                System.err.println("[RCL]   natures changed for " + projectName
+                        + ": " + prev.natures + " -> " + natures);
+            if (!refs.equals(prev.refs))
+                System.err.println("[RCL]   refs changed for " + projectName
+                        + ": " + prev.refs + " -> " + refs);
+            if (!dynRefs.equals(prev.dynRefs))
+                System.err.println("[RCL]   dynRefs changed for " + projectName
+                        + ": " + prev.dynRefs + " -> " + dynRefs);
+        }
+    }
+
+    /**
+     * Snapshot of each JML-natured project's JML-relevant description parts.
+     * Key = project name.  Pre-populated by {@link #initialize} before the listener
+     * is registered so that spurious DESCRIPTION events at startup (e.g. JDT updating
+     * the build spec during workspace restore) are filtered out.
+     */
+    private final Map<String, DescSnapshot> descriptionSnapshots = new ConcurrentHashMap<>();
+
+    /**
+     * Pre-populate description snapshots for all currently open JML-natured projects.
+     * Must be called <em>before</em> registering the listener with the workspace so
+     * that spurious DESCRIPTION events at startup are filtered out.
+     *
+     * @param root the workspace root (from {@code ResourcesPlugin.getWorkspace().getRoot()})
+     */
+    public void initialize(org.eclipse.core.resources.IWorkspaceRoot root) {
+        for (IProject project : root.getProjects()) {
+            if (project.isOpen()) {
+                try {
+                    if (JmlNature.hasNature(project)) {
+                        descriptionSnapshots.put(project.getName(), DescSnapshot.of(project));
+                    }
+                } catch (Exception e) {
+                    // ignore: if we can't snapshot, we'll show the dialog on first event
+                }
+            }
+        }
+    }
 
     private final ScheduledExecutorService debouncer =
             Executors.newSingleThreadScheduledExecutor(r -> {
@@ -107,7 +174,33 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                                     + " kind=" + d.getKind() + " flags=0x" + Integer.toHexString(d.getFlags())
                                     + " DESCRIPTION=" + descChanged);
                             if (descChanged) {
-                                affected.add(project);
+                                // Only trigger the dialog if something JML-relevant changed
+                                // (natures, project references).  Eclipse fires spurious
+                                // DESCRIPTION events at startup when JDT updates the build
+                                // spec; those changes don't affect what JML checks produce.
+                                try {
+                                    DescSnapshot current = DescSnapshot.of(project);
+                                    DescSnapshot prev = descriptionSnapshots.put(
+                                            project.getName(), current);
+                                    if (prev == null) {
+                                        System.err.println("[RCL] DESCRIPTION event for new project: "
+                                                + project.getName()
+                                                + " natures=" + current.natures()
+                                                + " refs=" + current.refs()
+                                                + " dynRefs=" + current.dynRefs());
+                                        affected.add(project);
+                                    } else if (current.relevantlyDifferentFrom(prev)) {
+                                        current.logDiffFrom(prev, project.getName());
+                                        affected.add(project);
+                                    } else {
+                                        System.err.println("[RCL] DESCRIPTION event ignored"
+                                                + " (natures/refs unchanged) for: "
+                                                + project.getName());
+                                    }
+                                } catch (org.eclipse.core.runtime.CoreException e) {
+                                    // Can't read description: play it safe and show dialog.
+                                    affected.add(project);
+                                }
                             }
                         }
                         return true;  // descend into project to find .classpath etc.
