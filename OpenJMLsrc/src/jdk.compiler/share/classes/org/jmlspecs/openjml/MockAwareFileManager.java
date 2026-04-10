@@ -98,9 +98,6 @@ public class MockAwareFileManager extends JavacFileManager {
         for (JavaFileObject jfo : superResult) {
             URI normalized = jfo.toUri().normalize();
             JavaFileObject mock = mockFiles.getByUri(normalized);
-            if (mock != null) {
-                System.err.println("[MockAwareFileManager.list] substituting mock for: " + normalized);
-            }
             result.add(mock != null ? mock : jfo);
         }
         return result;

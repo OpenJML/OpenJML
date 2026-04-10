@@ -1486,26 +1486,6 @@ public class CheckRunner {
             args.add(primaryArg);
             logInvocation("runOnContentWithContext", args, content);
 
-            // Detailed mock-file diagnostics: log primary + every dirty-file mock with full content.
-            System.err.println("[CheckRunner.runOnContentWithContext] primary uri=" + uri
-                    + (content != null ? " (mocked, " + content.length() + " chars)" : " (from disk)"));
-            if (content != null) {
-                System.err.println("[CheckRunner.runOnContentWithContext]   primary content >>>");
-                System.err.println(content);
-                System.err.println("[CheckRunner.runOnContentWithContext]   <<<");
-            }
-            System.err.println("[CheckRunner.runOnContentWithContext] dirty-file mocks (" + mockUriToRealUri.size() + "):");
-            for (Map.Entry<String, String> e : mockUriToRealUri.entrySet()) {
-                String dirtyContent = openContent.get(e.getValue());
-                System.err.println("[CheckRunner.runOnContentWithContext]   mock uri=" + e.getValue()
-                        + " (" + (dirtyContent != null ? dirtyContent.length() + " chars" : "?") + ")");
-                if (dirtyContent != null) {
-                    System.err.println("[CheckRunner.runOnContentWithContext]   content >>>");
-                    System.err.println(dirtyContent);
-                    System.err.println("[CheckRunner.runOnContentWithContext]   <<<");
-                }
-            }
-
             String fname = fileName(uri);
             String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
             if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);

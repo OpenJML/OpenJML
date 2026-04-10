@@ -55,7 +55,6 @@ public class FoldingRangeProvider {
      * @return list of {@link FoldingRange}s, may be empty
      */
     public static List<FoldingRange> fromSource(String source) {
-        System.err.println("[Folding] fromSource");
         List<FoldingRange> result = new ArrayList<>();
         int n   = source.length();
         int pos = 0;
@@ -128,7 +127,7 @@ public class FoldingRangeProvider {
                         if (hasProgramText(source, n, posAfter)) {
                             // Program text after */: stop and rewind so outer scan
                             // treats this /* as a new fold start.
-                            emitIfMultiLine(result, startLine, saveLine);
+                            // emitIfMultiLine is called after the loop with endLine.
                             pos  = savePos;
                             line = saveLine;
                             break;
@@ -256,7 +255,6 @@ public class FoldingRangeProvider {
     private static boolean isSpaceOrTab(char c) { return c == ' ' || c == '\t'; }
 
     private static void emitIfMultiLine(List<FoldingRange> out, int start, int end) {
-        System.err.println("[Folding] Emit: " + start + " " + end);
         if (start >= 0 && end > start) {
             FoldingRange fr = new FoldingRange(start, end);
             fr.setKind(FoldingRangeKind.Comment);

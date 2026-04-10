@@ -62,6 +62,7 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
 
     private static final int DEBOUNCE_MS = 500;
 
+
     private final ScheduledExecutorService debouncer =
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "openjml-config-debouncer");
@@ -96,9 +97,15 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                     if (resource.getType() == IResource.PROJECT) {
                         IProject project = (IProject) resource;
                         boolean isOpen = (d.getFlags() & IResourceDelta.OPEN) != 0;
-                        if (isOpen) return false;  // workspace restore — skip children
+                        if (isOpen) {
+                            System.err.println("[RCL] project OPEN event (workspace restore), skipping children: " + project.getName());
+                            return false;  // workspace restore — skip children
+                        }
                         if (project.isOpen() && JmlNature.hasNature(project)) {
                             boolean descChanged = (d.getFlags() & IResourceDelta.DESCRIPTION) != 0;
+                            System.err.println("[RCL] project delta: " + project.getName()
+                                    + " kind=" + d.getKind() + " flags=0x" + Integer.toHexString(d.getFlags())
+                                    + " DESCRIPTION=" + descChanged);
                             if (descChanged) {
                                 affected.add(project);
                             }
@@ -114,6 +121,9 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                         String name = resource.getName();
                         if (".classpath".equals(name) || "openjml.properties".equals(name)) {
                             IProject project = resource.getProject();
+                            System.err.println("[RCL] file change: " + resource.getFullPath()
+                                    + " kind=" + d.getKind() + " flags=0x" + Integer.toHexString(d.getFlags())
+                                    + " jmlNature=" + (project != null && project.isOpen() && JmlNature.hasNature(project)));
                             if (project != null && project.isOpen()
                                     && JmlNature.hasNature(project)) {
                                 affected.add(project);
@@ -128,6 +138,7 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
         }
 
         if (!affected.isEmpty()) {
+            System.err.println("[RCL] scheduling config-change dialog for: " + affected.stream().map(IProject::getName).collect(java.util.stream.Collectors.joining(", ")));
             pendingProjects.get().addAll(affected);
             scheduleDialog();
         }

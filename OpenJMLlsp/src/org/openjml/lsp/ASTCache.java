@@ -198,6 +198,17 @@ public class ASTCache {
         }
     }
 
+    /**
+     * Returns {@code true} if {@code uri} has an entry in whichever cache tier
+     * {@link #forEachNav} iterates (nav if non-empty, otherwise live).
+     * Used by {@link org.openjml.lsp.ReferenceFinder} to avoid scanning a
+     * companion {@code .jml} file twice when it also appears as its own nav entry.
+     */
+    public boolean containsNav(String uri) {
+        if (!navCache.isEmpty()) return navCache.containsKey(uri);
+        return liveCache.containsKey(uri);
+    }
+
     // -----------------------------------------------------------------------
     // Live-tier writes
     // -----------------------------------------------------------------------
