@@ -287,7 +287,8 @@ public class FoldingRangeTest {
     @Test
     public void testJmlBlockWithProgramTextSplitsRegion() {
         // A "/*@ ... */ programtext" line ends the preceding JML region (without
-        // including itself) and starts a new region that subsequent JML lines extend.
+        // including that line in its endLine).  The outer scan resumes from the
+        // program text, so the next fold starts on the following JML line (line 3).
         String source =
                 "    //@ // asd\n" +                       // line 0
                 "    //@ // asd\n" +                       // line 1
@@ -299,7 +300,7 @@ public class FoldingRangeTest {
         assertEquals(2, fs.size());
         assertEquals(0, fs.get(0).getStartLine());
         assertEquals(1, fs.get(0).getEndLine());
-        assertEquals(2, fs.get(1).getStartLine());
+        assertEquals(3, fs.get(1).getStartLine());
         assertEquals(5, fs.get(1).getEndLine());
     }
 
@@ -315,6 +316,98 @@ public class FoldingRangeTest {
         assertEquals(1, fs.size());
         assertEquals(0, fs.get(0).getStartLine());
         assertEquals(2, fs.get(0).getEndLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // Blank lines separating two multi-line groups (each group produces a fold)
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testBlankLineSeparatesTwoMultiLineFolds() {
+        // A blank line terminates the first fold; a second multi-line group produces
+        // a second independent fold.
+        String source =
+                "//@ requires x > 0;\n" +           // line 0
+                "//@ ensures \\result > 0;\n" +      // line 1
+                "\n" +                               // line 2 -- blank: terminates first fold
+                "//@ requires y > 0;\n" +            // line 3
+                "//@ ensures \\result >= 0;\n" +     // line 4
+                "public int foo(int x) { return x; }\n";
+        List<FoldingRange> fs = folds(source);
+        assertEquals(2, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(1, fs.get(0).getEndLine());
+        assertEquals(3, fs.get(1).getStartLine());
+        assertEquals(4, fs.get(1).getEndLine());
+    }
+
+    @Test
+    public void testMultipleBlankLinesSeparatesGroups() {
+        // Multiple consecutive blank lines between groups: same result as one blank line.
+        String source =
+                "//@ requires x > 0;\n" +           // line 0
+                "//@ ensures \\result > 0;\n" +      // line 1
+                "\n" +                               // line 2
+                "\n" +                               // line 3
+                "//@ requires y > 0;\n" +            // line 4
+                "//@ ensures \\result >= 0;\n" +     // line 5
+                "public int bar(int y) { return y; }\n";
+        List<FoldingRange> fs = folds(source);
+        assertEquals(2, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(1, fs.get(0).getEndLine());
+        assertEquals(4, fs.get(1).getStartLine());
+        assertEquals(5, fs.get(1).getEndLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // Multiple block comments on the same extension line
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testTwoAdjacentBlockCommentsOnExtensionLine() {
+        // Two adjacent single-line block comments on one line both extend the fold;
+        // the line is not a blank line, so the fold continues after them.
+        String source =
+                "//@ requires x > 0;\n" +           // line 0 -- starts fold
+                "/* note1 */ /* note2 */\n" +        // line 1 -- two Java blocks, extend fold
+                "//@ ensures \\result > 0;\n" +      // line 2 -- extends fold
+                "public int foo(int x) { return x; }\n";
+        List<FoldingRange> fs = folds(source);
+        assertEquals(1, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(2, fs.get(0).getEndLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // Program text on non-first extension lines
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testProgramTextOnExtensionLineTerminatesFold() {
+        // A non-comment token before a comment on an extension line terminates
+        // the fold (the line's comment is not included).
+        String source =
+                "//@ requires x > 0;\n" +           // line 0
+                "//@ ensures \\result > 0;\n" +      // line 1
+                "int x = foo(); // side effect\n" +  // line 2 -- program text first: stops fold
+                "public int foo(int x) { return x; }\n";
+        List<FoldingRange> fs = folds(source);
+        assertEquals(1, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(1, fs.get(0).getEndLine());
+    }
+
+    @Test
+    public void testProgramTextBetweenBlockCommentsOnExtensionLineTerminatesFold() {
+        // On an extension line, program text between two block comments terminates
+        // the fold after absorbing the first block comment; the second is not included.
+        String source =
+                "//@ requires x > 0;\n" +           // line 0
+                "/* n1 */ int x = 0; /* n2 */\n" +  // line 1 -- program text after n1
+                "public int foo(int x) { return x; }\n";
+        // fold(0,0) -- single line, not emitted
+        assertTrue(folds(source).isEmpty());
     }
 
     // -----------------------------------------------------------------------
@@ -435,6 +528,72 @@ public class FoldingRangeTest {
         List<FoldingRange> fs = folds(source);
         assertEquals(1, fs.size());
         assertEquals("comment", fs.get(0).getKind());
+    }
+
+    // -----------------------------------------------------------------------
+    // Text blocks
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testTextBlockProducesFold() {
+        // A multi-line text block is foldable.
+        String source =
+                "String s = \"\"\"\n" +       // line 0 -- opening """
+                "    hello\n" +              // line 1 -- content
+                "    world\n" +              // line 2 -- content
+                "    \"\"\";\n" +            // line 3 -- closing """
+                "int x = 0;\n";
+        List<FoldingRange> fs = folds(source);
+        assertEquals(1, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(3, fs.get(0).getEndLine());
+    }
+
+    @Test
+    public void testTextBlockAndJmlAreIndependentFolds() {
+        // A text block and a JML block produce two independent folds.
+        String source =
+                "String s = \"\"\"\n" +       // line 0 -- text block
+                "    hello\n" +              // line 1
+                "    \"\"\";\n" +            // line 2 -- closing """
+                "//@ requires x > 0;\n" +   // line 3 -- JML (starts second fold)
+                "//@ ensures true;\n";       // line 4
+        List<FoldingRange> fs = folds(source);
+        assertEquals(2, fs.size());
+        assertEquals(0, fs.get(0).getStartLine());
+        assertEquals(2, fs.get(0).getEndLine());
+        assertEquals(3, fs.get(1).getStartLine());
+        assertEquals(4, fs.get(1).getEndLine());
+    }
+
+    // -----------------------------------------------------------------------
+    // String and character literals (must not confuse the scanner)
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testJmlInsideStringLiteralNotMisclassified() {
+        // A JML-like token inside a string literal must NOT start a fold.
+        String source =
+                "String s = \"//@requires x > 0;\";\n" +  // line 0 -- string, not JML
+                "//@ requires x > 0;\n" +                  // line 1 -- real JML
+                "//@ ensures true;\n";                      // line 2
+        List<FoldingRange> fs = folds(source);
+        assertEquals(1, fs.size());
+        assertEquals(1, fs.get(0).getStartLine());
+        assertEquals(2, fs.get(0).getEndLine());
+    }
+
+    @Test
+    public void testJmlInsideCharLiteralNotMisclassified() {
+        // A slash inside a char literal must not trigger comment detection.
+        String source =
+                "char c = '/';\n" +           // line 0 -- char literal
+                "//@ requires x > 0;\n" +     // line 1
+                "//@ ensures true;\n";         // line 2
+        List<FoldingRange> fs = folds(source);
+        assertEquals(1, fs.size());
+        assertEquals(1, fs.get(0).getStartLine());
+        assertEquals(2, fs.get(0).getEndLine());
     }
 
     // -----------------------------------------------------------------------
