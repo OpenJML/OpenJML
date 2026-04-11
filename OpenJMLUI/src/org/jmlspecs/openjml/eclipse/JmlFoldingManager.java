@@ -107,6 +107,9 @@ public class JmlFoldingManager {
         Display.getDefault().asyncExec(this::updateFolds);
     }
 
+    // NOTE: This algorithm must be kept in sync with FoldingRangeProvider.fromSource()
+    // in the OpenJMLlsp server.  Both implement the identical character-scan;
+    // any bug fix or behavioral change must be applied to both.
     private void updateFolds() {
         String source;
         try {

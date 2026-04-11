@@ -178,7 +178,7 @@ internally and passes the reconstructed full text to OpenJML.  Setting
 Settings arrive via two channels:
 
 1. **`initializationOptions`** in the `initialize` request — values applied once at
-   startup. The JSON object is deserialized directly as `OpenJMLSettings`.
+   startup. The JSON object is deserialized directly as an `OpenJMLSettings` object.
 
 2. **`workspace/didChangeConfiguration`** — runtime updates. The notification's
    `settings` object must have an `"openjml"` key; the value is an `OpenJMLSettings`-
@@ -199,22 +199,87 @@ Example `workspace/didChangeConfiguration` payload:
 }
 ```
 
-### Settings Reference
+### Global Settings Reference
+
+These fields apply to the server as a whole (default settings used when no per-project
+settings match a given file):
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `specsPath` | string | env `OPENJML_SPECS` | Path to JML specification files, passed as `--specs-path` |
 | `solversPath` | string | env `OPENJML_SOLVERS` | Path to SMT solver binaries, passed as `--solvers-path` |
-| `sourcePath` | string | none | User source root(s) for cross-file references (see note on effective sourcepath below) |
-| `classPath` | string | none | Classpath for pre-compiled dependencies, passed as `-classpath` directly; also used as a sourcepath fallback (see note) |
+| `sourcePath` | string | none | Source root(s) for cross-file references (see note on effective sourcepath below) |
+| `classPath` | string | none | Classpath for pre-compiled dependencies, passed as `-classpath`; also used as a sourcepath fallback (see note) |
 | `checkTriggerOn` | string | `"edit"` | When to run `--check`: `"edit"` or `"save"` |
 | `escTriggerOn` | string | `"manual"` | When to run `--esc`: `"manual"`, `"save"`, or `"edit"` (see note) |
 | `incrementalSync` | boolean | `true` | When `true`, advertise `Incremental` sync and apply ranged edits internally; when `false`, revert to `Full` sync |
 | `javaMode` | string | `"full"` | Java-capability mode: `"full"` enables all Java+JML capabilities; `"jml-only"` suppresses capabilities that duplicate a co-present Java language server (e.g. JDT, Red Hat Java). See note below. |
 | `client` | string | `"generic"` | Known-client hint for default tuning. Values: `"generic"` (no assumptions), `"eclipse-jdt"`, `"vscode-java"`, `"intellij"`. When set to a known Java-capable client, `javaMode` defaults to `"jml-only"` unless explicitly overridden. |
-| `jmlWorkspaceRoots` | string | none | Path-separator-separated list of filesystem paths the server should treat as its JML workspace. The server uses these paths to scope file-watcher events and workspace indexing. If absent or blank, the server falls back to the workspace folders reported in the `initialize` request. The Eclipse plugin populates this automatically from the set of open projects that carry JML nature. |
+| `projects` | array | none | Per-project configuration objects; see [Multi-Project Support](#multi-project-support) below. |
 
 `null` or absent fields leave the current value unchanged.
+
+### Multi-Project Support
+
+The server supports multiple independent projects within a single workspace.  Each
+project is a separate compilation domain with its own source folders, classpath, specs
+path, and properties file.  A file belongs to the project whose `rootPaths` contains
+its path as a prefix.
+
+Per-project settings are conveyed in a **`projects`** array inside the top-level
+`OpenJMLSettings` object (either in `initializationOptions` or `workspace/didChangeConfiguration`).
+Each element is a `ProjectConfig` object:
+
+| Field | Type | Description |
+|---|---|---|
+| `id` | string | Unique project identifier (no path separators). Used as the lookup key in command arguments. The Eclipse plugin uses the Eclipse project name (`IProject.getName()`). |
+| `rootPaths` | list | This project's own source folder paths (not including dependency sources). Used to map a file URI to its owning project. |
+| `sourcePath` | string | Path-separator-separated list of source roots, including own source folders **and** transitive dependency source folders. Passed as `-sourcepath`. |
+| `classPath` | string | Path-separator-separated list of compiled dependency output directories and any additional user classpath entries. Passed as `-classpath`. |
+| `specsPath` | string | OpenJML specs path for this project (`--specs-path`). If absent, the global `specsPath` is used. |
+| `propertiesFile` | string | Path to a user-supplied OpenJML `.properties` file. May be null. |
+| `generatedPropertiesFile` | string | Path to a `.properties` file generated from the IDE preferences page. May be null. |
+| `outputDir` | string | Directory for RAC-compiled `.class` files (`-d`). Defaults to the IDE project's build output folder. |
+
+Example:
+
+```json
+{
+  "settings": {
+    "openjml": {
+      "projects": [
+        {
+          "id": "MyLibrary",
+          "rootPaths": ["/workspace/MyLibrary/src"],
+          "sourcePath": "/workspace/MyLibrary/src",
+          "classPath": "/workspace/deps/commons.jar",
+          "specsPath": "/path/to/Specs/specs",
+          "outputDir": "/workspace/MyLibrary/bin"
+        },
+        {
+          "id": "MyApp",
+          "rootPaths": ["/workspace/MyApp/src"],
+          "sourcePath": "/workspace/MyApp/src:/workspace/MyLibrary/src",
+          "classPath": "/workspace/MyLibrary/bin:/workspace/deps/commons.jar",
+          "specsPath": "/path/to/Specs/specs",
+          "outputDir": "/workspace/MyApp/bin"
+        }
+      ]
+    }
+  }
+}
+```
+
+When a project list is configured:
+- The server maps each incoming file URI to the project whose `rootPaths` contains
+  the file's path.  If no project matches, global settings are used.
+- File-watcher events are scoped to the union of all projects' `rootPaths`.
+- Commands that name a `projectId` are dispatched using that project's settings.
+
+A single-project client (e.g. VS Code) does not need to use `projects` at all —
+the global `sourcePath`, `classPath`, etc. settings are used for all files.
+
+### Notes on Settings
 
 **Note on `javaMode` and `client`:** OpenJML's LSP server implements capabilities that
 overlap with those of full Java language servers (JDT, Red Hat Java, etc.).  By default
@@ -455,9 +520,28 @@ symbols are looked up under the companion `.java` URI.
 
 ### Folding Ranges — `textDocument/foldingRange`
 
-Returns folding ranges for block comments, JML annotation blocks, class bodies,
-and method bodies. If the document has not yet been opened (content not in memory),
-the server reads it from disk.
+Returns folding ranges for JML annotation blocks (consecutive `//@ ...` or `/*@ ... */`
+comment sequences that span multiple lines) and Java text blocks (`""" ... """`).
+The implementation is a pure character scan — no AST is required — so folding is
+available immediately, even before the first `--check` run.  Java structural folds
+(class bodies, method bodies, imports) are provided by the client's own Java language
+support, not by this server.
+
+If the document has not yet been opened (content not in memory), the server reads it
+from disk.
+
+**Eclipse plugin note:** The OpenJMLUI Eclipse plugin does not use this LSP request for
+its folding support.  LSP4E's folding reconciling strategy requires projection (fold
+annotation) support to be enabled on the editor before the reconciler is installed, and
+there is no suitable extension point to guarantee that ordering for either the JDT Java
+editor or the Generic Editor.  Instead, the plugin installs `JmlFoldingManager` directly
+on each editor's `ProjectionViewer` via a part listener, running the same character-scan
+algorithm locally without a server round-trip.  For `.java` files, `JmlFoldingManager`
+folds (JML annotation blocks) coexist with JDT's built-in structural folds (methods,
+imports, Javadoc) in the same `ProjectionAnnotationModel` without interfering.  For
+`.jml` files opened in the Generic Editor, `JmlFoldingManager` provides all folding.
+Other clients that do not have this constraint can use `textDocument/foldingRange`
+normally.
 
 ### Semantic Tokens — `textDocument/semanticTokens/full`
 
@@ -619,34 +703,45 @@ table.  Deleted: the AST cache entry and diagnostics for the file are
 cleared.  Changed-while-not-open: ignored (the user opens the file to
 trigger a re-check).
 
-**Root filtering** — if `jmlWorkspaceRoots` is configured, only events whose
-file path begins with one of those roots are acted upon.  Events for files
-outside the effective roots (e.g. non-JML projects in a multi-project
-workspace) are silently dropped.  When `jmlWorkspaceRoots` is absent the
-filter is disabled and all events are processed.
-
-**Watcher re-registration** — when `jmlWorkspaceRoots` changes via
-`workspace/didChangeConfiguration`, the server unregisters the old watchers
-and re-registers them immediately so the new scope takes effect.
+**Root filtering** — when per-project settings are configured (via the `projects`
+array), events are scoped to the union of all projects' `rootPaths`.  Events for
+files outside those roots (e.g. files in non-JML projects in a multi-project Eclipse
+workspace) are silently dropped.  When no per-project settings are configured the
+filter falls back to `workspaceFolderPaths`; if that is also absent, all events are
+processed.
 
 
 ---
 
 ## Custom Commands — `workspace/executeCommand`
 
-All commands share a fixed 4-element argument prefix followed by command-specific
-arguments. Empty strings are used for absent optional values so that positions are
-always fixed:
+Commands are dispatched via `workspace/executeCommand`.  Two argument formats are
+supported; the server auto-detects which is in use:
 
+### Argument formats
+
+**Project-ID format** (used by the Eclipse plugin when per-project settings are
+configured):
+```
+args[0]  projectId   -- short project name (no path separators); selects per-project settings
+args[1+]             -- command-specific paths / URIs
+```
+
+**Legacy format** (used by VS Code and generic clients):
 ```
 args[0]  sourcePath      -- paths for -sourcepath (empty = use server default)
 args[1]  classPath       -- paths for -classpath  (empty = use server default)
 args[2]  specsPath       -- path to OpenJML specs dir (empty = use server default)
 args[3]  propertiesFile  -- path to a generated .properties file (empty = none)
+args[4+]                 -- command-specific paths / URIs
 ```
 
-When non-empty, these per-invocation values override the corresponding server
-settings for that invocation only.
+**Format detection:** if `args[0]` contains no path-separator characters (`/`, `\`,
+`:`) and matches a project id registered via the `projects` settings array, the
+project-ID format is used.  Otherwise the legacy format is assumed.
+
+In the legacy format, non-empty values in `args[0..3]` override the corresponding
+server settings for that invocation only.
 
 ### `openjml.checkJML`
 
@@ -654,12 +749,13 @@ Run `--check` on one or more files or directories.
 
 ```
 command:   "openjml.checkJML"
-arguments: ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
-            "<path1>", "<path2>", ...]
+arguments (project-ID): ["<projectId>", "<path1>", "<path2>", ...]
+arguments (legacy):     ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
+                         "<path1>", "<path2>", ...]
 ```
 
-`path1..N` are file-system paths (files or directories). Use `--dirs` semantics:
-all `.java` files under a directory are checked recursively.
+`path1..N` are file-system paths (files or directories). All `.java` files under a
+directory are checked recursively.
 
 ### `openjml.runEsc`
 
@@ -667,8 +763,9 @@ Run `--esc` on one or more files or directories.
 
 ```
 command:   "openjml.runEsc"
-arguments: ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
-            "<path1>", "<path2>", ...]
+arguments (project-ID): ["<projectId>", "<path1>", "<path2>", ...]
+arguments (legacy):     ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
+                         "<path1>", "<path2>", ...]
 ```
 
 Cancels any currently running ESC for the same URIs. Marks all methods as CHECKING
@@ -689,13 +786,39 @@ diagnostics and code lens are updated; other methods are unaffected.
 
 ```
 command:   "openjml.runEscForMethod"
-arguments: ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
-            "<file-uri>", "<fully-qualified-method-name>"]
+arguments (project-ID): ["<projectId>", "<file-uri>", "<fully-qualified-method-name>"]
+arguments (legacy):     ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
+                         "<file-uri>", "<fully-qualified-method-name>"]
 ```
 
 `fully-qualified-method-name` is in the form `package.ClassName.methodName`. If the
 simple name (`methodName`) uniquely identifies a method in the file, the package and
 class prefix are optional. An empty method name causes the whole file to be checked.
+
+### `openjml.runEscSplitByFile`
+
+Run `--esc` on a set of files, launching a separate ESC invocation per file (in
+parallel). Each file's result is published as it completes, rather than waiting for
+all files to finish.
+
+```
+command:   "openjml.runEscSplitByFile"
+arguments (project-ID): ["<projectId>", "<path1>", "<path2>", ...]
+arguments (legacy):     ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
+                         "<path1>", "<path2>", ...]
+```
+
+### `openjml.runEscSplitByMethod`
+
+Run `--esc` on a set of files, launching a separate ESC invocation per method (in
+parallel). Per-method code lens updates arrive in real time as each proof completes.
+
+```
+command:   "openjml.runEscSplitByMethod"
+arguments (project-ID): ["<projectId>", "<path1>", "<path2>", ...]
+arguments (legacy):     ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
+                         "<path1>", "<path2>", ...]
+```
 
 ### `openjml.runRac`
 
@@ -703,12 +826,60 @@ Compile one or more files or directories with JML assertions as runtime checks.
 
 ```
 command:   "openjml.runRac"
-arguments: ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
-            "<outputDir>", "<path1>", "<path2>", ...]
+arguments (project-ID): ["<projectId>", "<path1>", "<path2>", ...]
+arguments (legacy):     ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
+                         "<outputDir>", "<path1>", "<path2>", ...]
 ```
 
-`outputDir` is the directory for compiled class files (empty = server default,
-typically `rac-classes` in the workspace root).
+`outputDir` (legacy format only) is the directory for compiled class files. In the
+project-ID format the `outputDir` from the project's `ProjectConfig` is used.
+
+### `openjml.saveAndRunEsc`
+
+Save the current document and run `--esc` on it. Equivalent to a `textDocument/didSave`
+followed by `openjml.runEsc`, but issued as a single command by the client. The VS Code
+extension uses this to distinguish a manual save-and-ESC invocation from an ordinary
+auto-save.
+
+```
+command:   "openjml.saveAndRunEsc"
+arguments: ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
+            "<file-uri>"]
+```
+
+### `openjml.cancelEsc`
+
+Cancel one or more in-progress ESC runs.
+
+```
+command:   "openjml.cancelEsc"
+arguments: ["<target>"]
+```
+
+`target` controls what is cancelled:
+
+| Value | Effect |
+|-------|--------|
+| `null` / absent / `""` | Cancel all ESC runs |
+| A plain file URI (e.g. `file:///…/Foo.java`) | Cancel the whole-file ESC for that URI |
+| `"<uri>#<methodName>"` | Cancel the per-method ESC for the named method |
+
+Cancelled methods have their code lens status set to `Cancelled`; other methods are
+unaffected.
+
+### `openjml.getRunningEscTasks`
+
+Returns the list of currently running ESC task keys as a JSON array of strings.
+Each entry is either a plain file URI (whole-file ESC) or a `"<uri>#<methodName>@<startLine>"`
+string (per-method ESC). Returns an empty array when no ESC is in progress.
+
+```
+command:   "openjml.getRunningEscTasks"
+arguments: []
+```
+
+Clients can use this to populate a cancellation UI (e.g. a checklist dialog or
+Quick Pick) before calling `openjml.cancelEsc`.
 
 ### `openjml.focusFile`
 
@@ -764,11 +935,12 @@ them being available.
 | Feature | Notes |
 |---|---|
 | `textDocument/codeAction` | Quick fixes — code lens is used for ESC invocation instead |
-| `textDocument/formatting` | Code formatting |
+| `textDocument/formatting` | Code formatting; must be JML-comment-aware to avoid corrupting `//@ ` lines |
 | `textDocument/rangeFormatting` | Range-based formatting |
-| `textDocument/documentHighlight` | Highlight all occurrences of a symbol |
-| `textDocument/implementation` | Go to implementation |
-| `textDocument/typeDefinition` | Go to type definition |
+| `textDocument/documentHighlight` | Highlight all occurrences of a symbol in the current file |
+| `window/progress` / `$/progress` | Progress reporting for long-running check and ESC operations |
+| `textDocument/implementation` | Go to implementation (out of scope for JML-focused server) |
+| `textDocument/typeDefinition` | Go to type definition (out of scope) |
 
 ---
 
@@ -823,10 +995,6 @@ The bundled VS Code extension (`OpenJMLlsp/vscode-extension/`) has several desig
 
 The extension passes `client: "vscode-java"` in `initializationOptions`. This causes the server to default `javaMode` to `"jml-only"`, which suppresses features that overlap with the Red Hat Java extension (`documentSymbol` Java members, Java hover, Java inlay hints). The `openjml.javaMode` and `openjml.client` settings in `package.json` let users override these if they want full coverage (e.g., when Red Hat Java is not installed).
 
-### `jmlWorkspaceRoots`
-
-VS Code has no concept of JML-natured projects. The extension therefore sends all open workspace folders as `jmlWorkspaceRoots` (path-separator-separated, `;` on Windows, `:` on Unix). An `onDidChangeWorkspaceFolders` listener pushes an updated value via `workspace/didChangeConfiguration` when folders are added or removed at runtime.
-
 ### Semantic tokens — additive merge with Red Hat Java
 
 The vscode-languageclient library's built-in semantic tokens feature competes with the Red Hat Java extension's semantic tokens provider via a provider race that VS Code resolves non-deterministically. To avoid this:
@@ -866,13 +1034,6 @@ There is no manual "run check" command; checking is always automatic. ESC (`--es
   Cross-file type information (e.g., specs for imported classes) is available if
   `sourcePath` is configured, but the server does not automatically re-check
   dependent files when a spec file changes.
-
-- **Temp file for unsaved content**: When checking content that has not yet been
-  saved to disk, the server writes it to a temporary file, passes that path to
-  OpenJML, then deletes it. OpenJML has an existing mechanism (used in its test
-  suite) for wrapping an in-memory string as a mock `JavaFileObject`, which would
-  eliminate the temp file entirely and remove the associated disk I/O on every
-  keystroke check. Using mock files is a planned optimization.
 
 - **ESC-on-save**: The server does not trigger ESC from `textDocument/didSave`.
   Clients that want ESC-on-save must issue `openjml.runEsc` themselves after save.

@@ -574,6 +574,67 @@ public class LspProtocolTest {
     }
 
     // -----------------------------------------------------------------------
+    // Folding range over wire
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code textDocument/foldingRange} returns a non-empty array
+     * of ranges over the full JSON-RPC wire for a document that contains
+     * multi-line JML annotation blocks.
+     *
+     * <p>Folding range computation is a pure text scan ({@link
+     * org.openjml.lsp.FoldingRangeProvider#fromSource}) that requires no AST.
+     * We nonetheless wait for {@code publishDiagnostics} to confirm the document
+     * is fully open on the server before sending the request, so there is no
+     * race between didOpen and the foldingRange response.
+     *
+     * <p>This test exercises the full request / response cycle (JSON-RPC framing,
+     * {@code OpenJMLTextDocumentService#foldingRange}, and
+     * {@link org.openjml.lsp.FoldingRangeProvider}) — unlike
+     * {@code FoldingRangeTest} which calls {@code FoldingRangeProvider.fromSource}
+     * directly.
+     */
+    @Test
+    public void testFoldingRangeOverWireReturnsRanges() throws Exception {
+        String uri = "file:///FoldingWire.java";
+        // Three consecutive JML line-comment lines: lines 1-3 (0-indexed).
+        // FoldingRangeProvider should return at least one range covering them.
+        String source = "public class FoldingWire {\\n"
+                + "    //@ requires x >= 0;\\n"
+                + "    //@ ensures \\\\result >= 0;\\n"
+                + "    //@ assignable \\\\nothing;\\n"
+                + "    public int id(int x) { return x; }\\n"
+                + "}\\n";
+
+        openDocument(uri, source);
+
+        // Wait for the initial --check to complete (confirms doc is open on server).
+        JsonObject diagNotif = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didOpen", diagNotif);
+
+        // textDocument/foldingRange only needs the document URI — no position.
+        String foldParams = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
+        client.sendRequest("textDocument/foldingRange", foldParams);
+
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected a response to textDocument/foldingRange", response);
+        assertFalse("foldingRange response must not be an error",
+                response.has("error") && !response.get("error").isJsonNull());
+        assertTrue("foldingRange response must have a 'result' field", response.has("result"));
+        assertFalse("foldingRange result must not be JSON null", response.get("result").isJsonNull());
+
+        JsonArray ranges = response.getAsJsonArray("result");
+        assertNotNull("foldingRange result must be a JSON array", ranges);
+        assertFalse("Expected at least one folding range for the multi-line JML block",
+                ranges.isEmpty());
+
+        // The first range must span the three consecutive JML comment lines (1-3, 0-indexed).
+        JsonObject first = ranges.get(0).getAsJsonObject();
+        assertEquals("startLine of first folding range", 1, first.get("startLine").getAsInt());
+        assertEquals("endLine of first folding range",   3, first.get("endLine").getAsInt());
+    }
+
+    // -----------------------------------------------------------------------
     // clearAndReindex command
     // -----------------------------------------------------------------------
 

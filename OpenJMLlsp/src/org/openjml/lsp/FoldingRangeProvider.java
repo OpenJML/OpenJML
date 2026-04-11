@@ -55,8 +55,10 @@ public class FoldingRangeProvider {
      * @param source full source text of the file
      * @return list of {@link FoldingRange}s, may be empty
      */
+    // NOTE: This algorithm must be kept in sync with JmlFoldingManager.updateFolds()
+    // in the OpenJMLUI Eclipse plugin.  Both implement the identical character-scan;
+    // any bug fix or behavioral change must be applied to both.
     public static List<FoldingRange> fromSource(String source) {
-        System.err.println("[FOLDING] start");
         List<FoldingRange> result = new ArrayList<>();
         int n    = source.length();
         int pos  = 0;
@@ -288,7 +290,6 @@ public class FoldingRangeProvider {
     private static boolean isSpaceOrTab(char c) { return c == ' ' || c == '\t'; }
 
     private static void emitIfMultiLine(List<FoldingRange> out, int start, int end) {
-        System.err.println("[FOLDING] " + start + " " + end);
         if (start >= 0 && end > start) {
             FoldingRange fr = new FoldingRange(start, end);
             fr.setKind(FoldingRangeKind.Comment);

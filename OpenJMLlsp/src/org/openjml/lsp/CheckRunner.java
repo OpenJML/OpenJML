@@ -2363,7 +2363,7 @@ public class CheckRunner {
         boolean hasSourcePath = settings.sourcePath != null && !settings.sourcePath.isEmpty();
         if (hasSourcePath) {
             // JDT-resolved source path already covers this project and its dependencies.
-            // Do NOT also add jmlWorkspaceRoots/workspaceFolderPaths — for default-package
+            // Do NOT also add workspaceFolderPaths — for default-package
             // files that would introduce a duplicate class source alongside the temp dir,
             // causing javac to silently suppress diagnostics.
             parts.add(settings.sourcePath);
