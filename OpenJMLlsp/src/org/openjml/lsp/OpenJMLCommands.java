@@ -160,5 +160,25 @@ public final class OpenJMLCommands {
      */
     public static final String INDEX_PROJECT = "openjml.indexProject";
 
+    /**
+     * Per-project symbol query: {@code openjml.symbolsForProject}.
+     *
+     * <p>Returns the same data as {@code workspace/symbol} but filtered to a
+     * single project, identified by its file-system root path.  This avoids the
+     * cross-project leakage that occurs when multiple projects are indexed and the
+     * client-side URI comparison is unreliable.
+     *
+     * <p>Arguments: {@code [query, projectRoot]}.
+     * <ul>
+     *   <li>{@code query} — exact case-sensitive symbol name; empty = return all.</li>
+     *   <li>{@code projectRoot} — file-system path of the Eclipse project root
+     *       ({@code IProject.getLocation().toOSString()}).  When absent or empty,
+     *       symbols from all projects are returned.</li>
+     * </ul>
+     *
+     * <p>Returns a {@code List<SymbolInformation>} serialized as JSON.
+     */
+    public static final String SYMBOLS_FOR_PROJECT = "openjml.symbolsForProject";
+
     private OpenJMLCommands() {}
 }

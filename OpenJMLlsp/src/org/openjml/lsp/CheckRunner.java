@@ -223,7 +223,7 @@ public class CheckRunner {
         AST_CACHE.clearNavForRoots(paths);
         IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
             String uri = jfo.toUri().normalize().toString();
-            AST_CACHE.putNav(uri, ctx, (JmlCompilationUnit) ast);
+            AST_CACHE.putNav(uri, ctx, (JmlCompilationUnit) ast, paths);
         };
         api.setASTListener(astListener);
         int rc;
@@ -323,7 +323,8 @@ public class CheckRunner {
                 System.err.println("[AST listener] jfo=" + jfoUri
                         + (jfoUri.equals(astSrcUri) ? "" : " ast.sourcefile=" + astSrcUri));
             } catch (Exception ignored) {}
-            AST_CACHE.putNav(realUri, astCtx, (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast);
+            AST_CACHE.putNav(realUri, astCtx,
+                    (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast, paths);
         };
         api.setASTListener(astListener);
         int rc;

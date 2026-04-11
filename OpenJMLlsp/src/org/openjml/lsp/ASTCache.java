@@ -13,7 +13,9 @@ import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.openjml.IAPI;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,12 +23,14 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * <p>Maintains two tiers:
  * <ul>
- *   <li><b>Nav cache</b> — populated by a project-wide {@code --check --dirs} pass.
- *       All entries share a single IAPI compilation context, so symbol identity
- *       ({@code ==}) holds across files and cross-file navigation works reliably.
- *       Takes highest precedence for navigation operations.</li>
- *   <li><b>Live cache</b> — populated by user-triggered {@code --check} / {@code --esc}
- *       runs on individual files.  Used when the nav cache has no entry for a URI
+ *   <li><b>Nav tier</b> — populated by a project-wide {@code --check --dirs} pass.
+ *       All entries within one project share a single IAPI compilation context, so
+ *       symbol identity ({@code ==}) holds across files and cross-file navigation
+ *       works reliably.  Takes highest precedence for navigation operations.
+ *       Partitioned per project: each project has its own {@link NavSection}
+ *       containing an independent AST cache and declaration index.</li>
+ *   <li><b>Live tier</b> — populated by user-triggered {@code --check} / {@code --esc}
+ *       runs on individual files.  Used when the nav tier has no entry for a URI
  *       (e.g. the user opened a file before a project-wide check completed).</li>
  * </ul>
  *
@@ -88,29 +92,75 @@ public class ASTCache {
     }
 
     // -----------------------------------------------------------------------
-    // Nav tier — project-wide check for navigation (go-to-declaration etc.)
+    // Nav tier — one NavSection per project, keyed by canonical root-path set
     // -----------------------------------------------------------------------
 
     /**
-     * URI → attributed AST from the most recent project-wide {@code --check --dirs} pass.
-     * All entries share a single IAPI compilation context, so symbol identity ({@code ==})
-     * holds across files and cross-file navigation works reliably.
+     * Per-project container for the nav AST cache and its declaration index.
      *
-     * <p>Written only by {@link #putNav}; never touched by per-file checks so it is
-     * immune to IAPI-context fragmentation.
+     * <p>All entries in one {@code NavSection} were produced by a single
+     * {@code --check --dirs} pass on the same set of source directories, so they
+     * share one IAPI compilation context and symbol identity ({@code ==}) holds
+     * across all files in the section.
+     *
+     * <p>A section is identified by the set of source-directory paths passed to
+     * {@link CheckRunner#runCheckDir}.  {@link #coversProjectRoot(String)} is used
+     * at query time to match a section against the Eclipse project root supplied by
+     * the client.
      */
-    private final Map<String, Entry> navCache = new ConcurrentHashMap<>();
+    private static class NavSection {
+        /** Canonical source-directory paths that populate this section. */
+        final List<String> rootPaths;
+        /** URI → attributed AST for each file in this project's nav pass. */
+        final Map<String, Entry> navCache = new ConcurrentHashMap<>();
+        /** Symbol → declaration location, rebuilt by {@link #rebuildNavIndex()}. */
+        final Map<Symbol, SymbolLocation> declarationIndex = new ConcurrentHashMap<>();
+
+        NavSection(List<String> rootPaths) {
+            this.rootPaths = List.copyOf(rootPaths);
+        }
+
+        /**
+         * Returns {@code true} if this section covers source files under
+         * {@code projectRoot}.
+         *
+         * <p>The heuristic: any configured root path that is <em>equal to</em> or
+         * <em>under</em> {@code projectRoot} means the section belongs to that
+         * project.  The trailing separator prevents {@code /ProjectA} from
+         * matching {@code /ProjectABC}.
+         */
+        boolean coversProjectRoot(String projectRoot) {
+            if (projectRoot == null) return true;
+            String prWithSep = projectRoot.endsWith(java.io.File.separator)
+                    ? projectRoot : projectRoot + java.io.File.separator;
+            for (String root : rootPaths) {
+                // root is under projectRoot (e.g., root = .../ProjectA/src, projectRoot = .../ProjectA)
+                if (root.startsWith(prWithSep) || root.equals(projectRoot)) return true;
+                // projectRoot is at or under root (e.g., both point to the same directory)
+                String rootWithSep = root.endsWith(java.io.File.separator)
+                        ? root : root + java.io.File.separator;
+                if (projectRoot.startsWith(rootWithSep)) return true;
+            }
+            return false;
+        }
+    }
 
     /**
-     * Cross-file Symbol → declaration location built exclusively from the most
-     * recent project-wide {@code --check --dirs} pass.  Because all files in
-     * that pass share a single IAPI compilation context, symbol identity ({@code ==})
-     * holds across files and navigation works reliably.
+     * Project root-path set → its {@link NavSection}.
      *
-     * <p>Populated only by {@link #rebuildNavIndex()}; never written by individual
-     * file checks so it is immune to IAPI-context fragmentation.
+     * <p>The key is a normalized, sorted, newline-joined concatenation of the
+     * source-directory paths supplied to {@link #putNav}.  This is stable across
+     * re-index calls for the same project.
      */
-    private final Map<Symbol, SymbolLocation> navDeclarationIndex = new ConcurrentHashMap<>();
+    private final Map<String, NavSection> navSections = new ConcurrentHashMap<>();
+
+    /** Compute the stable map key for a set of project root paths. */
+    private static String sectionKey(List<String> paths) {
+        return paths.stream()
+                .map(p -> java.nio.file.Path.of(p).normalize().toString())
+                .sorted()
+                .collect(java.util.stream.Collectors.joining("\n"));
+    }
 
     // -----------------------------------------------------------------------
     // Live tier — user-triggered --check / --esc runs
@@ -132,75 +182,77 @@ public class ASTCache {
     // -----------------------------------------------------------------------
 
     /**
-     * Remove nav-cache entries for files whose path starts with one of the
-     * given {@code rootPaths}.  Called before a project-wide check so that
-     * stale entries from the previous run for <em>this project</em> do not
-     * linger, while entries from other projects are left intact.
+     * Remove nav-cache entries for the section identified by {@code rootPaths}.
+     * Called before a project-wide check so that stale entries from the previous
+     * run for <em>this project</em> do not linger, while other project sections
+     * are left intact.
      *
-     * <p>The nav declaration index is <em>not</em> cleaned here; it is fully
-     * rebuilt by {@link #rebuildNavIndex()} after the check completes.
+     * <p>The declaration index is NOT cleaned here; it is fully rebuilt by
+     * {@link #rebuildNavIndex()} after the check completes.
      */
-    public void clearNavForRoots(java.util.List<String> rootPaths) {
-        navCache.keySet().removeIf(uri -> {
-            try {
-                String path = java.net.URI.create(uri).getPath();
-                if (path == null) return false;
-                for (String root : rootPaths) {
-                    String r = root.endsWith(java.io.File.separator)
-                            ? root : root + java.io.File.separator;
-                    if (path.startsWith(r) || path.equals(root)) return true;
-                }
-            } catch (Exception ignored) {}
-            return false;
-        });
+    public void clearNavForRoots(List<String> rootPaths) {
+        String key = sectionKey(rootPaths);
+        NavSection section = navSections.get(key);
+        if (section != null) section.navCache.clear();
     }
 
-    /** Clear the entire nav cache. Used by {@link #clear()} on full reset. */
+    /** Clear all nav sections. Used by {@link #clear()} on full reset. */
     public void clearNav() {
-        navCache.clear();
+        navSections.clear();
     }
 
     /**
-     * Store an AST into the nav cache.  Called by the per-instance
-     * {@code IASTListener} registered in {@link CheckRunner#runCheckDirWithContext}.
-     * All entries stored by a single project-wide run share one IAPI compilation
-     * context, so symbol identity holds across all of them.
+     * Store an AST into the nav section identified by {@code projectRoots}.
+     * Called by the per-invocation {@code IASTListener} registered in
+     * {@link CheckRunner#runCheckDir} / {@link CheckRunner#runCheckDirWithContext}.
+     * All entries stored in a single pass share one IAPI compilation context,
+     * so symbol identity holds across all of them.
+     *
+     * @param projectRoots the source-directory paths passed to {@code runCheckDir}
+     *                     for the project that produced this AST
      */
-    public void putNav(String uri, Context ctx, JmlCompilationUnit ast) {
-        navCache.put(uri, Entry.basic(ast, ctx));
+    public void putNav(String uri, Context ctx, JmlCompilationUnit ast,
+                       List<String> projectRoots) {
+        String key = sectionKey(projectRoots);
+        navSections.computeIfAbsent(key, k -> new NavSection(projectRoots))
+                   .navCache.put(uri, Entry.basic(ast, ctx));
     }
 
     /**
-     * Return the nav-cache entry for {@code uri}, falling back to the live
-     * cache if absent.
+     * Return the nav-tier entry for {@code uri}, searching all sections and
+     * falling back to the live cache if absent.
      */
     public Entry getNav(String uri) {
-        Entry nav = navCache.get(uri);
-        if (nav != null) return nav;
+        for (NavSection s : navSections.values()) {
+            Entry e = s.navCache.get(uri);
+            if (e != null) return e;
+        }
         return liveCache.get(uri);
     }
 
     /**
      * Iterate over nav-cache entries (URI → Entry) for cross-file navigation
-     * operations (find-references, rename).  Falls back to the live cache if
-     * the nav cache has not yet been populated.
+     * (find-references, rename).  Falls back to the live cache if no nav
+     * sections have been populated yet.
      */
     public void forEachNav(java.util.function.BiConsumer<String, Entry> action) {
-        if (!navCache.isEmpty()) {
-            navCache.forEach(action);
+        if (!navSections.isEmpty()) {
+            navSections.values().forEach(s -> s.navCache.forEach(action));
         } else {
             liveCache.forEach(action);
         }
     }
 
     /**
-     * Returns {@code true} if {@code uri} has an entry in whichever cache tier
-     * {@link #forEachNav} iterates (nav if non-empty, otherwise live).
+     * Returns {@code true} if {@code uri} has an entry in whichever tier
+     * {@link #forEachNav} iterates (nav sections if non-empty, else live).
      * Used by {@link org.openjml.lsp.ReferenceFinder} to avoid scanning a
-     * companion {@code .jml} file twice when it also appears as its own nav entry.
+     * companion {@code .jml} file twice.
      */
     public boolean containsNav(String uri) {
-        if (!navCache.isEmpty()) return navCache.containsKey(uri);
+        if (!navSections.isEmpty()) {
+            return navSections.values().stream().anyMatch(s -> s.navCache.containsKey(uri));
+        }
         return liveCache.containsKey(uri);
     }
 
@@ -244,29 +296,32 @@ public class ASTCache {
     }
 
     /**
-     * Rebuild the nav declaration index from all live-tier ASTs.
+     * Rebuild every nav section's declaration index from its AST cache.
      *
      * <p>Called by {@code runProjectCheck()} after a project-wide
-     * {@code --check --dirs} pass.  At that point every live-cache entry was
-     * produced by the same IAPI invocation, so all symbol objects are identity-
-     * compatible and cross-file navigation works reliably.
-     *
-     * <p>Individual file checks ({@code recheckUri}, {@code didSave}) never call
-     * this method, so the nav index is only ever updated by project-wide checks.
+     * {@code --check --dirs} pass.  Each section's entries were produced by the
+     * same IAPI invocation, so all symbol objects within a section are
+     * identity-compatible.
      */
     public void rebuildNavIndex() {
-        navDeclarationIndex.clear();
-        navCache.forEach((uri, entry) ->
-                new DeclarationIndexer(navDeclarationIndex, uri).scan(entry.ast()));
-        System.err.println("[ASTCache] nav index rebuilt: " + navDeclarationIndex.size()
-                + " declarations from " + navCache.size() + " files");
+        int totalDecls = 0;
+        for (NavSection section : navSections.values()) {
+            section.declarationIndex.clear();
+            section.navCache.forEach((uri, entry) ->
+                    new DeclarationIndexer(section.declarationIndex, uri).scan(entry.ast()));
+            totalDecls += section.declarationIndex.size();
+        }
+        System.err.println("[ASTCache] nav index rebuilt: " + navSections.size()
+                + " section(s), " + totalDecls + " total declarations");
     }
 
     /** Return the declaration location for {@code sym}, or {@code null} if unknown. */
     public SymbolLocation getDeclarationLocation(Symbol sym) {
-        // Nav index is built from a single project-wide IAPI — check it first.
-        SymbolLocation nav = navDeclarationIndex.get(sym);
-        if (nav != null) return nav;
+        // Nav sections are built from project-wide IAPI passes — check them first.
+        for (NavSection s : navSections.values()) {
+            SymbolLocation loc = s.declarationIndex.get(sym);
+            if (loc != null) return loc;
+        }
         SymbolLocation live = liveDeclarationIndex.get(sym);
         if (live != null) return live;
 
@@ -280,17 +335,20 @@ public class ASTCache {
         String qn      = sym.getQualifiedName().toString();
         String ownerQn = sym.owner != null ? sym.owner.getQualifiedName().toString() : "";
         String kind    = sym.getClass().getSimpleName();
-        if (!qn.isEmpty() && !navDeclarationIndex.isEmpty()) {
+        if (!qn.isEmpty() && !navSections.isEmpty()) {
             SymbolLocation match = null;
             boolean ambiguous = false;
-            for (Map.Entry<Symbol, SymbolLocation> e : navDeclarationIndex.entrySet()) {
-                Symbol s = e.getKey();
-                if (qn.equals(s.getQualifiedName().toString())
-                        && kind.equals(s.getClass().getSimpleName())
-                        && ownerQn.equals(s.owner != null
-                                ? s.owner.getQualifiedName().toString() : "")) {
-                    if (match != null) { ambiguous = true; break; }
-                    match = e.getValue();
+            outer:
+            for (NavSection s : navSections.values()) {
+                for (Map.Entry<Symbol, SymbolLocation> e : s.declarationIndex.entrySet()) {
+                    Symbol candidate = e.getKey();
+                    if (qn.equals(candidate.getQualifiedName().toString())
+                            && kind.equals(candidate.getClass().getSimpleName())
+                            && ownerQn.equals(candidate.owner != null
+                                    ? candidate.owner.getQualifiedName().toString() : "")) {
+                        if (match != null) { ambiguous = true; break outer; }
+                        match = e.getValue();
+                    }
                 }
             }
             if (!ambiguous && match != null) return match;
@@ -304,8 +362,10 @@ public class ASTCache {
 
     /** Remove the cached entry and its indexed declarations from all tiers (e.g. on didClose). */
     public void remove(String uri) {
-        navCache.remove(uri);
-        navDeclarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
+        navSections.values().forEach(s -> {
+            s.navCache.remove(uri);
+            s.declarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
+        });
         liveCache.remove(uri);
         removeLiveDeclarationsForUri(uri);
     }
@@ -315,8 +375,7 @@ public class ASTCache {
      * Called by the clear-and-reindex command.
      */
     public void clear() {
-        navCache.clear();
-        navDeclarationIndex.clear();
+        navSections.clear();
         liveCache.clear();
         liveDeclarationIndex.clear();
     }
@@ -328,27 +387,56 @@ public class ASTCache {
     /**
      * Iterate over live-tier entries (URI → Entry).
      * Used for operations that require a shared IAPI context (go-to-definition,
-     * cross-file references).  Init-tier entries may have been produced by a
-     * different IAPI invocation whose Symbol objects are not compatible.
+     * cross-file references).
      */
     public void forEach(java.util.function.BiConsumer<String, Entry> action) {
         liveCache.forEach(action);
     }
 
     /**
-     * Iterate over all indexed declarations from both tiers.
-     * Nav declarations (from the last project-wide check) take highest priority.
-     * Live declarations are included for URIs not covered by the nav cache.
+     * Iterate over all indexed declarations from all nav sections and the live tier.
      *
-     * <p>Used by {@code workspace/symbol} to search across the entire project.
+     * <p>Equivalent to {@link #forEachDeclaration(String, java.util.function.BiConsumer)}
+     * with a {@code null} project-root filter (returns everything).
      */
     public void forEachDeclaration(java.util.function.BiConsumer<Symbol, SymbolLocation> action) {
-        // Nav index from project-wide check takes highest priority: consistent symbols.
-        navDeclarationIndex.forEach(action);
+        forEachDeclaration(null, action);
+    }
+
+    /**
+     * Iterate over indexed declarations, optionally restricted to one project.
+     *
+     * <p>When {@code projectRoot} is non-null, only nav sections that
+     * {@linkplain NavSection#coversProjectRoot cover} that root and live-tier
+     * entries whose URI falls under that root are included.  When
+     * {@code projectRoot} is {@code null}, all sections and all live entries
+     * are included.
+     *
+     * <p>Used by {@code workspace/symbol} and the {@code openjml.symbolsForProject}
+     * command to search within a specific project.
+     *
+     * @param projectRoot file-system path of the Eclipse project root, or
+     *                    {@code null} to return all projects
+     */
+    public void forEachDeclaration(String projectRoot,
+            java.util.function.BiConsumer<Symbol, SymbolLocation> action) {
+        // Collect the set of URIs covered by the nav sections we will iterate,
+        // so the live fallback can skip files already in the nav index.
+        Set<String> navCoveredUris = ConcurrentHashMap.newKeySet();
+
+        for (NavSection section : navSections.values()) {
+            navCoveredUris.addAll(section.navCache.keySet());
+            if (projectRoot == null || section.coversProjectRoot(projectRoot)) {
+                section.declarationIndex.forEach(action);
+            }
+        }
+
         // Live index covers files checked individually since the last project-wide check.
-        // Skip URIs already covered by the nav index (navCache has those).
+        // Skip URIs already in a nav section; apply the project filter to URIs.
         liveDeclarationIndex.forEach((sym, loc) -> {
-            if (!navCache.containsKey(loc.uri())) action.accept(sym, loc);
+            if (navCoveredUris.contains(loc.uri())) return;
+            if (projectRoot != null && !uriUnderRoot(loc.uri(), projectRoot)) return;
+            action.accept(sym, loc);
         });
     }
 
@@ -358,6 +446,22 @@ public class ASTCache {
 
     private void removeLiveDeclarationsForUri(String uri) {
         liveDeclarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
+    }
+
+    /**
+     * Returns {@code true} if the file-system path extracted from {@code uri}
+     * starts with {@code root} (with a separator to avoid prefix collisions).
+     */
+    private static boolean uriUnderRoot(String uri, String root) {
+        try {
+            String path = java.net.URI.create(uri).getPath();
+            if (path == null) return false;
+            String rootWithSep = root.endsWith(java.io.File.separator)
+                    ? root : root + java.io.File.separator;
+            return path.startsWith(rootWithSep) || path.equals(root);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private class DeclarationIndexer extends JmlTreeScanner {
@@ -430,16 +534,13 @@ public class ASTCache {
          */
         private void record(Symbol sym, int pos) {
             SymbolLocation incoming = new SymbolLocation(uri, pos);
-            // Ghost/model symbols have the JML bit set — declared only in JML spec files.
             boolean isJmlSym = org.jmlspecs.openjml.Utils.isJML(sym.flags());
             index.merge(sym, incoming, (existing, in) -> {
                 if (isJmlSym) {
-                    // Ghost/model: .jml URI wins over .java URI.
                     if (existing.uri().endsWith(".jml")) return existing;
                     if (in.uri().endsWith(".jml"))       return in;
-                    return in;  // both .java (inline ghost, no companion): take latest
+                    return in;
                 } else {
-                    // Regular Java: .java wins over .jml spec stub.
                     return !existing.uri().endsWith(".jml") && in.uri().endsWith(".jml")
                             ? existing : in;
                 }

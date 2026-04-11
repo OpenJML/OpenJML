@@ -137,6 +137,11 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             textDocumentService.indexProject(cmdProject(args));
             return null;
         });
+        registry.on          (OpenJMLCommands.SYMBOLS_FOR_PROJECT, args -> {
+            String query = str(args, 0);
+            String root  = str(args, 1);
+            return textDocumentService.symbols(query != null ? query : "", root);
+        });
         registry.on          (OpenJMLCommands.CANCEL_ESC, args -> {
             textDocumentService.cancelEsc(str(args, 0));
             return null;

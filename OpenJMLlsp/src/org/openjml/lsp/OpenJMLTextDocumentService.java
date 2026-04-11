@@ -1239,7 +1239,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * <p>Called by {@link OpenJMLWorkspaceService} in response to
      * {@code workspace/symbol} requests (Cmd+T / Ctrl+T in VS Code).
      */
+    /** Query the declaration index across all projects. */
     List<SymbolInformation> symbols(String query) {
+        return symbols(query, null);
+    }
+
+    /**
+     * Query the declaration index, optionally restricted to one project.
+     *
+     * @param query       exact case-sensitive symbol name; empty = return all
+     * @param projectRoot file-system path of the project root to filter by,
+     *                    or {@code null} to return matches from all projects
+     */
+    List<SymbolInformation> symbols(String query, String projectRoot) {
         if (navCacheDirty) {
             clientLog("workspace/symbol: project index not yet complete — results may be incomplete");
         }
@@ -1251,9 +1263,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             raw = raw.substring(1, raw.length() - 1).trim();
         }
         final String effectiveQuery = raw;
-        System.err.println("[symbols] query=\"" + effectiveQuery + "\"  navCacheDirty=" + navCacheDirty);
+        System.err.println("[symbols] query=\"" + effectiveQuery + "\""
+                + (projectRoot != null ? " root=\"" + projectRoot + "\"" : "")
+                + "  navCacheDirty=" + navCacheDirty);
         List<SymbolInformation> result = new ArrayList<>();
-        CheckRunner.getASTCache().forEachDeclaration((sym, loc) -> {
+        CheckRunner.getASTCache().forEachDeclaration(projectRoot, (sym, loc) -> {
             String name = sym.name.toString();
             // Skip synthetic names (<init>, <clinit>, empty).
             if (name.isEmpty() || name.startsWith("<")) return;

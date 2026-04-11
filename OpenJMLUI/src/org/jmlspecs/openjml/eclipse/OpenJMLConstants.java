@@ -186,6 +186,15 @@ public final class OpenJMLConstants {
     public static final String CMD_INDEX_PROJECT = "openjml.indexProject";
 
     /**
+     * Per-project symbol query sent via {@code workspace/executeCommand}.
+     * Arguments: {@code [query, projectRoot]}.  Returns {@code List<SymbolInformation>}
+     * restricted to files under {@code projectRoot}.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.SYMBOLS_FOR_PROJECT}.
+     */
+    public static final String CMD_SYMBOLS_FOR_PROJECT = "openjml.symbolsForProject";
+
+    /**
      * Semantic-tokens request sent via {@code workspace/executeCommand}.
      *
      * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.GET_SEMANTIC_TOKENS}.
