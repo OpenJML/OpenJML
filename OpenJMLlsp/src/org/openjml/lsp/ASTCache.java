@@ -427,7 +427,14 @@ public class ASTCache {
         for (NavSection section : navSections.values()) {
             navCoveredUris.addAll(section.navCache.keySet());
             if (projectRoot == null || section.coversProjectRoot(projectRoot)) {
-                section.declarationIndex.forEach(action);
+                section.declarationIndex.forEach((sym, loc) -> {
+                    // Even when the section covers the project root, individual
+                    // declarations must also be under that root.  This matters
+                    // when multiple projects were indexed together into one section
+                    // (e.g. the startup indexProject(null) call).
+                    if (projectRoot == null || uriUnderRoot(loc.uri(), projectRoot))
+                        action.accept(sym, loc);
+                });
             }
         }
 

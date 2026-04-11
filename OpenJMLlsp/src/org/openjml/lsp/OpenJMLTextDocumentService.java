@@ -1247,16 +1247,35 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /**
      * Query the declaration index, optionally restricted to one project.
      *
-     * @param query       exact case-sensitive symbol name; empty = return all
-     * @param projectRoot file-system path of the project root to filter by,
-     *                    or {@code null} to return matches from all projects
+     * <p>The {@code query} string may encode a project root using a newline
+     * separator: {@code "<projectRoot>\n<identifier>"}.  When a newline is
+     * present the part before it is treated as the project root filter and the
+     * part after it is the identifier to match.  Plain queries (no newline) are
+     * matched against all projects, preserving backward compatibility with
+     * VS Code and other single-project clients.
+     *
+     * @param query       identifier to match (exact case-sensitive), optionally
+     *                    prefixed with a project root and newline; empty = return all
+     * @param projectRoot explicit project-root filter; takes precedence over any
+     *                    root encoded in {@code query}; {@code null} = no filter
      */
     List<SymbolInformation> symbols(String query, String projectRoot) {
         if (navCacheDirty) {
             clientLog("workspace/symbol: project index not yet complete — results may be incomplete");
         }
-        // Strip any surrounding quote characters that a client might accidentally include.
         String raw = query == null ? "" : query.trim();
+
+        // Extract an encoded project root from the query string.
+        // Format: "<projectRoot>\n<identifier>" — newlines cannot appear in
+        // Java identifiers, so this separator is unambiguous.
+        // An explicit projectRoot argument takes precedence.
+        int nlIdx = raw.indexOf('\n');
+        if (nlIdx >= 0 && projectRoot == null) {
+            projectRoot = raw.substring(0, nlIdx).trim();
+            raw = raw.substring(nlIdx + 1).trim();
+        }
+
+        // Strip any surrounding quote characters that a client might accidentally include.
         if (raw.length() >= 2
                 && ((raw.startsWith("\"") && raw.endsWith("\""))
                     || (raw.startsWith("'") && raw.endsWith("'")))) {

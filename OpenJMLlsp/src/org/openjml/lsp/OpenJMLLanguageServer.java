@@ -242,7 +242,17 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // a spurious "no source directories" log message in minimal test setups.
         textDocumentService.setRootUri(rootUri);
         if (rootUri != null || !settings.effectiveRoots().isEmpty()) {
-            textDocumentService.indexProject(null);
+            // Index each configured project separately so that each gets its own
+            // NavSection in ASTCache, enabling per-project workspace/symbol filtering.
+            // Fall back to indexProject(null) for single-project clients (VS Code)
+            // that don't configure named projects.
+            if (settings.projects != null && !settings.projects.isEmpty()) {
+                for (OpenJMLSettings.ProjectConfig cfg : settings.projects) {
+                    textDocumentService.indexProject(cfg.id);
+                }
+            } else {
+                textDocumentService.indexProject(null);
+            }
         }
         // Register file watchers so the server is notified when .jml/.java files
         // change on disk outside the editor.

@@ -16,24 +16,21 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.lsp4e.LSPEclipseUtils;
-import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
+import org.eclipse.lsp4j.WorkspaceSymbol;
+import org.eclipse.lsp4j.WorkspaceSymbolLocation;
+import org.eclipse.lsp4j.WorkspaceSymbolParams;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.handlers.HandlerUtil;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.reflect.TypeToken;
 
 /**
  * Handles the {@code org.openjml.eclipse.commands.findAllDeclarations} command.
@@ -52,14 +49,18 @@ import com.google.gson.reflect.TypeToken;
  *       identifier.</li>
  * </ul>
  *
+ * <p><b>Project filtering:</b>
+ * The project root is encoded into the {@code workspace/symbol} query string
+ * as {@code "<projectRoot>\n<identifier>"}.  The server extracts the root and
+ * filters its declaration index to files under that project.  This avoids any
+ * client-side Gson dependency and uses the standard LSP wire path.
+ *
  * <p><b>Coverage note:</b> The server's declaration index is populated as files
  * are opened and checked.  Use "Index Project" (OpenJML menu) to index all
  * source files in the project before searching, so that declarations in
  * unopened files are also found.
  */
 public class JmlFindAllDeclarationsHandler extends AbstractHandler {
-
-    private static final Gson GSON = new Gson();
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -86,13 +87,29 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
         final IProject project = getActiveProject(editor);
 
         // Step 2: query the server on a background thread, then show results.
-        Job.create("Find All Declarations: " + query, (monitor) -> {
-            List<SymbolInformation> results = queryDeclarations(query, project);
-            Display.getDefault().asyncExec(() -> showResults(shell, query, results));
-            return Status.OK_STATUS;
-        }).schedule();
+        scheduleSearch(shell, query, project);
 
         return null;
+    }
+
+    /**
+     * Schedule a background search for {@code query} in {@code project} and
+     * display the results (or a retry dialog) on the UI thread when done.
+     */
+    private static void scheduleSearch(Shell shell, String query, IProject project) {
+        Job.create("Find All Declarations: " + query, (monitor) -> {
+            List<SymbolInformation> results;
+            try {
+                results = queryDeclarations(query, project);
+            } catch (Throwable t) {
+                System.err.println("[FindAllDecl] Job body threw: " + t);
+                t.printStackTrace(System.err);
+                results = List.of();
+            }
+            final List<SymbolInformation> finalResults = results;
+            Display.getDefault().asyncExec(() -> showResults(shell, query, project, finalResults));
+            return Status.OK_STATUS;
+        }).schedule();
     }
 
     // -----------------------------------------------------------------------
@@ -102,33 +119,36 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     private static List<SymbolInformation> queryDeclarations(String query, IProject project) {
         String projectRoot = (project != null && project.getLocation() != null)
                 ? project.getLocation().toOSString() : null;
+        System.err.println("[FindAllDecl] query=\"" + query + "\" projectRoot=" + projectRoot
+                + " wrapper=" + (LspPartListener.cachedWrapper != null ? "present" : "null"));
 
-        // Query the server via the openjml.symbolsForProject command.
-        // The server filters by project root server-side, so no client-side
-        // path matching is needed.
-        List<SymbolInformation> viaCommand = symbolsViaCommand(
+        List<SymbolInformation> results = symbolsViaWrapper(
                 LspPartListener.cachedWrapper, query, projectRoot);
-        if (viaCommand != null) return viaCommand;
+        if (results != null) return results;
 
-        Console.log("Find All Declarations: server not available");
+        System.err.println("[FindAllDecl] server not available — returning empty");
         return List.of();
     }
 
     /**
-     * Send an {@code openjml.symbolsForProject} {@code workspace/executeCommand}
-     * request to the language server via the cached {@code LanguageServerWrapper}.
+     * Send a {@code workspace/symbol} request to the language server via the
+     * cached {@code LanguageServerWrapper}.
      *
-     * <p>Uses the same reflection approach as {@link LspCommandHandler#sendViaWrapper}
-     * to obtain the server proxy from LSP4E's wrapper, then calls
-     * {@code executeCommand} directly on it.  The result is a JSON array
-     * deserialized into {@code List<SymbolInformation>}.
+     * <p>The project root is encoded into the query string as
+     * {@code "<projectRoot>\n<identifier>"} so the server can filter its
+     * declaration index to files under that project without requiring a custom
+     * command or any Gson dependency on the client side.
      *
      * @return the symbol list on success, or {@code null} if the wrapper is
      *         unavailable or the call fails
      */
-    private static List<SymbolInformation> symbolsViaCommand(
+    private static List<SymbolInformation> symbolsViaWrapper(
             Object wrapper, String query, String projectRoot) {
-        if (wrapper == null) return null;
+        if (wrapper == null) {
+            System.err.println("[FindAllDecl] symbolsViaWrapper: wrapper is null");
+            return null;
+        }
+        System.err.println("[FindAllDecl] symbolsViaWrapper: wrapper class=" + wrapper.getClass().getName());
         try {
             // Locate LanguageServerWrapper.getServer() by walking the class hierarchy.
             java.lang.reflect.Method getServer = null;
@@ -141,60 +161,106 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
                 } catch (NoSuchMethodException ignored) {}
             }
             if (getServer == null) {
-                Console.log("Find All Declarations: getServer() not found on wrapper");
+                System.err.println("[FindAllDecl] getServer() not found on wrapper hierarchy");
                 return null;
             }
 
             Object serverFuture = getServer.invoke(wrapper);
+            System.err.println("[FindAllDecl] getServer() returned: "
+                    + (serverFuture != null ? serverFuture.getClass().getName() : "null"));
             org.eclipse.lsp4j.services.LanguageServer server = null;
             if (serverFuture instanceof java.util.concurrent.CompletableFuture<?> cf) {
                 Object result = cf.get(5, TimeUnit.SECONDS);
+                System.err.println("[FindAllDecl] CompletableFuture resolved: "
+                        + (result != null ? result.getClass().getName() : "null"));
                 if (result instanceof org.eclipse.lsp4j.services.LanguageServer ls) server = ls;
             } else if (serverFuture instanceof org.eclipse.lsp4j.services.LanguageServer ls) {
                 server = ls;
             }
             if (server == null) {
-                Console.log("Find All Declarations: could not obtain LanguageServer from wrapper");
+                System.err.println("[FindAllDecl] could not obtain LanguageServer from wrapper");
                 return null;
             }
+            System.err.println("[FindAllDecl] LanguageServer obtained: " + server.getClass().getName());
 
-            List<Object> args = new ArrayList<>();
-            args.add(new JsonPrimitive(query));
-            args.add(projectRoot != null ? new JsonPrimitive(projectRoot) : com.google.gson.JsonNull.INSTANCE);
-            ExecuteCommandParams params = new ExecuteCommandParams(
-                    OpenJMLConstants.CMD_SYMBOLS_FOR_PROJECT, args);
+            // Encode the project root into the query using a newline separator.
+            // Java identifiers cannot contain newlines, so this is unambiguous.
+            String encodedQuery = (projectRoot != null && !projectRoot.isEmpty())
+                    ? projectRoot + "\n" + query : query;
+            WorkspaceSymbolParams params = new WorkspaceSymbolParams(encodedQuery);
+            System.err.println("[FindAllDecl] sending workspace/symbol, encodedQuery length="
+                    + encodedQuery.length());
 
-            Object raw = server.getWorkspaceService().executeCommand(params)
+            var either = server.getWorkspaceService().symbol(params)
                     .get(15, TimeUnit.SECONDS);
+            System.err.println("[FindAllDecl] symbol() returned: "
+                    + (either != null ? "isLeft=" + either.isLeft() : "null"));
 
-            if (raw instanceof JsonElement je) {
-                List<SymbolInformation> results = GSON.fromJson(je,
-                        new TypeToken<List<SymbolInformation>>(){}.getType());
-                Console.log("Find All Declarations: " + (results != null ? results.size() : 0)
-                        + " result(s) for query=\"" + query + "\""
-                        + (projectRoot != null ? " root=\"" + projectRoot + "\"" : ""));
-                return results != null ? results : List.of();
-            }
-            Console.log("Find All Declarations: unexpected result type: "
-                    + (raw != null ? raw.getClass().getName() : "null"));
-            return List.of();
+            List<SymbolInformation> symbols = eitherToList(either);
+            System.err.println("[FindAllDecl] " + symbols.size() + " result(s) for query=\"" + query + "\""
+                    + (projectRoot != null ? " root=\"" + projectRoot + "\"" : ""));
+            return symbols;
         } catch (Throwable t) {
-            Console.log("Find All Declarations: command failed: " + t.getMessage());
+            System.err.println("[FindAllDecl] exception: " + t.getClass().getName() + ": " + t.getMessage());
+            t.printStackTrace(System.err);
             return null;
         }
+    }
+
+    /**
+     * Convert an LSP4J {@code workspace/symbol} response to a flat
+     * {@code List<SymbolInformation>}, handling both the legacy left side
+     * ({@code SymbolInformation[]}) and the LSP 3.17 right side
+     * ({@code WorkspaceSymbol[]}).
+     */
+    private static List<SymbolInformation> eitherToList(
+            Either<List<? extends SymbolInformation>,
+                   List<? extends WorkspaceSymbol>> either) {
+        if (either == null) return List.of();
+        if (either.isLeft()) return new ArrayList<>(either.getLeft());
+        // LSP 3.17+: server responded with WorkspaceSymbol (right side).
+        List<SymbolInformation> result = new ArrayList<>();
+        for (WorkspaceSymbol ws : either.getRight()) {
+            Location loc;
+            Either<Location, WorkspaceSymbolLocation> wloc = ws.getLocation();
+            if (wloc != null && wloc.isLeft()) {
+                loc = wloc.getLeft();
+            } else if (wloc != null && wloc.isRight()) {
+                loc = new Location(wloc.getRight().getUri(),
+                        new org.eclipse.lsp4j.Range(
+                                new org.eclipse.lsp4j.Position(0, 0),
+                                new org.eclipse.lsp4j.Position(0, 0)));
+            } else {
+                loc = null;
+            }
+            SymbolInformation si = new SymbolInformation(ws.getName(), ws.getKind(), loc);
+            si.setContainerName(ws.getContainerName());
+            result.add(si);
+        }
+        return result;
     }
 
     // -----------------------------------------------------------------------
     // Result presentation
     // -----------------------------------------------------------------------
 
-    private static void showResults(Shell shell, String query, List<SymbolInformation> results) {
+    private static void showResults(Shell shell, String query, IProject project,
+                                    List<SymbolInformation> results) {
         if (shell == null || shell.isDisposed()) return;
 
         if (results.isEmpty()) {
-            MessageDialog.openInformation(shell, "Find All Declarations",
-                    "No declarations found for '" + query + "'.\n\n"
-                    + "Tip: use OpenJML > Index Project to index all source files first.");
+            InputDialog dlg = new InputDialog(shell,
+                    "Find All Declarations",
+                    "No declarations found for '" + query + "'.\n"
+                    + "Tip: use OpenJML \u25b8 Index Project first.\n\n"
+                    + "Search again with a different identifier:",
+                    query,
+                    input -> isValidIdentifier(input.trim())
+                            ? null : "Enter a valid Java identifier");
+            if (dlg.open() != Window.OK) return;
+            String newQuery = dlg.getValue().trim();
+            if (newQuery.isEmpty()) return;
+            scheduleSearch(shell, newQuery, project);
             return;
         }
 
