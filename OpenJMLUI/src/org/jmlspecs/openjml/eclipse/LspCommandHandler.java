@@ -1110,6 +1110,52 @@ public abstract class LspCommandHandler extends AbstractHandler {
     }
 
     /**
+     * Triggers a full re-index of the current project by scheduling a
+     * {@code --check} pass on all configured source directories.  Does not
+     * clear existing diagnostics or the AST cache (use "Clear and Reindex"
+     * for a full reset).  Use this before "Find All Declarations" to ensure
+     * the declaration index covers the entire project.
+     */
+    public static final class IndexProject extends AbstractHandler {
+
+        @Override
+        public Object execute(ExecutionEvent event) throws ExecutionException {
+            IProject project = projectFromEvent(event);
+            String projectId = project != null ? project.getName() : "";
+            Console.log(OpenJMLConstants.CMD_INDEX_PROJECT + " [" + projectId + "]");
+
+            ExecuteCommandParams p = new ExecuteCommandParams(
+                    OpenJMLConstants.CMD_INDEX_PROJECT, List.of(projectId));
+
+            if (sendViaWrapper(LspPartListener.cachedWrapper, p)) return null;
+
+            if (project != null) {
+                LanguageServers.forProject(project)
+                        .computeFirst(server -> server.getWorkspaceService().executeCommand(p));
+            } else {
+                for (IProject proj : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+                    if (proj.isOpen() && JmlNature.hasNature(proj)) {
+                        LanguageServers.forProject(proj)
+                                .computeFirst(server -> server.getWorkspaceService().executeCommand(p));
+                        break;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static IProject projectFromEvent(ExecutionEvent event) {
+            IEditorPart editor = HandlerUtil.getActiveEditor(event);
+            if (editor != null) {
+                var resource = org.eclipse.ui.ide.ResourceUtil.getResource(editor.getEditorInput());
+                if (resource != null) return resource.getProject();
+            }
+            // Fallback: first open JML-natured project in the workspace.
+            return findJmlProject();
+        }
+    }
+
+    /**
      * Cancels running ESC verification tasks.
      *
      * <p>Queries the server for the live list of running tasks, then shows a

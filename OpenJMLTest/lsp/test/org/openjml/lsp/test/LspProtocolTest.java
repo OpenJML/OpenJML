@@ -16,6 +16,8 @@ import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
@@ -294,6 +296,29 @@ public class LspProtocolTest {
     private void saveDocument(String uri) throws Exception {
         String params = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
         client.sendNotification("textDocument/didSave", params);
+    }
+
+    /**
+     * Send {@code workspace/symbol} for {@code query} and return the list of
+     * matched symbol names (exact case-sensitive match, per the server's filter).
+     * Empty query returns all non-synthetic names.
+     */
+    private List<String> queryWorkspaceSymbol(String query) throws Exception {
+        Gson gson = new Gson();
+        client.sendRequest("workspace/symbol", "{\"query\":" + gson.toJson(query) + "}");
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected response to workspace/symbol for query=" + query, response);
+        assertFalse("workspace/symbol must not return an error",
+                response.has("error") && !response.get("error").isJsonNull());
+        if (!response.has("result") || response.get("result").isJsonNull()) return List.of();
+        JsonArray arr = response.getAsJsonArray("result");
+        if (arr == null) return List.of();
+        List<String> names = new ArrayList<>();
+        for (var el : arr) {
+            JsonObject sym = el.getAsJsonObject();
+            if (sym.has("name")) names.add(sym.get("name").getAsString());
+        }
+        return names;
     }
 
     /** Send workspace/didChangeConfiguration to change the checkTriggerOn setting. */
@@ -632,6 +657,108 @@ public class LspProtocolTest {
         JsonObject first = ranges.get(0).getAsJsonObject();
         assertEquals("startLine of first folding range", 1, first.get("startLine").getAsInt());
         assertEquals("endLine of first folding range",   3, first.get("endLine").getAsInt());
+    }
+
+    // -----------------------------------------------------------------------
+    // workspace/symbol: index then edit
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code workspace/symbol} reflects the live cache accurately
+     * after a document is significantly edited: declarations from the original
+     * content must not be returned once the editor content changes, and newly
+     * introduced declarations must appear.
+     *
+     * <p>Scenario:
+     * <ol>
+     *   <li>Two in-memory files are opened.  {@code Alpha} has {@code alphaField}
+     *       and {@code alphaMethod}; {@code Beta} has {@code betaField} and
+     *       {@code betaMethod}.</li>
+     *   <li>{@code workspace/symbol} is queried for each name — all found.</li>
+     *   <li>{@code Alpha.java} is replaced entirely via {@code textDocument/didChange}:
+     *       {@code alphaField} and {@code alphaMethod} disappear;
+     *       {@code updatedField} and {@code updatedMethod} are introduced.
+     *       The class name {@code Alpha} stays.</li>
+     *   <li>After the server re-checks the file (signalled by
+     *       {@code publishDiagnostics}), {@code workspace/symbol} is queried again:
+     *       new names appear; old names from Alpha.java are gone; Beta's names
+     *       are unaffected.</li>
+     * </ol>
+     */
+    @Test
+    public void testWorkspaceSymbolReflectsEditedContent() throws Exception {
+        String alphaUri = "file:///WsAlpha.java";
+        String betaUri  = "file:///WsBeta.java";
+
+        String alphaInitial =
+                "public class Alpha {\\n" +
+                "    public int alphaField;\\n" +
+                "    public void alphaMethod() {}\\n" +
+                "}\\n";
+        String betaSource =
+                "public class Beta {\\n" +
+                "    public int betaField;\\n" +
+                "    public void betaMethod() {}\\n" +
+                "}\\n";
+
+        // Open both files; wait for the initial checks to complete.
+        openDocument(alphaUri, alphaInitial);
+        assertNotNull("Expected publishDiagnostics after opening Alpha",
+                nextDiagsForUri(alphaUri, TIMEOUT_SECONDS, TimeUnit.SECONDS));
+
+        openDocument(betaUri, betaSource);
+        assertNotNull("Expected publishDiagnostics after opening Beta",
+                nextDiagsForUri(betaUri, TIMEOUT_SECONDS, TimeUnit.SECONDS));
+
+        // --- Phase 1: initial symbol state ---
+        assertTrue("'Alpha' must be found before edit",
+                queryWorkspaceSymbol("Alpha").contains("Alpha"));
+        assertTrue("'alphaField' must be found before edit",
+                queryWorkspaceSymbol("alphaField").contains("alphaField"));
+        assertTrue("'alphaMethod' must be found before edit",
+                queryWorkspaceSymbol("alphaMethod").contains("alphaMethod"));
+        assertTrue("'betaField' must be found before edit",
+                queryWorkspaceSymbol("betaField").contains("betaField"));
+        assertTrue("'betaMethod' must be found before edit",
+                queryWorkspaceSymbol("betaMethod").contains("betaMethod"));
+
+        // --- Phase 2: heavily edit Alpha.java ---
+        // alphaField and alphaMethod are gone; updatedField and updatedMethod appear.
+        String alphaEdited =
+                "public class Alpha {\\n" +
+                "    public long updatedField;\\n" +
+                "    public String updatedMethod(int x, boolean flag) { return \\\"\\\"; }\\n" +
+                "}\\n";
+        changeDocument(alphaUri, alphaEdited);
+
+        // Wait for the re-check to complete.
+        assertNotNull("Expected publishDiagnostics after editing Alpha",
+                nextDiagsForUri(alphaUri, TIMEOUT_SECONDS, TimeUnit.SECONDS));
+
+        // --- Phase 3: verify the index reflects the edit ---
+        // Class name is unchanged.
+        assertTrue("'Alpha' must still be found after edit",
+                queryWorkspaceSymbol("Alpha").contains("Alpha"));
+        // New members must appear.
+        assertTrue("'updatedField' must be found after edit",
+                queryWorkspaceSymbol("updatedField").contains("updatedField"));
+        assertTrue("'updatedMethod' must be found after edit",
+                queryWorkspaceSymbol("updatedMethod").contains("updatedMethod"));
+        // Removed members of Alpha must be gone.
+        assertFalse("'alphaField' must NOT be found after removal",
+                queryWorkspaceSymbol("alphaField").contains("alphaField"));
+        assertFalse("'alphaMethod' must NOT be found after removal",
+                queryWorkspaceSymbol("alphaMethod").contains("alphaMethod"));
+        // Beta is unchanged — its symbols must be unaffected.
+        assertTrue("'betaField' must still be found after Alpha edit",
+                queryWorkspaceSymbol("betaField").contains("betaField"));
+        assertTrue("'betaMethod' must still be found after Alpha edit",
+                queryWorkspaceSymbol("betaMethod").contains("betaMethod"));
+        // New formals from the edited method must be indexed too.
+        assertTrue("Formal 'x' in updatedMethod must be found",
+                queryWorkspaceSymbol("x").contains("x"));
+        assertTrue("Formal 'flag' in updatedMethod must be found",
+                queryWorkspaceSymbol("flag").contains("flag"));
     }
 
     // -----------------------------------------------------------------------

@@ -26,6 +26,7 @@ import org.junit.runners.Suite;
     JavaSourceScannerTest.class,
     CodeLensTest.class,
     CheckRunnerDirTest.class,
+    WorkspaceSymbolTest.class,
     EscDirWithContextTest.class,
     MockFileCornerCasesTest.class,
     LegacyDiskIOSmokeTest.class,

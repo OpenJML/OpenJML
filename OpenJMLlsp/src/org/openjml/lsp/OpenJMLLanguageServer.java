@@ -133,6 +133,10 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.onUriReturn (OpenJMLCommands.GET_SEMANTIC_TOKENS, textDocumentService::getSemanticTokens);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
+        registry.on          (OpenJMLCommands.INDEX_PROJECT, args -> {
+            textDocumentService.indexProject(cmdProject(args));
+            return null;
+        });
         registry.on          (OpenJMLCommands.CANCEL_ESC, args -> {
             textDocumentService.cancelEsc(str(args, 0));
             return null;
@@ -227,9 +231,14 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     @Override
     public void initialized(InitializedParams params) {
         serverInitialized = true;
-        // Kick off a background pass over all .java files in the workspace so
+        // Record the workspace root URI, then kick off a full project check so
         // that workspace/symbol can find symbols in files not yet opened.
-        if (rootUri != null) textDocumentService.scheduleWorkspaceIndex(rootUri);
+        // Only start the index if at least one source root is known; avoids
+        // a spurious "no source directories" log message in minimal test setups.
+        textDocumentService.setRootUri(rootUri);
+        if (rootUri != null || !settings.effectiveRoots().isEmpty()) {
+            textDocumentService.indexProject(null);
+        }
         // Register file watchers so the server is notified when .jml/.java files
         // change on disk outside the editor.
         registerFileWatchers();

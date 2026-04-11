@@ -543,6 +543,11 @@ imports, Javadoc) in the same `ProjectionAnnotationModel` without interfering.  
 Other clients that do not have this constraint can use `textDocument/foldingRange`
 normally.
 
+**Implications for generic clients:** None. Generic clients use `textDocument/foldingRange`
+through the standard LSP protocol. The Eclipse plugin's local algorithm is a workaround
+for LSP4E's projection-ordering constraint and does not represent a UX difference from
+what generic clients receive via the server.
+
 ### Semantic Tokens — `textDocument/semanticTokens/full`
 
 Returns full-file semantic token data for JML keyword and clause highlighting.
@@ -594,6 +599,17 @@ Two strategies are available via the `syntaxColoringStrategy` setting:
 Non-VS Code clients should use this standard request. See
 [`openjml.getSemanticTokens`](#openjmlgetsemantictokens) for the VS Code-specific
 alternative.
+
+**Implications for generic clients:** None for the standard semantic token request.
+Generic clients receive JML semantic tokens via `textDocument/semanticTokens/full`
+through the normal LSP negotiation path. The Eclipse plugin's `JmlColorizer` is a
+workaround for JDT's presentation layer intercepting LSP4E's token delivery for `.java`
+files, and for LSP4E's semantic token reconciler not re-firing after `publishDiagnostics`.
+A generic client with proper semantic token support gets the equivalent result through
+the standard path. One potential improvement: the server could send
+`workspace/semanticTokens/refresh` after each `--check` completes, signaling
+well-behaved clients to re-request tokens without needing a client-side workaround.
+This is not yet implemented.
 
 ### Go to Definition — `textDocument/definition`
 
@@ -671,6 +687,12 @@ signature help does not pop up automatically when typing `(` inside a
 `Ctrl+Shift+J H` ("JML Parameter Hints") key binding to invoke it manually.
 Standalone `.jml` files are opened in the Generic Editor where the automatic
 trigger works normally.
+
+**Implications for generic clients:** Generic clients are better here. Standard
+LSP clients honor `(` and `,` as trigger characters in all editing contexts,
+including inside comment-like regions. JDT's comment partition suppression is an
+Eclipse-specific limitation. No server-side change is needed; generic clients
+receive full automatic signature help trigger behavior without any workaround.
 
 ### Workspace Symbols — `workspace/symbol`
 
@@ -881,6 +903,26 @@ arguments: []
 Clients can use this to populate a cancellation UI (e.g. a checklist dialog or
 Quick Pick) before calling `openjml.cancelEsc`.
 
+### `openjml.indexProject`
+
+Trigger a `--check` pass on all source directories of the specified project,
+rebuilding the declaration index used by `workspace/symbol` ("Find All Declarations").
+Does **not** clear existing diagnostics or the AST cache — use `openjml.clearAndReindex`
+for a full reset.
+
+```
+command:   "openjml.indexProject"
+arguments: ["<projectId>"]
+```
+
+When `projectId` matches a project registered via the `projects` settings array, only
+that project's `rootPaths` are indexed.  An absent or empty `projectId` indexes all
+configured projects.
+
+**Eclipse plugin:** exposed as the "Index Project" item in the OpenJML main menu,
+editor popup, and Package Explorer context menu.  Intended for use before "Find All
+Declarations" to ensure files that have not yet been opened are covered by the index.
+
 ### `openjml.focusFile`
 
 Notify the server that the user has switched focus to an already-open file. Triggers
@@ -890,6 +932,21 @@ a `--check` recheck so that stale diagnostics from fixed dependencies are cleare
 command:   "openjml.focusFile"
 arguments: ["<file-uri>"]
 ```
+
+**Implications for generic clients:** This is a real UX gap for clients that do not
+implement it. Without `openjml.focusFile`, a client that edits file A, switches to
+file B, then returns to file A will see stale diagnostics on A until the next edit or
+save triggers a new `--check`. The Eclipse plugin sends the focus command on every
+editor tab switch (200 ms debounced) to keep diagnostics current proactively.
+
+Client authors should implement the equivalent:
+- **VS Code:** already implemented via `onDidChangeActiveTextEditor` with a 200 ms
+  debounce (see the VS Code extension source).
+- **IntelliJ / other IDEs:** hook the "file editor gained focus" event and send
+  `openjml.focusFile` with the same debounce.
+- **Bare LSP clients** that do not implement this get degraded-but-functional behavior:
+  diagnostics are correct after the next edit or save, just not updated proactively
+  on focus change.
 
 ### `openjml.getSemanticTokens`
 

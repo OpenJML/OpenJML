@@ -218,7 +218,20 @@ public class CheckRunner {
         args.add("--dirs");
         args.addAll(paths);
         logInvocation("runCheckDir", args);
-        int rc = api.execute(args.toArray(new String[0]));
+        // Clear nav-cache entries for files under these roots, then populate
+        // fresh entries via the AST listener so workspace/symbol can find them.
+        AST_CACHE.clearNavForRoots(paths);
+        IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
+            String uri = jfo.toUri().normalize().toString();
+            AST_CACHE.putNav(uri, ctx, (JmlCompilationUnit) ast);
+        };
+        api.setASTListener(astListener);
+        int rc;
+        try {
+            rc = api.execute(args.toArray(new String[0]));
+        } finally {
+            api.removeASTListener(astListener);
+        }
         System.err.println("[CheckRunner.runCheckDir] exit code " + rc
                 + " for " + paths.size() + " path(s)");
         return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of());
@@ -300,7 +313,7 @@ public class CheckRunner {
             try { normToReal.put(java.net.URI.create(e.getKey()).normalize().toString(), e.getKey()); }
             catch (Exception ignored) {}
         }
-        AST_CACHE.clearNav();
+        AST_CACHE.clearNavForRoots(paths);
         IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
             String jfoUri = jfo.toUri().normalize().toString();
             String realUri = normToReal.getOrDefault(jfoUri, jfoUri);
@@ -1392,7 +1405,7 @@ public class CheckRunner {
 
     /**
      * If {@code javaAst.specsCompilationUnit} is non-null and different from
-     * {@code javaAst}, cache the specs AST under its real URI.
+     * {@code javaAst}, cache the specs AST under its real URI in the live tier.
      *
      * <p>This gives go-to-definition direct access to the JML specs AST so that
      * lookups from inside {@code .jml} files work without a Java-URI redirect.
@@ -1401,8 +1414,7 @@ public class CheckRunner {
      *                         or {@code null} when no temp directory is in use
      * @param tempDirPrefix    URI prefix string of the temp directory (used to
      *                         detect and skip unmapped temp-dir paths), or {@code null}
-     * @param live             if {@code true}, store in the live tier;
-     *                         if {@code false}, store in the init tier
+     * @param live             unused — retained for call-site compatibility; always stores in live tier
      */
     private static void cacheSpecsCu(JmlCompilationUnit javaAst, Context ctx,
                                      Map<String, String> tempUriToRealUri,
@@ -1419,11 +1431,7 @@ public class CheckRunner {
             }
             // else: real path found via sourcepath — use directly
         }
-        if (live) {
-            AST_CACHE.put(specsUri, ctx, specs);
-        } else {
-            AST_CACHE.putInit(specsUri, ctx, specs);
-        }
+        AST_CACHE.put(specsUri, ctx, specs);
     }
 
     /**
@@ -1914,44 +1922,6 @@ public class CheckRunner {
             log(ts() + " --esc " + fname + ": " + diags.size() + " diagnostic(s)");
         return new CheckResult(diags, rc,
                 proofResults, listener.toForeignMessages(filePath), Map.of());
-    }
-
-    /**
-     * Run {@code --check} on a single file, populating the init-tier AST cache.
-     *
-     * <p>Used by the background workspace index to check files one at a time so
-     * diagnostics can be published incrementally and the indexing thread does not
-     * monopolise the executor pool.  The {@code isIndexing()} flag is managed by
-     * the caller.
-     *
-     * @param filePath absolute path of the {@code .java} file to check
-     * @param uri      LSP document URI for the file
-     * @param settings current OpenJML settings
-     * @return diagnostics produced by the check (caller decides whether to publish)
-     */
-    public static List<org.eclipse.lsp4j.Diagnostic> indexOneFile(
-            String filePath, String uri, OpenJMLSettings settings) {
-        var out      = new PrintWriter(new StringWriter());
-        var listener = new LspDiagnosticListener();
-        var api      = IAPI.make(out, listener);
-
-        List<String> args = buildArgs(settings, "--check");
-        args.add(filePath);
-
-        IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
-            JmlCompilationUnit cu = (JmlCompilationUnit) ast;
-            AST_CACHE.putInit(jfo.toUri().toString(), ctx, cu);
-            cacheSpecsCu(cu, ctx, null, null, false);
-        };
-        api.setASTListener(astListener);
-        try {
-            api.execute(args.toArray(new String[0]));
-        } catch (Throwable e) {
-            System.err.println("[CheckRunner.indexOneFile] " + filePath + ": " + e);
-        } finally {
-            api.removeASTListener(astListener);
-        }
-        return listener.toLspDiagnostics(filePath, uri);
     }
 
     // --- public API: in-process doESC via cached IAPI ---

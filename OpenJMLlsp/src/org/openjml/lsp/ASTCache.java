@@ -15,18 +15,19 @@ import org.openjml.IAPI;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Caches the latest type-attributed AST for each open document URI.
  *
  * <p>Maintains two tiers:
  * <ul>
- *   <li><b>Live cache</b> — populated by user-triggered {@code --check} / {@code --esc} runs.
- *       Always takes precedence over the init cache.</li>
- *   <li><b>Init cache</b> — populated by the background workspace-index pass that runs
- *       once after the LSP {@code initialized} handshake.  An entry is skipped when the
- *       same URI already has a live entry.</li>
+ *   <li><b>Nav cache</b> — populated by a project-wide {@code --check --dirs} pass.
+ *       All entries share a single IAPI compilation context, so symbol identity
+ *       ({@code ==}) holds across files and cross-file navigation works reliably.
+ *       Takes highest precedence for navigation operations.</li>
+ *   <li><b>Live cache</b> — populated by user-triggered {@code --check} / {@code --esc}
+ *       runs on individual files.  Used when the nav cache has no entry for a URI
+ *       (e.g. the user opened a file before a project-wide check completed).</li>
  * </ul>
  *
  * <p>Populated by {@link CheckRunner} via the {@code IAPI.IASTListener} callback
@@ -36,8 +37,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * class</em> (not per compilation unit), files containing multiple classes
  * receive multiple notifications.  Only the <em>last</em> notification for a
  * given source file has fully-resolved symbols for the whole compilation unit.
- * {@link #put} and {@link #putInit} always overwrite, so the cache converges
- * to the correct state.
+ * {@link #put} always overwrites, so the cache converges to the correct state.
  *
  * <p>Also maintains a cross-file declaration index ({@code Symbol → URI + charOffset})
  * built by scanning each cached AST.  Go-to-definition uses this index to
@@ -58,7 +58,7 @@ public class ASTCache {
      * fields are non-null only when the entry was produced by a successful
      * {@code --check} run (exit code 0) on in-memory or on-disk content.
      * They are used by the in-process {@code doESC} path ({@code escEngine=concurrent}).
-     * Init-tier entries (background workspace index) always have them null.
+     * Nav-tier entries (project-wide check) always have them null.
      *
      * <p>{@link IAPI#doESC} is NOT thread-safe on the same IAPI instance; concurrent
      * calls for the same URI are serialized via {@code escLock}.  Calls on different
@@ -128,38 +128,34 @@ public class ASTCache {
     private final Map<Symbol, SymbolLocation> liveDeclarationIndex = new ConcurrentHashMap<>();
 
     // -----------------------------------------------------------------------
-    // Init tier — background workspace-index pass
-    // -----------------------------------------------------------------------
-
-    /** URI → attributed AST from the background workspace index. */
-    private final Map<String, Entry> initCache = new ConcurrentHashMap<>();
-
-    /** Cross-file Symbol → declaration location from the background index. */
-    private final Map<Symbol, SymbolLocation> initDeclarationIndex = new ConcurrentHashMap<>();
-
-    /** {@code true} while the background workspace index is running. */
-    private final AtomicBoolean indexing = new AtomicBoolean(false);
-
-    // -----------------------------------------------------------------------
-    // Indexing state
-    // -----------------------------------------------------------------------
-
-    /** Set the indexing-in-progress flag (called by {@link CheckRunner}). */
-    public void setIndexing(boolean value) { indexing.set(value); }
-
-    /** Return {@code true} while the background workspace index is still running. */
-    public boolean isIndexing() { return indexing.get(); }
-
-    // -----------------------------------------------------------------------
     // Nav-tier writes
     // -----------------------------------------------------------------------
 
     /**
-     * Clear the nav cache before starting a new project-wide check run.
-     * Called by {@link CheckRunner#runCheckDirWithContext} before submitting
-     * the {@code IAPI.execute} call so that stale entries from a previous run
-     * do not linger if fewer files are checked this time.
+     * Remove nav-cache entries for files whose path starts with one of the
+     * given {@code rootPaths}.  Called before a project-wide check so that
+     * stale entries from the previous run for <em>this project</em> do not
+     * linger, while entries from other projects are left intact.
+     *
+     * <p>The nav declaration index is <em>not</em> cleaned here; it is fully
+     * rebuilt by {@link #rebuildNavIndex()} after the check completes.
      */
+    public void clearNavForRoots(java.util.List<String> rootPaths) {
+        navCache.keySet().removeIf(uri -> {
+            try {
+                String path = java.net.URI.create(uri).getPath();
+                if (path == null) return false;
+                for (String root : rootPaths) {
+                    String r = root.endsWith(java.io.File.separator)
+                            ? root : root + java.io.File.separator;
+                    if (path.startsWith(r) || path.equals(root)) return true;
+                }
+            } catch (Exception ignored) {}
+            return false;
+        });
+    }
+
+    /** Clear the entire nav cache. Used by {@link #clear()} on full reset. */
     public void clearNav() {
         navCache.clear();
     }
@@ -176,13 +172,12 @@ public class ASTCache {
 
     /**
      * Return the nav-cache entry for {@code uri}, falling back to the live
-     * cache then init cache if absent.
+     * cache if absent.
      */
     public Entry getNav(String uri) {
         Entry nav = navCache.get(uri);
         if (nav != null) return nav;
-        Entry live = liveCache.get(uri);
-        return live != null ? live : initCache.get(uri);
+        return liveCache.get(uri);
     }
 
     /**
@@ -234,26 +229,6 @@ public class ASTCache {
         removeLiveDeclarationsForUri(uri);
         liveCache.put(uri, entry);
         new DeclarationIndexer(liveDeclarationIndex, uri).scan(entry.ast());
-        // Init-tier entries for this URI are now superseded by the live entry.
-        initCache.remove(uri);
-        removeInitDeclarationsForUri(uri);
-    }
-
-    // -----------------------------------------------------------------------
-    // Init-tier writes
-    // -----------------------------------------------------------------------
-
-    /**
-     * Store the AST for {@code uri} in the <em>init</em> tier.
-     * Skipped if a live-tier entry already exists for {@code uri}.
-     * Called from the background workspace-index pass.
-     */
-    public void putInit(String uri, Context ctx, JmlCompilationUnit ast) {
-        if (liveCache.containsKey(uri)) return;   // live takes precedence
-        removeInitDeclarationsForUri(uri);
-        Entry entry = Entry.basic(ast, ctx);
-        initCache.put(uri, entry);
-        new DeclarationIndexer(initDeclarationIndex, uri).scan(ast);
     }
 
     // -----------------------------------------------------------------------
@@ -261,13 +236,11 @@ public class ASTCache {
     // -----------------------------------------------------------------------
 
     /**
-     * Return the cached entry for {@code uri}.
-     * Live tier is checked first; init tier is used as fallback.
-     * Returns {@code null} if absent from both tiers.
+     * Return the cached entry for {@code uri} from the live tier,
+     * or {@code null} if absent.
      */
     public Entry get(String uri) {
-        Entry live = liveCache.get(uri);
-        return live != null ? live : initCache.get(uri);
+        return liveCache.get(uri);
     }
 
     /**
@@ -296,8 +269,6 @@ public class ASTCache {
         if (nav != null) return nav;
         SymbolLocation live = liveDeclarationIndex.get(sym);
         if (live != null) return live;
-        SymbolLocation init = initDeclarationIndex.get(sym);
-        if (init != null) return init;
 
         // Identity lookup failed: the cursor symbol comes from a different IAPI
         // invocation than the nav index (e.g. a per-file check ran after the
@@ -337,22 +308,17 @@ public class ASTCache {
         navDeclarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
         liveCache.remove(uri);
         removeLiveDeclarationsForUri(uri);
-        initCache.remove(uri);
-        removeInitDeclarationsForUri(uri);
     }
 
     /**
      * Clear all cached entries and declaration indexes from all tiers.
-     * Resets the indexing flag.  Called by the clear-and-reindex command.
+     * Called by the clear-and-reindex command.
      */
     public void clear() {
         navCache.clear();
         navDeclarationIndex.clear();
         liveCache.clear();
         liveDeclarationIndex.clear();
-        initCache.clear();
-        initDeclarationIndex.clear();
-        indexing.set(false);
     }
 
     // -----------------------------------------------------------------------
@@ -371,18 +337,18 @@ public class ASTCache {
 
     /**
      * Iterate over all indexed declarations from both tiers.
-     * Live declarations are always included.  Init declarations are included only
-     * for URIs that do not have a live cache entry (i.e. the user has not yet
-     * opened or checked those files).
+     * Nav declarations (from the last project-wide check) take highest priority.
+     * Live declarations are included for URIs not covered by the nav cache.
      *
      * <p>Used by {@code workspace/symbol} to search across the entire project.
      */
     public void forEachDeclaration(java.util.function.BiConsumer<Symbol, SymbolLocation> action) {
-        liveDeclarationIndex.forEach(action);
-        initDeclarationIndex.forEach((sym, loc) -> {
-            // Skip init entries for URIs that have a live cache entry — the live
-            // declaration index already covers those files.
-            if (!liveCache.containsKey(loc.uri())) action.accept(sym, loc);
+        // Nav index from project-wide check takes highest priority: consistent symbols.
+        navDeclarationIndex.forEach(action);
+        // Live index covers files checked individually since the last project-wide check.
+        // Skip URIs already covered by the nav index (navCache has those).
+        liveDeclarationIndex.forEach((sym, loc) -> {
+            if (!navCache.containsKey(loc.uri())) action.accept(sym, loc);
         });
     }
 
@@ -392,10 +358,6 @@ public class ASTCache {
 
     private void removeLiveDeclarationsForUri(String uri) {
         liveDeclarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
-    }
-
-    private void removeInitDeclarationsForUri(String uri) {
-        initDeclarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
     }
 
     private class DeclarationIndexer extends JmlTreeScanner {
@@ -423,6 +385,9 @@ public class ASTCache {
 
         @Override
         public void visitVarDef(JCVariableDecl tree) {
+            // Index all variable declarations: fields, parameters, locals, and
+            // JML-bound variables (\forall, \exists, \let).  Go-to-definition
+            // for formals and JML quantifier variables depends on these entries.
             if (tree.sym != null && tree.pos >= 0 && !skipJmlNodeInJavaCu(tree))
                 record(tree.sym, tree.pos);
             super.visitVarDef(tree);

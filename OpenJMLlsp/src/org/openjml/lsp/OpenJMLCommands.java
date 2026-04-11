@@ -143,5 +143,22 @@ public final class OpenJMLCommands {
      */
     public static final String GET_RUNNING_ESC_TASKS = "openjml.getRunningEscTasks";
 
+    /**
+     * Index project: {@code openjml.indexProject}.
+     *
+     * <p>Triggers a {@code --check} pass on all source directories of the
+     * specified project (or all configured projects when no project ID is given),
+     * rebuilding the declaration index without clearing existing diagnostics or
+     * the AST cache.  Use this to populate the declaration index for
+     * {@code workspace/symbol} ("Find All Declarations") before the user has
+     * manually opened each file.
+     *
+     * <p>Arguments: {@code [projectId]} (optional).  When {@code projectId}
+     * matches a project registered via the {@code projects} settings array, only
+     * that project's source directories are indexed.  An absent or empty
+     * {@code projectId} indexes all configured projects.
+     */
+    public static final String INDEX_PROJECT = "openjml.indexProject";
+
     private OpenJMLCommands() {}
 }

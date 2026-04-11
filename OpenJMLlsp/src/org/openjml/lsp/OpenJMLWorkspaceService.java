@@ -158,8 +158,11 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     public CompletableFuture<Either<List<? extends SymbolInformation>, List<? extends org.eclipse.lsp4j.WorkspaceSymbol>>>
             symbol(WorkspaceSymbolParams params) {
         String query = params.getQuery() != null ? params.getQuery() : "";
+        System.err.println("[workspace/symbol] request: query=\"" + query + "\"");
         List<SymbolInformation> results =
                 symbolsRequester != null ? symbolsRequester.apply(query) : List.of();
+        System.err.println("[workspace/symbol] response: " + results.size() + " result(s)"
+                + (results.isEmpty() ? "" : ", first=" + results.get(0).getName()));
         return CompletableFuture.completedFuture(Either.forLeft(results));
     }
 

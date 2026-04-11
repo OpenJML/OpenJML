@@ -177,6 +177,15 @@ public final class OpenJMLConstants {
     public static final String CMD_FOCUS_FILE = "openjml.focusFile";
 
     /**
+     * Index-project command sent via {@code workspace/executeCommand}.
+     * Triggers a {@code --check} pass on all source directories of the
+     * specified project to populate the declaration index.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.INDEX_PROJECT}.
+     */
+    public static final String CMD_INDEX_PROJECT = "openjml.indexProject";
+
+    /**
      * Semantic-tokens request sent via {@code workspace/executeCommand}.
      *
      * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.GET_SEMANTIC_TOKENS}.
@@ -214,6 +223,24 @@ public final class OpenJMLConstants {
      */
     public static final String CMD_UI_RENAME =
             "org.openjml.eclipse.commands.rename";
+
+    /**
+     * Eclipse UI command ID for the OpenJML Find All Declarations action.
+     *
+     * <p><b>plugin.xml sync</b>: {@code <command id="...">} in the
+     * {@code org.eclipse.ui.commands} extension.
+     */
+    public static final String CMD_UI_FIND_ALL_DECLARATIONS =
+            "org.openjml.eclipse.commands.findAllDeclarations";
+
+    /**
+     * Eclipse UI command ID for the OpenJML Index Project action.
+     *
+     * <p><b>plugin.xml sync</b>: {@code <command id="...">} in the
+     * {@code org.eclipse.ui.commands} extension.
+     */
+    public static final String CMD_UI_INDEX_PROJECT =
+            "org.jmlspecs.openjml.commands.indexProject";
 
     // -----------------------------------------------------------------------
     // Decorator ID

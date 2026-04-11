@@ -355,6 +355,11 @@
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Clear all OpenJML server caches and reindex the workspace"/>
      <command
+           id="org.jmlspecs.openjml.commands.indexProject"
+           name="Index Project"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Index all source files in the current project to populate the declaration index"/>
+     <command
            id="org.jmlspecs.openjml.commands.clearMarkers"
            name="Clear All Markers"
            categoryId="org.jmlspecs.openjml.commands.category"
@@ -389,6 +394,11 @@
            name="Find References"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Find all references to the identifier at the cursor"/>
+     <command
+           id="org.openjml.eclipse.commands.findAllDeclarations"
+           name="Find All Declarations"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Search the declaration index for all symbols matching the selected or typed identifier"/>
      <command
            id="org.openjml.eclipse.commands.rename"
            name="Rename (JML-aware)"
@@ -431,6 +441,10 @@
               class="org.jmlspecs.openjml.eclipse.JmlOpenDeclarationHandler"/>
      <handler commandId="org.openjml.eclipse.commands.findReferences"
               class="org.jmlspecs.openjml.eclipse.JmlFindReferencesHandler"/>
+     <handler commandId="org.openjml.eclipse.commands.findAllDeclarations"
+              class="org.jmlspecs.openjml.eclipse.JmlFindAllDeclarationsHandler"/>
+     <handler commandId="org.jmlspecs.openjml.commands.indexProject"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$IndexProject"/>
      <handler commandId="org.openjml.eclipse.commands.rename"
               class="org.jmlspecs.openjml.eclipse.JmlRenameHandler"/>
      <handler commandId="org.jmlspecs.openjml.commands.signatureHelp"
@@ -508,6 +522,8 @@
                     label="Find Declaration"/>
            <command commandId="org.openjml.eclipse.commands.findReferences"
                     label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.findAllDeclarations"
+                    label="Find All Declarations"/>
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
            <separator name="sep2"/>
@@ -517,6 +533,8 @@
               <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
                        label="Selected Files"/>
            </menu>
+           <command commandId="org.jmlspecs.openjml.commands.indexProject"
+                    label="Index Project"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
            <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
@@ -549,6 +567,8 @@
                     label="Find Declaration"/>
            <command commandId="org.openjml.eclipse.commands.findReferences"
                     label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.findAllDeclarations"
+                    label="Find All Declarations"/>
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
            <separator name="sep1"/>
@@ -558,6 +578,8 @@
               <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
                        label="Selected Files"/>
            </menu>
+           <command commandId="org.jmlspecs.openjml.commands.indexProject"
+                    label="Index Project"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
            <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
@@ -609,6 +631,8 @@
               <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
                        label="Selected Files"/>
            </menu>
+           <command commandId="org.jmlspecs.openjml.commands.indexProject"
+                    label="Index Project"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
            <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
