@@ -153,16 +153,12 @@ public class JmlRenameHandler extends AbstractHandler {
         RenameParams params = new RenameParams(tdi, pos, newName);
         String label = "Rename '" + currentName + "' to '" + newName + "'";
 
-        System.err.println("[JmlRenameHandler] editor doc URI: " + docUri);
-
         LanguageServers.forDocument(doc)
                 .computeFirst(server -> server.getTextDocumentService().rename(params))
                 .thenAccept(optEdit -> optEdit.ifPresent(edit -> {
-                        if (edit.getChanges() != null) {
-                            System.err.println("[JmlRenameHandler] WorkspaceEdit URIs (" + edit.getChanges().size() + "):");
-                            edit.getChanges().forEach((fileUri, edits) ->
-                                System.err.println("[JmlRenameHandler]   uri=" + fileUri + " edits=" + edits.size()));
-                        }
+                        int totalEdits = edit.getChanges() != null
+                                ? edit.getChanges().values().stream().mapToInt(List::size).sum() : 0;
+                        System.err.println("[OpenJML] rename to '" + newName + "': " + totalEdits + " edit(s)");
                         Display.getDefault().asyncExec(() ->
                                 applyWorkspaceEditPreservingDirty(edit, label));
                 }))
@@ -228,7 +224,7 @@ public class JmlRenameHandler extends AbstractHandler {
             IFile ifile = org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
                     .getRoot().getFileForLocation(filePath);
             if (ifile == null) {
-                System.err.println("[JmlRenameHandler] IFile not found: " + fileUri);
+                System.err.println("[OpenJML] rename: IFile not found: " + fileUri);
                 return;
             }
             IWorkbenchPage page = null;
@@ -237,7 +233,6 @@ public class JmlRenameHandler extends AbstractHandler {
                 if (page != null) break;
             }
             if (page == null) {
-                System.err.println("[JmlRenameHandler] no active page, falling back to disk write: " + fileUri);
                 applyEditsToDisk(fileUri, textEdits);
                 return;
             }
@@ -247,15 +242,12 @@ public class JmlRenameHandler extends AbstractHandler {
                 IDocument doc = te.getDocumentProvider().getDocument(ep.getEditorInput());
                 if (doc != null) {
                     applyEditsToDocument(doc, textEdits, fileUri);
-                    System.err.println("[JmlRenameHandler] applied " + textEdits.size()
-                            + " edit(s) to new editor tab (dirty): " + fileUri);
                     return;
                 }
             }
-            System.err.println("[JmlRenameHandler] editor not ITextEditor, falling back to disk write: " + fileUri);
             applyEditsToDisk(fileUri, textEdits);
         } catch (Exception ex) {
-            System.err.println("[JmlRenameHandler] error opening editor for " + fileUri + ": " + ex);
+            System.err.println("[OpenJML] rename: error opening editor for " + fileUri + ": " + ex);
         }
     }
 
@@ -276,7 +268,7 @@ public class JmlRenameHandler extends AbstractHandler {
             IFile ifile = org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
                     .getRoot().getFileForLocation(filePath);
             if (ifile == null) {
-                System.err.println("[JmlRenameHandler] IFile not found for disk write: " + fileUri);
+                System.err.println("[OpenJML] rename: IFile not found for disk write: " + fileUri);
                 return;
             }
             String charset = ifile.getCharset();
@@ -291,9 +283,8 @@ public class JmlRenameHandler extends AbstractHandler {
             byte[] bytes = tmp.get().getBytes(charset);
             ifile.setContents(new java.io.ByteArrayInputStream(bytes),
                     false /* force */, true /* keepHistory */, null);
-            System.err.println("[JmlRenameHandler] wrote " + textEdits.size() + " edit(s) to disk: " + fileUri);
         } catch (Exception ex) {
-            System.err.println("[JmlRenameHandler] error writing to disk for " + fileUri + ": " + ex);
+            System.err.println("[OpenJML] rename: error writing to disk for " + fileUri + ": " + ex);
         }
     }
 
@@ -314,20 +305,17 @@ public class JmlRenameHandler extends AbstractHandler {
         try {
             filePath = new Path(URI.create(fileUri).getPath());
         } catch (Exception e) {
-            System.err.println("[JmlRenameHandler] bad URI: " + fileUri + ": " + e);
+            System.err.println("[OpenJML] rename: bad URI: " + fileUri + ": " + e);
             return null;
         }
         IFile ifile = org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
                 .getRoot().getFileForLocation(filePath);
-        System.err.println("[JmlRenameHandler] findOpenEditorDocument: " + fileUri
-                + " ifile=" + (ifile != null ? ifile.getFullPath() : "null"));
         if (ifile == null) return null;
 
         FileEditorInput input = new FileEditorInput(ifile);
         for (org.eclipse.ui.IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
             for (IWorkbenchPage page : window.getPages()) {
                 IEditorReference[] refs = page.findEditors(input, null, IWorkbenchPage.MATCH_INPUT);
-                System.err.println("[JmlRenameHandler]   findEditors found " + refs.length + " ref(s) for " + fileUri);
                 for (IEditorReference ref : refs) {
                     // getEditor(false) returns null for lazy-restored tabs (the editor
                     // part has not been created yet, so no document provider or file
@@ -335,27 +323,21 @@ public class JmlRenameHandler extends AbstractHandler {
                     // without stealing focus — the active editor is unchanged.
                     IEditorPart ep = ref.getEditor(false);
                     if (ep == null) ep = ref.getEditor(true);
-                    System.err.println("[JmlRenameHandler]   ref id=" + ref.getId()
-                            + " ep=" + (ep != null ? ep.getClass().getSimpleName() : "null")
-                            + " isITextEditor=" + (ep instanceof ITextEditor));
                     if (ep instanceof ITextEditor) {
                         // Get the document from the editor's own provider — this is the same
                         // IDocument instance the editor uses for dirty-state tracking.
                         IDocument editorDoc = ((ITextEditor) ep).getDocumentProvider()
                                 .getDocument(ep.getEditorInput());
-                        System.err.println("[JmlRenameHandler]   editorDoc=" + (editorDoc != null ? editorDoc.getClass().getSimpleName() : "null"));
                         if (editorDoc != null) return editorDoc;
                     }
                     // ep is still null or not an ITextEditor — try the file-buffer
                     // manager as a last resort.
                     ITextFileBuffer buf = FileBuffers.getTextFileBufferManager()
                             .getTextFileBuffer(ifile.getFullPath(), LocationKind.IFILE);
-                    System.err.println("[JmlRenameHandler]   fileBuffer=" + (buf != null ? "connected" : "null"));
                     if (buf != null) return buf.getDocument();
                 }
             }
         }
-        System.err.println("[JmlRenameHandler] no open editor for: " + fileUri + " (will write to disk)");
         return null;
     }
 
@@ -375,9 +357,8 @@ public class JmlRenameHandler extends AbstractHandler {
                 int end   = toDocOffset(doc, te.getRange().getEnd());
                 doc.replace(start, end - start, te.getNewText());
             }
-            System.err.println("[JmlRenameHandler] applied " + sorted.size() + " edit(s) to document: " + fileUri);
         } catch (Exception ex) {
-            System.err.println("[JmlRenameHandler] error applying edits to buffer for " + fileUri + ": " + ex);
+            System.err.println("[OpenJML] rename: error applying edits to buffer for " + fileUri + ": " + ex);
         }
     }
 

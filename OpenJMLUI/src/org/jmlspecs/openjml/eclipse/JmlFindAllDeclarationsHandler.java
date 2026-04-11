@@ -102,7 +102,7 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
             try {
                 results = queryDeclarations(query, project);
             } catch (Throwable t) {
-                System.err.println("[FindAllDecl] Job body threw: " + t);
+                System.err.println("[OpenJML] find declarations job error: " + t);
                 t.printStackTrace(System.err);
                 results = List.of();
             }
@@ -119,14 +119,12 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     private static List<SymbolInformation> queryDeclarations(String query, IProject project) {
         String projectRoot = (project != null && project.getLocation() != null)
                 ? project.getLocation().toOSString() : null;
-        System.err.println("[FindAllDecl] query=\"" + query + "\" projectRoot=" + projectRoot
-                + " wrapper=" + (LspPartListener.cachedWrapper != null ? "present" : "null"));
 
         List<SymbolInformation> results = symbolsViaWrapper(
                 LspPartListener.cachedWrapper, query, projectRoot);
         if (results != null) return results;
 
-        System.err.println("[FindAllDecl] server not available — returning empty");
+        System.err.println("[OpenJML] find declarations: server not available");
         return List.of();
     }
 
@@ -144,11 +142,7 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
      */
     private static List<SymbolInformation> symbolsViaWrapper(
             Object wrapper, String query, String projectRoot) {
-        if (wrapper == null) {
-            System.err.println("[FindAllDecl] symbolsViaWrapper: wrapper is null");
-            return null;
-        }
-        System.err.println("[FindAllDecl] symbolsViaWrapper: wrapper class=" + wrapper.getClass().getName());
+        if (wrapper == null) return null;
         try {
             // Locate LanguageServerWrapper.getServer() by walking the class hierarchy.
             java.lang.reflect.Method getServer = null;
@@ -160,49 +154,32 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
                     break;
                 } catch (NoSuchMethodException ignored) {}
             }
-            if (getServer == null) {
-                System.err.println("[FindAllDecl] getServer() not found on wrapper hierarchy");
-                return null;
-            }
+            if (getServer == null) return null;
 
             Object serverFuture = getServer.invoke(wrapper);
-            System.err.println("[FindAllDecl] getServer() returned: "
-                    + (serverFuture != null ? serverFuture.getClass().getName() : "null"));
             org.eclipse.lsp4j.services.LanguageServer server = null;
             if (serverFuture instanceof java.util.concurrent.CompletableFuture<?> cf) {
                 Object result = cf.get(5, TimeUnit.SECONDS);
-                System.err.println("[FindAllDecl] CompletableFuture resolved: "
-                        + (result != null ? result.getClass().getName() : "null"));
                 if (result instanceof org.eclipse.lsp4j.services.LanguageServer ls) server = ls;
             } else if (serverFuture instanceof org.eclipse.lsp4j.services.LanguageServer ls) {
                 server = ls;
             }
-            if (server == null) {
-                System.err.println("[FindAllDecl] could not obtain LanguageServer from wrapper");
-                return null;
-            }
-            System.err.println("[FindAllDecl] LanguageServer obtained: " + server.getClass().getName());
+            if (server == null) return null;
 
             // Encode the project root into the query using a newline separator.
             // Java identifiers cannot contain newlines, so this is unambiguous.
             String encodedQuery = (projectRoot != null && !projectRoot.isEmpty())
                     ? projectRoot + "\n" + query : query;
             WorkspaceSymbolParams params = new WorkspaceSymbolParams(encodedQuery);
-            System.err.println("[FindAllDecl] sending workspace/symbol, encodedQuery length="
-                    + encodedQuery.length());
 
             var either = server.getWorkspaceService().symbol(params)
                     .get(15, TimeUnit.SECONDS);
-            System.err.println("[FindAllDecl] symbol() returned: "
-                    + (either != null ? "isLeft=" + either.isLeft() : "null"));
 
             List<SymbolInformation> symbols = eitherToList(either);
-            System.err.println("[FindAllDecl] " + symbols.size() + " result(s) for query=\"" + query + "\""
-                    + (projectRoot != null ? " root=\"" + projectRoot + "\"" : ""));
+            System.err.println("[OpenJML] find declarations: query=\"" + query + "\" -> " + symbols.size() + " result(s)");
             return symbols;
         } catch (Throwable t) {
-            System.err.println("[FindAllDecl] exception: " + t.getClass().getName() + ": " + t.getMessage());
-            t.printStackTrace(System.err);
+            System.err.println("[OpenJML] find declarations exception: " + t.getClass().getName() + ": " + t.getMessage());
             return null;
         }
     }
