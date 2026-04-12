@@ -2046,7 +2046,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *       match their class names.</li>
      *   <li>If that file does not exist, parse {@code jmlContent} for the {@code package}
      *       declaration and the first {@code public}/{@code protected} class/interface/
-     *       enum/record name.  Then search each root in {@code workspaceFolderPaths} and
+     *       enum/record name.  Then search each root in {@code rootPaths} and
      *       {@code sourcePath} for {@code pkg/path/ClassName.java}.</li>
      * </ol>
      *

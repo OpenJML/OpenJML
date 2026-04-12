@@ -58,7 +58,6 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     private LanguageClient client   = null;
     private int            exitCode    = 1;
-    private String         rootUri     = null;
     /** Set to {@code true} when the {@code initialized} notification arrives.
      *  Guards dynamic-capability calls that must not fire during {@code initialize}. */
     private volatile boolean serverInitialized = false;
@@ -167,7 +166,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         workspaceService.applyRaw(params.getInitializationOptions());
-        rootUri = params.getRootUri();
+        String rootUri = params.getRootUri();
 
         // If initializationOptions did not supply an explicit projects array,
         // synthesize a "__workspace__" project from the standard LSP workspace folders.
@@ -201,18 +200,24 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // is never empty (at minimum it contains the "__workspace__" entry).
         textDocumentService.updateProjectSettings(globalSettings.projects);
 
-        // Auto-discover openjml.properties at the workspace root unless the
+        // Auto-discover openjml.properties at each workspace root unless the
         // client already supplied an explicit propertiesFile setting.
-        if ((globalSettings.propertiesFile == null || globalSettings.propertiesFile.isEmpty())
-                && rootUri != null) {
-            try {
-                java.nio.file.Path candidate = java.nio.file.Path.of(
-                        java.net.URI.create(rootUri)).resolve("openjml.properties");
-                if (java.nio.file.Files.isRegularFile(candidate)) {
-                    globalSettings.propertiesFile = candidate.toString();
-                    System.err.println("[OpenJML] Auto-discovered properties file: " + candidate);
+        if (globalSettings.propertiesFile == null || globalSettings.propertiesFile.isEmpty()) {
+            outer:
+            for (OpenJMLSettings.ProjectConfig p : globalSettings.projects) {
+                if (p.rootPaths == null) continue;
+                for (String root : p.rootPaths) {
+                    try {
+                        java.nio.file.Path candidate =
+                                java.nio.file.Path.of(root).resolve("openjml.properties");
+                        if (java.nio.file.Files.isRegularFile(candidate)) {
+                            globalSettings.propertiesFile = candidate.toString();
+                            System.err.println("[OpenJML] Auto-discovered properties file: " + candidate);
+                            break outer;
+                        }
+                    } catch (Exception ignored) {}
                 }
-            } catch (Exception ignored) {}
+            }
         }
 
         var caps = new ServerCapabilities();

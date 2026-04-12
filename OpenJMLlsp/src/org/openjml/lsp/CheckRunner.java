@@ -909,7 +909,6 @@ public class CheckRunner {
             modifiedSettings.specsPath       = buildEffectiveSpecsPath(tempDir, settings);
             modifiedSettings.solversPath     = settings.solversPath;
             modifiedSettings.classPath       = settings.classPath;
-            // workspaceFolderPaths already baked into sourcePath above.
 
             // Run a single --check invocation on all files so cross-file dependencies
             // (e.g., A.java referencing a renamed symbol in B.java) are caught.
@@ -1262,8 +1261,8 @@ public class CheckRunner {
      *
      * <p>Compiles the file with runtime-assertion-checking instrumentation and
      * writes the resulting {@code .class} files to the directory specified by
-     * {@link OpenJMLSettings#racOutputDir} (resolved against
-     * {@code workspaceFolderPaths} when relative).  The output directory is
+     * {@link OpenJMLSettings#racOutputDir} (resolved against the project source
+     * root when relative).  The output directory is
      * created if it does not yet exist.
      *
      * @param filePath absolute path of the Java source file
@@ -2322,8 +2321,8 @@ public class CheckRunner {
      *   <li>{@code prefixDir} — temp directory holding in-memory file contents
      *       (may be {@code null} when there is no temp dir, e.g. for on-disk checks)</li>
      *   <li>{@link OpenJMLSettings#sourcePath} — explicit user setting, if non-empty</li>
-     *   <li>{@link OpenJMLSettings#workspaceFolderPaths} — workspace folders from the
-     *       LSP {@code initialize} request (fallback for single-project / generic clients)</li>
+     *   <li>{@link OpenJMLSettings#rootPaths} — per-project root paths, or
+     *       {@link OpenJMLSettings#effectiveRoots()} as fallback</li>
      *   <li>{@link OpenJMLSettings#classPath} — only appended when no source root is
      *       configured, so compiled dependencies can serve as a source fallback</li>
      * </ol>
@@ -2334,8 +2333,8 @@ public class CheckRunner {
         boolean hasSourcePath = settings.sourcePath != null && !settings.sourcePath.isEmpty();
         if (hasSourcePath) {
             // JDT-resolved source path already covers this project and its dependencies.
-            // Do NOT also add workspaceFolderPaths — for default-package
-            // files that would introduce a duplicate class source alongside the temp dir,
+            // Do NOT also add rootPaths — for default-package files that would
+            // introduce a duplicate class source alongside the temp dir,
             // causing javac to silently suppress diagnostics.
             parts.add(settings.sourcePath);
         } else {
@@ -2368,7 +2367,7 @@ public class CheckRunner {
         if (settings.specsPath == null || settings.specsPath.isEmpty()) return "";
         List<String> parts = new ArrayList<>();
         if (prefixDir != null) parts.add(prefixDir.toString());
-        // Do NOT add workspaceFolderPaths here — project roots are not spec roots.
+        // Do NOT add rootPaths here — project roots are not spec roots.
         // User .jml files are in source folders which are already on the sourcepath.
         parts.add(settings.specsPath);
         return String.join(java.io.File.pathSeparator, parts);
