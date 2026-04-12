@@ -24,6 +24,7 @@ import org.junit.runners.Suite;
     DiagnosticsTest.class,
     EscStatusTest.class,
     MultiFileEscTest.class,
+    EscDirWithContextTest.class,
     CommandDispatchTest.class,
     DocumentLifecycleTest.class,
     DefinitionFinderTest.class,

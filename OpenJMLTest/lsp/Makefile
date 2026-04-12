@@ -84,6 +84,7 @@ TEST_CLASSES := \
   RacTest \
   RenameJmlTest2 \
   MultiFileEscTest \
+  EscDirWithContextTest \
   DocumentLifecycleTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))

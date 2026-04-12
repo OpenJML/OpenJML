@@ -41,7 +41,11 @@ import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 
@@ -482,82 +486,76 @@ public abstract class LspCommandHandler extends AbstractHandler {
     // Dirty-file handling for ESC and RAC
     // -----------------------------------------------------------------------
 
-    /** Collect the dirty {@link org.eclipse.core.filebuffers.ITextFileBuffer}s for all targets.
-     *  For {@code Dir} targets the full resource subtree is walked. */
-    private static List<org.eclipse.core.filebuffers.ITextFileBuffer>
-            collectDirtyBuffers(List<SelectionResolver.Target> targets) {
-        List<org.eclipse.core.filebuffers.ITextFileBuffer> dirty = new ArrayList<>();
-        for (SelectionResolver.Target t : targets) {
-            switch (t) {
-                case SelectionResolver.Target.File f   -> checkDirtyWithSibling(f.file(), dirty);
-                case SelectionResolver.Target.Method m -> checkDirtyWithSibling(m.file(), dirty);
-                case SelectionResolver.Target.Dir d    -> {
-                    try {
-                        d.container().accept(resource -> {
-                            if (resource instanceof IFile f
-                                    && isSourceFile(f.getName()))
-                                checkDirty(f, dirty);
-                            return true;  // recurse into sub-folders
-                        });
-                    } catch (org.eclipse.core.runtime.CoreException ignored) {}
+    /**
+     * Returns all currently open editors that are dirty and editing a Java or JML
+     * source file.  Scans all workbench windows and pages.
+     *
+     * <p>Because the LSP server already uses in-memory content (via {@code lastContent})
+     * as mock files for every ESC run, we check workspace-wide dirty editors rather
+     * than walking the specific command targets.  Cross-project dependencies mean a
+     * dirty file in any project can affect the compilation of the target files.
+     */
+    private static List<IEditorPart> dirtySourceEditors() {
+        List<IEditorPart> result = new ArrayList<>();
+        for (IWorkbenchWindow w : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+            for (IWorkbenchPage page : w.getPages()) {
+                for (IEditorReference ref : page.getEditorReferences()) {
+                    IEditorPart editor = ref.getEditor(false);
+                    if (editor != null && editor.isDirty()
+                            && editor.getEditorInput() instanceof IFileEditorInput fei
+                            && isSourceFile(fei.getFile().getName())) {
+                        result.add(editor);
+                    }
                 }
             }
         }
-        return dirty;
+        return result;
     }
 
     private static boolean isSourceFile(String name) {
         return name.endsWith(".java") || name.endsWith(".jml");
     }
 
-    /** Checks {@code file} and its companion (.java↔.jml sibling) for dirtiness. */
-    private static void checkDirtyWithSibling(IFile file,
-            List<org.eclipse.core.filebuffers.ITextFileBuffer> dirty) {
-        checkDirty(file, dirty);
-        IFile sibling = siblingSourceFile(file);
-        if (sibling != null && sibling.exists()) checkDirty(sibling, dirty);
+    private static String formatDirtyEditorList(List<IEditorPart> editors) {
+        StringBuilder sb = new StringBuilder();
+        for (IEditorPart editor : editors) {
+            String name = editor.getEditorInput() instanceof IFileEditorInput fei
+                    ? fei.getFile().getName() : editor.getTitle();
+            sb.append("  \u2022 ").append(name).append("\n");
+        }
+        return sb.toString();
     }
 
-    /** Returns the .jml sibling of a .java file, or the .java sibling of a .jml file. */
-    private static IFile siblingSourceFile(IFile file) {
-        String name = file.getName();
-        String siblingName;
-        if (name.endsWith(".java"))     siblingName = name.substring(0, name.length() - 5) + ".jml";
-        else if (name.endsWith(".jml")) siblingName = name.substring(0, name.length() - 4) + ".java";
-        else return null;
-        org.eclipse.core.resources.IResource member = file.getParent().findMember(siblingName);
-        return member instanceof IFile f ? f : null;
-    }
-
-    private static void checkDirty(IFile file,
-            List<org.eclipse.core.filebuffers.ITextFileBuffer> dirty) {
-        if (file == null) return;
-        org.eclipse.core.filebuffers.ITextFileBuffer buf =
-                org.eclipse.core.filebuffers.FileBuffers.getTextFileBufferManager()
-                        .getTextFileBuffer(file.getFullPath(),
-                                org.eclipse.core.filebuffers.LocationKind.IFILE);
-        if (buf != null && buf.isDirty()) dirty.add(buf);
+    private static void saveEditors(List<IEditorPart> editors) {
+        NullProgressMonitor monitor = new NullProgressMonitor();
+        for (IEditorPart editor : editors) {
+            editor.doSave(monitor);
+        }
     }
 
     /**
-     * Check for dirty editors among {@code targets} and, based on the
+     * Check for dirty source editors and, based on the
      * {@link OpenJMLOptions#escDirtyFilesBehaviorKey} preference, either save
-     * them, proceed as-is (using in-memory content), or ask the user.
+     * them, proceed as-is (server uses in-memory content), or ask the user.
+     *
+     * <p>The {@code targets} parameter is accepted for call-site compatibility
+     * but the dirty check is workspace-wide: a dirty file in any project can
+     * affect type resolution for the target files via cross-project dependencies.
      *
      * <p>Must be called on the UI thread (may open a dialog).
      *
      * @return {@code true} if ESC should proceed, {@code false} if the user cancelled
      */
     static boolean handleDirtyFilesForEsc(List<SelectionResolver.Target> targets) {
-        List<org.eclipse.core.filebuffers.ITextFileBuffer> dirtyBuffers = collectDirtyBuffers(targets);
-        if (dirtyBuffers.isEmpty()) return true;
+        List<IEditorPart> dirtyEditors = dirtySourceEditors();
+        if (dirtyEditors.isEmpty()) return true;
 
         String behavior = OpenJMLOptions.value(OpenJMLOptions.escDirtyFilesBehaviorKey);
         if (behavior == null) behavior = "ask";
 
         switch (behavior) {
             case "content" -> { return true; }
-            case "save"    -> { saveBuffers(dirtyBuffers); return true; }
+            case "save"    -> { saveEditors(dirtyEditors); return true; }
             default        -> { /* "ask" — fall through to dialog */ }
         }
 
@@ -566,8 +564,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 Display.getDefault().getActiveShell(),
                 "OpenJML — Unsaved Changes",
                 null,
-                dirtyBuffers.size() + " file(s) have unsaved changes:\n"
-                + formatDirtyFileList(dirtyBuffers) + "\n"
+                dirtyEditors.size() + " file(s) have unsaved changes:\n"
+                + formatDirtyEditorList(dirtyEditors) + "\n"
                 + "Choose how ESC should handle the edited content:",
                 MessageDialog.QUESTION,
                 // NOTE: Eclipse always assigns IDialogConstants.CANCEL_ID (1) to any
@@ -597,53 +595,29 @@ public abstract class LspCommandHandler extends AbstractHandler {
         }
 
         if (result == ACT_ID)  return true;                        // "Act on Edited Content"
-        if (result == SAVE_ID) { saveBuffers(dirtyBuffers); return true; }  // "Save and Run ESC"
+        if (result == SAVE_ID) { saveEditors(dirtyEditors); return true; }  // "Save and Run ESC"
         return false;  // Cancel (IDialogConstants.CANCEL_ID = 1) or window closed
     }
 
-    /** Returns a bullet list of filenames for dirty-file dialog messages. */
-    private static String formatDirtyFileList(
-            List<org.eclipse.core.filebuffers.ITextFileBuffer> buffers) {
-        StringBuilder sb = new StringBuilder();
-        for (org.eclipse.core.filebuffers.ITextFileBuffer buf : buffers) {
-            sb.append("  \u2022 ").append(buf.getLocation().lastSegment()).append("\n");
-        }
-        return sb.toString();
-    }
-
-    private static void saveBuffers(List<org.eclipse.core.filebuffers.ITextFileBuffer> buffers) {
-        NullProgressMonitor monitor = new NullProgressMonitor();
-        for (org.eclipse.core.filebuffers.ITextFileBuffer buf : buffers) {
-            try {
-                buf.commit(monitor, false);
-            } catch (org.eclipse.core.runtime.CoreException e) {
-                Console.log("Warning: could not save buffer: " + e.getMessage());
-            }
-        }
-    }
-
     /**
-     * Check for dirty editors among {@code targets} and, based on the
+     * Check for dirty source editors and, based on the
      * {@link OpenJMLOptions#racSaveBeforeKey} preference, either save them
      * automatically or ask the user.
      *
-     * <p>RAC cannot operate on unsaved content.  When dirty files are found:
-     * <ul>
-     *   <li>If "always save" is set, files are saved silently.</li>
-     *   <li>Otherwise a dialog asks to save or cancel.</li>
-     * </ul>
+     * <p>RAC cannot operate on unsaved content — it compiles source to class files
+     * via Eclipse's Java builder, which reads from disk.
      *
      * <p>Must be called on the UI thread (may open a dialog).
      *
      * @return {@code true} if RAC should proceed, {@code false} if the user cancelled
      */
     static boolean handleDirtyFilesForRac(List<SelectionResolver.Target> targets) {
-        List<org.eclipse.core.filebuffers.ITextFileBuffer> dirtyBuffers = collectDirtyBuffers(targets);
-        if (dirtyBuffers.isEmpty()) return true;
+        List<IEditorPart> dirtyEditors = dirtySourceEditors();
+        if (dirtyEditors.isEmpty()) return true;
 
         if (org.openjml.ui.Activator.getDefault().getPreferenceStore()
                 .getBoolean(OpenJMLOptions.racSaveBeforeKey)) {
-            saveBuffers(dirtyBuffers);
+            saveEditors(dirtyEditors);
             return true;
         }
 
@@ -652,8 +626,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 Display.getDefault().getActiveShell(),
                 "OpenJML — Unsaved Changes",
                 null,
-                dirtyBuffers.size() + " file(s) have unsaved changes:\n"
-                + formatDirtyFileList(dirtyBuffers) + "\n"
+                dirtyEditors.size() + " file(s) have unsaved changes:\n"
+                + formatDirtyEditorList(dirtyEditors) + "\n"
                 + "RAC requires saved files. Save and run RAC, or cancel?\n\n"
                 + "The Java+RAC compilation will be executed in an Eclipse background job.",
                 MessageDialog.QUESTION,
@@ -669,7 +643,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
         }
 
         // "Save and Run RAC" gets IDialogConstants.INTERNAL_ID (256); Cancel gets CANCEL_ID (1).
-        if (result == IDialogConstants.INTERNAL_ID) { saveBuffers(dirtyBuffers); return true; }
+        if (result == IDialogConstants.INTERNAL_ID) { saveEditors(dirtyEditors); return true; }
         return false;  // Cancel
     }
 

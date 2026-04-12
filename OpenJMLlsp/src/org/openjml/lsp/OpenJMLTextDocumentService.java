@@ -231,6 +231,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private final Map<String, String> lastContent = new ConcurrentHashMap<>();
 
+    /**
+     * URIs that have been modified since their last save (or since {@code didOpen}).
+     *
+     * <p>Updated by {@link #didChange} (add), {@link #didSave} (remove), and
+     * {@link #didClose} (remove).  Used to filter {@link #lastContent} when building
+     * the mock-file snapshot passed to OpenJML: only truly dirty files need to be
+     * mocked; clean files are read from disk with identical content.
+     */
+    private final java.util.Set<String> dirtyUris = ConcurrentHashMap.newKeySet();
+
     /** Content (by identity hash) of the last successfully submitted --check, per URI. */
     private final Map<String, String> lastCheckedContent = new ConcurrentHashMap<>();
 
@@ -283,6 +293,27 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         });
     }
 
+    /**
+     * Returns a snapshot of {@link #lastContent} filtered to only dirty files.
+     *
+     * <p>Only files whose URIs are in {@link #dirtyUris} (i.e. modified since
+     * their last save) are included.  Clean files are read from disk by OpenJML
+     * directly — their in-memory and on-disk content are identical, so no mock
+     * is needed and including them would only add noise to the OpenJML console
+     * output (showing skipped methods in every open clean file).
+     *
+     * <p>The snapshot is taken atomically at call time so that background ESC
+     * threads see a consistent view even if the user continues editing.
+     */
+    private Map<String, String> dirtySnapshot() {
+        Map<String, String> result = new java.util.HashMap<>();
+        for (String uri : dirtyUris) {
+            String content = lastContent.get(uri);
+            if (content != null) result.put(uri, content);
+        }
+        return java.util.Collections.unmodifiableMap(result);
+    }
+
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
@@ -310,6 +341,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                                params.getContentChanges())
                 : params.getContentChanges().get(0).getText();
         lastContent.put(uri, content);
+        dirtyUris.add(uri);
         // Mark nav cache dirty: the next navigation will trigger a project-wide check.
         navCacheDirty = true;
         // Invalidate cached check state for all other open files so that focus-triggered
@@ -350,6 +382,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
+        dirtyUris.remove(uri);
         cancelPending(uri);
 
         // --check: always on save.
@@ -362,6 +395,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
+        dirtyUris.remove(uri);
         cancelPending(uri);
         checkDiags.remove(uri);
         escDiags.remove(uri);
@@ -857,7 +891,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         // Snapshot dirty-file content at submission time so rapid edits during the
         // debounce window do not mutate the context passed to OpenJML.
-        Map<String, String> snapshot = Map.copyOf(lastContent);
+        Map<String, String> snapshot = dirtySnapshot();
 
         // Debounce: cancel any previously scheduled check-paths task so that rapid
         // toolbar clicks collapse into a single check.  A 300 ms delay is short enough
@@ -927,7 +961,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         // Snapshot dirty-file content before submitting so edits during the run
         // do not mutate the context map passed to OpenJML.
-        Map<String, String> escSnapshot = Map.copyOf(lastContent);
+        Map<String, String> escSnapshot = dirtySnapshot();
 
         // Use the first path as a sentinel key to track this batch in the running-tasks maps.
         // cancelEsc(null) iterates all keys, so any unique key causes it to be cancelled.
@@ -1024,7 +1058,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleEscSplitByFile(List<String> paths, String projectId) {
         if (paths == null || paths.isEmpty()) return;
         OpenJMLSettings s = settingsForProject(projectId);
-        Map<String, String> snapshot = Map.copyOf(lastContent);
+        Map<String, String> snapshot = dirtySnapshot();
 
         for (java.nio.file.Path javaFile : collectJavaFiles(paths)) {
             String filePath = javaFile.toString();
@@ -1070,7 +1104,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleEscSplitByMethod(List<String> paths, String projectId) {
         if (paths == null || paths.isEmpty()) return;
         OpenJMLSettings s = settingsForProject(projectId);
-        Map<String, String> snapshot = Map.copyOf(lastContent);
+        Map<String, String> snapshot = dirtySnapshot();
 
         for (java.nio.file.Path javaFile : collectJavaFiles(paths)) {
             String uri = javaFile.toUri().toString();
@@ -1679,14 +1713,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     s.escPool);
         } else {
             String contentForMethod = lastContent.get(uri);
+            Map<String, String> snapshot = dirtySnapshot();
             if (contentForMethod != null) {
                 final String c = contentForMethod;
-                // Only mock the primary file in the open-content snapshot.
-                // Passing all open editors' content causes OpenJML to discover and ESC
-                // their methods alongside the target method (mocked files are treated as
-                // explicit source files).  Non-primary files are read from disk instead,
-                // which is fine for type resolution and avoids spurious ESC output.
-                Map<String, String> snapshot = Map.of(uri, c);
                 submitEscForMethod(uri, target,
                         hook -> CheckRunner.escMethodWithContext(uri, c, escMethodName, snapshot, s, hook),
                         s.escPool);
@@ -2081,7 +2110,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void scheduleEscFile(String uri, OpenJMLSettings s) {
         String content = lastContent.get(uri);
         if (content != null) {
-            Map<String, String> snapshot = Map.copyOf(lastContent);
+            Map<String, String> snapshot = dirtySnapshot();
             submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, s, hook));
             return;
         }
@@ -2092,7 +2121,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
 
     private void startEscContent(String uri, String content) {
-        Map<String, String> snapshot = Map.copyOf(lastContent);
+        Map<String, String> snapshot = dirtySnapshot();
         OpenJMLSettings s = settingsForUri(uri);
         submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, s, hook));
     }
@@ -2213,7 +2242,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private boolean runProjectCheck(List<String> roots, OpenJMLSettings s) {
         if (roots.isEmpty()) return false;
         System.err.println("[runProjectCheck] roots=" + roots);
-        Map<String, String> snapshot = Map.copyOf(lastContent);
+        Map<String, String> snapshot = dirtySnapshot();
         try {
             CheckRunner.DirCheckResult result =
                     CheckRunner.runCheckDirWithContext(roots, snapshot, s);
@@ -2342,7 +2371,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         try {
             // Snapshot lastContent at execution time so that concurrent edits do not
             // mutate the context map while OpenJML is parsing it.
-            Map<String, String> snapshot = Map.copyOf(lastContent);
+            Map<String, String> snapshot = dirtySnapshot();
             CheckRunner.CheckResult result = CheckRunner.checkWithContext(
                     uri, content, snapshot, s);
             // Publish diagnostics for all compiled files (primary + companions) uniformly.

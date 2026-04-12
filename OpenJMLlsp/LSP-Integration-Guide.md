@@ -334,6 +334,11 @@ must contain the complete document text in `contentChanges[0].text`.
 ### `textDocument/didChange`
 
 - Stores the updated content.
+- **Marks the file dirty** (adds the URI to an internal dirty-URI set). While a file is
+  marked dirty, multi-file check or ESC invocations (e.g. `openjml.checkJML` or
+  `openjml.runEsc` on a directory) use the in-memory content for this file instead of
+  reading it from disk. This ensures that unsaved edits are included in context-aware
+  cross-file checks even before the file is saved.
 - If `checkTriggerOn` is `"edit"`: schedules `--check` with a 500 ms debounce.
   A new change before 500 ms resets the timer.
 - If `checkTriggerOn` is `"save"`: no `--check` is triggered by change (i.e., an edit).
@@ -343,8 +348,11 @@ must contain the complete document text in `contentChanges[0].text`.
 
 ### `textDocument/didSave`
 
+- **Clears the dirty mark** for the URI (removes it from the dirty-URI set). After save,
+  the file's in-memory content matches the disk, so subsequent multi-file checks read
+  the file from disk directly and no longer need to mock it from memory.
 - Cancels any pending debounced check or ESC.
-- Runs `--check` immediately from disk.
+- Runs `--check` immediately using the saved (in-memory) content.
 - Does **not** run `--esc` automatically on save from the server side. If ESC-on-save
   behavior is desired, the client should issue an explicit `workspace/executeCommand`
   with `openjml.runEsc` after saving. (The VS Code extension does this via its own
@@ -352,6 +360,7 @@ must contain the complete document text in `contentChanges[0].text`.
 
 ### `textDocument/didClose`
 
+- **Clears the dirty mark** for the URI (removes it from the dirty-URI set).
 - Cancels all pending debounced and running checks for the URI.
 - Clears all stored diagnostics for the URI.
 - Publishes an empty `textDocument/publishDiagnostics` to clear all diagnostics (and their visible annotations) from the client.

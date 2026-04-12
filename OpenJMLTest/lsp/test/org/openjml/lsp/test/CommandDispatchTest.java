@@ -196,19 +196,25 @@ public class CommandDispatchTest {
                 "}\n");
         String uri = f.toPath().toUri().toString();
 
-        // Open the file with dirty content that has a type error.
-        // The server stores this as the in-memory (lastContent) version.
+        // Open the file with its clean disk content.
+        String openParams = "{\"textDocument\":{\"uri\":\"" + uri
+                + "\",\"languageId\":\"java\",\"version\":1,"
+                + "\"text\":\"" + jsonEscape(Files.readString(f.toPath())) + "\"}}";
+        client.sendNotification("textDocument/didOpen", openParams);
+
+        // Drain the open-triggered check (empty diagnostics for clean file).
+        nextDiagsContaining("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        // Change the file to dirty content with a type error.
+        // didChange adds the URI to dirtyUris so dirtySnapshot() picks it up.
         String dirtyContent = "public class CmdDirtyCheck {\n"
                 + "    public int m() { return \"not an int\"; }\n"
                 + "}\n";
-        String openParams = "{\"textDocument\":{\"uri\":\"" + uri
-                + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(dirtyContent) + "\"}}";
-        client.sendNotification("textDocument/didOpen", openParams);
+        String changeParams = "{\"textDocument\":{\"uri\":\"" + uri + "\",\"version\":2},"
+                + "\"contentChanges\":[{\"text\":\"" + jsonEscape(dirtyContent) + "\"}]}";
+        client.sendNotification("textDocument/didChange", changeParams);
 
-        // The open-triggered check reads from disk (clean file) and publishes empty
-        // diagnostics.  Drain that notification before sending the command so the
-        // second call to nextDiagsContaining sees only the command's result.
+        // Drain the change-triggered check so the next notification is from the command.
         nextDiagsContaining("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         // Run openjml.checkJML on the file's OS path.

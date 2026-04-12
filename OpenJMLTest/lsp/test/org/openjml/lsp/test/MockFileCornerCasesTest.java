@@ -141,6 +141,52 @@ public class MockFileCornerCasesTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
+    // Mixed: one dirty file in snapshot, one clean file absent from snapshot
+    // -----------------------------------------------------------------------
+
+    /**
+     * When the snapshot contains dirty content for file A but is absent for
+     * file B, {@link CheckRunner#runCheckDirWithContext} must use A's dirty
+     * in-memory content and B's clean on-disk content.
+     *
+     * <p>This verifies the {@code dirtySnapshot()} filtering behaviour: only
+     * files that were modified since their last save appear in the snapshot.
+     * Clean (saved or unmodified) files are read from disk by OpenJML directly.
+     */
+    @Test
+    public void testMixedDirtyAndClean_OnlyDirtyFileSubstituted() throws IOException {
+        // File A on disk: clean (no error).
+        File fileA = writeFile("MixedA.java",
+                "public class MixedA {\n" +
+                "    public int add(int a, int b) { return a + b; }\n" +
+                "}\n");
+        // File B on disk: clean (no error).
+        File fileB = writeFile("MixedB.java",
+                "public class MixedB {\n" +
+                "    public int sub(int a, int b) { return a - b; }\n" +
+                "}\n");
+
+        // Snapshot: only A is dirty (type error). B is absent — not in dirtyUris.
+        String dirtyA =
+                "public class MixedA {\n" +
+                "    public int m() { return \"not an int\"; }\n" +
+                "}\n";
+        Map<String, String> snapshot = Map.of(fileUri(fileA), dirtyA);
+
+        CheckRunner.DirCheckResult result = CheckRunner.runCheckDirWithContext(
+                List.of(fileA.getAbsolutePath(), fileB.getAbsolutePath()),
+                snapshot, new OpenJMLSettings());
+
+        boolean aHasError = false, bHasError = false;
+        for (Map.Entry<String, List<Diagnostic>> e : result.diagnosticsByUri().entrySet()) {
+            if (e.getKey().contains("MixedA") && !e.getValue().isEmpty()) aHasError = true;
+            if (e.getKey().contains("MixedB") && !e.getValue().isEmpty()) bHasError = true;
+        }
+        assertTrue("Expected error in MixedA.java: dirty snapshot content should be used", aHasError);
+        assertFalse("Expected no error in MixedB.java: clean file absent from snapshot → disk used", bHasError);
+    }
+
+    // -----------------------------------------------------------------------
     // Two dirty .java files in the same check invocation
     // -----------------------------------------------------------------------
 

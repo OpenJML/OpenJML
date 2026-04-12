@@ -279,6 +279,70 @@ public class EscDirWithContextTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
+    // Mixed: one dirty file in snapshot, one clean file absent from snapshot
+    // -----------------------------------------------------------------------
+
+    /**
+     * When the snapshot contains dirty content for file A but is absent for
+     * file B, {@link CheckRunner#runEscDirWithContext} must run ESC using
+     * A's dirty in-memory content and B's clean on-disk content.
+     *
+     * <p>Verifies the {@code dirtySnapshot()} filtering: only truly dirty files
+     * (modified since last save) are mocked; clean files are read from disk.
+     * A's dirty version has an unprovable postcondition; B's disk version is
+     * verifiable.  We expect an ESC failure for A and a pass for B.
+     */
+    @Test
+    public void testMixedDirtyAndClean_OnlyDirtyFileSubstituted() throws IOException {
+        // File A on disk: verifiable postcondition.
+        File fileA = writeJava("EscMixedA.java",
+                "public class EscMixedA {\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int m(int x) { return x; }\n" +
+                "}\n");
+        // File B on disk: verifiable postcondition.
+        File fileB = writeJava("EscMixedB.java",
+                "public class EscMixedB {\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int n(int x) { return x; }\n" +
+                "}\n");
+
+        // Snapshot: only A is dirty — body returns wrong value → postcondition fails.
+        // B is absent from snapshot (clean/saved) → disk content is used.
+        String dirtyA =
+                "public class EscMixedA {\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int m(int x) { return x + 1; }\n" +
+                "}\n";
+        Map<String, String> snapshot = Map.of(fileUri(fileA), dirtyA);
+
+        CheckRunner.DirCheckResult result = CheckRunner.runEscDirWithContext(
+                List.of(fileA.getAbsolutePath(), fileB.getAbsolutePath()),
+                snapshot, new OpenJMLSettings(), null);
+
+        // A's dirty content has a postcondition violation.
+        boolean aHasDiagOrFailure = false;
+        for (Map.Entry<String, List<Diagnostic>> e : result.diagnosticsByUri().entrySet()) {
+            if (e.getKey().contains("EscMixedA") && !e.getValue().isEmpty()) {
+                aHasDiagOrFailure = true;
+            }
+        }
+        aHasDiagOrFailure |= result.proofResults().entrySet().stream()
+                .anyMatch(e -> e.getKey().contains("EscMixedA")
+                        && e.getValue() != IProverResult.UNSAT);
+
+        // B's clean disk content should verify successfully — no failure for B.
+        boolean bHasFailure = result.proofResults().entrySet().stream()
+                .anyMatch(e -> e.getKey().contains("EscMixedB")
+                        && e.getValue() != IProverResult.UNSAT);
+
+        assertTrue("Expected ESC failure for EscMixedA.java: dirty snapshot content should be used",
+                aHasDiagOrFailure);
+        assertFalse("Expected ESC pass for EscMixedB.java: clean disk content should be used",
+                bHasFailure);
+    }
+
+    // -----------------------------------------------------------------------
     // uriToPath — basic unit tests (low-priority, in this class for convenience)
     // -----------------------------------------------------------------------
 

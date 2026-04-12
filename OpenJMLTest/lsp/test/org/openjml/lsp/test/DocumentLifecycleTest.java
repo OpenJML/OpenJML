@@ -1,5 +1,6 @@
 package org.openjml.lsp.test;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -11,6 +12,9 @@ import org.openjml.lsp.OpenJMLLanguageServer;
 
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -89,6 +93,25 @@ public class DocumentLifecycleTest {
     private void didClose(String uri) throws Exception {
         String params = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
         client.sendNotification("textDocument/didClose", params);
+    }
+
+    private void didSave(String uri) throws Exception {
+        String params = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
+        client.sendNotification("textDocument/didSave", params);
+    }
+
+    private void openDocumentFile(String uri, String source) throws Exception {
+        Gson gson = new Gson();
+        String params = "{\"textDocument\":{\"uri\":" + gson.toJson(uri) + ","
+                + "\"languageId\":\"java\",\"version\":1,\"text\":"
+                + gson.toJson(source) + "}}";
+        client.sendNotification("textDocument/didOpen", params);
+    }
+
+    private static Path testdataFile(String relative) {
+        String root = System.getProperty("lsp.testdata");
+        if (root == null) throw new IllegalStateException("System property lsp.testdata must be set");
+        return Paths.get(root).resolve(relative);
     }
 
     /** Wait for the next publishDiagnostics whose URI contains {@code uriFragment}. */
@@ -213,6 +236,93 @@ public class DocumentLifecycleTest {
             }
         }
         assertTrue("'requires' must appear in completions inside a JML annotation", hasRequires);
+    }
+
+    // -----------------------------------------------------------------------
+    // dirty-file lifecycle: dirtyUris tracking across didChange / didSave
+    // -----------------------------------------------------------------------
+
+    /**
+     * Opening a clean disk file and then changing it (making it dirty) must
+     * cause subsequent checks to use the in-memory (dirty) content rather than
+     * the on-disk content.
+     *
+     * <p>The disk file ({@code testDirtyLifecycle/LifecycleClean.java}) has no
+     * type errors.  After {@code didChange} introduces a type error, the server
+     * marks the URI dirty (adds it to {@code dirtyUris}) and the triggered
+     * {@code --check} must pick up the dirty content and publish an error diagnostic.
+     *
+     * <p>Test data: {@code testdata/testDirtyLifecycle/LifecycleClean.java}
+     */
+    @Test
+    public void testDirtyDiskFile_CheckUsesDirtyContent() throws Exception {
+        Path file = testdataFile("testDirtyLifecycle/LifecycleClean.java");
+        String uri = file.toUri().toString();
+
+        // Open the clean disk file — expect empty diagnostics.
+        openDocumentFile(uri, Files.readString(file));
+        JsonObject openNote = nextDiagsFor("LifecycleClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didOpen of clean disk file", openNote);
+        assertTrue("Expected no diagnostics for clean disk file on open",
+                openNote.getAsJsonObject("params").getAsJsonArray("diagnostics").isEmpty());
+
+        // Change the file to introduce a type error — URI now in dirtyUris.
+        String errSource =
+                "public class LifecycleClean {\n" +
+                "    public int m() { return \"not an int\"; }\n" +
+                "}\n";
+        didChange(uri, 2, errSource);
+
+        // The check triggered by didChange must use the dirty (in-memory) content.
+        JsonObject changeNote = nextDiagsFor("LifecycleClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didChange", changeNote);
+        JsonArray diags = changeNote.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertFalse("Expected type-error diagnostic: dirty content must be used, not clean disk",
+                diags.isEmpty());
+    }
+
+    /**
+     * After {@code didSave}, the URI is removed from {@code dirtyUris} but
+     * {@code lastContent} still holds the saved content (the editor buffer that
+     * was written to disk).  The save-triggered {@code --check} must use that
+     * content and publish the same diagnostics as the preceding dirty check.
+     *
+     * <p>This verifies that {@code didSave} triggers a check and that the check
+     * runs against the current (saved) content rather than silently disappearing.
+     * The error introduced by {@code didChange} is still present in both the
+     * editor buffer and on disk after the save; the diagnostic must persist.
+     *
+     * <p>Test data: {@code testdata/testDirtyLifecycle/LifecycleClean.java}
+     */
+    @Test
+    public void testSaveAfterDirtyChange_CheckTriggeredWithCurrentContent() throws Exception {
+        Path file = testdataFile("testDirtyLifecycle/LifecycleClean.java");
+        String uri = file.toUri().toString();
+
+        // Open the clean disk file — drain the initial empty diagnostics.
+        openDocumentFile(uri, Files.readString(file));
+        nextDiagsFor("LifecycleClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        // Introduce a type error — URI enters dirtyUris; check reports the error.
+        String errSource =
+                "public class LifecycleClean {\n" +
+                "    public int m() { return \"not an int\"; }\n" +
+                "}\n";
+        didChange(uri, 2, errSource);
+        JsonObject changeNote = nextDiagsFor("LifecycleClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected error diagnostics after didChange", changeNote);
+        assertFalse("Expected at least one diagnostic after didChange",
+                changeNote.getAsJsonObject("params").getAsJsonArray("diagnostics").isEmpty());
+
+        // Save — URI removed from dirtyUris; server schedules a check using the
+        // saved content (lastContent still holds the error, same as what's on disk now).
+        didSave(uri);
+
+        // The save-triggered check must run and report the same error.
+        JsonObject saveNote = nextDiagsFor("LifecycleClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didSave", saveNote);
+        assertFalse("Expected error diagnostic after save: saved content still has the type error",
+                saveNote.getAsJsonObject("params").getAsJsonArray("diagnostics").isEmpty());
     }
 
     /**
