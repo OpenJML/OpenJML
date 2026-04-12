@@ -140,12 +140,58 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
             if (projectConfigUpdater != null) projectConfigUpdater.accept(src.projects);
             if (watcherReregistrar != null) watcherReregistrar.run();
         }
-        // Single-project clients (VS Code) update workspaceFolderPaths via didChangeConfiguration.
-        if (src.workspaceFolderPaths != null
-                && !src.workspaceFolderPaths.equals(settings.workspaceFolderPaths)) {
-            settings.workspaceFolderPaths = src.workspaceFolderPaths;
-            if (watcherReregistrar != null) watcherReregistrar.run();
+    }
+
+    /**
+     * Handle {@code workspace/didChangeWorkspaceFolders} notifications.
+     *
+     * <p>For standard LSP clients (VS Code, bare LSP) the server synthesizes a
+     * {@code "__workspace__"} project at initialization time.  This handler keeps
+     * that project's {@code rootPaths} in sync as the user opens and closes folders.
+     *
+     * <p>For multi-project Eclipse clients the project list is managed via
+     * {@code didChangeConfiguration}, so this notification is a no-op.
+     */
+    @Override
+    public void didChangeWorkspaceFolders(
+            org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams params) {
+        if (params == null || params.getEvent() == null) return;
+
+        // Find the synthesized __workspace__ project.
+        OpenJMLSettings.ProjectConfig wp = null;
+        if (settings.projects != null) {
+            for (OpenJMLSettings.ProjectConfig p : settings.projects) {
+                if ("__workspace__".equals(p.id)) { wp = p; break; }
+            }
         }
+        if (wp == null) return;   // Eclipse client — ignore.
+
+        List<String> roots = wp.rootPaths != null
+                ? new java.util.ArrayList<>(wp.rootPaths)
+                : new java.util.ArrayList<>();
+
+        var event = params.getEvent();
+        if (event.getAdded() != null) {
+            for (var folder : event.getAdded()) {
+                String path = uriToOsPath(folder.getUri());
+                if (path != null && !roots.contains(path)) roots.add(path);
+            }
+        }
+        if (event.getRemoved() != null) {
+            for (var folder : event.getRemoved()) {
+                String path = uriToOsPath(folder.getUri());
+                if (path != null) roots.remove(path);
+            }
+        }
+
+        wp.rootPaths = roots;
+        if (watcherReregistrar != null) watcherReregistrar.run();
+    }
+
+    private static String uriToOsPath(String uri) {
+        if (uri == null || !uri.startsWith("file:")) return null;
+        try { return java.nio.file.Path.of(java.net.URI.create(uri)).toString(); }
+        catch (Exception e) { return null; }
     }
 
     /**

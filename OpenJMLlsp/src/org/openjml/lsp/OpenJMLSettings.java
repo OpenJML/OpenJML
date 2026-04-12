@@ -142,22 +142,12 @@ public class OpenJMLSettings {
     public volatile String sourcePath;
 
     /**
-     * Workspace folder paths supplied by the editor at {@code initialize} time,
-     * path-separator-separated.  Not part of the client JSON settings — set
-     * programmatically by {@code OpenJMLLanguageServer.initialize()}.
-     * Used only for single-project clients that do not send a {@link #projects}
-     * list; ignored when the registry is populated.
-     */
-    public volatile String workspaceFolderPaths;
-
-    /**
      * Returns the effective list of root paths for JML work.
      *
      * <p>Priority order:
      * <ol>
      *   <li>Global settings with {@link #projects} list — union of all projects' rootPaths.</li>
      *   <li>Per-project settings object — {@link #rootPaths} (this project's own source folders).</li>
-     *   <li>Single-project fallback — {@link #workspaceFolderPaths} (VS Code / generic clients).</li>
      * </ol>
      */
     public List<String> effectiveRoots() {
@@ -171,9 +161,6 @@ public class OpenJMLSettings {
         // Per-project settings object (built by updateProjectSettings).
         if (rootPaths != null && !rootPaths.isBlank())
             return Arrays.asList(rootPaths.split(java.io.File.pathSeparator));
-        // Single-project / VS Code client.
-        if (workspaceFolderPaths != null && !workspaceFolderPaths.isBlank())
-            return Arrays.asList(workspaceFolderPaths.split(java.io.File.pathSeparator));
         return List.of();
     }
 
@@ -385,7 +372,6 @@ public class OpenJMLSettings {
         this.solversPath             = src.solversPath;
         this.sourcePath              = src.sourcePath;
         this.rootPaths               = src.rootPaths;
-        this.workspaceFolderPaths    = src.workspaceFolderPaths;
         this.classPath               = src.classPath;
         this.useIntegratedOutline    = src.useIntegratedOutline;
         this.checkTriggerOn          = src.checkTriggerOn;

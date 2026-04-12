@@ -169,24 +169,32 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         workspaceService.applyRaw(params.getInitializationOptions());
         rootUri = params.getRootUri();
 
-        // Collect workspace folder paths so CheckRunner can append them to -sourcepath.
-        if (params.getWorkspaceFolders() != null) {
-            String joined = params.getWorkspaceFolders().stream()
-                    .map(f -> f.getUri())
-                    .filter(u -> u != null && u.startsWith("file:"))
-                    .map(u -> { try { return java.nio.file.Path.of(java.net.URI.create(u)).toString(); }
-                                catch (Exception e) { return null; } })
-                    .filter(p -> p != null)
-                    .collect(java.util.stream.Collectors.joining(java.io.File.pathSeparator));
-            if (!joined.isEmpty()) settings.workspaceFolderPaths = joined;
-        }
-        // Fall back to rootUri if no workspace folders list was provided.
-        if ((settings.workspaceFolderPaths == null || settings.workspaceFolderPaths.isEmpty())
-                && rootUri != null && rootUri.startsWith("file:")) {
-            try {
-                settings.workspaceFolderPaths =
-                        java.nio.file.Path.of(java.net.URI.create(rootUri)).toString();
-            } catch (Exception ignored) {}
+        // If initializationOptions did not supply an explicit projects array,
+        // synthesize a "__workspace__" project from the standard LSP workspace folders.
+        // This unifies single-project clients (VS Code, bare LSP) into the same
+        // projects-based model used by the Eclipse multi-project client.
+        if (settings.projects == null || settings.projects.isEmpty()) {
+            List<String> folderPaths = new java.util.ArrayList<>();
+            if (params.getWorkspaceFolders() != null) {
+                for (var folder : params.getWorkspaceFolders()) {
+                    String u = folder.getUri();
+                    if (u != null && u.startsWith("file:")) {
+                        try { folderPaths.add(java.nio.file.Path.of(java.net.URI.create(u)).toString()); }
+                        catch (Exception ignored) {}
+                    }
+                }
+            }
+            // Fall back to rootUri when no workspace-folders list is provided.
+            if (folderPaths.isEmpty() && rootUri != null && rootUri.startsWith("file:")) {
+                try { folderPaths.add(java.nio.file.Path.of(java.net.URI.create(rootUri)).toString()); }
+                catch (Exception ignored) {}
+            }
+            if (!folderPaths.isEmpty()) {
+                OpenJMLSettings.ProjectConfig wp = new OpenJMLSettings.ProjectConfig();
+                wp.id        = "__workspace__";
+                wp.rootPaths = folderPaths;
+                settings.projects = new java.util.ArrayList<>(List.of(wp));
+            }
         }
 
         // Auto-discover openjml.properties at the workspace root unless the
@@ -244,22 +252,15 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     @Override
     public void initialized(InitializedParams params) {
         serverInitialized = true;
-        // Record the workspace root URI, then kick off a full project check so
-        // that workspace/symbol can find symbols in files not yet opened.
-        // Only start the index if at least one source root is known; avoids
-        // a spurious "no source directories" log message in minimal test setups.
-        textDocumentService.setRootUri(rootUri);
-        if (rootUri != null || !settings.effectiveRoots().isEmpty()) {
+        // Kick off a full project check so that workspace/symbol can find symbols
+        // in files not yet opened.  Only start the index if at least one source
+        // root is known; avoids a spurious "no source directories" log message in
+        // minimal test setups.
+        if (!settings.effectiveRoots().isEmpty()) {
             // Index each configured project separately so that each gets its own
             // NavSection in ASTCache, enabling per-project workspace/symbol filtering.
-            // Fall back to indexProject(null) for single-project clients (VS Code)
-            // that don't configure named projects.
-            if (settings.projects != null && !settings.projects.isEmpty()) {
-                for (OpenJMLSettings.ProjectConfig cfg : settings.projects) {
-                    textDocumentService.indexProject(cfg.id);
-                }
-            } else {
-                textDocumentService.indexProject(null);
+            for (OpenJMLSettings.ProjectConfig cfg : settings.projects) {
+                textDocumentService.indexProject(cfg.id);
             }
         }
         // Register file watchers so the server is notified when .jml/.java files
@@ -283,7 +284,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     /**
      * Called when watched roots change via {@code didChangeConfiguration} (new projects
-     * list or updated {@code workspaceFolderPaths}).
+     * list) or via {@code workspace/didChangeWorkspaceFolders}.
      * Unregisters the current file watchers then immediately re-registers them.
      * The brief overlap window is harmless because all events are root-filtered.
      */

@@ -150,9 +150,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final String codeLensCommand;
     private LanguageClient client;
 
-    /** Workspace root URI, stored when the first workspace index is scheduled. */
-    private volatile String rootUri = null;
-
     private final ExecutorService          executor      = Executors.newCachedThreadPool();
     private final ScheduledExecutorService scheduler     = Executors.newSingleThreadScheduledExecutor();
 
@@ -1394,17 +1391,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return result;
     }
 
-    /**
-     * Record the workspace root URI from {@code InitializeParams}.
-     * Used as a last-resort source directory when no projects or
-     * {@code workspaceFolderPaths} are configured.
-     *
-     * @param rootUri the root URI from {@code InitializeParams}, or {@code null}
-     */
-    void setRootUri(String rootUri) {
-        this.rootUri = rootUri;
-    }
-
     /** Convert a character offset to a 0-based LSP {@link Position}. */
     private static Position offsetToPosition(String content, int offset) {
         int line = 0, col = 0;
@@ -1486,6 +1472,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (configs == null) return;
         for (OpenJMLSettings.ProjectConfig cfg : configs) {
             if (cfg.id == null || cfg.id.isBlank()) continue;
+            // The synthesized __workspace__ project is not an Eclipse-style project;
+            // it must not appear in the per-project settings registry.
+            if ("__workspace__".equals(cfg.id)) continue;
             OpenJMLSettings s = new OpenJMLSettings(settings);
             s.sourcePath              = cfg.sourcePath              != null ? cfg.sourcePath             : "";
             s.classPath               = cfg.classPath               != null ? cfg.classPath              : "";
@@ -1496,8 +1485,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             // Store rootPaths so settingsForUri can match file URIs to this project.
             if (cfg.rootPaths != null && !cfg.rootPaths.isEmpty())
                 s.rootPaths = String.join(java.io.File.pathSeparator, cfg.rootPaths);
-            // Clear global path fallback — this is a fully-specified per-project context.
-            s.workspaceFolderPaths = null;
             projectSettings.put(cfg.id, s);
         }
         System.err.println("[OpenJML] project registry updated: " + projectSettings.keySet());
@@ -2074,10 +2061,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                          + cls + ".java";
 
         // Search workspace roots
-        List<String> roots = new ArrayList<>();
-        if (settings.workspaceFolderPaths != null && !settings.workspaceFolderPaths.isEmpty())
-            java.util.Collections.addAll(roots,
-                    settings.workspaceFolderPaths.split(java.io.File.pathSeparator));
+        List<String> roots = new ArrayList<>(settings.effectiveRoots());
         if (settings.sourcePath != null && !settings.sourcePath.isEmpty())
             java.util.Collections.addAll(roots,
                     settings.sourcePath.split(java.io.File.pathSeparator));
@@ -2890,17 +2874,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     if (cfg.rootPaths != null) sourceDirs.addAll(cfg.rootPaths);
                 }
             }
-        }
-
-        if (sourceDirs.isEmpty() && settings.workspaceFolderPaths != null
-                && !settings.workspaceFolderPaths.isBlank()) {
-            for (String p : settings.workspaceFolderPaths.split(java.io.File.pathSeparator))
-                if (!p.isBlank()) sourceDirs.add(p);
-        }
-
-        if (sourceDirs.isEmpty() && rootUri != null) {
-            String path = CheckRunner.uriToPath(rootUri);
-            if (path != null) sourceDirs.add(path);
         }
 
         if (sourceDirs.isEmpty()) {

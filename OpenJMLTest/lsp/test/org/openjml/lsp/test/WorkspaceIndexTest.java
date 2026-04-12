@@ -30,8 +30,8 @@ import static org.junit.Assert.*;
  *
  * <h3>Coverage targets</h3>
  * <ul>
- *   <li>{@link #testIndexProjectWithWorkspaceFolderPaths} — configure
- *       {@code workspaceFolderPaths} via {@code didChangeConfiguration}, then
+ *   <li>{@link #testIndexProjectWithProjectRoots} — configure a
+ *       {@code "__workspace__"} project via {@code didChangeConfiguration}, then
  *       send {@code openjml.indexProject}; the server runs
  *       {@code runProjectCheck(roots, s)} which publishes diagnostics for
  *       files with errors and sets {@code navCacheDirty=false}.</li>
@@ -120,11 +120,14 @@ public class WorkspaceIndexTest {
     }
 
     /**
-     * Configure {@code workspaceFolderPaths} via {@code workspace/didChangeConfiguration}.
+     * Configure a {@code "__workspace__"} project via {@code workspace/didChangeConfiguration}.
+     * This is the standard way for single-project clients (VS Code, bare LSP) to inform
+     * the server about their source roots after the workspace folder unification.
      */
-    private void configureWorkspaceFolderPaths(String osPath) throws Exception {
+    private void configureProjectRoots(String osPath) throws Exception {
         String escaped = jsonEscapePath(osPath);
-        String settingsJson = "{\"openjml\":{\"workspaceFolderPaths\":\"" + escaped + "\"}}";
+        String settingsJson = "{\"openjml\":{\"projects\":[{\"id\":\"__workspace__\","
+                + "\"rootPaths\":[\"" + escaped + "\"]}]}}";
         client.sendNotification("workspace/didChangeConfiguration",
                 "{\"settings\":" + settingsJson + "}");
         // Brief pause to let the server apply the settings.
@@ -136,28 +139,28 @@ public class WorkspaceIndexTest {
     // -----------------------------------------------------------------------
 
     /**
-     * Configure {@code workspaceFolderPaths} pointing to {@code tmpDir}, create a
+     * Configure a {@code "__workspace__"} project pointing to {@code tmpDir}, create a
      * Java file with a type error in that directory, then send
      * {@code openjml.indexProject}.
      *
      * <p>The server's {@link org.openjml.lsp.OpenJMLTextDocumentService#indexProject}
-     * collects source directories from {@code settings.workspaceFolderPaths}, submits
+     * collects source directories from the project's {@code rootPaths}, submits
      * {@code runProjectCheck(roots, s)} on the executor, and
      * {@code runProjectCheck} calls {@code CheckRunner.runCheckDirWithContext} and
      * publishes diagnostics for files that produced errors.  The type-error file must
      * appear in a {@code textDocument/publishDiagnostics} notification.
      */
     @Test
-    public void testIndexProjectWithWorkspaceFolderPaths() throws Exception {
+    public void testIndexProjectWithProjectRoots() throws Exception {
         write("IndexError.java",
                 "public class IndexError {\n"
                 + "    public int m() { return \"not an int\"; }\n"
                 + "}\n");
 
-        configureWorkspaceFolderPaths(tmpDir.toAbsolutePath().toString());
+        configureProjectRoots(tmpDir.toAbsolutePath().toString());
 
         // Send openjml.indexProject with no arguments (cmdProject returns null;
-        // indexProject(null) uses workspaceFolderPaths as source roots).
+        // indexProject(null) uses the projects list as source roots).
         String params = "{\"command\":\"" + OpenJMLCommands.INDEX_PROJECT
                 + "\",\"arguments\":[]}";
         client.sendRequest("workspace/executeCommand", params);

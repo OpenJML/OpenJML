@@ -722,10 +722,8 @@ public class CheckRunner {
         if (raw.isAbsolute()) {
             outputPath = raw;
         } else {
-            String wsRoot = (settings.workspaceFolderPaths != null
-                    && !settings.workspaceFolderPaths.isEmpty())
-                    ? settings.workspaceFolderPaths.split(java.io.File.pathSeparator)[0]
-                    : ".";
+            List<String> effectiveRoots = settings.effectiveRoots();
+            String wsRoot = effectiveRoots.isEmpty() ? "." : effectiveRoots.get(0);
             outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
         }
         try { java.nio.file.Files.createDirectories(outputPath); }
@@ -1299,11 +1297,11 @@ public class CheckRunner {
         if (raw.isAbsolute()) {
             outputPath = raw;
         } else {
-            // Resolve relative path against first workspace folder (or file's parent).
-            String wsRoot = (settings.workspaceFolderPaths != null
-                          && !settings.workspaceFolderPaths.isEmpty())
-                    ? settings.workspaceFolderPaths.split(java.io.File.pathSeparator)[0]
-                    : new java.io.File(filePath).getParent();
+            // Resolve relative path against first workspace root (or file's parent).
+            List<String> effectiveRoots = settings.effectiveRoots();
+            String wsRoot = effectiveRoots.isEmpty()
+                    ? new java.io.File(filePath).getParent()
+                    : effectiveRoots.get(0);
             outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
         }
         try {
@@ -1361,10 +1359,10 @@ public class CheckRunner {
         if (raw.isAbsolute()) {
             outputPath = raw;
         } else {
-            String wsRoot = (settings.workspaceFolderPaths != null
-                          && !settings.workspaceFolderPaths.isEmpty())
-                    ? settings.workspaceFolderPaths.split(java.io.File.pathSeparator)[0]
-                    : (!paths.isEmpty() ? new java.io.File(paths.get(0)).getParent() : ".");
+            List<String> effectiveRoots = settings.effectiveRoots();
+            String wsRoot = effectiveRoots.isEmpty()
+                    ? (!paths.isEmpty() ? new java.io.File(paths.get(0)).getParent() : ".")
+                    : effectiveRoots.get(0);
             outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
         }
         try {
@@ -2341,12 +2339,14 @@ public class CheckRunner {
             // causing javac to silently suppress diagnostics.
             parts.add(settings.sourcePath);
         } else {
-            // No explicit source path: fall back to workspaceFolderPaths (single-project
-            // / generic clients) or rootPaths (per-project settings object).
-            String fallback = (settings.rootPaths != null && !settings.rootPaths.isEmpty())
-                    ? settings.rootPaths : settings.workspaceFolderPaths;
-            if (fallback != null && !fallback.isEmpty())
-                parts.add(fallback);
+            // No explicit source path: fall back to per-project rootPaths or effective roots.
+            if (settings.rootPaths != null && !settings.rootPaths.isEmpty()) {
+                parts.add(settings.rootPaths);
+            } else {
+                List<String> roots = settings.effectiveRoots();
+                if (!roots.isEmpty())
+                    parts.add(String.join(java.io.File.pathSeparator, roots));
+            }
             if (settings.classPath != null && !settings.classPath.isEmpty())
                 parts.add(settings.classPath);
         }
