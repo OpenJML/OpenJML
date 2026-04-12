@@ -51,6 +51,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.jsonrpc.messages.Either3;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.openjml.IAPI;
 import org.openjml.IProverResult;
 
@@ -2082,20 +2083,46 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             String javaUri = resolveCompanionJavaUri(uri, content);
             if (javaUri == null) return;
             String javaContent = lastContent.get(javaUri);
-            if (javaContent != null) {
-                CompletableFuture<Void> cf = new CompletableFuture<>();
-                lastCheckFuture.put(javaUri, cf);
-                executor.submit(() -> { try { runCheckContent(javaUri, javaContent); } finally { cf.complete(null); } });
-            } else {
-                CompletableFuture<Void> cf = new CompletableFuture<>();
-                lastCheckFuture.put(javaUri, cf);
-                executor.submit(() -> { try { runCheckContent(javaUri, null); } finally { cf.complete(null); } });
-            }
+            final String fJmlUri  = uri;
+            final String fJavaUri = javaUri;
+            CompletableFuture<Void> cf = new CompletableFuture<>();
+            lastCheckFuture.put(javaUri, cf);
+            executor.submit(() -> {
+                try {
+                    runCheckContent(fJavaUri, javaContent);  // javaContent may be null → reads from disk
+                    verifyJmlCompanion(fJmlUri, fJavaUri);
+                } finally {
+                    cf.complete(null);
+                }
+            });
             return;
         }
         CompletableFuture<Void> cf = new CompletableFuture<>();
         lastCheckFuture.put(uri, cf);
         executor.submit(() -> { try { runCheckContent(uri, content); } finally { cf.complete(null); } });
+    }
+
+    /**
+     * After a check triggered by opening/editing a {@code .jml} file, verify that
+     * the {@code .java} AST's {@code specsCompilationUnit} points back to the same
+     * {@code .jml} file.  A mismatch means the workspace has two competing spec
+     * files for the same Java class (e.g. a hand-written {@code Foo.jml} alongside
+     * a generated one found earlier on the specs path).
+     *
+     * @param jmlUri  the URI of the {@code .jml} file that triggered the check
+     * @param javaUri the companion {@code .java} URI that was actually checked
+     */
+    private void verifyJmlCompanion(String jmlUri, String javaUri) {
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(javaUri);
+        if (entry == null) return;
+        JmlCompilationUnit specs = entry.ast().specsCompilationUnit;
+        if (specs == null || specs == entry.ast() || specs.sourcefile == null) return;
+        String actualJmlUri = specs.sourcefile.toUri().normalize().toString();
+        if (!actualJmlUri.equals(jmlUri)) {
+            clientError("OpenJML: .jml companion mismatch for " + javaUri
+                    + ": opened " + jmlUri + " but the Java AST loaded specs from " + actualJmlUri
+                    + " — there may be two competing spec files for the same class.");
+        }
     }
 
     private void scheduleCheckFile(String uri) {
@@ -2862,6 +2889,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // The client is responsible for re-sending didChange for dirty editors
         // after the reset; that will repopulate dirtyUris with fresh content.
         dirtyUris.clear();
+        // Clear the editor content cache.  Stale/orphan entries (files closed or
+        // renamed without the server being notified) would otherwise accumulate.
+        // didSave and didClose use remove(), which is a no-op on a missing key,
+        // so they are unaffected.  The client repopulates via fresh didOpen/didChange.
+        lastContent.clear();
+        // Clear the per-project settings registry.  It will be repopulated when
+        // the client sends workspace/didChangeConfiguration (which clients must do
+        // before or alongside clearAndReindex per the documented protocol).
+        projectSettings.clear();
 
         // Clear the AST cache (both tiers and declaration indexes).
         CheckRunner.getASTCache().clear();
