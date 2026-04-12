@@ -51,5 +51,9 @@ import org.junit.runners.Suite;
     RenamePreflightTest.class,
     DebouncingAndCancellationTest.class,
     BatchAndWatchedFilesTest.class,
+    IncrementalSyncProtocolTest.class,
+    MultiProjectTest.class,
+    SplitEscTest.class,
+    WorkspaceIndexTest.class,
 })
 public class AllLspTests {}

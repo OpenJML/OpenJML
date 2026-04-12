@@ -475,27 +475,36 @@ any open documents of interest.
 ### Code Lens — `textDocument/codeLens`
 
 Returns one code lens per detected method in the document. Each lens shows the current
-ESC verification status for that method as a display-only command label. The label
+ESC verification status for that method together with an inline action button. The label
 format is:
 
 | Status | Label |
 |---|---|
-| Not run | `OpenJML: —` |
-| In progress | `OpenJML: ⧗ Checking…` |
-| Verified | `OpenJML: ✓ Verified` |
-| Infeasible precondition | `OpenJML: Infeasible` |
-| Not verified | `OpenJML: ✗ Not verified (N issue(s))` |
-| Skipped | `OpenJML: Skipped` |
-| Solver timeout | `OpenJML: Timeout` |
-| Cancelled | `OpenJML: Cancelled` |
-| Type/check error | `OpenJML: Check error` |
+| Not run | `OpenJML: — ▶ Run ESC` |
+| In progress | `OpenJML: ⧗ Checking… ✕ Cancel` |
+| Verified | `OpenJML: ✓ Verified ↺ Re-run` |
+| Infeasible precondition | `OpenJML: Infeasible ↺ Re-run` |
+| Not verified | `OpenJML: ✗ Not verified (N issue(s)) ↺ Re-run` |
+| Skipped | `OpenJML: Skipped ▶ Run ESC` |
+| Solver timeout | `OpenJML: Timeout ↺ Re-run` |
+| Cancelled | `OpenJML: Cancelled ▶ Run ESC` |
+| Type/check error | `OpenJML: Check error ↺ Re-run` |
+| Check error in deps | `OpenJML: Check error in other files ↺ Re-run` |
 
-Each code lens embeds a command (`openjml.runEscForMethod` by default) with arguments
-`[uri, fully-qualified-method-name]`. A client that supports code lens execution can
-invoke ESC on a single method by sending `workspace/executeCommand` with that command
-and those arguments.
+Each code lens embeds the command `openjml.runEscForMethod` with arguments
+`[uri, "name@startLine"]`, where `name` is the simple method name and `startLine` is
+the 0-based line number of the method declaration. This two-element format is the
+**code-lens format** and is detected by the server as distinct from the old VS Code
+4-prefix format and the Eclipse project-ID format. A client that supports code lens
+execution can invoke (or cancel) ESC on a single method by sending
+`workspace/executeCommand` with that command and those arguments.
 
-The server sends a `client/refreshCodeLenses` notification whenever method ESC status
+The command is always `openjml.runEscForMethod` regardless of the current status; when
+the method is already CHECKING the server cancels the in-flight run instead of starting
+a new one, so a single command handles both Run and Cancel without VS Code treating a
+command change as a new lens and showing duplicates.
+
+The server sends a `workspace/codeLens/refresh` notification whenever method ESC status
 changes (including when a check moves from CHECKING to a final state). A client should
 re-query `textDocument/codeLens` on receiving this notification.
 
@@ -705,10 +714,17 @@ receive full automatic signature help trigger behavior without any workaround.
 
 ### Workspace Symbols — `workspace/symbol`
 
-Returns declarations from all currently open (cached) files whose simple name
-contains the query string (case-insensitive substring match). An empty query
-returns all indexed declarations. Searches only files present in the current
-AST cache.
+Returns declarations from the AST cache whose simple name contains the query string
+(case-insensitive substring match). An empty query returns all indexed declarations.
+Searches only files present in the current AST cache.
+
+**Project-filtered query encoding:** To restrict results to a single project without
+using a custom command, the Eclipse plugin encodes the project root into the query
+string as `"<projectRoot>\n<identifier>"` (project path, a newline character, then the
+actual search term). The server detects the newline and passes only the matching
+project's nav section to the search. Generic clients that do not need per-project
+filtering should pass a plain query string. For programmatic project-scoped lookups,
+`openjml.symbolsForProject` is cleaner and does not require this encoding.
 
 ### Configuration — `workspace/didChangeConfiguration`
 
@@ -817,14 +833,25 @@ diagnostics and code lens are updated; other methods are unaffected.
 
 ```
 command:   "openjml.runEscForMethod"
-arguments (project-ID): ["<projectId>", "<file-uri>", "<fully-qualified-method-name>"]
+arguments (code-lens):  ["<file-uri>", "<name@startLine>"]
+arguments (project-ID): ["<projectId>", "<file-uri>", "<name@startLine>"]
 arguments (legacy):     ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
                          "<file-uri>", "<fully-qualified-method-name>"]
 ```
 
-`fully-qualified-method-name` is in the form `package.ClassName.methodName`. If the
-simple name (`methodName`) uniquely identifies a method in the file, the package and
-class prefix are optional. An empty method name causes the whole file to be checked.
+**Code-lens format** (the preferred format for new clients): exactly two elements where
+the first starts with `file://`. `name@startLine` is the simple method name followed by
+`@` and the 0-based start line of the method declaration (e.g. `add@5`). This allows
+overloaded methods on different lines to be distinguished. This is the format emitted by
+`textDocument/codeLens` responses.
+
+**Project-ID format**: three elements where `args[0]` is a bare project ID (no `/`, `\`,
+or `:`) and `args[2]` is the `name@startLine` method reference.
+
+**Legacy format**: six elements in the old VS Code 4-prefix layout. The method reference
+is a fully-qualified name (`package.ClassName.methodName`); if the simple name uniquely
+identifies a method the package/class prefix may be omitted. An empty method name causes
+the whole file to be checked.
 
 ### `openjml.runEscSplitByFile`
 
@@ -865,18 +892,15 @@ arguments (legacy):     ["<sourcePath>", "<classPath>", "<specsPath>", "<propert
 `outputDir` (legacy format only) is the directory for compiled class files. In the
 project-ID format the `outputDir` from the project's `ProjectConfig` is used.
 
-### `openjml.saveAndRunEsc`
+### `openjml.saveAndRunEsc` (VS Code extension UI command — not a server command)
 
-Save the current document and run `--esc` on it. Equivalent to a `textDocument/didSave`
-followed by `openjml.runEsc`, but issued as a single command by the client. The VS Code
-extension uses this to distinguish a manual save-and-ESC invocation from an ordinary
-auto-save.
-
-```
-command:   "openjml.saveAndRunEsc"
-arguments: ["<sourcePath>", "<classPath>", "<specsPath>", "<propertiesFile>",
-            "<file-uri>"]
-```
+This is a VS Code extension-level command registered in `package.json` and bound to
+menu items and keyboard shortcuts. When the user triggers it, the VS Code extension
+saves the document (equivalent to `textDocument/didSave`) and then sends
+`workspace/executeCommand` with `openjml.runEsc` to the server. The string
+`openjml.saveAndRunEsc` is **never sent to the server**; it is handled entirely
+client-side by the VS Code extension. Other clients (Eclipse, generic LSP clients)
+should implement the same pattern: save first, then call `openjml.runEsc`.
 
 ### `openjml.cancelEsc`
 
@@ -931,6 +955,31 @@ configured projects.
 **Eclipse plugin:** exposed as the "Index Project" item in the OpenJML main menu,
 editor popup, and Package Explorer context menu.  Intended for use before "Find All
 Declarations" to ensure files that have not yet been opened are covered by the index.
+
+### `openjml.symbolsForProject`
+
+Return `workspace/symbol`-style declarations filtered to a single project. This is the
+server-side alternative to the `workspace/symbol` project-encoded query; it avoids the
+cross-project leakage that can occur when multiple projects share a single nav section.
+
+```
+command:   "openjml.symbolsForProject"
+arguments: ["<query>", "<projectRoot>"]
+```
+
+| Argument | Description |
+|---|---|
+| `query` | Symbol name to search (case-sensitive exact match; empty = return all). |
+| `projectRoot` | File-system path of the project root (e.g. `/home/user/myproject`). When absent or empty, symbols from all projects are returned. |
+
+Returns a JSON array of `SymbolInformation` objects (same format as `workspace/symbol`).
+
+**Note on case sensitivity:** unlike the plain `workspace/symbol` handler (case-insensitive
+substring match), this command uses an exact case-sensitive match on the symbol name. Pass
+an empty query to retrieve all symbols for the project.
+
+**Eclipse plugin:** replaces the earlier `workspace/symbol`-with-encoded-query approach;
+the handler calls this command and presents results in the "Find All Declarations" dialog.
 
 ### `openjml.focusFile`
 
