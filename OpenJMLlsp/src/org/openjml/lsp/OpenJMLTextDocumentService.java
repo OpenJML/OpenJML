@@ -6,6 +6,8 @@ import org.eclipse.lsp4j.Command;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.DocumentHighlight;
+import org.eclipse.lsp4j.DocumentHighlightParams;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.SymbolInformation;
@@ -677,6 +679,41 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     lastContent,
                     CheckRunner.getASTCache(),
                     includeDecl);
+        });
+    }
+
+    // --- document highlight ---
+
+    /**
+     * Return all occurrences of the identifier token under the cursor within the
+     * current document.
+     *
+     * <p>Matching is by <em>name</em>, not by compiler symbol: all AST nodes whose
+     * {@code name} field equals the cursor token are reported, regardless of scope.
+     * See {@link DocumentHighlightProvider} for the full rationale.
+     *
+     * <p>For {@code .jml} files the companion {@code .java} URI is resolved and used to
+     * locate the specs compilation unit in the AST cache.
+     */
+    @Override
+    public CompletableFuture<List<? extends DocumentHighlight>> documentHighlight(
+            DocumentHighlightParams params) {
+        String uri = params.getTextDocument().getUri();
+        String source = lastContent.get(uri);
+        if (source == null) return CompletableFuture.completedFuture(List.of());
+
+        int line = params.getPosition().getLine();
+        int col  = params.getPosition().getCharacter();
+
+        return ensureNavCacheReady().thenApply(v -> {
+            ASTCache cache = CheckRunner.getASTCache();
+            // For .jml files, compute the companion .java URI as a fallback in case the
+            // specs CU has not yet been stored under the .jml URI in the live cache.
+            // DocumentHighlightProvider tries the .jml URI first and falls back to this.
+            String companionJavaUri = uri.endsWith(".jml")
+                    ? resolveCompanionJavaUri(uri, source) : null;
+            return DocumentHighlightProvider.findHighlights(
+                    uri, line, col, lastContent, cache, companionJavaUri);
         });
     }
 

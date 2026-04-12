@@ -219,6 +219,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         caps.setDefinitionProvider(Boolean.TRUE);
         caps.setDeclarationProvider(Boolean.TRUE);
         caps.setReferencesProvider(Boolean.TRUE);
+        caps.setDocumentHighlightProvider(Boolean.TRUE);
         caps.setRenameProvider(new RenameOptions(true));  // prepareProvider=true
         // Trigger on '(' (call open) and ',' (next argument).
         caps.setSignatureHelpProvider(new SignatureHelpOptions(List.of("(", ",")));

@@ -94,7 +94,8 @@ TEST_CLASSES := \
   IncrementalSyncProtocolTest \
   MultiProjectTest \
   SplitEscTest \
-  WorkspaceIndexTest
+  WorkspaceIndexTest \
+  DocumentHighlightTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 

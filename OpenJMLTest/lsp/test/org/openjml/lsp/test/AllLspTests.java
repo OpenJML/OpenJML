@@ -55,5 +55,6 @@ import org.junit.runners.Suite;
     MultiProjectTest.class,
     SplitEscTest.class,
     WorkspaceIndexTest.class,
+    DocumentHighlightTest.class,
 })
 public class AllLspTests {}
