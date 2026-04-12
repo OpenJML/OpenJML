@@ -465,6 +465,7 @@ public class CheckRunner {
         args.add("--dirs");
         args.addAll(paths);
         logInvocation("runEscDir", args);
+        log(ts() + " --esc --dirs " + paths + invocationSuffix(args));
         int rc = api.execute(args.toArray(new String[0]));
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri = listener.toLspDiagnosticsByFile();
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
@@ -575,6 +576,7 @@ public class CheckRunner {
         List<String> args = buildArgs(settings, "--esc");
         args.addAll(fileList);
         logInvocation("runEscDirWithContext", args);
+        log(ts() + " --esc " + fileList.size() + " file(s)" + invocationSuffix(args));
         int rc = api.execute(args.toArray(new String[0]), mockFiles);
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri =
                 listener.toLspDiagnosticsAll(finalAllPathToRealUri);
@@ -1497,8 +1499,8 @@ public class CheckRunner {
 
             String fname = fileName(uri);
             String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
-            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
-            else log(ts() + " --esc " + fname + methodDesc);
+            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname + invocationSuffix(args));
+            else log(ts() + " --esc " + fname + methodDesc + invocationSuffix(args));
 
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
             compiledPathToRealUri.put(primaryArg, uri);
@@ -1612,8 +1614,8 @@ public class CheckRunner {
 
             String fname = fileName(uri);
             String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
-            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
-            else log(ts() + " --esc " + fname + methodDesc);
+            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname + invocationSuffix(args));
+            else log(ts() + " --esc " + fname + methodDesc + invocationSuffix(args));
 
             // compiledPathToRealUri is populated by the AST listener — only files
             // that were actually attributed get an entry.  Start with the target.
@@ -1767,8 +1769,8 @@ public class CheckRunner {
 
             String fname = fileName(uri);
             String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
-            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
-            else log(ts() + " --esc " + fname + methodDesc);
+            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname + invocationSuffix(args));
+            else log(ts() + " --esc " + fname + methodDesc + invocationSuffix(args));
 
             // Capture AST in local vars so we can store with IAPI after execution.
             // Context guard prevents cross-contamination between concurrent runs that
@@ -1869,8 +1871,8 @@ public class CheckRunner {
 
         String fname = fileName(uri);
         String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
-        if ("--check".equals(modeFlag)) log(ts() + " --check " + fname);
-        else log(ts() + " --esc " + fname + methodDesc);
+        if ("--check".equals(modeFlag)) log(ts() + " --check " + fname + invocationSuffix(args));
+        else log(ts() + " --esc " + fname + methodDesc + invocationSuffix(args));
 
         // Capture the primary file's AST locally; store with IAPI on successful --check.
         final String fileUriStr = new java.io.File(filePath).toURI().toString();
@@ -2402,6 +2404,48 @@ public class CheckRunner {
         //sb.append("  OPENJML_SPECS=").append(System.getenv("OPENJML_SPECS")).append('\n');
         //sb.append("  OPENJML_SOLVERS=").append(System.getenv("OPENJML_SOLVERS")).append('\n');
         System.err.print(sb);
+    }
+
+    /**
+     * Extract the value of a single-value flag from an args list, or {@code null}.
+     * For example, {@code argValue(args, "-sourcepath")} returns the sourcepath string.
+     */
+    private static String argValue(List<String> args, String flag) {
+        for (int i = 0; i + 1 < args.size(); i++) {
+            if (flag.equals(args.get(i))) return args.get(i + 1);
+        }
+        return null;
+    }
+
+    /**
+     * Collect all positional file arguments from an args list (entries ending in
+     * {@code .java} or {@code .jml} that are not flag values).
+     */
+    private static List<String> fileArgs(List<String> args) {
+        List<String> files = new ArrayList<>();
+        boolean skipNext = false;
+        for (String a : args) {
+            if (skipNext) { skipNext = false; continue; }
+            if (a.startsWith("-") || a.startsWith("--")) { skipNext = true; continue; }
+            if (a.endsWith(".java") || a.endsWith(".jml")) files.add(a);
+        }
+        return files;
+    }
+
+    /**
+     * Format a Console-visible summary of an ESC/check invocation showing the
+     * sourcepath and file arguments.  Returns a string suitable for appending to
+     * an existing log line.
+     */
+    private static String invocationSuffix(List<String> args) {
+        String sp = argValue(args, "-sourcepath");
+        List<String> files = fileArgs(args);
+        String method = argValue(args, "--method");
+        StringBuilder sb = new StringBuilder();
+        if (method != null) sb.append(" --method ").append(method);
+        if (!files.isEmpty()) sb.append(" | files: ").append(files);
+        if (sp != null) sb.append(" | -sourcepath ").append(sp);
+        return sb.toString();
     }
 
     private static String extractBaseName(String uri) {

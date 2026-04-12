@@ -159,21 +159,36 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         for (IProject proj : sortedProjects) {
             InvocationContext ctx = resolveInvocationContext(proj);
-            List<String> paths = new ArrayList<>();
+            // Use a LinkedHashSet so that method fallbacks and explicit file targets
+            // are deduplicated: two selected methods in the same file must not
+            // produce two separate file-level commands.
+            java.util.LinkedHashSet<String> pathSet = new java.util.LinkedHashSet<>();
             for (SelectionResolver.Target t : byProject.get(proj)) {
                 switch (t) {
-                    case SelectionResolver.Target.Method m ->
-                        dispatchMethodTarget(m, ctx);
+                    case SelectionResolver.Target.Method m -> {
+                        String uri = m.file().getLocationURI().toString();
+                        ExecuteCommandParams params = buildMethodCommand(uri, m.methodFqn(), ctx);
+                        if (params != null) {
+                            // Per-method command (e.g. RUN_ESC_FOR_METHOD): dispatch directly.
+                            dispatchCommand(params, getDocument(m.file()), m.file().getProject());
+                        } else {
+                            // Fall back: treat the method as its containing file.
+                            // Collect into pathSet so duplicates (two methods in the same
+                            // file) are automatically merged into one file-level command.
+                            org.eclipse.core.runtime.IPath loc = m.file().getLocation();
+                            if (loc != null) pathSet.add(loc.toOSString());
+                        }
+                    }
                     case SelectionResolver.Target.File f -> {
                         org.eclipse.core.runtime.IPath loc = f.file().getLocation();
-                        if (loc != null) paths.add(loc.toOSString());
+                        if (loc != null) pathSet.add(loc.toOSString());
                     }
                     case SelectionResolver.Target.Dir d ->
-                        paths.addAll(containerSourcePaths(d.container()));
+                        pathSet.addAll(containerSourcePaths(d.container()));
                 }
             }
-            if (!paths.isEmpty()) {
-                ExecuteCommandParams params = buildCommand(paths, ctx);
+            if (!pathSet.isEmpty()) {
+                ExecuteCommandParams params = buildCommand(new ArrayList<>(pathSet), ctx);
                 if (params != null) dispatchCommand(params, null, proj);
             }
         }
@@ -254,22 +269,6 @@ public abstract class LspCommandHandler extends AbstractHandler {
         }
         org.eclipse.core.runtime.IPath loc = container.getLocation();
         return loc != null ? List.of(loc.toOSString()) : List.of();
-    }
-
-    /** Dispatch a method target, falling back to the file path if no method command is available. */
-    private void dispatchMethodTarget(SelectionResolver.Target.Method m, InvocationContext ctx) {
-        String uri = m.file().getLocationURI().toString();
-        ExecuteCommandParams params = buildMethodCommand(uri, m.methodFqn(), ctx);
-        if (params != null) {
-            dispatchCommand(params, getDocument(m.file()), m.file().getProject());
-        } else {
-            // Fall back to whole-file path dispatch.
-            org.eclipse.core.runtime.IPath loc = m.file().getLocation();
-            if (loc == null) return;
-            ExecuteCommandParams fileParams = buildCommand(List.of(loc.toOSString()), ctx);
-            if (fileParams != null)
-                dispatchCommand(fileParams, getDocument(m.file()), m.file().getProject());
-        }
     }
 
     /**
@@ -946,15 +945,23 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 JmlNature.enable(file.getProject());
             }
 
-            String uri = file.getLocationURI().toString();
+            java.net.URI fileUri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(file);
+            if (fileUri == null) return null;
+            String uri = fileUri.toString();
             Console.log(lspCommand + " -> " + uri);
 
+            // Encode cursor position as "@line" so the server finds the method that
+            // contains the cursor, rather than requiring the cursor on the declaration.
+            String methodRef = "";
+            var sel = HandlerUtil.getCurrentSelection(event);
+            if (sel instanceof org.eclipse.jface.text.ITextSelection ts) {
+                methodRef = "@" + ts.getStartLine();
+            }
+
             InvocationContext ctx = resolveInvocationContext(file.getProject());
-            // TODO: resolve method FQN from cursor position via JDT IMethod.
-            // For now send empty FQN; the server ESCs the whole file.
             List<Object> args = prefixArgs(ctx);
             args.add(uri);
-            args.add("");
+            args.add(methodRef);
             ExecuteCommandParams params =
                     new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args);
             dispatchCommand(params, getDocument(file), file.getProject());

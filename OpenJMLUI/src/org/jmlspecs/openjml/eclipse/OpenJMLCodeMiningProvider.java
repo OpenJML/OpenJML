@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.eclipse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -47,6 +48,17 @@ public class OpenJMLCodeMiningProvider extends AbstractCodeMiningProvider {
     /** Set by {@link OpenJMLLanguageClient#setDiagnosticsConsumer} on connect. */
     static volatile OpenJMLLanguageClient languageClient;
 
+    /**
+     * Generation counter incremented on every {@code provideCodeMinings} call.
+     * When the server calls {@code refreshCodeLenses} twice in rapid succession
+     * (e.g. CHECKING start then VERIFIED completion), both calls arrive before
+     * either future resolves.  Without this guard Eclipse accumulates results
+     * from both futures, showing duplicate minings per method.
+     * Only the latest generation's result is applied; earlier ones return an
+     * empty list so Eclipse clears any stale minings.
+     */
+    private final AtomicLong generation = new AtomicLong();
+
     @Override
     public CompletableFuture<List<? extends ICodeMining>> provideCodeMinings(
             ITextViewer viewer, IProgressMonitor monitor) {
@@ -62,8 +74,14 @@ public class OpenJMLCodeMiningProvider extends AbstractCodeMiningProvider {
 
         IDocument doc = viewer.getDocument();
         CodeLensParams params = new CodeLensParams(new TextDocumentIdentifier(uri));
+        final long myGen = generation.incrementAndGet();
         return ls.getTextDocumentService().codeLens(params)
-                .thenApply(lenses -> toMinings(lenses, doc));
+                .thenApply(lenses -> {
+                    // Discard stale results: a newer provideCodeMinings call has
+                    // already been issued, so applying this result would duplicate.
+                    if (generation.get() != myGen) return List.<ICodeMining>of();
+                    return toMinings(lenses, doc);
+                });
     }
 
     private String getFileUri() {

@@ -400,21 +400,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                   new Position(m.startLine(), 0));
             // Method reference encodes both name and start line so overloads are
             // distinguished and the server can locate the exact method on the next request.
+            // The command is always RUN_ESC_FOR_METHOD regardless of state: when the
+            // method is currently CHECKING, scheduleEscForMethod cancels the in-flight
+            // run instead of starting a new one.  Using a single command avoids VS Code
+            // treating a command change as a new lens and showing duplicates.
             String methodRef = m.name() + "@" + m.startLine();
-            final String cmdName;
-            final List<Object> cmdArgs;
-            if (s.result() == EscResult.CHECKING) {
-                // Cancel the specific per-method task (no-op if run was whole-file).
-                cmdName = OpenJMLCommands.CANCEL_ESC;
-                cmdArgs = List.of(uri + "#" + methodRef);
-            } else {
-                // Run (or re-run) ESC for this method.
-                // Two-element code-lens format [uri, name@startLine]: detected in the
-                // RUN_ESC_FOR_METHOD handler by the leading "file://" scheme on args[0].
-                cmdName = OpenJMLCommands.RUN_ESC_FOR_METHOD;
-                cmdArgs = List.<Object>of(uri, methodRef);
-            }
-            lenses.add(new CodeLens(range, new Command(s.label(), cmdName, cmdArgs), null));
+            lenses.add(new CodeLens(range,
+                    new Command(s.label(), OpenJMLCommands.RUN_ESC_FOR_METHOD,
+                                List.<Object>of(uri, methodRef)),
+                    null));
         }
         return CompletableFuture.completedFuture(lenses);
     }
@@ -1659,26 +1653,48 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = lastContent.get(uri);
         JavaSourceScanner.MethodInfo target = findMethod(content, methodName);
 
+        // If the method is currently CHECKING, the user clicked "✕ Cancel":
+        // cancel the in-flight run instead of starting a new one.
+        if (target != null) {
+            MethodStatus current = methodEscStatus
+                    .getOrDefault(uri, Map.of())
+                    .getOrDefault(target.startLine(), MethodStatus.UNKNOWN);
+            if (current.result() == EscResult.CHECKING) {
+                cancelEsc(uri + "#" + target.name() + "@" + target.startLine());
+                return;
+            }
+        }
+
+        // When the code-lens sends "name@startLine", target carries the resolved simple
+        // name.  Use it for the --method flag so OpenJML receives a plain identifier, not
+        // "name@startLine" which it would not recognise and would skip.
+        final String escMethodName = (target != null) ? target.name() : methodName;
+
         if (s.isEscApiMode()) {
             // Submit through escPool so this request joins the same shared queue
             // as any in-flight runDoEscFileAsync tasks for the same URI.
             // doESC path uses the cached IAPI directly; hook not applicable here.
             submitEscForMethod(uri, target,
-                    hook -> CheckRunner.runDoEscMethod(uri, methodName, s),
+                    hook -> CheckRunner.runDoEscMethod(uri, escMethodName, s),
                     s.escPool);
         } else {
             String contentForMethod = lastContent.get(uri);
-            Map<String, String> snapshot = Map.copyOf(lastContent);
             if (contentForMethod != null) {
                 final String c = contentForMethod;
+                // Only mock the primary file in the open-content snapshot.
+                // Passing all open editors' content causes OpenJML to discover and ESC
+                // their methods alongside the target method (mocked files are treated as
+                // explicit source files).  Non-primary files are read from disk instead,
+                // which is fine for type resolution and avoids spurious ESC output.
+                Map<String, String> snapshot = Map.of(uri, c);
                 submitEscForMethod(uri, target,
-                        hook -> CheckRunner.escMethodWithContext(uri, c, methodName, snapshot, s, hook),
+                        hook -> CheckRunner.escMethodWithContext(uri, c, escMethodName, snapshot, s, hook),
                         s.escPool);
             } else {
                 String filePath = CheckRunner.uriToPath(uri);
                 if (filePath != null)
                     submitEscForMethod(uri, target,
-                            hook -> CheckRunner.runEscFileMethod(filePath, uri, methodName, s, hook),
+                            hook -> CheckRunner.runEscFileMethod(filePath, uri, escMethodName, s, hook),
                             s.escPool);
             }
         }
@@ -1694,11 +1710,21 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * </ul>
      */
     private static JavaSourceScanner.MethodInfo findMethod(String content, String nameOrRef) {
-        if (content == null || nameOrRef == null) return null;
+        if (content == null || nameOrRef == null || nameOrRef.isEmpty()) return null;
         int at = nameOrRef.lastIndexOf('@');
         if (at >= 0) {
             try {
                 int line = Integer.parseInt(nameOrRef.substring(at + 1));
+                if (at == 0) {
+                    // "@cursorLine" format (no name prefix): find the method whose range
+                    // contains the cursor line, so the menu command works when the cursor
+                    // is anywhere inside the method body, not just on the declaration line.
+                    for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+                        if (m.contains(line)) return m;
+                    }
+                    return null;
+                }
+                // "name@startLine" format: exact start-line match (code-lens path).
                 for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
                     if (m.startLine() == line) return m;
                 }
@@ -1761,6 +1787,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
             statuses.put(target.startLine(), MethodStatus.CHECKING);
             methodEscStatus.put(uri, statuses);
+            // Remove any Verified (Hint) marker for this method immediately so it
+            // disappears while the re-run is in progress rather than lingering.
+            List<Diagnostic> diags = new ArrayList<>(escDiags.getOrDefault(uri, List.of()));
+            if (diags.removeIf(d -> DiagnosticSeverity.Hint.equals(d.getSeverity())
+                    && DiagnosticConverter.SOURCE_ESC.equals(d.getSource())
+                    && target.contains(d.getRange().getStart().getLine()))) {
+                escDiags.put(uri, diags);
+                publishMerged(uri);
+            }
             refreshCodeLenses();
         } else {
             markEscChecking(uri);
@@ -1814,7 +1849,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             new java.util.HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
                     statuses.put(start, ms);
                     methodEscStatus.put(uri, statuses);
-                    addVerifiedDiagnostics(uri, result.proofResults());
+                    addVerifiedDiagnostics(uri, result.proofResults(), target);
                 } else {
                     storeEscDiags(uri, diags);
                     updateEscStatus(uri, diags, result.proofResults(), result.exitCode(),
@@ -2374,7 +2409,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                         exitCode, hasForeignErrors));
         }
         methodEscStatus.put(uri, statuses);
-        addVerifiedDiagnostics(uri, proofResults);
+        addVerifiedDiagnostics(uri, proofResults, null);
         refreshCodeLenses();
 
         if (hasForeignErrors) {
@@ -2393,14 +2428,26 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * The source is {@link DiagnosticConverter#SOURCE_ESC} so it is routed to
      * the ESC marker type ({@code JMLESCProblem}) by {@code OpenJMLLanguageClient}.
      */
+    /**
+     * Add Verified (Hint) diagnostics for methods that appear in {@code proofResults}
+     * with {@link IProverResult#UNSAT}.
+     *
+     * <p>When {@code target} is non-null (per-method run) only the marker for that
+     * specific method is removed and replaced, leaving other methods' Verified markers
+     * intact.  When {@code target} is null (whole-file run) all existing Verified
+     * markers are cleared before adding the new set.
+     */
     private void addVerifiedDiagnostics(String uri,
-                                        Map<String, IProverResult.Kind> proofResults) {
+                                        Map<String, IProverResult.Kind> proofResults,
+                                        JavaSourceScanner.MethodInfo target) {
         String content = lastContent.get(uri);
         if (content == null || proofResults.isEmpty()) return;
         String[] lines = content.split("\n", -1);
 
         List<Diagnostic> verified = new ArrayList<>();
         for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+            // For per-method runs consider only the target method.
+            if (target != null && m.startLine() != target.startLine()) continue;
             if (proofResults.get(m.name()) != IProverResult.UNSAT) continue;
             int line = m.startLine();   // 0-based
             if (line >= lines.length) continue;
@@ -2413,12 +2460,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     DiagnosticSeverity.Hint, DiagnosticConverter.SOURCE_ESC);
             verified.add(d);
         }
-        if (verified.isEmpty()) return;
 
         List<Diagnostic> existing = new ArrayList<>(escDiags.getOrDefault(uri, List.of()));
-        // Remove any stale verified-markers before adding fresh ones.
-        existing.removeIf(d -> DiagnosticSeverity.Hint.equals(d.getSeverity())
-                && DiagnosticConverter.SOURCE_ESC.equals(d.getSource()));
+        if (target != null) {
+            // Per-method: remove only the Verified marker within this method's line range.
+            existing.removeIf(d -> DiagnosticSeverity.Hint.equals(d.getSeverity())
+                    && DiagnosticConverter.SOURCE_ESC.equals(d.getSource())
+                    && target.contains(d.getRange().getStart().getLine()));
+        } else {
+            // Whole-file: replace all Verified markers.
+            existing.removeIf(d -> DiagnosticSeverity.Hint.equals(d.getSeverity())
+                    && DiagnosticConverter.SOURCE_ESC.equals(d.getSource()));
+        }
         existing.addAll(verified);
         escDiags.put(uri, existing);
     }

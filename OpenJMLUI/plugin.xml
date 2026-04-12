@@ -514,6 +514,8 @@
                        label="Split by File"/>
               <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
                        label="Split by Method"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                       label="For Method Under Cursor"/>
            </menu>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"/>
@@ -559,6 +561,8 @@
                        label="Split by File"/>
               <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
                        label="Split by Method"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                       label="For Method Under Cursor"/>
            </menu>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"
@@ -644,8 +648,59 @@
                     label="Remove OpenJML Nature"/>
         </menu>
      </menuContribution>
+
+     <!-- Explicit contribution for the JDT Java editor context menu.
+          popup:#TextEditorContext does not reliably appear in CompilationUnitEditor;
+          this ensures the OpenJML menu shows when right-clicking in a .java editor. -->
+     <menuContribution locationURI="popup:org.eclipse.jdt.ui.CompilationUnitEditor.EditorContext?after=additions">
+        <menu id="org.jmlspecs.openjml.javaEditorPopupMenu" label="OpenJML"
+              icon="icons/jml-logo-16x16.png">
+           <command commandId="org.jmlspecs.openjml.commands.checkJML"
+                    label="Check JML in File" />
+           <menu id="org.jmlspecs.openjml.javaEditorPopupMenu.runEsc"
+                 label="Static check (ESC)" icon="icons/jml-logo-16x16.png">
+              <command commandId="org.jmlspecs.openjml.commands.runESC"
+                       label="As Single Task"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+                       label="Split by File"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+                       label="Split by Method"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                       label="For Method Under Cursor"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.RAC"
+                    label="Compile RAC"/>
+           <separator name="sep1"/>
+           <command commandId="org.openjml.eclipse.commands.findDeclaration"
+                    label="Find Declaration"/>
+           <command commandId="org.openjml.eclipse.commands.findReferences"
+                    label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.findAllDeclarations"
+                    label="Find All Declarations"/>
+           <command commandId="org.openjml.eclipse.commands.rename"
+                    label="Rename (JML-aware)"/>
+           <separator name="sep2"/>
+           <menu id="org.jmlspecs.openjml.javaEditorPopupMenu.clearMarkers" label="Clear Markers">
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                       label="All"/>
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+                       label="Selected Files"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.indexProject"
+                    label="Index Project"/>
+           <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
+                    label="Clear and Reindex"/>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
+           <separator name="sep3"/>
+           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
+                    label="Add OpenJML Nature"/>
+           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
+                    label="Remove OpenJML Nature"/>
+        </menu>
+     </menuContribution>
   </extension>
-  
+
   <!-- The genericeditor.source.menu contribution is kept as a secondary path
        for the Generic Editor's Source submenu (.jml files).  The primary
        editor popup is now via popup:#TextEditorContext above. -->
