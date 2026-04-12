@@ -21,6 +21,14 @@ import java.util.stream.Collectors;
  */
 public class OpenJMLSettings {
 
+    /**
+     * The project ID used for the synthesized single-project entry created for
+     * generic LSP clients (e.g. VS Code) that do not send an explicit
+     * {@code projects} array.  The same constant is used by
+     * {@code didChangeWorkspaceFolders} to identify and update this entry.
+     */
+    public static final String WORKSPACE_PROJECT_ID = "__workspace__";
+
     // -----------------------------------------------------------------------
     // Per-project configuration
     // -----------------------------------------------------------------------

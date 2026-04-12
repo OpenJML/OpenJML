@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  * Tests for the {@code workspace/didChangeWatchedFiles} infrastructure:
  * <ul>
  *   <li>{@link OpenJMLSettings#effectiveRoots()} — uses the {@code projects}
- *       list ({@code "__workspace__"} synthesized project), falls back gracefully
+ *       list ({@code OpenJMLSettings.WORKSPACE_PROJECT_ID} synthesized project), falls back gracefully
  *       when absent.</li>
  *   <li>{@link OpenJMLWorkspaceService#didChangeConfiguration} — a {@code projects}
  *       update triggers the watcher-reregistrar; an unrelated setting does not.</li>
@@ -61,10 +61,10 @@ public class WatchedFilesTest {
         svc.didChangeWatchedFiles(params);
     }
 
-    /** Create a synthesized {@code "__workspace__"} project with the given root paths. */
+    /** Create a synthesized default project with the given root paths. */
     private static OpenJMLSettings.ProjectConfig workspaceProject(String... paths) {
         OpenJMLSettings.ProjectConfig cfg = new OpenJMLSettings.ProjectConfig();
-        cfg.id = "__workspace__";
+        cfg.id = OpenJMLSettings.WORKSPACE_PROJECT_ID;
         cfg.rootPaths = new ArrayList<>(List.of(paths));
         return cfg;
     }
@@ -100,7 +100,7 @@ public class WatchedFilesTest {
     public void effectiveRootsSkipsBlankPaths() {
         OpenJMLSettings s = new OpenJMLSettings();
         OpenJMLSettings.ProjectConfig cfg = new OpenJMLSettings.ProjectConfig();
-        cfg.id = "__workspace__";
+        cfg.id = OpenJMLSettings.WORKSPACE_PROJECT_ID;
         cfg.rootPaths = List.of("/a", "   ", "/b");
         s.projects = List.of(cfg);
         List<String> roots = s.effectiveRoots();
@@ -144,7 +144,7 @@ public class WatchedFilesTest {
                 1, ts.reregistrations.get());
         assertNotNull(ts.settings.projects);
         assertEquals(1, ts.settings.projects.size());
-        assertEquals("__workspace__", ts.settings.projects.get(0).id);
+        assertEquals(OpenJMLSettings.WORKSPACE_PROJECT_ID, ts.settings.projects.get(0).id);
     }
 
     @Test

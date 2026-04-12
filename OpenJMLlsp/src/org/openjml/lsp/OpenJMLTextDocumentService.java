@@ -147,7 +147,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
     }
 
-    private final OpenJMLSettings settings;
+    private final OpenJMLSettings globalSettings;
     private final String codeLensCommand;
     private LanguageClient client;
 
@@ -277,11 +277,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private volatile boolean navCacheDirty = true;
 
     /**
-     * @param settings        shared settings object
+     * @param globalSettings  shared settings object
      * @param codeLensCommand the command name to embed in code-lens actions (e.g. run ESC for method)
      */
-    public OpenJMLTextDocumentService(OpenJMLSettings settings, String codeLensCommand) {
-        this.settings       = settings;
+    public OpenJMLTextDocumentService(OpenJMLSettings globalSettings, String codeLensCommand) {
+        this.globalSettings = globalSettings;
         this.codeLensCommand = codeLensCommand;
     }
 
@@ -336,7 +336,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (params.getContentChanges().isEmpty()) return;
         String uri     = params.getTextDocument().getUri();
         System.err.println("[didChange] uri=" + uri);
-        String content = settings.incrementalSync
+        String content = globalSettings.incrementalSync
                 ? IncrementalSyncApplier.apply(lastContent.get(uri),
                                                params.getContentChanges())
                 : params.getContentChanges().get(0).getText();
@@ -351,7 +351,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         lastCheckedContent.keySet().removeIf(k -> !k.equals(uri));
 
         // --check: debounced if in edit mode
-        if (settings.isCheckOnEdit()) {
+        if (globalSettings.isCheckOnEdit()) {
             if (uri.endsWith(".jml")) {
                 // .jml files are spec files; redirect check to companion .java.
                 // The dirty .jml content is already in lastContent so checkWithContext
@@ -372,7 +372,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
 
         // --esc: debounced if in edit mode
-        if (settings.isEscOnEdit()) {
+        if (globalSettings.isEscOnEdit()) {
             debounce(pendingEsc, uri,
                     () -> startEscContent(uri, content),
                     ESC_DEBOUNCE_MS);
@@ -462,7 +462,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private List<Either<SymbolInformation, DocumentSymbol>> buildSymbolResult(
             String uri, ASTCache.Entry entry, String content) {
-        boolean jmlOnly = !Boolean.TRUE.equals(settings.useIntegratedOutline);
+        boolean jmlOnly = !Boolean.TRUE.equals(globalSettings.useIntegratedOutline);
         List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content, jmlOnly);
         List<Either<SymbolInformation, DocumentSymbol>> result = new ArrayList<>(symbols.size());
         for (DocumentSymbol ds : symbols) result.add(Either.forRight(ds));
@@ -572,7 +572,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (content == null) return CompletableFuture.completedFuture(List.of());
         return CompletableFuture.completedFuture(
                 InlayHintProvider.compute(params, content, CheckRunner.getASTCache(),
-                        settings.isJmlOnly()));
+                        globalSettings.isJmlOnly()));
     }
 
     // --- go to definition ---
@@ -854,6 +854,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             try {
                 System.err.println("[rename] lastContent URIs (" + lastContent.size() + "):");
                 lastContent.keySet().forEach(k -> System.err.println("[rename]   " + k));
+                OpenJMLSettings renameS = settingsForUri(uri);
+                if (renameS == null) return null;
                 WorkspaceEdit edit = Renamer.rename(
                         uri,
                         params.getPosition().getLine(),
@@ -861,7 +863,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         params.getNewName(),
                         lastContent,
                         CheckRunner.getASTCache(),
-                        settingsForUri(uri));
+                        renameS);
                 // Proactively update lastContent for open files modified by the rename.
                 // Eclipse (and some other clients) do not send textDocument/didChange
                 // after applying a server-initiated WorkspaceEdit, so the server must
@@ -1275,7 +1277,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // "ast" strategy (default): prefer AST-based when an attributed AST is
         // available (no false positives), fall back to regex before first --check.
         // .jml files never have a standalone AST — always use regex for them.
-        if (!settings.isRegexColoring() && !uri.endsWith(".jml")) {
+        if (!globalSettings.isRegexColoring() && !uri.endsWith(".jml")) {
             ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
             if (entry != null) {
                 try {
@@ -1425,8 +1427,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // -----------------------------------------------------------------------
 
     /**
-     * Returns a per-invocation copy of {@link #settings} with path/settings fields
-     * overridden by any non-empty arguments, or {@code settings} itself when all
+     * Returns a per-invocation copy of {@link #globalSettings} with path/settings fields
+     * overridden by any non-empty arguments, or {@code globalSettings} itself when all
      * arguments are null/empty.  The {@link OpenJMLSettings#escPool} is always shared.
      *
      * @param sourcePath      override for {@code -sourcepath} (null/empty = keep)
@@ -1443,8 +1445,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         boolean hasSp  = specsPath      != null && !specsPath.isEmpty();
         boolean hasPf  = propertiesFile != null && !propertiesFile.isEmpty();
         boolean hasOd  = outputDir      != null && !outputDir.isEmpty();
-        if (!hasSrc && !hasCp && !hasSp && !hasPf && !hasOd) return settings;
-        OpenJMLSettings s = new OpenJMLSettings(settings);
+        if (!hasSrc && !hasCp && !hasSp && !hasPf && !hasOd) return globalSettings;
+        OpenJMLSettings s = new OpenJMLSettings(globalSettings);
         if (hasSrc) s.sourcePath              = sourcePath;
         if (hasCp)  s.classPath               = classPath;
         if (hasSp)  s.specsPath               = specsPath;
@@ -1457,32 +1459,39 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // Per-project settings registry
     // -----------------------------------------------------------------------
 
-    /** Project ID → per-project settings.  Empty when client is single-project (VS Code). */
+    /**
+     * Project ID → per-project settings.  Always populated after {@code initialize}
+     * completes: VS Code / bare-LSP clients get a single {@code "__workspace__"} entry
+     * (which acts as a wildcard when it has no root paths); Eclipse multi-project clients
+     * get one entry per JML-natured project.  Never empty once the server is initialized.
+     */
     private final java.util.concurrent.ConcurrentHashMap<String, OpenJMLSettings>
             projectSettings = new java.util.concurrent.ConcurrentHashMap<>();
 
     /**
-     * Rebuild the per-project settings registry from a {@code projects} list received
-     * in {@code workspace/didChangeConfiguration}.  Each entry's per-project fields
-     * (sourcePath, classPath, specsPath, propertiesFile, generatedPropertiesFile, outputDir)
-     * override the global settings; all other global fields (escEngine, solversPath, etc.)
-     * are inherited.
+     * Rebuild the per-project settings registry from a {@code projects} list.
+     *
+     * <p>Called both from {@code workspace/didChangeConfiguration} (Eclipse client sends
+     * explicit project configs) and from {@link OpenJMLLanguageServer#initialize} after
+     * synthesizing the {@code "__workspace__"} project for single-project clients.
+     *
+     * <p>For each project, per-project fields (sourcePath, classPath, specsPath,
+     * propertiesFile, generatedPropertiesFile, outputDir) override the global settings
+     * when non-null; all other fields are inherited.  The {@code "__workspace__"} project
+     * has no overrides and therefore inherits everything from global settings.
      */
     void updateProjectSettings(List<OpenJMLSettings.ProjectConfig> configs) {
         projectSettings.clear();
         if (configs == null) return;
         for (OpenJMLSettings.ProjectConfig cfg : configs) {
             if (cfg.id == null || cfg.id.isBlank()) continue;
-            // The synthesized __workspace__ project is not an Eclipse-style project;
-            // it must not appear in the per-project settings registry.
-            if ("__workspace__".equals(cfg.id)) continue;
-            OpenJMLSettings s = new OpenJMLSettings(settings);
-            s.sourcePath              = cfg.sourcePath              != null ? cfg.sourcePath             : "";
-            s.classPath               = cfg.classPath               != null ? cfg.classPath              : "";
-            s.specsPath               = cfg.specsPath               != null ? cfg.specsPath              : settings.specsPath;
-            s.propertiesFile          = cfg.propertiesFile          != null ? cfg.propertiesFile         : settings.propertiesFile;
-            s.generatedPropertiesFile = cfg.generatedPropertiesFile != null ? cfg.generatedPropertiesFile : settings.generatedPropertiesFile;
-            s.racOutputDir            = cfg.outputDir               != null ? cfg.outputDir              : settings.racOutputDir;
+            OpenJMLSettings s = new OpenJMLSettings(globalSettings);
+            s.sourcePath              = cfg.sourcePath              != null ? cfg.sourcePath              : "";
+            s.classPath               = cfg.classPath               != null ? cfg.classPath               : "";
+            s.specsPath               = cfg.specsPath               != null ? cfg.specsPath               : globalSettings.specsPath;
+            s.propertiesFile          = cfg.propertiesFile          != null ? cfg.propertiesFile          : globalSettings.propertiesFile;
+            s.generatedPropertiesFile = cfg.generatedPropertiesFile != null ? cfg.generatedPropertiesFile : globalSettings.generatedPropertiesFile;
+            s.racOutputDir            = cfg.outputDir               != null ? cfg.outputDir               : globalSettings.racOutputDir;
             // Store rootPaths so settingsForUri can match file URIs to this project.
             if (cfg.rootPaths != null && !cfg.rootPaths.isEmpty())
                 s.rootPaths = String.join(java.io.File.pathSeparator, cfg.rootPaths);
@@ -1497,35 +1506,57 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Returns the settings for the given project ID, or global settings if unknown.
-     * A {@code null} or blank projectId always returns global settings.
+     * Returns the settings for the given project ID, or global settings if the ID is
+     * null/blank.  Logs an error if the ID is non-blank but not found in the registry
+     * (indicates the client submitted an unrecognized project name).
      */
     OpenJMLSettings settingsForProject(String projectId) {
-        if (projectId == null || projectId.isBlank() || projectSettings.isEmpty())
-            return settings;
-        return projectSettings.getOrDefault(projectId, settings);
+        if (projectId == null || projectId.isBlank()) return globalSettings;
+        OpenJMLSettings s = projectSettings.get(projectId);
+        if (s == null) {
+            clientError("OpenJML: unknown project ID '" + projectId
+                    + "' — not in the registered project list " + projectSettings.keySet()
+                    + ". Using global settings as fallback.");
+            return globalSettings;
+        }
+        return s;
     }
 
     /**
      * Returns the settings for the project that owns {@code uri}, matched by
-     * {@link OpenJMLSettings#rootPaths}.  Falls back to global settings when no
-     * project registry is populated or no project matches.
+     * {@link OpenJMLSettings#rootPaths}.
+     *
+     * <p>Projects are checked in two passes:
+     * <ol>
+     *   <li>Projects with non-empty {@code rootPaths}: the URI's file path must start
+     *       with one of the roots (specific match).</li>
+     *   <li>Projects with null or empty {@code rootPaths}: treated as a wildcard
+     *       catch-all.  The synthesized {@code "__workspace__"} project falls into this
+     *       category when the client provided no workspace folders.</li>
+     * </ol>
+     *
+     * <p>Returns {@code null} if no project — specific or wildcard — matches the URI.
+     * This indicates the file is outside all configured projects (e.g. a file in a
+     * non-JML-natured Eclipse project); callers should skip processing.
      */
     OpenJMLSettings settingsForUri(String uri) {
-        if (projectSettings.isEmpty()) return settings;
         String filePath;
         try { filePath = java.net.URI.create(uri).getPath(); }
-        catch (Exception e) { return settings; }
+        catch (Exception e) { return null; }
         String sep = java.io.File.separator;
+        OpenJMLSettings wildcard = null;
         for (OpenJMLSettings s : projectSettings.values()) {
-            if (s.rootPaths == null) continue;
+            if (s.rootPaths == null || s.rootPaths.isBlank()) {
+                wildcard = s;   // catch-all: matches anything not claimed by a specific project
+                continue;
+            }
             for (String root : s.rootPaths.split(java.io.File.pathSeparator)) {
                 if (root.isBlank()) continue;
                 String r = root.endsWith(sep) ? root : root + sep;
                 if (filePath.startsWith(r)) return s;
             }
         }
-        return settings;
+        return wildcard;   // null if no wildcard project is registered
     }
 
     // -----------------------------------------------------------------------
@@ -1552,7 +1583,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * unsaved edits are included.  No-op if the file is not currently open.
      */
     void recheckUri(String uri) {
-        if (!projectSettings.isEmpty() && settingsForUri(uri) == settings) return;
+        if (settingsForUri(uri) == null) return;
         String content = lastContent.get(uri);
         if (content == null) return;
         // Skip if nothing has changed since the last completed check.
@@ -1585,7 +1616,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * diagnostics.
      */
     private void submitEscApiWorkList(String uri) {
-        submitEscApiWorkList(uri, settings);
+        submitEscApiWorkList(uri, globalSettings);
     }
 
     private void submitEscApiWorkList(String uri, OpenJMLSettings s) {
@@ -1636,7 +1667,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * {@link #submitEscApiWorkList}.
      */
     private void submitFreshParallelWorkList(String uri) {
-        submitFreshParallelWorkList(uri, settings);
+        submitFreshParallelWorkList(uri, globalSettings);
     }
 
     private void submitFreshParallelWorkList(String uri, OpenJMLSettings s) {
@@ -2062,10 +2093,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                          + cls + ".java";
 
         // Search workspace roots
-        List<String> roots = new ArrayList<>(settings.effectiveRoots());
-        if (settings.sourcePath != null && !settings.sourcePath.isEmpty())
+        List<String> roots = new ArrayList<>(globalSettings.effectiveRoots());
+        if (globalSettings.sourcePath != null && !globalSettings.sourcePath.isEmpty())
             java.util.Collections.addAll(roots,
-                    settings.sourcePath.split(java.io.File.pathSeparator));
+                    globalSettings.sourcePath.split(java.io.File.pathSeparator));
         for (String root : roots) {
             java.nio.file.Path candidate = java.nio.file.Path.of(root).resolve(relPath);
             if (java.nio.file.Files.isRegularFile(candidate))
@@ -2075,9 +2106,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void scheduleCheckNow(String uri, String content) {
-        // If Eclipse has registered per-project configs but this file's URI does not
-        // match any project's rootPaths, it belongs to a non-JML-nature project — skip.
-        if (!projectSettings.isEmpty() && settingsForUri(uri) == settings) return;
+        // Skip files that don't belong to any configured project (e.g. non-JML-natured
+        // Eclipse projects, or files outside all workspace roots).
+        OpenJMLSettings s = settingsForUri(uri);
+        if (s == null) return;
         // .jml files are spec files; redirect check to companion .java
         if (uri.endsWith(".jml")) {
             String javaUri = resolveCompanionJavaUri(uri, content);
@@ -2085,11 +2117,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             String javaContent = lastContent.get(javaUri);
             final String fJmlUri  = uri;
             final String fJavaUri = javaUri;
+            final OpenJMLSettings fS = s;
             CompletableFuture<Void> cf = new CompletableFuture<>();
             lastCheckFuture.put(javaUri, cf);
             executor.submit(() -> {
                 try {
-                    runCheckContent(fJavaUri, javaContent);  // javaContent may be null → reads from disk
+                    runCheckContent(fJavaUri, javaContent, fS);  // javaContent may be null → reads from disk
                     verifyJmlCompanion(fJmlUri, fJavaUri);
                 } finally {
                     cf.complete(null);
@@ -2097,9 +2130,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             });
             return;
         }
+        final OpenJMLSettings fS = s;
         CompletableFuture<Void> cf = new CompletableFuture<>();
         lastCheckFuture.put(uri, cf);
-        executor.submit(() -> { try { runCheckContent(uri, content); } finally { cf.complete(null); } });
+        executor.submit(() -> { try { runCheckContent(uri, content, fS); } finally { cf.complete(null); } });
     }
 
     /**
@@ -2170,7 +2204,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private void startEscContent(String uri, String content) {
         Map<String, String> snapshot = dirtySnapshot();
-        OpenJMLSettings s = settingsForUri(uri);
+        final OpenJMLSettings s = settingsForUri(uri);
+        if (s == null) return;
         submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, s, hook));
     }
 
@@ -2201,7 +2236,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         long myGen = escGen.computeIfAbsent(uri, k -> new AtomicLong()).incrementAndGet();
         markEscChecking(uri);
 
-        Future<?> f = settings.escPool.submit(() -> {
+        Future<?> f = globalSettings.escPool.submit(() -> {
             try {
                 // Hook fires inside CheckRunner once the fresh IAPI is created and
                 // the ProofResultCollector is installed — before execute() is called.
@@ -2280,11 +2315,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private boolean runProjectCheck() {
-        return runProjectCheck(settings.effectiveRoots(), settings);
+        return runProjectCheck(globalSettings.effectiveRoots(), globalSettings);
     }
 
     private boolean runProjectCheck(List<String> roots) {
-        return runProjectCheck(roots, settings);
+        return runProjectCheck(roots, globalSettings);
     }
 
     private boolean runProjectCheck(List<String> roots, OpenJMLSettings s) {
@@ -2374,6 +2409,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (navCacheDirty) {
             checkFuture = CompletableFuture.runAsync(() -> {
                 OpenJMLSettings s = settingsForUri(primaryUri);
+                if (s == null) { System.err.println("[ensureFreshAndConfirm] no project for " + primaryUri); return; }
                 List<String> roots = rootsForUri(primaryUri, s.effectiveRoots());
                 System.err.println("[ensureFreshAndConfirm] op=" + operationName
                         + " uri=" + primaryUri + " roots=" + roots);
@@ -2408,7 +2444,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void runCheckContent(String uri, String content) {
-        runCheckContent(uri, content, settingsForUri(uri));
+        OpenJMLSettings s = settingsForUri(uri);
+        if (s == null) return;
+        runCheckContent(uri, content, s);
     }
 
     private void runCheckContent(String uri, String content, OpenJMLSettings s) {
@@ -2856,10 +2894,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *       The {@code didChange} must carry the complete current buffer text, not
      *       an incremental delta.</li>
      * </ol>
-     * In both cases the client should also send
-     * {@code workspace/didChangeConfiguration} with the current project
-     * configuration before (or alongside) the {@code clearAndReindex} command so
-     * that the workspace index uses up-to-date project settings.
+     * In both cases the client may optionally send
+     * {@code workspace/didChangeConfiguration} with updated project configuration
+     * alongside the {@code clearAndReindex} command; the server rebuilds its
+     * project registry from the current {@code globalSettings.projects} immediately
+     * during the reset so that the disk scan always uses valid settings.
      *
      * <p>Intended as a recovery command when the user suspects the server state
      * has become stale or is consuming too much memory.  When the server process
@@ -2894,10 +2933,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // didSave and didClose use remove(), which is a no-op on a missing key,
         // so they are unaffected.  The client repopulates via fresh didOpen/didChange.
         lastContent.clear();
-        // Clear the per-project settings registry.  It will be repopulated when
-        // the client sends workspace/didChangeConfiguration (which clients must do
-        // before or alongside clearAndReindex per the documented protocol).
-        projectSettings.clear();
+        // Clear and immediately repopulate the per-project settings registry from
+        // the current globalSettings.projects.  This ensures settingsForUri() continues
+        // to work during the subsequent disk scan and after any client-sent
+        // didChange notifications.  The client may send a fresh
+        // workspace/didChangeConfiguration to override these settings.
+        updateProjectSettings(globalSettings.projects);
 
         // Clear the AST cache (both tiers and declaration indexes).
         CheckRunner.getASTCache().clear();
@@ -2932,8 +2973,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * the same indexing logic.
      */
     void scheduleWorkspaceReindex() {
-        if (settings.projects != null && !settings.projects.isEmpty()) {
-            for (OpenJMLSettings.ProjectConfig cfg : settings.projects) {
+        if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
+            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
                 indexProject(cfg.id);
             }
         } else {
@@ -2951,8 +2992,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void indexProject(String projectId) {
         List<String> sourceDirs = new ArrayList<>();
 
-        if (settings.projects != null && !settings.projects.isEmpty()) {
-            for (OpenJMLSettings.ProjectConfig cfg : settings.projects) {
+        if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
+            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
                 if (projectId == null || projectId.isEmpty() || projectId.equals(cfg.id)) {
                     if (cfg.rootPaths != null) sourceDirs.addAll(cfg.rootPaths);
                 }

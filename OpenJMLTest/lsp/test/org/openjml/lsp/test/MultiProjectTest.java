@@ -253,13 +253,90 @@ public class MultiProjectTest {
     }
 
     // -----------------------------------------------------------------------
+    // Tests: commands with an unrecognized project ID
+    // -----------------------------------------------------------------------
+
+    /**
+     * Sends {@code openjml.checkJML} with an args[0] that looks syntactically like
+     * a project ID (no path characters) but is not in the project registry.
+     *
+     * <p>{@code isNewFormat()} calls {@code isKnownProject(args[0])}, which returns
+     * {@code false} for an unrecognized ID, so the command degrades to old-format and
+     * {@code cmdProject()} returns {@code null}.  The server must not crash, must return
+     * a response, and must still be responsive to a subsequent request.
+     */
+    @Test
+    public void testCheckJmlWithUnknownProjectIdGracefulDegradation() throws Exception {
+        configureOneProject("projA", absDir("ProjectA"));
+
+        // Send checkJML with an unregistered project ID in args[0].
+        String params = "{\"command\":\"" + OpenJMLCommands.CHECK_JML
+                + "\",\"arguments\":[\"unknownProject\",\""
+                + jsonEscapePath(absPath("ProjectA", "ProjAError.java")) + "\"]}";
+        client.sendRequest("workspace/executeCommand", params);
+        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        assertNotNull("Server must respond to checkJML with unknown project ID", resp);
+
+        // Server must still be responsive.
+        client.sendRequest("workspace/executeCommand",
+                "{\"command\":\"" + OpenJMLCommands.CLEAR_AND_REINDEX + "\",\"arguments\":[]}");
+        assertNotNull("Server must respond to subsequent command after unknown-project checkJML",
+                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
+    }
+
+    /**
+     * Sends {@code openjml.indexProject} with an unrecognized project ID.
+     *
+     * <p>Same degradation as {@link #testCheckJmlWithUnknownProjectIdGracefulDegradation}:
+     * {@code isNewFormat()} returns {@code false}, so {@code cmdProject()} returns
+     * {@code null} and {@code indexProject(null)} indexes all configured projects.
+     * The server must respond without error and remain responsive.
+     */
+    @Test
+    public void testIndexProjectWithUnknownProjectIdGracefulDegradation() throws Exception {
+        configureOneProject("projA", absDir("ProjectA"));
+
+        String params = "{\"command\":\"" + OpenJMLCommands.INDEX_PROJECT
+                + "\",\"arguments\":[\"noSuchProject\"]}";
+        client.sendRequest("workspace/executeCommand", params);
+        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        assertNotNull("Server must respond to indexProject with unknown project ID", resp);
+
+        client.sendRequest("workspace/executeCommand",
+                "{\"command\":\"" + OpenJMLCommands.CLEAR_AND_REINDEX + "\",\"arguments\":[]}");
+        assertNotNull("Server must remain responsive after unknown-project indexProject",
+                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
+    }
+
+    /**
+     * Sends {@code openjml.runEsc} with an unrecognized project ID.  Verifies the
+     * server responds and remains responsive (does not crash or block).
+     */
+    @Test
+    public void testRunEscWithUnknownProjectIdGracefulDegradation() throws Exception {
+        configureOneProject("projA", absDir("ProjectA"));
+
+        String params = "{\"command\":\"" + OpenJMLCommands.RUN_ESC
+                + "\",\"arguments\":[\"ghostProject\",\""
+                + jsonEscapePath(absPath("ProjectA", "ProjAError.java")) + "\"]}";
+        client.sendRequest("workspace/executeCommand", params);
+        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        assertNotNull("Server must respond to runEsc with unknown project ID", resp);
+
+        client.sendRequest("workspace/executeCommand",
+                "{\"command\":\"" + OpenJMLCommands.CLEAR_AND_REINDEX + "\",\"arguments\":[]}");
+        assertNotNull("Server must remain responsive after unknown-project runEsc",
+                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
+    }
+
+    // -----------------------------------------------------------------------
     // Test 3: focusFile no-op for URI outside all project roots
     // -----------------------------------------------------------------------
 
     /**
      * When projects are configured, both {@code scheduleCheckNow} and
      * {@code recheckUri} skip files whose URI does not match any project's
-     * {@code rootPaths} (the guard {@code settingsForUri(uri) == settings} fires).
+     * {@code rootPaths} (the guard {@code settingsForUri(uri) == null} fires).
      *
      * <p>Sequence:
      * <ol>
@@ -291,7 +368,7 @@ public class MultiProjectTest {
         Thread.sleep(700);
 
         // Send focusFile.  recheckUri checks lastContent (has the file) and then the
-        // project guard (settingsForUri == settings for an untracked URI) — returns early.
+        // project guard (settingsForUri == null for a URI outside all roots) — returns early.
         String focusParams = "{\"command\":\"" + OpenJMLCommands.FOCUS_FILE
                 + "\",\"arguments\":[\"" + uri + "\"]}";
         client.sendRequest("workspace/executeCommand", focusParams);

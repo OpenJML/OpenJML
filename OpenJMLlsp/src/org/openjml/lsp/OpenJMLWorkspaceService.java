@@ -33,7 +33,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     private static final Gson GSON = new Gson();
 
-    private final OpenJMLSettings settings;
+    private final OpenJMLSettings globalSettings;
     private final CommandRegistry commands;
     private final Function<String, List<SymbolInformation>> symbolsRequester;
     private final BiConsumer<String, FileChangeType> jmlFileChangeHandler;
@@ -42,7 +42,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final Consumer<List<OpenJMLSettings.ProjectConfig>> projectConfigUpdater;
 
     /**
-     * @param settings              shared settings object (mutated by didChangeConfiguration)
+     * @param globalSettings        shared settings object (mutated by didChangeConfiguration)
      * @param commands              registry of command-name → handler mappings
      * @param symbolsRequester      called with a query string for {@code workspace/symbol} requests;
      *                              returns matching {@link SymbolInformation} list
@@ -53,14 +53,14 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
      * @param projectConfigUpdater  called with the parsed project list whenever
      *                              {@code didChangeConfiguration} carries a {@code projects} entry
      */
-    public OpenJMLWorkspaceService(OpenJMLSettings settings,
+    public OpenJMLWorkspaceService(OpenJMLSettings globalSettings,
                                    CommandRegistry commands,
                                    Function<String, List<SymbolInformation>> symbolsRequester,
                                    BiConsumer<String, FileChangeType> jmlFileChangeHandler,
                                    BiConsumer<String, FileChangeType> javaFileChangeHandler,
                                    Runnable watcherReregistrar,
                                    Consumer<List<OpenJMLSettings.ProjectConfig>> projectConfigUpdater) {
-        this.settings               = settings;
+        this.globalSettings         = globalSettings;
         this.commands               = commands;
         this.symbolsRequester       = symbolsRequester;
         this.jmlFileChangeHandler   = jmlFileChangeHandler;
@@ -115,28 +115,28 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     }
 
     private void applyUpdate(OpenJMLSettings src) {
-        if (src.propertiesFile  != null) settings.propertiesFile  = src.propertiesFile;
-        if (src.specsPath       != null) settings.specsPath       = src.specsPath;
-        if (src.solversPath     != null) settings.solversPath     = src.solversPath;
-        if (src.sourcePath      != null) settings.sourcePath      = src.sourcePath;
-        if (src.classPath       != null) settings.classPath       = src.classPath;
-        if (src.checkTriggerOn         != null) settings.checkTriggerOn         = src.checkTriggerOn;
-        if (src.escTriggerOn           != null) settings.escTriggerOn           = src.escTriggerOn;
-        if (src.syntaxColoringStrategy != null) settings.syntaxColoringStrategy = src.syntaxColoringStrategy;
-        if (src.escEngine              != null) settings.escEngine              = src.escEngine;
-        if (src.racOutputDir         != null) settings.racOutputDir         = src.racOutputDir;
-        if (src.useIntegratedOutline != null) settings.useIntegratedOutline = src.useIntegratedOutline;
-        if (src.javaMode != null) settings.javaMode = src.javaMode;
-        if (src.client  != null) settings.client   = src.client;
-        if (src.escThreads > 0 && src.escThreads != settings.escThreads) {
-            settings.escThreads = src.escThreads;
-            var old = settings.escPool;
-            settings.escPool = java.util.concurrent.Executors.newFixedThreadPool(src.escThreads);
+        if (src.propertiesFile  != null) globalSettings.propertiesFile  = src.propertiesFile;
+        if (src.specsPath       != null) globalSettings.specsPath       = src.specsPath;
+        if (src.solversPath     != null) globalSettings.solversPath     = src.solversPath;
+        if (src.sourcePath      != null) globalSettings.sourcePath      = src.sourcePath;
+        if (src.classPath       != null) globalSettings.classPath       = src.classPath;
+        if (src.checkTriggerOn         != null) globalSettings.checkTriggerOn         = src.checkTriggerOn;
+        if (src.escTriggerOn           != null) globalSettings.escTriggerOn           = src.escTriggerOn;
+        if (src.syntaxColoringStrategy != null) globalSettings.syntaxColoringStrategy = src.syntaxColoringStrategy;
+        if (src.escEngine              != null) globalSettings.escEngine              = src.escEngine;
+        if (src.racOutputDir         != null) globalSettings.racOutputDir         = src.racOutputDir;
+        if (src.useIntegratedOutline != null) globalSettings.useIntegratedOutline = src.useIntegratedOutline;
+        if (src.javaMode != null) globalSettings.javaMode = src.javaMode;
+        if (src.client  != null) globalSettings.client   = src.client;
+        if (src.escThreads > 0 && src.escThreads != globalSettings.escThreads) {
+            globalSettings.escThreads = src.escThreads;
+            var old = globalSettings.escPool;
+            globalSettings.escPool = java.util.concurrent.Executors.newFixedThreadPool(src.escThreads);
             old.shutdown();
         }
         // Per-project configs: update the project registry and re-register file watchers.
         if (src.projects != null) {
-            settings.projects = src.projects;
+            globalSettings.projects = src.projects;
             if (projectConfigUpdater != null) projectConfigUpdater.accept(src.projects);
             if (watcherReregistrar != null) watcherReregistrar.run();
         }
@@ -159,9 +159,9 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
         // Find the synthesized __workspace__ project.
         OpenJMLSettings.ProjectConfig wp = null;
-        if (settings.projects != null) {
-            for (OpenJMLSettings.ProjectConfig p : settings.projects) {
-                if ("__workspace__".equals(p.id)) { wp = p; break; }
+        if (globalSettings.projects != null) {
+            for (OpenJMLSettings.ProjectConfig p : globalSettings.projects) {
+                if (OpenJMLSettings.WORKSPACE_PROJECT_ID.equals(p.id)) { wp = p; break; }
             }
         }
         if (wp == null) return;   // Eclipse client — ignore.
@@ -228,7 +228,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     /** Returns {@code true} if {@code uri} falls under one of the effective workspace roots. */
     private boolean isUnderEffectiveRoot(String uri) {
-        List<String> roots = settings.effectiveRoots();
+        List<String> roots = globalSettings.effectiveRoots();
         if (roots.isEmpty()) return true;   // no filter configured — accept everything
         String path = CheckRunner.uriToPath(uri);
         if (path == null) return false;

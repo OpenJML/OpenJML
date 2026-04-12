@@ -52,7 +52,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     private static final String WATCHER_REGISTRATION_ID = "openjml-file-watchers";
 
-    private final OpenJMLSettings             settings;
+    private final OpenJMLSettings             globalSettings;
     private final OpenJMLTextDocumentService  textDocumentService;
     private final OpenJMLWorkspaceService     workspaceService;
 
@@ -70,8 +70,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
      * VS Code extension and the Eclipse plugin — no caller-supplied names are needed.
      */
     public OpenJMLLanguageServer() {
-        this.settings            = new OpenJMLSettings();
-        this.textDocumentService = new OpenJMLTextDocumentService(settings,
+        this.globalSettings      = new OpenJMLSettings();
+        this.textDocumentService = new OpenJMLTextDocumentService(globalSettings,
                 OpenJMLCommands.RUN_ESC_FOR_METHOD);
 
         CommandRegistry registry = new CommandRegistry();
@@ -156,7 +156,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.on          (OpenJMLCommands.GET_RUNNING_ESC_TASKS,
                               args -> textDocumentService.getRunningEscUris());
 
-        this.workspaceService = new OpenJMLWorkspaceService(settings, registry,
+        this.workspaceService = new OpenJMLWorkspaceService(globalSettings, registry,
                 textDocumentService::symbols,
                 textDocumentService::handleWatchedJmlChange,
                 textDocumentService::handleWatchedJavaChange,
@@ -173,7 +173,9 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // synthesize a "__workspace__" project from the standard LSP workspace folders.
         // This unifies single-project clients (VS Code, bare LSP) into the same
         // projects-based model used by the Eclipse multi-project client.
-        if (settings.projects == null || settings.projects.isEmpty()) {
+        // The "__workspace__" project is always created: if no folder paths are
+        // available its rootPaths is null, making it a wildcard that matches all files.
+        if (globalSettings.projects == null || globalSettings.projects.isEmpty()) {
             List<String> folderPaths = new java.util.ArrayList<>();
             if (params.getWorkspaceFolders() != null) {
                 for (var folder : params.getWorkspaceFolders()) {
@@ -189,30 +191,32 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 try { folderPaths.add(java.nio.file.Path.of(java.net.URI.create(rootUri)).toString()); }
                 catch (Exception ignored) {}
             }
-            if (!folderPaths.isEmpty()) {
-                OpenJMLSettings.ProjectConfig wp = new OpenJMLSettings.ProjectConfig();
-                wp.id        = "__workspace__";
-                wp.rootPaths = folderPaths;
-                settings.projects = new java.util.ArrayList<>(List.of(wp));
-            }
+            OpenJMLSettings.ProjectConfig wp = new OpenJMLSettings.ProjectConfig();
+            wp.id        = OpenJMLSettings.WORKSPACE_PROJECT_ID;
+            wp.rootPaths = folderPaths.isEmpty() ? null : folderPaths;
+            globalSettings.projects = new java.util.ArrayList<>(List.of(wp));
         }
+        // Populate the per-project settings registry so settingsForUri() works
+        // uniformly for all clients.  Always called: after this point projectSettings
+        // is never empty (at minimum it contains the "__workspace__" entry).
+        textDocumentService.updateProjectSettings(globalSettings.projects);
 
         // Auto-discover openjml.properties at the workspace root unless the
         // client already supplied an explicit propertiesFile setting.
-        if ((settings.propertiesFile == null || settings.propertiesFile.isEmpty())
+        if ((globalSettings.propertiesFile == null || globalSettings.propertiesFile.isEmpty())
                 && rootUri != null) {
             try {
                 java.nio.file.Path candidate = java.nio.file.Path.of(
                         java.net.URI.create(rootUri)).resolve("openjml.properties");
                 if (java.nio.file.Files.isRegularFile(candidate)) {
-                    settings.propertiesFile = candidate.toString();
+                    globalSettings.propertiesFile = candidate.toString();
                     System.err.println("[OpenJML] Auto-discovered properties file: " + candidate);
                 }
             } catch (Exception ignored) {}
         }
 
         var caps = new ServerCapabilities();
-        caps.setTextDocumentSync(settings.incrementalSync
+        caps.setTextDocumentSync(globalSettings.incrementalSync
                 ? TextDocumentSyncKind.Incremental
                 : TextDocumentSyncKind.Full);
         caps.setCodeLensProvider(new CodeLensOptions(false));
@@ -258,7 +262,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // minimal test setups.  Uses the same scheduleWorkspaceReindex() path as
         // resetAndReindex() so both startup and clear-and-reindex go through
         // identical indexing logic.
-        if (!settings.effectiveRoots().isEmpty()) {
+        if (!globalSettings.effectiveRoots().isEmpty()) {
             textDocumentService.scheduleWorkspaceReindex();
         }
         // Register file watchers so the server is notified when .jml/.java files
