@@ -767,12 +767,15 @@ public class LspProtocolTest {
 
     /**
      * After openDocument (which triggers a check and produces diagnostics),
-     * {@code openjml.clearAndReindex} must clear all server caches, publish an
-     * empty diagnostics list for the open file, and then re-check it — producing
-     * the original diagnostics again.
+     * {@code openjml.clearAndReindex} must clear all server caches and publish
+     * empty diagnostics for the open file. The server does NOT auto-recheck from
+     * cached editor content — the client is responsible for re-sending
+     * {@code textDocument/didChange} for any dirty editors after a clear.
+     * This test verifies: (1) markers cleared after the command, and (2) errors
+     * are restored once the client re-sends the file content via {@code didChange}.
      */
     @Test
-    public void testClearAndReindexRechecksOpenFile() throws Exception {
+    public void testClearAndReindexClearsMarkersAndClientResendRestoresDiags() throws Exception {
         String uri    = "file:///ClearReindex.java";
         String source = "public class ClearReindex {\\n    public int m() { return \\\"not an int\\\"; }\\n}\\n";
 
@@ -787,15 +790,18 @@ public class LspProtocolTest {
         // Issue clearAndReindex.
         executeCommand(OpenJMLCommands.CLEAR_AND_REINDEX);
 
-        // The server should publish empty diagnostics (cache cleared) for the open file.
+        // The server must publish empty diagnostics (markers cleared) for the open file.
         JsonObject cleared = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Expected publishDiagnostics after clearAndReindex (cache clear)", cleared);
         JsonArray clearedDiags = cleared.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertEquals("Expected empty diagnostics immediately after cache clear", 0, clearedDiags.size());
 
-        // The server then re-checks the open file and must produce the original errors again.
+        // The client re-sends the file content (correct protocol after clearAndReindex).
+        changeDocument(uri, source);
+
+        // The server should now re-check and restore the original error diagnostics.
         JsonObject rechecked = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertNotNull("Expected publishDiagnostics after clearAndReindex (re-check)", rechecked);
+        assertNotNull("Expected publishDiagnostics after client re-sent didChange", rechecked);
         JsonArray recheckedDiags = rechecked.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected non-empty diagnostics after re-check", recheckedDiags.isEmpty());
         assertTrue("Expected Error-severity diagnostic after re-check", hasErrorDiagnostic(recheckedDiags));

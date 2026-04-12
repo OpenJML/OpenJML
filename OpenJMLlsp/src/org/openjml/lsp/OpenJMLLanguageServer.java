@@ -255,13 +255,11 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // Kick off a full project check so that workspace/symbol can find symbols
         // in files not yet opened.  Only start the index if at least one source
         // root is known; avoids a spurious "no source directories" log message in
-        // minimal test setups.
+        // minimal test setups.  Uses the same scheduleWorkspaceReindex() path as
+        // resetAndReindex() so both startup and clear-and-reindex go through
+        // identical indexing logic.
         if (!settings.effectiveRoots().isEmpty()) {
-            // Index each configured project separately so that each gets its own
-            // NavSection in ASTCache, enabling per-project workspace/symbol filtering.
-            for (OpenJMLSettings.ProjectConfig cfg : settings.projects) {
-                textDocumentService.indexProject(cfg.id);
-            }
+            textDocumentService.scheduleWorkspaceReindex();
         }
         // Register file watchers so the server is notified when .jml/.java files
         // change on disk outside the editor.

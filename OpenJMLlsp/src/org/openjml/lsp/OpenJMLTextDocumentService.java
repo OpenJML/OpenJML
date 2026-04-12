@@ -2806,15 +2806,39 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Clear all in-memory caches and restart as if the server had just started.
+     * Clear all in-memory caches and restart as if the server had just started,
+     * then re-index the workspace from disk.
      *
      * <p>Cancels any pending check/ESC work, clears the AST cache, diagnostic
-     * maps, and ESC status, publishes empty diagnostics for all open files,
-     * then re-queues a fresh {@code --check} for every open file and a fresh
-     * workspace index pass.
+     * maps, and ESC status, and publishes empty diagnostics for all previously
+     * marked URIs.  Then schedules a fresh workspace index pass from disk via
+     * {@link #scheduleWorkspaceReindex()}.
+     *
+     * <p><b>Open-file content</b>: the server does <em>not</em> re-check files
+     * from its cached {@code lastContent} map.  That content may be stale or
+     * out-of-sync with the editor (which is often the reason the reset was
+     * requested in the first place).  Clients must follow the reset with fresh
+     * content using one of these protocols:
+     * <ol>
+     *   <li><b>Save-then-clear</b>: save all open editors before issuing
+     *       {@code clearAndReindex}; the workspace index picks up the saved
+     *       content from disk.</li>
+     *   <li><b>Clear-then-resend</b>: issue {@code clearAndReindex} then send a
+     *       full-text {@code textDocument/didChange} for every dirty open editor
+     *       in JML-natured projects (both {@code .java} and {@code .jml} files).
+     *       The {@code didChange} must carry the complete current buffer text, not
+     *       an incremental delta.</li>
+     * </ol>
+     * In both cases the client should also send
+     * {@code workspace/didChangeConfiguration} with the current project
+     * configuration before (or alongside) the {@code clearAndReindex} command so
+     * that the workspace index uses up-to-date project settings.
      *
      * <p>Intended as a recovery command when the user suspects the server state
-     * has become stale or is consuming too much memory.
+     * has become stale or is consuming too much memory.  When the server process
+     * itself is restarted (e.g., because the executable path changed), it goes
+     * through the normal {@code initialize}/{@code initialized} flow, which calls
+     * {@link #scheduleWorkspaceReindex()} via the same path.
      */
     void resetAndReindex() {
         // Cancel all pending debounced and running work.
@@ -2833,6 +2857,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         racDiags.clear();
         methodEscStatus.clear();
         lastCheckedContent.clear();
+        // Clear the dirty-file set so that the subsequent workspace index reads
+        // all files from disk rather than serving stale in-memory editor content.
+        // The client is responsible for re-sending didChange for dirty editors
+        // after the reset; that will repopulate dirtyUris with fresh content.
+        dirtyUris.clear();
 
         // Clear the AST cache (both tiers and declaration indexes).
         CheckRunner.getASTCache().clear();
@@ -2845,17 +2874,35 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         for (String uri : toClean) {
             publishDiags(uri, List.of());
         }
-        clientLog("OpenJML: caches cleared — re-checking open files and re-indexing workspace…");
+        clientLog("OpenJML: caches cleared — re-indexing workspace from disk. "
+                + "Send full-text didChange for any dirty open editors to restore their diagnostics.");
 
-        // Re-check every currently open file.
-        for (Map.Entry<String, String> e : lastContent.entrySet()) {
-            scheduleCheckNow(e.getKey(), e.getValue());
-        }
-
-        // Re-run the full project check if roots are configured.
-        indexProject(null);
+        // Re-index all configured projects from disk.
+        // Do NOT re-check from lastContent: that content may be the stale/corrupted
+        // state that prompted this reset.  The client is responsible for re-sending
+        // current editor content via fresh didChange notifications.
+        scheduleWorkspaceReindex();
 
         refreshCodeLenses();
+    }
+
+    /**
+     * Schedule a workspace index pass from disk for all configured projects.
+     *
+     * <p>Each project is indexed separately so that per-project AST cache
+     * sections are populated correctly for {@code workspace/symbol} filtering.
+     * This is the shared entry point used by both {@link #resetAndReindex()} and
+     * the {@code initialized} notification handler, ensuring both paths go through
+     * the same indexing logic.
+     */
+    void scheduleWorkspaceReindex() {
+        if (settings.projects != null && !settings.projects.isEmpty()) {
+            for (OpenJMLSettings.ProjectConfig cfg : settings.projects) {
+                indexProject(cfg.id);
+            }
+        } else {
+            indexProject(null);
+        }
     }
 
     /**

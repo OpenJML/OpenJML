@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
+
 /**
  * Protocol-layer tests for workspace-level operations: project indexing
  * ({@code openjml.indexProject}), focus-file recheck ({@code openjml.focusFile}),
@@ -103,6 +104,10 @@ public class WorkspaceIndexTest {
 
     private static String jsonEscape(String s) {
         return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
+    }
+
+    private static String fileUri(Path path) {
+        return path.toUri().toString();
     }
 
     private JsonObject nextDiagsFor(String fragment, long timeout, TimeUnit unit)
@@ -274,5 +279,124 @@ public class WorkspaceIndexTest {
                 "{\"textDocument\":{\"uri\":\"file:///ClearReindexProbe.java\"}}");
         assertNotNull("Server must respond to codeLens after clearAndReindex",
                 client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 4: clearAndReindex must NOT re-check stale lastContent
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code openjml.clearAndReindex} does <em>not</em> re-check
+     * open files from the server's cached {@code lastContent} map.
+     *
+     * <p>Scenario:
+     * <ol>
+     *   <li>{@code CleanOnDisk.java} is written to disk with no errors.</li>
+     *   <li>The editor opens it (clean) then sends a full-text {@code didChange}
+     *       that introduces a type error — making the editor "dirty".</li>
+     *   <li>{@code AlwaysError.java} is written to disk with a permanent type
+     *       error; it is used as a synchronisation marker to confirm that
+     *       {@code indexProject} has completed its disk scan.</li>
+     *   <li>{@code clearAndReindex} is sent.  A real Eclipse client would follow
+     *       this with fresh {@code didChange} for its dirty editors, but in this
+     *       test we deliberately omit that step.</li>
+     *   <li>All {@code publishDiagnostics} notifications are collected until
+     *       {@code AlwaysError.java} errors arrive (proving the disk scan ran)
+     *       plus a 2-second drain window.</li>
+     * </ol>
+     *
+     * <p>Expected (after fix): {@code CleanOnDisk.java} produces <em>no</em>
+     * error diagnostics, because the server reads the disk (clean) rather than
+     * re-checking the dirty editor content stored in {@code lastContent}.
+     *
+     * <p>With the bug: the server re-checks every entry in {@code lastContent}
+     * immediately after the clear, so the dirty error content fires before (or
+     * interleaved with) the disk scan and produces spurious error diagnostics.
+     */
+    @Test
+    public void testClearAndReindexDoesNotRecheckStaleEditorContent() throws Exception {
+        // CleanOnDisk.java: no errors on disk; dirty editor version has a type error.
+        final String cleanContent =
+                "public class CleanOnDisk {\n"
+                + "    public int m() { return 42; }\n"
+                + "}\n";
+        final String dirtyContent =
+                "public class CleanOnDisk {\n"
+                + "    public int m() { return \"dirty type error\"; }\n"
+                + "}\n";
+        // AlwaysError.java: permanent type error on disk; functions as a marker.
+        final String errorContent =
+                "public class AlwaysError {\n"
+                + "    public int m() { return \"disk error\"; }\n"
+                + "}\n";
+
+        write("CleanOnDisk.java", cleanContent);
+        write("AlwaysError.java", errorContent);
+        String cleanUri = fileUri(tmpDir.resolve("CleanOnDisk.java"));
+
+        // --- Correct clearAndReindex protocol step 1: send current project config ---
+        configureProjectRoots(tmpDir.toAbsolutePath().toString());
+
+        // Open CleanOnDisk.java (disk content, no errors) and drain initial check.
+        String openParams = "{\"textDocument\":{\"uri\":\"" + cleanUri
+                + "\",\"languageId\":\"java\",\"version\":1,"
+                + "\"text\":\"" + jsonEscape(cleanContent) + "\"}}";
+        client.sendNotification("textDocument/didOpen", openParams);
+        nextDiagsFor("CleanOnDisk", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        // Make the editor dirty: full-text didChange introducing a type error.
+        String changeParams = "{\"textDocument\":{\"uri\":\"" + cleanUri + "\",\"version\":2},"
+                + "\"contentChanges\":[{\"text\":\"" + jsonEscape(dirtyContent) + "\"}]}";
+        client.sendNotification("textDocument/didChange", changeParams);
+        JsonObject dirtyDiags = nextDiagsFor("CleanOnDisk", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected error diagnostics after dirty edit", dirtyDiags);
+        assertFalse("Dirty content must produce type errors",
+                dirtyDiags.getAsJsonObject("params").getAsJsonArray("diagnostics").isEmpty());
+
+        Thread.sleep(500);   // let background work settle
+
+        // --- Correct clearAndReindex protocol step 2: send clearAndReindex ---
+        // (A real Eclipse client would follow this with fresh didChange for dirty
+        // editors, but here we omit that to verify the server does NOT re-check
+        // from lastContent on its own.)
+        client.sendRequest("workspace/executeCommand",
+                "{\"command\":\"" + OpenJMLCommands.CLEAR_AND_REINDEX + "\",\"arguments\":[]}");
+        client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+
+        // Drain all publishDiagnostics notifications that arrive after the clear.
+        // AlwaysError.java (errors on disk) is the synchronisation marker:
+        // once its error diagnostics arrive, the disk scan (indexProject) is done.
+        // We then drain for 2 more seconds to catch any late CleanOnDisk.java events.
+        boolean sawAlwaysError     = false;
+        boolean cleanOnDiskHadErrors = false;
+        long deadline    = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
+        long extraDeadline = Long.MAX_VALUE;
+
+        while (System.nanoTime() < Math.min(deadline, extraDeadline)) {
+            long remaining = Math.min(deadline, extraDeadline) - System.nanoTime();
+            if (remaining <= 0) break;
+            JsonObject notif = client.nextNotification(
+                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
+            if (notif == null) break;
+            JsonObject p   = notif.getAsJsonObject("params");
+            String    uri  = p.get("uri").getAsString();
+            JsonArray diags = p.getAsJsonArray("diagnostics");
+
+            if (uri.contains("CleanOnDisk") && !diags.isEmpty()) {
+                cleanOnDiskHadErrors = true;   // spurious re-check of dirty lastContent
+            }
+            if (uri.contains("AlwaysError") && !diags.isEmpty()) {
+                sawAlwaysError = true;
+                // Give 2 more seconds for any late CleanOnDisk.java notifications.
+                extraDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(2);
+            }
+        }
+
+        assertTrue("indexProject must complete and publish errors for AlwaysError.java "
+                + "(confirms disk scan ran after clearAndReindex)", sawAlwaysError);
+        assertFalse("clearAndReindex must not re-check stale editor content: "
+                + "CleanOnDisk.java is clean on disk; the dirty type error from the "
+                + "editor must not be published after the reset (no lastContent re-check).",
+                cleanOnDiskHadErrors);
     }
 }
