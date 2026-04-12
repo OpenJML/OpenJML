@@ -46,5 +46,10 @@ import org.junit.runners.Suite;
     CheckRunnerEscAndRacTest.class,
     PropertiesFileOptionsTest.class,
     RacTest.class,
+    CodeLensAndStatusTest.class,
+    HoverTest.class,
+    RenamePreflightTest.class,
+    DebouncingAndCancellationTest.class,
+    BatchAndWatchedFilesTest.class,
 })
 public class AllLspTests {}

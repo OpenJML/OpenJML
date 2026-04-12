@@ -34,6 +34,10 @@ public class JavaSourceScanner {
      * Immutable description of one method found in a source file.
      *
      * <ul>
+     *   <li>{@code name}         — display name (class name for constructors, method name otherwise)</li>
+     *   <li>{@code rawName}      — proof-result lookup key: {@code "<init>"} for constructors,
+     *       same as {@code name} for regular methods.  Use this to look up entries in the
+     *       {@code proofResults} map returned by {@link org.openjml.lsp.CheckRunner.CheckResult}.</li>
      *   <li>{@code startLine}    — line of the method declaration (used for code-lens placement)</li>
      *   <li>{@code specStartLine} — first JML {@code //@} annotation line immediately before
      *       the declaration; equals {@code startLine} if there are no spec lines.
@@ -42,7 +46,7 @@ public class JavaSourceScanner {
      *   <li>{@code endLine}      — last line attributed to this method (exclusive of next method's spec)</li>
      * </ul>
      */
-    public record MethodInfo(String name, int startLine, int specStartLine, int endLine) {
+    public record MethodInfo(String name, String rawName, int startLine, int specStartLine, int endLine) {
         /** Convenience: does the given 0-based line fall within this method's full range? */
         public boolean contains(int line) { return line >= specStartLine && line <= endLine; }
     }
@@ -146,7 +150,7 @@ public class JavaSourceScanner {
         for (int i = 0; i < starts.size(); i++) {
             int declLine = starts.get(i);
             int end = (i + 1 < starts.size()) ? starts.get(i + 1) - 1 : lines.length - 1;
-            result.add(new MethodInfo(names.get(i), declLine, findSpecStart(lines, declLine), end));
+            result.add(new MethodInfo(names.get(i), names.get(i), declLine, findSpecStart(lines, declLine), end));
         }
         return result;
     }
@@ -208,7 +212,7 @@ public class JavaSourceScanner {
             int endLine = (endOffset > tree.pos)
                     ? Math.max(startLine, (int) cu.lineMap.getLineNumber(endOffset) - 1)
                     : startLine;
-            result.add(new MethodInfo(name, startLine, findSpecStart(lines, startLine), endLine));
+            result.add(new MethodInfo(name, rawName, startLine, findSpecStart(lines, startLine), endLine));
         }
 
         @Override

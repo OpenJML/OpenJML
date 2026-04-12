@@ -85,7 +85,12 @@ TEST_CLASSES := \
   RenameJmlTest2 \
   MultiFileEscTest \
   EscDirWithContextTest \
-  DocumentLifecycleTest
+  DocumentLifecycleTest \
+  CodeLensAndStatusTest \
+  HoverTest \
+  RenamePreflightTest \
+  DebouncingAndCancellationTest \
+  BatchAndWatchedFilesTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 
@@ -173,7 +178,7 @@ clean: .FORCE
 ## Run all LSP tests under JaCoCo and generate an HTML coverage report.
 ## Usage: make cov-test   (writes report to $(LSPTEST)/cov/html/)
 cov-test: .FORCE
-	@rm -f $(LSPTEST)/cov
+	@rm -rf $(LSPTEST)/cov
 	@mkdir -p $(LSPTEST)/cov
 	@$(MAKE) --no-print-directory COV=1 COV_DIR=$(LSPTEST)/cov run-tests
 	@$(MAKE) --no-print-directory COV_DIR=$(LSPTEST)/cov cov-report

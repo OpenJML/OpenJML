@@ -2426,13 +2426,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                  List<String> foreignFiles) {
         String content = lastContent.get(uri);
         if (content == null) return;
-        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        // Use the same method-discovery strategy as codeLens() so startLine keys match.
+        // rawName() gives the proof-result lookup key ("<init>" for constructors).
+        ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
+        List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
+                ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
+                : JavaSourceScanner.findMethods(content);
         if (methods.isEmpty()) return;
 
         boolean hasForeignErrors = !foreignFiles.isEmpty();
         Map<Integer, MethodStatus> statuses = new HashMap<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
-            IProverResult.Kind kind = proofResults.get(m.name());
+            IProverResult.Kind kind = proofResults.get(m.rawName());
             statuses.put(m.startLine(),
                     proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
                                         exitCode, hasForeignErrors));
