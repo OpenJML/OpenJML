@@ -101,10 +101,17 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC_FOR_METHOD, args -> {
-            // New: [projectId, uri, methodFqn]   Old: [src, cp, sp, pf, uri, methodFqn]
-            String proj   = cmdProject(args);
-            String uri    = isNewFormat(args) ? str(args, 1) : str(args, 4);
-            String method = isNewFormat(args) ? str(args, 2) : str(args, 5);
+            // New Eclipse format:  [projectId, uri, name@startLine]   isNewFormat() == true
+            // Code-lens format:    [uri, name@startLine]              isCodeLensFormat() == true
+            // Old VS Code format:  [src, cp, sp, pf, uri, methodFqn] fallback
+            final String proj, uri, method;
+            if (isNewFormat(args)) {
+                proj = str(args, 0); uri = str(args, 1); method = str(args, 2);
+            } else if (isCodeLensFormat(args)) {
+                proj = null; uri = str(args, 0); method = str(args, 1);
+            } else {
+                proj = null; uri = str(args, 4); method = str(args, 5);
+            }
             if (uri != null) textDocumentService.scheduleEscForMethod(uri, method, proj);
             return null;
         });
@@ -358,6 +365,22 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     /** Returns the project ID from a new-format command, or {@code null} for old-format. */
     private String cmdProject(java.util.List<?> args) {
         return isNewFormat(args) ? str(args, 0) : null;
+    }
+
+    /**
+     * Returns {@code true} if {@code args} uses the two-element code-lens format
+     * {@code [uri, "name@startLine"]} emitted by {@code codeLens()} for the
+     * {@code openjml.runEscForMethod} command.
+     *
+     * <p>Detected by: exactly two arguments whose first element starts with
+     * {@code "file://"}.  This distinguishes it unambiguously from the new
+     * Eclipse format (args[0] is a bare project ID, no scheme) and the old
+     * VS Code format (six or more arguments).
+     */
+    private static boolean isCodeLensFormat(java.util.List<?> args) {
+        if (args == null || args.size() != 2) return false;
+        String first = str(args, 0);
+        return first != null && first.startsWith("file://");
     }
 
     /**

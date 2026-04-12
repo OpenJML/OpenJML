@@ -128,17 +128,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         String label() {
             return switch (result) {
-                case UNKNOWN      -> "OpenJML: \u2014";                 // —
-                case CHECKING     -> "OpenJML: \u29d7 Checking\u2026";  // ⧗
-                case VERIFIED     -> "OpenJML: \u2713 Verified";
-                case INFEASIBLE   -> "OpenJML: Infeasible";
-                case NOT_VERIFIED -> "OpenJML: \u2717 Not verified"     // ✗
-                        + (issueCount > 0 ? " (" + issueCount + " issue(s))" : "");
-                case SKIPPED      -> "OpenJML: Skipped";
-                case TIMEOUT      -> "OpenJML: Timeout";
-                case CANCELLED    -> "OpenJML: Cancelled";
-                case CHECK_ERROR       -> "OpenJML: Check error";
-                case CHECK_ERROR_DEPS  -> "OpenJML: Check error in other files";
+                case UNKNOWN      -> "OpenJML: \u2014  \u25b6 Run ESC";                  // — ▶
+                case CHECKING     -> "OpenJML: \u29d7 Checking\u2026  \u2715 Cancel";    // ⧗ … ✕
+                case VERIFIED     -> "OpenJML: \u2713 Verified  \u21ba Re-run";          // ✓ ↺
+                case INFEASIBLE   -> "OpenJML: Infeasible  \u21ba Re-run";
+                case NOT_VERIFIED -> "OpenJML: \u2717 Not verified"                      // ✗
+                        + (issueCount > 0 ? " (" + issueCount + " issue(s))" : "")
+                        + "  \u21ba Re-run";
+                case SKIPPED      -> "OpenJML: Skipped  \u25b6 Run ESC";
+                case TIMEOUT      -> "OpenJML: Timeout  \u21ba Re-run";
+                case CANCELLED    -> "OpenJML: Cancelled  \u25b6 Run ESC";
+                case CHECK_ERROR       -> "OpenJML: Check error  \u21ba Re-run";
+                case CHECK_ERROR_DEPS  -> "OpenJML: Check error in other files  \u21ba Re-run";
             };
         }
     }
@@ -397,10 +398,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             MethodStatus s = statuses.getOrDefault(m.startLine(), MethodStatus.UNKNOWN);
             var range = new Range(new Position(m.startLine(), 0),
                                   new Position(m.startLine(), 0));
-            String fqn = JavaSourceScanner.methodFqn(content, m.name());
-            var cmd = new Command(s.label(), codeLensCommand,
-                                  List.<Object>of(uri, fqn));
-            lenses.add(new CodeLens(range, cmd, null));
+            // Method reference encodes both name and start line so overloads are
+            // distinguished and the server can locate the exact method on the next request.
+            String methodRef = m.name() + "@" + m.startLine();
+            final String cmdName;
+            final List<Object> cmdArgs;
+            if (s.result() == EscResult.CHECKING) {
+                // Cancel the specific per-method task (no-op if run was whole-file).
+                cmdName = OpenJMLCommands.CANCEL_ESC;
+                cmdArgs = List.of(uri + "#" + methodRef);
+            } else {
+                // Run (or re-run) ESC for this method.
+                // Two-element code-lens format [uri, name@startLine]: detected in the
+                // RUN_ESC_FOR_METHOD handler by the leading "file://" scheme on args[0].
+                cmdName = OpenJMLCommands.RUN_ESC_FOR_METHOD;
+                cmdArgs = List.<Object>of(uri, methodRef);
+            }
+            lenses.add(new CodeLens(range, new Command(s.label(), cmdName, cmdArgs), null));
         }
         return CompletableFuture.completedFuture(lenses);
     }
@@ -1643,7 +1657,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleEscForMethod(String uri, String methodName, String projectId) {
         OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
         String content = lastContent.get(uri);
-        JavaSourceScanner.MethodInfo target = findMethodByFqn(content, methodName);
+        JavaSourceScanner.MethodInfo target = findMethod(content, methodName);
 
         if (s.isEscApiMode()) {
             // Submit through escPool so this request joins the same shared queue
@@ -1671,15 +1685,28 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Extract the simple name from a possibly-qualified method name
-     * ({@code "pkg.Class.method"} → {@code "method"}) and find the matching
-     * {@link JavaSourceScanner.MethodInfo} in {@code content}.
-     * Returns {@code null} if the content is absent or no match is found.
+     * Locate a method in {@code content} from a name reference that is either:
+     * <ul>
+     *   <li>{@code "name@startLine"} — code-lens format; matched by start line
+     *       so overloads are distinguished correctly, or</li>
+     *   <li>a plain name or FQN — matched by simple name (first match wins;
+     *       ambiguous for overloads, retained for VS Code / legacy callers).</li>
+     * </ul>
      */
-    private static JavaSourceScanner.MethodInfo findMethodByFqn(String content, String fqn) {
-        if (content == null || fqn == null) return null;
-        int dot = fqn.lastIndexOf('.');
-        String simpleName = dot >= 0 ? fqn.substring(dot + 1) : fqn;
+    private static JavaSourceScanner.MethodInfo findMethod(String content, String nameOrRef) {
+        if (content == null || nameOrRef == null) return null;
+        int at = nameOrRef.lastIndexOf('@');
+        if (at >= 0) {
+            try {
+                int line = Integer.parseInt(nameOrRef.substring(at + 1));
+                for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+                    if (m.startLine() == line) return m;
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+        // Fallback: plain name or FQN — strip to simple name and match first occurrence.
+        int dot = nameOrRef.lastIndexOf('.');
+        String simpleName = dot >= 0 ? nameOrRef.substring(dot + 1) : nameOrRef;
         for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
             if (simpleName.equals(m.name())) return m;
         }
