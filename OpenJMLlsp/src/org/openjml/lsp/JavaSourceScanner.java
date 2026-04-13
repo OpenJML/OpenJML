@@ -181,7 +181,6 @@ public class JavaSourceScanner {
         private final JmlCompilationUnit cu;
         private final String[] lines;
         final List<MethodInfo> result = new ArrayList<>();
-        private int bodyDepth = 0;
 
         MethodLensWalker(JmlCompilationUnit cu, String[] lines) {
             super(null);   // null context → AST_JML_MODE
@@ -190,20 +189,10 @@ public class JavaSourceScanner {
         }
 
         @Override
-        public void visitClassDef(JCClassDecl tree) {
-            // Visit all classes (top-level, secondary, nested members).
-            // Local and anonymous classes — which live inside a JCBlock and therefore
-            // have bodyDepth > 0 — are reached here but their methods are excluded by
-            // the bodyDepth guard in visitMethodDef.  They will be handled separately
-            // using a character-offset key once the main refactoring is stable.
-            super.visitClassDef(tree);
-        }
-
-        @Override
         public void visitMethodDef(JCMethodDecl tree) {
-            // bodyDepth > 0 means we are inside a method body (JCBlock); methods that
-            // appear there belong to local or anonymous classes — deferred.
-            if (bodyDepth > 0 || tree.pos < 0 || tree.sym == null) return;
+            // tree.pos < 0: synthetic node (e.g. compiler-inserted default constructor) — no source line to place a lens on.
+            // tree.sym == null: partially-resolved node from a file with errors — sym is needed to form the FQN key.
+            if (tree.pos < 0 || tree.sym == null) return;
             String rawName = tree.name != null ? tree.name.toString() : "";
             // Skip synthetic methods (<clinit> etc.); keep <init> constructors.
             if (rawName.isEmpty() || (rawName.startsWith("<") && !"<init>".equals(rawName))) return;
@@ -226,13 +215,6 @@ public class JavaSourceScanner {
                     ? Math.max(startLine, (int) cu.lineMap.getLineNumber(endOffset) - 1)
                     : startLine;
             result.add(new MethodInfo(name, fqnKey, startLine, findSpecStart(lines, startLine), endLine));
-        }
-
-        @Override
-        public void visitBlock(JCBlock tree) {
-            bodyDepth++;
-            super.visitBlock(tree);
-            bodyDepth--;
         }
     }
 
