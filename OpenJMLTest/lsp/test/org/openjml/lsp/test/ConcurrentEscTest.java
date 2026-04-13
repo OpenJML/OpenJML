@@ -108,7 +108,7 @@ public class ConcurrentEscTest extends LspTestBase {
                     1, r.proofResults().size());
             Map.Entry<String, IProverResult.Kind> entry =
                     r.proofResults().entrySet().iterator().next();
-            String method = entry.getKey();
+            String method = CheckRunner.bareMethodName(entry.getKey());
             IProverResult.Kind kind = entry.getValue();
             if (method.startsWith("good")) {
                 assertEquals("'" + method + "' must be UNSAT",
@@ -172,7 +172,7 @@ public class ConcurrentEscTest extends LspTestBase {
                     1, r.proofResults().size());
             Map.Entry<String, IProverResult.Kind> e =
                     r.proofResults().entrySet().iterator().next();
-            if (e.getKey().startsWith("gm")) {
+            if (CheckRunner.bareMethodName(e.getKey()).startsWith("gm")) {
                 assertEquals(e.getKey() + " must be UNSAT",
                         IProverResult.UNSAT, e.getValue());
                 goodCount++;
@@ -267,7 +267,7 @@ public class ConcurrentEscTest extends LspTestBase {
         // Fast run: must complete normally with UNSAT and exit 0.
         CheckRunner.CheckResult fast = fastFuture.get(120, TimeUnit.SECONDS);
         assertNotNull("Fast run result must not be null", fast);
-        IProverResult.Kind fastKind = fast.proofResults().get("fast");
+        IProverResult.Kind fastKind = fast.proofResultForMethod("fast");
         assertNotNull("fast method must have a proof result", fastKind);
         assertEquals("fast method must be UNSAT", IProverResult.UNSAT, fastKind);
         assertEquals("fast method must exit 0", 0, fast.exitCode());

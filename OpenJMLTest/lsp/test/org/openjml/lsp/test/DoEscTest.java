@@ -52,7 +52,7 @@ public class DoEscTest extends LspTestBase {
         CheckRunner.CheckResult result = runDoEscMethodResult(uri, source, "id");
         assertEquals("doESC should exit 0 for verified method", 0, result.exitCode());
 
-        IProverResult.Kind kind = result.proofResults().get("id");
+        IProverResult.Kind kind = result.proofResultForMethod("id");
         assertNotNull("Expected a proof result for 'id'", kind);
         assertEquals("Expected UNSAT for verified method; got " + kind,
                 IProverResult.UNSAT, kind);
@@ -76,7 +76,7 @@ public class DoEscTest extends LspTestBase {
         CheckRunner.CheckResult result = runDoEscMethodResult(uri, source, "zero");
         assertEquals("doESC should exit 6 for failing method", 6, result.exitCode());
 
-        IProverResult.Kind kind = result.proofResults().get("zero");
+        IProverResult.Kind kind = result.proofResultForMethod("zero");
         assertNotNull("Expected a proof result for 'zero'", kind);
         assertTrue("Expected SAT/POSSIBLY_SAT for failing method; got " + kind,
                 kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT);
@@ -103,8 +103,8 @@ public class DoEscTest extends LspTestBase {
         assertEquals("doESC on whole file should exit 6 when any method fails",
                 6, result.exitCode());
 
-        IProverResult.Kind goodKind = result.proofResults().get("good");
-        IProverResult.Kind badKind  = result.proofResults().get("bad");
+        IProverResult.Kind goodKind = result.proofResultForMethod("good");
+        IProverResult.Kind badKind  = result.proofResultForMethod("bad");
         assertNotNull("Expected a proof result for 'good'", goodKind);
         assertNotNull("Expected a proof result for 'bad'",  badKind);
         assertEquals("'good' should be UNSAT; got " + goodKind,
@@ -172,7 +172,7 @@ public class DoEscTest extends LspTestBase {
                     1, r.proofResults().size());
             Map.Entry<String, IProverResult.Kind> entry =
                     r.proofResults().entrySet().iterator().next();
-            String name = entry.getKey();
+            String name = CheckRunner.bareMethodName(entry.getKey());
             IProverResult.Kind kind = entry.getValue();
 
             if (name.startsWith("mV")) {

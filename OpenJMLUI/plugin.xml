@@ -62,6 +62,7 @@
            priority="high"/>
   </extension>
   
+  <!-- JML coffee cup icon for .jml files and editors -->
   <extension
       point="org.eclipse.ui.genericeditor.icons">
     <icon
@@ -159,7 +160,7 @@
        markerSeverity: 0=info  1=warning  2=error
        ESC markers (JMLESCProblem) come in three severities:
          ERROR   — verification failure (proof obligation not satisfied)
-         WARNING — partial/inconclusive result (timeout, unknown, possibly-sat)
+         WARNING — location information related to an ERROR
          INFO    — verified successfully (UNSAT)
        JML check markers (JMLProblem) come in three severities:
          ERROR, WARNING, INFO -->
@@ -197,7 +198,7 @@
   </extension>
 
   <!-- Annotation display preferences for OpenJML markers (Annotations preference page).
-       Users can change colour, underline, highlight, and ruler visibility at
+       Users can change color, underline, highlight, and ruler visibility at
        General > Editors > Text Editors > Annotations.
        Colours: ESC failure=orange, ESC warning=yellow, ESC info=green, JML error=red, JML warning=yellow, JML info=blue -->
   <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
@@ -321,7 +322,7 @@
            name="OpenJML"/>
      <command
            id="org.jmlspecs.openjml.commands.checkJML"
-           name="Check JML in Current File"
+           name="Check JML on selected items"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Parse and type-check the selected Java/JML files"/>
      <command
@@ -351,7 +352,7 @@
            description="Compile RAC for selected files"/>
      <command
            id="org.jmlspecs.openjml.commands.clearAndReindex"
-           name="Clear LSP Cache and Reindex"
+           name="Clear Server Cache and Reindex"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Clear all OpenJML server caches and reindex the workspace"/>
      <command
@@ -743,6 +744,92 @@
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
   </extension>
   
+    <!-- LSP-based hover for JML specs in the JDT Java editor.
+       LSP4E's hover is registered only for the generic text editor;
+       this extension hooks into JDT's own hover framework so it fires
+       for .java files, including positions inside JML comments. -->
+  <extension point="org.eclipse.jdt.ui.javaEditorTextHovers">
+     <hover
+           activate="true"
+           class="org.jmlspecs.openjml.eclipse.OpenJMLJavaHover"
+           description="OpenJML JML specification hover"
+           id="org.openjml.jmlHover"
+           label="JML">
+     </hover>
+  </extension>
+
+  <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+      id="openjml_proposals"
+      name="%extension.name.7">
+      <proposalCategory icon="icons/jml-logo-16x16.png"/>
+  </extension>
+
+  <extension
+         id="org.openjml.completionProposals_sl"
+         name="%extension.name.8"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+      <javaCompletionProposalComputer
+        class="org.jmlspecs.openjml.eclipse.ProposalComputer"
+        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
+        <partition type="__java_singleline_comment"/>
+      </javaCompletionProposalComputer>
+  </extension>
+
+  <extension
+         id="org.openjml.completionProposals_ml"
+         name="%extension.name.9"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+      <javaCompletionProposalComputer
+        class="org.jmlspecs.openjml.eclipse.ProposalComputer"
+        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
+        <partition type="__java_multiline_comment"/>
+      </javaCompletionProposalComputer>
+  </extension>
+  
+    <!-- Outline support for .jml files.
+       LSP4E's EditorToOutlineAdapterFactory (registered for ExtensionBasedTextEditor)
+       uses a 50 ms timeout to wait for the language server, which is too short on
+       first-connect.  Our factory intercepts .jml-file requests, waits up to 5 s,
+       then re-delegates so LSP4E's factory can take its fast path. -->
+  <extension point="org.eclipse.core.runtime.adapters">
+     <factory
+           adaptableType="org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor"
+           class="org.jmlspecs.openjml.eclipse.JmlOutlineAdapterFactory">
+        <adapter type="org.eclipse.ui.views.contentoutline.IContentOutlinePage"/>
+     </factory>
+  </extension>
+
+  <!-- Code mining provider for OpenJML ESC proof status in the JDT Java editor.
+       LSP4E's CodeLensProvider uses enabledWhen=editorHasLanguageServer which
+       only matches the generic text editor, not the JDT Java editor.  This
+       provider is registered specifically for JavaEditor instances and calls
+       the OpenJML LSP server directly via OpenJMLLanguageClient. -->
+  <extension point="org.eclipse.ui.workbench.texteditor.codeMiningProviders">
+    <codeMiningProvider
+        class="org.jmlspecs.openjml.eclipse.OpenJMLCodeMiningProvider"
+        id="org.openjml.OpenJMLUI.codelens"
+        label="OpenJML ESC Status">
+      <enabledWhen>
+        <with variable="editor">
+          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
+        </with>
+      </enabledWhen>
+    </codeMiningProvider>
+
+    <!-- Inlay hints (var type inference) for the JDT Java editor.
+         LineContentCodeMining placement in the JDT Java editor. -->
+    <codeMiningProvider
+        class="org.jmlspecs.openjml.eclipse.OpenJMLInlayHintProvider"
+        id="org.openjml.OpenJMLUI.inlayhints"
+        label="OpenJML Inlay Hints (var types)">
+      <enabledWhen>
+        <with variable="editor">
+          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
+        </with>
+      </enabledWhen>
+    </codeMiningProvider>
+  </extension>
+
   
   <!-- Register a unique JML console -->
   <extension
@@ -1353,28 +1440,6 @@
 
   <!--
   <extension
-         id="JMLProblem"
-         name="%extension.name.1"
-         point="org.eclipse.core.resources.markers">
-    <super type="org.eclipse.jdt.core.problem"/>
-    <persistent value="true"/>
-    <attribute name="declarationInfo"/>
-  </extension>
-  -->
-
-  <!--
-  <extension
-         id="JMLESCProblem"
-         name="%extension.name.2"
-         point="org.eclipse.core.resources.markers">
-    <super type="org.eclipse.jdt.core.problem"/>
-    <persistent value="true"/>
-    <attribute name="declarationInfo"/>
-  </extension>
-  -->
-
-  <!--
-  <extension
          id="JMLHighlight"
          name="%extension.name.3"
          point="org.eclipse.core.resources.markers">
@@ -1909,32 +1974,7 @@
   -->
 
   <!--
-  <extension point="org.eclipse.ui.commands">
-    <command
-          name="Run ESC for Method"
-          description="Run extended static checking on the method at the cursor"
-          categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-          id="org.jmlspecs.eclipse.commands.RunEscForMethod">
-    </command>
-  </extension>
-  -->
 
-  <!--
-  <extension point="org.eclipse.ui.bindings">
-    <key
-          sequence="M1+E"
-          contextId="org.eclipse.ui.textEditorScope"
-          commandId="org.jmlspecs.eclipse.commands.CheckESC"
-          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-    <key
-          sequence="M1+M3+E"
-          contextId="org.eclipse.ui.textEditorScope"
-          commandId="org.jmlspecs.eclipse.commands.RunEscForMethod"
-          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-  </extension>
-  -->
-
-  <!--
   <extension
          point="org.eclipse.ui.views">
      <category
@@ -1966,48 +2006,6 @@
      </hover>
   </extension>
   -->
-
-  <!-- LSP-based hover for JML specs in the JDT Java editor.
-       LSP4E's hover is registered only for the generic text editor;
-       this extension hooks into JDT's own hover framework so it fires
-       for .java files, including positions inside JML comments. -->
-  <extension point="org.eclipse.jdt.ui.javaEditorTextHovers">
-     <hover
-           activate="true"
-           class="org.jmlspecs.openjml.eclipse.OpenJMLJavaHover"
-           description="OpenJML JML specification hover"
-           id="org.openjml.jmlHover"
-           label="JML">
-     </hover>
-  </extension>
-
-  <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
-      id="openjml_proposals"
-      name="%extension.name.7">
-      <proposalCategory icon="icons/jml-logo-16x16.png"/>
-  </extension>
-
-  <extension
-         id="org.openjml.completionProposals_sl"
-         name="%extension.name.8"
-         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-      <javaCompletionProposalComputer
-        class="org.jmlspecs.openjml.eclipse.ProposalComputer"
-        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
-        <partition type="__java_singleline_comment"/>
-      </javaCompletionProposalComputer>
-  </extension>
-
-  <extension
-         id="org.openjml.completionProposals_ml"
-         name="%extension.name.9"
-         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-      <javaCompletionProposalComputer
-        class="org.jmlspecs.openjml.eclipse.ProposalComputer"
-        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
-        <partition type="__java_multiline_comment"/>
-      </javaCompletionProposalComputer>
-  </extension>
 
   <!--
   <extension
@@ -2060,48 +2058,6 @@
        entry that delegate to LSP4E's OpenDeclarationHyperlinkDetector.
        =================================================================== -->
 
-  <!-- Outline support for .jml files.
-       LSP4E's EditorToOutlineAdapterFactory (registered for ExtensionBasedTextEditor)
-       uses a 50 ms timeout to wait for the language server, which is too short on
-       first-connect.  Our factory intercepts .jml-file requests, waits up to 5 s,
-       then re-delegates so LSP4E's factory can take its fast path. -->
-  <extension point="org.eclipse.core.runtime.adapters">
-     <factory
-           adaptableType="org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor"
-           class="org.jmlspecs.openjml.eclipse.JmlOutlineAdapterFactory">
-        <adapter type="org.eclipse.ui.views.contentoutline.IContentOutlinePage"/>
-     </factory>
-  </extension>
 
-  <!-- Code mining provider for OpenJML ESC proof status in the JDT Java editor.
-       LSP4E's CodeLensProvider uses enabledWhen=editorHasLanguageServer which
-       only matches the generic text editor, not the JDT Java editor.  This
-       provider is registered specifically for JavaEditor instances and calls
-       the OpenJML LSP server directly via OpenJMLLanguageClient. -->
-  <extension point="org.eclipse.ui.workbench.texteditor.codeMiningProviders">
-    <codeMiningProvider
-        class="org.jmlspecs.openjml.eclipse.OpenJMLCodeMiningProvider"
-        id="org.openjml.OpenJMLUI.codelens"
-        label="OpenJML ESC Status">
-      <enabledWhen>
-        <with variable="editor">
-          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
-        </with>
-      </enabledWhen>
-    </codeMiningProvider>
-
-    <!-- Inlay hints (var type inference) for the JDT Java editor.
-         LineContentCodeMining placement in the JDT Java editor. -->
-    <codeMiningProvider
-        class="org.jmlspecs.openjml.eclipse.OpenJMLInlayHintProvider"
-        id="org.openjml.OpenJMLUI.inlayhints"
-        label="OpenJML Inlay Hints (var types)">
-      <enabledWhen>
-        <with variable="editor">
-          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
-        </with>
-      </enabledWhen>
-    </codeMiningProvider>
-  </extension>
 
 </plugin>

@@ -4,6 +4,7 @@ import org.openjml.IAPI;
 import org.openjml.MockJavaFileObject;
 import org.openjml.IProverResult;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import org.jmlspecs.openjml.JmlTree;
@@ -138,6 +139,47 @@ public class CheckRunner {
         public boolean isCommandLineError() { return exitCode == 2; }
         /** Returns {@code true} when errors in other files (dependencies) prevented ESC. */
         public boolean hasForeignErrors() { return !foreignMessages.isEmpty(); }
+        /**
+         * Look up a proof result by simple method name, ignoring the class-owner prefix
+         * and signature suffix in the FQN+signature key (e.g. {@code "Foo.m(int)"} → {@code "m"}).
+         * Returns {@code null} if no entry matches.
+         */
+        public IProverResult.Kind proofResultForMethod(String simpleName) {
+            for (var e : proofResults.entrySet()) {
+                if (bareMethodName(e.getKey()).equals(simpleName)) return e.getValue();
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Extract the simple method name from a FQN+signature proof-result key.
+     * e.g. {@code "com.example.Foo.m(int)"} → {@code "m"},
+     *      {@code "Foo.m(int)"} → {@code "m"},
+     *      {@code "m"} → {@code "m"}.
+     */
+    public static String bareMethodName(String fqnKey) {
+        int p = fqnKey.indexOf('(');
+        String noSig = p >= 0 ? fqnKey.substring(0, p) : fqnKey;
+        int dot = noSig.lastIndexOf('.');
+        return dot >= 0 ? noSig.substring(dot + 1) : noSig;
+    }
+
+    /**
+     * Look up a proof result by {@code rawName}, trying the exact FQN+signature key
+     * first (succeeds when {@code rawName} is AST-derived), then falling back to a
+     * bare-method-name search (handles regex-derived {@code rawName} which lacks the
+     * class prefix and signature suffix).
+     */
+    public static IProverResult.Kind lookupResult(
+            Map<String, IProverResult.Kind> proofResults, String rawName) {
+        IProverResult.Kind k = proofResults.get(rawName);
+        if (k != null) return k;
+        String bare = bareMethodName(rawName);
+        for (var e : proofResults.entrySet()) {
+            if (bareMethodName(e.getKey()).equals(bare)) return e.getValue();
+        }
+        return null;
     }
 
     /**
@@ -152,44 +194,48 @@ public class CheckRunner {
 
         /**
          * Optional callback invoked after each final proof result is recorded.
-         * Receives the {@link MethodSymbol} so the caller can publish per-file
+         * Receives the {@link JmlMethodDecl} so the caller can publish per-file
          * diagnostics immediately rather than waiting for the full run to finish.
          */
-        private final java.util.function.Consumer<MethodSymbol> perMethodCallback;
+        private final java.util.function.Consumer<JmlMethodDecl> perMethodCallback;
 
         /**
          * Optional callback invoked when a method proof starts (RUNNING event).
          * Allows the LSP layer to update that method's code lens to CHECKING before
          * the proof result arrives.
          */
-        private java.util.function.Consumer<MethodSymbol> onMethodStarted;
+        private java.util.function.Consumer<JmlMethodDecl> onMethodStarted;
 
         ProofResultCollector() { this(null); }
 
-        ProofResultCollector(java.util.function.Consumer<MethodSymbol> perMethodCallback) {
+        ProofResultCollector(java.util.function.Consumer<JmlMethodDecl> perMethodCallback) {
             this.perMethodCallback = perMethodCallback;
         }
 
-        void setOnMethodStarted(java.util.function.Consumer<MethodSymbol> cb) {
+        void setOnMethodStarted(java.util.function.Consumer<JmlMethodDecl> cb) {
             this.onMethodStarted = cb;
         }
 
         @Override
-        public void reportProofResult(MethodSymbol msym, IProverResult result) {
+        public void reportProofResult(JmlMethodDecl methodDecl, IProverResult result) {
             IProverResult.Kind kind = result.result();
             if (kind == IProverResult.RUNNING) {
-                if (onMethodStarted != null) onMethodStarted.accept(msym);
+                if (onMethodStarted != null) onMethodStarted.accept(methodDecl);
                 return;
             }
             if (kind == IProverResult.COMPLETED) return;
-            String name = msym.getSimpleName().toString();
-            results.put(name, kind);
+            // Key: owner FQN + "." + method-with-signature — matches MethodLensWalker.
+            String key = (methodDecl.sym != null && methodDecl.sym.owner != null)
+                    ? methodDecl.sym.owner.toString() + "." + methodDecl.sym.toString()
+                    : methodDecl.name.toString();
+            results.put(key, kind);
             // Log immediately so the console shows progress as each method completes.
             javax.tools.JavaFileObject src =
-                    msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+                    methodDecl.sym != null && methodDecl.sym.enclClass() != null
+                    ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
             String fname = src != null ? fileName(src.getName()) : "unknown";
-            log(ts() + " --esc " + fname + " " + name + ": " + kindLabel(kind));
-            if (perMethodCallback != null) perMethodCallback.accept(msym);
+            log(ts() + " --esc " + fname + " " + key + ": " + kindLabel(kind));
+            if (perMethodCallback != null) perMethodCallback.accept(methodDecl);
         }
 
         Map<String, IProverResult.Kind> getResults() {
@@ -209,7 +255,19 @@ public class CheckRunner {
     public record DirCheckResult(
             Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagnosticsByUri,
             int exitCode,
-            Map<String, IProverResult.Kind> proofResults) {}
+            Map<String, IProverResult.Kind> proofResults) {
+        /**
+         * Look up a proof result by simple method name, ignoring the class-owner prefix
+         * and signature suffix in the FQN+signature key.
+         * Returns {@code null} if no entry matches.
+         */
+        public IProverResult.Kind proofResultForMethod(String simpleName) {
+            for (var e : proofResults.entrySet()) {
+                if (bareMethodName(e.getKey()).equals(simpleName)) return e.getValue();
+            }
+            return null;
+        }
+    }
 
     /**
      * Run {@code --esc --dirs path1 path2 ...} on one or more files or directories.
@@ -466,27 +524,29 @@ public class CheckRunner {
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
         ProofResultCollector[] prcRef = {null};
-        prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : msym -> {
+        prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
             javax.tools.JavaFileObject src =
-                    msym.enclClass() != null ? msym.enclClass().sourcefile : null;
-            if (src == null) { log("[runEscDir callback] src is null for " + msym); return; }
+                    methodDecl.sym != null && methodDecl.sym.enclClass() != null
+                    ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
+            if (src == null) { log("[runEscDir callback] src is null for " + methodDecl.name); return; }
             String uri;
             try { uri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
             catch (Exception e) { log("[runEscDir callback] URI conversion failed: " + e); return; }
             List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(uri);
-            perFileCallback.accept(uri, msym.getSimpleName().toString(), diags, Map.copyOf(prcRef[0].getResults()));
+            perFileCallback.accept(uri, methodDecl.name.toString(), diags, Map.copyOf(prcRef[0].getResults()));
         });
         ProofResultCollector prc = prcRef[0];
         // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
         if (perFileCallback != null) {
-            prc.setOnMethodStarted(msym -> {
+            prc.setOnMethodStarted(methodDecl -> {
                 javax.tools.JavaFileObject src =
-                        msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+                        methodDecl.sym != null && methodDecl.sym.enclClass() != null
+                        ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
                 if (src == null) return;
                 String onUri;
                 try { onUri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
                 catch (Exception e) { return; }
-                perFileCallback.accept(onUri, msym.getSimpleName().toString(), null, null);
+                perFileCallback.accept(onUri, methodDecl.name.toString(), null, null);
             });
         }
         api.setProofResultListener(prc);
@@ -588,31 +648,33 @@ public class CheckRunner {
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
         ProofResultCollector[] prcRef = {null};
-        prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : msym -> {
+        prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
             javax.tools.JavaFileObject src =
-                    msym.enclClass() != null ? msym.enclClass().sourcefile : null;
-            if (src == null) { log("[runEscDirWithContext callback] src is null for " + msym); return; }
+                    methodDecl.sym != null && methodDecl.sym.enclClass() != null
+                    ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
+            if (src == null) { log("[runEscDirWithContext callback] src is null for " + methodDecl.name); return; }
             String srcName = src.getName();
             String lookupUri;
             try { lookupUri = java.nio.file.Path.of(srcName).toUri().toString(); }
             catch (Exception ex) { log("[runEscDirWithContext callback] URI failed: " + ex); return; }
             String realUri = finalAllPathToRealUri.getOrDefault(srcName, lookupUri);
             List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
-            perFileCallback.accept(realUri, msym.getSimpleName().toString(), diags, Map.copyOf(prcRef[0].getResults()));
+            perFileCallback.accept(realUri, methodDecl.name.toString(), diags, Map.copyOf(prcRef[0].getResults()));
         });
         ProofResultCollector prc = prcRef[0];
         // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
         if (perFileCallback != null) {
-            prc.setOnMethodStarted(msym -> {
+            prc.setOnMethodStarted(methodDecl -> {
                 javax.tools.JavaFileObject src =
-                        msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+                        methodDecl.sym != null && methodDecl.sym.enclClass() != null
+                        ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
                 if (src == null) return;
                 String srcName = src.getName();
                 String onUri;
                 try { onUri = finalAllPathToRealUri.getOrDefault(srcName,
                         java.nio.file.Path.of(srcName).toUri().toString()); }
                 catch (Exception ex) { return; }
-                perFileCallback.accept(onUri, msym.getSimpleName().toString(), null, null);
+                perFileCallback.accept(onUri, methodDecl.name.toString(), null, null);
             });
         }
         api.setProofResultListener(prc);
@@ -705,31 +767,33 @@ public class CheckRunner {
             var out = new PrintWriter(new StringWriter());
             var api = IAPI.make(out, listener);
             ProofResultCollector[] prcRef = {null};
-            prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : msym -> {
+            prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
                 javax.tools.JavaFileObject src =
-                        msym.enclClass() != null ? msym.enclClass().sourcefile : null;
-                if (src == null) { log("[runEscDirWithContextLegacy callback] src is null for " + msym); return; }
+                        methodDecl.sym != null && methodDecl.sym.enclClass() != null
+                        ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
+                if (src == null) { log("[runEscDirWithContextLegacy callback] src is null for " + methodDecl.name); return; }
                 String srcName = src.getName();
                 String lookupUri;
                 try { lookupUri = java.nio.file.Path.of(srcName).toUri().toString(); }
                 catch (Exception ex) { log("[runEscDirWithContextLegacy callback] URI failed: " + ex); return; }
                 String realUri = finalAllPathToRealUri.getOrDefault(srcName, lookupUri);
                 List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
-                perFileCallback.accept(realUri, msym.getSimpleName().toString(), diags, Map.copyOf(prcRef[0].getResults()));
+                perFileCallback.accept(realUri, methodDecl.name.toString(), diags, Map.copyOf(prcRef[0].getResults()));
             });
             ProofResultCollector prc = prcRef[0];
             // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
             if (perFileCallback != null) {
-                prc.setOnMethodStarted(msym -> {
+                prc.setOnMethodStarted(methodDecl -> {
                     javax.tools.JavaFileObject src =
-                            msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+                            methodDecl.sym != null && methodDecl.sym.enclClass() != null
+                            ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
                     if (src == null) return;
                     String srcName = src.getName();
                     String onUri;
                     try { onUri = finalAllPathToRealUri.getOrDefault(srcName,
                             java.nio.file.Path.of(srcName).toUri().toString()); }
                     catch (Exception ex) { return; }
-                    perFileCallback.accept(onUri, msym.getSimpleName().toString(), null, null);
+                    perFileCallback.accept(onUri, methodDecl.name.toString(), null, null);
                 });
             }
             api.setProofResultListener(prc);
@@ -876,7 +940,7 @@ public class CheckRunner {
             String uri, String content,
             Map<String, String> openContent, OpenJMLSettings settings,
             Consumer<IAPI> onApiReady,
-            java.util.function.Consumer<MethodSymbol> onMethodStarted) {
+            java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
         return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, onApiReady, onMethodStarted);
     }
 
@@ -1320,7 +1384,7 @@ public class CheckRunner {
      */
     public static CheckResult runEscFile(String filePath, String uri, OpenJMLSettings settings,
                                          Consumer<IAPI> onApiReady,
-                                         java.util.function.Consumer<MethodSymbol> onMethodStarted) {
+                                         java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
         return runOnFile(filePath, uri, settings, "--esc", null, true, onApiReady, onMethodStarted);
     }
 
@@ -1535,7 +1599,7 @@ public class CheckRunner {
             Map<String, String> openContent, OpenJMLSettings settings,
             String modeFlag, String methodName, boolean collectProofResults,
             Consumer<IAPI> onApiReady,
-            java.util.function.Consumer<MethodSymbol> onMethodStarted) {
+            java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
 
         var listener = new LspDiagnosticListener();
         if (content != null) listener.setSourceContent(content);
@@ -1639,14 +1703,22 @@ public class CheckRunner {
                 });
             }
 
-            if (capturedAst[0] != null && "--check".equals(modeFlag)) {
-                if (rc == 0) {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
-                                  api, listener, primaryArg);
-                } else {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+            if (capturedAst[0] != null) {
+                if ("--check".equals(modeFlag)) {
+                    if (rc == 0) {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                      api, listener, primaryArg);
+                    } else {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                    }
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null, true);
+                } else if ("--esc".equals(modeFlag)) {
+                    ASTCache.Entry existing = AST_CACHE.get(uri);
+                    if (existing == null || !existing.supportsDoEsc()) {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                        cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null, true);
+                    }
                 }
-                cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null, true);
             }
 
             Map<String, IProverResult.Kind> proofResults = prc != null ? prc.getResults() : Map.of();
@@ -1760,15 +1832,22 @@ public class CheckRunner {
             System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc
                     + " (" + modeFlag + ")");
 
-            // Only --check runs update the target AST cache entry; --esc discards.
-            if (capturedAst[0] != null && "--check".equals(modeFlag)) {
-                if (rc == 0) {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
-                                  api, listener, primaryArg);
-                } else {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+            if (capturedAst[0] != null) {
+                if ("--check".equals(modeFlag)) {
+                    if (rc == 0) {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                      api, listener, primaryArg);
+                    } else {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                    }
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix, true);
+                } else if ("--esc".equals(modeFlag)) {
+                    ASTCache.Entry existing = AST_CACHE.get(uri);
+                    if (existing == null || !existing.supportsDoEsc()) {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                        cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix, true);
+                    }
                 }
-                cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix, true);
             }
 
             Map<String, IProverResult.Kind> proofResults =
@@ -1886,29 +1965,36 @@ public class CheckRunner {
             System.err.println("[CheckRunner.runOnContent] exit code " + rc
                     + " (" + modeFlag + ")");
 
-            // Only --check runs update the AST cache.  --esc runs do not redo attribution;
-            // any AST they happen to produce is discarded to preserve the --check entry
-            // (and its stored IAPI for the doESC API path).
-            if (capturedAst[0] != null && "--check".equals(modeFlag)) {
-                if (rc == 0) {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
-                                  api, listener, fileArg);
-                } else {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);  // failed check: basic entry
+            if (capturedAst[0] != null) {
+                if ("--check".equals(modeFlag)) {
+                    if (rc == 0) {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                      api, listener, fileArg);
+                    } else {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                    }
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
+                } else if ("--esc".equals(modeFlag)) {
+                    // ESC also produces a valid attributed AST — store it as a basic entry
+                    // (no IAPI) so method discovery works after ESC, but only when no
+                    // check-mode entry with a stored IAPI already exists.
+                    ASTCache.Entry existing = AST_CACHE.get(uri);
+                    if (existing == null || !existing.supportsDoEsc()) {
+                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                        cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
+                    }
                 }
-                cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
             }
 
             Map<String, IProverResult.Kind> proofResults =
                     prc != null ? prc.getResults() : Map.of();
             // When --method targets a specific method, retain only that method's result;
             // other methods are SKIPPED by OpenJML and are not meaningful to the caller.
+            // Keys are now FQN+signature ("ClassName.m(int)"); compare by bare name.
             if (methodName != null && !methodName.isEmpty()) {
-                String simpleTarget = methodName.contains(".")
-                        ? methodName.substring(methodName.lastIndexOf('.') + 1)
-                        : methodName;
+                String simpleTarget = bareMethodName(methodName);
                 proofResults = proofResults.entrySet().stream()
-                        .filter(e -> e.getKey().equals(simpleTarget))
+                        .filter(e -> bareMethodName(e.getKey()).equals(simpleTarget))
                         .collect(java.util.stream.Collectors.toMap(
                                 Map.Entry::getKey, Map.Entry::getValue,
                                 (a, b) -> a, java.util.LinkedHashMap::new));
@@ -1946,7 +2032,7 @@ public class CheckRunner {
     private static CheckResult runOnFile(
             String filePath, String uri, OpenJMLSettings settings, String modeFlag,
             String methodName, boolean collectProofResults, Consumer<IAPI> onApiReady,
-            java.util.function.Consumer<MethodSymbol> onMethodStarted) {
+            java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
         var listener = new LspDiagnosticListener();
         if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
@@ -2002,15 +2088,22 @@ public class CheckRunner {
         System.err.println("[CheckRunner.runOnFile] exit code " + rc
                 + " (" + modeFlag + ")");
 
-        // Only --check runs update the AST cache; --esc discards to preserve the --check entry.
-        if (capturedAst[0] != null && "--check".equals(modeFlag)) {
-            if (rc == 0) {
-                AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
-                              api, listener, filePath);
-            } else {
-                AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+        if (capturedAst[0] != null) {
+            if ("--check".equals(modeFlag)) {
+                if (rc == 0) {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                                  api, listener, filePath);
+                } else {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                }
+                cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
+            } else if ("--esc".equals(modeFlag)) {
+                ASTCache.Entry existing = AST_CACHE.get(uri);
+                if (existing == null || !existing.supportsDoEsc()) {
+                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
+                }
             }
-            cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
         }
 
         Map<String, IProverResult.Kind> proofResults =

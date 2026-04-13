@@ -274,9 +274,9 @@ public class JmlEsc extends JmlTreeScanner {
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
             @Override
-            public IProverResult makeProverResult(MethodSymbol msym, String prover, IProverResult.Kind kind, java.util.Date start) {
-                ProverResult pr = new ProverResult(prover,kind,msym);
-                pr.methodSymbol = msym;
+            public IProverResult makeProverResult(JmlMethodDecl decl, String prover, IProverResult.Kind kind, java.util.Date start) {
+                ProverResult pr = new ProverResult(prover,kind,decl);
+                pr.methodDecl = decl;
                 if (start != null) {
                     pr.accumulateDuration((pr.timestamp().getTime()-start.getTime())/1000.);
                     pr.setTimestamp(start);
@@ -284,9 +284,9 @@ public class JmlEsc extends JmlTreeScanner {
                 return pr;
             }
         };
-        IProverResult res = factory.makeProverResult(methodDecl.sym,"",IProverResult.SKIPPED,new java.util.Date());
+        IProverResult res = factory.makeProverResult(methodDecl,"",IProverResult.SKIPPED,new java.util.Date());
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
-        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
+        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl, res);
         count(IProverResult.SKIPPED, methodDecl.sym);
         return res;
     }
@@ -339,7 +339,7 @@ public class JmlEsc extends JmlTreeScanner {
         log.resetRecord();
 
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
-        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.RUNNING,methodDecl.sym));
+        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl, new ProverResult(proverToUse,IProverResult.RUNNING,methodDecl));
 
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
@@ -387,7 +387,7 @@ public class JmlEsc extends JmlTreeScanner {
                 throw e;  // cause is checked or null - outer Throwable handler picks this up
             }
         } catch (Main.JmlCanceledException e) {
-            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym);
+            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl);
             utils.progress(1,Utils.PROGRESS,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$
             + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$
             + " - exception"
@@ -403,15 +403,15 @@ public class JmlEsc extends JmlTreeScanner {
             }
             log.report(d);
             count(IProverResult.ERROR);
-            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);
+            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl).setOtherInfo(d);
             utils.progress(1,Utils.PROGRESS,"Proof ABORTED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$
                     + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$
                     + " - exception"
                     );
             // FIXME - add a message? use a factory?
         } finally {
-        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
-        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.COMPLETED,methodDecl.sym));
+        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl, res);
+        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl, new ProverResult(proverToUse,IProverResult.COMPLETED,methodDecl));
             //System.out.println("END " + utils.abbrevMethodSig(methodDecl.sym));
         }
         return res;

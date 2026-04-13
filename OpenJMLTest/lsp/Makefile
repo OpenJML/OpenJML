@@ -95,7 +95,9 @@ TEST_CLASSES := \
   MultiProjectTest \
   SplitEscTest \
   WorkspaceIndexTest \
-  DocumentHighlightTest
+  DocumentHighlightTest \
+  ModelMethodEscTest \
+  MultiClassEscTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 

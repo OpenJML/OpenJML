@@ -190,9 +190,9 @@ public class CheckRunnerEscAndRacTest extends LspTestBase {
 
         assertEquals("Verified method should exit with code 0", 0, result.exitCode());
         assertTrue("identity must appear in proofResults",
-                result.proofResults().containsKey("identity"));
+                result.proofResultForMethod("identity") != null);
         assertEquals("identity should be UNSAT (verified)",
-                IProverResult.UNSAT, result.proofResults().get("identity"));
+                IProverResult.UNSAT, result.proofResultForMethod("identity"));
     }
 
     @Test
@@ -241,9 +241,9 @@ public class CheckRunnerEscAndRacTest extends LspTestBase {
                 f.getAbsolutePath(), fileUri(f), "identity", new OpenJMLSettings());
 
         assertTrue("Targeted method 'identity' must appear in proofResults",
-                result.proofResults().containsKey("identity"));
+                result.proofResultForMethod("identity") != null);
         assertEquals("Targeted method 'identity' should be UNSAT (verified)",
-                IProverResult.UNSAT, result.proofResults().get("identity"));
+                IProverResult.UNSAT, result.proofResultForMethod("identity"));
     }
 
     // -----------------------------------------------------------------------

@@ -113,6 +113,22 @@ public class CommandDispatchTest {
         }
     }
 
+    /** Like {@link #nextDiagsContaining} but skips notifications with an empty diagnostics array. */
+    private JsonObject nextNonEmptyDiagsContaining(String uriFragment, long timeout, TimeUnit unit)
+            throws InterruptedException {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        while (true) {
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) return null;
+            JsonObject msg = client.nextNotification(
+                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
+            if (msg == null) return null;
+            JsonObject params = msg.getAsJsonObject("params");
+            if (!params.get("uri").getAsString().contains(uriFragment)) continue;
+            if (!params.getAsJsonArray("diagnostics").isEmpty()) return msg;
+        }
+    }
+
     private static boolean hasError(JsonArray diags) {
         for (var el : diags) {
             JsonObject d = el.getAsJsonObject();
@@ -167,8 +183,8 @@ public class CommandDispatchTest {
         String argsJson = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(f.getAbsolutePath()) + "\"]";
         sendCommand(OpenJMLCommands.RUN_ESC, argsJson);
 
-        JsonObject note = nextDiagsContaining("CmdEscFail", TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertNotNull("Expected publishDiagnostics for CmdEscFail.java", note);
+        JsonObject note = nextNonEmptyDiagsContaining("CmdEscFail", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected non-empty publishDiagnostics for CmdEscFail.java", note);
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected at least one ESC diagnostic for 'ensures false'", diags.isEmpty());
     }

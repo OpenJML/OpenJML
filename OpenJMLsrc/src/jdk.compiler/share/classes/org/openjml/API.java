@@ -815,15 +815,15 @@ public class API implements IAPI {
     @Override
     public IProverResult doESC(JmlMethodDecl decl) {
         JmlEsc esc = JmlEsc.instance(main.context());
-        class L implements IProofResultListener { 
+        class L implements IProofResultListener {
         	public L(IProofResultListener chained) { this.chained = chained; }
         	public IProofResultListener chained;
-        	public IProverResult result; 
-        	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
+        	public IProverResult result;
+        	public void reportProofResult(JmlMethodDecl methodDecl, IProverResult result) {
                 if (result.result() == IProverResult.COMPLETED) return;
                 if (result.result() == IProverResult.RUNNING) return;
-        		this.result = result; 
-        		if (chained != null) chained.reportProofResult(msym, result);
+        		this.result = result;
+        		if (chained != null) chained.reportProofResult(methodDecl, result);
         	}
         };
         

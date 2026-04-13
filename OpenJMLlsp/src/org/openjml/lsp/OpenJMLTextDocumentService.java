@@ -1034,6 +1034,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         IAPI batchApi = runningEscApis.get(batchKey);
                         if (batchApi != null) { runningEscApis.put(uri, batchApi); batchUriKeys.add(uri); }
                         markMethodCheckingByName(uri, methodName);
+                        executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
                     } else {
                         // Completion event: update diagnostics and final status progressively.
                         if (!diags.isEmpty()) storeEscDiags(uri, diags);
@@ -1041,12 +1042,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             addVerifiedDiagnostics(uri, partialResults, null);
                         }
                         updateEscStatusPartial(uri, diags, partialResults);
+                        executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
                     }
-                    // Dispatch publishMerged and refreshCodeLenses on the general executor so
-                    // the ESC pool thread is not blocked by LSP transport I/O.  publishDiagnostics
-                    // is the reliable trigger for lens refresh in LSP4E; workspace/codeLens/refresh
-                    // alone may not be acted on promptly.
-                    executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
                 }, hook);
                 if (client == null) return;
                 // After the full run, publish the final state for every affected file
@@ -1135,10 +1132,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     CheckRunner.CheckResult result = (content != null)
                             ? CheckRunner.escWithContext(uri, content, snapshot, s,
                                     api -> runningEscApis.put(uri, api),
-                                    msym -> { markMethodCheckingByName(uri, msym.getSimpleName().toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); })
+                                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); })
                             : CheckRunner.runEscFile(filePath, uri, s,
                                     api -> runningEscApis.put(uri, api),
-                                    msym -> { markMethodCheckingByName(uri, msym.getSimpleName().toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); });
+                                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); });
                     storeEscDiags(uri, result.diagnostics());
                     updateEscStatus(uri, result.diagnostics(), result.proofResults(),
                             result.exitCode(), result.foreignMessages());
@@ -1768,7 +1765,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleEscForMethod(String uri, String methodName, String projectId) {
         OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
         String content = lastContent.get(uri);
-        JavaSourceScanner.MethodInfo target = findMethod(content, methodName);
+        JavaSourceScanner.MethodInfo target = findMethod(uri, content, methodName);
 
         // If the method is currently CHECKING, the user clicked "✕ Cancel":
         // abort the in-flight proof only; do not stop the whole ESC run.
@@ -1788,10 +1785,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
         }
 
-        // When the code-lens sends "name@startLine", target carries the resolved simple
-        // name.  Use it for the --method flag so OpenJML receives a plain identifier, not
-        // "name@startLine" which it would not recognise and would skip.
-        final String escMethodName = (target != null) ? target.name() : methodName;
+        // rawName() carries "owner.FQN.methodName(sig)" for AST-derived MethodInfo entries,
+        // which OpenJML's --method flag accepts.  For regex-derived entries (before the first
+        // check) rawName() is the bare method name, which still works for simple cases.
+        final String escMethodName = (target != null) ? target.rawName() : methodName;
 
         if (s.isEscApiMode()) {
             // Submit through escPool so this request joins the same shared queue
@@ -1826,9 +1823,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *   <li>a plain name or FQN — matched by simple name (first match wins;
      *       ambiguous for overloads, retained for VS Code / legacy callers).</li>
      * </ul>
+     *
+     * <p>Uses AST-based method discovery when a cached AST is available for
+     * {@code uri}, so that {@link JavaSourceScanner.MethodInfo#rawName()} carries
+     * the FQN+signature key needed to look up proof results.  Falls back to
+     * the regex scanner when no AST is available (e.g. before the first check).
      */
-    private static JavaSourceScanner.MethodInfo findMethod(String content, String nameOrRef) {
+    private static JavaSourceScanner.MethodInfo findMethod(String uri, String content,
+                                                            String nameOrRef) {
         if (content == null || nameOrRef == null || nameOrRef.isEmpty()) return null;
+        ASTCache.Entry astEntry = uri != null ? CheckRunner.getASTCache().get(uri) : null;
+        List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
+                ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
+                : JavaSourceScanner.findMethods(content);
         int at = nameOrRef.lastIndexOf('@');
         if (at >= 0) {
             try {
@@ -1837,13 +1844,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     // "@cursorLine" format (no name prefix): find the method whose range
                     // contains the cursor line, so the menu command works when the cursor
                     // is anywhere inside the method body, not just on the declaration line.
-                    for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+                    for (JavaSourceScanner.MethodInfo m : methods) {
                         if (m.contains(line)) return m;
                     }
                     return null;
                 }
                 // "name@startLine" format: exact start-line match (code-lens path).
-                for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+                for (JavaSourceScanner.MethodInfo m : methods) {
                     if (m.startLine() == line) return m;
                 }
             } catch (NumberFormatException ignored) {}
@@ -1851,7 +1858,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // Fallback: plain name or FQN — strip to simple name and match first occurrence.
         int dot = nameOrRef.lastIndexOf('.');
         String simpleName = dot >= 0 ? nameOrRef.substring(dot + 1) : nameOrRef;
-        for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+        for (JavaSourceScanner.MethodInfo m : methods) {
             if (simpleName.equals(m.name())) return m;
         }
         return null;
@@ -1959,8 +1966,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
                     // Update only the target method's code-lens status using
                     // the proof result if available, else fall back to diag count.
-                    String simpleName = target.name();
-                    IProverResult.Kind kind = result.proofResults().get(simpleName);
+                    // target.rawName() is FQN+sig when AST was available for findMethod;
+                    // proofResultForMethod handles both the exact-key and bare-name cases.
+                    IProverResult.Kind kind = result.proofResultForMethod(
+                            CheckRunner.bareMethodName(target.rawName()));
                     MethodStatus ms = proofResultToStatus(kind, diags, start, end,
                                                           result.exitCode(), result.hasForeignErrors());
                     Map<Integer, MethodStatus> statuses =
@@ -2227,13 +2236,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (content != null) {
             Map<String, String> snapshot = dirtySnapshot();
             submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, s, hook,
-                    msym -> { markMethodCheckingByName(uri, msym.getSimpleName().toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); }));
+                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); }));
             return;
         }
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
         submitEsc(uri, hook -> CheckRunner.runEscFile(filePath, uri, s, hook,
-                msym -> { markMethodCheckingByName(uri, msym.getSimpleName().toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); }));
+                methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); }));
     }
 
 
@@ -2242,7 +2251,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         final OpenJMLSettings s = settingsForUri(uri);
         if (s == null) return;
         submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, s, hook,
-                msym -> { markMethodCheckingByName(uri, msym.getSimpleName().toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); }));
+                methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); }));
     }
 
 
@@ -2578,18 +2587,21 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                  List<String> foreignFiles) {
         String content = lastContent.get(uri);
         if (content == null) return;
-        // Use the same method-discovery strategy as codeLens() so startLine keys match.
-        // rawName() gives the proof-result lookup key ("<init>" for constructors).
+        // ESC always produces an attributed AST which is stored in the cache, so
+        // AST-based discovery is always available here.  Regex fallback is not needed.
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
-        List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
-                ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
-                : JavaSourceScanner.findMethods(content);
+        if (astEntry == null) {
+            System.err.println("[OpenJML] updateEscStatus: no AST for " + uri + " — skipping");
+            return;
+        }
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content);
         if (methods.isEmpty()) return;
 
         boolean hasForeignErrors = !foreignFiles.isEmpty();
         Map<Integer, MethodStatus> statuses = new HashMap<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
-            IProverResult.Kind kind = proofResults.get(m.rawName());
+            IProverResult.Kind kind = CheckRunner.lookupResult(proofResults, m.rawName());
             statuses.put(m.startLine(),
                     proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
                                         exitCode, hasForeignErrors));
@@ -2630,20 +2642,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (content == null || proofResults.isEmpty()) return;
         String[] lines = content.split("\n", -1);
 
-        // Use the same discovery strategy as updateEscStatus: AST-based when available
-        // so that default (implicit) constructors are included.
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
-        List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
-                ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
-                : JavaSourceScanner.findMethods(content);
+        if (astEntry == null) return;
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content);
 
         List<Diagnostic> verified = new ArrayList<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
             // For per-method runs consider only the target method.
             if (target != null && m.startLine() != target.startLine()) continue;
-            // Use rawName() for the proof-result lookup: constructors have rawName "<init>"
-            // while proofResults keys them by "<init>", not by the class name.
-            if (proofResults.get(m.rawName()) != IProverResult.UNSAT) continue;
+            // Use rawName() for the proof-result lookup: FQN+sig key from AST, bare name
+            // from regex fallback. lookupResult() handles both cases.
+            if (CheckRunner.lookupResult(proofResults, m.rawName()) != IProverResult.UNSAT) continue;
             int line = m.startLine();   // 0-based
             if (line >= lines.length) continue;
             String lineText = lines[line];
@@ -2694,12 +2704,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             Map<String, IProverResult.Kind> partialProofResults) {
         String content = lastContent.get(uri);
         if (content == null) return;
-        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
+        if (astEntry == null) return;
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content);
         if (methods.isEmpty()) return;
         Map<Integer, MethodStatus> current = new HashMap<>(
                 methodEscStatus.getOrDefault(uri, Map.of()));
         for (JavaSourceScanner.MethodInfo m : methods) {
-            IProverResult.Kind kind = partialProofResults.get(m.name());
+            IProverResult.Kind kind = CheckRunner.lookupResult(partialProofResults, m.rawName());
             if (kind == null) continue;   // not yet proven — leave as CHECKING or UNKNOWN
             // exitCode=0: the run is in progress; kind != null so exitCode is not used
             // by proofResultToStatus (null-kind is the only path that reads exitCode).
@@ -2833,6 +2846,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         merged.addAll(racDiags.getOrDefault(uri, List.of()));
         publishDiags(uri, merged);
     }
+
 
     // --- debounce / cancel helpers ---
 

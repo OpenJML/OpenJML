@@ -191,28 +191,41 @@ public class JavaSourceScanner {
 
         @Override
         public void visitClassDef(JCClassDecl tree) {
-            if (bodyDepth > 0) return;  // skip anonymous / local classes
+            // Visit all classes (top-level, secondary, nested members).
+            // Local and anonymous classes — which live inside a JCBlock and therefore
+            // have bodyDepth > 0 — are reached here but their methods are excluded by
+            // the bodyDepth guard in visitMethodDef.  They will be handled separately
+            // using a character-offset key once the main refactoring is stable.
             super.visitClassDef(tree);
         }
 
         @Override
         public void visitMethodDef(JCMethodDecl tree) {
-            if (bodyDepth > 0 || tree.pos < 0) return;
+            // bodyDepth > 0 means we are inside a method body (JCBlock); methods that
+            // appear there belong to local or anonymous classes — deferred.
+            if (bodyDepth > 0 || tree.pos < 0 || tree.sym == null) return;
             String rawName = tree.name != null ? tree.name.toString() : "";
-            // Skip synthetic methods (<init> constructors are fine; <clinit> etc. are not).
+            // Skip synthetic methods (<clinit> etc.); keep <init> constructors.
             if (rawName.isEmpty() || (rawName.startsWith("<") && !"<init>".equals(rawName))) return;
-            // Use the simple name for constructors: callers use methodFqn() to build the FQN.
+
+            // Display name: class simple name for constructors, method name otherwise.
+            String ownerSimple = tree.sym.owner != null
+                    ? tree.sym.owner.getSimpleName().toString() : "";
             String name = "<init>".equals(rawName)
-                    ? extractSimpleClassName(cu)
+                    ? (ownerSimple.isEmpty() ? "<init>" : ownerSimple)
                     : rawName;
-            if (name.isEmpty()) return;
+
+            // Proof-result key: owner FQN + "." + method-with-signature.
+            // Both ProofResultCollector and this walker derive the key from sym, so
+            // they will always agree regardless of class nesting depth.
+            String fqnKey = tree.sym.owner.toString() + "." + tree.sym.toString();
 
             int startLine = Math.max(0, (int) cu.lineMap.getLineNumber(tree.pos) - 1);
             int endOffset = cu.endPositions != null ? tree.getEndPosition(cu.endPositions) : -1;
             int endLine = (endOffset > tree.pos)
                     ? Math.max(startLine, (int) cu.lineMap.getLineNumber(endOffset) - 1)
                     : startLine;
-            result.add(new MethodInfo(name, rawName, startLine, findSpecStart(lines, startLine), endLine));
+            result.add(new MethodInfo(name, fqnKey, startLine, findSpecStart(lines, startLine), endLine));
         }
 
         @Override
@@ -220,18 +233,6 @@ public class JavaSourceScanner {
             bodyDepth++;
             super.visitBlock(tree);
             bodyDepth--;
-        }
-
-        /** Extract the simple (unqualified) class name from the compilation unit's package+type. */
-        private static String extractSimpleClassName(JmlCompilationUnit cu) {
-            if (cu.defs == null) return "";
-            for (var def : cu.defs) {
-                if (def instanceof JCClassDecl cd && cd.name != null) {
-                    String n = cd.name.toString();
-                    if (!n.isEmpty()) return n;
-                }
-            }
-            return "";
         }
     }
 

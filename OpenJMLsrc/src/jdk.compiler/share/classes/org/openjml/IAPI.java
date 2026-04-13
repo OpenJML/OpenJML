@@ -102,9 +102,9 @@ public interface IAPI {
     }
     
     public static interface IProofResultListener {
-        
+
         @SuppressWarnings("exports")
-        void reportProofResult(MethodSymbol msym, IProverResult result);
+        void reportProofResult(JmlTree.JmlMethodDecl methodDecl, IProverResult result);
         default IProofResultListener setListener(IProofResultListener listener) { return null; }
     }
 

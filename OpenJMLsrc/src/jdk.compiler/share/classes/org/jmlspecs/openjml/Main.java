@@ -21,6 +21,7 @@ import javax.tools.JavaFileObject;
 import org.openjml.*;
 
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import com.sun.tools.javac.code.*;
 import com.sun.tools.javac.comp.*;
 import com.sun.tools.javac.file.JavacFileManager;
@@ -617,7 +618,7 @@ public class Main extends com.sun.tools.javac.main.Main {
                 new IAPI.IProofResultListener() {
             IAPI.IProofResultListener delegate = null;
             @Override
-            public void reportProofResult(MethodSymbol sym, IProverResult res) { if (delegate != null) delegate.reportProofResult(sym,res); }
+            public void reportProofResult(JmlMethodDecl methodDecl, IProverResult res) { if (delegate != null) delegate.reportProofResult(methodDecl,res); }
             @Override
             public IAPI.IProofResultListener setListener(IAPI.IProofResultListener listener) { 
                 IAPI.IProofResultListener d = delegate; delegate = listener; return d; 

@@ -92,6 +92,22 @@ public class CodeLensAndStatusTest {
         }
     }
 
+    /** Like {@link #nextDiagsFor} but skips notifications with an empty diagnostics array. */
+    private JsonObject nextNonEmptyDiagsFor(String uriFragment, long timeout, TimeUnit unit)
+            throws InterruptedException {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        while (true) {
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) return null;
+            JsonObject msg = client.nextNotification(
+                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
+            if (msg == null) return null;
+            JsonObject params = msg.getAsJsonObject("params");
+            if (!params.get("uri").getAsString().contains(uriFragment)) continue;
+            if (!params.getAsJsonArray("diagnostics").isEmpty()) return msg;
+        }
+    }
+
     /**
      * Send a {@code workspace/executeCommand} request, drain its (immediate) null response,
      * and return without waiting for any async ESC result.
@@ -246,9 +262,10 @@ public class CodeLensAndStatusTest {
         String argsJson = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(uri) + "\"]";
         sendCommandAndDrainResponse(OpenJMLCommands.RUN_ESC, argsJson);
 
-        // Wait for the ESC failure publishDiagnostics.
-        JsonObject note = nextDiagsFor("CodeLensNotVerified", TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertNotNull("Expected publishDiagnostics after ESC", note);
+        // Wait for the ESC failure publishDiagnostics (skip any intermediate empty notifications
+        // from RUNNING events, which are sent before the proof result is available).
+        JsonObject note = nextNonEmptyDiagsFor("CodeLensNotVerified", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected non-empty publishDiagnostics after ESC", note);
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected at least one ESC diagnostic for 'ensures false'", diags.isEmpty());
 
