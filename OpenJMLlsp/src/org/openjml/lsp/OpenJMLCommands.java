@@ -131,6 +131,18 @@ public final class OpenJMLCommands {
     public static final String CANCEL_ESC         = "openjml.cancelEsc";
 
     /**
+     * Abort current proof: {@code openjml.abortCurrentProof}.
+     *
+     * <p>Aborts only the currently-running method proof, then allows the ESC loop
+     * to continue with the next method.  Unlike {@link #CANCEL_ESC}, this does
+     * not prevent subsequent methods from being proved.
+     *
+     * <p>Arguments: {@code [target]} (optional).  Same granularity as
+     * {@link #CANCEL_ESC}.
+     */
+    public static final String ABORT_CURRENT_PROOF = "openjml.abortCurrentProof";
+
+    /**
      * Get running ESC tasks: {@code openjml.getRunningEscTasks}.
      *
      * <p>Returns a {@code List<String>} of task keys for all currently-running

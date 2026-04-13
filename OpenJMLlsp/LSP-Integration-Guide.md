@@ -500,9 +500,11 @@ execution can invoke (or cancel) ESC on a single method by sending
 `workspace/executeCommand` with that command and those arguments.
 
 The command is always `openjml.runEscForMethod` regardless of the current status; when
-the method is already CHECKING the server cancels the in-flight run instead of starting
-a new one, so a single command handles both Run and Cancel without VS Code treating a
-command change as a new lens and showing duplicates.
+the method is already CHECKING the server aborts the in-flight proof (via
+`openjml.abortCurrentProof` semantics) instead of starting a new one, so a single
+command handles both Run and Cancel without VS Code treating a command change as a new
+lens and showing duplicates.  Aborting the current proof does not stop a whole-file or
+project ESC run from continuing to the next method.
 
 The server sends a `workspace/codeLens/refresh` notification whenever method ESC status
 changes (including when a check moves from CHECKING to a final state). A client should
@@ -904,7 +906,8 @@ should implement the same pattern: save first, then call `openjml.runEsc`.
 
 ### `openjml.cancelEsc`
 
-Cancel one or more in-progress ESC runs.
+Cancel one or more in-progress ESC runs.  **Stops all remaining proofs** in the
+targeted run — no further methods are attempted after cancellation.
 
 ```
 command:   "openjml.cancelEsc"
@@ -922,6 +925,33 @@ arguments: ["<target>"]
 Cancelled methods have their code lens status set to `Cancelled`; other methods are
 unaffected.
 
+Use `openjml.abortCurrentProof` instead when the intent is to skip only the
+currently-running proof and continue proving the remaining methods.
+
+### `openjml.abortCurrentProof`
+
+Abort only the currently-running method proof, then allow the ESC loop to continue
+with the next method.  The in-progress SMT solver invocation is killed immediately
+and the method is reported `Cancelled`, but no further proofs are prevented.
+
+```
+command:   "openjml.abortCurrentProof"
+arguments: ["<target>"]
+```
+
+`target` uses the same format as `openjml.cancelEsc`.  If the target identifies a
+whole-file or project run, only the single method currently being proved is aborted;
+the remaining methods in the queue are unaffected.
+
+| Situation | `openjml.cancelEsc` | `openjml.abortCurrentProof` |
+|-----------|--------------------|-----------------------------|
+| Current method | CANCELLED | CANCELLED |
+| Remaining methods | not attempted | continue normally |
+| Overall run exit code | CANCELLED (5) | determined by remaining proofs |
+
+The code lens "✕ Cancel" action uses `openjml.abortCurrentProof` semantics so
+that cancelling one method in a whole-file run does not discard all pending proofs.
+
 ### `openjml.getRunningEscTasks`
 
 Returns the list of currently running ESC task keys as a JSON array of strings.
@@ -934,7 +964,7 @@ arguments: []
 ```
 
 Clients can use this to populate a cancellation UI (e.g. a checklist dialog or
-Quick Pick) before calling `openjml.cancelEsc`.
+Quick Pick) before calling `openjml.cancelEsc` or `openjml.abortCurrentProof`.
 
 ### `openjml.indexProject`
 

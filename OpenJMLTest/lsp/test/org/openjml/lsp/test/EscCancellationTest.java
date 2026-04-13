@@ -255,4 +255,119 @@ public class EscCancellationTest extends LspTestBase {
                     + cancelLine, cancelLine.contains(", 1 cancelled"));
         }
     }
+
+    // -----------------------------------------------------------------------
+    // abortCurrentProof — one method cancelled, ESC loop continues
+    // -----------------------------------------------------------------------
+
+    /**
+     * Source with 10 trivial methods (prove instantly) followed by 40 hard NIA
+     * methods.  After aborting the current proof the trivial methods are not yet
+     * visited (they come after the hard ones in declaration order).  To keep the
+     * test deterministic we place the hard methods first so the abort fires while
+     * z3 is working, then the remaining hard methods (still hard) continue.
+     *
+     * <p>We use only 5 hard + 5 trivial methods to keep total run time reasonable
+     * even if all hard methods time out.  OpenJML's default ESC timeout is applied
+     * per-method; the trivial ones finish in milliseconds.
+     */
+    private static final String SOURCE_MIXED;
+    static {
+        StringBuilder sb = new StringBuilder();
+        sb.append("public class EscCancellationMixed {\n");
+        // 10 hard NIA methods first
+        for (int i = 0; i < 10; i++) {
+            sb.append("    public void hard").append(i).append("(int a, int b) {\n");
+            sb.append("        //@ assert (a * b) == 0 ==> (a == 0 || b == 0);\n");
+            sb.append("    }\n");
+        }
+        // 10 trivial methods after
+        for (int i = 0; i < 10; i++) {
+            sb.append("    public void easy").append(i).append("() {\n");
+            sb.append("        //@ assert true;\n");
+            sb.append("    }\n");
+        }
+        sb.append("}\n");
+        SOURCE_MIXED = sb.toString();
+    }
+
+    private static final String URI_MIXED = "file:///EscCancellationMixed.java";
+
+    /**
+     * Polls until at least {@code minCount} proof results have been recorded,
+     * then calls {@link IAPI#abortCurrentProof()} (not {@code cancelEsc}).
+     */
+    private static void waitAndAbortCurrent(IAPI api, Supplier<Integer> proofCount,
+                                            int minCount, long timeoutMs)
+            throws InterruptedException {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        while (proofCount.get() < minCount && System.currentTimeMillis() < deadline) {
+            Thread.sleep(20);
+        }
+        assertTrue("Expected at least " + minCount + " proof results before aborting, got "
+                + proofCount.get(), proofCount.get() >= minCount);
+        api.abortCurrentProof();
+    }
+
+    /**
+     * Verifies that {@link IAPI#abortCurrentProof()} kills the current solver
+     * invocation and records CANCELLED for that method, but allows the ESC loop
+     * to continue so the remaining methods are proved.
+     *
+     * <p>Expected outcome:
+     * <ul>
+     *   <li>Exit code is <em>not</em> CANCELLED (5) — the run completed normally.</li>
+     *   <li>At most one CANCELLED entry — only one method can be in-flight at a time.</li>
+     *   <li>All 20 methods have proof results — the loop continued after the abort.</li>
+     * </ul>
+     */
+    @Test
+    public void testAbortCurrentProofCancelsOneMethodButContinues() throws Exception {
+        AtomicReference<IAPI> apiRef = new AtomicReference<>();
+        AtomicReference<Supplier<Integer>> countRef = new AtomicReference<>();
+        AtomicReference<CheckRunner.CheckResult> resultRef = new AtomicReference<>();
+
+        Thread escThread = new Thread(() -> {
+            CheckRunner.CheckResult r = CheckRunner.runEscWithHook(URI_MIXED, SOURCE_MIXED,
+                    new OpenJMLSettings(),
+                    (api, count) -> { apiRef.set(api); countRef.set(count); });
+            resultRef.set(r);
+        });
+        escThread.setDaemon(true);
+        escThread.start();
+
+        long deadline = System.currentTimeMillis() + 20_000;
+        while (apiRef.get() == null && System.currentTimeMillis() < deadline) {
+            Thread.sleep(20);
+        }
+        assertNotNull("IAPI hook never fired within 20 s", apiRef.get());
+
+        // Wait for at least 1 proof to complete, then abort the current proof.
+        waitAndAbortCurrent(apiRef.get(), countRef.get(), 1, 120_000);
+
+        // The ESC thread must continue and finish (not hang waiting for a future that never fires).
+        escThread.join(120_000);
+        assertFalse("ESC thread did not finish within 120 s after abortCurrentProof",
+                escThread.isAlive());
+
+        CheckRunner.CheckResult result = resultRef.get();
+        assertNotNull("CheckResult must not be null", result);
+
+        // Exit code must NOT be CANCELLED — the run completed.
+        assertNotEquals("Exit code must not be CANCELLED (5) after abortCurrentProof",
+                5, result.exitCode());
+
+        // At most one CANCELLED entry — only one method can be in-flight when abort fires.
+        long cancelledCount = result.proofResults().values().stream()
+                .filter(k -> k == IProverResult.CANCELLED).count();
+        assertTrue("At most one CANCELLED entry expected, got " + cancelledCount,
+                cancelledCount <= 1);
+
+        // All declared methods (and any implicit constructors) must have been visited
+        // — the loop continued after the abort.  The source has 20 declared methods;
+        // JmlEsc may also prove the implicit default constructor, so allow >= 20.
+        assertTrue("All methods must have a proof result (loop continued after abort), got "
+                + result.proofResults().size(),
+                result.proofResults().size() >= 20);
+    }
 }

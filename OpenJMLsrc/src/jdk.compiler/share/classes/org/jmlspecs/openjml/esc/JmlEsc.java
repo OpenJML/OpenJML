@@ -249,8 +249,10 @@ public class JmlEsc extends JmlTreeScanner {
             if (Main.instance(context).canceled) throw new Main.JmlCanceledException("");
             doMethod(methodDecl);
         } catch (PropagatedException e) {
-            // CANCELLED was already reported by doMethod's finally block; just propagate.
-            throw e;
+            // Full cancel: propagate so the entire ESC run stops.
+            if (Main.instance(context).canceled) throw e;
+            // Abort-current-only (abortCurrentProof): result already reported by
+            // doMethod's finally block.  Let the loop continue with the next method.
         } finally {
             JmlOptions.instance(context).popOptions();
         }

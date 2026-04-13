@@ -594,6 +594,20 @@ public interface IAPI {
     public void cancelEsc();
 
     /**
+     * Aborts only the currently-running method proof, then allows the ESC loop to
+     * continue with the next method.  The in-progress SMT solver invocation is killed
+     * immediately and the method is reported CANCELLED, but subsequent methods are
+     * unaffected.
+     *
+     * <p>Unlike {@link #cancelEsc()}, this call does <em>not</em> set the global
+     * {@code canceled} flag, so the ESC run is not terminated.
+     *
+     * <p>Safe to call from a different thread than the one running the ESC.
+     * No-op if no ESC is currently running.
+     */
+    public void abortCurrentProof();
+
+    /**
      * Returns {@code true} once the ESC engine ({@link JmlEsc}) has been constructed
      * inside the compiler context for the current {@link #execute} call.  This is a
      * best-effort signal that proving is underway; it does <em>not</em> guarantee that

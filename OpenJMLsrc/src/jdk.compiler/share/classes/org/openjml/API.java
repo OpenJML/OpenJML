@@ -227,6 +227,15 @@ public class API implements IAPI {
         if (esc != null) esc.abort();
     }
 
+    // Expected to be called from a different thread than the ESC thread.
+    @Override
+    public void abortCurrentProof() {
+        if (main == null) return;
+        // Do NOT set main.canceled - the ESC loop must continue after this method.
+        JmlEsc esc = JmlEsc.getIfCreated(main.context());
+        if (esc != null) esc.abort();
+    }
+
    
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])

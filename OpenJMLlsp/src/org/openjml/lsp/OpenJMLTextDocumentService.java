@@ -1744,13 +1744,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         JavaSourceScanner.MethodInfo target = findMethod(content, methodName);
 
         // If the method is currently CHECKING, the user clicked "✕ Cancel":
-        // cancel the in-flight run instead of starting a new one.
+        // abort the in-flight proof only; do not stop the whole ESC run.
         if (target != null) {
             MethodStatus current = methodEscStatus
                     .getOrDefault(uri, Map.of())
                     .getOrDefault(target.startLine(), MethodStatus.UNKNOWN);
             if (current.result() == EscResult.CHECKING) {
-                cancelEsc(uri + "#" + target.name() + "@" + target.startLine());
+                abortCurrentProof(uri + "#" + target.name() + "@" + target.startLine());
                 return;
             }
         }
@@ -2770,6 +2770,33 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (c != null) c.cancel(false);
         ScheduledFuture<?> e = pendingEsc.remove(uri);
         if (e != null) e.cancel(false);
+    }
+
+    /**
+     * Abort only the currently-running method proof for the given target, then
+     * allow the ESC loop to continue with the next method.  Same target format as
+     * {@link #cancelEsc(String)}, but calls {@link org.openjml.IAPI#abortCurrentProof()}
+     * instead of {@link org.openjml.IAPI#cancelEsc()}, so the ESC run is not terminated.
+     */
+    void abortCurrentProof(String target) {
+        if (target != null && target.contains("#")) {
+            abortCurrentProofForMethodKey(target);
+        } else if (target != null && !target.isEmpty()) {
+            abortCurrentProofForUri(target);
+        } else {
+            new ArrayList<>(runningEscTasks.keySet()).forEach(this::abortCurrentProofForUri);
+            new ArrayList<>(runningEscMethodTasks.keySet()).forEach(this::abortCurrentProofForMethodKey);
+        }
+    }
+
+    private void abortCurrentProofForUri(String uri) {
+        IAPI api = runningEscApis.get(uri);
+        if (api != null) api.abortCurrentProof();
+    }
+
+    private void abortCurrentProofForMethodKey(String methodKey) {
+        IAPI api = runningEscMethodApis.get(methodKey);
+        if (api != null) api.abortCurrentProof();
     }
 
     /**
