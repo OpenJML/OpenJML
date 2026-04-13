@@ -401,8 +401,18 @@ public class LspProtocolTest {
         // → runWithContentOrFile finds lastContent → runs ESC on in-memory source.
         executeCommandWithUri(OpenJMLCommands.RUN_ESC, uri);
 
-        // ESC publishes its own diagnostics notification.
-        JsonObject escNotif = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        // ESC may publish intermediate empty notifications (e.g. when a method proof starts
+        // and the CHECKING state is pushed before results arrive).  Poll until we receive a
+        // non-empty diagnostics notification for this URI.
+        JsonObject escNotif = null;
+        long escDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
+        while (System.nanoTime() < escDeadline) {
+            long remaining = escDeadline - System.nanoTime();
+            JsonObject notif = nextDiagsForUri(uri, remaining, TimeUnit.NANOSECONDS);
+            if (notif == null) break;
+            JsonArray diags = notif.getAsJsonObject("params").getAsJsonArray("diagnostics");
+            if (!diags.isEmpty()) { escNotif = notif; break; }
+        }
         assertNotNull("Expected publishDiagnostics notification after openjml.runEsc", escNotif);
         JsonArray escDiags = escNotif.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected ESC to report a postcondition violation", escDiags.isEmpty());

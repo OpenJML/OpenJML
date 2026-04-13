@@ -142,8 +142,10 @@ public class CheckRunner {
 
     /**
      * Collects per-method ESC proof results from OpenJML's
-     * {@code IProofResultListener}.  Transient states (RUNNING, COMPLETED,
-     * CANCELLED) are ignored; only the final result per method is kept.
+     * {@code IProofResultListener}.  COMPLETED events are ignored; all other
+     * terminal results are kept.  A RUNNING event signals that a method proof has
+     * just started — the optional {@link #onMethodStarted} callback is invoked for
+     * these so the LSP layer can update the code lens to CHECKING immediately.
      */
     private static class ProofResultCollector implements IAPI.IProofResultListener {
         private final Map<String, IProverResult.Kind> results = new LinkedHashMap<>();
@@ -155,20 +157,31 @@ public class CheckRunner {
          */
         private final java.util.function.Consumer<MethodSymbol> perMethodCallback;
 
+        /**
+         * Optional callback invoked when a method proof starts (RUNNING event).
+         * Allows the LSP layer to update that method's code lens to CHECKING before
+         * the proof result arrives.
+         */
+        private java.util.function.Consumer<MethodSymbol> onMethodStarted;
+
         ProofResultCollector() { this(null); }
 
         ProofResultCollector(java.util.function.Consumer<MethodSymbol> perMethodCallback) {
             this.perMethodCallback = perMethodCallback;
         }
 
+        void setOnMethodStarted(java.util.function.Consumer<MethodSymbol> cb) {
+            this.onMethodStarted = cb;
+        }
+
         @Override
         public void reportProofResult(MethodSymbol msym, IProverResult result) {
             IProverResult.Kind kind = result.result();
-            // Ignore transient lifecycle notifications; record all terminal outcomes
-            // (including CANCELLED — the method that was mid-proof when cancel fired).
-            if (kind == IProverResult.RUNNING || kind == IProverResult.COMPLETED) {
+            if (kind == IProverResult.RUNNING) {
+                if (onMethodStarted != null) onMethodStarted.accept(msym);
                 return;
             }
+            if (kind == IProverResult.COMPLETED) return;
             String name = msym.getSimpleName().toString();
             results.put(name, kind);
             // Log immediately so the console shows progress as each method completes.
@@ -414,14 +427,20 @@ public class CheckRunner {
 
     /**
      * Callback invoked after each method's proof completes during an ESC run.
-     * Receives the file URI, the diagnostics accumulated so far for that file,
-     * and a snapshot of the proof results recorded so far (all methods that have
-     * finished, keyed by simple method name).  Use the snapshot to update
-     * per-method code-lens status incrementally without waiting for the full run.
+     * Receives the file URI, the simple name of the method whose proof is starting
+     * (the RUNNING event), the diagnostics accumulated so far for that file, and a
+     * snapshot of the proof results recorded so far (all methods that have finished,
+     * keyed by simple method name).  Use the snapshot to update per-method code-lens
+     * status incrementally without waiting for the full run.
+     *
+     * <p>The {@code startingMethod} is the method that just fired a RUNNING event —
+     * it has NOT yet been added to {@code proofResultsSoFar}.  Use it to flip that
+     * method's code lens to CHECKING while it is being proved.
      */
     @FunctionalInterface
     public interface EscProgressCallback {
         void accept(String uri,
+                    String startingMethod,
                     List<org.eclipse.lsp4j.Diagnostic> diagsSoFar,
                     Map<String, IProverResult.Kind> proofResultsSoFar);
     }
@@ -455,9 +474,21 @@ public class CheckRunner {
             try { uri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
             catch (Exception e) { log("[runEscDir callback] URI conversion failed: " + e); return; }
             List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(uri);
-            perFileCallback.accept(uri, diags, Map.copyOf(prcRef[0].getResults()));
+            perFileCallback.accept(uri, msym.getSimpleName().toString(), diags, Map.copyOf(prcRef[0].getResults()));
         });
         ProofResultCollector prc = prcRef[0];
+        // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
+        if (perFileCallback != null) {
+            prc.setOnMethodStarted(msym -> {
+                javax.tools.JavaFileObject src =
+                        msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+                if (src == null) return;
+                String onUri;
+                try { onUri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
+                catch (Exception e) { return; }
+                perFileCallback.accept(onUri, msym.getSimpleName().toString(), null, null);
+            });
+        }
         api.setProofResultListener(prc);
         if (onApiReady != null) onApiReady.accept(api);
 
@@ -567,9 +598,23 @@ public class CheckRunner {
             catch (Exception ex) { log("[runEscDirWithContext callback] URI failed: " + ex); return; }
             String realUri = finalAllPathToRealUri.getOrDefault(srcName, lookupUri);
             List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
-            perFileCallback.accept(realUri, diags, Map.copyOf(prcRef[0].getResults()));
+            perFileCallback.accept(realUri, msym.getSimpleName().toString(), diags, Map.copyOf(prcRef[0].getResults()));
         });
         ProofResultCollector prc = prcRef[0];
+        // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
+        if (perFileCallback != null) {
+            prc.setOnMethodStarted(msym -> {
+                javax.tools.JavaFileObject src =
+                        msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+                if (src == null) return;
+                String srcName = src.getName();
+                String onUri;
+                try { onUri = finalAllPathToRealUri.getOrDefault(srcName,
+                        java.nio.file.Path.of(srcName).toUri().toString()); }
+                catch (Exception ex) { return; }
+                perFileCallback.accept(onUri, msym.getSimpleName().toString(), null, null);
+            });
+        }
         api.setProofResultListener(prc);
         if (onApiReady != null) onApiReady.accept(api);
 
@@ -670,9 +715,23 @@ public class CheckRunner {
                 catch (Exception ex) { log("[runEscDirWithContextLegacy callback] URI failed: " + ex); return; }
                 String realUri = finalAllPathToRealUri.getOrDefault(srcName, lookupUri);
                 List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
-                perFileCallback.accept(realUri, diags, Map.copyOf(prcRef[0].getResults()));
+                perFileCallback.accept(realUri, msym.getSimpleName().toString(), diags, Map.copyOf(prcRef[0].getResults()));
             });
             ProofResultCollector prc = prcRef[0];
+            // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
+            if (perFileCallback != null) {
+                prc.setOnMethodStarted(msym -> {
+                    javax.tools.JavaFileObject src =
+                            msym.enclClass() != null ? msym.enclClass().sourcefile : null;
+                    if (src == null) return;
+                    String srcName = src.getName();
+                    String onUri;
+                    try { onUri = finalAllPathToRealUri.getOrDefault(srcName,
+                            java.nio.file.Path.of(srcName).toUri().toString()); }
+                    catch (Exception ex) { return; }
+                    perFileCallback.accept(onUri, msym.getSimpleName().toString(), null, null);
+                });
+            }
             api.setProofResultListener(prc);
             if (onApiReady != null) onApiReady.accept(api);
 
@@ -805,7 +864,20 @@ public class CheckRunner {
             String uri, String content,
             Map<String, String> openContent, OpenJMLSettings settings,
             Consumer<IAPI> onApiReady) {
-        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, onApiReady);
+        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, onApiReady, null);
+    }
+
+    /**
+     * Like {@link #escWithContext(String, String, Map, OpenJMLSettings, Consumer)} but also
+     * fires {@code onMethodStarted} each time a method proof begins (RUNNING event),
+     * allowing the caller to update the code lens to CHECKING before the result arrives.
+     */
+    public static CheckResult escWithContext(
+            String uri, String content,
+            Map<String, String> openContent, OpenJMLSettings settings,
+            Consumer<IAPI> onApiReady,
+            java.util.function.Consumer<MethodSymbol> onMethodStarted) {
+        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, onApiReady, onMethodStarted);
     }
 
     /**
@@ -1239,7 +1311,17 @@ public class CheckRunner {
     /** Like {@link #runEscFile} but fires {@code onApiReady} after the IAPI is set up. */
     public static CheckResult runEscFile(String filePath, String uri, OpenJMLSettings settings,
                                          Consumer<IAPI> onApiReady) {
-        return runOnFile(filePath, uri, settings, "--esc", null, true, onApiReady);
+        return runOnFile(filePath, uri, settings, "--esc", null, true, onApiReady, null);
+    }
+
+    /**
+     * Like {@link #runEscFile(String, String, OpenJMLSettings, Consumer)} but also
+     * fires {@code onMethodStarted} each time a method proof begins (RUNNING event).
+     */
+    public static CheckResult runEscFile(String filePath, String uri, OpenJMLSettings settings,
+                                         Consumer<IAPI> onApiReady,
+                                         java.util.function.Consumer<MethodSymbol> onMethodStarted) {
+        return runOnFile(filePath, uri, settings, "--esc", null, true, onApiReady, onMethodStarted);
     }
 
     /** Run {@code --esc} on a single method in a file already on disk. */
@@ -1444,6 +1526,16 @@ public class CheckRunner {
             Map<String, String> openContent, OpenJMLSettings settings,
             String modeFlag, String methodName, boolean collectProofResults,
             Consumer<IAPI> onApiReady) {
+        return runOnContentWithContext(uri, content, openContent, settings,
+                modeFlag, methodName, collectProofResults, onApiReady, null);
+    }
+
+    private static CheckResult runOnContentWithContext(
+            String uri, String content,
+            Map<String, String> openContent, OpenJMLSettings settings,
+            String modeFlag, String methodName, boolean collectProofResults,
+            Consumer<IAPI> onApiReady,
+            java.util.function.Consumer<MethodSymbol> onMethodStarted) {
 
         var listener = new LspDiagnosticListener();
         if (content != null) listener.setSourceContent(content);
@@ -1454,6 +1546,7 @@ public class CheckRunner {
         ProofResultCollector prc = null;
         if (collectProofResults) {
             prc = new ProofResultCollector();
+            if (onMethodStarted != null) prc.setOnMethodStarted(onMethodStarted);
             api.setProofResultListener(prc);
         }
         if (onApiReady != null) onApiReady.accept(api);
@@ -1846,6 +1939,14 @@ public class CheckRunner {
     private static CheckResult runOnFile(
             String filePath, String uri, OpenJMLSettings settings, String modeFlag,
             String methodName, boolean collectProofResults, Consumer<IAPI> onApiReady) {
+        return runOnFile(filePath, uri, settings, modeFlag, methodName,
+                collectProofResults, onApiReady, null);
+    }
+
+    private static CheckResult runOnFile(
+            String filePath, String uri, OpenJMLSettings settings, String modeFlag,
+            String methodName, boolean collectProofResults, Consumer<IAPI> onApiReady,
+            java.util.function.Consumer<MethodSymbol> onMethodStarted) {
         var listener = new LspDiagnosticListener();
         if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(new StringWriter());
@@ -1854,6 +1955,7 @@ public class CheckRunner {
         ProofResultCollector prc = null;
         if (collectProofResults) {
             prc = new ProofResultCollector();
+            if (onMethodStarted != null) prc.setOnMethodStarted(onMethodStarted);
             api.setProofResultListener(prc);
         }
         if (onApiReady != null) onApiReady.accept(api);
