@@ -9,6 +9,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
@@ -38,7 +39,14 @@ public class OpenJMLPreferences extends OpenJMLPreferencesBase {
 
     @Override
     protected Control createContents(Composite parent) {
-        TabFolder tabFolder = new TabFolder(parent, SWT.NONE);
+        Composite page = new Composite(parent, SWT.NONE);
+        GridLayout pageLayout = new GridLayout(1, false);
+        pageLayout.marginWidth = 0;
+        pageLayout.marginHeight = 0;
+        pageLayout.verticalSpacing = 4;
+        page.setLayout(pageLayout);
+
+        TabFolder tabFolder = new TabFolder(page, SWT.NONE);
         tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 
         createPluginAndLspFields(addTab(tabFolder, "Plugin and LSP Settings"));
@@ -46,7 +54,12 @@ public class OpenJMLPreferences extends OpenJMLPreferencesBase {
         createToolOptionFields(addTab(tabFolder, "OpenJML Tool Options"));
 
         tabFolder.setSelection(getInitialTab());
-        return tabFolder;
+
+        Label hint = new Label(page, SWT.NONE);
+        hint.setText("\"Restore Defaults\" and \"Apply\" act on all three tabs.");
+        hint.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
+
+        return page;
     }
 
     /**

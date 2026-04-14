@@ -389,6 +389,10 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         } catch (Throwable t) {
                             System.err.println("[OpenJML] updateCodeMinings failed: " + t);
                         }
+                        // Re-trigger all colorizers now that the server is connected and has
+                        // processed didOpen. This covers the startup case where refreshAsync()
+                        // was a no-op because cachedWrapper was null at editor-open time.
+                        refreshAllColorizers();
                     };
                     if (connectFuture != null) {
                         connectFuture.thenRun(
