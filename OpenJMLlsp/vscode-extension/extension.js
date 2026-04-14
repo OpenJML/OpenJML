@@ -33,6 +33,48 @@ let intentionalStop = false;
 /** The VS Code ExtensionContext — set once in activate(). */
 let extensionContext;
 
+/** Status bar item showing the number of running ESC tasks. */
+let escStatusBar;
+
+/** Handle returned by setInterval for the ESC-task polling loop, or null. */
+let escPollTimer = null;
+
+/**
+ * Start (or keep alive) the ESC-task polling loop.
+ * Queries the server every 800 ms; updates the status bar with the task count.
+ * Stops automatically once the count reaches zero.
+ */
+function startEscPolling() {
+    if (escPollTimer !== null) return;   // already polling
+    escPollTimer = setInterval(async () => {
+        if (!client) { stopEscPolling(); return; }
+        try {
+            const uris = await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.getRunningEscTasks',
+                arguments: [],
+            });
+            const n = Array.isArray(uris) ? uris.length : 0;
+            if (n === 0) {
+                stopEscPolling();
+            } else {
+                escStatusBar.text = `OpenJML ${n} ESC task${n === 1 ? '' : 's'} running \u2026`;
+                escStatusBar.show();
+            }
+        } catch (_) {
+            stopEscPolling();
+        }
+    }, 800);
+}
+
+/** Stop the ESC-task polling loop and hide the status bar item. */
+function stopEscPolling() {
+    if (escPollTimer !== null) {
+        clearInterval(escPollTimer);
+        escPollTimer = null;
+    }
+    escStatusBar.hide();
+}
+
 /**
  * Return the absolute path of `name` if it is found on the system PATH,
  * or null if it is not.  Uses `which` on Unix/macOS and `where` on Windows.
@@ -257,61 +299,6 @@ function requireServer() {
 }
 
 /**
- * Given Java source content and a 0-based cursor line, return the
- * fully-qualified method name (pkg.Class.method) of the method that
- * contains that line, or null if not found.
- *
- * Uses the same heuristic regex as JavaSourceScanner.methodFqn() on the server side.
- * If the regex logic changes here it MUST be updated there too (and vice versa).
- */
-function findMethodFqnAtLine(content, cursorLine) {
-    const lines = content.split('\n');
-
-    // Extract package name.
-    let pkg = '';
-    for (const line of lines) {
-        const m = line.match(/^\s*package\s+([\w.]+)\s*;/);
-        if (m) { pkg = m[1]; break; }
-    }
-
-    // Extract top-level public/protected class name, skipping block-comment lines.
-    let cls = '';
-    let inBlockComment = false;
-    for (const line of lines) {
-        const stripped = line.trimStart();
-        if (inBlockComment) { if (stripped.includes('*/')) inBlockComment = false; continue; }
-        if (stripped.startsWith('//')) continue;
-        if (stripped.startsWith('/*')) { if (!stripped.includes('*/')) inBlockComment = true; continue; }
-        const m = line.match(/^[ \t]*(?:public|protected)\s+(?:(?:abstract|final|sealed|non-sealed)\s+)*(?:class|interface|enum|record)\s+(\w+)/);
-        if (m) { cls = m[1]; break; }
-    }
-
-    // Find all method declaration start lines.
-    const METHOD_RE = /^[ \t]*(?:public|private|protected|static|final|synchronized|abstract|native|default|strictfp)[^(;{]*(\w+)[ \t]*\(/;
-    const methodStarts = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (/^\s*(?:\/\/|\*|\/\*|@)/.test(lines[i])) continue;
-        const m = METHOD_RE.exec(lines[i]);
-        if (m) methodStarts.push({ name: m[1], line: i });
-    }
-
-    // Find the method whose range contains cursorLine.
-    let methodName = null;
-    for (let i = 0; i < methodStarts.length; i++) {
-        const start = methodStarts[i].line;
-        const end = i + 1 < methodStarts.length ? methodStarts[i + 1].line - 1 : lines.length - 1;
-        if (cursorLine >= start && cursorLine <= end) {
-            methodName = methodStarts[i].name;
-            break;
-        }
-    }
-    if (!methodName) return null;
-    if (!cls) return methodName;
-    if (!pkg) return cls + '.' + methodName;
-    return pkg + '.' + cls + '.' + methodName;
-}
-
-/**
  * Given a .jml TextDocument, find and return the vscode.Uri of the companion .java file.
  *
  * Algorithm:
@@ -430,6 +417,34 @@ function ts() {
 }
 
 /**
+ * Resolve the filesystem paths to operate on, given optional Explorer context arguments.
+ *
+ * When a command is invoked from the Explorer context menu, VS Code passes:
+ *   explorerUri       — the right-clicked item's vscode.Uri
+ *   explorerSelection — array of all selected vscode.Uri values (multi-select)
+ *
+ * When invoked from the editor title/context menu or command palette, both are
+ * undefined and we fall back to the active editor's file.
+ *
+ * Returns an array of fsPath strings, or null if no target can be determined.
+ */
+function resolveTargetPaths(explorerUri, explorerSelection) {
+    if (explorerSelection && explorerSelection.length > 0) {
+        return explorerSelection.map(u => u.fsPath || u.toString());
+    }
+    if (explorerUri) {
+        return [explorerUri.fsPath || explorerUri.toString()];
+    }
+    // Fall back to the active editor.
+    const editor = vscode.window.activeTextEditor;
+    if (editor && isJmlLike(editor.document.languageId)) {
+        return [editor.document.uri.fsPath];
+    }
+    vscode.window.showWarningMessage('OpenJML: open a Java or JML file, or select one in the Explorer.');
+    return null;
+}
+
+/**
  * Build the fixed 4-element command prefix used by all openjml.* commands:
  *   [sourcePath, classPath, specsPath, propertiesFile]
  * Empty strings are used for absent values so that argument positions are fixed.
@@ -444,6 +459,12 @@ async function activate(context) {
     outputChannel = vscode.window.createOutputChannel('OpenJML');
     context.subscriptions.push(outputChannel);
     outputChannel.appendLine(ts() + ' OpenJML extension started');
+
+    // Status bar item: shown while ESC tasks are in flight.
+    escStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 10);
+    escStatusBar.tooltip = 'OpenJML extended static checking is running';
+    escStatusBar.command = 'openjml.cancelEsc';
+    context.subscriptions.push(escStatusBar);
 
     // Always register commands so VS Code can find them regardless of server state.
     // Each command checks whether the client is available before sending a request.
@@ -478,15 +499,36 @@ async function activate(context) {
                 command:   'openjml.runEsc',
                 arguments: [...commandPrefix(), fsPath],
             });
+            startEscPolling();
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
         }
     });
     context.subscriptions.push(escCmd);
 
+    // "Check JML" — explicitly triggers the JML type-check (--check) on the
+    // active file or a file/folder selected in the Explorer.
+    const checkJmlCmd = vscode.commands.registerCommand('openjml.checkJml',
+            async (explorerUri, explorerSelection) => {
+        if (!client) { requireServer(); return; }
+        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        if (!paths) return;
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.checkJml',
+                arguments: [...commandPrefix(), ...paths],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML check failed: ' + err);
+        }
+    });
+    context.subscriptions.push(checkJmlCmd);
+
     // Register "Run ESC for Method" — runs ESC restricted to a single method.
     // When invoked via code lens the uri and methodName args are provided by the lens Command.
-    // When invoked via keyboard the active file and cursor position are used to find the method.
+    // When invoked via keyboard the active file and cursor position are used.  The method FQN
+    // is obtained from the server-provided code lenses (which use Utils.uniqueSymbolName and
+    // therefore correctly identify methods in secondary, nested, local, and anonymous classes).
     const runEscForMethodCmd = vscode.commands.registerCommand(
             'openjml.runEscForMethod', async (uri, methodName) => {
         if (!client) { requireServer(); return; }
@@ -498,24 +540,31 @@ async function activate(context) {
                 vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC on a method.');
                 return;
             }
-            // For .jml files: extract the method FQN from the spec content (spec files have
-            // method stubs matching the .java signatures), then redirect to the companion .java.
             const cursorLine = editor.selection.active.line;
-            methodName = findMethodFqnAtLine(editor.document.getText(), cursorLine);
-            if (!methodName) {
-                vscode.window.showWarningMessage('OpenJML: cursor is not inside a recognizable method.');
+
+            // Ask VS Code for the code lenses on this document (includes our server's lenses).
+            // Filter to per-method ESC lenses (non-empty methodName argument) and find the
+            // last one whose start line is at or before the cursor.  This gives the correct
+            // AST-derived FQN for all class types including secondary, nested, and local classes.
+            let matchedLens = null;
+            try {
+                const allLenses = await vscode.commands.executeCommand(
+                    'vscode.executeCodeLensProvider', editor.document.uri, 50);
+                const methodLenses = (allLenses || [])
+                    .filter(l => l.command?.command === 'openjml.runEscForMethod'
+                              && l.command.arguments?.[1])  // non-empty = per-method, not whole-file
+                    .sort((a, b) => a.range.start.line - b.range.start.line);
+                for (const l of methodLenses) {
+                    if (l.range.start.line <= cursorLine) matchedLens = l;
+                    else break;
+                }
+            } catch (_) { /* code lens provider unavailable — fall through to warning */ }
+
+            if (!matchedLens) {
+                vscode.window.showWarningMessage('OpenJML: cursor is not inside a recognizable method (no code lens found — try triggering a type-check first).');
                 return;
             }
-            if (editor.document.languageId === 'jml') {
-                const javaUri = await resolveCompanionJavaUri(editor.document);
-                if (!javaUri) {
-                    vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
-                    return;
-                }
-                uri = javaUri.toString();
-            } else {
-                uri = editor.document.uri.toString();
-            }
+            [uri, methodName] = matchedLens.command.arguments;
         }
 
         // Warn if the file has unsaved changes (same behaviour as Run ESC).
@@ -527,11 +576,50 @@ async function activate(context) {
                 command:   'openjml.runEscForMethod',
                 arguments: [...commandPrefix(), uri, methodName],
             });
+            startEscPolling();
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
         }
     });
     context.subscriptions.push(runEscForMethodCmd);
+
+    // "Run ESC Split by File" — verifies each file in the target set independently,
+    // so a failure in one file does not block the others.
+    const runEscSplitByFileCmd = vscode.commands.registerCommand('openjml.runEscSplitByFile',
+            async (explorerUri, explorerSelection) => {
+        if (!client) { requireServer(); return; }
+        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        if (!paths) return;
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEscSplitByFile',
+                arguments: [...commandPrefix(), ...paths],
+            });
+            startEscPolling();
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC split-by-file failed: ' + err);
+        }
+    });
+    context.subscriptions.push(runEscSplitByFileCmd);
+
+    // "Run ESC Split by Method" — verifies each method independently, running them
+    // concurrently; faster than whole-file ESC when many methods are present.
+    const runEscSplitByMethodCmd = vscode.commands.registerCommand('openjml.runEscSplitByMethod',
+            async (explorerUri, explorerSelection) => {
+        if (!client) { requireServer(); return; }
+        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        if (!paths) return;
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.runEscSplitByMethod',
+                arguments: [...commandPrefix(), ...paths],
+            });
+            startEscPolling();
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML ESC split-by-method failed: ' + err);
+        }
+    });
+    context.subscriptions.push(runEscSplitByMethodCmd);
 
     // "Save and Run ESC" — saves the active file first, then runs ESC.
     // Uses a normal save (with formatting) so the file is in the same state
@@ -561,6 +649,7 @@ async function activate(context) {
                 command:   'openjml.runEsc',
                 arguments: [...commandPrefix(), fsPath],
             });
+            startEscPolling();
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
         }
@@ -569,28 +658,16 @@ async function activate(context) {
 
     // "Compile RAC" — compiles the focused Java file with --rac, producing class files
     // with embedded assertion checks.  Output directory is controlled by openjml.racOutputDir.
-    const racCmd = vscode.commands.registerCommand('openjml.runRac', async () => {
+    const racCmd = vscode.commands.registerCommand('openjml.runRac',
+            async (explorerUri, explorerSelection) => {
         if (!client) { requireServer(); return; }
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || !isJmlLike(editor.document.languageId)) {
-            vscode.window.showWarningMessage('OpenJML: open a Java or JML file to compile RAC.');
-            return;
-        }
-        let targetUri = editor.document.uri;
-        if (editor.document.languageId === 'jml') {
-            const javaUri = await resolveCompanionJavaUri(editor.document);
-            if (!javaUri) {
-                vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
-                return;
-            }
-            targetUri = javaUri;
-        }
-        const fsPath = targetUri.fsPath;
+        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        if (!paths) return;
         const outputDir = getSettings().racOutputDir || '';
         try {
             await client.sendRequest('workspace/executeCommand', {
                 command:   'openjml.runRac',
-                arguments: [...commandPrefix(), outputDir, fsPath],
+                arguments: [...commandPrefix(), outputDir, ...paths],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML RAC compile failed: ' + err);
@@ -614,6 +691,7 @@ async function activate(context) {
                 command:   'openjml.runEsc',
                 arguments: [...commandPrefix(), ...paths],
             });
+            startEscPolling();
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML ESC on project failed: ' + err);
         }
@@ -635,6 +713,30 @@ async function activate(context) {
     });
     context.subscriptions.push(clearCmd);
 
+    // "Index Project" — pre-indexes the workspace for faster symbol lookup,
+    // without clearing existing check/ESC results.
+    const indexProjectCmd = vscode.commands.registerCommand('openjml.indexProject',
+            async (explorerUri, explorerSelection) => {
+        if (!client) { requireServer(); return; }
+        const folders = vscode.workspace.workspaceFolders;
+        const paths = explorerUri
+            ? resolveTargetPaths(explorerUri, explorerSelection)
+            : (folders ? folders.map(f => f.uri.fsPath) : null);
+        if (!paths) {
+            vscode.window.showWarningMessage('OpenJML: no folder to index.');
+            return;
+        }
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.indexProject',
+                arguments: [...commandPrefix(), ...paths],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML index project failed: ' + err);
+        }
+    });
+    context.subscriptions.push(indexProjectCmd);
+
     const clearMarkersCmd = vscode.commands.registerCommand('openjml.clearMarkers', async () => {
         if (!client) { requireServer(); return; }
         try {
@@ -647,6 +749,24 @@ async function activate(context) {
         }
     });
     context.subscriptions.push(clearMarkersCmd);
+
+    // "Clear Markers for Selection" — clears markers only for the selected file(s)
+    // or folder(s) in the Explorer, rather than all markers in the workspace.
+    const clearMarkersSelectedCmd = vscode.commands.registerCommand('openjml.clearMarkersSelected',
+            async (explorerUri, explorerSelection) => {
+        if (!client) { requireServer(); return; }
+        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        if (!paths) return;
+        try {
+            await client.sendRequest('workspace/executeCommand', {
+                command:   'openjml.clearMarkers',
+                arguments: [...paths],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML clear markers failed: ' + err);
+        }
+    });
+    context.subscriptions.push(clearMarkersSelectedCmd);
 
     // Cancel all running ESC tasks.
     // First queries the server for which files are currently being verified so the
@@ -823,6 +943,7 @@ async function activate(context) {
                     command:   'openjml.runEsc',
                     arguments: [...commandPrefix(), doc.uri.fsPath],
                 });
+                startEscPolling();
             } catch (err) {
                 // ESC errors are surfaced by the server via diagnostics; ignore here.
             }
