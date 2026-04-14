@@ -121,7 +121,7 @@ units, and individual classes and methods.
 <LI>The plug-in recognizes the standard JML file suffix (.jml), giving such files the JML icon (yellow coffee cup).
     .jml files are edited by default by the Eclipse "Generic Code Editor".
 <LI>Syntax coloring in .jml files and in JML content in .java files, meant to match typical Java syntax coloring.</LI>
-<LI>An Eclipse console page to which output from the JML languarge server and plugin is sent.
+<LI>An Eclipse console page to which output from the JML language server and plugin is sent.
 <LI>An OpenJML preferences page
 (under Window &gt;&gt; Preferences &gt;&gt; OpenJML or Eclipse &gt;&gt; Settings &gt;&gt; OpenJML).
 <LI>A decoration visible in the package explorer (and other places)
@@ -131,7 +131,7 @@ preferences.  The category is named 'OpenJML' and allows key bindings to be
 defined for the various new menu actions.
 <LI>A Help document describing the JML plug-in functionality available
 through the Help &gt;&gt; HelpContents menu (this document).
-<LI>JML-aware Find declaration, find references, rename; code lens information; signature help; inlay hints; folding</LI>
+<LI>JML-aware Find declaration, find identifier declarations, find references, rename; code lens information; signature help; inlay hints; folding</LI>
 </UL>
 
 
@@ -171,14 +171,14 @@ The OpenJML plugin expands on Eclipse's usual as-you-edit programming-language (
 type checking to provide checking of JML text in JML comments and .jml files. Such checking of JML text can be performed
 at various times, controlled by a setting in the OpenJML Preferences("Jml type-check trigger").
 <UL>
-<LI>Files are always checked when an editor for the file is opened or when the editor is given foxus.</LI>
+<LI>Files are always checked when an editor for the file is opened or when the editor is given focus.</LI>
 <LI>If the setting is set to "On edit", then JML checking is performed for the file being edited as it is edited.
     There is a slight lag to avoid
     a checking process happening on every keystroke. Checking a file will cause checking of its companion .jml file and of
     any files on which it depends. In a large project, the work to be done may be significant and make checking as-you-type
     impractical.
 </LI>
-<LI>If the setting is set to "On save only", then no checking is done as-you-edit, but only when the file is saved.</LI>
+<LI>If the setting is set to "On save only", then no auto-checking is done as-you-edit, but only when the file is saved.</LI>
 <LI>Checking can always be done manually, in a number of ways.
     <UL>
         <LI>the toolbar icon, which checks all selected items</LI>
@@ -199,13 +199,18 @@ It is also possible to initiate an ESC verification on a single method with menu
 
 Results of proof attempts on each method are reported in the Console and as code lens information associated with the method definition.
 
+ESC operations are always separated by project, sice project may have different class- and sourcepaths.
+Within a given project, ESC operations on one or more items can be launched as a single ESC check in OpenJML, divided up by file, 
+or divided up by individual method. Finer division allows more concurrency, but requires more overhead per ESC operation.
+
+ESC operations can be cancelled or retried -- see the cancel and code lens information.
 </P>
 <H3><A NAME="RAC">Compiling for Runtime-assertion checking (RAC)</A></H3>
 
 The RAC command compiles selected files with JML assertions. At present this action must be done manually on selected items
  after an Eclipse compilation is complete. The RAC-compiled class files overwrite any Java-compiled files, and they are
  also overwritten in turn by Java-compiled files on the next Java compilation.  Java compilations can happen automatically
-on file saves.  RAC commands always operate only on the saved content of files, as do Java compilations.
+on file saves.  RAC commands always operate only on the saved content of files, as Java compilations do.
 
 <H3><A NAME="Nature">Add/Remove OpenJML Nature</A></H3>
 
@@ -215,7 +220,13 @@ Note that removing the JML Nature from a project also removes all OpenJML error 
 
 <H3><A NAME="ClearMarkers">Clear Markers</A></H3>
 
-This operation removes OpenJML markers from all files in all projects. It is useful if somehow there are stale JML markers that are obsolete and won't otherwise clear.
+These two operations remove OpenJML markers from all files in all JML projects or from all seelcted JML projects, respectively. 
+It is useful if somehow there are stale JML markers that are obsolete and won't otherwise clear.
+
+<H3><A NAME="ClearAndReindex">Index Project</A></H3>
+
+This operation checks all files in the project (whether open in editors or not), initializing the index of declarations and ASTs.
+
 <H3><A NAME="ClearAndReindex">Clear and Reindex</A></H3>
 
 This operation is roughly equivalent to quitting and restarting the plugin -- all markers are deleted, all cached information is deleted  and, if needed,
@@ -228,13 +239,20 @@ themselves.
 
 The plugin implements its own set of problem markers, using the LSP mechanism for reporting problems. 
 JML Markers identify JML syntax and type errors and warnings and informational 
-messages. ESC Markers identify JML Verification failures (as errors) and associated information (as warnings).
+messages. ESC Markers identify JML Verification failures (as errors) and associated information (as warnings)
+and verification success (as informational, green markers).
 The style and coloring of these markers can be set in the General &gt;&gt; Editors &gt;&gt; Text Editors &gt;&gt; Annotations
 settings. 
 
 <H3><A NAME="SyntaxColoring">Syntax coloring</A></H3>
 
-FIXME
+The server reports token types (for parsable source files), enabling clients to render files with syntax coloring. The server reports
+all relevant token types that LSP defines.
+
+The rendering of syntax color and style is completely up to the client. In the case of Eclipse there is a conflict between JDT
+renderings for Java text and renderings through the LSP library.  To simplify using color
+preferences, the OpenJML plugin defines its own set of preferences on a OpenJML Preferences tab; these override colors
+defined by other mechanisms.
 
 <H3><A NAME="FindDeclaration">Find Declaration</A></H3>
 

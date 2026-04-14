@@ -48,7 +48,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     private final java.util.Map<IEditorPart, JmlFoldingManager> foldingManagers =
             new java.util.concurrent.ConcurrentHashMap<>();
 
-    /** JML colorizers for .java editors, keyed by workspace-relative path. */
+    /** JML colorizers for .java and .jml editors, keyed by workspace-relative path. */
     private final java.util.Map<org.eclipse.core.runtime.IPath, JmlColorizer> colorizersByPath =
             new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -190,7 +190,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         return java.util.concurrent.CompletableFuture.completedFuture(null);
                     });
             System.err.println("[OpenJML] workspace/didChangeConfiguration sent");
-            // Retrigger all active .java colorizers so the new syntaxColoringScope
+            // Retrigger all active colorizers so the new syntaxColoringScope
             // takes effect immediately without waiting for the next --check.
             refreshAllColorizers();
         } catch (Exception e) {
@@ -198,7 +198,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         }
     }
 
-    /** Calls {@link JmlColorizer#refreshAsync()} on every registered {@code .java} colorizer. */
+    /** Calls {@link JmlColorizer#refreshAsync()} on every registered colorizer (.java and .jml). */
     static void refreshAllColorizers() {
         LspPartListener inst = INSTANCE;
         if (inst == null) return;
@@ -289,8 +289,10 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             setupFolding(ep);
         }
 
-        // Install JML semantic-token colorizer for .java files (once per path).
-        if ("java".equals(ext) && part instanceof IEditorPart ep
+        // Install JML semantic-token colorizer for .java and .jml files (once per path).
+        // For .java files it overlays JML tokens on top of JDT's coloring.
+        // For .jml files it overrides LSP4E/TM4E colors with the preference-store colors.
+        if (part instanceof IEditorPart ep
                 && !colorizersByPath.containsKey(file.getFullPath())) {
             setupColorizer(ep, file);
         }
@@ -523,13 +525,9 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         + " colorizer=" + (c != null ? "found" : "null")
                         + " ext=" + f.getFileExtension());
                 if (c != null) {
-                    // .java files: JmlColorizer overlays JML tokens on JDT's presentation.
+                    // JmlColorizer installed for this file: refresh its cached tokens.
+                    // Works for both .java (overlays on JDT) and .jml (overrides TM4E).
                     c.refreshAsync();
-                } else if ("jml".equals(f.getFileExtension())) {
-                    // .jml files: LSP4E's SemanticTokensPresentationReconciler handles tokens,
-                    // but it only runs on document edits — not when the server sends fresh tokens
-                    // after a check.  Invalidate the presentation so it re-requests tokens now.
-                    invalidateJmlEditorPresentation(f);
                 }
             }
         } catch (Exception e) {
@@ -568,10 +566,16 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     }
 
     /**
-     * Attaches a {@link JmlColorizer} to the given {@code .java} editor's viewer.
-     * The colorizer overlays JML semantic-token colors on top of JDT's own syntax
-     * coloring, which would otherwise render {@code //@ …} annotations as plain
-     * comments.
+     * Attaches a {@link JmlColorizer} to the given editor's viewer.
+     *
+     * <p>For {@code .java} files the colorizer overlays JML semantic-token colors
+     * on top of JDT's syntax coloring (which otherwise renders {@code //@ …}
+     * annotations as plain comments).
+     *
+     * <p>For {@code .jml} files the colorizer runs after LSP4E's
+     * {@code SemanticHighlightReconcilerStrategy} and overrides the TM4E theme
+     * colors with the user's preference-store colors — making the Syntax Colors
+     * preference page take effect for {@code .jml} files too.
      */
     private void setupColorizer(IEditorPart editor, IFile file) {
         org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {

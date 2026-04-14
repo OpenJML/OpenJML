@@ -9,13 +9,22 @@ import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.jface.preference.ColorSelector;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.jmlspecs.openjml.eclipse.widgets.LabelFieldEditor;
@@ -45,6 +54,9 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
 
     /** Reference to the server-path field editor, saved for validation in {@link #performOk}. */
     private StringFieldEditor serverPathEditor;
+
+    /** Syntax-color block; non-null only when the Syntax Colors tab has been created. */
+    private SyntaxColorBlock syntaxColorBlock;
 
     // -----------------------------------------------------------------------
     // IWorkbenchPreferencePage
@@ -93,12 +105,14 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         // here for lspServerPathKey changes and calls LspPartListener.restartServer(),
         // which handles stopping the old server (on a background thread) and reconnecting.
         allEditors.forEach(FieldEditor::store);
+        if (syntaxColorBlock != null) syntaxColorBlock.store(getPreferenceStore());
         return true;
     }
 
     @Override
     protected void performDefaults() {
         allEditors.forEach(FieldEditor::loadDefault);
+        if (syntaxColorBlock != null) syntaxColorBlock.loadDefaults();
         super.performDefaults();
     }
 
@@ -426,5 +440,226 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 parent));
 
         finalizeTab(parent);
+    }
+
+    // -----------------------------------------------------------------------
+    // Tab 2 — Syntax Colors
+    // -----------------------------------------------------------------------
+
+    /**
+     * Populates a composite with Tab 2 — JML Syntax Colors.
+     *
+     * <p>Uses a JDT-style list + panel layout: a scrolling list on the left
+     * shows all 19 active token types; selecting one shows its color and
+     * style options on the right.
+     */
+    protected void createSyntaxColorFields(Composite parent) {
+        syntaxColorBlock = new SyntaxColorBlock(getPreferenceStore());
+        syntaxColorBlock.createControl(parent);
+    }
+
+    // -----------------------------------------------------------------------
+    // SyntaxColorBlock — JDT-style list + color-panel widget
+    // -----------------------------------------------------------------------
+
+    /**
+     * A JDT-style syntax-color control.
+     *
+     * <p>Left side: a {@code org.eclipse.swt.widgets.List} of token-type labels.
+     * Right side: a {@link ColorSelector} button plus Bold / Italic / Underline /
+     * Strikethrough checkboxes.  Changing the list selection updates the right panel.
+     * Changes are held in memory until {@link #store(IPreferenceStore)} is called.
+     */
+    private static final class SyntaxColorBlock {
+
+        private final java.util.List<OpenJMLOptions.TokenColorEntry> entries =
+                OpenJMLOptions.TOKEN_COLORS;
+
+        // In-memory state (parallel to entries list)
+        private final RGB[]     currentColors;
+        private final boolean[] currentBold;
+        private final boolean[] currentItalic;
+        private final boolean[] currentUnder;
+        private final boolean[] currentStrike;
+
+        // Widgets (null until createControl is called)
+        private org.eclipse.swt.widgets.List list;
+        private ColorSelector colorSelector;
+        private Button boldBtn, italicBtn, underlineBtn, strikeBtn;
+        private int selectedIndex = 0;
+
+        /** True once the user changes any value in this instance's UI. */
+        private boolean modified = false;
+
+        SyntaxColorBlock(IPreferenceStore store) {
+            int n = entries.size();
+            currentColors = new RGB[n];
+            currentBold    = new boolean[n];
+            currentItalic  = new boolean[n];
+            currentUnder   = new boolean[n];
+            currentStrike  = new boolean[n];
+            loadFrom(store);
+        }
+
+        private void loadFrom(IPreferenceStore store) {
+            for (int i = 0; i < entries.size(); i++) {
+                OpenJMLOptions.TokenColorEntry e = entries.get(i);
+                currentColors[i] = PreferenceConverter.getColor(store, e.colorKey());
+                currentBold[i]    = store.getBoolean(e.boldKey());
+                currentItalic[i]  = store.getBoolean(e.italicKey());
+                currentUnder[i]   = store.getBoolean(e.underlineKey());
+                currentStrike[i]  = store.getBoolean(e.strikethroughKey());
+            }
+        }
+
+        /**
+         * Saves all current values to the preference store, but only if this
+         * instance was actually modified by the user.  This prevents a stale
+         * page instance (e.g., a sub-page opened but not touched) from
+         * overwriting changes made in a different page instance.
+         */
+        void store(IPreferenceStore store) {
+            if (!modified) return;
+            // Capture any unsaved state from the currently-displayed panel
+            // before writing arrays to the store.
+            saveCurrentPanel();
+            for (int i = 0; i < entries.size(); i++) {
+                OpenJMLOptions.TokenColorEntry e = entries.get(i);
+                PreferenceConverter.setValue(store, e.colorKey(), currentColors[i]);
+                store.setValue(e.boldKey(),          currentBold[i]);
+                store.setValue(e.italicKey(),        currentItalic[i]);
+                store.setValue(e.underlineKey(),     currentUnder[i]);
+                store.setValue(e.strikethroughKey(), currentStrike[i]);
+            }
+            // Refresh active colorizers so changes are visible immediately.
+            LspPartListener.refreshAllColorizers();
+        }
+
+        /** Resets all values to their defaults and updates the UI. */
+        void loadDefaults() {
+            modified = true;
+            for (int i = 0; i < entries.size(); i++) {
+                OpenJMLOptions.TokenColorEntry e = entries.get(i);
+                currentColors[i] = e.defaultRgb();
+                currentBold[i]    = e.bold();
+                currentItalic[i]  = e.italic();
+                currentUnder[i]   = e.underline();
+                currentStrike[i]  = e.strikethrough();
+            }
+            if (list != null && !list.isDisposed()) updatePanel(selectedIndex);
+        }
+
+        void createControl(Composite parent) {
+            // Set the layout directly on parent (consistent with how other tabs call
+            // finalizeTab).  2-column grid: list on left, color panel on right.
+            GridLayout layout = new GridLayout(2, false);
+            layout.marginWidth  = 0;
+            layout.marginHeight = 0;
+            layout.verticalSpacing = 4;
+            parent.setLayout(layout);
+
+            // ── Left: token-type list ───────────────────────────────────────
+            list = new org.eclipse.swt.widgets.List(parent,
+                    SWT.SINGLE | SWT.BORDER);
+            list.add("");                                              // blank line above first entry
+            for (OpenJMLOptions.TokenColorEntry e : entries) list.add(e.label());
+            list.add("");                                              // blank line below last entry
+
+            // Size exactly to show all items (including spacers) with no scrollbars.
+            int itemH = list.getItemHeight();
+            GridData listGd = new GridData(SWT.FILL, SWT.BEGINNING, false, false);
+            listGd.widthHint  = 240;
+            listGd.heightHint = list.getItemCount() * itemH + 4;     // +4 for border
+            list.setLayoutData(listGd);
+
+            // ── Right: color + style panel ──────────────────────────────────
+            Composite panel = new Composite(parent, SWT.NONE);
+            panel.setLayout(new GridLayout(2, false));
+            panel.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, false, false));
+
+            new Label(panel, SWT.NONE).setText("Color:");
+            colorSelector = new ColorSelector(panel);
+            colorSelector.getButton().setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+
+            boldBtn      = addStyleCheck(panel, "Bold");
+            italicBtn    = addStyleCheck(panel, "Italic");
+            underlineBtn = addStyleCheck(panel, "Underline");
+            strikeBtn    = addStyleCheck(panel, "Strikethrough");
+
+            // ── Wire up listeners ───────────────────────────────────────────
+            list.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    int sel = list.getSelectionIndex();
+                    // Index 0 = top spacer; index entries.size()+1 = bottom spacer — ignore both.
+                    if (sel <= 0 || sel > entries.size()) return;
+                    saveCurrentPanel();
+                    selectedIndex = sel - 1;   // offset by 1 for the top blank item
+                    updatePanel(selectedIndex);
+                }
+            });
+
+            colorSelector.addListener(event -> {
+                Object newVal = event.getNewValue();
+                if (newVal instanceof RGB rgb && selectedIndex >= 0 && selectedIndex < entries.size()) {
+                    currentColors[selectedIndex] = rgb;
+                    modified = true;
+                }
+            });
+
+            boldBtn.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    if (selectedIndex >= 0) { currentBold[selectedIndex] = boldBtn.getSelection(); modified = true; }
+                }
+            });
+            italicBtn.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    if (selectedIndex >= 0) { currentItalic[selectedIndex] = italicBtn.getSelection(); modified = true; }
+                }
+            });
+            underlineBtn.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    if (selectedIndex >= 0) { currentUnder[selectedIndex] = underlineBtn.getSelection(); modified = true; }
+                }
+            });
+            strikeBtn.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    if (selectedIndex >= 0) { currentStrike[selectedIndex] = strikeBtn.getSelection(); modified = true; }
+                }
+            });
+
+            // Select the first real entry (index 1 — index 0 is the top blank spacer).
+            if (!entries.isEmpty()) {
+                list.setSelection(1);
+                updatePanel(0);
+            }
+        }
+
+        private static Button addStyleCheck(Composite parent, String label) {
+            new Label(parent, SWT.NONE).setText("");   // spacer in col 1
+            Button btn = new Button(parent, SWT.CHECK);
+            btn.setText(label);
+            btn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+            return btn;
+        }
+
+        /** Saves the panel's current widget state back into the in-memory arrays. */
+        private void saveCurrentPanel() {
+            if (selectedIndex < 0 || selectedIndex >= entries.size()) return;
+            currentColors[selectedIndex] = colorSelector.getColorValue();
+            currentBold[selectedIndex]    = boldBtn.getSelection();
+            currentItalic[selectedIndex]  = italicBtn.getSelection();
+            currentUnder[selectedIndex]   = underlineBtn.getSelection();
+            currentStrike[selectedIndex]  = strikeBtn.getSelection();
+        }
+
+        /** Populates the right panel from the in-memory arrays for the given index. */
+        private void updatePanel(int idx) {
+            if (idx < 0 || idx >= entries.size()) return;
+            colorSelector.setColorValue(currentColors[idx]);
+            boldBtn.setSelection(currentBold[idx]);
+            italicBtn.setSelection(currentItalic[idx]);
+            underlineBtn.setSelection(currentUnder[idx]);
+            strikeBtn.setSelection(currentStrike[idx]);
+        }
     }
 }

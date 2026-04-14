@@ -7,6 +7,9 @@ package org.jmlspecs.openjml.eclipse;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.RGB;
 
 /**
  * Preference keys and defaults for the LSP-based OpenJML integration.
@@ -148,6 +151,104 @@ public class OpenJMLOptions {
     public static final String racMissingModelFieldRepKey = "openjml.racMissingModelFieldRep";
 
     // -----------------------------------------------------------------------
+    // Syntax color token-type descriptors (Tab 2 — Syntax Colors)
+    // -----------------------------------------------------------------------
+
+    /**
+     * One colorable JML semantic token type.
+     *
+     * <p>Defaults are close to Eclipse's Java editor theme:
+     * keywords purple+bold, backslash tokens green+bold,
+     * string literals blue, everything else black.
+     *
+     * @param id             legend token-type id (matches SemanticTokensProvider)
+     * @param label          human-readable label for the preference UI
+     * @param r g b          default RGB color components
+     * @param bold           default bold
+     * @param italic         default italic
+     * @param underline      default underline
+     * @param strikethrough  default strikethrough
+     */
+    public record TokenColorEntry(
+            String id, String label,
+            int r, int g, int b,
+            boolean bold, boolean italic, boolean underline, boolean strikethrough) {
+
+        public RGB    defaultRgb()        { return new RGB(r, g, b); }
+        public String colorKey()          { return "openjml.color." + id; }
+        public String boldKey()           { return "openjml.color." + id + ".bold"; }
+        public String italicKey()         { return "openjml.color." + id + ".italic"; }
+        public String underlineKey()      { return "openjml.color." + id + ".underline"; }
+        public String strikethroughKey()  { return "openjml.color." + id + ".strikethrough"; }
+
+        /** Returns the default TextAttribute style bitmask. */
+        public int defaultStyle() {
+            int s = SWT.NORMAL;
+            if (bold)          s |= SWT.BOLD;
+            if (italic)        s |= SWT.ITALIC;
+            if (underline)     s |= org.eclipse.jface.text.TextAttribute.UNDERLINE;
+            if (strikethrough) s |= org.eclipse.jface.text.TextAttribute.STRIKETHROUGH;
+            return s;
+        }
+    }
+
+    /**
+     * The 19 active JML semantic token types in display order.
+     * (Types "macro" and "comment" are declared in the legend but never emitted.)
+     */
+    public static final java.util.List<TokenColorEntry> TOKEN_COLORS = java.util.List.of(
+        //                id            label                                       r    g    b  bo  it  ul  st
+        new TokenColorEntry("keyword",       "JML keyword (requires, ensures, …)",  127,  0,  85, true,  false, false, false),
+        new TokenColorEntry("modifier",      "JML modifier (pure, spec_public, …)", 127,  0,  85, false, false, false, false),
+        new TokenColorEntry("function",      "Backslash token (\\result, \\old, …)",  63, 127,  95, true,  false, false, false),
+        new TokenColorEntry("type",          "Type (generic)",                         0,   0,   0, false, false, false, false),
+        new TokenColorEntry("class",         "Class name",                             0,   0,   0, false, false, false, false),
+        new TokenColorEntry("interface",     "Interface name",                         0,   0,   0, false, false, false, false),
+        new TokenColorEntry("enum",          "Enum name",                              0,   0,   0, false, false, false, false),
+        new TokenColorEntry("struct",        "Struct name",                            0,   0,   0, false, false, false, false),
+        new TokenColorEntry("typeParameter", "Type parameter",                         0,   0,   0, false, false, false, false),
+        new TokenColorEntry("namespace",     "Namespace / package",                    0,   0, 128, false, false, false, false),
+        new TokenColorEntry("enumMember",    "Enum member",                            0,   0,   0, false, false, false, false),
+        new TokenColorEntry("method",        "Method name",                            0,   0,   0, false, false, false, false),
+        new TokenColorEntry("parameter",     "Parameter name",                         0,   0,   0, false, false, false, false),
+        new TokenColorEntry("variable",      "Variable name",                          0,   0,   0, false, false, false, false),
+        new TokenColorEntry("property",      "Property name",                          0,   0,   0, false, false, false, false),
+        new TokenColorEntry("decorator",     "Decorator",                            100, 100, 100, false, false, false, false),
+        new TokenColorEntry("string",        "String literal",                         42,   0, 255, false, false, false, false),
+        new TokenColorEntry("number",        "Number literal",                         25,   0, 134, false, false, false, false),
+        new TokenColorEntry("operator",      "Operator",                               0,   0,   0, false, false, false, false)
+    );
+
+    /** Returns the stored RGB for a token type, reading from the given preference store. */
+    public static RGB getTokenColor(IPreferenceStore store, TokenColorEntry e) {
+        return PreferenceConverter.getColor(store, e.colorKey());
+    }
+
+    /** Returns the stored style bitmask (SWT.BOLD | SWT.ITALIC | UNDERLINE | STRIKETHROUGH). */
+    public static int getTokenStyle(IPreferenceStore store, TokenColorEntry e) {
+        int s = SWT.NORMAL;
+        if (store.getBoolean(e.boldKey()))          s |= SWT.BOLD;
+        if (store.getBoolean(e.italicKey()))        s |= SWT.ITALIC;
+        if (store.getBoolean(e.underlineKey()))     s |= org.eclipse.jface.text.TextAttribute.UNDERLINE;
+        if (store.getBoolean(e.strikethroughKey())) s |= org.eclipse.jface.text.TextAttribute.STRIKETHROUGH;
+        return s;
+    }
+
+    /**
+     * Registers syntax-color defaults in the preference store.
+     * Called from {@link #initializeDefaults}.
+     */
+    public static void initializeSyntaxColorDefaults(IPreferenceStore store) {
+        for (TokenColorEntry e : TOKEN_COLORS) {
+            PreferenceConverter.setDefault(store, e.colorKey(), e.defaultRgb());
+            store.setDefault(e.boldKey(),          e.bold());
+            store.setDefault(e.italicKey(),        e.italic());
+            store.setDefault(e.underlineKey(),     e.underline());
+            store.setDefault(e.strikethroughKey(), e.strikethrough());
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // Defaults
     // -----------------------------------------------------------------------
 
@@ -199,6 +300,8 @@ public class OpenJMLOptions {
         store.setDefault(racShowSourceKey,            "source");
         store.setDefault(showNotExecutableKey,        "false");
         store.setDefault(racMissingModelFieldRepKey,  "skip");
+        // Syntax color defaults (Tab 2 — Syntax Colors)
+        initializeSyntaxColorDefaults(store);
     }
 
     // -----------------------------------------------------------------------

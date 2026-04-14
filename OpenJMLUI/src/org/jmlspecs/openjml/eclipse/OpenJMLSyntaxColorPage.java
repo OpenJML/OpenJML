@@ -5,14 +5,14 @@
 package org.jmlspecs.openjml.eclipse;
 
 /**
- * Preferences sub-page: "OpenJML Tool Options".
+ * Preferences sub-page: "Syntax Colors".
  *
  * <p>Registered as a child of the main OpenJML page in {@code plugin.xml}
  * (giving the tree node a twistie).  Opens the same tabbed
- * {@link OpenJMLPreferences} page with Tab 3 pre-selected.
+ * {@link OpenJMLPreferences} page with the Syntax Colors tab pre-selected.
  */
-public class OpenJMLToolPage extends OpenJMLPreferences {
+public class OpenJMLSyntaxColorPage extends OpenJMLPreferences {
 
     @Override
-    protected int getInitialTab() { return 2; }
+    protected int getInitialTab() { return 1; }
 }

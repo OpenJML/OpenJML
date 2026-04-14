@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -20,7 +22,9 @@ import org.eclipse.jface.text.rules.IToken;
 import org.eclipse.jface.text.rules.Token;
 import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.services.LanguageServer;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 
@@ -38,22 +42,25 @@ import org.eclipse.swt.widgets.Display;
  * bypasses LSP4E's normal semantic-token routing, which routes
  * {@code textDocument/semanticTokens/full} to JDT for {@code .java} files.
  *
- * <p>Colors are resolved by trying LSP4E's {@code TokenTypeMapper} first
- * (same TM4E-theme-based colors as {@code .jml} files) with a hardcoded
- * JFace-registry fallback if reflection fails.
+ * <p>Colors and styles (bold/italic/underline/strikethrough) are read from the
+ * OpenJML preference store ({@link OpenJMLOptions#TOKEN_COLORS}).  The JFace
+ * color registry is used as a cache; it is refreshed on every
+ * {@link #refreshAsync()} call via {@link #ensureColors()}.  LSP4E's
+ * {@code TokenTypeMapper} is tried first for {@code .jml} files (TM4E theme
+ * colors); the preference-store fallback is used when TM4E returns no color.
  */
 public class JmlColorizer implements ITextPresentationListener {
 
-    // Fallback color keys (used when TM4E TokenTypeMapper is unavailable via reflection).
-    // Token type names match the 21-entry legend in SemanticTokensProvider.LEGEND.
-    private static final String KEY_KEYWORD   = "openjml.jml.keyword";   // "keyword", "modifier"
-    private static final String KEY_FUNCTION  = "openjml.jml.function";  // "function" (backslash tokens)
-    private static final String KEY_TYPE      = "openjml.jml.type";      // "class","interface","enum","struct","typeParameter","type","enumMember","namespace"
-    private static final String KEY_METHOD    = "openjml.jml.method";    // "method"
-    private static final String KEY_VARIABLE  = "openjml.jml.variable";  // "variable","parameter","property"
-    private static final String KEY_DECORATOR = "openjml.jml.decorator"; // "decorator"
-    private static final String KEY_LITERAL   = "openjml.jml.literal";   // "string","number"
-    private static final String KEY_OPERATOR  = "openjml.jml.operator";  // "operator"
+    /**
+     * Maps a token-type id (from the server legend) to its index in
+     * {@link OpenJMLOptions#TOKEN_COLORS}.  Built once on first use.
+     */
+    private static final java.util.Map<String, OpenJMLOptions.TokenColorEntry> TOKEN_COLOR_MAP;
+    static {
+        var map = new java.util.HashMap<String, OpenJMLOptions.TokenColorEntry>();
+        for (OpenJMLOptions.TokenColorEntry e : OpenJMLOptions.TOKEN_COLORS) map.put(e.id(), e);
+        TOKEN_COLOR_MAP = java.util.Collections.unmodifiableMap(map);
+    }
 
     /**
      * Token type names in legend index order — must match
@@ -80,19 +87,45 @@ public class JmlColorizer implements ITextPresentationListener {
     }
 
     /**
-     * Registers fallback JML colors in JFace's color registry.
+     * Registers JML token colors in JFace's color registry from the preference store.
      * Must be called from the SWT thread (e.g. inside an asyncExec).
+     * Safe to call repeatedly — existing entries are overwritten so that preference
+     * changes take effect without restarting Eclipse.
      */
     static void ensureColors() {
+        IPreferenceStore store;
+        try {
+            store = org.openjml.ui.Activator.getDefault().getPreferenceStore();
+        } catch (Exception e) {
+            return; // activator not yet available
+        }
         var reg = JFaceResources.getColorRegistry();
-        if (!reg.hasValueFor(KEY_KEYWORD))   reg.put(KEY_KEYWORD,   new RGB(155,   0, 155)); // purple
-        if (!reg.hasValueFor(KEY_FUNCTION))  reg.put(KEY_FUNCTION,  new RGB( 63, 127,  95)); // muted green
-        if (!reg.hasValueFor(KEY_TYPE))      reg.put(KEY_TYPE,      new RGB(  0, 128, 128)); // teal
-        if (!reg.hasValueFor(KEY_METHOD))    reg.put(KEY_METHOD,    new RGB(  0, 100,  50)); // dark teal
-        if (!reg.hasValueFor(KEY_VARIABLE))  reg.put(KEY_VARIABLE,  new RGB(  0,   0, 192)); // blue
-        if (!reg.hasValueFor(KEY_DECORATOR)) reg.put(KEY_DECORATOR, new RGB(128, 100,   0)); // dark gold
-        if (!reg.hasValueFor(KEY_LITERAL))   reg.put(KEY_LITERAL,   new RGB(  0,   0, 220)); // bright blue
-        if (!reg.hasValueFor(KEY_OPERATOR))  reg.put(KEY_OPERATOR,  new RGB( 80,  80,  80)); // dark grey
+        for (OpenJMLOptions.TokenColorEntry entry : OpenJMLOptions.TOKEN_COLORS) {
+            RGB rgb = PreferenceConverter.getColor(store, entry.colorKey());
+            reg.put(entry.colorKey(), rgb);
+        }
+    }
+
+    /**
+     * Returns a {@link TextAttribute} for the given token type id, reading colors
+     * and styles from the preference store.  Returns {@code null} for unknown types.
+     *
+     * <p>Must be called from the SWT thread so that {@link Color} objects are
+     * created on the correct display.
+     */
+    private static TextAttribute textAttributeFor(String typeId) {
+        OpenJMLOptions.TokenColorEntry entry = TOKEN_COLOR_MAP.get(typeId);
+        if (entry == null) return null;
+        Color color = JFaceResources.getColorRegistry().get(entry.colorKey());
+        if (color == null) return null;
+        IPreferenceStore store;
+        try {
+            store = org.openjml.ui.Activator.getDefault().getPreferenceStore();
+        } catch (Exception e) {
+            return null;
+        }
+        int style = OpenJMLOptions.getTokenStyle(store, entry);
+        return new TextAttribute(color, null, style);
     }
 
     /**
@@ -119,10 +152,15 @@ public class JmlColorizer implements ITextPresentationListener {
                         + (raw != null ? raw.getClass().getName() : "null")
                         + " value=" + (raw instanceof List<?> l ? "List[" + l.size() + "]" : raw));
                 if (raw == null) return;
-                List<StyleRange> ranges = decodeTokenData(raw, mapper);
-                System.err.println("[JmlColorizer] decoded " + ranges.size() + " StyleRanges");
-                cachedRanges = ranges;
-                Display.getDefault().asyncExec(viewer::invalidateTextPresentation);
+                // Decoding reads JFace color registry (SWT-owned) and creates StyleRanges,
+                // so do it on the SWT thread together with ensureColors() and the invalidation.
+                Display.getDefault().asyncExec(() -> {
+                    ensureColors();
+                    List<StyleRange> ranges = decodeTokenData(raw, mapper);
+                    System.err.println("[JmlColorizer] decoded " + ranges.size() + " StyleRanges");
+                    cachedRanges = ranges;
+                    viewer.invalidateTextPresentation();
+                });
             })
             .exceptionally(t -> {
                 System.err.println("[JmlColorizer] executeCommand failed: " + t);
@@ -184,6 +222,9 @@ public class JmlColorizer implements ITextPresentationListener {
      * {@code [deltaLine, deltaStartChar, length, tokenTypeIndex, tokenModifiers]}.
      * Gson deserializes JSON numbers as {@code Double} when the declared type is
      * {@code Object}, so each element is cast via {@link Number#intValue()}.
+     *
+     * <p>Colors and styles (bold/italic/underline/strikethrough) are read from the
+     * preference store via {@link #textAttributeFor(String)}.
      */
     private List<StyleRange> decodeTokenData(Object raw, Function<String, IToken> mapper) {
         if (!(raw instanceof List<?> list)) return List.of();
@@ -198,13 +239,26 @@ public class JmlColorizer implements ITextPresentationListener {
             col   = (dLine == 0) ? col + dCol : dCol;
             if (typeIdx < 0 || typeIdx >= TOKEN_TYPE_NAMES.length) continue;
             String typeName = TOKEN_TYPE_NAMES[typeIdx];
-            IToken token = mapper.apply(typeName);
-            if (token == null || token == Token.UNDEFINED) continue;
-            if (!(token.getData() instanceof TextAttribute ta)) continue;
-            if (ta.getForeground() == null) continue;
+
+            // Try preference-store colors first (own TextAttribute with color+style).
+            TextAttribute ta = textAttributeFor(typeName);
+            // Fall back to the TM4E/JFace mapper when the preference store has no entry.
+            if (ta == null || ta.getForeground() == null) {
+                IToken token = mapper.apply(typeName);
+                if (token == null || token == Token.UNDEFINED) continue;
+                if (!(token.getData() instanceof TextAttribute)) continue;
+                ta = (TextAttribute) token.getData();
+            }
+            if (ta == null || ta.getForeground() == null) continue;
+
             try {
                 int offset = document.getLineOffset(line) + col;
-                result.add(new StyleRange(offset, len, ta.getForeground(), null));
+                StyleRange sr = new StyleRange(offset, len, ta.getForeground(), null);
+                int style = ta.getStyle();
+                sr.fontStyle  = style & (SWT.BOLD | SWT.ITALIC);
+                sr.underline  = (style & TextAttribute.UNDERLINE) != 0;
+                sr.strikeout  = (style & TextAttribute.STRIKETHROUGH) != 0;
+                result.add(sr);
             } catch (BadLocationException ignored) {}
         }
         return result;
@@ -215,32 +269,31 @@ public class JmlColorizer implements ITextPresentationListener {
     }
 
     /**
-     * Builds the token-type mapper.  Tries LSP4E's {@code TokenTypeMapper} via
-     * reflection (gives TM4E-theme-consistent colors matching {@code .jml} files).
-     * Falls back to a JFace color-registry mapper if reflection fails.
+     * Builds the token-type mapper used as a fallback when
+     * {@link #textAttributeFor(String)} returns null (unknown type or color
+     * registry not yet populated).
+     *
+     * <p>Tries LSP4E's {@code TokenTypeMapper} via reflection first (gives
+     * TM4E-theme-consistent colors for {@code .jml} files).  Falls back to the
+     * JFace color-registry (populated by {@link #ensureColors()}).
      */
     @SuppressWarnings("unchecked")
     private static Function<String, IToken> buildTokenMapper(ITextViewer viewer) {
-        // Build the JFace-registry fallback first (always available).
+        // Build the JFace-registry fallback (uses per-type preference-store keys).
         var reg = JFaceResources.getColorRegistry();
         Function<String, IToken> fallback = typeName -> {
-            // Map all 21 legend token types to fallback color keys.
-            // Types "macro" (13) and "comment" (17) are declared in the legend but never emitted.
-            String key = switch (typeName) {
-                case "keyword", "modifier"                                             -> KEY_KEYWORD;
-                case "function"                                                        -> KEY_FUNCTION;
-                case "namespace", "class", "interface", "enum",
-                     "struct", "typeParameter", "type", "enumMember"                  -> KEY_TYPE;
-                case "method"                                                          -> KEY_METHOD;
-                case "variable", "parameter", "property"                              -> KEY_VARIABLE;
-                case "decorator"                                                       -> KEY_DECORATOR;
-                case "string", "number"                                                -> KEY_LITERAL;
-                case "operator"                                                        -> KEY_OPERATOR;
-                default                                                                -> null;
-            };
-            if (key == null) return Token.UNDEFINED;
-            var color = reg.get(key);
-            return color != null ? new Token(new TextAttribute(color)) : Token.UNDEFINED;
+            OpenJMLOptions.TokenColorEntry entry = TOKEN_COLOR_MAP.get(typeName);
+            if (entry == null) return Token.UNDEFINED;
+            var color = reg.get(entry.colorKey());
+            if (color == null) return Token.UNDEFINED;
+            IPreferenceStore store;
+            try {
+                store = org.openjml.ui.Activator.getDefault().getPreferenceStore();
+            } catch (Exception ex) {
+                return new Token(new TextAttribute(color));
+            }
+            int style = OpenJMLOptions.getTokenStyle(store, entry);
+            return new Token(new TextAttribute(color, null, style));
         };
 
         // Try TM4E-based TokenTypeMapper.  For .java files in Eclipse there is no TM4E grammar,
