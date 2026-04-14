@@ -253,6 +253,13 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                     { "AST (precise, uses attributed tree; falls back to regex)", "ast"   } },
                 parent));
 
+        addEditor(new ComboFieldEditor(OpenJMLOptions.syntaxColoringScopeKey,
+                "JML syntax coloring scope (.java files):",
+                new String[][] {
+                    { "Preserve Java coloring (JML annotations only)", "preserve Java coloring" },
+                    { "Overwrite Java coloring (all Java + JML)",       "overwrite Java coloring" } },
+                parent));
+
         finalizeTab(parent);
     }
 

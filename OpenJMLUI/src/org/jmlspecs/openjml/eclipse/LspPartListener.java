@@ -190,9 +190,19 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         return java.util.concurrent.CompletableFuture.completedFuture(null);
                     });
             System.err.println("[OpenJML] workspace/didChangeConfiguration sent");
+            // Retrigger all active .java colorizers so the new syntaxColoringScope
+            // takes effect immediately without waiting for the next --check.
+            refreshAllColorizers();
         } catch (Exception e) {
             System.err.println("[OpenJML] sendSettingsToServer failed: " + e);
         }
+    }
+
+    /** Calls {@link JmlColorizer#refreshAsync()} on every registered {@code .java} colorizer. */
+    static void refreshAllColorizers() {
+        LspPartListener inst = INSTANCE;
+        if (inst == null) return;
+        inst.colorizersByPath.values().forEach(JmlColorizer::refreshAsync);
     }
 
     /**
@@ -505,8 +515,13 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         try {
             java.net.URI uri = java.net.URI.create(fileUri);
             IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(uri);
+            System.err.println("[OpenJML] refreshColorizerForUri: " + fileUri
+                    + " → " + files.length + " file(s), colorizersByPath.size=" + colorizersByPath.size());
             for (IFile f : files) {
                 JmlColorizer c = colorizersByPath.get(f.getFullPath());
+                System.err.println("[OpenJML] refreshColorizerForUri: " + f.getFullPath()
+                        + " colorizer=" + (c != null ? "found" : "null")
+                        + " ext=" + f.getFileExtension());
                 if (c != null) {
                     // .java files: JmlColorizer overlays JML tokens on JDT's presentation.
                     c.refreshAsync();
@@ -554,9 +569,9 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
 
     /**
      * Attaches a {@link JmlColorizer} to the given {@code .java} editor's viewer.
-     * The colorizer overlays JML semantic-token colors (keyword / macro / variable)
-     * on top of JDT's own syntax coloring, which would otherwise render
-     * {@code //@ …} annotations as plain comments.
+     * The colorizer overlays JML semantic-token colors on top of JDT's own syntax
+     * coloring, which would otherwise render {@code //@ …} annotations as plain
+     * comments.
      */
     private void setupColorizer(IEditorPart editor, IFile file) {
         org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
@@ -566,8 +581,9 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 if (!(viewer instanceof ITextViewerExtension4 ext4)) return;
                 org.eclipse.jface.text.IDocument doc = viewer.getDocument();
                 if (doc == null) return;
+                String fileUri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(file).toString();
                 JmlColorizer.ensureColors();
-                JmlColorizer colorizer = new JmlColorizer(viewer, doc);
+                JmlColorizer colorizer = new JmlColorizer(viewer, doc, fileUri);
                 ext4.addTextPresentationListener(colorizer);
                 colorizersByPath.put(file.getFullPath(), colorizer);
                 System.err.println("[OpenJML] JML colorizer installed for " + file.getName());

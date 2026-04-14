@@ -2,6 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: OpenJMLUI
 Bundle-SymbolicName: org.openjml.OpenJMLUI;singleton:=true
+Bundle-Vendor: OpenJML Project
 Bundle-Version: 0.21.0
 Bundle-ClassPath: .,bin/
 Bundle-Activator: org.openjml.ui.Activator

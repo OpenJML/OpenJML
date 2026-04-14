@@ -221,6 +221,22 @@ public class OpenJMLSettings {
     public boolean isEscManual()   { return "manual".equalsIgnoreCase(escTriggerOn); }
 
     /**
+     * Syntax coloring scope:
+     * <ul>
+     *   <li>{@code "preserve Java coloring"} (default) — emit tokens only inside JML annotation
+     *       context; Java code outside JML comments is left to the Java language server.</li>
+     *   <li>{@code "overwrite Java coloring"} — emit tokens for all Java and JML constructs;
+     *       OpenJML's colors replace whatever the Java language server produced.</li>
+     * </ul>
+     */
+    public volatile String syntaxColoringScope = "preserve Java coloring";
+
+    /** Returns {@code true} when OpenJML should emit tokens for all Java constructs. */
+    public boolean isOverwriteJavaColoring() {
+        return "overwrite Java coloring".equalsIgnoreCase(syntaxColoringScope);
+    }
+
+    /**
      * Syntax coloring strategy for JML tokens:
      * <ul>
      *   <li>{@code "ast"} (default) — AST-based coloring when an attributed AST is
@@ -384,6 +400,7 @@ public class OpenJMLSettings {
         this.useIntegratedOutline    = src.useIntegratedOutline;
         this.checkTriggerOn          = src.checkTriggerOn;
         this.escTriggerOn            = src.escTriggerOn;
+        this.syntaxColoringScope     = src.syntaxColoringScope;
         this.syntaxColoringStrategy  = src.syntaxColoringStrategy;
         this.escEngine               = src.escEngine;
         this.escThreads              = src.escThreads;

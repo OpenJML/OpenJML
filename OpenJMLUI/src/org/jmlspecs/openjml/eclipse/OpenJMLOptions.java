@@ -69,6 +69,9 @@ public class OpenJMLOptions {
     /** Syntax coloring strategy: "ast" (default) or "regex". */
     public static final String syntaxColoringStrategyKey = "openjml.syntaxColoringStrategy";
 
+    /** Syntax coloring scope: "preserve Java coloring" (default) or "overwrite Java coloring". */
+    public static final String syntaxColoringScopeKey = "openjml.syntaxColoringScope";
+
     // -----------------------------------------------------------------------
     // Key constants — Tab 2: OpenJML Tool Options — JML section
     // -----------------------------------------------------------------------
@@ -162,6 +165,7 @@ public class OpenJMLOptions {
         store.setDefault(escThreadsKey,               "0");
         store.setDefault(useIntegratedOutlineKey,     "true");
         store.setDefault(syntaxColoringStrategyKey,   "ast");
+        store.setDefault(syntaxColoringScopeKey,      "preserve Java coloring");
         // Tab 2 — JML
         store.setDefault(nullableByDefaultKey,        "false");
         store.setDefault(langKey,                     "openjml");
@@ -439,6 +443,7 @@ public class OpenJMLOptions {
         opts.put("escEngine",              nonBlank(value(escEngineKey), "subprocess"));
         opts.put("useIntegratedOutline",   value(useIntegratedOutlineKey));
         opts.put("syntaxColoringStrategy", nonBlank(value(syntaxColoringStrategyKey), "ast"));
+        opts.put("syntaxColoringScope",    nonBlank(value(syntaxColoringScopeKey), "preserve Java coloring"));
         String threads = value(escThreadsKey);
         if (threads != null && !threads.isBlank() && !threads.equals("0")) {
             try { opts.put("escThreads", Integer.parseInt(threads.trim())); }

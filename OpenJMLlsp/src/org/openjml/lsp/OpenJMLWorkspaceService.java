@@ -123,6 +123,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.checkTriggerOn         != null) globalSettings.checkTriggerOn         = src.checkTriggerOn;
         if (src.escTriggerOn           != null) globalSettings.escTriggerOn           = src.escTriggerOn;
         if (src.syntaxColoringStrategy != null) globalSettings.syntaxColoringStrategy = src.syntaxColoringStrategy;
+        if (src.syntaxColoringScope    != null) globalSettings.syntaxColoringScope    = src.syntaxColoringScope;
         if (src.escEngine              != null) globalSettings.escEngine              = src.escEngine;
         if (src.racOutputDir         != null) globalSettings.racOutputDir         = src.racOutputDir;
         if (src.useIntegratedOutline != null) globalSettings.useIntegratedOutline = src.useIntegratedOutline;

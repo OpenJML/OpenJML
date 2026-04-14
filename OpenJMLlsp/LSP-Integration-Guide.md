@@ -570,51 +570,85 @@ what generic clients receive via the server.
 
 ### Semantic Tokens — `textDocument/semanticTokens/full`
 
-Returns full-file semantic token data for JML keyword and clause highlighting.
-The server's token legend (returned in `ServerCapabilities.semanticTokensProvider.legend`) is:
+Returns full-file semantic token data.  The server's token legend (returned in
+`ServerCapabilities.semanticTokensProvider.legend`) is:
 
 | Index | Token type | Used for |
 |---|---|---|
-| 0 | `keyword` | JML clause and modifier keywords (`requires`, `ensures`, `invariant`, `ghost`, etc.) |
-| 1 | `macro` | JML backslash expressions (`\result`, `\old`, `\forall`, `\nothing`, etc.) |
-| 2 | `variable` | JML identifiers that resolve to variables or fields in the AST (AST strategy only) |
+| 0 | `namespace` | Package names |
+| 1 | `class` | Class declarations and references |
+| 2 | `interface` | Interface declarations and references |
+| 3 | `enum` | Enum type declarations and references |
+| 4 | `struct` | Record declarations and references |
+| 5 | `typeParameter` | Generic type parameters (`<T>`) |
+| 6 | `type` | Primitive types (`int`, `boolean`, …) and JML built-in types (`\bigint`, `\real`, `\locset`, …) |
+| 7 | `parameter` | Method and constructor parameters |
+| 8 | `variable` | Local variables |
+| 9 | `property` | Fields (instance and static) |
+| 10 | `enumMember` | Enum constants |
+| 11 | `method` | Method declarations and call sites |
+| 12 | `function` | JML backslash expressions (`\result`, `\old`, `\forall`, `\nothing`, `\fresh`, …) |
+| 13 | `macro` | Reserved — declared in legend but not currently emitted (allows switching backslash tokens from `function` to `macro` by changing one server constant without a legend change) |
+| 14 | `keyword` | JML structural and behavioral keywords (`requires`, `ensures`, `invariant`, `ghost`, `model`, `also`, `behavior`, …); Java keywords (`return`, `if`, `for`, `new`, `instanceof`, …) in full mode |
+| 15 | `modifier` | JML modifier annotations: `pure`, `spec_public`, `spec_protected`, `nullable`, `non_null`, `helper`, `strictly_pure`, … |
+| 16 | `decorator` | Java and JML annotations (`@Override`, `@NonNull`, …) |
+| 17 | `comment` | Reserved — declared in legend but not emitted (JML comment delimiters `//@ ` and `/*@ */` do not appear in the AST) |
+| 18 | `string` | String literals and text blocks |
+| 19 | `number` | Numeric and character literals |
+| 20 | `operator` | Java binary, unary, and assignment operators; JML-specific operators (`==>`, `<==`, `<==>`, `<:`, …) |
 
-No token modifiers are used; the modifiers list in the legend is empty.
+All 21 token types are declared in the legend even if not currently emitted (e.g. `macro`,
+`comment`), so that clients have a stable index-to-name mapping and themes can
+pre-configure colors for the full vocabulary.
 
-Clients map these type names to editor colors. The names (`keyword`, `macro`, `variable`)
-are drawn from the LSP standard token type vocabulary, so most clients will have
-default colors for them — though what those colors look like varies by theme and client.
-A client that needs specific JML-aware colors should configure its theme to handle these
-three type names explicitly.
+The token modifiers legend is:
 
-The current set of three token types is minimal. Planned additions (all drawn from
-the LSP standard token type vocabulary, so clients will have fallback colors without
-custom configuration):
+| Index | Modifier | Bit mask | Applied to |
+|---|---|---|---|
+| 0 | `declaration` | 1 | Declaration sites of symbols |
+| 1 | `definition` | 2 | Reserved |
+| 2 | `readonly` | 4 | `final` fields and local variables |
+| 3 | `static` | 8 | `static` fields and methods |
+| 4 | `deprecated` | 16 | Symbols annotated `@Deprecated` |
+| 5 | `abstract` | 32 | Abstract classes and methods |
+| 6 | `async` | 64 | Reserved |
+| 7 | `modification` | 128 | Reserved |
+| 8 | `documentation` | 256 | Reserved |
+| 9 | `defaultLibrary` | 512 | Standard-library symbols |
 
-| Token type | Intended use |
-|---|---|
-| `type` | JML primitive types: `\bigint`, `\real`, `TYPE` |
-| `modifier` | JML method/class modifiers: `pure`, `spec_public`, `helper`, `non_null`, `nullable` |
-| `property` | Ghost and model field declarations |
-| `number` | Numeric literals inside JML expressions |
-| `operator` | JML-specific operators: `==>`, `<==`, `<==>`, `<:` |
-| `comment` | The `//@ ` and `/*@ */` annotation delimiters themselves |
+All token type names and modifier names are drawn from the LSP standard semantic token
+vocabulary, so clients that follow the specification will have default theme colors for
+them without requiring JML-specific configuration.
 
-The server also currently uses no token modifiers (`modifiers: []`). The LSP standard
-modifier vocabulary includes `declaration` and `definition`, which can be combined with
-any token type to distinguish a symbol's declaration site from its use sites. For
-example, a ghost variable declaration could be tagged `variable` + `declaration`
-modifier, while references carry only `variable`. Most clients render declaration sites
-distinctly (bold, underline) when modifiers are present. Adding these modifiers is
-planned alongside the token type expansion.
+#### Operating modes
 
-Two strategies are available via the `syntaxColoringStrategy` setting:
+Two modes are controlled by the `openjml.javaMode` setting and the
+`javaMode` initialization option:
 
-- `"ast"` (default) — AST-based coloring when a `--check` result is cached (no
-  false positives for identifiers that share a JML keyword name); falls back to
-  regex before the first check.
-- `"regex"` — always uses regex-based coloring (instant, but may color non-JML
-  identifiers that happen to match JML keywords).
+- **`jml-only`** (default) — only JML constructs are highlighted: JML clause keywords,
+  JML modifier keywords, JML backslash expressions, annotations and modifiers on Java
+  declarations that carry JML annotation tokens, and all Java constructs appearing
+  *inside* JML contexts (e.g., identifiers, operators, and literals inside `requires`
+  or `ensures` expressions and inside model method bodies).  Java constructs outside JML
+  context are not emitted, leaving them to the Red Hat Java extension.
+
+- **`full`** — all Java and JML constructs are highlighted.  Use when no other Java
+  semantic token provider is installed.
+
+#### Coloring strategies
+
+Two strategies are available via the `openjml.syntaxColoringStrategy` setting:
+
+- **`"ast"`** (default) — AST-based coloring when a `--check` result is cached.
+  Uses the attributed AST to emit tokens for genuine JML nodes only (no false positives
+  for Java identifiers that share a name with a JML keyword).  Falls back to regex
+  before the first `--check` completes.
+
+- **`"regex"`** — always uses regex-based line scanning (instant, no AST required, but
+  may color Java identifiers that happen to match JML keyword names).
+
+The AST strategy uses `cu.lineMap` (populated during lexing, always present after
+a `--check` pass) for O(1) character-offset → line:column conversion.
 
 Non-VS Code clients should use this standard request. See
 [`openjml.getSemanticTokens`](#openjmlgetsemantictokens) for the VS Code-specific
@@ -1151,7 +1185,16 @@ The vscode-languageclient library's built-in semantic tokens feature competes wi
    ```
 2. A separate `DocumentSemanticTokensProvider` is registered directly with VS Code via `vscode.languages.registerDocumentSemanticTokensProvider`. It fetches tokens by calling the `openjml.getSemanticTokens` custom command and returns them as a `vscode.SemanticTokens` object.
 
-This approach merges the JML tokens additively on top of whatever Red Hat produces. The legend must include all three server token types in order: `['keyword', 'macro', 'variable']`.
+This approach merges the JML tokens additively on top of whatever Red Hat produces.
+The legend registered with VS Code **must exactly match the server's legend** — all 21
+token type names in index order, then the 10 modifier names in index order
+(see the [Semantic Tokens](#semantic-tokens----textdocumentsemantictokensfull) section
+above for the full table).  A mismatch causes incorrect colors for any token type whose
+index differs between client and server legends.
+
+In `jml-only` mode (the default when `client: "vscode-java"` is sent), the server
+emits tokens only for JML constructs, so Red Hat's Java coloring is not disturbed for
+ordinary Java code.
 
 ### `prepareRename` middleware
 
@@ -1171,6 +1214,50 @@ The Red Hat Java formatter rewrites `//@ ` to `// @` (inserts a space after `//`
 
 There is no manual "run check" command; checking is always automatic. ESC (`--esc`) is separate and has its own trigger setting (`openjml.escTriggerOn`).
 
+### Status bar — ESC progress indicator
+
+While any ESC task is running, the extension shows a status bar item at the bottom of the window:
+
+```
+OpenJML N ESC task(s) running …
+```
+
+where `N` is the count of currently running tasks (queried every 800 ms via
+`openjml.getRunningEscTasks`). Clicking the item invokes `openjml.cancelEsc`.  The item
+is hidden when no tasks are running and on any query error.
+
+### Code-lens-based method FQN for `runEscForMethod`
+
+When the user invokes **Run ESC for Method** from the keyboard, the extension calls
+`vscode.executeCodeLensProvider` to retrieve the current document's code lenses and finds
+the lens whose range starts at or above the cursor line with command
+`openjml.runEscForMethod`.  The FQN is taken directly from that lens's arguments
+(`name@startLine` format), which were computed by the server's AST scanner using
+`Utils.uniqueSymbolName`.  This approach correctly resolves methods in secondary classes
+and nested classes without any client-side regex.  Generic clients can use the same
+mechanism or read the FQN from the code lens command arguments directly.
+
+### Explorer context menu
+
+The extension contributes menu items to the `explorer/context` menu for file and folder
+nodes, including `runEscSplitByFile`, `runEscSplitByMethod`, and `indexProject`.
+Explorer multi-select (the `explorerSelection` argument VS Code passes as the second
+argument to Explorer context commands) is handled by `resolveTargetPaths`, which unions
+all selected URIs into a single path list for the server command.
+
+### Additional commands (beyond the Eclipse plugin)
+
+The VS Code extension registers these commands that have no direct Eclipse plugin
+equivalent:
+
+| Command | Description |
+|---|---|
+| `openjml.checkJml` | Run `--check` on one or more files or folders |
+| `openjml.runEscSplitByFile` | Run ESC with one subprocess per file (parallel) |
+| `openjml.runEscSplitByMethod` | Run ESC with one subprocess per method (parallel) |
+| `openjml.indexProject` | Run `--check` on all sources to populate the declaration index |
+| `openjml.clearMarkersSelected` | Clear markers for selected Explorer file(s)/folder(s); calls `openjml.clearMarkers` on the server |
+
 ---
 
 ## Known Limitations
@@ -1183,9 +1270,14 @@ There is no manual "run check" command; checking is always automatic. ESC (`--es
 - **ESC-on-save**: The server does not trigger ESC from `textDocument/didSave`.
   Clients that want ESC-on-save must issue `openjml.runEsc` themselves after save.
 
-- **Method detection is approximate**: Code lens placement and hover use a
-  regex-based source scanner, not a full parser. Constructor names, lambda bodies,
-  anonymous class methods, and certain generics may not be detected correctly.
+- **Method detection**: Code lens placement uses an AST-based scanner when a
+  `--check` result is cached, falling back to regex before the first check run.
+  The AST scanner covers methods in all class types — primary and secondary top-level
+  classes, member nested classes, local classes, and anonymous classes — using
+  `Utils.uniqueSymbolName` as the canonical FQN key, which matches the key used by
+  `--method` filtering.  Lambda bodies are not scanned.  Before the first `--check`
+  completes, regex fallback is used; it covers only the primary (public) class in the
+  file and may miss constructors and methods in secondary or nested classes.
 
 - **Workspace folders**: The server accepts workspace folder roots (from
   `workspaceFolders` in `initialize` and the `workspaceFolderPaths` setting) and

@@ -414,10 +414,20 @@
           "order": 11,
           "markdownDescription": "Strategy for JML syntax coloring:\n- `ast` (default) — uses the attributed AST when available (precise, no false positives); falls back to regex before the first type-check\n- `regex` — always uses regex (instant, but may color non-JML identifiers that happen to match JML keywords)"
         },
+        "openjml.syntaxColoringScope": {
+          "type": "string",
+          "enum": [
+            "preserve Java coloring",
+            "overwrite Java coloring"
+          ],
+          "default": "preserve Java coloring",
+          "order": 12,
+          "markdownDescription": "Controls how OpenJML's semantic tokens interact with Java coloring:\n- `preserve Java coloring` (default) — emit tokens only inside JML annotation context; Java code is colored by the Java language server\n- `overwrite Java coloring` — emit tokens for all Java and JML constructs; OpenJML's colors replace whatever the Java language server produced"
+        },
         "openjml.useIntegratedOutline": {
           "type": "boolean",
           "default": true,
-          "order": 12,
+          "order": 13,
           "markdownDescription": "When `true` (default), the Outline panel shows all Java and JML symbols together. When `false`, only JML-specific symbols (ghost, model) are shown, complementing the Red Hat Java extension's outline. Users can collapse irrelevant sections in either mode."
         },
         "openjml.javaMode": {
@@ -427,7 +437,7 @@
             "jml-only"
           ],
           "default": "jml-only",
-          "order": 13,
+          "order": 14,
           "markdownDescription": "Controls which LSP features overlap with Java tooling:\n- `jml-only` (default for VS Code) — only JML-specific symbols and features; defers Java navigation to the Red Hat Java extension\n- `full` — all features including Java symbols, hover, etc.; useful without a Java extension installed"
         },
         "openjml.client": {
@@ -439,13 +449,13 @@
             "intellij"
           ],
           "default": "vscode-java",
-          "order": 14,
+          "order": 15,
           "markdownDescription": "Client identifier sent to the server at startup. Controls `javaMode` defaults. Normally leave as `vscode-java`."
         },
         "openjml.racOutputDir": {
           "type": "string",
           "default": "",
-          "order": 15,
+          "order": 16,
           "description": "Output directory for RAC-compiled class files (-d option). Relative paths are resolved against the workspace root. Leave empty to use 'rac-classes' in the workspace root."
         }
       }

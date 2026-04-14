@@ -1361,7 +1361,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     // causing StringIndexOutOfBoundsException.  Fall through to regex.
                     CharSequence astSrc = entry.ast().sourcefile.getCharContent(false);
                     if (astSrc.length() == content.length()) {
-                        return SemanticTokensProvider.computeTokensFromAst(entry, content).getData();
+                        boolean fullMode = globalSettings.isOverwriteJavaColoring();
+                        return SemanticTokensProvider.computeTokensFromAst(entry, content, fullMode).getData();
                     }
                 } catch (Exception ignored) {}
             }

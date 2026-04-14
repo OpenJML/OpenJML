@@ -1,109 +1,201 @@
 package org.openjml.lsp;
 
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.*;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.parser.JmlToken;
 import com.sun.tools.javac.tree.JCTree.*;
+import com.sun.tools.javac.util.Position;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Computes semantic tokens for JML constructs in Java source files.
+ * Computes semantic tokens for Java+JML source files.
  *
  * <p>Two strategies are available:
  * <ul>
  *   <li>{@link #computeTokensFromAst} — AST-walker approach using a cached
- *       {@link ASTCache.Entry}.  Only tokens at genuine JML AST nodes are
- *       highlighted, so identifiers that happen to share a name with a JML
- *       keyword (e.g. a field named {@code requires}) are not falsely coloured.
- *       Additionally, boolean literals ({@code true}/{@code false}/{@code null})
- *       and primitive type keywords ({@code int}, {@code boolean}, …) inside
- *       JML expressions are coloured — the Java tokeniser does not handle
- *       these inside comment regions.</li>
- *   <li>{@link #computeTokens} — regex-based fallback used when no cached AST
- *       is available (e.g. before the first {@code --check} run completes).</li>
+ *       {@link ASTCache.Entry}.  Provides precise, false-positive-free highlighting.
+ *       Supports two modes:
+ *       <ul>
+ *         <li><b>JML-only</b> ({@code fullMode=false}): only JML constructs and Java
+ *             constructs appearing within JML contexts (e.g. model method bodies)
+ *             are highlighted.  Intended for co-existence with the Red Hat Java
+ *             extension, which handles Java coloring independently.</li>
+ *         <li><b>Full</b> ({@code fullMode=true}): all Java and JML constructs are
+ *             highlighted.  Intended for standalone use without a Java extension.</li>
+ *       </ul>
+ *   </li>
+ *   <li>{@link #computeTokens} — regex-based fallback used before the first
+ *       {@code --check} completes.  JML-region detection only.</li>
  * </ul>
  *
- * <p>Only tokens inside JML comment regions are highlighted — Java syntax is
- * already handled by VS Code's built-in Java grammar.  Three token types are
- * produced:
- * <ul>
- *   <li>{@code keyword} (index 0) — JML clause and modifier keywords such as
- *       {@code requires}, {@code ensures}, {@code invariant}, {@code pure},
- *       {@code ghost}, {@code model}, etc.</li>
- *   <li>{@code macro} (index 1) — JML backslash-expressions such as
- *       {@code \result}, {@code \old}, {@code \forall}, {@code \exists},
- *       {@code \nothing}, etc.</li>
- *   <li>{@code variable} (index 2) — identifiers and field references inside
- *       JML expression contexts.  Emitting an explicit token here overrides
- *       TM4E's regex-based keyword coloring at that position, ensuring that a
- *       Java identifier whose name coincides with a JML keyword (e.g. a field
- *       named {@code requires}) is not falsely highlighted as a keyword.</li>
- * </ul>
+ * <h3>Position conventions</h3>
+ * <p>The walker uses {@code cu.lineMap} (populated during lexing, always present
+ * after a {@code --check} pass) for O(1) offset→line:col conversion.  If for any
+ * reason {@code lineMap} is null the implementation falls back to a scanned
+ * {@code lineOffsets[]} array and logs a warning.
  *
- * <p>JML regions recognised by the regex fallback:
- * <ul>
- *   <li>Single-line: {@code //@ ...} (any amount of leading whitespace)</li>
- *   <li>Block: {@code /*@ ... @*}{@code /} — multiline; each line is scanned</li>
- * </ul>
+ * <h3>Backslash token type</h3>
+ * <p>All JML backslash expressions ({@code \result}, {@code \old}, {@code \forall},
+ * etc.) use the type index named by {@link #BACKSLASH_TOKEN_TYPE}.  Changing that
+ * one constant (and rebuilding) switches all of them at once without touching the
+ * legend, since both {@code "function"} and {@code "macro"} are declared in the
+ * legend.
  */
 public class SemanticTokensProvider {
 
-    /** Index of the {@code keyword} token type in the legend. */
-    public static final int TT_KEYWORD = 0;
+    // -----------------------------------------------------------------------
+    // Token type indices (must match TOKEN_TYPES order)
+    // -----------------------------------------------------------------------
 
-    /** Index of the {@code macro} token type in the legend. */
-    public static final int TT_MACRO    = 1;
+    public static final int TT_NAMESPACE   =  0;
+    public static final int TT_CLASS       =  1;
+    public static final int TT_INTERFACE   =  2;
+    public static final int TT_ENUM        =  3;
+    /** Records map to {@code struct} — distinguished from plain classes. */
+    public static final int TT_STRUCT      =  4;
+    public static final int TT_TYPE_PARAM  =  5;
+    /** Primitives ({@code int}, {@code boolean}, …) and JML built-in types
+     *  ({@code \bigint}, {@code \real}, {@code \locset}, …). */
+    public static final int TT_TYPE        =  6;
+    public static final int TT_PARAMETER   =  7;
+    /** Local variables. */
+    public static final int TT_VARIABLE    =  8;
+    /** Fields (instance and static). */
+    public static final int TT_PROPERTY    =  9;
+    public static final int TT_ENUM_MEMBER = 10;
+    public static final int TT_METHOD      = 11;
+    /** Currently used for JML backslash tokens (see {@link #BACKSLASH_TOKEN_TYPE}). */
+    public static final int TT_FUNCTION    = 12;
+    /**
+     * Reserved — not currently emitted.
+     * <p>Both {@code "function"} (index 12) and {@code "macro"} (index 13) are
+     * declared in the legend so that {@link #BACKSLASH_TOKEN_TYPE} can be switched
+     * from one to the other by changing a single constant without a legend change
+     * (which would require a server restart and client reconnection).
+     */
+    public static final int TT_MACRO       = 13;
+    public static final int TT_KEYWORD     = 14;
+    /** JML modifiers: {@code pure}, {@code spec_public}, {@code nullable}, etc. */
+    public static final int TT_MODIFIER    = 15;
+    /** Java and JML annotations: {@code @Override}, {@code @NonNull}, etc. */
+    public static final int TT_DECORATOR   = 16;
+    /** Reserved — JML comment delimiters ({@code //@}, {@code /*@}) are not in the AST. */
+    public static final int TT_COMMENT     = 17;
+    /** String literals and text blocks. */
+    public static final int TT_STRING      = 18;
+    /** Numeric and character literals. */
+    public static final int TT_NUMBER      = 19;
+    /** Java and JML operators. */
+    public static final int TT_OPERATOR    = 20;
 
     /**
-     * Index of the {@code variable} token type in the legend.
+     * The token type used for all JML backslash expressions
+     * ({@code \result}, {@code \old}, {@code \forall}, {@code \nothing}, etc.).
      *
-     * <p>Used for identifier and field-access nodes inside JML expression
-     * contexts.  Emitting this type at a position causes
-     * {@code StyleRangeMerger} (LSP4E) to override TM4E's coloring at that
-     * position, preventing false keyword highlighting when an identifier
-     * happens to share a name with a JML clause keyword.
+     * <p>Currently {@link #TT_FUNCTION}.  To reclassify all backslash tokens as
+     * {@code macro}, change this constant to {@link #TT_MACRO} — no other change
+     * is needed, since both token types are declared in the legend.
+     *
+     * <p>POSITION CONVENTION: the AST position for backslash tokens
+     * ({@link JmlSingleton#pos}, {@link JmlQuantifiedExpr#pos},
+     * {@link JmlMethodInvocation#startpos}) is the offset of the leading {@code \}.
+     * This is a parser-established invariant relied on by {@link JmlAstWalker}.
      */
-    public static final int TT_VARIABLE = 2;
+    public static final int BACKSLASH_TOKEN_TYPE = TT_FUNCTION;
 
-    /** Token types registered in the server capabilities legend (order matters). */
-    public static final List<String> TOKEN_TYPES     = List.of("keyword", "macro", "variable");
-
-    /** No token modifiers used. */
-    public static final List<String> TOKEN_MODIFIERS = List.of();
+    /** Token types registered in the server capabilities legend (order is significant). */
+    public static final List<String> TOKEN_TYPES = List.of(
+        "namespace",     //  0
+        "class",         //  1
+        "interface",     //  2
+        "enum",          //  3
+        "struct",        //  4  records
+        "typeParameter", //  5
+        "type",          //  6  primitives + JML built-in types
+        "parameter",     //  7
+        "variable",      //  8
+        "property",      //  9  fields
+        "enumMember",    // 10
+        "method",        // 11
+        "function",      // 12  backslash tokens (see BACKSLASH_TOKEN_TYPE)
+        "macro",         // 13  reserved; see BACKSLASH_TOKEN_TYPE comment
+        "keyword",       // 14
+        "modifier",      // 15  JML modifiers
+        "decorator",     // 16  annotations
+        "comment",       // 17  reserved; JML delimiters not in AST
+        "string",        // 18
+        "number",        // 19
+        "operator"       // 20
+    );
 
     // -----------------------------------------------------------------------
-    // JML keyword sets (used by the regex fallback)
+    // Token modifier bit masks (must match TOKEN_MODIFIERS order)
     // -----------------------------------------------------------------------
-    //
-    // These lists live in JmlKeywords — edit them there.
 
-    /** JML clause and modifier keywords (plain word-boundary matched). */
-    private static final Set<String> JML_KEYWORDS = JmlKeywords.JML_KEYWORDS;
+    public static final int TM_DECLARATION    =   1;  // bit 0
+    public static final int TM_DEFINITION     =   2;  // bit 1
+    public static final int TM_READONLY       =   4;  // bit 2
+    public static final int TM_STATIC         =   8;  // bit 3
+    public static final int TM_DEPRECATED     =  16;  // bit 4
+    public static final int TM_ABSTRACT       =  32;  // bit 5
+    // bits 6-8 unused (async, modification, documentation)
+    public static final int TM_DEFAULT_LIB    = 512;  // bit 9
+
+    /** Token modifiers registered in the legend (order is significant). */
+    public static final List<String> TOKEN_MODIFIERS = List.of(
+        "declaration",   // bit 0 = 1
+        "definition",    // bit 1 = 2
+        "readonly",      // bit 2 = 4
+        "static",        // bit 3 = 8
+        "deprecated",    // bit 4 = 16
+        "abstract",      // bit 5 = 32
+        "async",         // bit 6 = 64    (unused)
+        "modification",  // bit 7 = 128   (unused)
+        "documentation", // bit 8 = 256   (unused)
+        "defaultLibrary" // bit 9 = 512
+    );
+
+    // -----------------------------------------------------------------------
+    // JML modifier keywords (emit as TT_MODIFIER, not TT_KEYWORD)
+    // -----------------------------------------------------------------------
 
     /**
-     * JML backslash-expression keywords (the part AFTER the backslash).
-     * Matched as {@code \word}.
+     * JML tokens from {@link JmlModifiers#jmlmods} that annotate methods, classes,
+     * or fields without introducing a structural construct.  These receive
+     * {@link #TT_MODIFIER} rather than {@link #TT_KEYWORD}.
+     *
+     * <p>Structural and behavioral keywords ({@code ghost}, {@code model},
+     * {@code requires}, {@code ensures}, {@code invariant}, etc.) remain
+     * {@link #TT_KEYWORD}.
      */
+    private static final Set<String> JML_MODIFIER_KEYWORDS = Set.of(
+        "pure", "spec_pure", "strictly_pure", "no_state", "two_state",
+        "spec_public", "spec_protected",
+        "non_null", "non_null_by_default", "nullable", "nullable_by_default",
+        "helper", "instance", "query", "secret", "monitored", "uninitialized",
+        "code_java_math", "code_safe_math", "code_bigint_math",
+        "spec_java_math", "spec_safe_math", "spec_bigint_math"
+    );
+
+    private static final Set<String> JML_KEYWORDS = JmlKeywords.JML_KEYWORDS;
     private static final Set<String> JML_BACKSLASH = JmlKeywords.JML_BACKSLASH;
+    private static final Set<String> JAVA_MODIFIERS = JmlKeywords.JAVA_MODIFIERS;
 
     // -----------------------------------------------------------------------
-    // Patterns (regex fallback)
+    // Regex patterns (fallback only)
     // -----------------------------------------------------------------------
 
     private static final Pattern BACKSLASH_WORD = Pattern.compile("\\\\([a-zA-Z_][a-zA-Z0-9_]*)");
     private static final Pattern PLAIN_WORD     = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
-
-    // Detects the start of a JML line comment: optional whitespace then //@
-    private static final Pattern JML_LINE_START = Pattern.compile("^(\\s*)//(@+)");
-    // Detects the start of a JML block comment: optional whitespace then /*@
+    private static final Pattern JML_LINE_START  = Pattern.compile("^(\\s*)//(@+)");
     private static final Pattern JML_BLOCK_START = Pattern.compile("^(\\s*)/\\*(@+)");
 
     // -----------------------------------------------------------------------
@@ -113,51 +205,42 @@ public class SemanticTokensProvider {
     /**
      * Compute semantic tokens by walking the attributed JML AST.
      *
-     * <p>Only genuine JML keyword tokens are highlighted — identifiers that
-     * share a name with a JML keyword but are used as Java identifiers are
-     * not falsely coloured.  Boolean literals and primitive type keywords
-     * appearing inside JML expressions are also highlighted.
-     *
-     * @param entry  cached AST entry for the file
-     * @param source the full Java source text (used for offset→line:col mapping)
+     * @param entry    cached AST entry for the file
+     * @param source   full Java source text
+     * @param fullMode {@code true} for Java+JML mode (emit for all Java constructs);
+     *                 {@code false} for JML-only mode (emit only inside JML contexts)
      * @return LSP-encoded semantic tokens (delta-encoded 5-integer tuples)
      */
-    public static SemanticTokens computeTokensFromAst(ASTCache.Entry entry, String source) {
-        int[] lineOffsets = buildLineOffsets(source);
-        List<int[]> tokens = new ArrayList<>();  // each: [line, col, len, type]
-        new JmlAstWalker(source, lineOffsets, tokens).scan(entry.ast());
-        // Sort by (line, col) in case AST order differs from source order.
+    public static SemanticTokens computeTokensFromAst(ASTCache.Entry entry,
+                                                       String source,
+                                                       boolean fullMode) {
+        List<int[]> tokens = new ArrayList<>();
+        new JmlAstWalker(entry.ast(), source, tokens, fullMode).scan(entry.ast());
         tokens.sort(Comparator.comparingInt((int[] t) -> t[0]).thenComparingInt(t -> t[1]));
-        // Debug: log every token so we can see which semantic category each word gets.
-        String[] TYPE_NAMES = { "keyword", "macro", "variable" };
-        for (int[] tok : tokens) {
-            int off = lineOffsets[tok[0]] + tok[1];
-            String text = source.substring(off, Math.min(off + tok[2], source.length()));
-            String typeName = (tok[3] >= 0 && tok[3] < TYPE_NAMES.length) ? TYPE_NAMES[tok[3]] : String.valueOf(tok[3]);
-            //System.err.println("[semtok] " + typeName + " '" + text + "' L" + (tok[0]+1) + ":" + tok[1]);
-        }
         return deltaEncode(tokens);
     }
 
     /**
-     * Build an array where {@code lineOffsets[i]} is the character offset of
-     * the start of line {@code i} (0-based) in {@code source}.
+     * Compatibility overload: JML-only mode.
+     * @deprecated Prefer {@link #computeTokensFromAst(ASTCache.Entry, String, boolean)}.
      */
+    @Deprecated
+    public static SemanticTokens computeTokensFromAst(ASTCache.Entry entry, String source) {
+        return computeTokensFromAst(entry, source, false);
+    }
+
+    /** Build a line-start offset array from source (fallback when lineMap is null). */
     private static int[] buildLineOffsets(String source) {
         int count = 1;
-        for (int i = 0; i < source.length(); i++) {
-            if (source.charAt(i) == '\n') count++;
-        }
+        for (int i = 0; i < source.length(); i++) if (source.charAt(i) == '\n') count++;
         int[] offsets = new int[count];
         offsets[0] = 0;
         int idx = 1;
-        for (int i = 0; i < source.length(); i++) {
-            if (source.charAt(i) == '\n') offsets[idx++] = i + 1;
-        }
+        for (int i = 0; i < source.length(); i++) if (source.charAt(i) == '\n') offsets[idx++] = i + 1;
         return offsets;
     }
 
-    /** Convert sorted [line, col, len, type] tuples to the LSP delta-encoded format. */
+    /** Delta-encode sorted [line, col, len, type, mods] tuples to LSP format. */
     private static SemanticTokens deltaEncode(List<int[]> tokens) {
         List<Integer> data = new ArrayList<>(tokens.size() * 5);
         int prevLine = 0, prevCol = 0;
@@ -168,7 +251,7 @@ public class SemanticTokensProvider {
             data.add(dCol);
             data.add(tok[2]);  // length
             data.add(tok[3]);  // token type
-            data.add(0);       // token modifiers (none)
+            data.add(tok[4]);  // token modifiers
             prevLine = tok[0];
             prevCol  = tok[1];
         }
@@ -176,303 +259,258 @@ public class SemanticTokensProvider {
     }
 
     // -----------------------------------------------------------------------
-    // JmlAstWalker — emits tokens by walking the JML AST
+    // JmlAstWalker
     // -----------------------------------------------------------------------
 
     private static class JmlAstWalker extends JmlTreeScanner {
 
-        private final String   source;
-        private final int[]    lineOffsets;
-        private final List<int[]> tokens;
-        /** Depth inside JML spec expression context (> 0 means inside a JML clause body). */
+        private final JmlCompilationUnit cu;
+        private final Position.LineMap   lineMap;       // null → use lineOffsets
+        private final int[]              lineOffsets;   // null → use lineMap
+        private final String             source;
+        private final List<int[]>        tokens;        // [line, col, len, type, mods]
+        private final boolean            fullMode;
+
+        /**
+         * Depth inside a JML spec expression context.  Greater than zero when the
+         * walker is visiting nodes that appear inside a JML clause body, a JML
+         * ghost/model declaration, or a model method body.  In JML-only mode tokens
+         * are only emitted for Java constructs (operators, literals, identifiers)
+         * when this depth is positive.
+         */
         private int jmlDepth = 0;
 
-        JmlAstWalker(String source, int[] lineOffsets, List<int[]> tokens) {
-            super(null);  // null context: Log.instance() calls are guarded by null check
-            this.source      = source;
-            this.lineOffsets = lineOffsets;
-            this.tokens      = tokens;
+        JmlAstWalker(JmlCompilationUnit cu, String source, List<int[]> tokens, boolean fullMode) {
+            super(null);
+            this.cu       = cu;
+            this.source   = source;
+            this.tokens   = tokens;
+            this.fullMode = fullMode;
+            Position.LineMap lm = cu.lineMap;
+            if (lm == null) {
+                System.err.println("[SemanticTokens] WARNING: lineMap is null — " +
+                    "falling back to source-scanning for offset→line:col. " +
+                    "If this persists, verify that -g is passed to OpenJML invocations.");
+                this.lineMap    = null;
+                this.lineOffsets = buildLineOffsets(source);
+            } else {
+                this.lineMap    = lm;
+                this.lineOffsets = null;
+            }
+        }
+
+        // ---- context predicate ---------------------------------------------
+
+        /** True when the current position is inside a JML or full-Java context. */
+        private boolean inContext() { return fullMode || jmlDepth > 0; }
+
+        // ---- position conversion -------------------------------------------
+
+        /**
+         * Convert a character offset to a [line, col] pair (both 0-based).
+         *
+         * <p>Prefers {@link #lineMap} (O(1)); falls back to {@link #lineOffsets}
+         * scanning when lineMap is absent.
+         *
+         * <p>POSITION CONVENTION: for binary nodes {@code tree.pos} is the operator
+         * position (established javac invariant used for diagnostics).  For JML
+         * clause nodes ({@link JmlMethodClauseExpr}, {@link JmlTypeClauseExpr}, etc.)
+         * {@code tree.pos} is the preferred/representative position; empirical tests
+         * should verify it lands on the clause keyword rather than a preceding
+         * modifier.  Use the test cases in {@code SemanticTokensTest} as regression
+         * guards for this invariant.
+         */
+        private int[] toLineCol(int pos) {
+            if (pos < 0) return null;
+            if (lineMap != null) {
+                int line1 = (int) lineMap.getLineNumber(pos);
+                if (line1 <= 0) return null;
+                int col = (int)(pos - lineMap.getStartPosition(line1));
+                return new int[]{ line1 - 1, col };
+            } else {
+                int line = lineForOffset(pos);
+                return new int[]{ line, pos - lineOffsets[line] };
+            }
+        }
+
+        /** Binary-search {@code lineOffsets} for the 0-based line of {@code offset}. */
+        private int lineForOffset(int offset) {
+            int lo = 0, hi = lineOffsets.length - 1;
+            while (lo < hi) {
+                int mid = (lo + hi + 1) / 2;
+                if (lineOffsets[mid] <= offset) lo = mid; else hi = mid - 1;
+            }
+            return lo;
         }
 
         // ---- token emission ------------------------------------------------
 
         /**
-         * Emit a token starting at character offset {@code pos}.
-         *
-         * <p>The token type is inferred from the first character: a backslash
-         * produces {@link SemanticTokensProvider#TT_MACRO}, anything else
-         * produces {@link SemanticTokensProvider#TT_KEYWORD}.  The token
-         * length is determined by scanning word characters (letters, digits,
-         * underscores) from {@code pos}, including the leading backslash if
-         * present.
+         * Emit a token of the given type and modifiers with an explicit length.
+         * This is the core emission method; all other emit helpers delegate here.
          */
-        private void emitAt(int pos) {
-            if (pos < 0 || pos >= source.length()) return;
-            char first = source.charAt(pos);
-            int type = (first == '\\') ? TT_MACRO : TT_KEYWORD;
-            emitAt(pos, type);
+        private void emitToken(int pos, int type, int mods, int len) {
+            if (pos < 0 || len <= 0 || pos + len > source.length()) return;
+            int[] lc = toLineCol(pos);
+            if (lc == null) return;
+            tokens.add(new int[]{ lc[0], lc[1], len, type, mods });
         }
 
-        private void emitAt(int pos, int type) {
+        /**
+         * Emit a token starting at {@code pos}, inferring the length by scanning
+         * word characters (letters, digits, underscores) from {@code pos}, including
+         * any leading backslash for JML backslash tokens.
+         */
+        private void emitAt(int pos, int type, int mods) {
             if (pos < 0 || pos >= source.length()) return;
-            int start = pos;
-            // Include leading backslash in the token span.
             int end = (source.charAt(pos) == '\\') ? pos + 1 : pos;
             while (end < source.length() && isWordChar(source.charAt(end))) end++;
-            int len = end - start;
-            if (len == 0) return;
-            int line = lineForOffset(start);
-            int col  = start - lineOffsets[line];
-            tokens.add(new int[]{line, col, len, type});
+            emitToken(pos, type, mods, end - pos);
         }
 
+        private void emitAt(int pos, int type) { emitAt(pos, type, 0); }
+
+        /** True for letters, digits, and underscore (Java identifier parts). */
         private static boolean isWordChar(char c) {
             return Character.isLetterOrDigit(c) || c == '_';
         }
 
         /**
-         * Find the source offset of {@code word} as a complete identifier token,
-         * scanning forward from {@code searchFrom} up to 512 characters.
-         * Returns -1 if not found.
+         * Emit the appropriate semantic token for a symbol reference or declaration.
+         *
+         * <p>Classifies the symbol as one of: namespace, class, interface, enum,
+         * struct (record), typeParameter, method, enumMember, property (field),
+         * parameter, or variable, then applies relevant modifier bits.
+         *
+         * @param pos   source offset of the identifier token
+         * @param sym   the resolved symbol (may be null — silently ignored)
+         * @param isDecl true when this is the declaration site (adds TM_DECLARATION)
          */
-        private int findWordAfter(int searchFrom, String word) {
-            int limit = Math.min(source.length() - word.length(), searchFrom + 512);
-            for (int i = searchFrom; i <= limit; i++) {
-                char c = source.charAt(i);
-                if (!isWordChar(c)) continue;
-                // start of a word — check if it matches
-                if (source.startsWith(word, i)) {
-                    int endPos = i + word.length();
-                    if (endPos >= source.length() || !isWordChar(source.charAt(endPos))) {
-                        return i;
-                    }
+        private void emitSymbol(int pos, Symbol sym, boolean isDecl) {
+            if (sym == null || pos < 0 || pos >= source.length()) return;
+            int type;
+            int mods = isDecl ? TM_DECLARATION : 0;
+
+            if (sym instanceof MethodSymbol ms) {
+                type = TT_METHOD;
+                long flags = ms.flags();
+                if ((flags & Flags.STATIC) != 0)     mods |= TM_STATIC;
+                if ((flags & Flags.ABSTRACT) != 0)   mods |= TM_ABSTRACT;
+                if ((flags & Flags.DEPRECATED) != 0) mods |= TM_DEPRECATED;
+
+            } else if (sym instanceof VarSymbol vs) {
+                long flags = vs.flags();
+                if ((flags & Flags.ENUM) != 0) {
+                    type = TT_ENUM_MEMBER;
+                } else if (vs.owner instanceof ClassSymbol) {
+                    type = TT_PROPERTY;
+                    if ((flags & Flags.STATIC) != 0) mods |= TM_STATIC;
+                    if ((flags & Flags.FINAL)  != 0) mods |= TM_READONLY;
+                } else if ((flags & Flags.PARAMETER) != 0) {
+                    type = TT_PARAMETER;
+                } else {
+                    type = TT_VARIABLE;
+                    if ((flags & Flags.FINAL) != 0) mods |= TM_READONLY;
                 }
-                // skip rest of current word
-                while (i < limit && isWordChar(source.charAt(i))) i++;
+                if ((vs.flags() & Flags.DEPRECATED) != 0) mods |= TM_DEPRECATED;
+
+            } else if (sym instanceof ClassSymbol cs) {
+                long flags = cs.flags();
+                if ((flags & Flags.INTERFACE) != 0)      type = TT_INTERFACE;
+                else if ((flags & Flags.ENUM) != 0)      type = TT_ENUM;
+                else if ((flags & Flags.RECORD) != 0)    type = TT_STRUCT;
+                else                                     type = TT_CLASS;
+                if ((flags & Flags.ABSTRACT) != 0
+                        && (flags & Flags.INTERFACE) == 0) mods |= TM_ABSTRACT;
+                if ((flags & Flags.DEPRECATED) != 0)     mods |= TM_DEPRECATED;
+
+            } else if (sym instanceof PackageSymbol) {
+                type = TT_NAMESPACE;
+
+            } else if (sym instanceof TypeVariableSymbol) {
+                type = TT_TYPE_PARAM;
+
+            } else {
+                return;  // unrecognized symbol kind
             }
-            return -1;
+
+            emitAt(pos, type, mods);
         }
-
-        /** Binary-search {@code lineOffsets} to find the 0-based line for {@code offset}. */
-        private int lineForOffset(int offset) {
-            int lo = 0, hi = lineOffsets.length - 1;
-            while (lo < hi) {
-                int mid = (lo + hi + 1) / 2;
-                if (lineOffsets[mid] <= offset) lo = mid;
-                else hi = mid - 1;
-            }
-            return lo;
-        }
-
-        // ---- JmlMethodClause overrides -------------------------------------
-
-        @Override
-        public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseExpr(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseConditional(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseDecl(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseCallable(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseBehaviors(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlMethodClauseInvariants(JmlMethodClauseInvariants tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseInvariants(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseSignals(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseSigOnly(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
-            emitClause(tree);
-            jmlDepth++; super.visitJmlMethodClauseStoreRef(tree); jmlDepth--;
-        }
-
-        private void emitClause(JmlMethodClause tree) {
-            emitAt(tree.pos, TT_KEYWORD);
-        }
-
-        // ---- JmlTypeClause overrides ---------------------------------------
-
-        @Override
-        public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
-            emitTypeClause(tree);
-            jmlDepth++; super.visitJmlTypeClauseExpr(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) {
-            emitTypeClause(tree);
-            jmlDepth++; super.visitJmlTypeClauseConstraint(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {
-            emitTypeClause(tree);
-            jmlDepth++; super.visitJmlTypeClauseConditional(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
-            emitTypeClause(tree);
-            jmlDepth++; super.visitJmlTypeClauseIn(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
-            emitTypeClause(tree);
-            // children are initializer specs — scanned by super
-        }
-
-        @Override
-        public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
-            emitTypeClause(tree);
-            jmlDepth++; super.visitJmlTypeClauseMaps(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) {
-            emitTypeClause(tree);
-            jmlDepth++; super.visitJmlTypeClauseMonitorsFor(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) {
-            emitTypeClause(tree);
-            jmlDepth++; super.visitJmlTypeClauseRepresents(tree); jmlDepth--;
-        }
-
-        private void emitTypeClause(JmlTypeClause tree) {
-            emitAt(tree.pos, TT_KEYWORD);
-        }
-
-        // ---- JmlSpecificationCase ------------------------------------------
-
-        @Override
-        public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
-            // Emit 'also' / 'implies_that' if present (alsoPos >= 0 means set).
-            if (tree.alsoPos >= 0) emitAt(tree.alsoPos, TT_KEYWORD);
-            // Emit the case keyword: 'behavior', 'normal_behavior', etc.
-            if (tree.token != null && tree.pos >= 0) emitAt(tree.pos, TT_KEYWORD);
-            super.visitJmlSpecificationCase(tree);
-        }
-
-        // ---- JML expressions -----------------------------------------------
-
-        @Override
-        public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree) {
-            // e.g. \forall, \exists, \sum, \product, \num_of, \let
-            emitAt(tree.pos, TT_MACRO);
-            jmlDepth++; super.visitJmlQuantifiedExpr(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlSingleton(JmlSingleton tree) {
-            // e.g. \result, \nothing, \everything, \not_specified
-            emitAt(tree.pos, TT_MACRO);
-            // no children
-        }
-
-        @Override
-        public void visitJmlMethodInvocation(JmlMethodInvocation that) {
-            // e.g. \old(expr), \fresh(expr), \typeof(expr) — startpos is the '\'
-            if (that.startpos >= 0) emitAt(that.startpos, TT_MACRO);
-            jmlDepth++; super.visitJmlMethodInvocation(that); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree) {
-            // JML-specific primitive types like \TYPE, \bigint
-            emitAt(tree.pos, TT_MACRO);
-            // no children
-        }
-
-        @Override
-        public void visitJmlStoreRefKeyword(JmlStoreRefKeyword tree) {
-            // e.g. \nothing, \everything (store-ref context)
-            emitAt(tree.pos, TT_MACRO);
-            // no children
-        }
-
-        // ---- JML statements ------------------------------------------------
-
-        @Override
-        public void visitJmlStatementExpr(JmlStatementExpr tree) {
-            // e.g. assume, assert, unreachable
-            emitAt(tree.pos, TT_KEYWORD);
-            jmlDepth++; super.visitJmlStatementExpr(tree); jmlDepth--;
-        }
-
-        @Override
-        public void visitJmlStatement(JmlStatement tree) {
-            // e.g. set, debug
-            emitAt(tree.pos, TT_KEYWORD);
-            scan(tree.statement);
-        }
-
-        // ---- JML ghost/model variable and method declarations ---------------
-
-        /** Java modifier keywords that may appear in JML ghost/model declarations. */
-        private static final Set<String> JAVA_MODIFIERS = JmlKeywords.JAVA_MODIFIERS;
 
         /**
-         * Emit tokens for all modifier keywords preceding {@code typePos}.
-         *
-         * <p>JML-specific modifiers (ghost, model, pure, …) are taken from the
-         * {@link JmlModifiers#jmlmods} list, which records exact token positions.
-         * Java modifier keywords (public, static, …) are found by scanning the
-         * source text between {@code mods.pos} and {@code typePos}.
+         * Emit {@link #TT_DECORATOR} tokens for all annotations in {@code mods}.
+         * Each annotation token spans from {@code @} to the end of the annotation
+         * name (not including argument parentheses).
          */
-        private void emitJmlDeclarationMods(JCModifiers mods, int typePos) {
-            if (mods == null || mods.pos < 0) return;
+        private void emitAnnotations(JCModifiers mods) {
+            if (mods == null || mods.annotations == null) return;
+            for (JCAnnotation ann : mods.annotations) {
+                if (ann.pos < 0 || ann.pos >= source.length()) continue;
+                // Scan from '@' through the annotation name (letters, digits, '.', '_').
+                int end = ann.pos + 1;
+                while (end < source.length()) {
+                    char c = source.charAt(end);
+                    if (isWordChar(c) || c == '.') end++; else break;
+                }
+                emitToken(ann.pos, TT_DECORATOR, 0, end - ann.pos);
+            }
+        }
 
-            // 1. JML-specific modifier tokens with exact positions.
-            if (mods instanceof JmlModifiers jmlMods) {
+        /**
+         * Emit tokens for any JML-specific modifiers stored in {@code mods}.
+         *
+         * <p>Unlike {@link #emitDeclarationMods}, this helper emits <em>only</em> the JML
+         * modifier tokens (from {@link JmlModifiers#jmlmods}), without the Java modifier
+         * scan.  It is called unconditionally from {@link #visitMethodDef} and
+         * {@link #visitVarDef} so that JML modifiers on ordinary Java declarations are
+         * always colored even in JML-only mode.
+         */
+        private void emitJmlMods(JCModifiers mods) {
+            if (!(mods instanceof JmlModifiers jmlMods) || jmlMods.jmlmods == null) return;
+            for (JmlToken tok : jmlMods.jmlmods) {
+                if (tok.pos < 0) continue;
+                int len = tok.endPos - tok.pos;
+                if (len <= 0) continue;
+                String keyword = tok.jmlclausekind != null ? tok.jmlclausekind.keyword : "";
+                int tt = JML_MODIFIER_KEYWORDS.contains(keyword) ? TT_MODIFIER : TT_KEYWORD;
+                emitToken(tok.pos, tt, 0, len);
+            }
+        }
+
+        /**
+         * Emit tokens for all modifier keywords preceding the type at {@code typePos}.
+         *
+         * <ul>
+         *   <li>JML-specific modifiers from {@link JmlModifiers#jmlmods} are emitted
+         *       using exact positions; those in {@link #JML_MODIFIER_KEYWORDS} get
+         *       {@link #TT_MODIFIER}, others get {@link #TT_KEYWORD}.</li>
+         *   <li>Java modifier keywords ({@code public}, {@code static}, etc.) are
+         *       located by scanning the source between {@code mods.pos} and
+         *       {@code typePos}; they receive {@link #TT_KEYWORD}.</li>
+         * </ul>
+         *
+         * <p>NOTE: Java access modifier keywords are stored as bit-flags in
+         * {@link JCModifiers#flags}; their source positions are not directly
+         * available in the AST.  The source-scan approach here is the only way to
+         * locate them without additional parser-level position fields.
+         */
+        private void emitDeclarationMods(JCModifiers mods, int typePos) {
+            if (mods == null || mods.pos < 0) return;
+            emitAnnotations(mods);
+
+            // 1. JML-specific modifiers — exact positions from JmlModifiers.jmlmods.
+            if (mods instanceof JmlModifiers jmlMods && jmlMods.jmlmods != null) {
                 for (JmlToken tok : jmlMods.jmlmods) {
-                    if (tok.pos >= 0) {
-                        int len = tok.endPos - tok.pos;
-                        if (len > 0) {
-                            int line = lineForOffset(tok.pos);
-                            int col  = tok.pos - lineOffsets[line];
-                            tokens.add(new int[]{line, col, len, TT_KEYWORD});
-                        }
-                    }
+                    if (tok.pos < 0) continue;
+                    int len = tok.endPos - tok.pos;
+                    if (len <= 0) continue;
+                    String keyword = tok.jmlclausekind != null ? tok.jmlclausekind.keyword : "";
+                    int tt = JML_MODIFIER_KEYWORDS.contains(keyword) ? TT_MODIFIER : TT_KEYWORD;
+                    emitToken(tok.pos, tt, 0, len);
                 }
             }
 
-            // 2. Java modifier keywords: scan source in [mods.pos, typePos).
+            // 2. Java modifier keywords — scan source in [mods.pos, typePos).
             int pos = mods.pos;
             while (pos < typePos && pos < source.length()) {
                 char c = source.charAt(pos);
@@ -481,9 +519,7 @@ public class SemanticTokensProvider {
                     while (end < typePos && end < source.length() && isWordChar(source.charAt(end))) end++;
                     String word = source.substring(pos, end);
                     if (JAVA_MODIFIERS.contains(word)) {
-                        int line = lineForOffset(pos);
-                        int col  = pos - lineOffsets[line];
-                        tokens.add(new int[]{line, col, word.length(), TT_KEYWORD});
+                        emitToken(pos, TT_KEYWORD, 0, word.length());
                     }
                     pos = end;
                 } else {
@@ -493,22 +529,282 @@ public class SemanticTokensProvider {
         }
 
         /**
-         * JML ghost/model field declarations: color modifiers and type.
+         * Scan forward from {@code searchFrom} to find {@code word} as a complete
+         * identifier token.  Returns -1 if not found within 512 characters.
+         */
+        private int findWordAfter(int searchFrom, String word) {
+            if (searchFrom < 0) return -1;
+            int limit = Math.min(source.length() - word.length(), searchFrom + 512);
+            for (int i = searchFrom; i <= limit; i++) {
+                if (!isWordChar(source.charAt(i))) continue;
+                if (source.startsWith(word, i)) {
+                    int endPos = i + word.length();
+                    if (endPos >= source.length() || !isWordChar(source.charAt(endPos))) return i;
+                }
+                while (i < limit && isWordChar(source.charAt(i))) i++;
+            }
+            return -1;
+        }
+
+        /**
+         * Scan the length of a string literal (including text blocks) starting at {@code pos}.
+         * Returns the number of characters in the complete literal token.
+         */
+        private int scanStringLen(int pos) {
+            if (pos >= source.length() || source.charAt(pos) != '"') return 1;
+            boolean textBlock = pos + 2 < source.length()
+                    && source.charAt(pos + 1) == '"' && source.charAt(pos + 2) == '"';
+            if (textBlock) {
+                int end = source.indexOf("\"\"\"", pos + 3);
+                return end >= 0 ? end + 3 - pos : source.length() - pos;
+            }
+            int end = pos + 1;
+            while (end < source.length() && source.charAt(end) != '"' && source.charAt(end) != '\n') {
+                if (source.charAt(end) == '\\') end++;
+                end++;
+            }
+            return (end < source.length() && source.charAt(end) == '"') ? end + 1 - pos : end - pos;
+        }
+
+        /** Scan the length of a numeric or character literal starting at {@code pos}. */
+        private int scanNumberLen(int pos) {
+            int end = pos;
+            while (end < source.length()) {
+                char c = source.charAt(end);
+                if (Character.isLetterOrDigit(c) || c == '_' || c == '.' || c == '\'') end++;
+                else break;
+            }
+            return Math.max(1, end - pos);
+        }
+
+        /** Scan the length of an operator token starting at {@code pos} (max 4 chars). */
+        private int scanOperatorLen(int pos) {
+            int end = pos;
+            int limit = Math.min(source.length(), pos + 4);
+            while (end < limit) {
+                char c = source.charAt(end);
+                if (isWordChar(c) || Character.isWhitespace(c)
+                        || c == '(' || c == ')' || c == ';' || c == ','
+                        || c == '{' || c == '}' || c == '@' || c == '"'
+                        || c == '\'' || c == '/')
+                    break;
+                end++;
+            }
+            return Math.max(1, end - pos);
+        }
+
+        /** Emit a Java keyword of known length at {@code pos} when {@link #inContext()}. */
+        private void emitKeyword(int pos, int len) {
+            if (inContext() && pos >= 0) emitToken(pos, TT_KEYWORD, 0, len);
+        }
+
+        // ---- JmlMethodClause visitors --------------------------------------
+
+        @Override
+        public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseExpr(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlMethodClauseConditional(JmlMethodClauseConditional tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseConditional(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlMethodClauseDecl(JmlMethodClauseDecl tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseDecl(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlMethodClauseCallable(JmlMethodClauseCallable tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseCallable(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlMethodClauseBehaviors(JmlMethodClauseBehaviors tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseBehaviors(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlMethodClauseInvariants(JmlMethodClauseInvariants tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseInvariants(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlMethodClauseSignals(JmlMethodClauseSignals tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseSignals(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlMethodClauseSigOnly(JmlMethodClauseSignalsOnly tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseSigOnly(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlMethodClauseStoreRef(JmlMethodClauseStoreRef tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlMethodClauseStoreRef(tree); jmlDepth--;
+        }
+
+        // ---- JmlTypeClause visitors ----------------------------------------
+
+        @Override
+        public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlTypeClauseExpr(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlTypeClauseConstraint(JmlTypeClauseConstraint tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlTypeClauseConstraint(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlTypeClauseConditional(JmlTypeClauseConditional tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlTypeClauseConditional(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlTypeClauseIn(JmlTypeClauseIn tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlTypeClauseIn(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlTypeClauseInitializer(JmlTypeClauseInitializer tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+        }
+
+        @Override
+        public void visitJmlTypeClauseMaps(JmlTypeClauseMaps tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlTypeClauseMaps(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlTypeClauseMonitorsFor(JmlTypeClauseMonitorsFor tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlTypeClauseMonitorsFor(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlTypeClauseRepresents(JmlTypeClauseRepresents tree) {
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlTypeClauseRepresents(tree); jmlDepth--;
+        }
+
+        // ---- JmlSpecificationCase ------------------------------------------
+
+        @Override
+        public void visitJmlSpecificationCase(JmlSpecificationCase tree) {
+            if (tree.alsoPos >= 0) emitAt(tree.alsoPos, TT_KEYWORD);
+            if (tree.token != null && tree.pos >= 0) emitAt(tree.pos, TT_KEYWORD);
+            super.visitJmlSpecificationCase(tree);
+        }
+
+        // ---- JML expression nodes -----------------------------------------
+
+        @Override
+        public void visitJmlQuantifiedExpr(JmlQuantifiedExpr tree) {
+            // \forall, \exists, \sum, \product, \num_of, \let, \min, \max
+            // POSITION INVARIANT: tree.pos is the '\' character.
+            emitAt(tree.pos, BACKSLASH_TOKEN_TYPE);
+            jmlDepth++; super.visitJmlQuantifiedExpr(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlSingleton(JmlSingleton tree) {
+            // \result, \nothing, \everything, \not_specified, etc.
+            // POSITION INVARIANT: tree.pos is the '\' character.
+            emitAt(tree.pos, BACKSLASH_TOKEN_TYPE);
+        }
+
+        @Override
+        public void visitJmlMethodInvocation(JmlMethodInvocation that) {
+            // \old(expr), \fresh(expr), \typeof(expr), etc.
+            // POSITION INVARIANT: that.startpos is the '\' character.
+            if (that.startpos >= 0) emitAt(that.startpos, BACKSLASH_TOKEN_TYPE);
+            jmlDepth++; super.visitJmlMethodInvocation(that); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlPrimitiveTypeTree(JmlPrimitiveTypeTree tree) {
+            // \TYPE, \bigint, \real, \locset, \datagroup, \set, \map, \seq, \array, \string
+            emitAt(tree.pos, TT_TYPE);
+        }
+
+        @Override
+        public void visitJmlStoreRefKeyword(JmlStoreRefKeyword tree) {
+            // \nothing, \everything (store-ref context)
+            emitAt(tree.pos, BACKSLASH_TOKEN_TYPE);
+        }
+
+        @Override
+        public void visitJmlBinary(JmlBinary tree) {
+            // JML binary operators: ==>, <==, <==>, <:, <#, <##
+            // POSITION INVARIANT: tree.pos is the operator position (same convention as JCBinary).
+            if (inContext() && tree.pos >= 0) {
+                String opStr = (tree.op != null && tree.op.keyword != null) ? tree.op.keyword : "";
+                int len = opStr.isEmpty() ? scanOperatorLen(tree.pos) : opStr.length();
+                emitToken(tree.pos, TT_OPERATOR, 0, len);
+            }
+            jmlDepth++; super.visitJmlBinary(tree); jmlDepth--;
+        }
+
+        // ---- JML statements ------------------------------------------------
+
+        @Override
+        public void visitJmlStatementExpr(JmlStatementExpr tree) {
+            // assume, assert, unreachable, reachable
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlStatementExpr(tree); jmlDepth--;
+        }
+
+        @Override
+        public void visitJmlStatement(JmlStatement tree) {
+            // set, debug
+            emitAt(tree.pos, TT_KEYWORD);
+            scan(tree.statement);
+        }
+
+        @Override
+        public void visitJmlStatementLoopExpr(JmlStatementLoopExpr tree) {
+            // loop_invariant, maintaining, decreasing, decreases
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlStatementLoopExpr(tree); jmlDepth--;
+        }
+
+        // ---- JML ghost/model declarations ----------------------------------
+
+        /**
+         * JML ghost/model field declarations (Pattern 1: JmlVariableDecl extends JCVariableDecl;
+         * visitVarDef is called for ALL variable declarations — cast to detect JML ones).
          *
-         * <p>These are regular {@link JmlVariableDecl} nodes with the JML bit set
-         * (e.g. {@code //@ ghost static int x}).  The variable type is colored by
-         * incrementing {@code jmlDepth} so that {@link #visitTypeIdent} fires.
+         * <p>In JML-only mode, only JML-attributed variables are highlighted.
+         * In full mode, all variable declarations are highlighted.
          */
         @Override
         public void visitVarDef(JCVariableDecl tree) {
-            if (tree instanceof JmlVariableDecl jmlVar && jmlVar.isJML()) {
+            boolean isJml = (tree instanceof JmlVariableDecl jd && jd.isJML());
+            if (isJml) {
+                JmlVariableDecl jmlVar = (JmlVariableDecl) tree;
                 int typePos = jmlVar.vartype != null ? jmlVar.vartype.pos : jmlVar.pos;
-                emitJmlDeclarationMods(jmlVar.mods, typePos);
+                emitDeclarationMods(jmlVar.mods, typePos);
                 jmlDepth++;
                 super.visitVarDef(tree);
                 jmlDepth--;
-                // Emit the declared name as a variable token (JCVariableDecl.name is
-                // a Name field, not a tree node, so visitIdent is never called for it).
+                // Emit the declared name — JCVariableDecl.name is not a tree node
+                // so visitIdent is never called for it; emit manually.
                 if (jmlVar.name != null && !jmlVar.name.isEmpty()) {
                     int namePos = jmlVar.namePosition >= 0
                             ? jmlVar.namePosition
@@ -517,28 +813,43 @@ public class SemanticTokensProvider {
                                     ? jmlVar.vartype.pos + jmlVar.vartype.toString().length()
                                     : typePos,
                                 jmlVar.name.toString());
-                    if (namePos >= 0) emitAt(namePos, TT_VARIABLE);
+                    if (namePos >= 0) emitSymbol(namePos, jmlVar.sym, true);
+                }
+            } else if (fullMode) {
+                // Non-JML variable declaration in full mode.
+                JmlVariableDecl jmlVar = (JmlVariableDecl) tree;
+                int typePos = jmlVar.vartype != null ? jmlVar.vartype.pos : jmlVar.pos;
+                emitDeclarationMods(jmlVar.mods, typePos);
+                super.visitVarDef(tree);
+                if (jmlVar.name != null && !jmlVar.name.isEmpty()) {
+                    int namePos = jmlVar.namePosition >= 0
+                            ? jmlVar.namePosition
+                            : findWordAfter(typePos, jmlVar.name.toString());
+                    if (namePos >= 0) emitSymbol(namePos, jmlVar.sym, true);
                 }
             } else {
+                // JML-only mode, non-JML variable: still emit any JML modifier tokens.
+                emitJmlMods(tree.mods);
                 super.visitVarDef(tree);
             }
         }
 
         /**
-         * JML ghost/model method declarations: color modifiers and return type.
+         * JML ghost/model method declarations and (in full mode) all methods.
          *
-         * <p>Incrementing {@code jmlDepth} also colors parameter types via
-         * {@link #visitTypeIdent}.
+         * <p>Pattern 1: JmlMethodDecl extends JCMethodDecl; visitMethodDef is called
+         * for ALL method declarations.
          */
         @Override
         public void visitMethodDef(JCMethodDecl tree) {
-            if (tree instanceof JmlMethodDecl jmlMethod && jmlMethod.isJML()) {
+            boolean isJml = (tree instanceof JmlMethodDecl jd && jd.isJML());
+            if (isJml) {
+                JmlMethodDecl jmlMethod = (JmlMethodDecl) tree;
                 int typePos = jmlMethod.restype != null ? jmlMethod.restype.pos : jmlMethod.pos;
-                emitJmlDeclarationMods(jmlMethod.mods, typePos);
+                emitDeclarationMods(jmlMethod.mods, typePos);
                 jmlDepth++;
                 super.visitMethodDef(tree);
                 jmlDepth--;
-                // Emit the declared method name as a variable token.
                 if (jmlMethod.name != null && !jmlMethod.name.isEmpty()) {
                     int namePos = jmlMethod.namePosition >= 0
                             ? jmlMethod.namePosition
@@ -547,108 +858,294 @@ public class SemanticTokensProvider {
                                     ? jmlMethod.restype.pos + jmlMethod.restype.toString().length()
                                     : typePos,
                                 jmlMethod.name.toString());
-                    if (namePos >= 0) emitAt(namePos, TT_VARIABLE);
+                    if (namePos >= 0) emitSymbol(namePos, jmlMethod.sym, true);
+                }
+            } else if (fullMode) {
+                JmlMethodDecl jmlMethod = (JmlMethodDecl) tree;
+                int typePos = jmlMethod.restype != null ? jmlMethod.restype.pos : jmlMethod.pos;
+                emitDeclarationMods(jmlMethod.mods, typePos);
+                super.visitMethodDef(tree);
+                if (jmlMethod.name != null && !jmlMethod.name.isEmpty()
+                        && !"<init>".equals(jmlMethod.name.toString())) {
+                    int namePos = jmlMethod.namePosition >= 0
+                            ? jmlMethod.namePosition
+                            : findWordAfter(typePos, jmlMethod.name.toString());
+                    if (namePos >= 0) emitSymbol(namePos, jmlMethod.sym, true);
                 }
             } else {
+                // JML-only mode, non-JML method: still emit any JML modifier tokens.
+                emitJmlMods(tree.mods);
                 super.visitMethodDef(tree);
             }
         }
 
-        // ---- Java literals and type identifiers inside JML context ---------
+        /**
+         * Class declarations (Pattern 1: JmlClassDecl extends JCClassDecl).
+         *
+         * <p>In full mode, emits decorator tokens for annotations and recurses into
+         * the class body.  In JML-only mode, only visits the class body for JML
+         * type clauses (via super).
+         */
+        @Override
+        public void visitClassDef(JCClassDecl tree) {
+            if (fullMode) {
+                emitAnnotations(tree.mods);
+                // The class/interface/enum/record name follows tree.pos.
+                // POSITION NOTE: tree.pos is set by the parser at the class-introducing
+                // keyword token.  If modifiers precede it, the test
+                // testClassDecl_WithModifiers_NamePositionCorrect verifies that the
+                // name token is correctly located by findWordAfter.
+                if (tree.name != null && !tree.name.isEmpty()) {
+                    // Skip past the keyword ("class", "interface", "enum", "record")
+                    // to find the name.
+                    int namePos = findWordAfter(tree.pos, tree.name.toString());
+                    if (namePos >= 0) emitSymbol(namePos, tree.sym, true);
+                }
+            }
+            super.visitClassDef(tree);
+        }
+
+        // ---- Java literals and type identifiers ----------------------------
 
         @Override
         public void visitLiteral(JCLiteral tree) {
-            if (jmlDepth > 0) {
-                // Color 'true', 'false', and 'null' — the Java tokeniser does not
-                // produce semantic tokens for literals inside comment regions.
-                TypeTag tag = tree.typetag;
-                if (tag == TypeTag.BOOLEAN || tag == TypeTag.BOT) {
-                    emitAt(tree.pos, TT_KEYWORD);
-                }
+            if (!inContext() || tree.pos < 0) return;
+            TypeTag tag = tree.typetag;
+            if (tag == TypeTag.BOOLEAN || tag == TypeTag.BOT) {
+                // true, false, null
+                emitAt(tree.pos, TT_KEYWORD);
+            } else if (tag == TypeTag.CLASS) {
+                // String literal or text block
+                emitToken(tree.pos, TT_STRING, 0, scanStringLen(tree.pos));
+            } else if (tag == TypeTag.CHAR) {
+                // Character literal
+                emitToken(tree.pos, TT_NUMBER, 0, scanNumberLen(tree.pos));
+            } else {
+                // int, long, float, double
+                emitToken(tree.pos, TT_NUMBER, 0, scanNumberLen(tree.pos));
             }
-            // no children
         }
 
         @Override
         public void visitTypeIdent(JCPrimitiveTypeTree tree) {
-            if (jmlDepth > 0) {
-                // Color 'int', 'long', 'boolean', etc. inside JML expressions
-                // (e.g. the type in \forall int i; ...).
-                emitAt(tree.pos, TT_KEYWORD);
-            }
-            // no children
+            if (inContext()) emitAt(tree.pos, TT_TYPE);
         }
 
-        // ---- Identifiers inside JML expressions ----------------------------
+        // ---- Identifiers and field accesses --------------------------------
 
-        /**
-         * Emit a {@link SemanticTokensProvider#TT_VARIABLE} token for any
-         * simple identifier that appears inside a JML expression context
-         * ({@code jmlDepth > 0}).
-         *
-         * <p>This overrides TM4E's regex-based keyword coloring for positions
-         * where the identifier's name coincides with a JML clause keyword.
-         * For example, in {@code //@ requires requires > 0;} the second
-         * {@code requires} is a {@code JCIdent} and receives a {@code variable}
-         * token, while the first one is emitted as {@code keyword} by
-         * {@link #visitJmlMethodClauseExpr}.
-         */
         @Override
         public void visitIdent(JCIdent tree) {
-            if (jmlDepth > 0 && tree.pos >= 0) {
-                emitAt(tree.pos, TT_VARIABLE);
+            if (inContext() && tree.pos >= 0 && tree.sym != null) {
+                emitSymbol(tree.pos, tree.sym, false);
             }
-            // no children
         }
 
-        /**
-         * When a field-access expression (e.g. {@code this.field}) appears
-         * inside a JML expression, emit a {@link SemanticTokensProvider#TT_VARIABLE}
-         * token for the field-name part.
-         *
-         * <p>The position of the field name is approximated by searching
-         * backward from the node's end position for the last dot and reading
-         * the word that follows it.  If the position cannot be determined,
-         * only the receiver is scanned (which handles {@code this} / the
-         * qualifier identifiers via {@link #visitIdent}).
-         */
         @Override
         public void visitSelect(JCFieldAccess tree) {
-            if (jmlDepth > 0 && tree.pos >= 0 && tree.name != null) {
-                // The AST pos of JCFieldAccess points to the start of the
-                // whole expression.  Locate the field name by scanning for
-                // the last '.' in [tree.pos, end) and emitting from the char
-                // after it.  We read at most name.length() + 1 chars after '.'
-                // to stay safe.
+            if (inContext() && tree.pos >= 0 && tree.name != null && tree.sym != null) {
+                // Locate the field name after the last '.' in the expression.
                 String name = tree.name.toString();
-                // Scan forward from tree.pos to find the position of 'name'
-                // after the last '.'.  Walk the source looking for .<name>
-                // followed by a non-word character or end-of-input.
-                int searchFrom = tree.pos;
                 int namePos = -1;
-                int limit = Math.min(source.length() - name.length(), searchFrom + 512);
-                for (int i = searchFrom; i <= limit; i++) {
+                int limit = Math.min(source.length() - name.length(), tree.pos + 512);
+                for (int i = tree.pos; i <= limit; i++) {
                     if (source.charAt(i) == '.' && i + 1 + name.length() <= source.length()) {
                         int after = i + 1;
                         if (source.startsWith(name, after)) {
                             int endOfName = after + name.length();
-                            if (endOfName >= source.length() || !isWordChar(source.charAt(endOfName))) {
+                            if (endOfName >= source.length() || !isWordChar(source.charAt(endOfName)))
                                 namePos = after;
-                                // keep scanning: we want the LAST '.<name>' occurrence
-                                // (handles chains like a.b.c where all parts share a name —
-                                //  rare, but keep searching for correctness)
-                            }
                         }
                     }
                 }
-                if (namePos >= 0) {
-                    emitAt(namePos, TT_VARIABLE);
-                }
+                if (namePos >= 0) emitSymbol(namePos, tree.sym, false);
             }
-            // Scan the receiver (selected) — it may be a JCIdent or another
-            // JCFieldAccess; both emit tokens via their own visit methods
-            // since jmlDepth is already > 0 in this context.
             super.visitSelect(tree);
+        }
+
+        // ---- Java operators ------------------------------------------------
+
+        /**
+         * Java binary operators.
+         *
+         * <p>POSITION INVARIANT: {@code tree.pos} is the source position of the
+         * binary operator token (e.g. the {@code +} in {@code a + b}).  This is an
+         * established javac invariant used for diagnostic pointing; the token emitter
+         * relies on it to locate the operator without a secondary source scan.
+         */
+        @Override
+        public void visitBinary(JCBinary tree) {
+            if (inContext() && tree.pos >= 0)
+                emitToken(tree.pos, TT_OPERATOR, 0, scanOperatorLen(tree.pos));
+            super.visitBinary(tree);
+        }
+
+        /**
+         * Java unary operators (prefix and postfix: {@code !}, {@code ~},
+         * {@code -}, {@code +}, {@code ++}, {@code --}).
+         *
+         * <p>POSITION INVARIANT: {@code tree.pos} is the operator position.
+         */
+        @Override
+        public void visitUnary(JCUnary tree) {
+            if (inContext() && tree.pos >= 0)
+                emitToken(tree.pos, TT_OPERATOR, 0, scanOperatorLen(tree.pos));
+            super.visitUnary(tree);
+        }
+
+        /**
+         * Java compound-assignment operators ({@code +=}, {@code -=}, etc.).
+         *
+         * <p>POSITION INVARIANT: {@code tree.pos} is the operator position.
+         */
+        @Override
+        public void visitAssignop(JCAssignOp tree) {
+            if (inContext() && tree.pos >= 0)
+                emitToken(tree.pos, TT_OPERATOR, 0, scanOperatorLen(tree.pos));
+            super.visitAssignop(tree);
+        }
+
+        /**
+         * Java simple assignment ({@code =}).
+         *
+         * <p>POSITION INVARIANT: {@code tree.pos} is the {@code =} operator position.
+         */
+        @Override
+        public void visitAssign(JCAssign tree) {
+            if (inContext() && tree.pos >= 0)
+                emitToken(tree.pos, TT_OPERATOR, 0, 1);  // "=" is always 1 char
+            super.visitAssign(tree);
+        }
+
+        // ---- Java annotations (decorators) ---------------------------------
+
+        @Override
+        public void visitAnnotation(JCAnnotation tree) {
+            if (inContext() && tree.pos >= 0) {
+                int end = tree.pos + 1;
+                while (end < source.length()) {
+                    char c = source.charAt(end);
+                    if (isWordChar(c) || c == '.') end++; else break;
+                }
+                emitToken(tree.pos, TT_DECORATOR, 0, end - tree.pos);
+            }
+            // Do not recurse into annotation arguments — they are metadata, not code.
+        }
+
+        // ---- Java statement keywords ---------------------------------------
+
+        @Override
+        public void visitReturn(JCReturn tree) {
+            emitKeyword(tree.pos, 6);  // "return"
+            super.visitReturn(tree);
+        }
+
+        @Override
+        public void visitIf(JCIf tree) {
+            emitKeyword(tree.pos, 2);  // "if"
+            // "else" position is not available in the AST — omit.
+            super.visitIf(tree);
+        }
+
+        @Override
+        public void visitForLoop(JCForLoop tree) {
+            emitKeyword(tree.pos, 3);  // "for"
+            super.visitForLoop(tree);
+        }
+
+        @Override
+        public void visitForeachLoop(JCEnhancedForLoop tree) {
+            emitKeyword(tree.pos, 3);  // "for"
+            super.visitForeachLoop(tree);
+        }
+
+        @Override
+        public void visitWhileLoop(JCWhileLoop tree) {
+            emitKeyword(tree.pos, 5);  // "while"
+            super.visitWhileLoop(tree);
+        }
+
+        @Override
+        public void visitDoLoop(JCDoWhileLoop tree) {
+            emitKeyword(tree.pos, 2);  // "do"
+            super.visitDoLoop(tree);
+        }
+
+        @Override
+        public void visitSwitch(JCSwitch tree) {
+            emitKeyword(tree.pos, 6);  // "switch"
+            super.visitSwitch(tree);
+        }
+
+        @Override
+        public void visitCase(JCCase tree) {
+            // "case" or "default" — scan from tree.pos to determine which.
+            if (inContext() && tree.pos >= 0) {
+                int end = tree.pos;
+                while (end < source.length() && isWordChar(source.charAt(end))) end++;
+                emitToken(tree.pos, TT_KEYWORD, 0, end - tree.pos);
+            }
+            super.visitCase(tree);
+        }
+
+        @Override
+        public void visitTry(JCTry tree) {
+            emitKeyword(tree.pos, 3);  // "try"
+            // "finally" position not available in JCTry — omit.
+            super.visitTry(tree);
+        }
+
+        @Override
+        public void visitCatch(JCCatch tree) {
+            emitKeyword(tree.pos, 5);  // "catch"
+            super.visitCatch(tree);
+        }
+
+        @Override
+        public void visitBreak(JCBreak tree) {
+            emitKeyword(tree.pos, 5);  // "break"
+        }
+
+        @Override
+        public void visitContinue(JCContinue tree) {
+            emitKeyword(tree.pos, 8);  // "continue"
+        }
+
+        @Override
+        public void visitThrow(JCThrow tree) {
+            emitKeyword(tree.pos, 5);  // "throw"
+            super.visitThrow(tree);
+        }
+
+        @Override
+        public void visitAssert(JCAssert tree) {
+            // Java assert (not JML assert — JML assert is visitJmlStatementExpr).
+            emitKeyword(tree.pos, 6);  // "assert"
+            super.visitAssert(tree);
+        }
+
+        @Override
+        public void visitNewClass(JCNewClass tree) {
+            emitKeyword(tree.pos, 3);  // "new"
+            super.visitNewClass(tree);
+        }
+
+        @Override
+        public void visitNewArray(JCNewArray tree) {
+            if (tree.elemtype != null) emitKeyword(tree.pos, 3);  // "new"
+            super.visitNewArray(tree);
+        }
+
+        @Override
+        public void visitTypeTest(JCInstanceOf tree) {
+            // "instanceof" keyword
+            if (inContext() && tree.pos >= 0) emitToken(tree.pos, TT_KEYWORD, 0, 10);
+            super.visitTypeTest(tree);
+        }
+
+        @Override
+        public void visitSynchronized(JCSynchronized tree) {
+            emitKeyword(tree.pos, 12);  // "synchronized"
+            super.visitSynchronized(tree);
         }
     }
 
@@ -659,9 +1156,10 @@ public class SemanticTokensProvider {
     /**
      * Compute semantic tokens for {@code source} using regex matching.
      *
-     * <p>This fallback is used when no attributed AST is available.  It may
-     * produce false positives for identifiers that share a name with a JML
-     * keyword, but is much faster than a full compilation pass.
+     * <p>This fallback is used when no attributed AST is available (before the
+     * first {@code --check} completes).  It may produce false positives for
+     * identifiers that share a name with a JML keyword.  Only JML regions are
+     * processed; Java syntax is handled by the editor's built-in grammar.
      *
      * @param source the full Java source text
      * @return LSP-encoded semantic tokens (delta-encoded 5-integer tuples)
@@ -669,12 +1167,10 @@ public class SemanticTokensProvider {
     public static SemanticTokens computeTokens(String source) {
         List<int[]> allTokens = new ArrayList<>();
         String[] lines = source.split("\n", -1);
-
         boolean inBlockJml = false;
 
         for (int lineIdx = 0; lineIdx < lines.length; lineIdx++) {
             String line = lines[lineIdx];
-
             int jmlContentStart;
             boolean isJmlLine;
 
@@ -684,9 +1180,7 @@ public class SemanticTokensProvider {
                 while (col < line.length() && Character.isWhitespace(line.charAt(col))) col++;
                 if (col < line.length() && line.charAt(col) == '*') col++;
                 jmlContentStart = col;
-                if (line.contains("@*/") || line.contains("*/")) {
-                    inBlockJml = false;
-                }
+                if (line.contains("@*/") || line.contains("*/")) inBlockJml = false;
             } else {
                 Matcher lm = JML_LINE_START.matcher(line);
                 Matcher bm = JML_BLOCK_START.matcher(line);
@@ -708,31 +1202,29 @@ public class SemanticTokensProvider {
             String content = line.substring(Math.min(jmlContentStart, line.length()));
             int base = jmlContentStart;
 
-            // 1. Backslash-expressions → TT_MACRO
+            // 1. Backslash-expressions
             Matcher bsm = BACKSLASH_WORD.matcher(content);
             while (bsm.find()) {
-                if (JML_BACKSLASH.contains(bsm.group(1))) {
-                    lineTokens.add(new int[]{ base + bsm.start(), bsm.end() - bsm.start(), TT_MACRO });
-                }
+                if (JML_BACKSLASH.contains(bsm.group(1)))
+                    lineTokens.add(new int[]{ base + bsm.start(), bsm.end() - bsm.start(), BACKSLASH_TOKEN_TYPE });
             }
 
-            // 2. Plain JML keywords → TT_KEYWORD (skip columns already claimed)
-            java.util.Set<Integer> claimed = new java.util.HashSet<>();
-            for (int[] t : lineTokens) {
-                for (int c = t[0]; c < t[0] + t[1]; c++) claimed.add(c);
-            }
+            // 2. Plain JML keywords (skip columns already claimed)
+            Set<Integer> claimed = new HashSet<>();
+            for (int[] t : lineTokens) for (int c = t[0]; c < t[0] + t[1]; c++) claimed.add(c);
             Matcher pm = PLAIN_WORD.matcher(content);
             while (pm.find()) {
                 int col = base + pm.start();
                 if (!claimed.contains(col) && JML_KEYWORDS.contains(pm.group())) {
-                    lineTokens.add(new int[]{ col, pm.end() - pm.start(), TT_KEYWORD });
+                    String word = pm.group();
+                    int tt = JML_MODIFIER_KEYWORDS.contains(word) ? TT_MODIFIER : TT_KEYWORD;
+                    lineTokens.add(new int[]{ col, word.length(), tt });
                 }
             }
 
             lineTokens.sort(Comparator.comparingInt(t -> t[0]));
-            for (int[] tok : lineTokens) {
-                allTokens.add(new int[]{ lineIdx, tok[0], tok[1], tok[2] });
-            }
+            for (int[] tok : lineTokens)
+                allTokens.add(new int[]{ lineIdx, tok[0], tok[1], tok[2], 0 });
         }
 
         return deltaEncode(allTokens);

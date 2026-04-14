@@ -28,6 +28,8 @@ A tutorial for JML/OpenJML is <A HREF="https://www.openjml.org/tutorial/">here</
 </P><P></P>
 An integration Guide to aid in connecting the OpenJML language server to LSP clients (in general, but including Eclipse)
 is <A HREF="https://www.openjml.org/TBD/">here</A>.
+</P><P>
+Because OpenJML is built on OpenJDK, this LSP-compliant server is also a LSP interface for OpenJDK.
 </P>
 <BODY>
 Contents:
@@ -85,7 +87,7 @@ The command-line OpenJML tool, which is needed to use this Eclipse plugin, can b
 The plug-in builds on the Eclipse JDT and PDE, through their public interfaces;
 it does not modify or contribute to Eclipse itself.
 The source for the plug-in is available at the
-<A HREF="http://www.github.com/OpenJML/OpenJML/"> OpenJML github project</A>.
+<A HREF="http://www.github.com/OpenJML/OpenJML/">OpenJML github project</A>.
 This version of the plug-in is offered without cost and without warranty of any kind.
 Feedback that will
 improve its usefulness is welcome.
@@ -99,7 +101,7 @@ The underlying OpenJML tool is built on
 (OpenJDK is a trademark of Oracle).
 OpenJDK and thus OpenJML is licensed under
 <A HREF="http://openjdk.java.net/legal/">GPL</A>.
-The language server for OpenJML uses the lsp4j library; it uses the lsp4e library to connect ot Eclipse.
+The language server for OpenJML uses the lsp4j library; it uses the lsp4e library to connect to Eclipse.
 </P>
 
 <P>
@@ -109,13 +111,13 @@ The plug-in adds the following functionality to Eclipse's Java Perspective:
 invoke various tools and manage the environment.
 <LI>Toolbar items labeled with the JML yellow coffee cup icon that invokes the JML syntax and type checker,
 with 'ESC' to invoke static checking, and with 'RAC to invoke runtime assertion compilation.
-<LI>Problem markers: standard (LSP-generated) Eclipse problem markers that identify syntax, type, and verification
+<LI>Problem markers: Eclipse problem markers that identify syntax, type, and verification
     diagnostics produced by OpenJML.
 <LI>Context menu items in various views
 and on Java editors that replicate some
 of the above menu items for Java Projects, source
 folders, packages, compilation
-units, working sets, and individual classes and methods.
+units, and individual classes and methods.
 <LI>The plug-in recognizes the standard JML file suffix (.jml), giving such files the JML icon (yellow coffee cup).
     .jml files are edited by default by the Eclipse "Generic Code Editor".
 <LI>Syntax coloring in .jml files and in JML content in .java files, meant to match typical Java syntax coloring.</LI>
@@ -124,8 +126,8 @@ units, working sets, and individual classes and methods.
 (under Window &gt;&gt; Preferences &gt;&gt; OpenJML or Eclipse &gt;&gt; Settings &gt;&gt; OpenJML).
 <LI>A decoration visible in the package explorer (and other places)
 on Java Projects to indicate that JML functionality is enabled.
-<LI>A new category of commands in the Workbench &gt;&gt; Keys page of the Eclipse
-preferences.  The category is named 'JML' and allows key bindings to be
+<LI>A new category of commands in the General &gt;&gt; Keys page of the Eclipse
+preferences.  The category is named 'OpenJML' and allows key bindings to be
 defined for the various new menu actions.
 <LI>A Help document describing the JML plug-in functionality available
 through the Help &gt;&gt; HelpContents menu (this document).
