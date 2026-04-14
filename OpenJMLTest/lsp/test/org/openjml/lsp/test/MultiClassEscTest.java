@@ -390,6 +390,143 @@ public class MultiClassEscTest extends LspTestBase {
     //     even when nested class methods also appear in the list
     // -----------------------------------------------------------------------
 
+    // =======================================================================
+    // Scenario 5 — local class declared inside a method body
+    // =======================================================================
+
+    /**
+     * A local class declared inside a method body.  Its methods must be
+     * discovered by {@link JavaSourceScanner#findMethodsFromAst} and their
+     * {@code sourceUri} must be the enclosing {@code .java} file.
+     *
+     * <pre>
+     * line 0: public class LocalOuter {
+     * line 1:     public void outer() {
+     * line 2:         class Local {
+     * line 3:             //@ ensures \result == x;
+     * line 4:             public int localM(int x) { return x; }
+     * line 5:         }
+     * line 6:     }
+     * line 7: }
+     * </pre>
+     */
+    private static final String LOCAL_SRC =
+            "public class LocalOuter {\n" +
+            "    public void outer() {\n" +
+            "        class Local {\n" +
+            "            //@ ensures \\result == x;\n" +
+            "            public int localM(int x) { return x; }\n" +
+            "        }\n" +
+            "    }\n" +
+            "}\n";
+
+    private static final String LOCAL_URI = "file:///LocalOuter.java";
+
+    @Test
+    public void testLocal_AstScannerFindsLocalClassMethod() {
+        checkContent(LOCAL_URI, LOCAL_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(LOCAL_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), LOCAL_SRC);
+        List<String> names = methods.stream()
+                .map(JavaSourceScanner.MethodInfo::name).collect(Collectors.toList());
+        System.out.println("[MultiClassEscTest] local class methods: " + names);
+
+        assertTrue("findMethodsFromAst must find local class method 'localM'",
+                names.contains("localM"));
+    }
+
+    @Test
+    public void testLocal_MethodSourceUriIsJavaFile() {
+        checkContent(LOCAL_URI, LOCAL_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(LOCAL_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), LOCAL_SRC);
+        JavaSourceScanner.MethodInfo localM = methods.stream()
+                .filter(m -> "localM".equals(m.name())).findFirst().orElse(null);
+
+        assertNotNull("localM must be discoverable", localM);
+        assertEquals("localM sourceUri must be the .java file URI", LOCAL_URI, localM.sourceUri());
+    }
+
+    // =======================================================================
+    // Scenario 6 — anonymous class
+    // =======================================================================
+
+    /**
+     * An anonymous class implementing an interface inline.  Its method must be
+     * discovered by {@link JavaSourceScanner#findMethodsFromAst} and its
+     * {@code sourceUri} must be the enclosing {@code .java} file.
+     *
+     * <pre>
+     * line 0: public class AnonOuter {
+     * line 1:     interface I { int m(int x); }
+     * line 2:     I impl = new I() {
+     * line 3:         //@ ensures \result == x;
+     * line 4:         public int m(int x) { return x; }
+     * line 5:     };
+     * line 6: }
+     * </pre>
+     */
+    private static final String ANON_SRC =
+            "public class AnonOuter {\n" +
+            "    interface I { int m(int x); }\n" +
+            "    I impl = new I() {\n" +
+            "        //@ ensures \\result == x;\n" +
+            "        public int m(int x) { return x; }\n" +
+            "    };\n" +
+            "}\n";
+
+    private static final String ANON_URI = "file:///AnonOuter.java";
+
+    @Test
+    public void testAnon_AstScannerFindsAnonymousClassMethod() {
+        checkContent(ANON_URI, ANON_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(ANON_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), ANON_SRC);
+        List<String> names = methods.stream()
+                .map(JavaSourceScanner.MethodInfo::name).collect(Collectors.toList());
+        System.out.println("[MultiClassEscTest] anonymous class methods: " + names);
+
+        // The anonymous class's 'm' implementation must appear.
+        assertTrue("findMethodsFromAst must find anonymous class method 'm'",
+                names.contains("m"));
+    }
+
+    @Test
+    public void testAnon_MethodSourceUriIsJavaFile() {
+        checkContent(ANON_URI, ANON_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(ANON_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), ANON_SRC);
+
+        // Filter to methods with name "m" that have a body (the anonymous impl,
+        // not the abstract interface declaration which has pos < 0 and is skipped).
+        List<JavaSourceScanner.MethodInfo> mMethods = methods.stream()
+                .filter(mi -> "m".equals(mi.name())).collect(Collectors.toList());
+        System.out.println("[MultiClassEscTest] anonymous 'm' entries: " + mMethods);
+
+        assertFalse("At least one 'm' method must be found", mMethods.isEmpty());
+        for (JavaSourceScanner.MethodInfo mi : mMethods) {
+            assertEquals("anonymous class 'm' sourceUri must be the .java file URI",
+                    ANON_URI, mi.sourceUri());
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // 4e: Verified marker line for outer class method is correct
+    //     even when nested class methods also appear in the list
+    // -----------------------------------------------------------------------
+
     @Test
     public void testNested_VerifiedMarkerLineForOuterMethod() {
         checkContent(NESTED_URI, NESTED_SRC);

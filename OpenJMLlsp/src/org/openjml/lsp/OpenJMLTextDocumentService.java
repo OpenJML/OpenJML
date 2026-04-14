@@ -429,6 +429,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         List<CodeLens> lenses = new ArrayList<>(methods.size());
         for (JavaSourceScanner.MethodInfo m : methods) {
+            if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
             MethodStatus s = statuses.getOrDefault(m.startLine(), MethodStatus.UNKNOWN);
             var range = new Range(new Position(m.startLine(), 0),
                                   new Position(m.startLine(), 0));
@@ -2601,6 +2602,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         boolean hasForeignErrors = !foreignFiles.isEmpty();
         Map<Integer, MethodStatus> statuses = new HashMap<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
+            if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
             IProverResult.Kind kind = CheckRunner.lookupResult(proofResults, m.rawName());
             statuses.put(m.startLine(),
                     proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
@@ -2649,6 +2651,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         List<Diagnostic> verified = new ArrayList<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
+            if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
             // For per-method runs consider only the target method.
             if (target != null && m.startLine() != target.startLine()) continue;
             // Use rawName() for the proof-result lookup: FQN+sig key from AST, bare name
@@ -2712,6 +2715,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         Map<Integer, MethodStatus> current = new HashMap<>(
                 methodEscStatus.getOrDefault(uri, Map.of()));
         for (JavaSourceScanner.MethodInfo m : methods) {
+            if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
             IProverResult.Kind kind = CheckRunner.lookupResult(partialProofResults, m.rawName());
             if (kind == null) continue;   // not yet proven — leave as CHECKING or UNKNOWN
             // exitCode=0: the run is in progress; kind != null so exitCode is not used

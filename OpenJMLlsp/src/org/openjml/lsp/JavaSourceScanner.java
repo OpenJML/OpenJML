@@ -4,6 +4,7 @@ import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.util.ArrayList;
@@ -46,7 +47,8 @@ public class JavaSourceScanner {
      *   <li>{@code endLine}      — last line attributed to this method (exclusive of next method's spec)</li>
      * </ul>
      */
-    public record MethodInfo(String name, String rawName, int startLine, int specStartLine, int endLine) {
+    public record MethodInfo(String name, String rawName, int startLine, int specStartLine,
+                             int endLine, String sourceUri) {
         /** Convenience: does the given 0-based line fall within this method's full range? */
         public boolean contains(int line) { return line >= specStartLine && line <= endLine; }
     }
@@ -150,7 +152,7 @@ public class JavaSourceScanner {
         for (int i = 0; i < starts.size(); i++) {
             int declLine = starts.get(i);
             int end = (i + 1 < starts.size()) ? starts.get(i + 1) - 1 : lines.length - 1;
-            result.add(new MethodInfo(names.get(i), names.get(i), declLine, findSpecStart(lines, declLine), end));
+            result.add(new MethodInfo(names.get(i), names.get(i), declLine, findSpecStart(lines, declLine), end, ""));
         }
         return result;
     }
@@ -179,12 +181,14 @@ public class JavaSourceScanner {
 
     private static class MethodLensWalker extends JmlTreeScanner {
         private final JmlCompilationUnit cu;
+        private final String cuUri;
         private final String[] lines;
         final List<MethodInfo> result = new ArrayList<>();
 
         MethodLensWalker(JmlCompilationUnit cu, String[] lines) {
             super(null);   // null context → AST_JML_MODE
             this.cu    = cu;
+            this.cuUri = cu.sourcefile != null ? cu.sourcefile.toUri().normalize().toString() : "";
             this.lines = lines;
         }
 
@@ -209,12 +213,24 @@ public class JavaSourceScanner {
             // they will always agree regardless of class nesting depth.
             String fqnKey = tree.sym.owner.toString() + "." + tree.sym.toString();
 
+            // Source file: JmlMethodDecl carries the file it was declared in (e.g. a
+            // companion .jml file).  Code lenses and markers must go to that file.
+            String sourceUri = cuUri;
+            if (tree instanceof JmlMethodDecl jm && jm.sourcefile != null) {
+                sourceUri = jm.sourcefile.toUri().normalize().toString();
+            }
+
             int startLine = Math.max(0, (int) cu.lineMap.getLineNumber(tree.pos) - 1);
             int endOffset = cu.endPositions != null ? tree.getEndPosition(cu.endPositions) : -1;
             int endLine = (endOffset > tree.pos)
                     ? Math.max(startLine, (int) cu.lineMap.getLineNumber(endOffset) - 1)
                     : startLine;
-            result.add(new MethodInfo(name, fqnKey, startLine, findSpecStart(lines, startLine), endLine));
+            // findSpecStart scans lines[] (the .java source); only meaningful for methods
+            // declared in the same file.  For companion .jml methods use startLine as-is.
+            int specStart = sourceUri.equals(cuUri) ? findSpecStart(lines, startLine) : startLine;
+            result.add(new MethodInfo(name, fqnKey, startLine, specStart, endLine, sourceUri));
+            // Recurse into the method body so that local classes declared inside are visited.
+            super.visitMethodDef(tree);
         }
     }
 

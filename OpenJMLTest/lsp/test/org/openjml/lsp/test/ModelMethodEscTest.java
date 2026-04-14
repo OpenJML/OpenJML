@@ -15,6 +15,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -326,5 +327,75 @@ public class ModelMethodEscTest extends LspTestBase {
         assertNotNull("Regular method 'doubled' must be found in AST", doubled);
         assertNotNull(
                 "Model method 'spec' from companion .jml must be visible in AST walker", spec);
+
+        // sourceUri must route each method to the file it was declared in.
+        assertEquals("doubled must have sourceUri of .java file", javaUri, doubled.sourceUri());
+        assertEquals("spec must have sourceUri of .jml file",    jmlUri,  spec.sourceUri());
+    }
+
+    // -----------------------------------------------------------------------
+    // Scenario 2c: model method in .jml — code-lens routing by sourceUri
+    // -----------------------------------------------------------------------
+
+    /**
+     * When the method list from {@link JavaSourceScanner#findMethodsFromAst} is
+     * filtered by {@code sourceUri}, each method must appear in exactly one
+     * file's lens set: regular methods in the {@code .java} file, model methods
+     * declared in the companion {@code .jml} file in the {@code .jml} file.
+     */
+    @Test
+    public void testModelInJml_SourceUriRoutingFilter() throws IOException {
+        File javaFile = writeFile("ModelInJmlRoute.java",
+                "public class ModelInJmlRoute {\n" +
+                "    //@ ensures \\result == spec(x);\n" +
+                "    public int doubled(int x) { return x * 2; }\n" +
+                "}\n");
+        File jmlFile = writeFile("ModelInJmlRoute.jml",
+                "public class ModelInJmlRoute {\n" +
+                "    //@ pure model public int spec(int x) { return x * 2; }\n" +
+                "}\n");
+
+        String javaUri = fileUri(javaFile);
+        String jmlUri  = fileUri(jmlFile);
+        String javaContent = new String(java.nio.file.Files.readAllBytes(javaFile.toPath()));
+
+        CheckRunner.runCheckDirWithContext(
+                List.of(javaFile.getAbsolutePath()),
+                Map.of(javaUri, javaContent,
+                       jmlUri, new String(java.nio.file.Files.readAllBytes(jmlFile.toPath()))),
+                new OpenJMLSettings());
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().getNav(javaUri);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> all =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), javaContent);
+
+        System.out.println("[ModelMethodEscTest] routing test all methods: " + all);
+
+        // Methods that belong to the .java file (code lenses go in the .java editor).
+        List<String> javaNames = all.stream()
+                .filter(m -> m.sourceUri().isEmpty() || m.sourceUri().equals(javaUri))
+                .map(JavaSourceScanner.MethodInfo::name)
+                .collect(Collectors.toList());
+
+        // Methods that belong to the .jml file (code lenses go in the .jml editor).
+        List<String> jmlNames = all.stream()
+                .filter(m -> m.sourceUri().equals(jmlUri))
+                .map(JavaSourceScanner.MethodInfo::name)
+                .collect(Collectors.toList());
+
+        System.out.println("[ModelMethodEscTest] java-file methods: " + javaNames);
+        System.out.println("[ModelMethodEscTest] jml-file methods:  " + jmlNames);
+
+        assertTrue("'doubled' must appear in the .java file's lens set",
+                javaNames.contains("doubled"));
+        assertFalse("'spec' must NOT appear in the .java file's lens set",
+                javaNames.contains("spec"));
+
+        assertTrue("'spec' must appear in the .jml file's lens set",
+                jmlNames.contains("spec"));
+        assertFalse("'doubled' must NOT appear in the .jml file's lens set",
+                jmlNames.contains("doubled"));
     }
 }
