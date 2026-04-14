@@ -5,6 +5,7 @@ import org.openjml.MockJavaFileObject;
 import org.openjml.IProverResult;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.Utils;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.util.Context;
 import org.jmlspecs.openjml.JmlTree;
@@ -157,9 +158,13 @@ public class CheckRunner {
      * e.g. {@code "com.example.Foo.m(int)"} → {@code "m"},
      *      {@code "Foo.m(int)"} → {@code "m"},
      *      {@code "m"} → {@code "m"}.
+     *
+     * <p>Uses {@code lastIndexOf('(')} so that local-class FQNs that include
+     * the enclosing method name (e.g. {@code "Outer.outer().Local.localM(int)"})
+     * strip the signature from the correct position.
      */
     public static String bareMethodName(String fqnKey) {
-        int p = fqnKey.indexOf('(');
+        int p = fqnKey.lastIndexOf('(');
         String noSig = p >= 0 ? fqnKey.substring(0, p) : fqnKey;
         int dot = noSig.lastIndexOf('.');
         return dot >= 0 ? noSig.substring(dot + 1) : noSig;
@@ -224,9 +229,10 @@ public class CheckRunner {
                 return;
             }
             if (kind == IProverResult.COMPLETED) return;
-            // Key: owner FQN + "." + method-with-signature — matches MethodLensWalker.
-            String key = (methodDecl.sym != null && methodDecl.sym.owner != null)
-                    ? methodDecl.sym.owner.toString() + "." + methodDecl.sym.toString()
+            // Key: canonical FQN from Utils.uniqueSymbolName — matches MethodLensWalker
+            // and Utils.filter() for --method matching.
+            String key = (methodDecl.sym != null)
+                    ? Utils.uniqueSymbolName(methodDecl.sym)
                     : methodDecl.name.toString();
             results.put(key, kind);
             // Log immediately so the console shows progress as each method completes.
@@ -396,6 +402,10 @@ public class CheckRunner {
             } catch (Exception ignored) {}
             AST_CACHE.putNav(realUri, astCtx,
                     (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast, paths);
+            // Also cache the companion .jml spec CU in the live tier so that
+            // codeLensForJml can look it up via ASTCache.get(jmlUri).
+            cacheSpecsCu((org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast, astCtx,
+                         normToReal, null, true);
         };
         api.setASTListener(astListener);
         int rc;
@@ -2307,7 +2317,7 @@ public class CheckRunner {
             if ("<init>".equals(mname)) continue;  // constructors via --method cause spec errors
 
             String fqn = method.sym != null
-                    ? method.sym.owner.toString() + "." + mname
+                    ? Utils.uniqueSymbolName(method.sym)
                     : mname;
 
             CompletableFuture<MethodEscResult> f = CompletableFuture

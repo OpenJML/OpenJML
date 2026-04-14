@@ -1311,6 +1311,32 @@ public class Utils {
         var r = sig.replaceAll("java.lang." ,"").replaceAll("org.jmlspecs.lang." ,"");
         return r;
     }
+    
+    public static String uniqueSymbolName(Symbol sym) {
+        if (sym instanceof MethodSymbol ms) {
+            return uniqueSymbolName(ms.owner) + "." + ms.toString();
+        }
+        if (sym instanceof ClassSymbol cs) {
+            String owner = uniqueSymbolName(cs.owner);
+            String cstr = cs.toString();
+            int k = cstr.lastIndexOf('$');
+            if (k == -1) cstr = cs.name.toString();
+            else cstr = cstr.substring(k, cstr.length()-1);
+            if (owner.isEmpty()) return cstr;
+            else return owner + "." + cstr;
+        }
+        if (sym instanceof Symbol.PackageSymbol ps) {
+            if (ps.isUnnamed()) return "";
+            else return ps.toString();
+        }
+        // For VarSymbol and other owner types (e.g. anonymous class created in a
+        // field initializer has a VarSymbol as its immediate owner): walk up to the
+        // enclosing class or method so the FQN includes the correct class prefix.
+        if (sym != null && sym.owner != null && sym.owner != sym) {
+            return uniqueSymbolName(sym.owner);
+        }
+        return "";
+    }
 
     /** Returns a fully-qualified name for a symbol, without the signature */ // FIXME - may include <init>
     public String qualifiedName(Symbol sym) {
@@ -1668,7 +1694,7 @@ public class Utils {
             fullyQualifiedName = fullyQualifiedName.replace("<init>", constructorName);
             simpleName = simpleName.replace("<init>", constructorName);
         }
-        String fullyQualifiedSig = this.qualifiedMethodSig(methodDecl.sym);
+        String fullyQualifiedSig = uniqueSymbolName(methodDecl.sym);
 
         String excludes = JmlOption.EXCLUDE.value(context);
         if (excludes != null && !excludes.isEmpty()) {

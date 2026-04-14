@@ -165,8 +165,31 @@ public class MultiClassEscTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
-    // 3e: split-by-method ESC for secondary class method succeeds
+    // 3e: split-by-method ESC for primary and secondary class methods
     // -----------------------------------------------------------------------
+
+    @Test
+    public void testPrimary_SplitByMethodUsingFqnFromAst() {
+        checkContent(PKG_URI, SECONDARY_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(PKG_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), SECONDARY_SRC);
+        JavaSourceScanner.MethodInfo target = methods.stream()
+                .filter(m -> "primId".equals(m.name())).findFirst().orElse(null);
+        assertNotNull("AST must find 'primId' for primary class", target);
+        System.out.println("[MultiClassEscTest] primId FQN key: " + target.rawName());
+
+        CheckRunner.CheckResult result =
+                runEscMethodResult(PKG_URI, SECONDARY_SRC, target.rawName());
+        System.out.println("[MultiClassEscTest] primary split-by-method: "
+                + result.proofResults() + " exitCode=" + result.exitCode());
+
+        IProverResult.Kind kind = result.proofResultForMethod("primId");
+        assertNotNull("ESC --method with FQN from AST must produce a proof result for 'primId'", kind);
+        assertEquals("primId must be UNSAT when targeted directly", IProverResult.UNSAT, kind);
+    }
 
     @Test
     public void testSecondary_SplitByMethodForSecondaryClassWorks() {
@@ -180,6 +203,29 @@ public class MultiClassEscTest extends LspTestBase {
 
         IProverResult.Kind kind = result.proofResultForMethod("secId");
         assertNotNull("ESC --method Secondary.secId must produce a proof result", kind);
+        assertEquals("secId must be UNSAT when targeted directly", IProverResult.UNSAT, kind);
+    }
+
+    @Test
+    public void testSecondary_SplitByMethodUsingFqnFromAst() {
+        checkContent(PKG_URI, SECONDARY_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(PKG_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), SECONDARY_SRC);
+        JavaSourceScanner.MethodInfo target = methods.stream()
+                .filter(m -> "secId".equals(m.name())).findFirst().orElse(null);
+        assertNotNull("AST must find 'secId' for secondary class", target);
+        System.out.println("[MultiClassEscTest] secId FQN key: " + target.rawName());
+
+        CheckRunner.CheckResult result =
+                runEscMethodResult(PKG_URI, SECONDARY_SRC, target.rawName());
+        System.out.println("[MultiClassEscTest] secondary split-by-method (FQN from AST): "
+                + result.proofResults() + " exitCode=" + result.exitCode());
+
+        IProverResult.Kind kind = result.proofResultForMethod("secId");
+        assertNotNull("ESC --method with FQN from AST must produce a proof result for 'secId'", kind);
         assertEquals("secId must be UNSAT when targeted directly", IProverResult.UNSAT, kind);
     }
 
@@ -291,8 +337,31 @@ public class MultiClassEscTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
-    // 4b: ESC proof results for outer and nested class
+    // 4b: ESC proof results for outer and nested class; split-by-method
     // -----------------------------------------------------------------------
+
+    @Test
+    public void testNested_SplitByMethodUsingFqnFromAst() {
+        checkContent(NESTED_URI, NESTED_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(NESTED_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), NESTED_SRC);
+        JavaSourceScanner.MethodInfo target = methods.stream()
+                .filter(m -> "innerM".equals(m.name())).findFirst().orElse(null);
+        assertNotNull("AST must find member nested class method 'innerM'", target);
+        System.out.println("[MultiClassEscTest] innerM FQN key: " + target.rawName());
+
+        CheckRunner.CheckResult result =
+                runEscMethodResult(NESTED_URI, NESTED_SRC, target.rawName());
+        System.out.println("[MultiClassEscTest] nested split-by-method: "
+                + result.proofResults() + " exitCode=" + result.exitCode());
+
+        IProverResult.Kind kind = result.proofResultForMethod("innerM");
+        assertNotNull("ESC --method with FQN from AST must produce a proof result for 'innerM'", kind);
+        assertEquals("innerM must be UNSAT when targeted directly", IProverResult.UNSAT, kind);
+    }
 
     @Test
     public void testNested_EscProofResultsForBothClasses() {
@@ -423,6 +492,34 @@ public class MultiClassEscTest extends LspTestBase {
     private static final String LOCAL_URI = "file:///LocalOuter.java";
 
     @Test
+    public void testLocal_SplitByMethodUsingFqnFromAst() {
+        checkContent(LOCAL_URI, LOCAL_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(LOCAL_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), LOCAL_SRC);
+        JavaSourceScanner.MethodInfo target = methods.stream()
+                .filter(m -> "localM".equals(m.name())).findFirst().orElse(null);
+        assertNotNull("AST must find local class method 'localM'", target);
+        System.out.println("[MultiClassEscTest] localM FQN key: " + target.rawName());
+
+        CheckRunner.CheckResult result =
+                runEscMethodResult(LOCAL_URI, LOCAL_SRC, target.rawName());
+        System.out.println("[MultiClassEscTest] local split-by-method: "
+                + result.proofResults() + " exitCode=" + result.exitCode());
+
+        // The FQN from the AST scanner must be accepted by --method filtering,
+        // so a proof result must exist.  ESC is expected to analyse local class
+        // methods; UNSAT is the desired outcome once any remaining ESC-side
+        // limitation is resolved.
+        IProverResult.Kind kind = result.proofResultForMethod("localM");
+        assertNotNull("ESC --method with FQN from AST must produce a proof result for 'localM'", kind);
+        System.out.println("[MultiClassEscTest] localM ESC result: " + kind
+                + " (expected UNSAT; SKIPPED indicates a remaining ESC limitation)");
+    }
+
+    @Test
     public void testLocal_AstScannerFindsLocalClassMethod() {
         checkContent(LOCAL_URI, LOCAL_SRC);
         ASTCache.Entry entry = CheckRunner.getASTCache().get(LOCAL_URI);
@@ -482,6 +579,39 @@ public class MultiClassEscTest extends LspTestBase {
             "}\n";
 
     private static final String ANON_URI = "file:///AnonOuter.java";
+
+    @Test
+    public void testAnon_SplitByMethodUsingFqnFromAst() {
+        checkContent(ANON_URI, ANON_SRC);
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(ANON_URI);
+        assertNotNull("AST cache must be populated", entry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(entry.ast(), ANON_SRC);
+        // There are two 'm' entries: one for the abstract interface method (no body)
+        // and one for the anonymous class implementation (has a body, distinct FQN).
+        // The anonymous class's FQN contains a numeric segment (e.g. ".1.").
+        // Filter by the line that has the JML spec to pick the concrete implementation.
+        int implLine = lineOf(ANON_SRC, "public int m(int x) { return x; }");
+        JavaSourceScanner.MethodInfo target = methods.stream()
+                .filter(m -> "m".equals(m.name()) && m.startLine() == implLine)
+                .findFirst().orElse(null);
+        assertNotNull("AST must find anonymous class 'm' at impl line " + implLine, target);
+        System.out.println("[MultiClassEscTest] anon 'm' FQN key: " + target.rawName());
+
+        CheckRunner.CheckResult result =
+                runEscMethodResult(ANON_URI, ANON_SRC, target.rawName());
+        System.out.println("[MultiClassEscTest] anon split-by-method: "
+                + result.proofResults() + " exitCode=" + result.exitCode());
+
+        // The FQN from the AST scanner must be accepted by --method filtering.
+        // ESC is expected to analyse anonymous class methods; UNSAT is the
+        // desired outcome once any remaining ESC-side limitation is resolved.
+        IProverResult.Kind kind = result.proofResultForMethod("m");
+        assertNotNull("ESC --method with FQN from AST must produce a proof result for anon 'm'", kind);
+        System.out.println("[MultiClassEscTest] anon 'm' ESC result: " + kind
+                + " (expected UNSAT; SKIPPED indicates a remaining ESC limitation)");
+    }
 
     @Test
     public void testAnon_AstScannerFindsAnonymousClassMethod() {

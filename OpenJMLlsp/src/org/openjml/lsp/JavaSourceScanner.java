@@ -1,10 +1,12 @@
 package org.openjml.lsp;
 
+import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.tree.JCTree.JCBlock;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.util.ArrayList;
@@ -208,10 +210,10 @@ public class JavaSourceScanner {
                     ? (ownerSimple.isEmpty() ? "<init>" : ownerSimple)
                     : rawName;
 
-            // Proof-result key: owner FQN + "." + method-with-signature.
-            // Both ProofResultCollector and this walker derive the key from sym, so
-            // they will always agree regardless of class nesting depth.
-            String fqnKey = tree.sym.owner.toString() + "." + tree.sym.toString();
+            // Proof-result key: canonical FQN from Utils.uniqueSymbolName, which matches
+            // the key used by Utils.filter() for --method matching, including local and
+            // anonymous classes (e.g. "pkg.Outer.1Local.m(int)").
+            String fqnKey = Utils.uniqueSymbolName(tree.sym);
 
             // Source file: JmlMethodDecl carries the file it was declared in (e.g. a
             // companion .jml file).  Code lenses and markers must go to that file.

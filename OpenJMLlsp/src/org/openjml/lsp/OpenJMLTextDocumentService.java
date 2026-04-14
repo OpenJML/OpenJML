@@ -411,6 +411,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
         String uri = params.getTextDocument().getUri();
+        // .jml spec files: show lenses for model methods declared in this file.
+        if (uri.endsWith(".jml")) return codeLensForJml(uri);
+
         String content = lastContent.get(uri);
         if (content == null) {
             // didOpen may not have arrived yet; fall back to reading from disk so that
@@ -443,6 +446,53 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             lenses.add(new CodeLens(range,
                     new Command(s.label(), OpenJMLCommands.RUN_ESC_FOR_METHOD,
                                 List.<Object>of(uri, methodRef)),
+                    null));
+        }
+        return CompletableFuture.completedFuture(lenses);
+    }
+
+    /**
+     * Return code lenses for a {@code .jml} spec file.
+     *
+     * <p>Only shown when the {@code .jml} file is open in an editor
+     * ({@link #lastContent} has its content).  Each lens targets the companion
+     * {@code .java} file for ESC, because model methods must be verified together
+     * with the Java implementation; passing a {@code .jml} file directly to
+     * OpenJML is not supported.
+     *
+     * <p>Clicking a lens triggers whole-file ESC on the companion {@code .java}
+     * file.  After the run completes, {@link #updateEscStatus} propagates the
+     * proof results back to this {@code .jml} editor's status map so the lenses
+     * update.
+     */
+    private CompletableFuture<List<? extends CodeLens>> codeLensForJml(String jmlUri) {
+        String jmlContent = lastContent.get(jmlUri);
+        if (jmlContent == null) return CompletableFuture.completedFuture(List.of());
+
+        ASTCache.Entry jmlEntry = CheckRunner.getASTCache().get(jmlUri);
+        if (jmlEntry == null) return CompletableFuture.completedFuture(List.of());
+
+        JmlCompilationUnit jmlAst = jmlEntry.ast();
+        if (jmlAst.sourceCU == null || jmlAst.sourceCU.sourcefile == null)
+            return CompletableFuture.completedFuture(List.of());
+        String javaUri = jmlAst.sourceCU.sourcefile.toUri().normalize().toString();
+
+        // Use the .jml CU and .jml content so line numbers are correct for the .jml editor.
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(jmlAst, jmlContent);
+        Map<Integer, MethodStatus> statuses = methodEscStatus.getOrDefault(jmlUri, Map.of());
+
+        List<CodeLens> lenses = new ArrayList<>(methods.size());
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            MethodStatus s = statuses.getOrDefault(m.startLine(), MethodStatus.UNKNOWN);
+            var range = new Range(new Position(m.startLine(), 0), new Position(m.startLine(), 0));
+            // Command targets the .java file — ESC runs on the .java file.
+            // An empty method reference triggers whole-file ESC; model methods are proved
+            // together with the Java implementation and do not support split-by-method
+            // targeting across files.
+            lenses.add(new CodeLens(range,
+                    new Command(s.label(), OpenJMLCommands.RUN_ESC_FOR_METHOD,
+                                List.<Object>of(javaUri, "")),
                     null));
         }
         return CompletableFuture.completedFuture(lenses);
@@ -2610,6 +2660,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         methodEscStatus.put(uri, statuses);
         addVerifiedDiagnostics(uri, proofResults, null);
+
+        // Also update .jml companion files whose model methods were proved in this run.
+        // These files have their own code-lens status maps, keyed by .jml line numbers,
+        // which require a separate findMethodsFromAst call on the .jml AST.
+        java.util.Set<String> jmlUris = new java.util.LinkedHashSet<>();
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)
+                    && m.sourceUri().endsWith(".jml"))
+                jmlUris.add(m.sourceUri());
+        }
+        for (String jmlUri : jmlUris) {
+            updateJmlEscStatus(jmlUri, diags, proofResults, exitCode, hasForeignErrors);
+        }
+
         refreshCodeLenses();
 
         if (hasForeignErrors) {
@@ -2617,6 +2681,39 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             clientWarn("OpenJML: ESC on " + fileName
                     + " could not run — type errors in: " + String.join(", ", foreignFiles));
         }
+    }
+
+    /**
+     * Update per-method ESC status for a companion {@code .jml} file after ESC ran on
+     * the associated {@code .java} file.
+     *
+     * <p>Uses the {@code .jml} AST from the cache (stored there by {@code cacheSpecsCu}
+     * during the prior {@code --check} pass) so that method positions are correct for
+     * the {@code .jml} editor.  If the {@code .jml} file is not open
+     * ({@link #lastContent} has no entry for it), this is a no-op.
+     */
+    private void updateJmlEscStatus(String jmlUri, List<Diagnostic> diags,
+                                    Map<String, IProverResult.Kind> proofResults,
+                                    int exitCode, boolean hasForeignErrors) {
+        String jmlContent = lastContent.get(jmlUri);
+        if (jmlContent == null) return;   // .jml editor not open
+        ASTCache.Entry jmlEntry = CheckRunner.getASTCache().get(jmlUri);
+        if (jmlEntry == null) return;
+
+        List<JavaSourceScanner.MethodInfo> jmlMethods =
+                JavaSourceScanner.findMethodsFromAst(jmlEntry.ast(), jmlContent);
+        if (jmlMethods.isEmpty()) return;
+
+        Map<Integer, MethodStatus> jmlStatuses = new HashMap<>();
+        for (JavaSourceScanner.MethodInfo m : jmlMethods) {
+            IProverResult.Kind kind = CheckRunner.lookupResult(proofResults, m.rawName());
+            jmlStatuses.put(m.startLine(),
+                    proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
+                                        exitCode, hasForeignErrors));
+        }
+        methodEscStatus.put(jmlUri, jmlStatuses);
+        addVerifiedDiagnostics(jmlUri, proofResults, null);
+        publishMerged(jmlUri);
     }
 
     /**
@@ -2714,8 +2811,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (methods.isEmpty()) return;
         Map<Integer, MethodStatus> current = new HashMap<>(
                 methodEscStatus.getOrDefault(uri, Map.of()));
+        java.util.Set<String> jmlUris = new java.util.LinkedHashSet<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
-            if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
+            if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) {
+                if (m.sourceUri().endsWith(".jml")) jmlUris.add(m.sourceUri());
+                continue;
+            }
             IProverResult.Kind kind = CheckRunner.lookupResult(partialProofResults, m.rawName());
             if (kind == null) continue;   // not yet proven — leave as CHECKING or UNKNOWN
             // exitCode=0: the run is in progress; kind != null so exitCode is not used
@@ -2724,6 +2825,25 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     proofResultToStatus(kind, diags, m.startLine(), m.endLine(), 0, false));
         }
         methodEscStatus.put(uri, current);
+
+        // Propagate partial results to open .jml companion editors.
+        for (String jmlUri : jmlUris) {
+            String jmlContent = lastContent.get(jmlUri);
+            if (jmlContent == null) continue;
+            ASTCache.Entry jmlEntry = CheckRunner.getASTCache().get(jmlUri);
+            if (jmlEntry == null) continue;
+            List<JavaSourceScanner.MethodInfo> jmlMethods =
+                    JavaSourceScanner.findMethodsFromAst(jmlEntry.ast(), jmlContent);
+            Map<Integer, MethodStatus> jmlCurrent = new HashMap<>(
+                    methodEscStatus.getOrDefault(jmlUri, Map.of()));
+            for (JavaSourceScanner.MethodInfo m : jmlMethods) {
+                IProverResult.Kind kind = CheckRunner.lookupResult(partialProofResults, m.rawName());
+                if (kind == null) continue;
+                jmlCurrent.put(m.startLine(),
+                        proofResultToStatus(kind, diags, m.startLine(), m.endLine(), 0, false));
+            }
+            methodEscStatus.put(jmlUri, jmlCurrent);
+        }
     }
 
     /**

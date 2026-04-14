@@ -398,4 +398,105 @@ public class ModelMethodEscTest extends LspTestBase {
         assertFalse("'doubled' must NOT appear in the .jml file's lens set",
                 jmlNames.contains("doubled"));
     }
+
+    // -----------------------------------------------------------------------
+    // Scenario 2d: model method in .jml — .jml AST has sourceCU set to .java CU
+    // -----------------------------------------------------------------------
+
+    /**
+     * After a {@code --check} pass, the cached {@code .jml} AST must have its
+     * {@code sourceCU} field set to the companion {@code .java} CU.  This is the
+     * mechanism by which {@code codeLensForJml} locates the companion {@code .java}
+     * URI so that ESC is triggered on the correct file when the user clicks a lens
+     * in the {@code .jml} editor.
+     */
+    @Test
+    public void testModelInJml_JmlAstHasSourceCuSet() throws IOException {
+        File javaFile = writeFile("ModelInJmlSourceCu.java",
+                "public class ModelInJmlSourceCu {\n" +
+                "    //@ ensures \\result == spec(x);\n" +
+                "    public int doubled(int x) { return x * 2; }\n" +
+                "}\n");
+        File jmlFile = writeFile("ModelInJmlSourceCu.jml",
+                "public class ModelInJmlSourceCu {\n" +
+                "    //@ pure model public int spec(int x) { return x * 2; }\n" +
+                "}\n");
+
+        String javaUri = fileUri(javaFile);
+        String jmlUri  = fileUri(jmlFile);
+        String javaContent = new String(java.nio.file.Files.readAllBytes(javaFile.toPath()));
+
+        CheckRunner.runCheckDirWithContext(
+                List.of(javaFile.getAbsolutePath()),
+                Map.of(javaUri, javaContent,
+                       jmlUri, new String(java.nio.file.Files.readAllBytes(jmlFile.toPath()))),
+                new OpenJMLSettings());
+
+        ASTCache.Entry jmlEntry = CheckRunner.getASTCache().get(jmlUri);
+        assertNotNull("ASTCache must have an entry for the .jml URI", jmlEntry);
+        assertNotNull("jmlAst must not be null", jmlEntry.ast());
+
+        org.jmlspecs.openjml.JmlTree.JmlCompilationUnit jmlAst = jmlEntry.ast();
+        assertNotNull("jmlAst.sourceCU must be set to the companion .java CU", jmlAst.sourceCU);
+        assertNotNull("jmlAst.sourceCU.sourcefile must be non-null", jmlAst.sourceCU.sourcefile);
+
+        String derivedJavaUri = jmlAst.sourceCU.sourcefile.toUri().normalize().toString();
+        System.out.println("[ModelMethodEscTest] jmlAst.sourceCU.sourcefile → " + derivedJavaUri);
+        assertEquals("sourceCU must point to the companion .java file", javaUri, derivedJavaUri);
+    }
+
+    // -----------------------------------------------------------------------
+    // Scenario 2e: model method in .jml — .jml AST yields correct line numbers
+    // -----------------------------------------------------------------------
+
+    /**
+     * When {@link JavaSourceScanner#findMethodsFromAst} is called with the cached
+     * {@code .jml} CU and the {@code .jml} source text, the model method's
+     * {@code startLine} must be the line within the {@code .jml} file (not the
+     * line in the companion {@code .java} file).
+     *
+     * <p>This is the line number that is used for the code-lens position in the
+     * {@code .jml} editor, so it must be accurate.
+     */
+    @Test
+    public void testModelInJml_JmlAstLineNumbersAreInJmlFile() throws IOException {
+        String jmlSource =
+                "public class ModelInJmlLines {\n" +            // line 0
+                "    //@ pure model public int spec(int x) {\n" + // line 1
+                "    //@   return x * 2; }\n" +                  // line 2
+                "}\n";                                            // line 3
+        String javaSource =
+                "public class ModelInJmlLines {\n" +
+                "    //@ ensures \\result == spec(x);\n" +
+                "    public int doubled(int x) { return x * 2; }\n" +
+                "}\n";
+
+        File javaFile = writeFile("ModelInJmlLines.java", javaSource);
+        File jmlFile  = writeFile("ModelInJmlLines.jml", jmlSource);
+
+        String javaUri = fileUri(javaFile);
+        String jmlUri  = fileUri(jmlFile);
+
+        CheckRunner.runCheckDirWithContext(
+                List.of(javaFile.getAbsolutePath()),
+                Map.of(javaUri, javaSource, jmlUri, jmlSource),
+                new OpenJMLSettings());
+
+        ASTCache.Entry jmlEntry = CheckRunner.getASTCache().get(jmlUri);
+        assertNotNull("ASTCache must have an entry for the .jml URI", jmlEntry);
+
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(jmlEntry.ast(), jmlSource);
+        System.out.println("[ModelMethodEscTest] jml-ast-based methods: " + methods);
+
+        JavaSourceScanner.MethodInfo spec = methods.stream()
+                .filter(m -> "spec".equals(m.name())).findFirst().orElse(null);
+        assertNotNull("Model method 'spec' must be found via .jml AST", spec);
+
+        int expectedLine = lineOf(jmlSource, "model public int spec");
+        System.out.println("[ModelMethodEscTest] spec expected line=" + expectedLine
+                + " actual startLine=" + spec.startLine());
+        assertEquals("spec startLine must be its line in the .jml file (not the .java file)",
+                expectedLine, spec.startLine());
+    }
 }
