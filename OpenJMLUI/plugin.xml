@@ -580,6 +580,11 @@
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
            <separator name="sep1a" visible="true"/>
+           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
+                    label="Add OpenJML Nature"/>
+           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
+                    label="Remove OpenJML Nature"/>
+           <separator name="sep2a" visible="true"/>
            <menu id="org.jmlspecs.openjml.mainMenu.clearMarkers" label="Clear Markers">
               <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                        label="All"/>
@@ -592,11 +597,6 @@
                     label="Clear and Reindex"/>
            <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
                     label="Cancel ESC"/>
-           <separator name="sep2a" visible="true"/>
-           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
-                    label="Add OpenJML Nature"/>
-           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
-                    label="Remove OpenJML Nature"/>
         </menu>
      </menuContribution>
 

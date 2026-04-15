@@ -367,7 +367,7 @@ public class Utils {
     }
 
     /** Returns true if the flags indicate this is a generated default constructorn */
-    public boolean isGeneratedConstructor(MethodSymbol methodSym) {
+    public static boolean isGeneratedConstructor(MethodSymbol methodSym) {
         return (methodSym.flags() & Flags.GENERATEDCONSTR) != 0;
     }
 

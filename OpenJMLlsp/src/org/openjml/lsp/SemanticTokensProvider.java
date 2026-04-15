@@ -11,6 +11,8 @@ import org.eclipse.lsp4j.SemanticTokens;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
+import static com.sun.tools.javac.code.Flags.GENERATEDCONSTR;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -286,6 +288,13 @@ public class SemanticTokensProvider {
             this.source   = source;
             this.tokens   = tokens;
             this.fullMode = fullMode;
+            boolean isJavaFile = !cu.isSpecs();
+            boolean isOwnJml = cu.specsCompilationUnit == cu;
+            if (!isJavaFile || isOwnJml) {
+                scanMode = AST_JML_MODE;
+            } else {
+                scanMode = AST_JAVA_MODE;
+            }
             Position.LineMap lm = cu.lineMap;
             if (lm == null) {
                 System.err.println("[SemanticTokens] WARNING: lineMap is null — " +
@@ -658,6 +667,7 @@ public class SemanticTokensProvider {
 
         @Override
         public void visitJmlTypeClauseExpr(JmlTypeClauseExpr tree) {
+            emitDeclarationMods(tree.modifiers, tree.pos);
             emitAt(tree.pos, TT_KEYWORD);
             jmlDepth++; super.visitJmlTypeClauseExpr(tree); jmlDepth--;
         }
@@ -753,12 +763,15 @@ public class SemanticTokensProvider {
         public void visitJmlBinary(JmlBinary tree) {
             // JML binary operators: ==>, <==, <==>, <:, <#, <##
             // POSITION INVARIANT: tree.pos is the operator position (same convention as JCBinary).
+            jmlDepth++;
+            scan(tree.lhs);
             if (inContext() && tree.pos >= 0) {
                 String opStr = (tree.op != null && tree.op.keyword != null) ? tree.op.keyword : "";
                 int len = opStr.isEmpty() ? scanOperatorLen(tree.pos) : opStr.length();
                 emitToken(tree.pos, TT_OPERATOR, 0, len);
             }
-            jmlDepth++; super.visitJmlBinary(tree); jmlDepth--;
+            scan(tree.rhs);
+            jmlDepth--;
         }
 
         // ---- JML statements ------------------------------------------------
@@ -800,11 +813,9 @@ public class SemanticTokensProvider {
                 JmlVariableDecl jmlVar = (JmlVariableDecl) tree;
                 int typePos = jmlVar.vartype != null ? jmlVar.vartype.pos : jmlVar.pos;
                 emitDeclarationMods(jmlVar.mods, typePos);
-                jmlDepth++;
-                super.visitVarDef(tree);
-                jmlDepth--;
                 // Emit the declared name — JCVariableDecl.name is not a tree node
                 // so visitIdent is never called for it; emit manually.
+                scan(tree.vartype);
                 if (jmlVar.name != null && !jmlVar.name.isEmpty()) {
                     int namePos = jmlVar.namePosition >= 0
                             ? jmlVar.namePosition
@@ -815,22 +826,28 @@ public class SemanticTokensProvider {
                                 jmlVar.name.toString());
                     if (namePos >= 0) emitSymbol(namePos, jmlVar.sym, true);
                 }
+                jmlDepth++;
+                scan(tree.nameexpr);
+                scan(tree.init);
+                jmlDepth--;
             } else if (fullMode) {
                 // Non-JML variable declaration in full mode.
                 JmlVariableDecl jmlVar = (JmlVariableDecl) tree;
                 int typePos = jmlVar.vartype != null ? jmlVar.vartype.pos : jmlVar.pos;
                 emitDeclarationMods(jmlVar.mods, typePos);
-                super.visitVarDef(tree);
+                scan(tree.vartype);
                 if (jmlVar.name != null && !jmlVar.name.isEmpty()) {
                     int namePos = jmlVar.namePosition >= 0
                             ? jmlVar.namePosition
                             : findWordAfter(typePos, jmlVar.name.toString());
                     if (namePos >= 0) emitSymbol(namePos, jmlVar.sym, true);
                 }
+                scan(tree.nameexpr);
+                scan(tree.init);
             } else {
                 // JML-only mode, non-JML variable: still emit any JML modifier tokens.
                 emitJmlMods(tree.mods);
-                super.visitVarDef(tree);
+                //super.visitVarDef(tree);
             }
         }
 
@@ -842,14 +859,14 @@ public class SemanticTokensProvider {
          */
         @Override
         public void visitMethodDef(JCMethodDecl tree) {
+            if (org.jmlspecs.openjml.Utils.isGeneratedConstructor(tree.sym)) return;
             boolean isJml = (tree instanceof JmlMethodDecl jd && jd.isJML());
             if (isJml) {
                 JmlMethodDecl jmlMethod = (JmlMethodDecl) tree;
                 int typePos = jmlMethod.restype != null ? jmlMethod.restype.pos : jmlMethod.pos;
                 emitDeclarationMods(jmlMethod.mods, typePos);
-                jmlDepth++;
-                super.visitMethodDef(tree);
-                jmlDepth--;
+                if (!tree.sym.isConstructor()) scan(tree.restype);
+                scan(tree.typarams);
                 if (jmlMethod.name != null && !jmlMethod.name.isEmpty()) {
                     int namePos = jmlMethod.namePosition >= 0
                             ? jmlMethod.namePosition
@@ -860,11 +877,19 @@ public class SemanticTokensProvider {
                                 jmlMethod.name.toString());
                     if (namePos >= 0) emitSymbol(namePos, jmlMethod.sym, true);
                 }
+                jmlDepth++;
+                scan(tree.recvparam);
+                scan(tree.params);
+                scan(tree.thrown);
+                scan(tree.defaultValue);
+                scan(tree.body);
+                jmlDepth--;
             } else if (fullMode) {
                 JmlMethodDecl jmlMethod = (JmlMethodDecl) tree;
                 int typePos = jmlMethod.restype != null ? jmlMethod.restype.pos : jmlMethod.pos;
                 emitDeclarationMods(jmlMethod.mods, typePos);
-                super.visitMethodDef(tree);
+                if (!tree.sym.isConstructor()) scan(tree.restype);
+                scan(tree.typarams);
                 if (jmlMethod.name != null && !jmlMethod.name.isEmpty()
                         && !"<init>".equals(jmlMethod.name.toString())) {
                     int namePos = jmlMethod.namePosition >= 0
@@ -872,10 +897,15 @@ public class SemanticTokensProvider {
                             : findWordAfter(typePos, jmlMethod.name.toString());
                     if (namePos >= 0) emitSymbol(namePos, jmlMethod.sym, true);
                 }
+                scan(tree.recvparam);
+                scan(tree.params);
+                scan(tree.thrown);
+                scan(tree.defaultValue);
+                scan(tree.body);
             } else {
                 // JML-only mode, non-JML method: still emit any JML modifier tokens.
                 emitJmlMods(tree.mods);
-                super.visitMethodDef(tree);
+                //super.visitMethodDef(tree);
             }
         }
 
@@ -895,6 +925,7 @@ public class SemanticTokensProvider {
                 // keyword token.  If modifiers precede it, the test
                 // testClassDecl_WithModifiers_NamePositionCorrect verifies that the
                 // name token is correctly located by findWordAfter.
+                emitAt(tree.pos, TT_KEYWORD);
                 if (tree.name != null && !tree.name.isEmpty()) {
                     // Skip past the keyword ("class", "interface", "enum", "record")
                     // to find the name.
@@ -902,7 +933,17 @@ public class SemanticTokensProvider {
                     if (namePos >= 0) emitSymbol(namePos, tree.sym, true);
                 }
             }
-            super.visitClassDef(tree);
+            
+            scan(tree.typarams);
+            scan(tree.extending);
+            scan(tree.implementing);
+            scan(tree.permitting);
+            for (var d: tree.defs) {
+                if (scanMode == AST_JAVA_MODE && (d instanceof org.jmlspecs.openjml.JmlTree.IInJML jd && jd.isJML())) continue;
+                scan(d);
+            }
+
+            //super.visitClassDef(tree);
         }
 
         // ---- Java literals and type identifiers ----------------------------
@@ -974,9 +1015,10 @@ public class SemanticTokensProvider {
          */
         @Override
         public void visitBinary(JCBinary tree) {
+            scan(tree.lhs);
             if (inContext() && tree.pos >= 0)
                 emitToken(tree.pos, TT_OPERATOR, 0, scanOperatorLen(tree.pos));
-            super.visitBinary(tree);
+            scan(tree.rhs);
         }
 
         /**
@@ -999,9 +1041,10 @@ public class SemanticTokensProvider {
          */
         @Override
         public void visitAssignop(JCAssignOp tree) {
+            scan(tree.lhs);
             if (inContext() && tree.pos >= 0)
                 emitToken(tree.pos, TT_OPERATOR, 0, scanOperatorLen(tree.pos));
-            super.visitAssignop(tree);
+            scan(tree.rhs);
         }
 
         /**
@@ -1011,9 +1054,10 @@ public class SemanticTokensProvider {
          */
         @Override
         public void visitAssign(JCAssign tree) {
+            scan(tree.lhs);
             if (inContext() && tree.pos >= 0)
                 emitToken(tree.pos, TT_OPERATOR, 0, 1);  // "=" is always 1 char
-            super.visitAssign(tree);
+            scan(tree.rhs);
         }
 
         // ---- Java annotations (decorators) ---------------------------------
@@ -1042,7 +1086,6 @@ public class SemanticTokensProvider {
         @Override
         public void visitIf(JCIf tree) {
             emitKeyword(tree.pos, 2);  // "if"
-            // "else" position is not available in the AST — omit.
             super.visitIf(tree);
         }
 
@@ -1080,9 +1123,8 @@ public class SemanticTokensProvider {
         public void visitCase(JCCase tree) {
             // "case" or "default" — scan from tree.pos to determine which.
             if (inContext() && tree.pos >= 0) {
-                int end = tree.pos;
-                while (end < source.length() && isWordChar(source.charAt(end))) end++;
-                emitToken(tree.pos, TT_KEYWORD, 0, end - tree.pos);
+                if (tree.guard == null) emitToken(tree.pos, TT_KEYWORD, 0, "default".length());
+                else  emitToken(tree.pos, TT_KEYWORD, 0, "case".length());
             }
             super.visitCase(tree);
         }
@@ -1138,8 +1180,9 @@ public class SemanticTokensProvider {
         @Override
         public void visitTypeTest(JCInstanceOf tree) {
             // "instanceof" keyword
+            scan(tree.expr);
             if (inContext() && tree.pos >= 0) emitToken(tree.pos, TT_KEYWORD, 0, 10);
-            super.visitTypeTest(tree);
+            scan(tree.pattern);
         }
 
         @Override

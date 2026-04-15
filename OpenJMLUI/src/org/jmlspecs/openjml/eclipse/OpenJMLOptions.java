@@ -212,8 +212,10 @@ public class OpenJMLOptions {
         new TokenColorEntry("method",        "Method name",                            0,   0,   0, false, false, false, false),
         new TokenColorEntry("parameter",     "Parameter name",                         0,   0,   0, false, false, false, false),
         new TokenColorEntry("variable",      "Variable name",                          0,   0,   0, false, false, false, false),
-        new TokenColorEntry("property",      "Property name",                          0,   0,   0, false, false, false, false),
+        new TokenColorEntry("property",      "Field name",                             0,   0,   0, false, false, false, false),
+        new TokenColorEntry("macro",         "Macro",                                  0,   0,   0, false, false, false, false),
         new TokenColorEntry("decorator",     "Decorator",                            100, 100, 100, false, false, false, false),
+        new TokenColorEntry("comment",       "Comment",                              128, 128, 128, false, false, false, false),
         new TokenColorEntry("string",        "String literal",                         42,   0, 255, false, false, false, false),
         new TokenColorEntry("number",        "Number literal",                         25,   0, 134, false, false, false, false),
         new TokenColorEntry("operator",      "Operator",                               0,   0,   0, false, false, false, false)

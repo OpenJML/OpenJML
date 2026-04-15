@@ -1039,4 +1039,116 @@ public class SemanticTokensAstTest extends LspTestBase {
         assertFalse("Type parameter T must produce a typeParameter token",
                 byType(tokens, TP).isEmpty());
     }
+
+    // -----------------------------------------------------------------------
+    // Tests: constructors
+    // -----------------------------------------------------------------------
+
+    /**
+     * A plain constructor (no JML, full mode) must produce a method token at the
+     * constructor name with the {@link SemanticTokensProvider#TM_DECLARATION} modifier.
+     */
+    @Test
+    public void testFullMode_Constructor_NoJml() throws Exception {
+        String uri = "file:///SemTok_CtorNoJml.java";
+        String source =
+                "public class SemTok_CtorNoJml {\n"                  // line 0
+                + "    public SemTok_CtorNoJml() {}\n"               // line 1: ctor at col 11
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        List<Token> methods = byType(tokens, MTH);
+        assertFalse("Constructor must produce a method token", methods.isEmpty());
+        // The constructor declaration must carry TM_DECLARATION.
+        assertTrue("Constructor declaration must have TM_DECLARATION",
+                methods.stream().anyMatch(t -> (t.mods() & TM_DECLARATION) != 0));
+        // Token text spans the class name "SemTok_CtorNoJml" (16 chars) at col 11.
+        assertToken(tokens, MTH, 1, 11, "SemTok_CtorNoJml".length());
+    }
+
+    /**
+     * A constructor annotated with JML (requires / ensures) must produce:
+     * <ul>
+     *   <li>a method token for the constructor name with {@code TM_DECLARATION};</li>
+     *   <li>keyword tokens for the {@code requires} and {@code ensures} clauses.</li>
+     * </ul>
+     */
+    @Test
+    public void testFullMode_Constructor_WithJml() throws Exception {
+        String uri = "file:///SemTok_CtorJml.java";
+        String source =
+                "public class SemTok_CtorJml {\n"                    // line 0
+                + "    int x;\n"                                      // line 1
+                + "    //@ requires n >= 0;\n"                        // line 2: requires at col 8
+                + "    //@ ensures x == n;\n"                         // line 3: ensures at col 8
+                + "    public SemTok_CtorJml(int n) { x = n; }\n"    // line 4: ctor at col 11
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+
+        // Constructor method token at line 4, col 11.
+        assertToken(tokens, MTH, 4, 11, "SemTok_CtorJml".length());
+
+        // JML clause keywords.
+        assertToken(tokens, KW, 2, 8, "requires".length());
+        assertToken(tokens, KW, 3, 8, "ensures".length());
+    }
+
+    /**
+     * A {@code pure} constructor must carry the {@code pure} JML modifier token
+     * in addition to the constructor method token.
+     */
+    @Test
+    public void testFullMode_Constructor_PureModifier() throws Exception {
+        String uri = "file:///SemTok_CtorPure.java";
+        String source =
+                "public class SemTok_CtorPure {\n"                   // line 0
+                + "    int x;\n"                                      // line 1
+                + "    //@ requires n >= 0;\n"                        // line 2
+                + "    /*@ pure */ public SemTok_CtorPure(int n) { x = n; }\n"  // line 3
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+
+        // At least one JML modifier token (pure) must be present.
+        assertFalse("pure modifier must produce a TT_MODIFIER token",
+                byType(tokens, MOD).isEmpty());
+        // requires keyword.
+        assertTrue("requires must produce a keyword token", countByType(tokens, KW) >= 1);
+        // Constructor method token must be present.
+        assertFalse("Constructor must produce a method token", byType(tokens, MTH).isEmpty());
+    }
+
+    /**
+     * In JML-only mode a plain constructor (no JML annotations) must produce
+     * no tokens at all — Java-only constructs are suppressed.
+     */
+    @Test
+    public void testJmlOnlyMode_Constructor_NoJml_NoTokens() throws Exception {
+        String uri = "file:///SemTok_CtorJmlOnly.java";
+        String source =
+                "public class SemTok_CtorJmlOnly {\n"                // line 0
+                + "    public SemTok_CtorJmlOnly() {}\n"             // line 1
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        // JML-only mode (fullMode=false): no JML context, so no tokens expected.
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("JML-only mode: plain constructor must produce no tokens", tokens.isEmpty());
+    }
 }

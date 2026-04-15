@@ -139,8 +139,6 @@ public class JmlColorizer implements ITextPresentationListener {
      */
     public void refreshAsync() {
         Object wrapper = LspPartListener.cachedWrapper;
-        System.err.println("[JmlColorizer] refreshAsync uri=" + fileUri
-                + " wrapper=" + (wrapper != null ? wrapper.getClass().getSimpleName() : "null"));
         if (wrapper == null) return;
         ITextViewer v = viewer;
         Function<String, IToken> mapper = buildTokenMapper(v);
@@ -148,22 +146,18 @@ public class JmlColorizer implements ITextPresentationListener {
                 OpenJMLConstants.CMD_GET_SEMANTIC_TOKENS, List.of(fileUri));
         executeViaWrapper(wrapper, params)
             .thenAccept(raw -> {
-                System.err.println("[JmlColorizer] raw result type="
-                        + (raw != null ? raw.getClass().getName() : "null")
-                        + " value=" + (raw instanceof List<?> l ? "List[" + l.size() + "]" : raw));
                 if (raw == null) return;
                 // Decoding reads JFace color registry (SWT-owned) and creates StyleRanges,
                 // so do it on the SWT thread together with ensureColors() and the invalidation.
                 Display.getDefault().asyncExec(() -> {
                     ensureColors();
                     List<StyleRange> ranges = decodeTokenData(raw, mapper);
-                    System.err.println("[JmlColorizer] decoded " + ranges.size() + " StyleRanges");
                     cachedRanges = ranges;
                     viewer.invalidateTextPresentation();
                 });
             })
             .exceptionally(t -> {
-                System.err.println("[JmlColorizer] executeCommand failed: " + t);
+                Console.errorlog("JmlColorizer.refreshAsync failed", t);
                 return null;
             });
     }
@@ -186,24 +180,17 @@ public class JmlColorizer implements ITextPresentationListener {
                 } catch (NoSuchMethodException ignored) {}
             }
             if (getServer == null) {
-                System.err.println("[JmlColorizer] executeViaWrapper: getServer method not found on "
-                        + wrapper.getClass().getName());
                 return java.util.concurrent.CompletableFuture.completedFuture(null);
             }
             Object sf = getServer.invoke(wrapper);
-            System.err.println("[JmlColorizer] getServer() returned: "
-                    + (sf != null ? sf.getClass().getName() : "null"));
             LanguageServer server = null;
             if (sf instanceof java.util.concurrent.CompletableFuture<?> cf)
                 server = (LanguageServer) cf.get(5, java.util.concurrent.TimeUnit.SECONDS);
             else if (sf instanceof LanguageServer ls)
                 server = ls;
             if (server == null) {
-                System.err.println("[JmlColorizer] executeViaWrapper: could not obtain LanguageServer");
                 return java.util.concurrent.CompletableFuture.completedFuture(null);
             }
-            System.err.println("[JmlColorizer] sending " + params.getCommand() + " to "
-                    + server.getClass().getName());
             @SuppressWarnings("unchecked")
             var fut = (java.util.concurrent.CompletableFuture<Object>)
                       server.getWorkspaceService().executeCommand(params);
@@ -226,6 +213,12 @@ public class JmlColorizer implements ITextPresentationListener {
      * <p>Colors and styles (bold/italic/underline/strikethrough) are read from the
      * preference store via {@link #textAttributeFor(String)}.
      */
+    // Built-in modifier bit masks — must match SemanticTokensProvider.TM_* constants.
+    private static final int TM_DECLARATION =  1;  // bit 0 → bold
+    private static final int TM_STATIC      =  8;  // bit 3 → italic
+    private static final int TM_DEPRECATED  = 16;  // bit 4 → strikethrough
+    private static final int TM_ABSTRACT    = 32;  // bit 5 → italic
+
     private List<StyleRange> decodeTokenData(Object raw, Function<String, IToken> mapper) {
         if (!(raw instanceof List<?> list)) return List.of();
         List<StyleRange> result = new ArrayList<>();
@@ -235,6 +228,7 @@ public class JmlColorizer implements ITextPresentationListener {
             int dCol    = toInt(list.get(i + 1));
             int len     = toInt(list.get(i + 2));
             int typeIdx = toInt(list.get(i + 3));
+            int modMask = toInt(list.get(i + 4));
             line += dLine;
             col   = (dLine == 0) ? col + dCol : dCol;
             if (typeIdx < 0 || typeIdx >= TOKEN_TYPE_NAMES.length) continue;
@@ -255,9 +249,15 @@ public class JmlColorizer implements ITextPresentationListener {
                 int offset = document.getLineOffset(line) + col;
                 StyleRange sr = new StyleRange(offset, len, ta.getForeground(), null);
                 int style = ta.getStyle();
-                sr.fontStyle  = style & (SWT.BOLD | SWT.ITALIC);
-                sr.underline  = (style & TextAttribute.UNDERLINE) != 0;
-                sr.strikeout  = (style & TextAttribute.STRIKETHROUGH) != 0;
+                sr.fontStyle = style & (SWT.BOLD | SWT.ITALIC);
+                sr.underline = (style & TextAttribute.UNDERLINE) != 0;
+                sr.strikeout = (style & TextAttribute.STRIKETHROUGH) != 0;
+
+                // Built-in modifier styles (applied on top of preference-store styles).
+                if ((modMask & TM_DECLARATION) != 0)             sr.fontStyle |= SWT.BOLD;
+                if ((modMask & (TM_STATIC | TM_ABSTRACT)) != 0) sr.fontStyle |= SWT.ITALIC;
+                if ((modMask & TM_DEPRECATED) != 0)              sr.strikeout  = true;
+
                 result.add(sr);
             } catch (BadLocationException ignored) {}
         }
@@ -300,7 +300,6 @@ public class JmlColorizer implements ITextPresentationListener {
         // so TokenTypeMapper returns tokens with null foreground for every type name.  Chain it
         // with the JFace fallback: use TM4E's color only when its foreground is non-null.
         ClassLoader loader = org.openjml.ui.Activator.lsp4eLoader;
-        System.err.println("[JmlColorizer] buildTokenMapper: lsp4eLoader=" + loader);
         if (loader != null) {
             try {
                 Class<?> cls = loader.loadClass(
@@ -308,7 +307,6 @@ public class JmlColorizer implements ITextPresentationListener {
                 java.lang.reflect.Method create = cls.getMethod("create", ITextViewer.class);
                 create.setAccessible(true);
                 Function<String, IToken> tm4e = (Function<String, IToken>) create.invoke(null, viewer);
-                System.err.println("[JmlColorizer] buildTokenMapper: chaining TokenTypeMapper + JFace fallback");
                 return typeName -> {
                     IToken t = tm4e.apply(typeName);
                     if (t != null && t != Token.UNDEFINED
@@ -319,22 +317,16 @@ public class JmlColorizer implements ITextPresentationListener {
                     return fallback.apply(typeName);
                 };
             } catch (Exception e) {
-                System.err.println("[JmlColorizer] buildTokenMapper: TokenTypeMapper failed: " + e);
                 Console.errorlog("JmlColorizer: TokenTypeMapper unavailable", e);
             }
         }
-        System.err.println("[JmlColorizer] buildTokenMapper: using JFace fallback only");
         return fallback;
     }
 
     @Override
     public void applyTextPresentation(TextPresentation presentation) {
         List<StyleRange> ranges = cachedRanges;
-        if (ranges.isEmpty()) {
-            System.err.println("[JmlColorizer] applyTextPresentation: no cached ranges");
-            return;
-        }
-        System.err.println("[JmlColorizer] applyTextPresentation: applying " + ranges.size() + " ranges");
+        if (ranges.isEmpty()) return;
         IRegion extent = presentation.getExtent();
         if (extent == null) return;
         int extStart = extent.getOffset();

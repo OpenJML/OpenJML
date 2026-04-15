@@ -1351,16 +1351,31 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // "regex" strategy: always use regex (instant, works before first --check).
         // "ast" strategy (default): prefer AST-based when an attributed AST is
         // available (no false positives), fall back to regex before first --check.
-        // .jml files never have a standalone AST — always use regex for them.
-        if (!globalSettings.isRegexColoring() && !uri.endsWith(".jml")) {
-            ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        if (!globalSettings.isRegexColoring()) {
+            ASTCache cache = CheckRunner.getASTCache();
+            // For .jml files: try the direct .jml AST entry first; if absent, try the
+            // companion .java AST (whose walker emits tokens with positions relative to
+            // the .jml source file when it visits JML spec nodes in that file).
+            ASTCache.Entry entry = cache.get(uri);
+            if (entry == null && uri.endsWith(".jml")) {
+                String javaUri = resolveCompanionJavaUri(uri, content);
+                if (javaUri != null) entry = cache.get(javaUri);
+            }
             if (entry != null) {
                 try {
                     // Guard: if the cached AST was built from a different version of the
                     // file, its character offsets may exceed the current content length,
                     // causing StringIndexOutOfBoundsException.  Fall through to regex.
-                    CharSequence astSrc = entry.ast().sourcefile.getCharContent(false);
-                    if (astSrc.length() == content.length()) {
+                    // For .jml files we may be using the companion .java AST; in that case
+                    // compare against the .jml source recorded on the AST's specsCompilationUnit
+                    // if present, or skip the length check (the walker guards on pos bounds).
+                    boolean stale = false;
+                    try {
+                        CharSequence astSrc = entry.ast().sourcefile.getCharContent(false);
+                        // If this is a .java AST used for a .jml file, the lengths differ by design.
+                        if (!uri.endsWith(".jml")) stale = (astSrc.length() != content.length());
+                    } catch (Exception ignored) {}
+                    if (!stale) {
                         boolean fullMode = globalSettings.isOverwriteJavaColoring();
                         return SemanticTokensProvider.computeTokensFromAst(entry, content, fullMode).getData();
                     }
