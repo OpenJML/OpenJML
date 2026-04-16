@@ -61,8 +61,25 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     }
 
     /**
-     * Resolves the path to the openjml-lsp launcher script.
-     * Priority:
+     * Resolves a configured path (which may be either an OpenJML installation
+     * folder or the launcher script itself) to the actual launcher script path.
+     * If {@code path} is a directory, appends {@link OpenJMLConstants#LSP_LAUNCHER_SCRIPT};
+     * otherwise returns it unchanged.
+     */
+    public static String resolveToScript(String path) {
+        if (path == null || path.isBlank()) return path;
+        java.io.File f = new java.io.File(path);
+        if (f.isDirectory()) {
+            String sep = path.endsWith("/") || path.endsWith(java.io.File.separator)
+                    ? "" : java.io.File.separator;
+            return path + sep + OpenJMLConstants.LSP_LAUNCHER_SCRIPT;
+        }
+        return path;
+    }
+
+    /**
+     * Resolves the configured path (installation folder or script) to the
+     * launcher script.  Priority:
      *   1. User preference ({@link OpenJMLOptions#lspServerPathKey})
      *   2. System property — used by the test harness
      *   3. Directory of the Eclipse install ({@link Platform#getInstallLocation})
@@ -80,30 +97,33 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      * Resolves the server path ignoring the stored preference — checks only
      * the system property and the Eclipse install directory.  Used by the
      * preferences page to validate what path will be used when the field is
-     * left blank.
+     * left blank.  The value may be an installation folder or the script itself.
      */
     public static String findDefaultServerPath() {
-        // 1. System property — used by the test harness to inject the dev path
-        //    without modifying workspace preferences.
+        // 1. System property — may be a folder or full script path.
         String sysProp = System.getProperty(OpenJMLConstants.LSP_SERVER_PATH_PROPERTY);
         if (sysProp != null && !sysProp.isBlank()) {
             return sysProp;
         }
-        // 2. Script alongside the Eclipse install (release layout)
+        // 2. Eclipse install directory (release layout — script sits beside Eclipse)
         try {
             URL installUrl = Platform.getInstallLocation().getURL();
             String installDir = installUrl.getPath();
             if (!installDir.endsWith("/")) installDir += "/";
-            return installDir + "openjml-lsp";
+            return installDir + OpenJMLConstants.LSP_LAUNCHER_SCRIPT;
         } catch (Exception e) {
             // Fall back to expecting it on PATH
-            return "openjml-lsp";
+            return OpenJMLConstants.LSP_LAUNCHER_SCRIPT;
         }
     }
 
-    /** Returns {@code true} if the server script at {@code path} is present and executable. */
+    /**
+     * Returns {@code true} if the launcher script is present and executable at
+     * {@code path}.  {@code path} may be either an installation folder (in which
+     * case the script name is appended automatically) or the full script path.
+     */
     public static boolean isServerAvailable(String path) {
-        java.io.File f = new java.io.File(path);
+        java.io.File f = new java.io.File(resolveToScript(path));
         return f.isFile() && f.canExecute();
     }
 
@@ -133,26 +153,27 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         // Loop until we have a valid server path or the user cancels.
         while (true) {
             String path = findServerPath();
+            String script = resolveToScript(path);
             if (isServerAvailable(path)) {
-                setCommands(Arrays.asList(path));
+                setCommands(Arrays.asList(script));
                 break;
             }
-            Console.errorlog("OpenJML server script not found or not executable: " + path);
+            Console.errorlog("OpenJML server launcher not found or not executable: " + script);
 
             Display display = Display.getDefault();
             if (display == null || display.isDisposed()) {
-                throw new IOException("openjml-lsp not found or not executable: " + path);
+                throw new IOException("OpenJML launcher not found or not executable: " + script);
             }
             boolean[] retry = { false };
             display.syncExec(() -> {
                 Shell shell = display.getActiveShell();
                 String msg =
-                        "The OpenJML LSP server script was not found or is not executable:\n\n"
-                        + "  " + path + "\n\n"
+                        "The OpenJML LSP server launcher was not found or is not executable:\n\n"
+                        + "  " + script + "\n\n"
                         + "Without a running server, all OpenJML features (type-checking, ESC,\n"
                         + "RAC, syntax coloring, etc.) will be non-functional.\n\n"
-                        + "Open Preferences to set the server script path, or Cancel to continue\n"
-                        + "without OpenJML (the plugin will be non-functional for this session).";
+                        + "Open Preferences to set the OpenJML installation path, or Cancel to\n"
+                        + "continue without OpenJML (the plugin will be non-functional for this session).";
                 MessageDialog dialog = new MessageDialog(shell,
                         "OpenJML: Server Not Found", null, msg,
                         MessageDialog.WARNING,
@@ -167,7 +188,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
 
             if (!retry[0]) {
                 throw new IOException(
-                        "openjml-lsp not configured; server startup cancelled by user.");
+                        "OpenJML installation not configured; server startup cancelled by user.");
             }
             // Path may have changed in preferences; loop to re-check.
         }
@@ -280,17 +301,17 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      * offers to restart it.  Called on the UI thread via {@code asyncExec}.
      */
     private void showCrashRecoveryDialog() {
-        String path = findServerPath();
-        Console.errorlog("OpenJML LSP server stopped unexpectedly (path: " + path + ")");
+        String script = resolveToScript(findServerPath());
+        Console.errorlog("OpenJML LSP server stopped unexpectedly (launcher: " + script + ")");
         Display display = Display.getDefault();
         Shell shell = display != null ? display.getActiveShell() : null;
         String msg =
                 "The OpenJML LSP server has stopped unexpectedly.\n\n"
-                + "Server path: " + path + "\n\n"
+                + "Server launcher: " + script + "\n\n"
                 + "Without a running server, all OpenJML features (type-checking, ESC, RAC,\n"
                 + "syntax coloring, etc.) are non-functional.\n\n"
-                + "Restart the server, open Preferences to fix the server path, or continue\n"
-                + "without OpenJML for the rest of this Eclipse session.";
+                + "Restart the server, open Preferences to fix the OpenJML installation path,\n"
+                + "or continue without OpenJML for the rest of this Eclipse session.";
         MessageDialog dialog = new MessageDialog(shell,
                 "OpenJML: Server Stopped Unexpectedly", null, msg,
                 MessageDialog.WARNING,

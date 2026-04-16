@@ -268,13 +268,19 @@ public final class OpenJMLConstants {
     // System-property keys
     // -----------------------------------------------------------------------
 
+    /** File name of the OpenJML LSP launcher script inside an installation folder. */
+    public static final String LSP_LAUNCHER_SCRIPT = "openjml-lsp";
+
     /**
-     * JVM system property that overrides the path to the {@code openjml-lsp}
-     * executable.  When set, {@code OpenJMLStreamConnectionProvider} uses this
-     * path instead of searching the Eclipse installation directory.
+     * JVM system property that overrides the path to the OpenJML installation.
+     * The value may be either the OpenJML installation folder or the full path
+     * to the {@code openjml-lsp} launcher script.  When set,
+     * {@code OpenJMLStreamConnectionProvider} uses this value instead of
+     * searching the Eclipse installation directory.
      *
      * <p>Typically set by the Makefile when running GUI tests:
-     * {@code -Dopenjml.lsp.server.path=/path/to/openjml-lsp}.
+     * {@code -Dopenjml.lsp.server.path=/path/to/openjml-lsp}
+     * or {@code -Dopenjml.lsp.server.path=/path/to/openjml-install-dir}.
      */
     public static final String LSP_SERVER_PATH_PROPERTY = "openjml.lsp.server.path";
 

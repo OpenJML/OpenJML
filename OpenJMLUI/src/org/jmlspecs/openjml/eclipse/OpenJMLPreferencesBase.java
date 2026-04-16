@@ -78,10 +78,11 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
             String typedPath = serverPathEditor.getStringValue().trim();
             if (!typedPath.isBlank()) {
                 if (!OpenJMLStreamConnectionProvider.isServerAvailable(typedPath)) {
-                    String msg = "Server script not found or not executable:\n\n  " + typedPath;
+                    String script = OpenJMLStreamConnectionProvider.resolveToScript(typedPath);
+                    String msg = "OpenJML launcher not found or not executable:\n\n  " + script;
                     setErrorMessage(msg);
                     setValid(false);
-                    MessageDialog.openError(getShell(), "OpenJML: Invalid Server Path", msg);
+                    MessageDialog.openError(getShell(), "OpenJML: Launcher Not Found", msg);
                     return false;  // keep dialog open
                 }
             } else {
@@ -89,10 +90,11 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 // Resolve and warn now so the user isn't surprised at startup.
                 String defaultPath = OpenJMLStreamConnectionProvider.findDefaultServerPath();
                 if (!OpenJMLStreamConnectionProvider.isServerAvailable(defaultPath)) {
-                    MessageDialog.openWarning(getShell(), "OpenJML: Default Server Path Not Found",
-                            "No server path is set. The resolved default path is not found"
-                            + " or not executable:\n\n  " + defaultPath
-                            + "\n\nOpenJML will not be functional until a valid path is"
+                    String defaultScript = OpenJMLStreamConnectionProvider.resolveToScript(defaultPath);
+                    MessageDialog.openWarning(getShell(), "OpenJML: Default Launcher Not Found",
+                            "No OpenJML path is set. The resolved default launcher is not found"
+                            + " or not executable:\n\n  " + defaultScript
+                            + "\n\nOpenJML will not be functional until a valid installation path is"
                             + " configured or the server is installed at that location.");
                     // Warning only — allow saving the blank (user may fix it later).
                 }
@@ -170,7 +172,7 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addLabel(parent, "LSP Server", SWT.SEPARATOR | SWT.HORIZONTAL);
 
         serverPathEditor = new StringFieldEditor(OpenJMLOptions.lspServerPathKey,
-                "Server script path (blank = find on PATH or beside Eclipse):",
+                "OpenJML installation folder or launcher script path (blank = find beside Eclipse):",
                 parent);
         addEditor(serverPathEditor);
 
