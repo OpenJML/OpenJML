@@ -11,16 +11,19 @@
         <topic label="Compiling for Runtime-assertion checking (RAC)" href="html/JMLHelp.html#RAC"/>
         <topic label="Add/Remove OpenJML Nature" href="html/JMLHelp.html#Nature"/>
         <topic label="Clear Markers" href="html/JMLHelp.html#ClearMarkers"/>
+        <topic label="Index Project" href="html/JMLHelp.html#IndexProject"/>
         <topic label="Clear and Reindex" href="html/JMLHelp.html#ClearAndReindex"/>
     </topic>
     <topic label="Standard LSP interactions implemented for OpenJML" href="html/JMLHelp.html#LSPInteractions">
+        <topic label="Problem markers" href="html/JMLHelp.html#Markers"/>
         <topic label="Syntax coloring" href="html/JMLHelp.html#SyntaxColoring"/>
         <topic label="Find Declaration" href="html/JMLHelp.html#FindDeclaration"/>
         <topic label="Find References" href="html/JMLHelp.html#FindReferences"/>
         <topic label="Rename" href="html/JMLHelp.html#Rename"/>
-        <topic label="Find identifiers" href="html/JMLHelp.html#FindIdentifiers"/>
+        <topic label="Find all declarations" href="html/JMLHelp.html#FindIdentifiers"/>
         <topic label="Folding" href="html/JMLHelp.html#Folding"/>
         <topic label="Code Lens information" href="html/JMLHelp.html#CodeLens"/>
+        <topic label="Hover and inlay information" href="html/JMLHelp.html#Hover"/>
     </topic>
     <topic label="Eclipse functionality adapted to OpenJML" href="html/JMLHelp.html#EclipseFeatures">
         <topic label="Content type and Icon" href="html/JMLHelp.html#ContentType"/>

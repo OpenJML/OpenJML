@@ -85,9 +85,50 @@ public class CheckRunner {
         if (cb != null) cb.accept(msg);
     }
 
+    /**
+     * Callback for tool-level warnings (e.g. unrecognised {@code --warn} key) that
+     * should be shown in red in the console and trigger an "Open Preferences" dialog.
+     * When {@code null}, {@link #log} is used as a fallback (e.g. in tests).
+     */
+    private static volatile java.util.function.Consumer<String> toolWarningCallback = null;
+
+    /** Set the callback that handles tool-level warnings. */
+    public static void setToolWarningCallback(java.util.function.Consumer<String> cb) {
+        toolWarningCallback = cb;
+    }
+
+    /** Log a tool-level warning (bad preference value, etc.) in red with a timestamp. */
+    static void logToolWarning(String msg) {
+        java.util.function.Consumer<String> cb = toolWarningCallback;
+        if (cb != null) cb.accept(msg);
+        else log(msg); // fallback for tests that only set logCallback
+    }
+
     private static String ts() {
         return "[" + java.time.LocalTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")) + "] ";
+    }
+
+    /**
+     * Log the exit code, dump per-diagnostic debug lines (when {@code rc != 0}),
+     * and route tool-level warnings from {@code listener} to the client console.
+     *
+     * <p>Tool-level warnings (e.g. unrecognised {@code --warn} key) come from
+     * {@link LspDiagnosticListener#toGlobalMessages()} and are forwarded via
+     * {@link #logToolWarning}, which uses {@code MessageType.Error} so the Eclipse
+     * client renders them in red.  The timestamp is added by the client-side console
+     * writer ({@code Console.errorlog}), so no prefix is added here.
+     */
+    private static void postExecute(int rc, String modeFlag, LspDiagnosticListener listener) {
+        System.err.println("[CheckRunner] exit code " + rc + " (" + modeFlag + ")");
+        if (rc != 0) {
+            listener.getDiagnostics().forEach(d -> {
+                String src = d.getSource() != null ? d.getSource().toUri().toString() : "?";
+                System.err.println("[CheckRunner]   diag: "
+                        + src + ":" + d.getLineNumber() + " " + d.getMessage(null));
+            });
+        }
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
     }
 
     /** Return just the file name portion of a URI or path (no directory). */
@@ -1704,14 +1745,7 @@ public class CheckRunner {
             } finally {
                 api.removeASTListener(astListener);
             }
-            System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc + " (" + modeFlag + ")");
-            if (rc != 0) {
-                listener.getDiagnostics().forEach(d -> {
-                    String src = d.getSource() != null ? d.getSource().toUri().toString() : "?";
-                    System.err.println("[CheckRunner.runOnContentWithContext]   diag: "
-                            + src + ":" + d.getLineNumber() + " " + d.getMessage(null));
-                });
-            }
+            postExecute(rc, modeFlag, listener);
 
             if (capturedAst[0] != null) {
                 if ("--check".equals(modeFlag)) {
@@ -1839,8 +1873,7 @@ public class CheckRunner {
             } finally {
                 api.removeASTListener(astListener);
             }
-            System.err.println("[CheckRunner.runOnContentWithContext] exit code " + rc
-                    + " (" + modeFlag + ")");
+            postExecute(rc, modeFlag, listener);
 
             if (capturedAst[0] != null) {
                 if ("--check".equals(modeFlag)) {
@@ -1972,8 +2005,7 @@ public class CheckRunner {
             } finally {
                 api.removeASTListener(astListener);
             }
-            System.err.println("[CheckRunner.runOnContent] exit code " + rc
-                    + " (" + modeFlag + ")");
+            postExecute(rc, modeFlag, listener);
 
             if (capturedAst[0] != null) {
                 if ("--check".equals(modeFlag)) {

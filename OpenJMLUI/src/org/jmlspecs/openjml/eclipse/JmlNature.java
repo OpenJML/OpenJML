@@ -4,7 +4,10 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
@@ -95,6 +98,20 @@ public class JmlNature implements IProjectNature {
     }
 
     /**
+     * Projects whose JML nature was explicitly added by the user (via
+     * {@link #enable}) during the current UI operation.  Held until the
+     * resource-change event fires so that
+     * {@link OpenJMLResourceChangeListener} can suppress the
+     * "Configuration Changed" dialog for that specific change — the user
+     * has already expressed their intent by requesting the operation.
+     *
+     * <p>Entries are removed atomically by the listener via {@link Set#remove},
+     * so no explicit cleanup is required here.
+     */
+    static final Set<String> pendingNatureAdditions =
+            Collections.synchronizedSet(new HashSet<>());
+
+    /**
      * Adds the OpenJML nature to {@code project}.
      *
      * <p>Does nothing if the project is not a Java project or already has the nature.
@@ -115,6 +132,7 @@ public class JmlNature implements IProjectNature {
             System.arraycopy(natures, 0, newNatures, 0, natures.length);
             newNatures[natures.length] = NATURE_ID;
             desc.setNatureIds(newNatures);
+            pendingNatureAdditions.add(project.getName());
             project.setDescription(desc, null);
             Console.log("JML nature added to " + project.getName());
             refreshDecorator();

@@ -9,13 +9,11 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.lsp4e.LanguageServers;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
@@ -28,10 +26,11 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
  * Launches the openjml-lsp server process and connects to it via
  * stdin/stdout using the LSP4E framework.
  *
- * The server executable path is taken from the preference
- * {@link OpenJMLOptions#lspServerPathKey} if set; otherwise it defaults to
- * an {@code openjml-lsp} script in the same directory as the Eclipse
- * installation.
+ * The server executable path is determined by {@link #findServerPath()}.
+ * Priority: (1) the {@code -D}{@link OpenJMLConstants#LSP_SERVER_PATH_PROPERTY}
+ * system property (used by the test harness); (2) the user preference
+ * {@link OpenJMLOptions#lspServerPathKey}; (3) bare {@code openjml-lsp},
+ * which the OS resolves via {@code $PATH}.
  *
  * <p>If the server script is not found at startup, a dialog loops until the
  * user either configures a valid path via Preferences or cancels (in which case
@@ -78,52 +77,56 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     }
 
     /**
-     * Resolves the configured path (installation folder or script) to the
-     * launcher script.  Priority:
-     *   1. User preference ({@link OpenJMLOptions#lspServerPathKey})
-     *   2. System property — used by the test harness
-     *   3. Directory of the Eclipse install ({@link Platform#getInstallLocation})
+     * Resolves the effective server path.  Priority:
+     * <ol>
+     *   <li>{@code -D}{@link OpenJMLConstants#LSP_SERVER_PATH_PROPERTY} system property
+     *       (always takes precedence, regardless of whether the preference is set)</li>
+     *   <li>User preference ({@link OpenJMLOptions#lspServerPathKey}), trimmed;
+     *       blank after trimming is treated as not set</li>
+     *   <li>{@link #findDefaultServerPath()} — bare {@code openjml-lsp} found via
+     *       {@code $PATH}</li>
+     * </ol>
      */
     public static String findServerPath() {
-        // 1. User preference (set via OpenJML Preferences page)
+        // 1. System property — takes precedence over the preference field.
+        String sysProp = System.getProperty(OpenJMLConstants.LSP_SERVER_PATH_PROPERTY);
+        if (sysProp != null && !sysProp.isBlank()) {
+            return sysProp;
+        }
+        // 2. User preference (set via OpenJML Preferences page), trimmed.
         String pref = OpenJMLOptions.value(OpenJMLOptions.lspServerPathKey);
-        if (pref != null && !pref.isBlank()) {
-            return pref;
+        if (pref != null && !pref.trim().isBlank()) {
+            return pref.trim();
         }
         return findDefaultServerPath();
     }
 
     /**
-     * Resolves the server path ignoring the stored preference — checks only
-     * the system property and the Eclipse install directory.  Used by the
-     * preferences page to validate what path will be used when the field is
-     * left blank.  The value may be an installation folder or the script itself.
+     * Returns the default server path when neither the system property nor the
+     * user preference is set: the bare launcher script name
+     * {@link OpenJMLConstants#LSP_LAUNCHER_SCRIPT}, which the OS resolves via
+     * {@code $PATH}.  Used by the preferences page to describe the fallback.
      */
     public static String findDefaultServerPath() {
-        // 1. System property — may be a folder or full script path.
-        String sysProp = System.getProperty(OpenJMLConstants.LSP_SERVER_PATH_PROPERTY);
-        if (sysProp != null && !sysProp.isBlank()) {
-            return sysProp;
-        }
-        // 2. Eclipse install directory (release layout — script sits beside Eclipse)
-        try {
-            URL installUrl = Platform.getInstallLocation().getURL();
-            String installDir = installUrl.getPath();
-            if (!installDir.endsWith("/")) installDir += "/";
-            return installDir + OpenJMLConstants.LSP_LAUNCHER_SCRIPT;
-        } catch (Exception e) {
-            // Fall back to expecting it on PATH
-            return OpenJMLConstants.LSP_LAUNCHER_SCRIPT;
-        }
+        return OpenJMLConstants.LSP_LAUNCHER_SCRIPT;
     }
 
     /**
-     * Returns {@code true} if the launcher script is present and executable at
-     * {@code path}.  {@code path} may be either an installation folder (in which
-     * case the script name is appended automatically) or the full script path.
+     * Returns {@code true} if the launcher script is available at {@code path}.
+     * {@code path} may be an installation folder (script name appended automatically),
+     * a full script path, or a bare name with no path separator (in which case the
+     * OS will resolve it via {@code $PATH} at spawn time — we return {@code true}
+     * and let the process start fail if the name is not on {@code $PATH}).
      */
     public static boolean isServerAvailable(String path) {
-        java.io.File f = new java.io.File(resolveToScript(path));
+        String script = resolveToScript(path);
+        // Bare name (no separator) — trust the OS to find it on PATH.
+        if (script != null
+                && !script.contains("/")
+                && !script.contains(java.io.File.separator)) {
+            return true;
+        }
+        java.io.File f = new java.io.File(script);
         return f.isFile() && f.canExecute();
     }
 
@@ -355,12 +358,41 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         if (text == null) return;
         int type = extractMessageType(params);
         if (type == 1) {
+            // Error: command-line error (exit code 2). Log in red and offer
+            // "Open Preferences → Settings" dialog.
             Console.errorlog(text);
+            showPreferencesDialog(text, "org.jmlspecs.openjml.eclipse.SettingsPage");
+        } else if (type == 2) {
+            // Warning: tool-level warning (e.g. bad --warn key). Log in red and
+            // offer "Open Preferences → Tool Options" dialog.
+            Console.errorlog(text);
+            showPreferencesDialog(text, "org.jmlspecs.openjml.eclipse.ToolOptionsPage");
         } else if (type == 4) {
             Console.logRaw(text);
         } else {
             Console.log(text);
         }
+    }
+
+    /**
+     * Show a dialog on the UI thread offering to open the specified preference page.
+     * Uses {@code asyncExec} so it does not block the message-handling thread.
+     */
+    private static void showPreferencesDialog(String messageText, String pageId) {
+        Display display = Display.getDefault();
+        if (display == null || display.isDisposed()) return;
+        display.asyncExec(() -> {
+            Shell shell = display.getActiveShell();
+            MessageDialog dialog = new MessageDialog(
+                    shell, "OpenJML", null,
+                    messageText + "\n\nOpen the OpenJML preference settings to review option values?",
+                    MessageDialog.WARNING,
+                    new String[] { "Open Preferences", "Dismiss" }, 0);
+            if (dialog.open() == 0) {
+                var prefDialog = PreferencesUtil.createPreferenceDialogOn(shell, pageId, null, null);
+                if (prefDialog != null) prefDialog.open();
+            }
+        });
     }
 
     /** Returns the numeric {@code type} field from {@code window/logMessage} params, or 3 (Info) if unknown. */

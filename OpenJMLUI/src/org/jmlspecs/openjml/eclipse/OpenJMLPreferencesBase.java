@@ -54,6 +54,7 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
 
     /** Reference to the server-path field editor, saved for validation in {@link #performOk}. */
     private StringFieldEditor serverPathEditor;
+    private StringFieldEditor timeoutEditor;
 
     /** Syntax-color block; non-null only when the Syntax Colors tab has been created. */
     private SyntaxColorBlock syntaxColorBlock;
@@ -86,20 +87,28 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                     return false;  // keep dialog open
                 }
             } else {
-                // Blank = use the system-property / Eclipse-install default.
-                // Resolve and warn now so the user isn't surprised at startup.
-                String defaultPath = OpenJMLStreamConnectionProvider.findDefaultServerPath();
-                if (!OpenJMLStreamConnectionProvider.isServerAvailable(defaultPath)) {
-                    String defaultScript = OpenJMLStreamConnectionProvider.resolveToScript(defaultPath);
-                    MessageDialog.openWarning(getShell(), "OpenJML: Default Launcher Not Found",
-                            "No OpenJML path is set. The resolved default launcher is not found"
-                            + " or not executable:\n\n  " + defaultScript
-                            + "\n\nOpenJML will not be functional until a valid installation path is"
-                            + " configured or the server is installed at that location.");
-                    // Warning only — allow saving the blank (user may fix it later).
+                // Blank = look up "openjml-lsp" on $PATH at startup.
+                // No validation performed here; any failure will surface when the server starts.
+            }
+        }
+        // Validate the timeout field: must be blank or a non-negative integer.
+        if (timeoutEditor != null) {
+            String timeoutVal = timeoutEditor.getStringValue().trim();
+            if (!timeoutVal.isBlank()) {
+                boolean valid = false;
+                try {
+                    valid = Long.parseLong(timeoutVal) >= 0;
+                } catch (NumberFormatException ignored) {}
+                if (!valid) {
+                    String msg = "Proof timeout must be a non-negative integer or blank (for no timeout).";
+                    setErrorMessage(msg);
+                    setValid(false);
+                    MessageDialog.openError(getShell(), "OpenJML: Invalid Timeout", msg);
+                    return false;
                 }
             }
         }
+
         setErrorMessage(null);
         setValid(true);
 
@@ -172,7 +181,7 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addLabel(parent, "LSP Server", SWT.SEPARATOR | SWT.HORIZONTAL);
 
         serverPathEditor = new StringFieldEditor(OpenJMLOptions.lspServerPathKey,
-                "OpenJML installation folder or launcher script path (blank = find beside Eclipse):",
+                "OpenJML installation folder or launcher script path (blank = find on PATH):",
                 parent);
         addEditor(serverPathEditor);
 
@@ -345,7 +354,11 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 "Require white space after @ in JML comment (--require-white-space)");
 
         addEditor(new StringFieldEditor(OpenJMLOptions.warnKey,
-                "Warning keys to enable/disable, comma-separated (--warn):",
+                "Warning keys to enable, comma-separated (--warn):",
+                parent));
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.noWarnKey,
+                "Warning keys to disable, comma-separated (--no-warn):",
                 parent));
 
         addSpace(parent);
@@ -362,9 +375,10 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                     { "7", "7" }, { "8", "8" }, { "9", "9" } },
                 parent));
 
-        addEditor(new StringFieldEditor(OpenJMLOptions.timeoutKey,
+        timeoutEditor = new StringFieldEditor(OpenJMLOptions.timeoutKey,
                 "Proof timeout in seconds (--timeout; blank = infinite):",
-                parent));
+                parent);
+        addEditor(timeoutEditor);
 
         addEditor(new ComboFieldEditor(OpenJMLOptions.feasibilityKey,
                 "Feasibility checking (--check-feasibility):",

@@ -10,7 +10,10 @@ import org.openjml.lsp.OpenJMLSettings;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+
+import org.junit.After;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -29,6 +32,18 @@ public class PropertiesFileOptionsTest extends LspTestBase {
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
+
+    private final List<String> capturedLogs = new ArrayList<>();
+
+    @After
+    public void clearLogCallback() {
+        CheckRunner.setLogCallback(null);
+        capturedLogs.clear();
+    }
+
+    private void installLogCapture() {
+        CheckRunner.setLogCallback(capturedLogs::add);
+    }
 
     // -----------------------------------------------------------------------
     // Helpers
@@ -228,5 +243,57 @@ public class PropertiesFileOptionsTest extends LspTestBase {
         assertTrue("Expected no ESC diagnostics — user file (check-feasibility=none) "
                 + "should override the generated file's check-feasibility=basic",
                 diags.isEmpty());
+    }
+
+    // -----------------------------------------------------------------------
+    // Test 5: bad --warn key is tolerated — tool continues normally
+    // -----------------------------------------------------------------------
+
+    /**
+     * A misspelled {@code --warn} key is not a fatal error: OpenJML emits an
+     * internal warning and ignores the bad key, then proceeds with the operation.
+     * The warning is not associated with any source file or line number, so it
+     * is never surfaced as an LSP diagnostic.
+     *
+     * <p>This test documents and guards that behaviour:
+     * <ul>
+     *   <li>{@link CheckRunner.CheckResult#isCommandLineError()} is {@code false}
+     *       — the tool does not exit with code 2.</li>
+     *   <li>No diagnostic is produced for the bad key itself (the diagnostic
+     *       list contains only genuine source-level issues, if any).</li>
+     * </ul>
+     */
+    @Test
+    public void testBadWarnKeyIsToleratedByTool() throws Exception {
+        String source =
+                "public class BadWarn {\n" +
+                "    public void m() {}\n" +
+                "}\n";
+
+        String propsPath = writeTempProps("bad-warn.properties",
+                "org.openjml.option.warn=this_is_not_a_valid_warn_key\n");
+        OpenJMLSettings settings = settingsWithGeneratedFile(propsPath);
+
+        installLogCapture();
+
+        CheckRunner.CheckResult checkResult =
+                CheckRunner.check("file:///BadWarn.java", source, settings);
+        assertFalse("--check with bad --warn key should NOT yield a command-line error",
+                checkResult.isCommandLineError());
+        assertTrue("--check with bad --warn key should produce no source-level diagnostics",
+                checkResult.diagnostics().isEmpty());
+        assertTrue("--check with bad --warn key should log a global warning to the client",
+                capturedLogs.stream().anyMatch(s -> s.contains("this_is_not_a_valid_warn_key")));
+
+        capturedLogs.clear();
+
+        CheckRunner.CheckResult escResult =
+                CheckRunner.runEsc("file:///BadWarn.java", source, settings);
+        assertFalse("--esc with bad --warn key should NOT yield a command-line error",
+                escResult.isCommandLineError());
+        assertTrue("--esc with bad --warn key should produce no source-level diagnostics",
+                escResult.diagnostics().isEmpty());
+        assertTrue("--esc with bad --warn key should log a global warning to the client",
+                capturedLogs.stream().anyMatch(s -> s.contains("this_is_not_a_valid_warn_key")));
     }
 }

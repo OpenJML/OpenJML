@@ -83,6 +83,17 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        // Investigate: log diagnostics with no source or no position so we can trace
+        // tool-level warnings (e.g. bad --warn key) that might otherwise be silently dropped.
+        if (diagnostic.getSource() == null || diagnostic.getLineNumber() == Diagnostic.NOPOS) {
+            System.err.println("[LspDiagnosticListener.report] nopos/nosource:"
+                    + " kind=" + diagnostic.getKind()
+                    + " source=" + (diagnostic.getSource() == null ? "<null>"
+                                                                    : diagnostic.getSource().getName())
+                    + " line=" + diagnostic.getLineNumber()
+                    + " code=" + diagnostic.getCode()
+                    + " msg=" + diagnostic.getMessage(java.util.Locale.ENGLISH));
+        }
         List<Diagnostic<? extends JavaFileObject>> cap = captureMode.get();
         if (cap != null) {
             cap.add(diagnostic);  // capture mode: goes to thread-local list only
@@ -125,6 +136,29 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
 
     public List<Diagnostic<? extends JavaFileObject>> getDiagnostics() {
         return Collections.unmodifiableList(collected);
+    }
+
+    /**
+     * Returns the plain-text messages of diagnostics that represent tool-level warnings —
+     * those with no source file ({@code getSource() == null}) or no source position
+     * ({@code getLineNumber() == NOPOS}).  Examples include an unrecognised {@code --warn}
+     * key, which OpenJML emits with {@code NOPOS} rather than a real line number.
+     * The standard conversion methods skip these; this method surfaces them so callers
+     * can route them to the client console via {@code window/logMessage}.
+     */
+    public List<String> toGlobalMessages() {
+        var result = new ArrayList<String>();
+        for (var d : collected) {
+            // Include null-source diagnostics AND diagnostics with NOPOS that have no
+            // meaningful source location — both represent tool-level messages (e.g. a bad
+            // --warn key warning) that cannot be attributed to a specific file/line.
+            boolean nullSource = (d.getSource() == null);
+            boolean noPos = (d.getLineNumber() == Diagnostic.NOPOS);
+            if (!nullSource && !noPos) continue;
+            String msg = d.getMessage(java.util.Locale.ENGLISH);
+            if (msg != null && !msg.isBlank()) result.add(msg);
+        }
+        return result;
     }
 
     /**
@@ -245,8 +279,19 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
                         + " src=" + src
                         + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
             }
+            // Null-source diagnostics are tool-level warnings (e.g. bad --warn key);
+            // they are routed to the client console via toGlobalMessages(), not here.
+            if (d.getSource() == null) continue;
             if (!DiagnosticConverter.matchesSourcePath(d, sourcePath)) {
                 if (DEBUG_DIAGNOSTICS) System.err.println("    ^ filtered (wrong source file)");
+                // Log diagnostics that are silently dropped — helps trace tool-level warnings
+                // that have a non-null source which doesn't match the target file.
+                String dSrc = d.getSource() == null ? "<null>" : d.getSource().getName();
+                System.err.println("[LspDiagnosticListener.toLspDiagnostics] filtered:"
+                        + " source=" + dSrc
+                        + " line=" + d.getLineNumber()
+                        + " vs path=" + sourcePath
+                        + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
                 continue;
             }
             result.add(DiagnosticConverter.convert(d, targetUri, lineStartOffsets, sourceTag));

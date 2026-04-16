@@ -178,7 +178,14 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                                     DescSnapshot current = DescSnapshot.of(project);
                                     DescSnapshot prev = descriptionSnapshots.put(
                                             project.getName(), current);
-                                    if (prev == null) {
+                                    if (JmlNature.pendingNatureAdditions.remove(project.getName())) {
+                                        // Nature was just added explicitly by the user as part of
+                                        // a requested operation — suppress the "Configuration Changed"
+                                        // dialog; the original operation already captures their intent.
+                                        // Settings were already sent to the server by JmlNature.enable().
+                                        System.err.println("[OpenJML] suppressing config-change dialog "
+                                                + "for explicit nature addition on " + project.getName());
+                                    } else if (prev == null) {
                                         System.err.println("[OpenJML] new project description: "
                                                 + project.getName()
                                                 + " natures=" + current.natures());

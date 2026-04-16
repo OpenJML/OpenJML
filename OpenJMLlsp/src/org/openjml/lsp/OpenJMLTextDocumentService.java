@@ -291,6 +291,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (client != null)
                 client.logMessage(new MessageParams(MessageType.Log, msg));
         });
+        CheckRunner.setToolWarningCallback(msg -> {
+            // MessageType.Warning (type 2) signals the Eclipse client to log in red
+            // and show an "Open Preferences → Tool Options" dialog.
+            if (client != null)
+                client.logMessage(new MessageParams(MessageType.Warning, msg));
+        });
     }
 
     /**
@@ -991,6 +997,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             executor.submit(() -> {
                 try {
                     CheckRunner.DirCheckResult result = CheckRunner.runCheckDirWithContext(pathsCopy, snapshot, s);
+                    if (result.exitCode() == 2) {
+                        reportCommandLineError(result.diagnosticsByUri().values().stream()
+                                .flatMap(List::stream).collect(java.util.stream.Collectors.toList()));
+                        return;
+                    }
                     for (var entry : result.diagnosticsByUri().entrySet()) {
                         storeCheckDiags(entry.getKey(), entry.getValue());
                         publishMerged(entry.getKey());
@@ -1097,6 +1108,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     }
                 }, hook);
                 if (client == null) return;
+                if (result.exitCode() == 2) {
+                    reportCommandLineError(result.diagnosticsByUri().values().stream()
+                            .flatMap(List::stream).collect(java.util.stream.Collectors.toList()));
+                    return;
+                }
                 // After the full run, publish the final state for every affected file
                 // (catches any remaining diagnostics not yet covered by the callback).
                 for (var entry : result.diagnosticsByUri().entrySet()) {
@@ -1972,8 +1988,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     else                   runningEscApis.put(uri, api);
                 };
                 CheckRunner.CheckResult result = task.apply(hook);
-                if (result.isCommandLineError())
-                    System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC-method for " + uri);
+                if (result.isCommandLineError()) {
+                    reportCommandLineError(result.diagnostics());
+                    return;
+                }
                 // Generation guard: only whole-file runs can be superseded.
                 if (myGen >= 0 && escGen.get(uri).get() != myGen) return;
 
@@ -2329,8 +2347,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 // the ProofResultCollector is installed — before execute() is called.
                 java.util.function.Consumer<IAPI> hook = api -> runningEscApis.put(uri, api);
                 CheckRunner.CheckResult result = task.apply(hook);
-                if (result.isCommandLineError())
-                    System.err.println("[OpenJML] BUG: exit code 2 (bad command-line args) from ESC for " + uri);
+                if (result.isCommandLineError()) {
+                    reportCommandLineError(result.diagnostics());
+                    return;
+                }
                 // Only publish if this task is still the latest for this URI.
                 if (escGen.get(uri).get() == myGen) {
                     storeEscDiags(uri, result.diagnostics());
@@ -2411,7 +2431,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private boolean runProjectCheck(List<String> roots, OpenJMLSettings s) {
         if (roots.isEmpty()) return false;
-        System.err.println("[runProjectCheck] roots=" + roots);
         Map<String, String> snapshot = dirtySnapshot();
         try {
             CheckRunner.DirCheckResult result =
@@ -2428,8 +2447,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             // by the project check.  All share one IAPI context so symbol identity
             // holds across files and cross-file navigation works correctly.
             CheckRunner.getASTCache().rebuildNavIndex();
-            System.err.println("[runProjectCheck] nav cache now contains:");
-            CheckRunner.getASTCache().forEachNav((u, e) -> System.err.println("[runProjectCheck]   " + u));
         } catch (Throwable t) {
             System.err.println("[runProjectCheck] error: " + t);
         }
@@ -2892,6 +2909,40 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * <p>An empty list removes {@code uri} from {@link #markedUris}; a non-empty
      * list adds it.
      */
+    // --- command-line error reporting ---
+
+    /**
+     * Reports an exit-code-2 (bad command-line argument) failure to the user
+     * via a {@code window/showMessageRequest} dialog.  The message includes any
+     * diagnostic text that OpenJML produced and directs the user to the
+     * Preferences page to review option values.  One button opens the client's
+     * Preferences page; the other dismisses the dialog.
+     *
+     * <p>Only one dialog is shown at a time; concurrent failures are suppressed
+     * until the current dialog is dismissed.
+     */
+    private void reportCommandLineError(List<Diagnostic> diagnostics) {
+        if (client == null) return;
+        String detail = diagnostics.stream()
+                .map(d -> {
+                    var m = d.getMessage();
+                    if (m == null) return null;
+                    if (m.isLeft())  return m.getLeft();
+                    if (m.isRight() && m.getRight() != null) return m.getRight().getValue();
+                    return null;
+                })
+                .filter(m -> m != null && !m.isBlank())
+                .collect(java.util.stream.Collectors.joining("\n"));
+        String msg = "OpenJML rejected a command-line option (exit code 2). "
+                + "Check the OpenJML preference settings for invalid values."
+                + (detail.isBlank() ? "" : "\n\n" + detail);
+        // MessageType.Error (type 1) signals the Eclipse client to log in red and
+        // show an "Open Preferences → Settings" dialog.  Using logMessage instead of
+        // showMessageRequest avoids LSP4E intercepting the dialog and bypassing our
+        // client-side "Open Preferences" handler.
+        client.logMessage(new MessageParams(MessageType.Error, msg));
+    }
+
     // --- client console logging helpers ---
 
     /** Send an Info-level message to the client (shown timestamped in the JML Console). */

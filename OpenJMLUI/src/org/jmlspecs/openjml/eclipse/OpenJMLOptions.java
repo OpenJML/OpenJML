@@ -101,8 +101,10 @@ public class OpenJMLOptions {
     public static final String allowPureInSpecsKey     = "openjml.allowPureInSpecs";
     /** Require white space after @ in JML comment (--require-white-space; default false). */
     public static final String requireWhiteSpaceKey    = "openjml.requireWhiteSpace";
-    /** Warning keys to enable/disable, comma-separated (--warn). */
+    /** Warning keys to enable, comma-separated (--warn). */
     public static final String warnKey                 = "openjml.warn";
+    /** Warning keys to disable, comma-separated (--no-warn). */
+    public static final String noWarnKey               = "openjml.noWarn";
 
     // -----------------------------------------------------------------------
     // Key constants — Tab 2: OpenJML Tool Options — ESC section
@@ -282,6 +284,7 @@ public class OpenJMLOptions {
         store.setDefault(allowPureInSpecsKey,         "true");
         store.setDefault(requireWhiteSpaceKey,        "false");
         store.setDefault(warnKey,                     "");
+        store.setDefault(noWarnKey,                   "");
         // Tab 2 — ESC
         store.setDefault(escMaxWarningsKey,           "2147483647");
         store.setDefault(timeoutKey,                  "");
@@ -349,6 +352,7 @@ public class OpenJMLOptions {
         new ToolOption(allowPureInSpecsKey,        "--allow-pure-in-specs",         "true",       true),
         new ToolOption(requireWhiteSpaceKey,       "--require-white-space",         "false",      true),
         new ToolOption(warnKey,                    "--warn",                        "",           false),
+        new ToolOption(noWarnKey,                  "--no-warn",                     "",           false),
         // ── ESC ──────────────────────────────────────────────────────
         new ToolOption(escMaxWarningsKey,          "--esc-max-warnings",            "2147483647", false),
         new ToolOption(timeoutKey,                 "--timeout",                     "",           false),
@@ -382,6 +386,16 @@ public class OpenJMLOptions {
      * individual command-line flags in a {@code toolArgs} list.
      */
     private static final boolean USE_PROPERTIES_FILE = true;
+
+    /**
+     * Strips all whitespace around commas in a comma-separated list value.
+     * For example, {@code "a, b , c"} becomes {@code "a,b,c"}.
+     * Returns the value unchanged if it contains no commas.
+     */
+    private static String stripCommaSpaces(String val) {
+        if (val == null || !val.contains(",")) return val;
+        return val.replaceAll("\\s*,\\s*", ",").trim();
+    }
 
     /**
      * When {@code true} (default), only options whose current value differs
@@ -448,6 +462,9 @@ public class OpenJMLOptions {
             if (val == null) val = "";
             // Verboseness=0 (quiet) suppresses ESC diagnostics; clamp to minimum 1.
             if (opt.prefKey().equals(verbosityKey) && "0".equals(val)) val = "1";
+            // Strip embedded whitespace from comma-separated list options.
+            if (opt.prefKey().equals(warnKey) || opt.prefKey().equals(noWarnKey))
+                val = stripCommaSpaces(val);
             if (ONLY_NON_DEFAULTS && opt.defaultValue().equals(val)) continue;
             if (opt.isBoolean()) {
                 if ("true".equals(val)) {
@@ -491,6 +508,9 @@ public class OpenJMLOptions {
         for (ToolOption opt : TOOL_OPTIONS) {
             String val = store.getString(opt.prefKey());
             if (val == null) val = "";
+            // Strip embedded whitespace from comma-separated list options.
+            if (opt.prefKey().equals(warnKey) || opt.prefKey().equals(noWarnKey))
+                val = stripCommaSpaces(val);
             if (ONLY_NON_DEFAULTS && opt.defaultValue().equals(val)) continue;
             if (opt.isBoolean()) {
                 if ("true".equals(val)) {
