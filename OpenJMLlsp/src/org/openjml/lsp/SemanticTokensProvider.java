@@ -288,13 +288,14 @@ public class SemanticTokensProvider {
             this.source   = source;
             this.tokens   = tokens;
             this.fullMode = fullMode;
+            // Use AST_JML_MODE for .jml files and .java files whose specs are stored
+            // in the same compilation unit (no companion .jml file).  Use AST_JAVA_MODE
+            // for .java files that have a companion .jml file: in that case the
+            // methodSpecs nodes carry positions from the .jml source, not from the .java
+            // source, so scanning them here would emit tokens at wrong positions.
             boolean isJavaFile = !cu.isSpecs();
-            boolean isOwnJml = cu.specsCompilationUnit == cu;
-            if (!isJavaFile || isOwnJml) {
-                scanMode = AST_JML_MODE;
-            } else {
-                scanMode = AST_JAVA_MODE;
-            }
+            boolean isOwnSpecs = (cu.specsCompilationUnit == cu);
+            scanMode = (!isJavaFile || isOwnSpecs) ? AST_JML_MODE : AST_JAVA_MODE;
             Position.LineMap lm = cu.lineMap;
             if (lm == null) {
                 System.err.println("[SemanticTokens] WARNING: lineMap is null — " +
@@ -877,6 +878,7 @@ public class SemanticTokensProvider {
                                 jmlMethod.name.toString());
                     if (namePos >= 0) emitSymbol(namePos, jmlMethod.sym, true);
                 }
+                if (scanMode == AST_JML_MODE) scan(jmlMethod.methodSpecs);
                 jmlDepth++;
                 scan(tree.recvparam);
                 scan(tree.params);
@@ -890,22 +892,23 @@ public class SemanticTokensProvider {
                 emitDeclarationMods(jmlMethod.mods, typePos);
                 if (!tree.sym.isConstructor()) scan(tree.restype);
                 scan(tree.typarams);
-                if (jmlMethod.name != null && !jmlMethod.name.isEmpty()
-                        && !"<init>".equals(jmlMethod.name.toString())) {
+                if (jmlMethod.name != null && !jmlMethod.name.isEmpty()) {
                     int namePos = jmlMethod.namePosition >= 0
                             ? jmlMethod.namePosition
                             : findWordAfter(typePos, jmlMethod.name.toString());
                     if (namePos >= 0) emitSymbol(namePos, jmlMethod.sym, true);
                 }
+                if (scanMode == AST_JML_MODE) scan(jmlMethod.methodSpecs);
                 scan(tree.recvparam);
                 scan(tree.params);
                 scan(tree.thrown);
                 scan(tree.defaultValue);
                 scan(tree.body);
             } else {
-                // JML-only mode, non-JML method: still emit any JML modifier tokens.
+                // JML-only mode, non-JML method: emit JML modifier tokens and (when
+                // specs belong to this file) scan specs for requires/ensures keywords.
                 emitJmlMods(tree.mods);
-                //super.visitMethodDef(tree);
+                if (scanMode == AST_JML_MODE) scan(((JmlMethodDecl) tree).methodSpecs);
             }
         }
 

@@ -1110,10 +1110,9 @@ public class SemanticTokensAstTest extends LspTestBase {
     public void testFullMode_Constructor_PureModifier() throws Exception {
         String uri = "file:///SemTok_CtorPure.java";
         String source =
-                "public class SemTok_CtorPure {\n"                   // line 0
-                + "    int x;\n"                                      // line 1
-                + "    //@ requires n >= 0;\n"                        // line 2
-                + "    /*@ pure */ public SemTok_CtorPure(int n) { x = n; }\n"  // line 3
+                "public class SemTok_CtorPure {\n"                    // line 0
+                + "    //@ requires n >= 0;\n"                         // line 1
+                + "    /*@ pure */ public SemTok_CtorPure(int n) {}\n" // line 2: ctor at col 19
                 + "}\n";
         checkContent(uri, source);
 
