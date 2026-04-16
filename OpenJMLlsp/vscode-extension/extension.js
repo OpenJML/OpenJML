@@ -446,13 +446,13 @@ function resolveTargetPaths(explorerUri, explorerSelection) {
 }
 
 /**
- * Build the fixed 4-element command prefix used by all openjml.* commands:
- *   [sourcePath, classPath, specsPath, propertiesFile]
- * Empty strings are used for absent values so that argument positions are fixed.
+ * Returns the single-element command prefix used by all openjml.* commands.
+ * args[0] is the project ID; an empty string means "use global/single-project settings".
+ * Path configuration (sourcePath, classPath, etc.) is sent once at initialization
+ * via initializationOptions and updated via workspace/didChangeConfiguration.
  */
 function commandPrefix() {
-    const s = getSettings();
-    return [s.sourcePath || '', s.classPath || '', s.specsPath || '', s.propertiesFile || ''];
+    return [''];
 }
 
 async function activate(context) {

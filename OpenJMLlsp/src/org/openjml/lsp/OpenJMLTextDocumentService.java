@@ -1518,34 +1518,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // -----------------------------------------------------------------------
 
     /**
-     * Returns a per-invocation copy of {@link #globalSettings} with path/settings fields
-     * overridden by any non-empty arguments, or {@code globalSettings} itself when all
-     * arguments are null/empty.  The {@link OpenJMLSettings#escPool} is always shared.
-     *
-     * @param sourcePath      override for {@code -sourcepath} (null/empty = keep)
-     * @param classPath       override for {@code -classpath}  (null/empty = keep)
-     * @param specsPath       override for {@code --specs-path} (null/empty = keep)
-     * @param propertiesFile  override for {@code generatedPropertiesFile} (null/empty = keep)
-     * @param outputDir       override for {@code racOutputDir} (null/empty = keep)
-     */
-    private OpenJMLSettings withContext(String sourcePath, String classPath,
-                                         String specsPath, String propertiesFile,
-                                         String outputDir) {
-        boolean hasSrc = sourcePath     != null && !sourcePath.isEmpty();
-        boolean hasCp  = classPath      != null && !classPath.isEmpty();
-        boolean hasSp  = specsPath      != null && !specsPath.isEmpty();
-        boolean hasPf  = propertiesFile != null && !propertiesFile.isEmpty();
-        boolean hasOd  = outputDir      != null && !outputDir.isEmpty();
-        if (!hasSrc && !hasCp && !hasSp && !hasPf && !hasOd) return globalSettings;
-        OpenJMLSettings s = new OpenJMLSettings(globalSettings);
-        if (hasSrc) s.sourcePath              = sourcePath;
-        if (hasCp)  s.classPath               = classPath;
-        if (hasSp)  s.specsPath               = specsPath;
-        if (hasPf)  s.generatedPropertiesFile  = propertiesFile;
-        if (hasOd)  s.racOutputDir             = outputDir;
-        return s;
-    }
-
     // -----------------------------------------------------------------------
     // Per-project settings registry
     // -----------------------------------------------------------------------

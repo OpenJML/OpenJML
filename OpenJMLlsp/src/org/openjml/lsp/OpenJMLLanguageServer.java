@@ -75,10 +75,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
         CommandRegistry registry = new CommandRegistry();
 
-        // Eclipse plugin (new format): args[0] = projectId, args[1+] = paths/URIs.
-        // VS Code (old format):        args[0..3] = sourcePath/classPath/specsPath/propertiesFile,
-        //                              args[4+]   = paths/URIs.
-        // isNewFormat() distinguishes the two by checking whether args[0] is in the project registry.
+        // Command argument format: args[0] = projectId (or "" for global/single-project settings),
+        //                          args[1+] = command-specific paths/URIs.
 
         registry.on(OpenJMLCommands.CHECK_JML, args -> {
             List<String> paths = cmdPaths(args);
@@ -100,16 +98,13 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC_FOR_METHOD, args -> {
-            // New Eclipse format:  [projectId, uri, name@startLine]   isNewFormat() == true
-            // Code-lens format:    [uri, name@startLine]              isCodeLensFormat() == true
-            // Old VS Code format:  [src, cp, sp, pf, uri, methodFqn] fallback
+            // Code-lens format: [uri, name@startLine]         isCodeLensFormat() == true
+            // Standard format:  [projectId, uri, name@startLine]  (projectId may be "")
             final String proj, uri, method;
-            if (isNewFormat(args)) {
-                proj = str(args, 0); uri = str(args, 1); method = str(args, 2);
-            } else if (isCodeLensFormat(args)) {
+            if (isCodeLensFormat(args)) {
                 proj = null; uri = str(args, 0); method = str(args, 1);
             } else {
-                proj = null; uri = str(args, 4); method = str(args, 5);
+                proj = str(args, 0); uri = str(args, 1); method = str(args, 2);
             }
             if (uri != null) textDocumentService.scheduleEscForMethod(uri, method, proj);
             return null;
@@ -127,11 +122,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             return null;
         });
         registry.on(OpenJMLCommands.RUN_RAC, args -> {
-            // New: [projectId, path1, ...]   Old: [src, cp, sp, pf, outputDir, path1, ...]
-            List<String> paths = isNewFormat(args) ? cmdPaths(args) : extractPaths(args, 5);
-            String proj = cmdProject(args);
-            String outputDir = isNewFormat(args) ? null : str(args, 4);
-            if (!paths.isEmpty()) textDocumentService.scheduleRacForPaths(paths, proj, outputDir);
+            List<String> paths = cmdPaths(args);
+            if (!paths.isEmpty()) textDocumentService.scheduleRacForPaths(paths, cmdProject(args), null);
             return null;
         });
 
@@ -356,28 +348,17 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     }
 
     // -----------------------------------------------------------------------
-    // New-format vs old-format command argument helpers
+    // Command argument helpers
     // -----------------------------------------------------------------------
 
     /**
-     * Returns {@code true} if {@code args} uses the new Eclipse format where
-     * {@code args[0]} is a project ID (a short name with no path separators).
-     *
-     * <p>Old VS Code format: {@code args[0]} is a sourcepath string containing
-     * {@code /} or {@code \} or {@code :} (path separator).
+     * Returns the project ID from a command's argument list.
+     * {@code args[0]} is always the project ID; an empty string means
+     * "use global/single-project settings".
      */
-    private boolean isNewFormat(java.util.List<?> args) {
-        if (args == null || args.isEmpty()) return false;
-        String first = str(args, 0);
-        if (first == null || first.isEmpty()) return false;
-        // A project ID never contains path characters; a sourcePath always does.
-        return !first.contains("/") && !first.contains("\\") && !first.contains(":")
-                && textDocumentService.isKnownProject(first);
-    }
-
-    /** Returns the project ID from a new-format command, or {@code null} for old-format. */
-    private String cmdProject(java.util.List<?> args) {
-        return isNewFormat(args) ? str(args, 0) : null;
+    private static String cmdProject(java.util.List<?> args) {
+        if (args == null || args.isEmpty()) return null;
+        return str(args, 0);
     }
 
     /**
@@ -386,9 +367,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
      * {@code openjml.runEscForMethod} command.
      *
      * <p>Detected by: exactly two arguments whose first element starts with
-     * {@code "file://"}.  This distinguishes it unambiguously from the new
-     * Eclipse format (args[0] is a bare project ID, no scheme) and the old
-     * VS Code format (six or more arguments).
+     * {@code "file://"}, which is unambiguous because a project ID never
+     * contains a URL scheme.
      */
     private static boolean isCodeLensFormat(java.util.List<?> args) {
         if (args == null || args.size() != 2) return false;
@@ -396,11 +376,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         return first != null && first.startsWith("file://");
     }
 
-    /**
-     * Returns the path/URI arguments from a command, abstracting over format:
-     * index 1+ for new format, index 4+ for old format.
-     */
-    private List<String> cmdPaths(java.util.List<?> args) {
-        return isNewFormat(args) ? extractPaths(args, 1) : extractPaths(args, 4);
+    /** Returns the path/URI arguments from a command (args[1+]). */
+    private static List<String> cmdPaths(java.util.List<?> args) {
+        return extractPaths(args, 1);
     }
 }
