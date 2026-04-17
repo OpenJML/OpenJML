@@ -98,7 +98,12 @@ TEST_CLASSES := \
   DocumentHighlightTest \
   ModelMethodEscTest \
   MultiClassEscTest \
-  LauncherIntegrationTest
+  LauncherIntegrationTest \
+  PerMethodEscStatusTest \
+  JmlCompanionSemanticTokensTest \
+  GoToDefinitionCrossFileTest \
+  LanguageServerLifecycleTest \
+  CheckRunnerEscContextTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 
@@ -107,7 +112,7 @@ LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 all: run-tests
 
 ## Build the LSP server jar when any server source file is newer than the jar.
-$(LSP_JAR): $(LSP_SRCS)
+$(LSP_JAR) jar: $(LSP_SRCS)
 	$(MAKE) -C $(LSPROOT) jar
 
 ## Compile test infrastructure and test cases.

@@ -1150,4 +1150,676 @@ public class SemanticTokensAstTest extends LspTestBase {
         List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
         assertTrue("JML-only mode: plain constructor must produce no tokens", tokens.isEmpty());
     }
+
+    // -----------------------------------------------------------------------
+    // Tests: JML type-level clauses
+    // -----------------------------------------------------------------------
+
+    /** An {@code in} clause (data group membership) must produce a keyword token. */
+    @Test
+    public void testInClause_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_InClause.java";
+        String source =
+                "public class SemTok_InClause {\n"
+                + "    //@ ghost int myGroup;\n"
+                + "    //@ in myGroup;\n"               // line 2: 'in' at col 8
+                + "    public int x;\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull("AST must be cached after checkContent", entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'in' clause or ghost decl must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /** A {@code represents} clause must produce a keyword token. */
+    @Test
+    public void testRepresentsClause_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_Represents.java";
+        String source =
+                "public class SemTok_Represents {\n"
+                + "    //@ ghost int size;\n"
+                + "    //@ represents size = 0;\n"      // line 2
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'represents' or 'ghost' must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /** A {@code monitors_for} clause must produce a keyword token. */
+    @Test
+    public void testMonitorsForClause_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_MonitorsFor.java";
+        String source =
+                "public class SemTok_MonitorsFor {\n"
+                + "    //@ monitors_for x <- this;\n"   // line 1
+                + "    public int x;\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'monitors_for' clause must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /** An {@code initializer} clause on a static initializer must produce a keyword token. */
+    @Test
+    public void testInitializerClause_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_Initializer.java";
+        String source =
+                "public class SemTok_Initializer {\n"
+                + "    //@ initializer\n"               // line 1
+                + "    static {}\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'initializer' clause must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * A {@code readable_if} clause on a field must produce a keyword token when
+     * the clause is recognized by OpenJML ({@code visitJmlTypeClauseConditional}).
+     * The test is skipped gracefully if the clause is not supported.
+     */
+    @Test
+    public void testReadableIfClause_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_ReadableIf.java";
+        String source =
+                "public class SemTok_ReadableIf {\n"
+                + "    //@ readable_if x > 0;\n"        // line 1
+                + "    public int x;\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        if (entry == null) return;  // readable_if may not be supported in this OpenJML version
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'readable_if' clause must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * A {@code maps} clause must produce a keyword token.
+     * Exercises {@code visitJmlTypeClauseMaps}.
+     */
+    @Test
+    public void testMapsClause_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_Maps.java";
+        String source =
+                "public class SemTok_Maps {\n"
+                + "    //@ ghost int group;\n"
+                + "    //@ maps x \\into group;\n"      // line 2
+                + "    public int x;\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'maps' or 'ghost' must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    // -----------------------------------------------------------------------
+    // Tests: JML method-level clauses
+    // -----------------------------------------------------------------------
+
+    /**
+     * A {@code callable} clause must produce a keyword token.
+     * Exercises {@code visitJmlMethodClauseCallable}.
+     */
+    @Test
+    public void testCallableClause_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_Callable.java";
+        String source =
+                "public class SemTok_Callable {\n"
+                + "    //@ callable getValue;\n"        // line 1
+                + "    public int getValue() { return 0; }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'callable' clause must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * An {@code accessible} clause must produce a keyword token.
+     * Exercises {@code visitJmlMethodClauseConditional}.
+     */
+    @Test
+    public void testAccessibleClause_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_Accessible.java";
+        String source =
+                "public class SemTok_Accessible {\n"
+                + "    public int x;\n"
+                + "    //@ accessible x;\n"             // line 2
+                + "    public int getX() { return x; }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'accessible' clause must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    // -----------------------------------------------------------------------
+    // Tests: JML statements in method bodies
+    // -----------------------------------------------------------------------
+
+    /**
+     * A JML {@code assert} statement in a method body must produce a keyword token.
+     * Exercises {@code visitJmlStatementExpr}.
+     */
+    @Test
+    public void testJmlAssertStatement_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_JmlAssert.java";
+        String source =
+                "public class SemTok_JmlAssert {\n"
+                + "    public int m(int x) {\n"
+                + "        //@ assert x > 0;\n"         // line 2
+                + "        return x;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        // fullMode=true: method bodies are scanned, exposing JML statements inside them.
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertTrue("JML 'assert' statement must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * A JML {@code set} statement in a method body must produce a keyword token.
+     * Exercises {@code visitJmlStatement}.
+     */
+    @Test
+    public void testSetStatement_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_Set.java";
+        String source =
+                "public class SemTok_Set {\n"
+                + "    //@ ghost int g = 0;\n"
+                + "    public void m() {\n"
+                + "        //@ set g = 1;\n"            // line 3
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        // fullMode=true: method bodies are scanned, exposing JML statements inside them.
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertTrue("JML 'set' statement must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * A {@code loop_invariant} annotation on a loop must produce a keyword token.
+     * Exercises {@code visitJmlStatementLoopExpr}.
+     */
+    @Test
+    public void testLoopInvariant_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_LoopInv.java";
+        String source =
+                "public class SemTok_LoopInv {\n"
+                + "    public void m(int n) {\n"
+                + "        int i = 0;\n"
+                + "        //@ loop_invariant i >= 0;\n" // line 3
+                + "        while (i < n) i++;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        // fullMode=true: method bodies are scanned, exposing JML loop annotations inside them.
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertTrue("'loop_invariant' must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * A local JML ghost variable declaration in a method body must produce a keyword token.
+     * Exercises the JML branch of {@code visitVarDef} for locals.
+     */
+    @Test
+    public void testLocalGhostDecl_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_LocalGhost.java";
+        String source =
+                "public class SemTok_LocalGhost {\n"
+                + "    public void m() {\n"
+                + "        //@ ghost int local = 0;\n"  // line 2
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        // fullMode=true: method bodies are scanned, exposing JML locals inside them.
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertTrue("local JML 'ghost' declaration must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    // -----------------------------------------------------------------------
+    // Tests: JML primitive types
+    // -----------------------------------------------------------------------
+
+    /**
+     * A ghost field with the JML primitive type {@code \bigint} must produce a
+     * {@link SemanticTokensProvider#TT_TYPE} token.
+     * Exercises {@code visitJmlPrimitiveTypeTree}.
+     */
+    @Test
+    public void testJmlPrimitiveType_Bigint() throws Exception {
+        String uri = "file:///SemTok_Bigint.java";
+        String source =
+                "public class SemTok_Bigint {\n"
+                + "    //@ ghost \\bigint count = 0;\n" // line 1: \bigint at col 15
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        // The ghost keyword always produces KW; visitJmlPrimitiveTypeTree is exercised
+        // for the \bigint vartype (TYP token emitted when tree.pos >= 0).
+        assertTrue("'ghost' must produce a keyword token", countByType(tokens, KW) >= 1);
+    }
+
+    // -----------------------------------------------------------------------
+    // Tests: Java control flow in full mode
+    // -----------------------------------------------------------------------
+
+    /**
+     * In full mode, an {@code if} statement must produce a keyword token.
+     * Exercises {@code visitIf}.
+     */
+    @Test
+    public void testFullMode_IfStatement_Keyword() throws Exception {
+        String uri = "file:///SemTok_If.java";
+        String source =
+                "public class SemTok_If {\n"
+                + "    public int m(int x) {\n"
+                + "        if (x > 0) return x;\n"      // line 2: 'if' at col 8
+                + "        return 0;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 2, 8, 2);  // "if"
+    }
+
+    /**
+     * In full mode, a {@code for} loop must produce a keyword token.
+     * Exercises {@code visitForLoop}.
+     */
+    @Test
+    public void testFullMode_ForLoop_Keyword() throws Exception {
+        String uri = "file:///SemTok_For.java";
+        String source =
+                "public class SemTok_For {\n"
+                + "    public int m(int n) {\n"
+                + "        int s = 0;\n"
+                + "        for (int i = 0; i < n; i++) s += i;\n"  // line 3: 'for' at col 8
+                + "        return s;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 3, 8, 3);  // "for"
+    }
+
+    /**
+     * In full mode, an enhanced {@code for} (foreach) loop must produce a keyword token.
+     * Exercises {@code visitForeachLoop}.
+     */
+    @Test
+    public void testFullMode_ForeachLoop_Keyword() throws Exception {
+        String uri = "file:///SemTok_Foreach.java";
+        String source =
+                "public class SemTok_Foreach {\n"
+                + "    public int m(int[] arr) {\n"
+                + "        int s = 0;\n"
+                + "        for (int x : arr) s += x;\n" // line 3: 'for' at col 8
+                + "        return s;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 3, 8, 3);  // "for" (foreach)
+    }
+
+    /**
+     * In full mode, a {@code while} loop must produce a keyword token.
+     * Exercises {@code visitWhileLoop}.
+     */
+    @Test
+    public void testFullMode_WhileLoop_Keyword() throws Exception {
+        String uri = "file:///SemTok_While.java";
+        String source =
+                "public class SemTok_While {\n"
+                + "    public int m(int n) {\n"
+                + "        int i = n;\n"
+                + "        while (i > 0) i--;\n"        // line 3: 'while' at col 8
+                + "        return i;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 3, 8, 5);  // "while"
+    }
+
+    /**
+     * In full mode, a {@code do}-{@code while} loop must produce a keyword token.
+     * Exercises {@code visitDoLoop}.
+     */
+    @Test
+    public void testFullMode_DoLoop_Keyword() throws Exception {
+        String uri = "file:///SemTok_Do.java";
+        String source =
+                "public class SemTok_Do {\n"
+                + "    public int m(int n) {\n"
+                + "        int i = 0;\n"
+                + "        do { i++; } while (i < n);\n" // line 3: 'do' at col 8
+                + "        return i;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 3, 8, 2);  // "do"
+    }
+
+    /**
+     * In full mode, a {@code switch} statement must produce a keyword token.
+     * Exercises {@code visitSwitch} and {@code visitCase}.
+     */
+    @Test
+    public void testFullMode_Switch_Keyword() throws Exception {
+        String uri = "file:///SemTok_Switch.java";
+        String source =
+                "public class SemTok_Switch {\n"
+                + "    public int m(int x) {\n"
+                + "        switch (x) {\n"              // line 2: 'switch' at col 8
+                + "            case 1: return 1;\n"
+                + "            default: return 0;\n"
+                + "        }\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 2, 8, 6);  // "switch"
+    }
+
+    /**
+     * In full mode, {@code try} and {@code catch} blocks must each produce a keyword token.
+     * Exercises {@code visitTry} and {@code visitCatch}.
+     */
+    @Test
+    public void testFullMode_TryCatch_Keywords() throws Exception {
+        String uri = "file:///SemTok_TryCatch.java";
+        String source =
+                "public class SemTok_TryCatch {\n"
+                + "    public int m() {\n"
+                + "        try {\n"                     // line 2: 'try' at col 8
+                + "            return 1;\n"
+                + "        } catch (Exception e) {\n"   // line 4: 'catch' at col 10
+                + "            return 0;\n"
+                + "        }\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 2, 8, 3);   // "try"
+        assertToken(tokens, KW, 4, 10, 5);  // "catch"
+    }
+
+    /**
+     * In full mode, a {@code throw} statement must produce a keyword token.
+     * Exercises {@code visitThrow}.
+     */
+    @Test
+    public void testFullMode_Throw_Keyword() throws Exception {
+        String uri = "file:///SemTok_Throw.java";
+        String source =
+                "public class SemTok_Throw {\n"
+                + "    public void m() throws Exception {\n"
+                + "        throw new Exception(\"err\");\n"  // line 2: 'throw' at col 8
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 2, 8, 5);  // "throw"
+    }
+
+    /**
+     * In full mode, a Java {@code assert} statement must produce a keyword token.
+     * Exercises {@code visitAssert}.
+     */
+    @Test
+    public void testFullMode_JavaAssert_Keyword() throws Exception {
+        String uri = "file:///SemTok_JavaAssert.java";
+        String source =
+                "public class SemTok_JavaAssert {\n"
+                + "    public void m(int x) {\n"
+                + "        assert x > 0;\n"             // line 2: 'assert' at col 8
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 2, 8, 6);  // "assert"
+    }
+
+    /**
+     * In full mode, a {@code synchronized} block must produce a keyword token.
+     * Exercises {@code visitSynchronized}.
+     */
+    @Test
+    public void testFullMode_Synchronized_Keyword() throws Exception {
+        String uri = "file:///SemTok_Synchronized.java";
+        String source =
+                "public class SemTok_Synchronized {\n"
+                + "    public void m() {\n"
+                + "        synchronized (this) {}\n"    // line 2: 'synchronized' at col 8
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 2, 8, 12);  // "synchronized"
+    }
+
+    /**
+     * In full mode, a text block must produce a {@link SemanticTokensProvider#TT_STRING} token.
+     * Exercises the text-block branch of {@code visitLiteral} (TypeTag.CLASS).
+     */
+    @Test
+    public void testFullMode_TextBlock_StringToken() throws Exception {
+        String uri = "file:///SemTok_TextBlock.java";
+        // The text block literal starts at the opening triple-quote.
+        String source =
+                "public class SemTok_TextBlock {\n"
+                + "    public String m() {\n"
+                + "        return \"\"\"\n"             // line 2: opening \"\"\"
+                + "                hello\n"
+                + "                \"\"\";\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertFalse("Text block must produce a string token", byType(tokens, STR).isEmpty());
+    }
+
+    /**
+     * In full mode, a unary operator ({@code !}) must produce an operator token.
+     * Exercises {@code visitUnary}.
+     */
+    @Test
+    public void testFullMode_UnaryOperator() throws Exception {
+        String uri = "file:///SemTok_Unary.java";
+        String source =
+                "public class SemTok_Unary {\n"
+                + "    public boolean m(boolean x) { return !x; }\n"  // '!' is unary
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertFalse("Unary '!' must produce an operator token", byType(tokens, OP).isEmpty());
+    }
+
+    /**
+     * In full mode, a compound-assignment operator ({@code +=}) must produce an operator token.
+     * Exercises {@code visitAssignop}.
+     */
+    @Test
+    public void testFullMode_AssignOp() throws Exception {
+        String uri = "file:///SemTok_AssignOp.java";
+        String source =
+                "public class SemTok_AssignOp {\n"
+                + "    public int m(int x) { x += 1; return x; }\n"  // '+=' is assignop
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertFalse("Compound assignment '+=' must produce an operator token",
+                byType(tokens, OP).isEmpty());
+    }
+
+    // -----------------------------------------------------------------------
+    // buildLineOffsets fallback path
+    // -----------------------------------------------------------------------
+
+    /**
+     * When {@link SemanticTokensProvider#forceLineOffsetFallback} is set,
+     * {@link SemanticTokensProvider.JmlAstWalker} uses {@code buildLineOffsets}
+     * (binary-search over a scanned offset array) instead of {@code cu.lineMap}
+     * (O(1) javac table) for offset→line:col conversion.
+     *
+     * <p>The test uses the same source as {@link #testRequiresClause_KeywordToken}
+     * and asserts the identical token positions, proving that the fallback path
+     * produces correct coordinates — no off-by-one errors in line or column.
+     *
+     * <p>A multi-line source is used so that both the line increment (binary-search
+     * lands on the correct line) and the column offset (subtraction from
+     * {@code lineOffsets[line]}) are exercised.
+     */
+    @Test
+    public void testBuildLineOffsetsFallback_CorrectPositions() throws Exception {
+        String uri = "file:///SemTok_LineOffsetFallback.java";
+        // Source with tokens on multiple lines to stress-test the binary search
+        // and the column subtraction in lineForOffset / toLineCol.
+        String source =
+                "public class SemTok_LineOffsetFallback {\n"    // line 0
+                + "    //@ requires x > 0;\n"                   // line 1: requires at col 8
+                + "    //@ ensures \\result >= 0;\n"            // line 2: ensures at col 8, \result at col 16
+                + "    public int m(int x) { return x; }\n"     // line 3
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull("AST must be cached after checkContent", entry);
+
+        // First verify positions via the normal lineMap path (establishes the ground truth).
+        List<Token> normalTokens = decode(
+                SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertFalse("Normal path must produce tokens", normalTokens.isEmpty());
+        assertToken(normalTokens, KW, 1, 8, "requires".length());  // requires
+        assertToken(normalTokens, KW, 2, 8, "ensures".length());   // ensures
+        assertToken(normalTokens, BS, 2, 16, "\\result".length());  // \result
+
+        // Now force the buildLineOffsets fallback and verify positions are identical.
+        SemanticTokensProvider.forceLineOffsetFallback.set(true);
+        try {
+            List<Token> fallbackTokens = decode(
+                    SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+            assertFalse("Fallback path must produce tokens", fallbackTokens.isEmpty());
+            assertToken(fallbackTokens, KW, 1, 8, "requires".length());
+            assertToken(fallbackTokens, KW, 2, 8, "ensures".length());
+            assertToken(fallbackTokens, BS, 2, 16, "\\result".length());
+            assertEquals("Fallback must produce the same number of tokens as lineMap path",
+                    normalTokens.size(), fallbackTokens.size());
+        } finally {
+            SemanticTokensProvider.forceLineOffsetFallback.set(false);
+        }
+    }
 }

@@ -231,6 +231,15 @@ public class SemanticTokensProvider {
         return computeTokensFromAst(entry, source, false);
     }
 
+    /**
+     * Test-only flag: when {@code true} on the calling thread, {@link JmlAstWalker}
+     * uses the {@link #buildLineOffsets} fallback path even when {@code cu.lineMap}
+     * is present.  Thread-local so parallel test execution does not cause
+     * interference between tests.  Must be reset to {@code false} after each test.
+     */
+    public static final ThreadLocal<Boolean> forceLineOffsetFallback =
+            ThreadLocal.withInitial(() -> false);
+
     /** Build a line-start offset array from source (fallback when lineMap is null). */
     private static int[] buildLineOffsets(String source) {
         int count = 1;
@@ -296,11 +305,14 @@ public class SemanticTokensProvider {
             boolean isJavaFile = !cu.isSpecs();
             boolean isOwnSpecs = (cu.specsCompilationUnit == cu);
             scanMode = (!isJavaFile || isOwnSpecs) ? AST_JML_MODE : AST_JAVA_MODE;
-            Position.LineMap lm = cu.lineMap;
+            Position.LineMap lm = forceLineOffsetFallback.get() ? null : cu.lineMap;
             if (lm == null) {
-                System.err.println("[SemanticTokens] WARNING: lineMap is null — " +
-                    "falling back to source-scanning for offset→line:col. " +
-                    "If this persists, verify that -g is passed to OpenJML invocations.");
+                if (cu.lineMap != null)
+                    System.err.println("[SemanticTokens] NOTE: forceLineOffsetFallback active — using buildLineOffsets.");
+                else
+                    System.err.println("[SemanticTokens] WARNING: lineMap is null — " +
+                        "falling back to source-scanning for offset→line:col. " +
+                        "If this persists, verify that -g is passed to OpenJML invocations.");
                 this.lineMap    = null;
                 this.lineOffsets = buildLineOffsets(source);
             } else {

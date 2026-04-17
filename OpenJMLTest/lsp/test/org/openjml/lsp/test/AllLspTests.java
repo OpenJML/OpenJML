@@ -59,5 +59,10 @@ import org.junit.runners.Suite;
     ModelMethodEscTest.class,
     MultiClassEscTest.class,
     LauncherIntegrationTest.class,
+    PerMethodEscStatusTest.class,
+    JmlCompanionSemanticTokensTest.class,
+    GoToDefinitionCrossFileTest.class,
+    LanguageServerLifecycleTest.class,
+    CheckRunnerEscContextTest.class,
 })
 public class AllLspTests {}
