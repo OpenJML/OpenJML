@@ -1978,7 +1978,8 @@ public class CheckRunner {
             else
                 log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + diags.size() + " diagnostic(s)");
             return new CheckResult(diags, rc,
-                    proofResults, listener.toForeignMessages(fileArg), Map.of());
+                    proofResults, listener.toForeignMessages(fileArg),
+                    listener.toLspDiagnosticsByFile());
         } catch (IOException e) {
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         } finally {
@@ -2087,7 +2088,8 @@ public class CheckRunner {
             log(ts() + " --esc " + fname + ": " + diags.size() + " diagnostic(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new CheckResult(diags, rc,
-                proofResults, listener.toForeignMessages(filePath), Map.of());
+                proofResults, listener.toForeignMessages(filePath),
+                listener.toLspDiagnosticsByFile());
     }
 
     // --- public API: in-process doESC via cached IAPI ---
