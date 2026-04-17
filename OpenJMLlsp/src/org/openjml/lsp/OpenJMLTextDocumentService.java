@@ -1703,10 +1703,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * methods finish a final {@link #publishMerged} flushes the accumulated
      * diagnostics.
      */
-    private void submitEscApiWorkList(String uri) {
-        submitEscApiWorkList(uri, globalSettings);
-    }
-
     private void submitEscApiWorkList(String uri, OpenJMLSettings s) {
         Future<?> prev = runningEscTasks.remove(uri);
         if (prev != null) prev.cancel(false);
@@ -1715,40 +1711,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         markEscChecking(uri);
 
         CompletableFuture<CheckRunner.CheckResult> cf =
-                CheckRunner.runDoEscFileAsync(uri, s, methodResult -> {
-                    // Called on a pool thread as each method finishes — update its
-                    // code-lens status immediately so the user sees progress.
-                    if (escGen.get(uri).get() != myGen) return;
-                    updateSingleMethodEscStatus(uri, methodResult);
-                    refreshCodeLenses();
-                });
-
-        cf.thenAccept(result -> {
-            if (escGen.get(uri).get() != myGen) return;
-            result.allDiagnostics().forEach((diagUri, diagsList) -> {
-                storeEscDiags(diagUri, diagsList);
-                publishMerged(diagUri);
-            });
-            List<Diagnostic> primaryDiags =
-                    result.allDiagnostics().getOrDefault(uri, result.diagnostics());
-            if (result.isInternalError()) {
-                System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
-                markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
-                refreshCodeLenses();
-            } else {
-                updateEscStatus(uri, primaryDiags, result.proofResults(),
-                        result.exitCode(), result.foreignMessages());
-            }
-        }).exceptionally(t -> {
-            System.err.println("[OpenJML] ESC (api) failed: " + t);
-            if (escGen.get(uri).get() == myGen) {
-                updateEscStatus(uri, List.of(), Map.of(), -1, List.of());
-                refreshCodeLenses();
-            }
-            return null;
-        }).whenComplete((v, t) -> runningEscTasks.remove(uri));
-
-        runningEscTasks.put(uri, cf);
+                CheckRunner.runDoEscFileAsync(uri, s, onMethodEscResult(uri, myGen));
+        attachEscCallbacks(uri, myGen, cf, "api");
     }
 
     /**
@@ -1758,10 +1722,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * all run truly concurrently.  Per-method and final callbacks are the same as
      * {@link #submitEscApiWorkList}.
      */
-    private void submitFreshParallelWorkList(String uri) {
-        submitFreshParallelWorkList(uri, globalSettings);
-    }
-
     private void submitFreshParallelWorkList(String uri, OpenJMLSettings s) {
         Future<?> prev = runningEscTasks.remove(uri);
         if (prev != null) prev.cancel(true);
@@ -1771,12 +1731,31 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         String content = lastContent.get(uri);
         CompletableFuture<CheckRunner.CheckResult> cf =
-                CheckRunner.runFreshParallelEscFileAsync(uri, content, s, methodResult -> {
-                    if (escGen.get(uri).get() != myGen) return;
-                    updateSingleMethodEscStatus(uri, methodResult);
-                    refreshCodeLenses();
-                });
+                CheckRunner.runFreshParallelEscFileAsync(uri, content, s, onMethodEscResult(uri, myGen));
+        attachEscCallbacks(uri, myGen, cf, "fresh");
+    }
 
+    /**
+     * Returns a per-method completion callback shared by both ESC submit methods.
+     * Called on a pool thread as each method finishes; updates the code-lens status
+     * immediately so the user sees progress.
+     */
+    private Consumer<CheckRunner.MethodEscResult> onMethodEscResult(String uri, long myGen) {
+        return methodResult -> {
+            if (escGen.get(uri).get() != myGen) return;
+            updateSingleMethodEscStatus(uri, methodResult);
+            refreshCodeLenses();
+        };
+    }
+
+    /**
+     * Attaches the shared {@code thenAccept}/{@code exceptionally}/{@code whenComplete}
+     * completion callbacks to an ESC future and registers it in {@link #runningEscTasks}.
+     *
+     * @param modeName short label used in log messages, e.g. {@code "api"} or {@code "fresh"}
+     */
+    private void attachEscCallbacks(String uri, long myGen,
+            CompletableFuture<CheckRunner.CheckResult> cf, String modeName) {
         cf.thenAccept(result -> {
             if (escGen.get(uri).get() != myGen) return;
             result.allDiagnostics().forEach((diagUri, diagsList) -> {
@@ -1786,7 +1765,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             List<Diagnostic> primaryDiags =
                     result.allDiagnostics().getOrDefault(uri, result.diagnostics());
             if (result.isInternalError()) {
-                System.err.println("[OpenJML] ESC (fresh) internal error (exit code " + result.exitCode() + ")");
+                System.err.println("[OpenJML] ESC (" + modeName + ") internal error (exit code "
+                        + result.exitCode() + ")");
                 markAllMethodStatus(uri, MethodStatus.CHECK_ERROR);
                 refreshCodeLenses();
             } else {
@@ -1794,7 +1774,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         result.exitCode(), result.foreignMessages());
             }
         }).exceptionally(t -> {
-            System.err.println("[OpenJML] ESC (fresh) failed: " + t);
+            System.err.println("[OpenJML] ESC (" + modeName + ") failed: " + t);
             if (escGen.get(uri).get() == myGen) {
                 updateEscStatus(uri, List.of(), Map.of(), -1, List.of());
                 refreshCodeLenses();
@@ -2318,11 +2298,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         executor.submit(() -> runCheckContent(uri, c));
     }
 
-    private void scheduleEscFile(String uri) {
-        scheduleEscFile(uri, settingsForUri(uri));
-    }
-
-
     private void scheduleEscFile(String uri, OpenJMLSettings s) {
         String content = lastContent.get(uri);
         if (content != null) {
@@ -2462,10 +2437,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private boolean runProjectCheck() {
         return runProjectCheck(globalSettings.effectiveRoots(), globalSettings);
-    }
-
-    private boolean runProjectCheck(List<String> roots) {
-        return runProjectCheck(roots, globalSettings);
     }
 
     private boolean runProjectCheck(List<String> roots, OpenJMLSettings s) {
