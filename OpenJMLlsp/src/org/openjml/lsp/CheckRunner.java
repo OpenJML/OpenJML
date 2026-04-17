@@ -1481,118 +1481,35 @@ public class CheckRunner {
     }
 
     /**
-     * @param outputDir optional output directory override; {@code null} means use
-     *                  {@link OpenJMLSettings#racOutputDir}
+     * Delegates to {@link #runRacPaths} with a single-element path list.
+     * If {@code outputDir} is non-null it overrides {@link OpenJMLSettings#racOutputDir}.
      */
     public static CheckResult runRacFile(String filePath, String uri, OpenJMLSettings settings,
                                           String outputDir) {
-        var listener = new LspDiagnosticListener();
-        var out      = new PrintWriter(new StringWriter());
-        var api      = IAPI.make(out, listener);
-
-        List<String> args = buildArgs(settings, "--rac");
-
-        // Resolve and create the RAC output directory.
-        // Caller may supply an explicit override (e.g. the Eclipse project's bin/ folder).
-        String rawDir = (outputDir != null && !outputDir.isEmpty()) ? outputDir
-                : (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
-                        ? settings.racOutputDir : "rac-classes";
-        java.nio.file.Path outputPath;
-        java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
-        if (raw.isAbsolute()) {
-            outputPath = raw;
-        } else {
-            // Resolve relative path against first workspace root (or file's parent).
-            List<String> effectiveRoots = settings.effectiveRoots();
-            String wsRoot = effectiveRoots.isEmpty()
-                    ? new java.io.File(filePath).getParent()
-                    : effectiveRoots.get(0);
-            outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
+        OpenJMLSettings s = settings;
+        if (outputDir != null && !outputDir.isEmpty()) {
+            s = new OpenJMLSettings(settings);
+            s.racOutputDir = outputDir;
         }
-        try {
-            java.nio.file.Files.createDirectories(outputPath);
-        } catch (java.io.IOException e) {
-            System.err.println("[CheckRunner.runRacFile] failed to create output dir: " + e);
-        }
-        args.add("-d");
-        args.add(outputPath.toString());
-        args.add(filePath);
-        logInvocation("runRacFile", args);
-
-        String fname = fileName(uri);
-        log(ts() + " --rac " + fname + " → " + outputPath);
-
-        int rc;
-        try {
-            rc = api.execute(args.toArray(new String[0]));
-        } catch (Throwable e) {
-            System.err.println("[CheckRunner.runRacFile] exception: " + e);
-            rc = -1;
-        }
-        System.err.println("[CheckRunner.runRacFile] exit code " + rc);
-        List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
-        log(ts() + " --rac " + fname + ": " + diags.size() + " diagnostic(s)");
-        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
-        return new CheckResult(diags, rc, Map.of(), listener.toForeignMessages(filePath), Map.of());
+        CheckResult r = runRacPaths(List.of(filePath), s);
+        List<org.eclipse.lsp4j.Diagnostic> fileDiags =
+                r.allDiagnostics().getOrDefault(uri, List.of());
+        return new CheckResult(fileDiags, r.exitCode(), Map.of(), List.of(), r.allDiagnostics());
     }
 
     /**
-     * Run {@code --rac --dirs path1 path2 ...} on one or more files or directories.
-     *
-     * <p>Each path may be a {@code .java} file or a directory; OpenJML processes
-     * directory arguments recursively (same behaviour as repeated {@code --dir}).
-     * Diagnostics are returned grouped by source-file URI.
-     *
-     * @param paths     one or more OS paths (files or directories) to compile
-     * @param outputDir directory for RAC {@code .class} output; {@code null} or empty
-     *                  falls back to {@link OpenJMLSettings#racOutputDir} then {@code "rac-classes"}
-     * @param settings  current server settings
+     * Delegates to {@link #runRacPaths} with a {@code DirCheckResult} return type.
+     * If {@code outputDir} is non-null it overrides {@link OpenJMLSettings#racOutputDir}.
      */
     public static DirCheckResult runRacDir(List<String> paths, String outputDir,
                                            OpenJMLSettings settings) {
-        var listener = new LspDiagnosticListener();
-        var out      = new PrintWriter(new StringWriter());
-        var api      = IAPI.make(out, listener);
-
-        List<String> args = buildArgs(settings, "--rac");
-
-        // Resolve and create the RAC output directory.
-        String rawDir = (outputDir != null && !outputDir.isEmpty()) ? outputDir
-                : (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
-                        ? settings.racOutputDir : "rac-classes";
-        java.nio.file.Path outputPath;
-        java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
-        if (raw.isAbsolute()) {
-            outputPath = raw;
-        } else {
-            List<String> effectiveRoots = settings.effectiveRoots();
-            String wsRoot = effectiveRoots.isEmpty()
-                    ? (!paths.isEmpty() ? new java.io.File(paths.get(0)).getParent() : ".")
-                    : effectiveRoots.get(0);
-            outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
+        OpenJMLSettings s = settings;
+        if (outputDir != null && !outputDir.isEmpty()) {
+            s = new OpenJMLSettings(settings);
+            s.racOutputDir = outputDir;
         }
-        try {
-            java.nio.file.Files.createDirectories(outputPath);
-        } catch (java.io.IOException e) {
-            System.err.println("[CheckRunner.runRacDir] failed to create output dir: " + e);
-        }
-        args.add("-d");
-        args.add(outputPath.toString());
-        args.add("--dirs");
-        args.addAll(paths);
-        logInvocation("runRacDir", args);
-        log(ts() + " --rac --dirs " + paths.size() + " path(s) → " + outputPath);
-
-        int rc;
-        try {
-            rc = api.execute(args.toArray(new String[0]));
-        } catch (Throwable e) {
-            System.err.println("[CheckRunner.runRacDir] exception: " + e);
-            rc = -1;
-        }
-        System.err.println("[CheckRunner.runRacDir] exit code " + rc);
-        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
-        return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of());
+        CheckResult r = runRacPaths(paths, s);
+        return new DirCheckResult(r.allDiagnostics(), r.exitCode(), Map.of());
     }
 
     // --- utility ---

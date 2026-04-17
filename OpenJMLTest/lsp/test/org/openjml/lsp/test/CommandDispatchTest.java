@@ -249,15 +249,15 @@ public class CommandDispatchTest {
     }
 
     // -----------------------------------------------------------------------
-    // openjml.runRac — wiring smoke test
+    // openjml.runRac — single-file wiring smoke test
     // -----------------------------------------------------------------------
 
     /**
-     * {@code openjml.runRac ["","","","", outputDir, filePath]} must reach
-     * {@link org.openjml.lsp.OpenJMLTextDocumentService#scheduleRacForPaths},
-     * compile the file with {@code --rac}, and produce a {@code .class} file in
-     * the output directory.  The {@code outputDir} at arg position 4 is the
-     * only command-encoding detail specific to RAC.
+     * {@code openjml.runRac ["", filePath]} must reach
+     * {@link org.openjml.lsp.OpenJMLTextDocumentService#scheduleRacForPaths}
+     * and publish diagnostics for the file.  A clean file produces an empty
+     * (or absent) diagnostics list; the important thing is the command is
+     * dispatched and does not throw.
      */
     @Test
     public void testRunRacCommandDispatch() throws Exception {
@@ -265,21 +265,70 @@ public class CommandDispatchTest {
                 "public class CmdRacClean {\n" +
                 "    public int add(int a, int b) { return a + b; }\n" +
                 "}\n");
-        Path outDir = tmp.newFolder("rac-cmd-out").toPath();
 
-        // args: ["","","","", outputDir, filePath]
-        String argsJson = "[\"\",\"\",\"\",\"\",\""
-                + jsonEscape(outDir.toString()) + "\",\""
-                + jsonEscape(f.getAbsolutePath()) + "\"]";
+        // args[0] = projectId (empty = global), args[1] = source file
+        String argsJson = "[\"\",\"" + jsonEscape(f.getAbsolutePath()) + "\"]";
         sendCommand(OpenJMLCommands.RUN_RAC, argsJson);
 
-        // RAC runs async; poll for the class file.
-        Path classFile = outDir.resolve("CmdRacClean.class");
+        // scheduleRacForPaths publishes diagnostics for every processed file.
+        // For a clean file the list is empty; assert no errors appear.
+        JsonObject note = nextDiagsContaining("CmdRacClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics for CmdRacClean.java", note);
+        JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertFalse("Expected no Error diagnostics for valid Java", hasError(diags));
+    }
+
+    // -----------------------------------------------------------------------
+    // openjml.runRac — multi-file protocol test
+    // -----------------------------------------------------------------------
+
+    /**
+     * {@code openjml.runRac} with multiple source paths compiles all of them
+     * in a single {@code --rac --dirs} invocation.
+     *
+     * <p>Two files are submitted: one valid and one with a type error.
+     * The server must publish {@code textDocument/publishDiagnostics} for each
+     * file.  The file with the type error must carry at least one
+     * Error-severity diagnostic; the clean file must carry none.
+     */
+    @Test
+    public void testRunRacCommandMultiFile() throws Exception {
+        File good = writeJava("RacMultiGood.java",
+                "public class RacMultiGood {\n" +
+                "    public int add(int a, int b) { return a + b; }\n" +
+                "}\n");
+        File bad = writeJava("RacMultiBad.java",
+                "public class RacMultiBad {\n" +
+                "    public int m() { return \"not an int\"; }\n" +
+                "}\n");
+
+        // args[0] = projectId (empty = global), args[1..2] = source files
+        String argsJson = "[\"\",\""
+                + jsonEscape(good.getAbsolutePath()) + "\",\""
+                + jsonEscape(bad.getAbsolutePath()) + "\"]";
+        sendCommand(OpenJMLCommands.RUN_RAC, argsJson);
+
+        // Collect diagnostics for both files; order is not guaranteed.
+        JsonObject goodNote = null, badNote = null;
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
-        while (!Files.exists(classFile) && System.nanoTime() < deadline) {
-            Thread.sleep(500);
+        while ((goodNote == null || badNote == null) && System.nanoTime() < deadline) {
+            long remaining = deadline - System.nanoTime();
+            JsonObject msg = client.nextNotification(
+                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
+            if (msg == null) break;
+            String uri = msg.getAsJsonObject("params").get("uri").getAsString();
+            if (uri.contains("RacMultiGood")) goodNote = msg;
+            else if (uri.contains("RacMultiBad"))  badNote  = msg;
         }
-        assertTrue("Expected CmdRacClean.class in RAC output directory",
-                Files.exists(classFile));
+
+        assertNotNull("Expected publishDiagnostics for RacMultiGood.java", goodNote);
+        assertNotNull("Expected publishDiagnostics for RacMultiBad.java",  badNote);
+
+        JsonArray goodDiags = goodNote.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertFalse("Expected no Error diagnostics for valid file", hasError(goodDiags));
+
+        JsonArray badDiags = badNote.getAsJsonObject("params").getAsJsonArray("diagnostics");
+        assertTrue("Expected Error-severity diagnostic for type error in RacMultiBad.java",
+                hasError(badDiags));
     }
 }
