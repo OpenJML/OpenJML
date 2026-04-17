@@ -1560,9 +1560,12 @@ public class CheckRunner {
     }
 
     /**
-     * Like {@link #runOnContent} but writes all {@code openContent} files into
-     * the same temp directory so the compiler resolves cross-file references
-     * against their current in-memory versions rather than the on-disk files.
+     * Run OpenJML on {@code content} for {@code uri}, supplying all other open
+     * files in {@code openContent} as context so cross-file references resolve
+     * against their current in-memory versions.
+     *
+     * <p>Pass {@link java.util.Map#of()} as {@code openContent} for a single-file
+     * run with no companions (equivalent to the old {@code runOnContent}).
      */
     private static CheckResult runOnContentWithContext(
             String uri, String content,
@@ -1570,7 +1573,8 @@ public class CheckRunner {
             String modeFlag, String methodName, boolean collectProofResults,
             Consumer<IAPI> onApiReady) {
         return runOnContentWithContext(uri, content, openContent, settings,
-                modeFlag, methodName, collectProofResults, onApiReady, null);
+                modeFlag, methodName, collectProofResults,
+                onApiReady == null ? null : (api, n) -> onApiReady.accept(api), null);
     }
 
     private static CheckResult runOnContentWithContext(
@@ -1578,6 +1582,23 @@ public class CheckRunner {
             Map<String, String> openContent, OpenJMLSettings settings,
             String modeFlag, String methodName, boolean collectProofResults,
             Consumer<IAPI> onApiReady,
+            java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
+        return runOnContentWithContext(uri, content, openContent, settings,
+                modeFlag, methodName, collectProofResults,
+                onApiReady == null ? null : (api, n) -> onApiReady.accept(api), onMethodStarted);
+    }
+
+    /**
+     * Core implementation: run OpenJML on {@code content} for {@code uri} with
+     * all {@code openContent} files written as context.  The {@code onApiReady}
+     * BiConsumer receives the live {@link IAPI} and a supplier for the running
+     * proof-completion count immediately before {@code api.execute()} is called.
+     */
+    private static CheckResult runOnContentWithContext(
+            String uri, String content,
+            Map<String, String> openContent, OpenJMLSettings settings,
+            String modeFlag, String methodName, boolean collectProofResults,
+            BiConsumer<IAPI, Supplier<Integer>> onApiReady,
             java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
 
         var listener = new LspDiagnosticListener();
@@ -1592,7 +1613,10 @@ public class CheckRunner {
             if (onMethodStarted != null) prc.setOnMethodStarted(onMethodStarted);
             api.setProofResultListener(prc);
         }
-        if (onApiReady != null) onApiReady.accept(api);
+        if (onApiReady != null) {
+            final ProofResultCollector prcFinal = prc;
+            onApiReady.accept(api, () -> prcFinal == null ? 0 : prcFinal.getResults().size());
+        }
 
         if (useMockFiles) {
             org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
@@ -1693,7 +1717,8 @@ public class CheckRunner {
                 }
             }
 
-            Map<String, IProverResult.Kind> proofResults = prc != null ? prc.getResults() : Map.of();
+            Map<String, IProverResult.Kind> proofResults =
+                    filterProofResults(methodName, prc != null ? prc.getResults() : Map.of());
             Map<String, List<org.eclipse.lsp4j.Diagnostic>> allDiags =
                     listener.toLspDiagnosticsAll(compiledPathToRealUri);
             List<org.eclipse.lsp4j.Diagnostic> primaryDiags = allDiags.getOrDefault(uri, List.of());
@@ -1704,8 +1729,10 @@ public class CheckRunner {
                         ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
                         : "";
                 log(ts() + " --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
-            } else if (proofResults.isEmpty()) {
-                log(ts() + " --esc " + fname + ": " + primaryDiags.size() + " diagnostic(s)");
+            } else if (rc == 5) {
+                log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
+            } else {
+                log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
                     listener.toForeignMessages(primaryArg), allDiags);
@@ -1822,7 +1849,7 @@ public class CheckRunner {
             }
 
             Map<String, IProverResult.Kind> proofResults =
-                    prc != null ? prc.getResults() : Map.of();
+                    filterProofResults(methodName, prc != null ? prc.getResults() : Map.of());
             // Extract diagnostics for the target AND all files that were actually compiled.
             Map<String, List<org.eclipse.lsp4j.Diagnostic>> allDiags =
                     listener.toLspDiagnosticsAll(compiledPathToRealUri);
@@ -1836,8 +1863,10 @@ public class CheckRunner {
                         ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
                         : "";
                 log(ts() + " --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
-            } else if (proofResults.isEmpty()) {
-                log(ts() + " --esc " + fname + ": " + primaryDiags.size() + " diagnostic(s)");
+            } else if (rc == 5) {
+                log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
+            } else {
+                log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
                     listener.toForeignMessages(primaryArg), allDiags);
@@ -1854,143 +1883,29 @@ public class CheckRunner {
         }
     }
 
+    /**
+     * When {@code --method} is passed only the targeted method is proved; OpenJML
+     * marks every other method as {@code SKIPPED}.  Retain only the entry whose
+     * bare name matches the requested method so callers see a single meaningful result.
+     */
+    private static Map<String, IProverResult.Kind> filterProofResults(
+            String methodName, Map<String, IProverResult.Kind> results) {
+        if (methodName == null || methodName.isEmpty()) return results;
+        String simpleTarget = bareMethodName(methodName);
+        return results.entrySet().stream()
+                .filter(e -> bareMethodName(e.getKey()).equals(simpleTarget))
+                .collect(java.util.stream.Collectors.toMap(
+                        Map.Entry::getKey, Map.Entry::getValue,
+                        (a, b) -> a, java.util.LinkedHashMap::new));
+    }
+
+    /** Single-file run with no open-file context; delegates to {@link #runOnContentWithContext}. */
     private static CheckResult runOnContent(
             String uri, String content, OpenJMLSettings settings, String modeFlag,
             String methodName, boolean collectProofResults,
             BiConsumer<IAPI, Supplier<Integer>> onApiCreated) {
-        var listener = new LspDiagnosticListener();
-        listener.setSourceContent(content);   // precompute line-start offsets for accurate columns
-        if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
-        var out = new PrintWriter(new StringWriter());
-        var api = IAPI.make(out, listener);
-
-        ProofResultCollector prc = null;
-        if (collectProofResults) {
-            prc = new ProofResultCollector();
-            api.setProofResultListener(prc);
-        }
-        // Fire the hook after ProofResultCollector is installed so the count supplier
-        // reflects live proof completions from the very start of execute().
-        if (onApiCreated != null) {
-            final ProofResultCollector prcFinal = prc;
-            onApiCreated.accept(api, () -> prcFinal == null ? 0 : prcFinal.getResults().size());
-        }
-
-        Path tempDir = null;
-        try {
-            // Determine the file argument passed to execute(), and optionally a MockFiles
-            // container.  When useMockFiles is true the content is served in-memory and
-            // no temp directory is created; when false, write a temp file as before.
-            final String fileArg;
-            final String targetUriStr;
-            final org.openjml.MockFiles mockFilesObj;
-            if (useMockFiles) {
-                java.net.URI fileUri = java.net.URI.create(uri);
-                MockJavaFileObject mockJfo = new MockJavaFileObject(fileUri, content);
-                mockFilesObj = new org.openjml.MockFiles();
-                mockFilesObj.addMockByUri(fileUri.normalize(), mockJfo);
-                fileArg = mockJfo.getName();
-                targetUriStr = mockJfo.toUri().toString();
-            } else {
-                tempDir = Files.createTempDirectory("openjml-lsp-");
-                Path tempFile = writeToTempDir(tempDir, uri, content);
-                mockFilesObj = null;
-                fileArg = tempFile.toString();
-                targetUriStr = tempFile.toUri().toString();
-            }
-
-            List<String> args = buildArgs(settings, modeFlag);
-            if (methodName != null && !methodName.isEmpty()) {
-                args.add("--method");
-                args.add(methodName);
-            }
-            args.add(fileArg);
-            logInvocation("runOnContent", args, content);
-
-            String fname = fileName(uri);
-            String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
-            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname + invocationSuffix(args));
-            else log(ts() + " --esc " + fname + methodDesc + invocationSuffix(args));
-
-            // Capture AST in local vars so we can store with IAPI after execution.
-            // Context guard prevents cross-contamination between concurrent runs that
-            // share the same URI (possible when useMockFiles is true).
-            final JmlCompilationUnit[] capturedAst = { null };
-            final com.sun.tools.javac.util.Context[] capturedCtx = { null };
-            IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
-                if (ctx != api.context()) return;
-                if (jfo.toUri().toString().equals(targetUriStr)) {
-                    capturedAst[0] = (JmlCompilationUnit) ast;
-                    capturedCtx[0] = ctx;
-                }
-            };
-            api.setASTListener(astListener);
-            int rc;
-            try {
-                rc = mockFilesObj != null
-                        ? api.execute(args.toArray(new String[0]), mockFilesObj)
-                        : api.execute(args.toArray(new String[0]));
-            } finally {
-                api.removeASTListener(astListener);
-            }
-            postExecute(rc, modeFlag, listener);
-
-            if (capturedAst[0] != null) {
-                if ("--check".equals(modeFlag)) {
-                    if (rc == 0) {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
-                                      api, listener, fileArg);
-                    } else {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
-                    }
-                    cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
-                } else if ("--esc".equals(modeFlag)) {
-                    // ESC also produces a valid attributed AST — store it as a basic entry
-                    // (no IAPI) so method discovery works after ESC, but only when no
-                    // check-mode entry with a stored IAPI already exists.
-                    ASTCache.Entry existing = AST_CACHE.get(uri);
-                    if (existing == null || !existing.supportsDoEsc()) {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
-                        cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
-                    }
-                }
-            }
-
-            Map<String, IProverResult.Kind> proofResults =
-                    prc != null ? prc.getResults() : Map.of();
-            // When --method targets a specific method, retain only that method's result;
-            // other methods are SKIPPED by OpenJML and are not meaningful to the caller.
-            // Keys are now FQN+signature ("ClassName.m(int)"); compare by bare name.
-            if (methodName != null && !methodName.isEmpty()) {
-                String simpleTarget = bareMethodName(methodName);
-                proofResults = proofResults.entrySet().stream()
-                        .filter(e -> bareMethodName(e.getKey()).equals(simpleTarget))
-                        .collect(java.util.stream.Collectors.toMap(
-                                Map.Entry::getKey, Map.Entry::getValue,
-                                (a, b) -> a, java.util.LinkedHashMap::new));
-            }
-            List<org.eclipse.lsp4j.Diagnostic> diags =
-                    listener.toLspDiagnostics(fileArg, uri);
-            if ("--check".equals(modeFlag))
-                log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
-            else if (rc == 5)
-                log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
-            else
-                log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + diags.size() + " diagnostic(s)");
-            return new CheckResult(diags, rc,
-                    proofResults, listener.toForeignMessages(fileArg),
-                    listener.toLspDiagnosticsByFile());
-        } catch (IOException e) {
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
-        } finally {
-            if (tempDir != null) {
-                try {
-                    Files.walk(tempDir)
-                         .sorted(Comparator.reverseOrder())
-                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
-                } catch (IOException ignored) {}
-            }
-        }
+        return runOnContentWithContext(uri, content, Map.of(), settings,
+                modeFlag, methodName, collectProofResults, onApiCreated, null);
     }
 
     private static CheckResult runOnFile(
@@ -2084,8 +1999,8 @@ public class CheckRunner {
             log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
         else if (rc == 5)
             log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
-        else if (proofResults.isEmpty())
-            log(ts() + " --esc " + fname + ": " + diags.size() + " diagnostic(s)");
+        else
+            log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + diags.size() + " diagnostic(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new CheckResult(diags, rc,
                 proofResults, listener.toForeignMessages(filePath),
