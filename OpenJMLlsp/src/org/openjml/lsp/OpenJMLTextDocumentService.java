@@ -2905,6 +2905,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private void refreshCodeLenses() {
         if (client != null) client.refreshCodeLenses();
+        refreshSemanticTokens();
+    }
+
+    private void refreshSemanticTokens() {
+        if (client != null) client.refreshSemanticTokens();
     }
 
     // --- diagnostic merging ---

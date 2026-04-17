@@ -1155,15 +1155,20 @@ public class SemanticTokensAstTest extends LspTestBase {
     // Tests: JML type-level clauses
     // -----------------------------------------------------------------------
 
-    /** An {@code in} clause (data group membership) must produce a keyword token. */
+    /**
+     * An {@code in} clause (data group membership) must produce a keyword token.
+     * Exercises {@code visitJmlTypeClauseIn}.
+     * The {@code in} clause must follow the field declaration it annotates.
+     */
     @Test
     public void testInClause_KeywordToken() throws Exception {
         String uri = "file:///SemTok_InClause.java";
+        // 'in' clause must come AFTER the field it annotates (parser uses mostRecentVarDecl).
         String source =
                 "public class SemTok_InClause {\n"
                 + "    //@ ghost int myGroup;\n"
-                + "    //@ in myGroup;\n"               // line 2: 'in' at col 8
                 + "    public int x;\n"
+                + "    //@ in myGroup;\n"               // line 3: follows x; exercises visitJmlTypeClauseIn
                 + "}\n";
         checkContent(uri, source);
 
@@ -1258,15 +1263,17 @@ public class SemanticTokensAstTest extends LspTestBase {
     /**
      * A {@code maps} clause must produce a keyword token.
      * Exercises {@code visitJmlTypeClauseMaps}.
+     * The {@code maps} clause must follow the field it annotates.
      */
     @Test
     public void testMapsClause_KeywordToken() throws Exception {
         String uri = "file:///SemTok_Maps.java";
+        // 'maps' clause must come AFTER the field it annotates (parser uses mostRecentVarDecl).
         String source =
                 "public class SemTok_Maps {\n"
                 + "    //@ ghost int group;\n"
-                + "    //@ maps x \\into group;\n"      // line 2
                 + "    public int x;\n"
+                + "    //@ maps x \\into group;\n"      // line 3: follows x; exercises visitJmlTypeClauseMaps
                 + "}\n";
         checkContent(uri, source);
 
@@ -1306,7 +1313,7 @@ public class SemanticTokensAstTest extends LspTestBase {
 
     /**
      * An {@code accessible} clause must produce a keyword token.
-     * Exercises {@code visitJmlMethodClauseConditional}.
+     * Exercises {@code visitJmlMethodClauseStoreRef}.
      */
     @Test
     public void testAccessibleClause_KeywordToken() throws Exception {
@@ -1324,6 +1331,52 @@ public class SemanticTokensAstTest extends LspTestBase {
 
         List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
         assertTrue("'accessible' clause must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * A {@code duration} clause with a conditional ({@code if} guard) must produce a keyword token.
+     * Exercises {@code visitJmlMethodClauseConditional} — produced by
+     * {@code duration}, {@code measured_by}, and {@code working_space} clauses.
+     */
+    @Test
+    public void testDurationClause_ConditionalKeyword() throws Exception {
+        String uri = "file:///SemTok_Duration.java";
+        String source =
+                "public class SemTok_Duration {\n"
+                + "    //@ duration 0 if true;\n"       // line 1: exercises visitJmlMethodClauseConditional
+                + "    public int m() { return 0; }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'duration' clause must produce a keyword token",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * An {@code old} variable declaration in a spec case must produce a keyword token.
+     * Exercises {@code visitJmlMethodClauseDecl}.
+     */
+    @Test
+    public void testJmlMethodClauseDecl_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_OldDecl.java";
+        String source =
+                "public class SemTok_OldDecl {\n"
+                + "    //@ old int v = 0;\n"            // line 1: exercises visitJmlMethodClauseDecl
+                + "    //@ ensures \\result >= v;\n"
+                + "    public int m() { return 1; }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'old' variable declaration must produce a keyword token",
                 countByType(tokens, KW) >= 1);
     }
 
@@ -1763,6 +1816,84 @@ public class SemanticTokensAstTest extends LspTestBase {
         List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
         assertFalse("Compound assignment '+=' must produce an operator token",
                 byType(tokens, OP).isEmpty());
+    }
+
+    // -----------------------------------------------------------------------
+    // Tests: break, continue, new array
+    // -----------------------------------------------------------------------
+
+    /**
+     * In full mode, a {@code break} statement must produce a keyword token.
+     * Exercises {@code visitBreak}.
+     */
+    @Test
+    public void testFullMode_Break_Keyword() throws Exception {
+        String uri = "file:///SemTok_Break.java";
+        String source =
+                "public class SemTok_Break {\n"
+                + "    public int m(int n) {\n"
+                + "        for (int i = 0; i < n; i++) {\n"
+                + "            break;\n"                // line 3: 'break' at col 12
+                + "        }\n"
+                + "        return 0;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 3, 12, 5);  // "break"
+    }
+
+    /**
+     * In full mode, a {@code continue} statement must produce a keyword token.
+     * Exercises {@code visitContinue}.
+     */
+    @Test
+    public void testFullMode_Continue_Keyword() throws Exception {
+        String uri = "file:///SemTok_Continue.java";
+        String source =
+                "public class SemTok_Continue {\n"
+                + "    public int m(int n) {\n"
+                + "        int s = 0;\n"
+                + "        for (int i = 0; i < n; i++) {\n"
+                + "            if (i == 0) continue;\n" // line 4: 'continue' at col 24
+                + "            s += i;\n"
+                + "        }\n"
+                + "        return s;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 4, 24, 8);  // "continue"
+    }
+
+    /**
+     * In full mode, a {@code new} array allocation must produce a keyword token.
+     * Exercises {@code visitNewArray}.
+     */
+    @Test
+    public void testFullMode_NewArray_Keyword() throws Exception {
+        String uri = "file:///SemTok_NewArray.java";
+        String source =
+                "public class SemTok_NewArray {\n"
+                + "    public int[] m(int n) {\n"
+                + "        return new int[n];\n"        // line 2: 'new' at col 15
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, true));
+        assertToken(tokens, KW, 2, 15, 3);  // "new"
     }
 
     // -----------------------------------------------------------------------

@@ -24,6 +24,13 @@ let client;
 let outputChannel;
 
 /**
+ * EventEmitter that fires when the server sends workspace/semanticTokens/refresh.
+ * Wired to the custom JML DocumentSemanticTokensProvider so VS Code re-queries
+ * tokens after each --check without requiring the user to make an edit.
+ */
+let jmlTokensEmitter;
+
+/**
  * {@code true} when the server was stopped intentionally (settings change,
  * deactivate, explicit restart).  Prevents the state-change listener from
  * showing a crash-recovery dialog on deliberate stops.
@@ -255,6 +262,18 @@ async function startClient() {
 
     client.start().then(() => {
         outputChannel.appendLine(ts() + ' server started');
+
+        // Handle workspace/semanticTokens/refresh — server sends this after each
+        // --check so clients know to re-request tokens (regex → AST-based upgrade).
+        // We intercept it here instead of letting vscode-languageclient's
+        // SemanticTokensFeature handle it, because that feature only re-queries its
+        // own (suppressed) LSP-channel provider, not our direct custom provider.
+        // Firing jmlTokensEmitter causes VS Code to re-call provideDocumentSemanticTokens
+        // on the next render cycle for all open Java/JML files.
+        client.onRequest('workspace/semanticTokens/refresh', () => {
+            if (jmlTokensEmitter) jmlTokensEmitter.fire(undefined);
+            return null;
+        });
 
         // Handle $/openjml/actionMessage — richer alternative to window/logMessage
         // sent by the server when the client declares supportsActionMessages: true.
@@ -893,10 +912,17 @@ async function activate(context) {
     // This runs independently of (and merges additively with) the Red Hat Java
     // extension's semantic tokens, avoiding the LSP-channel provider race.
     // Token types must match SemanticTokensProvider.TOKEN_TYPES on the server.
+    //
+    // jmlTokensEmitter is fired when the server sends workspace/semanticTokens/refresh
+    // (handled in startClient) so VS Code re-queries this provider after each --check
+    // without the user needing to make a document edit.
+    jmlTokensEmitter = new vscode.EventEmitter();
+    context.subscriptions.push(jmlTokensEmitter);
     const jmlLegend = new vscode.SemanticTokensLegend(['keyword', 'macro', 'variable'], []);
     const jmlTokensProvider = vscode.languages.registerDocumentSemanticTokensProvider(
         [{ language: 'java' }, { language: 'jml' }],
         {
+            onDidChangeSemanticTokens: jmlTokensEmitter.event,
             async provideDocumentSemanticTokens(document) {
                 if (!client) return new vscode.SemanticTokens(new Uint32Array([]));
                 try {

@@ -266,6 +266,8 @@ The plugin implements its own Find Declaration action (under OpenJML &gt;&gt; Fi
  
 The action will implicitly do a full project check if needed. 
 
+Declarations are only found within a project.
+
 <H3><A NAME="FindReferences">Find References</A></H3>
 
 The standard Java 'Find References' action applies only to Java code and cannot be overridden to apply also to JML text.
@@ -274,6 +276,8 @@ The plugin implements its own Find References action (under OpenJML &gt;&gt; Fin
 
  The action will implicitly do a full project check if needed, in order to be able to find all references consistently.
 
+ References are only found within a project.
+
 <H3><A NAME="Rename">Rename</A></H3>
 
 The standard Java 'Rename' refactoring action applies only to Java code and cannot be overridden to apply also to JML text.
@@ -281,6 +285,8 @@ The plugin implements its own renaming action (under OpenJML &gt;&gt; Rename); t
 the corresponding identifiers in JML text also.
 
 The action will implicitly do a full project check if needed, in order to be able to find all references consistently.
+
+References are only renamed within a project.
 
 <H3><A NAME="FindIdentifiers">Find all declarations</A></H3>
 
