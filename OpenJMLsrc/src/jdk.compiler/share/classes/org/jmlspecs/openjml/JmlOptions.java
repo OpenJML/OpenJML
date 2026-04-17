@@ -397,6 +397,11 @@ public class JmlOptions extends Options {
             String v = properties.getProperty(key);
             if (key.startsWith(Strings.optionPropertyPrefix)) {
                 String rest = key.substring(Strings.optionPropertyPrefix.length());
+                boolean negate = false;
+                if (rest.startsWith("no-")) {
+                    negate = true;
+                    rest = rest.substring(3); // 3 == "no-".length()
+                }
                 rest = "--" + rest;
                 JmlOption opt = JmlOption.find(rest);
                 if (opt != null) {
@@ -405,7 +410,7 @@ public class JmlOptions extends Options {
                     } else {
                         opts.put(rest, v);
                     }
-                    opt.check(context, false);
+                    opt.check(context, negate);
                 } else {
                     Log.instance(context).error("jml.message","No such option: " + rest);
                 }
