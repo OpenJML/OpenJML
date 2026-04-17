@@ -137,6 +137,10 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     @Override
     public Object getInitializationOptions(URI rootUri) {
         Map<String, Object> opts = OpenJMLOptions.buildInitializationOptions();
+        // Advertise support for $/openjml/actionMessage so the server routes
+        // advisory and error messages through the richer custom notification
+        // instead of plain window/logMessage.
+        opts.put("supportsActionMessages", true);
         Console.log("Sending initializationOptions: checkTriggerOn="
                 + opts.get("checkTriggerOn") + ", escEngine=" + opts.get("escEngine"));
         return opts;
@@ -335,100 +339,125 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     // -----------------------------------------------------------------------
 
     /**
-     * Intercept every incoming server message and route {@code window/logMessage}
-     * notifications to the JML Console.
+     * Intercepts raw LSP notifications before LSP4E routing.
      *
-     * <p>In practice {@link OpenJMLLanguageClient#logMessage} is never invoked —
-     * all {@code window/logMessage} notifications arrive here and nowhere else.
-     * Routing by type:
+     * <p>Handles two notification methods:
      * <ul>
-     *   <li>{@code Error} (1) → {@link Console#errorlog} (red, with timestamp)</li>
-     *   <li>{@code Warning} (2), {@code Info} (3) → {@link Console#log} (with timestamp)</li>
-     *   <li>{@code Log} (4) → {@link Console#logRaw} (no timestamp; verbose invocation lines)</li>
+     *   <li>{@code $/openjml/actionMessage} — sent by the server to capable clients.
+     *       Logs to the JML Console (severity-coloured) and optionally shows an
+     *       action dialog (e.g. "Open Preferences").</li>
+     *   <li>{@code window/logMessage} — fallback for generic clients, and for
+     *       {@code Log}-type verbose output that never needs a dialog.
+     *       Routing by type: Log (4) → {@link Console#logRaw} (no timestamp);
+     *       everything else → {@link Console#log} (with timestamp).</li>
      * </ul>
      */
     @Override
     public void handleMessage(org.eclipse.lsp4j.jsonrpc.messages.Message message,
                               org.eclipse.lsp4j.services.LanguageServer server,
                               java.net.URI rootUri) {
-        if (!(message instanceof org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage n)
-                || !"window/logMessage".equals(n.getMethod())) return;
-        Object params = n.getParams();
-        String text = extractLogMessageText(params);
-        if (text == null) return;
-        int type = extractMessageType(params);
-        if (type == 1) {
-            // Error: command-line error (exit code 2). Log in red and offer
-            // "Open Preferences → Settings" dialog.
-            Console.errorlog(text);
-            showPreferencesDialog(text, "org.jmlspecs.openjml.eclipse.SettingsPage");
-        } else if (type == 2) {
-            // Warning: tool-level warning (e.g. bad --warn key). Log in red and
-            // offer "Open Preferences → Tool Options" dialog.
-            Console.errorlog(text);
-            showPreferencesDialog(text, "org.jmlspecs.openjml.eclipse.ToolOptionsPage");
-        } else if (type == 4) {
-            Console.logRaw(text);
-        } else {
-            Console.log(text);
+        if (!(message instanceof org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage n)) return;
+
+        if ("$/openjml/actionMessage".equals(n.getMethod())) {
+            handleActionMessage(n.getParams());
+            return;
+        }
+
+        if ("window/logMessage".equals(n.getMethod())) {
+            Object params = n.getParams();
+            String text = extractField(params, "message");
+            if (text == null) return;
+            int type = extractIntField(params, "type", 3);
+            if (type == 4) Console.logRaw(text);
+            else           Console.log(text);
         }
     }
 
     /**
-     * Show a dialog on the UI thread offering to open the specified preference page.
-     * Uses {@code asyncExec} so it does not block the message-handling thread.
+     * Handles a {@code $/openjml/actionMessage} notification.
+     *
+     * <p>Logs the message to the JML Console with severity-appropriate coloring,
+     * then — if the {@code actions} list is non-empty — shows a dialog on the SWT
+     * UI thread whose buttons correspond to the action items.
      */
-    private static void showPreferencesDialog(String messageText, String pageId) {
+    private static void handleActionMessage(Object rawParams) {
+        String text    = extractField(rawParams, "message");
+        int    type    = extractIntField(rawParams, "type", 3);
+        java.util.List<?> actions = extractListField(rawParams, "actions");
+
+        if (text == null || text.isBlank()) return;
+
+        // Log to the JML Console (errors and warnings in red).
+        if (type == 1 || type == 2) Console.errorlog(text);
+        else if (type == 4)         Console.logRaw(text);
+        else                        Console.log(text);
+
+        // Show a dialog only when there are action items.
+        Console.log("[OpenJML] actionMessage: type=" + type + " actions=" + actions.size()
+                + " params.class=" + (rawParams == null ? "null" : rawParams.getClass().getName()));
+        if (actions == null || actions.isEmpty()) return;
+
         Display display = Display.getDefault();
         if (display == null || display.isDisposed()) return;
         display.asyncExec(() -> {
             Shell shell = display.getActiveShell();
-            MessageDialog dialog = new MessageDialog(
-                    shell, "OpenJML", null,
-                    messageText + "\n\nOpen the OpenJML preference settings to review option values?",
-                    MessageDialog.WARNING,
-                    new String[] { "Open Preferences", "Dismiss" }, 0);
-            if (dialog.open() == 0) {
+            String[] labels = actions.stream()
+                    .map(a -> { String t = extractField(a, "title"); return t != null ? t : "OK"; })
+                    .toArray(String[]::new);
+            int dialogStyle = (type == 1) ? MessageDialog.ERROR : MessageDialog.WARNING;
+            MessageDialog dialog = new MessageDialog(shell, "OpenJML", null,
+                    text, dialogStyle, labels, 0);
+            int choice = dialog.open();
+            if (choice < 0 || choice >= actions.size()) return;
+            String kind   = extractField(actions.get(choice), "kind");
+            String target = extractField(actions.get(choice), "target");
+            if ("openPreferences".equals(kind)) {
+                String pageId = resolvePreferencesPageId(target);
                 var prefDialog = PreferencesUtil.createPreferenceDialogOn(shell, pageId, null, null);
                 if (prefDialog != null) prefDialog.open();
             }
+            // "dismiss" and unknown kinds: no-op
         });
     }
 
-    /** Returns the numeric {@code type} field from {@code window/logMessage} params, or 3 (Info) if unknown. */
-    private static int extractMessageType(Object params) {
-        if (params instanceof org.eclipse.lsp4j.MessageParams mp) {
-            var t = mp.getType();
-            return t == null ? 3 : t.getValue();
-        }
-        String json = params == null ? "" : params.toString();
-        var m = java.util.regex.Pattern.compile("\"type\"\\s*:\\s*(\\d+)").matcher(json);
-        if (m.find()) { try { return Integer.parseInt(m.group(1)); } catch (NumberFormatException ignored) {} }
-        return 3;
+    /**
+     * Maps an abstract preference target name (sent by the server) to the
+     * fully-qualified Eclipse preference page ID.
+     */
+    private static String resolvePreferencesPageId(String target) {
+        if ("toolOptions".equals(target)) return "org.jmlspecs.openjml.eclipse.ToolOptionsPage";
+        return "org.jmlspecs.openjml.eclipse.SettingsPage";  // "settings" and unknown
     }
 
+    // -----------------------------------------------------------------------
+    // Generic JSON field extraction helpers
+    // -----------------------------------------------------------------------
+    // Params arriving in handleMessage may be either typed lsp4j POJOs (if
+    // deserialized before routing) or raw Gson JsonObjects from a different
+    // OSGi classloader.  We avoid direct Gson API calls and use toString()
+    // parsing with regex as a universal fallback.
+
     /**
-     * Extracts the "message" field from a {@code window/logMessage} params object.
-     *
-     * The params may be a typed {@link org.eclipse.lsp4j.MessageParams} (if LSP4J has
-     * already deserialized it) or a raw Gson {@code JsonObject} (if accessed before
-     * LSP4J routing). We avoid a direct Gson class reference to sidestep OSGi
-     * classloader issues and instead fall back to {@code toString()} parsing.
+     * Extracts a named string field from an LSP params object.
+     * Works whether params is a typed POJO (via reflection) or a raw JSON object
+     * (via {@code toString()} regex).
      */
-    private static String extractLogMessageText(Object params) {
+    private static String extractField(Object params, String fieldName) {
         if (params == null) return null;
-        if (params instanceof org.eclipse.lsp4j.MessageParams mp) {
-            return mp.getMessage();
-        }
-        // params is likely a Gson JsonObject from a different classloader.
-        // JsonObject.toString() produces JSON like {"type":3,"message":"..."}.
-        // Use a simple regex to extract the message field.
+        // Try reflection first (works for typed POJOs and Gson JsonObject).
+        try {
+            var method = params.getClass().getMethod("get"
+                    + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1));
+            Object val = method.invoke(params);
+            return val instanceof String s ? s : null;
+        } catch (Exception ignored) {}
+        // Fallback: regex on toString() JSON representation.
         String json = params.toString();
         var m = java.util.regex.Pattern
-                .compile("\"message\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
+                .compile("\"" + java.util.regex.Pattern.quote(fieldName)
+                        + "\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
                 .matcher(json);
         if (m.find()) {
-            // Unescape basic JSON escape sequences
             return m.group(1)
                     .replace("\\\"", "\"")
                     .replace("\\\\", "\\")
@@ -437,6 +466,67 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
                     .replace("\\t", "\t");
         }
         return null;
+    }
+
+    /** Extracts a named integer field; returns {@code defaultValue} if absent or unparseable. */
+    private static int extractIntField(Object params, String fieldName, int defaultValue) {
+        if (params == null) return defaultValue;
+        // Try reflection.
+        try {
+            var method = params.getClass().getMethod("get"
+                    + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1));
+            Object val = method.invoke(params);
+            if (val instanceof Number n) return n.intValue();
+            if (val != null) return Integer.parseInt(val.toString());
+        } catch (Exception ignored) {}
+        // Fallback: regex.
+        String json = params.toString();
+        var m = java.util.regex.Pattern
+                .compile("\"" + java.util.regex.Pattern.quote(fieldName) + "\"\\s*:\\s*(\\d+)")
+                .matcher(json);
+        if (m.find()) { try { return Integer.parseInt(m.group(1)); } catch (NumberFormatException ignored) {} }
+        return defaultValue;
+    }
+
+    /**
+     * Extracts a named array field as a {@code List<?>}.
+     *
+     * <p>Tries three strategies in order:
+     * <ol>
+     *   <li>Gson {@code JsonObject.get(fieldName)} → iterate via {@code size()} /
+     *       {@code get(int)} — works for any Gson version and any OSGi classloader.</li>
+     *   <li>Typed POJO {@code getFieldName()} returning a {@link java.util.List}.</li>
+     *   <li>Parse the JSON {@code toString()} to count array elements (last resort).</li>
+     * </ol>
+     * Returns an empty list if the field is absent or cannot be read.
+     */
+    private static java.util.List<?> extractListField(Object params, String fieldName) {
+        if (params == null) return java.util.List.of();
+
+        // Strategy 1: Gson JsonObject.get(String) → JsonArray via size()/get(int).
+        // Does NOT use asList() (added in Gson 2.10) so it works with any Gson bundle.
+        try {
+            java.lang.reflect.Method get = params.getClass().getMethod("get", String.class);
+            Object arr = get.invoke(params, fieldName);
+            if (arr != null) {
+                java.lang.reflect.Method size  = arr.getClass().getMethod("size");
+                java.lang.reflect.Method getAt = arr.getClass().getMethod("get", int.class);
+                int n = (int) size.invoke(arr);
+                var list = new java.util.ArrayList<>(n);
+                for (int i = 0; i < n; i++) list.add(getAt.invoke(arr, i));
+                return java.util.Collections.unmodifiableList(list);
+            }
+        } catch (Exception ignored) {}
+
+        // Strategy 2: typed POJO getter (e.g. getActions())
+        try {
+            java.lang.reflect.Method getter = params.getClass().getMethod("get"
+                    + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1));
+            Object val = getter.invoke(params);
+            if (val instanceof java.util.List<?> list) return list;
+        } catch (Exception ignored) {}
+
+        return java.util.List.of();
     }
 
     @Override

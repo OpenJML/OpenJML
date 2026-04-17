@@ -129,6 +129,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.useIntegratedOutline != null) globalSettings.useIntegratedOutline = src.useIntegratedOutline;
         if (src.javaMode != null) globalSettings.javaMode = src.javaMode;
         if (src.client  != null) globalSettings.client   = src.client;
+        // Boolean primitive: always propagate — clients that declare support always send true.
+        if (src.supportsActionMessages) globalSettings.supportsActionMessages = true;
         if (src.escThreads > 0 && src.escThreads != globalSettings.escThreads) {
             globalSettings.escThreads = src.escThreads;
             var old = globalSettings.escPool;

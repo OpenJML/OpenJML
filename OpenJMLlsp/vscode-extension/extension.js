@@ -200,7 +200,7 @@ async function startClient() {
         documentSelector: [{ scheme: 'file', language: 'java' }, { scheme: 'file', language: 'jml' }],
         outputChannel,          // reuse our named channel; suppresses the auto-created one
         revealOutputChannelOn: RevealOutputChannelOn.Warn,
-        initializationOptions: getSettings(),
+        initializationOptions: { ...getSettings(), supportsActionMessages: true },
         synchronize: {
             configurationSection: 'openjml',
         },
@@ -255,6 +255,28 @@ async function startClient() {
 
     client.start().then(() => {
         outputChannel.appendLine(ts() + ' server started');
+
+        // Handle $/openjml/actionMessage — richer alternative to window/logMessage
+        // sent by the server when the client declares supportsActionMessages: true.
+        client.onNotification('$/openjml/actionMessage', params => {
+            outputChannel.appendLine(params.message);
+            const actions = params.actions;
+            if (!Array.isArray(actions) || actions.length === 0) return;
+            // Build button list and show VS Code message dialog.
+            const titles = actions.map(a => a.title || 'OK');
+            const show = params.type === 1
+                ? vscode.window.showErrorMessage
+                : vscode.window.showWarningMessage;
+            show(params.message, ...titles).then(chosen => {
+                const action = actions.find(a => a.title === chosen);
+                if (!action || action.kind !== 'openPreferences') return;
+                // Map abstract target to VS Code settings section.
+                const section = action.target === 'toolOptions'
+                    ? 'openjml.toolOptions'
+                    : 'openjml';
+                vscode.commands.executeCommand('workbench.action.openSettings', section);
+            });
+        });
     }).catch(err => {
         outputChannel.appendLine(ts() + ' server failed to start: ' + (err?.message ?? err));
     });

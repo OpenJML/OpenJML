@@ -352,6 +352,7 @@ public class CheckRunner {
         }
         System.err.println("[CheckRunner.runCheckDir] exit code " + rc
                 + " for " + paths.size() + " path(s)");
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of());
     }
 
@@ -457,6 +458,7 @@ public class CheckRunner {
         }
         System.err.println("[CheckRunner.runCheckDirWithContext] exit code " + rc
                 + " for " + fileList.size() + " file(s)");
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of());
     }
 
@@ -525,6 +527,7 @@ public class CheckRunner {
             int rc = api.execute(args.toArray(new String[0]));
             System.err.println("[CheckRunner.runCheckDirWithContextLegacy] exit code " + rc
                     + " for " + fileList.size() + " file(s)");
+            for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of());
         } catch (IOException e) {
             System.err.println("[CheckRunner.runCheckDirWithContextLegacy] I/O error: " + e);
@@ -616,6 +619,7 @@ public class CheckRunner {
             log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
         else
             log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(diagsByUri, rc, proofResults);
     }
 
@@ -744,6 +748,7 @@ public class CheckRunner {
             log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
         else
             log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(diagsByUri, rc, proofResults);
     }
 
@@ -862,6 +867,7 @@ public class CheckRunner {
             log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
         else
             log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+            for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new DirCheckResult(diagsByUri, rc, proofResults);
         } catch (IOException e) {
             System.err.println("[CheckRunner.runEscDirWithContextLegacy] I/O error: " + e);
@@ -917,7 +923,7 @@ public class CheckRunner {
             for (String a : args) sb.append(' ').append(a);
             log(sb.toString());
         }
-
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new CheckResult(List.of(), rc, Map.of(), List.of(),
                 listener.toLspDiagnosticsByFile());
     }
@@ -1059,6 +1065,7 @@ public class CheckRunner {
             } catch (Throwable t) {
                 System.err.println("[CheckRunner.checkModifiedFiles] execute failed: " + t);
             }
+            for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
             for (List<org.eclipse.lsp4j.Diagnostic> diags :
                     listener.toLspDiagnosticsAll(fileArgToRealUri).values()) {
@@ -1110,7 +1117,7 @@ public class CheckRunner {
             } catch (Throwable t) {
                 System.err.println("[CheckRunner.checkModifiedFiles] execute failed: " + t);
             }
-
+            for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             // Collect all diagnostics across files.
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
             for (List<org.eclipse.lsp4j.Diagnostic> diags :
@@ -1208,6 +1215,7 @@ public class CheckRunner {
             } finally {
                 api.removeASTListener(astListener);
             }
+            for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
             for (List<org.eclipse.lsp4j.Diagnostic> diags :
                     listener.toLspDiagnosticsAll(fileArgToRealUri).values()) {
@@ -1265,7 +1273,7 @@ public class CheckRunner {
             } finally {
                 api.removeASTListener(astListener);
             }
-
+            for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
             for (List<org.eclipse.lsp4j.Diagnostic> diags :
                     listener.toLspDiagnosticsAll(tempPathToRealUri).values()) {
@@ -1333,6 +1341,7 @@ public class CheckRunner {
             logInvocation("runEscWithSources", args, primaryContent);
             int rc = api.execute(args.toArray(new String[0]), mockFiles);
             System.err.println("[CheckRunner.runEscWithSources] exit code " + rc);
+            for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new CheckResult(
                     listener.toLspDiagnostics(primaryJfo.getName(), primaryUri),
                     rc, prc.getResults(),
@@ -1359,7 +1368,7 @@ public class CheckRunner {
             logInvocation("runEscWithSources", args, primaryContent);
             int rc = api.execute(args.toArray(new String[0]));
             System.err.println("[CheckRunner.runEscWithSources] exit code " + rc);
-
+            for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new CheckResult(
                     listener.toLspDiagnostics(tempFile.toString(), primaryUri),
                     rc, prc.getResults(),
@@ -1523,6 +1532,7 @@ public class CheckRunner {
         System.err.println("[CheckRunner.runRacFile] exit code " + rc);
         List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
         log(ts() + " --rac " + fname + ": " + diags.size() + " diagnostic(s)");
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new CheckResult(diags, rc, Map.of(), listener.toForeignMessages(filePath), Map.of());
     }
 
@@ -1581,6 +1591,7 @@ public class CheckRunner {
             rc = -1;
         }
         System.err.println("[CheckRunner.runRacDir] exit code " + rc);
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of());
     }
 
@@ -2157,6 +2168,7 @@ public class CheckRunner {
             log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
         else if (proofResults.isEmpty())
             log(ts() + " --esc " + fname + ": " + diags.size() + " diagnostic(s)");
+        for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new CheckResult(diags, rc,
                 proofResults, listener.toForeignMessages(filePath), Map.of());
     }

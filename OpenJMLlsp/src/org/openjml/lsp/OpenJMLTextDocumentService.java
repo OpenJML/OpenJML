@@ -151,6 +151,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final String codeLensCommand;
     private LanguageClient client;
 
+    /**
+     * Set to {@code true} when the client declared {@code supportsActionMessages: true}
+     * in {@code initializationOptions}.  When true, advisory and error messages are
+     * sent via {@code $/openjml/actionMessage} instead of {@code window/logMessage}.
+     */
+    private boolean clientSupportsActionMessages = false;
+    /** Messages for which a dialog has already been shown this session; console logs still repeat. */
+    private final java.util.Set<String> shownDialogMessages =
+            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+
     private final ExecutorService          executor      = Executors.newCachedThreadPool();
     private final ScheduledExecutorService scheduler     = Executors.newSingleThreadScheduledExecutor();
 
@@ -285,18 +295,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         this.codeLensCommand = codeLensCommand;
     }
 
+    /** Called by {@link org.openjml.lsp.OpenJMLLanguageServer} after reading initializationOptions. */
+    public void setClientSupportsActionMessages(boolean supports) {
+        this.clientSupportsActionMessages = supports;
+    }
+
     public void connect(LanguageClient client) {
         this.client = client;
         CheckRunner.setLogCallback(msg -> {
             if (client != null)
                 client.logMessage(new MessageParams(MessageType.Log, msg));
         });
-        CheckRunner.setToolWarningCallback(msg -> {
-            // MessageType.Warning (type 2) signals the Eclipse client to log in red
-            // and show an "Open Preferences → Tool Options" dialog.
-            if (client != null)
-                client.logMessage(new MessageParams(MessageType.Warning, msg));
-        });
+        CheckRunner.setToolWarningCallback(msg ->
+                clientWarnPrefs(msg, "toolOptions"));
     }
 
     /**
@@ -2683,7 +2694,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         if (hasForeignErrors) {
             String fileName = uri.substring(uri.lastIndexOf('/') + 1);
-            clientWarn("OpenJML: ESC on " + fileName
+            clientLog("OpenJML: ESC on " + fileName
                     + " could not run — type errors in: " + String.join(", ", foreignFiles));
         }
     }
@@ -2912,14 +2923,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // --- command-line error reporting ---
 
     /**
-     * Reports an exit-code-2 (bad command-line argument) failure to the user
-     * via a {@code window/showMessageRequest} dialog.  The message includes any
-     * diagnostic text that OpenJML produced and directs the user to the
-     * Preferences page to review option values.  One button opens the client's
-     * Preferences page; the other dismisses the dialog.
-     *
-     * <p>Only one dialog is shown at a time; concurrent failures are suppressed
-     * until the current dialog is dismissed.
+     * Reports an exit-code-2 (bad command-line argument) failure to the user.
+     * The message includes any diagnostic text that OpenJML produced and directs
+     * the user to the Preferences page to review option values.
      */
     private void reportCommandLineError(List<Diagnostic> diagnostics) {
         if (client == null) return;
@@ -2936,31 +2942,96 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String msg = "OpenJML rejected a command-line option (exit code 2). "
                 + "Check the OpenJML preference settings for invalid values."
                 + (detail.isBlank() ? "" : "\n\n" + detail);
-        // MessageType.Error (type 1) signals the Eclipse client to log in red and
-        // show an "Open Preferences → Settings" dialog.  Using logMessage instead of
-        // showMessageRequest avoids LSP4E intercepting the dialog and bypassing our
-        // client-side "Open Preferences" handler.
-        client.logMessage(new MessageParams(MessageType.Error, msg));
+        clientErrorPrefs(msg, "settings");
     }
 
-    // --- client console logging helpers ---
+    // --- client console / action message helpers ---
 
-    /** Send an Info-level message to the client (shown timestamped in the JML Console). */
+    /**
+     * Send an Info-level message to the client (shown timestamped in the JML Console).
+     * Never triggers a dialog — use this for normal operational summaries.
+     */
     private void clientLog(String message) {
         if (client == null) return;
         client.logMessage(new MessageParams(MessageType.Info, message));
     }
 
-    /** Send a Warning-level message to the client (shown timestamped in the JML Console). */
-    private void clientWarn(String message) {
-        if (client == null) return;
-        client.logMessage(new MessageParams(MessageType.Warning, message));
+    /**
+     * Send an Error-level message with an acknowledgement dialog (dismiss only).
+     * Use for unexpected runtime failures (exceptions, protocol errors) that the
+     * user should see but cannot directly act on.
+     */
+    private void clientError(String message) {
+        sendActionMessage(1, message, List.of(dismiss()));
     }
 
-    /** Send an Error-level message to the client (shown timestamped in the JML Console). */
-    private void clientError(String message) {
+    /**
+     * Send a Warning-level message with an "Open Preferences" + dismiss dialog.
+     * Use when the cause is likely a misconfigured option.
+     *
+     * @param target  preference target: {@code "toolOptions"} or {@code "settings"}
+     */
+    private void clientWarnPrefs(String message, String target) {
+        sendActionMessage(2, message, List.of(openPrefs(target), dismiss()));
+    }
+
+    /**
+     * Send an Error-level message with an "Open Preferences" + dismiss dialog.
+     * Use when the cause is definitely a bad configuration value.
+     *
+     * @param target  preference target: {@code "toolOptions"} or {@code "settings"}
+     */
+    private void clientErrorPrefs(String message, String target) {
+        sendActionMessage(1, message, List.of(openPrefs(target), dismiss()));
+    }
+
+    /**
+     * Core send method. If the client declared {@code supportsActionMessages},
+     * sends {@code $/openjml/actionMessage}; otherwise falls back to
+     * {@code window/logMessage} so generic clients still see the text.
+     */
+    private void sendActionMessage(int type, String message,
+                                   List<ActionMessageParams.ActionItem> actions) {
         if (client == null) return;
-        client.logMessage(new MessageParams(MessageType.Error, message));
+        if (clientSupportsActionMessages) {
+            // Always send the notification so the client logs the message to its console.
+            // But suppress the dialog actions for repeated messages — the same warning
+            // (e.g. an unrecognised --warn key) would otherwise pop up on every
+            // per-file or per-method ESC sub-pass.
+            boolean firstOccurrence = shownDialogMessages.add(message);
+            var p = new ActionMessageParams();
+            p.type    = type;
+            p.message = message;
+            p.actions = firstOccurrence ? actions : List.of();
+            ((org.eclipse.lsp4j.jsonrpc.Endpoint) client).notify(
+                    "$/openjml/actionMessage", p);
+        } else {
+            // Fallback for generic clients: plain window/logMessage, no dialog.
+            MessageType mt = switch (type) {
+                case 1  -> MessageType.Error;
+                case 2  -> MessageType.Warning;
+                case 4  -> MessageType.Log;
+                default -> MessageType.Info;
+            };
+            client.logMessage(new MessageParams(mt, message));
+        }
+    }
+
+    /** Factory: a "dismiss / OK" action item. */
+    private static ActionMessageParams.ActionItem dismiss() {
+        var a = new ActionMessageParams.ActionItem();
+        a.kind  = "dismiss";
+        a.title = "OK";
+        return a;
+    }
+
+    /** Factory: an "Open Preferences" action item for the given target page. */
+    private static ActionMessageParams.ActionItem openPrefs(String target) {
+        var a = new ActionMessageParams.ActionItem();
+        a.kind   = "openPreferences";
+        a.target = target;
+        a.title  = "Open Preferences";
+        return a;
     }
 
     private void publishDiags(String uri, List<Diagnostic> diags) {

@@ -349,6 +349,17 @@ public class OpenJMLSettings {
     public volatile String javaMode;   // null = unset by client; use resolveDefaults()
 
     /**
+     * When {@code true}, the client understands the {@code $/openjml/actionMessage}
+     * custom notification and the server will use it instead of {@code window/logMessage}
+     * for advisory and error messages that may offer actions (e.g. "Open Preferences").
+     *
+     * <p>Capable clients set this to {@code true} in {@code initializationOptions}.
+     * Generic clients omit it (defaults to {@code false}), and the server falls back
+     * to plain {@code window/logMessage}.
+     */
+    public volatile boolean supportsActionMessages = false;
+
+    /**
      * Known-client hint — lets the server tailor capability defaults without the
      * user having to set every flag manually.
      * <ul>

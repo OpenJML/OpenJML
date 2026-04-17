@@ -196,6 +196,9 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // is never empty (at minimum it contains the "__workspace__" entry).
         textDocumentService.updateProjectSettings(globalSettings.projects);
 
+        // Propagate capability flag — must be read after applyRaw() has populated it.
+        textDocumentService.setClientSupportsActionMessages(globalSettings.supportsActionMessages);
+
         // Auto-discover openjml.properties at each workspace root unless the
         // client already supplied an explicit propertiesFile setting.
         if (globalSettings.propertiesFile == null || globalSettings.propertiesFile.isEmpty()) {
