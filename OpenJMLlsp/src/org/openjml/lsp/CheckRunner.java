@@ -2285,7 +2285,7 @@ public class CheckRunner {
 
         List<org.eclipse.lsp4j.Diagnostic> lspDiags =
                 LspDiagnosticListener.toLspDiagnosticsFromList(
-                        rawDiags, entry.sourcePath(), uri);
+                        rawDiags, entry.sourcePath(), uri, DiagnosticConverter.SOURCE_ESC);
         IProverResult.Kind kind = result != null ? result.result() : null;
         int exitCode = (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) ? 6 : 0;
         System.err.println("[CheckRunner.doEscOneMethod] " + method.name

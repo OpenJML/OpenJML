@@ -123,17 +123,6 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         return result;
     }
 
-    /**
-     * {@link #toLspDiagnosticsFromList} with {@link DiagnosticConverter#SOURCE_CHECK}
-     * as the source tag.
-     */
-    public static List<org.eclipse.lsp4j.Diagnostic> toLspDiagnosticsFromList(
-            List<Diagnostic<? extends JavaFileObject>> rawDiags,
-            String sourcePath, String targetUri) {
-        return toLspDiagnosticsFromList(rawDiags, sourcePath, targetUri,
-                                        DiagnosticConverter.SOURCE_CHECK);
-    }
-
     public List<Diagnostic<? extends JavaFileObject>> getDiagnostics() {
         return Collections.unmodifiableList(collected);
     }

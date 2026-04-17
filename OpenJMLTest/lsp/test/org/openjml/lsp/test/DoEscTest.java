@@ -1,8 +1,10 @@
 package org.openjml.lsp.test;
 
+import org.eclipse.lsp4j.Diagnostic;
 import org.junit.Test;
 import org.openjml.IProverResult;
 import org.openjml.lsp.CheckRunner;
+import org.openjml.lsp.DiagnosticConverter;
 import org.openjml.lsp.OpenJMLSettings;
 
 import java.util.ArrayList;
@@ -214,5 +216,36 @@ public class DoEscTest extends LspTestBase {
         // Since the file doesn't exist on disk either, we just verify no exception
         // is thrown and a result is returned (exit code may be non-zero).
         assertNotNull("runDoEscMethod should return a result even when fallback fails", result);
+    }
+
+    // -----------------------------------------------------------------------
+    // (6) doESC diagnostics must carry source tag "openjml.esc", not "openjml.check"
+    // -----------------------------------------------------------------------
+
+    /**
+     * Diagnostics produced by in-process doESC (api mode) must have
+     * {@code source == "openjml.esc"}.  Before the fix, {@code doEscOneMethod}
+     * called {@code toLspDiagnosticsFromList} without an explicit source tag,
+     * which defaulted to {@code SOURCE_CHECK ("openjml.check")}.
+     */
+    @Test
+    public void testDoEscDiagnosticsHaveEscSourceTag() throws Exception {
+        String uri = "file:///DoEscSourceTag.java";
+        String source =
+                "public class DoEscSourceTag {\n" +
+                "    //@ ensures \\result != 0;\n" +
+                "    public int zero(int x) { return 0; }\n" +
+                "}\n";
+
+        CheckRunner.CheckResult result = runDoEscMethodResult(uri, source, "zero");
+        assertFalse("Expected at least one ESC diagnostic for 'ensures \\result != 0'",
+                result.diagnostics().isEmpty());
+
+        for (Diagnostic d : result.diagnostics()) {
+            assertEquals(
+                    "doESC diagnostics must carry source '" + DiagnosticConverter.SOURCE_ESC
+                            + "', not '" + d.getSource() + "'",
+                    DiagnosticConverter.SOURCE_ESC, d.getSource());
+        }
     }
 }
