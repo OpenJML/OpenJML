@@ -58,5 +58,6 @@ import org.junit.runners.Suite;
     DocumentHighlightTest.class,
     ModelMethodEscTest.class,
     MultiClassEscTest.class,
+    LauncherIntegrationTest.class,
 })
 public class AllLspTests {}
