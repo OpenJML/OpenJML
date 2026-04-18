@@ -106,7 +106,8 @@ TEST_CLASSES := \
   GoToDefinitionCrossFileTest \
   LanguageServerLifecycleTest \
   CheckRunnerEscContextTest \
-  LegacyEscSmokeTest
+  LegacyEscSmokeTest \
+  SymlinkWorkspaceTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 

@@ -390,24 +390,20 @@ public class CheckRunner {
 
         // Walk requested paths: add .java files to the explicit arg list.
         List<String> fileList = new ArrayList<>();
+        java.util.Set<String> seenRealPaths = new java.util.LinkedHashSet<>();
         for (String path : paths) {
             java.nio.file.Path p = java.nio.file.Path.of(path);
             if (Files.isDirectory(p)) {
-                try (var stream = Files.walk(p)) {
-                    stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
-                          .forEach(f -> {
-                              String diskPath = f.toString();
-                              String diskUri  = f.toUri().toString();
-                              if (diskPath.endsWith(".java")) {
-                                  fileList.add(diskPath);
-                                  allPathToRealUri.put(diskPath, diskUri);
-                              } else {
-                                  allPathToRealUri.put(diskPath, diskUri); // .jml: diagnostic routing only
-                              }
-                          });
-                } catch (IOException ex) {
-                    System.err.println("[CheckRunner.runCheckDirWithContext] walk failed for " + path + ": " + ex);
-                }
+                walkSourceFiles(p, seenRealPaths, "runCheckDirWithContext", f -> {
+                    String diskPath = f.toString();
+                    String diskUri  = f.toUri().toString();
+                    if (diskPath.endsWith(".java")) {
+                        fileList.add(diskPath);
+                        allPathToRealUri.put(diskPath, diskUri);
+                    } else {
+                        allPathToRealUri.put(diskPath, diskUri); // .jml: diagnostic routing only
+                    }
+                });
             } else {
                 String diskUri = p.toUri().toString();
                 if (path.endsWith(".jml")) {
@@ -485,25 +481,21 @@ public class CheckRunner {
             }
 
             List<String> fileList = new ArrayList<>();
+            java.util.Set<String> seenRealPaths = new java.util.LinkedHashSet<>();
             for (String path : paths) {
                 java.nio.file.Path p = java.nio.file.Path.of(path);
                 if (Files.isDirectory(p)) {
-                    try (var stream = Files.walk(p)) {
-                        stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
-                              .forEach(f -> {
-                                  String diskPath = f.toString();
-                                  String diskUri  = f.toUri().toString();
-                                  String tempPath = uriToTempPath.get(diskUri);
-                                  if (diskPath.endsWith(".java")) {
-                                      if (tempPath != null) fileList.add(tempPath);
-                                      else { fileList.add(diskPath); allPathToRealUri.put(diskPath, diskUri); }
-                                  } else {
-                                      if (tempPath == null) allPathToRealUri.put(diskPath, diskUri);
-                                  }
-                              });
-                    } catch (IOException ex) {
-                        System.err.println("[CheckRunner.runCheckDirWithContextLegacy] walk failed for " + path + ": " + ex);
-                    }
+                    walkSourceFiles(p, seenRealPaths, "runCheckDirWithContextLegacy", f -> {
+                        String diskPath = f.toString();
+                        String diskUri  = f.toUri().toString();
+                        String tempPath = uriToTempPath.get(diskUri);
+                        if (diskPath.endsWith(".java")) {
+                            if (tempPath != null) fileList.add(tempPath);
+                            else { fileList.add(diskPath); allPathToRealUri.put(diskPath, diskUri); }
+                        } else {
+                            if (tempPath == null) allPathToRealUri.put(diskPath, diskUri);
+                        }
+                    });
                 } else {
                     String diskUri  = p.toUri().toString();
                     String tempPath = uriToTempPath.get(diskUri);
@@ -668,24 +660,20 @@ public class CheckRunner {
         }
 
         List<String> fileList = new ArrayList<>();
+        java.util.Set<String> seenRealPaths = new java.util.LinkedHashSet<>();
         for (String path : paths) {
             java.nio.file.Path p = java.nio.file.Path.of(path);
             if (Files.isDirectory(p)) {
-                try (var stream = Files.walk(p)) {
-                    stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
-                          .forEach(f -> {
-                              String diskPath = f.toString();
-                              String diskUri  = f.toUri().toString();
-                              if (diskPath.endsWith(".java")) {
-                                  fileList.add(diskPath);
-                                  allPathToRealUri.put(diskPath, diskUri);
-                              } else {
-                                  allPathToRealUri.put(diskPath, diskUri);
-                              }
-                          });
-                } catch (IOException ex) {
-                    System.err.println("[CheckRunner.runEscDirWithContext] walk failed for " + path + ": " + ex);
-                }
+                walkSourceFiles(p, seenRealPaths, "runEscDirWithContext", f -> {
+                    String diskPath = f.toString();
+                    String diskUri  = f.toUri().toString();
+                    if (diskPath.endsWith(".java")) {
+                        fileList.add(diskPath);
+                        allPathToRealUri.put(diskPath, diskUri);
+                    } else {
+                        allPathToRealUri.put(diskPath, diskUri);
+                    }
+                });
             } else {
                 String diskUri = p.toUri().toString();
                 if (path.endsWith(".jml")) allPathToRealUri.put(path, diskUri);
@@ -782,25 +770,21 @@ public class CheckRunner {
             }
 
             List<String> fileList = new ArrayList<>();
+            java.util.Set<String> seenRealPaths = new java.util.LinkedHashSet<>();
             for (String path : paths) {
                 java.nio.file.Path p = java.nio.file.Path.of(path);
                 if (Files.isDirectory(p)) {
-                    try (var stream = Files.walk(p)) {
-                        stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
-                              .forEach(f -> {
-                                  String diskPath = f.toString();
-                                  String diskUri  = f.toUri().toString();
-                                  String tempPath = uriToTempPath.get(diskUri);
-                                  if (diskPath.endsWith(".java")) {
-                                      if (tempPath != null) fileList.add(tempPath);
-                                      else { fileList.add(diskPath); allPathToRealUri.put(diskPath, diskUri); }
-                                  } else {
-                                      if (tempPath == null) allPathToRealUri.put(diskPath, diskUri);
-                                  }
-                              });
-                    } catch (IOException ex) {
-                        System.err.println("[CheckRunner.runEscDirWithContextLegacy] walk failed for " + path + ": " + ex);
-                    }
+                    walkSourceFiles(p, seenRealPaths, "runEscDirWithContextLegacy", f -> {
+                        String diskPath = f.toString();
+                        String diskUri  = f.toUri().toString();
+                        String tempPath = uriToTempPath.get(diskUri);
+                        if (diskPath.endsWith(".java")) {
+                            if (tempPath != null) fileList.add(tempPath);
+                            else { fileList.add(diskPath); allPathToRealUri.put(diskPath, diskUri); }
+                        } else {
+                            if (tempPath == null) allPathToRealUri.put(diskPath, diskUri);
+                        }
+                    });
                 } else {
                     String diskUri  = p.toUri().toString();
                     String tempPath = uriToTempPath.get(diskUri);
@@ -1509,6 +1493,37 @@ public class CheckRunner {
     }
 
     // --- utility ---
+
+    /**
+     * Walk {@code dir} following symlinks, filter to {@code .java} and {@code .jml}
+     * files, deduplicate by real path, and pass each unique file to {@code consumer}.
+     *
+     * <p>Using {@link java.nio.file.FileVisitOption#FOLLOW_LINKS} ensures that
+     * symlinked subdirectories (e.g. Eclipse linked folders) are entered.
+     * Deduplication by {@link java.nio.file.Path#toRealPath()} prevents the same
+     * physical file from being compiled twice when it is reachable via multiple
+     * symlink paths.  A {@link java.nio.file.FileSystemLoopException} (cycle) or
+     * other {@link IOException} terminates the walk early but does not propagate,
+     * so files discovered before the cycle are still compiled.
+     *
+     * @param seenRealPaths mutable set shared across all roots in one check run
+     */
+    private static void walkSourceFiles(java.nio.file.Path dir,
+            java.util.Set<String> seenRealPaths, String label,
+            java.util.function.Consumer<java.nio.file.Path> consumer) {
+        try (var stream = Files.walk(dir, java.nio.file.FileVisitOption.FOLLOW_LINKS)) {
+            stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
+                  .forEach(f -> {
+                      String realPath;
+                      try { realPath = f.toRealPath().toString(); }
+                      catch (IOException e) { realPath = f.normalize().toAbsolutePath().toString(); }
+                      if (!seenRealPaths.add(realPath)) return;
+                      consumer.accept(f);
+                  });
+        } catch (IOException | java.io.UncheckedIOException ex) {
+            System.err.println("[CheckRunner." + label + "] walk failed for " + dir + ": " + ex);
+        }
+    }
 
     /**
      * Convert a {@code file://} URI to an absolute file path, or {@code null}

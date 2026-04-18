@@ -1173,15 +1173,21 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private static List<java.nio.file.Path> collectJavaFiles(List<String> paths) {
         List<java.nio.file.Path> result = new java.util.ArrayList<>();
-        java.util.Set<java.nio.file.Path> seen = new java.util.LinkedHashSet<>();
+        java.util.Set<String> seenRealPaths = new java.util.LinkedHashSet<>();
         for (String p : paths) {
             java.nio.file.Path root = java.nio.file.Path.of(p);
             if (!java.nio.file.Files.exists(root)) continue;
-            try (var stream = java.nio.file.Files.walk(root)) {
+            try (var stream = java.nio.file.Files.walk(root,
+                    java.nio.file.FileVisitOption.FOLLOW_LINKS)) {
                 stream.filter(f -> java.nio.file.Files.isRegularFile(f)
                                 && f.toString().endsWith(".java"))
-                      .forEach(f -> { if (seen.add(f)) result.add(f); });
-            } catch (java.io.IOException e) {
+                      .forEach(f -> {
+                          String realPath;
+                          try { realPath = f.toRealPath().toString(); }
+                          catch (java.io.IOException e) { realPath = f.normalize().toAbsolutePath().toString(); }
+                          if (seenRealPaths.add(realPath)) result.add(f);
+                      });
+            } catch (java.io.IOException | java.io.UncheckedIOException e) {
                 System.err.println("[collectJavaFiles] error walking " + p + ": " + e);
             }
         }

@@ -157,7 +157,12 @@ public class ASTCache {
     /** Compute the stable map key for a set of project root paths. */
     private static String sectionKey(List<String> paths) {
         return paths.stream()
-                .map(p -> java.nio.file.Path.of(p).normalize().toString())
+                .map(p -> {
+                    try { return java.nio.file.Path.of(p).toRealPath().toString(); }
+                    catch (java.io.IOException e) {
+                        return java.nio.file.Path.of(p).normalize().toAbsolutePath().toString();
+                    }
+                })
                 .sorted()
                 .collect(java.util.stream.Collectors.joining("\n"));
     }

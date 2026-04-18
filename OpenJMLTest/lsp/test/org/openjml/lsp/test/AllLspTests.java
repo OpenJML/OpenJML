@@ -66,5 +66,6 @@ import org.junit.runners.Suite;
     LanguageServerLifecycleTest.class,
     CheckRunnerEscContextTest.class,
     LegacyEscSmokeTest.class,
+    SymlinkWorkspaceTest.class,
 })
 public class AllLspTests {}
