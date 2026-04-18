@@ -400,10 +400,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         cancelPending(uri);
 
         // --check: on save unless manual-only mode.
-        // ESC on save is handled by the VS Code extension (onDidSaveTextDocument),
-        // which can distinguish manual saves from auto-saves.  The server never
-        // triggers ESC from didSave.
         if (!globalSettings.isCheckManual()) scheduleCheckFile(uri);
+
+        // --esc: on save when escTriggerOn == "save".  LSP does not carry a save-reason
+        // (manual vs. auto-save), so this fires on every didSave regardless of how the
+        // save was initiated.  Users who save frequently (e.g. Eclipse auto-compile-on-save)
+        // should use escTriggerOn == "manual" to avoid unwanted ESC runs.
+        if (globalSettings.isEscOnSave()) scheduleEscForUri(uri, null);
     }
 
     @Override

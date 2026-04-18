@@ -965,41 +965,10 @@ async function activate(context) {
         })
     );
 
-    // Track which Java file URIs are about to be saved manually (not by auto-save).
-    // onWillSaveTextDocument fires before the save and carries the reason; we use it
-    // to mark URIs so that onDidSaveTextDocument can decide whether to trigger ESC.
-    const pendingManualSave = new Set();
-    context.subscriptions.push(
-        vscode.workspace.onWillSaveTextDocument(e => {
-            if (e.document.languageId === 'java'
-                    && e.reason === vscode.TextDocumentSaveReason.Manual) {
-                pendingManualSave.add(e.document.uri.toString());
-            }
-        })
-    );
-    context.subscriptions.push(
-        vscode.workspace.onDidSaveTextDocument(async doc => {
-            if (!isJmlLike(doc.languageId)) return;
-            const uri = doc.uri.toString();
-            const wasManual = pendingManualSave.delete(uri); // always clear, even on auto-save
-
-            // Trigger ESC on manual save if escTriggerOn == "save".
-            if (!wasManual) return;
-            const escTriggerOn = vscode.workspace.getConfiguration('openjml')
-                                                 .get('escTriggerOn', 'manual');
-            if (escTriggerOn !== 'save') return;
-            if (!client) return;
-            try {
-                await client.sendRequest('workspace/executeCommand', {
-                    command:   'openjml.runEsc',
-                    arguments: [...commandPrefix(), doc.uri.fsPath],
-                });
-                startEscPolling();
-            } catch (err) {
-                // ESC errors are surfaced by the server via diagnostics; ignore here.
-            }
-        })
-    );
+    // ESC-on-save (escTriggerOn == "save") is handled server-side in didSave.
+    // The server fires on every didSave regardless of whether it was a manual or
+    // auto-save (LSP does not carry a save reason).  Users who save frequently
+    // should use escTriggerOn == "manual".
 
     // Start the language client (shows retry dialog if script not found).
     await startClient();
