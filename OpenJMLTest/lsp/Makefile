@@ -76,6 +76,7 @@ TEST_CLASSES := \
   DefinitionFinderJmlTest \
   CommandDispatchTest \
   DocumentSymbolTest \
+  DocumentSymbolProtocolTest \
   RenameJmlTest \
   RenameJmlTest2 \
   RenameMethodAndClassTest \

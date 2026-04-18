@@ -39,6 +39,7 @@ import org.junit.runners.Suite;
     RenameProtocolTest.class,
     MethodAndClassTest.class,
     DocumentSymbolTest.class,
+    DocumentSymbolProtocolTest.class,
     DoEscTest.class,
     EscCancellationTest.class,
     ConcurrentEscTest.class,
