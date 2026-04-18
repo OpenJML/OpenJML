@@ -103,7 +103,8 @@ TEST_CLASSES := \
   JmlCompanionSemanticTokensTest \
   GoToDefinitionCrossFileTest \
   LanguageServerLifecycleTest \
-  CheckRunnerEscContextTest
+  CheckRunnerEscContextTest \
+  LegacyEscSmokeTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 

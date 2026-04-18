@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.openjml.lsp.ASTCache;
 import org.openjml.lsp.CheckRunner;
 import org.openjml.lsp.OpenJMLSettings;
 
@@ -159,6 +160,90 @@ public class LegacyDiskIOSmokeTest extends LspTestBase {
         boolean hasError = result.diagnosticsByUri().values().stream()
                 .anyMatch(d -> !d.isEmpty());
         assertTrue("Legacy path: expected diagnostics via empty-snapshot fast path", hasError);
+    }
+
+    // -----------------------------------------------------------------------
+    // runOnContentWithContext: single-file --check legacy path
+    // -----------------------------------------------------------------------
+
+    /**
+     * {@link CheckRunner#check} with {@code useMockFiles=false} must write the
+     * content to a temp file and run {@code --check} on it.
+     * This exercises the {@code else} branch of {@code runOnContentWithContext}
+     * that creates {@code openjml-lsp-*} temp directories.
+     */
+    @Test
+    public void testCheckSingleFile_Legacy() {
+        String source =
+                "public class LegacySingleCheck {\n" +
+                "    //@ requires x > 0;\n" +
+                "    //@ ensures \\result > 0;\n" +
+                "    public int m(int x) { return x; }\n" +
+                "}\n";
+
+        CheckRunner.CheckResult result = CheckRunner.check(
+                "file:///LegacySingleCheck.java", source);
+
+        assertNotNull("Legacy single-file check must return a result", result);
+        assertEquals("Clean JML source must produce exit code 0", 0, result.exitCode());
+        assertTrue("Clean JML source must produce no diagnostics",
+                result.diagnostics().isEmpty());
+    }
+
+    // -----------------------------------------------------------------------
+    // checkModifiedFiles: legacy temp-dir path
+    // -----------------------------------------------------------------------
+
+    /**
+     * {@link CheckRunner#checkModifiedFiles} with {@code useMockFiles=false} must
+     * write modified content to a temp directory and run {@code --check}.
+     * This exercises the {@code else} branch that creates
+     * {@code openjml-lsp-rename-*} temp directories.
+     */
+    @Test
+    public void testCheckModifiedFiles_Legacy() {
+        String uri = "file:///LegacyModifiedCheck.java";
+        String source =
+                "public class LegacyModifiedCheck {\n" +
+                "    public int m() { return \"not an int\"; }\n" +
+                "}\n";
+
+        List<Diagnostic> diags = CheckRunner.checkModifiedFiles(
+                Map.of(uri, source), new OpenJMLSettings());
+
+        assertNotNull("checkModifiedFiles must return a list", diags);
+        assertFalse("Type error must produce diagnostics via legacy temp-dir path",
+                diags.isEmpty());
+    }
+
+    // -----------------------------------------------------------------------
+    // checkModifiedFilesAndGetCache: legacy temp-dir path
+    // -----------------------------------------------------------------------
+
+    /**
+     * {@link CheckRunner#checkModifiedFilesAndGetCache} with {@code useMockFiles=false}
+     * must write files to a temp directory, run {@code --check}, and return a
+     * populated {@link CheckRunner.CheckAndCacheResult}.
+     * This exercises the {@code else} branch that creates
+     * {@code openjml-lsp-rename-*} temp directories.
+     */
+    @Test
+    public void testCheckModifiedFilesAndGetCache_Legacy() {
+        String uri = "file:///LegacyCacheCheck.java";
+        String source =
+                "public class LegacyCacheCheck {\n" +
+                "    //@ requires x > 0;\n" +
+                "    public int m(int x) { return x; }\n" +
+                "}\n";
+
+        CheckRunner.CheckAndCacheResult result = CheckRunner.checkModifiedFilesAndGetCache(
+                Map.of(uri, source), new OpenJMLSettings());
+
+        assertNotNull("checkModifiedFilesAndGetCache must return a result", result);
+        assertNotNull("result must include a diagnostics list", result.diagnostics());
+        assertNotNull("result must include a cache", result.cache());
+        assertTrue("Clean JML source must produce no diagnostics via legacy path",
+                result.diagnostics().isEmpty());
     }
 
     // -----------------------------------------------------------------------

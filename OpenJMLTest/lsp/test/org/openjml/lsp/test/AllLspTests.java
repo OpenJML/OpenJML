@@ -64,5 +64,6 @@ import org.junit.runners.Suite;
     GoToDefinitionCrossFileTest.class,
     LanguageServerLifecycleTest.class,
     CheckRunnerEscContextTest.class,
+    LegacyEscSmokeTest.class,
 })
 public class AllLspTests {}
