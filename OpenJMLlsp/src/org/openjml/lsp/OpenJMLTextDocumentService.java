@@ -414,12 +414,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String uri = params.getTextDocument().getUri();
         dirtyUris.remove(uri);
         cancelPending(uri);
-        checkDiags.remove(uri);
-        escDiags.remove(uri);
+        // Retain checkDiags and escDiags: the server caches diagnostics for all
+        // project files regardless of open/closed state, and multi-file --check
+        // runs produce diagnostics for files the user never explicitly opened.
+        // Clearing on close would blank the Problems panel for valid diagnostics.
+        // The next --check on any related file will refresh or remove them.
         lastContent.remove(uri);
         methodEscStatus.remove(uri);
         CheckRunner.getASTCache().remove(uri);
-        publishDiags(uri, List.of());
+        // Do NOT publish empty diagnostics — retain the last-known diagnostics
+        // in the client's Problems panel until a fresh check updates them.
     }
 
     // --- code lens ---
