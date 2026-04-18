@@ -7,6 +7,7 @@ package org.jmlspecs.openjml.eclipse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -15,7 +16,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.window.Window;
@@ -26,8 +29,15 @@ import org.eclipse.lsp4j.WorkspaceSymbol;
 import org.eclipse.lsp4j.WorkspaceSymbolLocation;
 import org.eclipse.lsp4j.WorkspaceSymbolParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 import org.eclipse.ui.handlers.HandlerUtil;
@@ -35,79 +45,158 @@ import org.eclipse.ui.handlers.HandlerUtil;
 /**
  * Handles the {@code org.openjml.eclipse.commands.findAllDeclarations} command.
  *
- * <p>Queries the OpenJML language server's declaration index for all symbols
- * whose name matches the given identifier, then presents the results in a
- * selection dialog.  Double-clicking (or pressing OK) navigates to the
- * selected declaration.
+ * <p>Opens a search dialog pre-populated with any selected text, lets the user
+ * adjust the query and matching options, then queries the OpenJML language
+ * server's declaration index and presents the results in a selection dialog.
+ * Double-clicking (or pressing OK) navigates to the selected declaration.
  *
- * <p><b>Identifier source:</b>
+ * <p><b>Matching model:</b>
+ * The server performs a case-insensitive substring match against all identifier
+ * names in its declaration index.  The Eclipse client applies an optional
+ * additional filter based on the "Case insensitive" and "Full word" toggles:
  * <ul>
- *   <li>If the active editor has a non-empty text selection that is a valid
- *       Java identifier (after trimming whitespace), that text is used directly
- *       and no dialog is shown.</li>
- *   <li>Otherwise, an input dialog is displayed so the user can type the
- *       identifier.</li>
+ *   <li><b>Case insensitive + partial</b> (defaults): use server results as-is.</li>
+ *   <li><b>Case sensitive + partial</b>: retain only names that contain the query
+ *       with the original casing.</li>
+ *   <li><b>Full word</b>: retain only names whose entire text equals the query
+ *       (case-insensitively or case-sensitively depending on the other toggle).</li>
  * </ul>
  *
  * <p><b>Project filtering:</b>
- * The project root is encoded into the {@code workspace/symbol} query string
- * as {@code "<projectRoot>\n<identifier>"}.  The server extracts the root and
- * filters its declaration index to files under that project.  This avoids any
- * client-side Gson dependency and uses the standard LSP wire path.
+ * The project root of the active editor is encoded into the {@code workspace/symbol}
+ * query string as {@code "<projectRoot>\n<identifier>"}.  The server extracts the
+ * root and filters its declaration index to files under that project.
  *
- * <p><b>Coverage note:</b> The server's declaration index is populated as files
- * are opened and checked.  Use "Index Project" (OpenJML menu) to index all
- * source files in the project before searching, so that declarations in
- * unopened files are also found.
+ * <p><b>Persistent state:</b> The "Case insensitive" and "Full word" toggle values
+ * are remembered for the lifetime of the Eclipse session (static fields).
  */
 public class JmlFindAllDeclarationsHandler extends AbstractHandler {
+
+    /** Session-persistent toggle state — remembered until Eclipse exits. */
+    private static boolean lastCaseInsensitive = true;
+    private static boolean lastFullWord        = false;
+
+    // -----------------------------------------------------------------------
+    // Dialog
+    // -----------------------------------------------------------------------
+
+    /**
+     * Search dialog with a query text field and two option toggles.
+     * Results are available via {@link #query}, {@link #caseInsensitive},
+     * and {@link #fullWord} after {@code open()} returns {@link Window#OK}.
+     */
+    private static class FindDialog extends Dialog {
+
+        private final String  initialQuery;
+        private final boolean initCaseInsensitive;
+        private final boolean initFullWord;
+
+        private Text   queryText;
+        private Button caseInsensitiveCheck;
+        private Button fullWordCheck;
+
+        String  query;
+        boolean caseInsensitive;
+        boolean fullWord;
+
+        FindDialog(Shell parent, String initialQuery,
+                   boolean initCaseInsensitive, boolean initFullWord) {
+            super(parent);
+            this.initialQuery        = initialQuery != null ? initialQuery : "";
+            this.initCaseInsensitive = initCaseInsensitive;
+            this.initFullWord        = initFullWord;
+        }
+
+        @Override
+        protected void configureShell(Shell shell) {
+            super.configureShell(shell);
+            shell.setText("Find All Declarations");
+        }
+
+        @Override
+        protected Control createDialogArea(Composite parent) {
+            Composite area = (Composite) super.createDialogArea(parent);
+
+            Label label = new Label(area, SWT.NONE);
+            label.setText("Identifier (substring, case-insensitive by default):");
+
+            queryText = new Text(area, SWT.SINGLE | SWT.BORDER);
+            queryText.setText(initialQuery);
+            queryText.selectAll();
+            GridData gd = new GridData(SWT.FILL, SWT.CENTER, true, false);
+            gd.widthHint = 320;
+            queryText.setLayoutData(gd);
+
+            caseInsensitiveCheck = new Button(area, SWT.CHECK);
+            caseInsensitiveCheck.setText("Case insensitive");
+            caseInsensitiveCheck.setSelection(initCaseInsensitive);
+
+            fullWordCheck = new Button(area, SWT.CHECK);
+            fullWordCheck.setText("Full word");
+            fullWordCheck.setSelection(initFullWord);
+
+            return area;
+        }
+
+        @Override
+        protected void createButtonsForButtonBar(Composite parent) {
+            createButton(parent, IDialogConstants.OK_ID, "Match", true);
+            createButton(parent, IDialogConstants.CANCEL_ID, IDialogConstants.CANCEL_LABEL, false);
+        }
+
+        @Override
+        protected void okPressed() {
+            query           = queryText.getText().trim();
+            caseInsensitive = caseInsensitiveCheck.getSelection();
+            fullWord        = fullWordCheck.getSelection();
+            super.okPressed();
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Handler entry point
+    // -----------------------------------------------------------------------
 
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
-        Shell shell = HandlerUtil.getActiveShell(event);
+        Shell     shell  = HandlerUtil.getActiveShell(event);
         IEditorPart editor = HandlerUtil.getActiveEditor(event);
 
-        // Step 1: get identifier from selection, or prompt the user.
-        String identifier = getSelectedIdentifier(editor);
-        if (identifier == null) {
-            InputDialog dlg = new InputDialog(shell,
-                    "Find All Declarations",
-                    "Identifier name:",
-                    "",
-                    input -> isValidIdentifier(input.trim())
-                            ? null : "Enter a valid Java identifier");
-            if (dlg.open() != Window.OK) return null;
-            identifier = dlg.getValue().trim();
-            if (identifier.isEmpty()) return null;
-        }
+        String initialQuery = getSelectedText(editor);
 
-        // Capture for use in background Job (lambdas require effectively-final).
-        final String query = identifier;
-        final IProject project = getActiveProject(editor);
+        FindDialog dlg = new FindDialog(shell, initialQuery, lastCaseInsensitive, lastFullWord);
+        if (dlg.open() != Window.OK) return null;
+        String query = dlg.query;
+        if (query.isEmpty()) return null;
+        lastCaseInsensitive = dlg.caseInsensitive;
+        lastFullWord        = dlg.fullWord;
 
-        // Step 2: query the server on a background thread, then show results.
-        scheduleSearch(shell, query, project);
-
+        scheduleSearch(shell, query, getActiveProject(editor),
+                dlg.caseInsensitive, dlg.fullWord);
         return null;
     }
 
-    /**
-     * Schedule a background search for {@code query} in {@code project} and
-     * display the results (or a retry dialog) on the UI thread when done.
-     */
-    private static void scheduleSearch(Shell shell, String query, IProject project) {
+    // -----------------------------------------------------------------------
+    // Background search
+    // -----------------------------------------------------------------------
+
+    private static void scheduleSearch(Shell shell, String query, IProject project,
+                                       boolean caseInsensitive, boolean fullWord) {
         Job.create("Find All Declarations: " + query, (monitor) -> {
             List<SymbolInformation> results;
             try {
                 results = queryDeclarations(query, project);
+                results = applyClientFilter(results, query, caseInsensitive, fullWord);
             } catch (Throwable t) {
                 System.err.println("[OpenJML] find declarations job error: " + t);
                 t.printStackTrace(System.err);
                 results = List.of();
             }
             final List<SymbolInformation> finalResults = results;
-            Display.getDefault().asyncExec(() -> showResults(shell, query, project, finalResults));
+            Display.getDefault().asyncExec(
+                    () -> showResults(shell, query, project,
+                                      caseInsensitive, fullWord, finalResults));
             return Status.OK_STATUS;
         }).schedule();
     }
@@ -129,22 +218,17 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     }
 
     /**
-     * Send a {@code workspace/symbol} request to the language server via the
-     * cached {@code LanguageServerWrapper}.
+     * Send a {@code workspace/symbol} request to the language server.
      *
      * <p>The project root is encoded into the query string as
      * {@code "<projectRoot>\n<identifier>"} so the server can filter its
      * declaration index to files under that project without requiring a custom
      * command or any Gson dependency on the client side.
-     *
-     * @return the symbol list on success, or {@code null} if the wrapper is
-     *         unavailable or the call fails
      */
     private static List<SymbolInformation> symbolsViaWrapper(
             Object wrapper, String query, String projectRoot) {
         if (wrapper == null) return null;
         try {
-            // Locate LanguageServerWrapper.getServer() by walking the class hierarchy.
             java.lang.reflect.Method getServer = null;
             for (Class<?> c = wrapper.getClass();
                     c != null && c != Object.class; c = c.getSuperclass()) {
@@ -166,8 +250,6 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
             }
             if (server == null) return null;
 
-            // Encode the project root into the query using a newline separator.
-            // Java identifiers cannot contain newlines, so this is unambiguous.
             String encodedQuery = (projectRoot != null && !projectRoot.isEmpty())
                     ? projectRoot + "\n" + query : query;
             WorkspaceSymbolParams params = new WorkspaceSymbolParams(encodedQuery);
@@ -176,26 +258,21 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
                     .get(15, TimeUnit.SECONDS);
 
             List<SymbolInformation> symbols = eitherToList(either);
-            System.err.println("[OpenJML] find declarations: query=\"" + query + "\" -> " + symbols.size() + " result(s)");
+            System.err.println("[OpenJML] find declarations: query=\"" + query
+                    + "\" -> " + symbols.size() + " result(s) (before client filter)");
             return symbols;
         } catch (Throwable t) {
-            System.err.println("[OpenJML] find declarations exception: " + t.getClass().getName() + ": " + t.getMessage());
+            System.err.println("[OpenJML] find declarations exception: "
+                    + t.getClass().getName() + ": " + t.getMessage());
             return null;
         }
     }
 
-    /**
-     * Convert an LSP4J {@code workspace/symbol} response to a flat
-     * {@code List<SymbolInformation>}, handling both the legacy left side
-     * ({@code SymbolInformation[]}) and the LSP 3.17 right side
-     * ({@code WorkspaceSymbol[]}).
-     */
     private static List<SymbolInformation> eitherToList(
             Either<List<? extends SymbolInformation>,
                    List<? extends WorkspaceSymbol>> either) {
         if (either == null) return List.of();
         if (either.isLeft()) return new ArrayList<>(either.getLeft());
-        // LSP 3.17+: server responded with WorkspaceSymbol (right side).
         List<SymbolInformation> result = new ArrayList<>();
         for (WorkspaceSymbol ws : either.getRight()) {
             Location loc;
@@ -218,26 +295,58 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     }
 
     // -----------------------------------------------------------------------
+    // Client-side filter
+    // -----------------------------------------------------------------------
+
+    /**
+     * Apply the case/word toggles as a post-filter on the server's results.
+     *
+     * <p>The server always returns case-insensitive substring matches, so:
+     * <ul>
+     *   <li>Case-insensitive + partial: no additional filtering needed.</li>
+     *   <li>Case-sensitive + partial: retain only names that contain the query
+     *       with original casing.</li>
+     *   <li>Full word: retain only names that exactly equal the query (respecting
+     *       the case toggle).</li>
+     * </ul>
+     */
+    private static List<SymbolInformation> applyClientFilter(
+            List<SymbolInformation> results, String query,
+            boolean caseInsensitive, boolean fullWord) {
+        if (results.isEmpty() || query.isEmpty()) return results;
+        // Case-insensitive partial is what the server already returns — no extra work.
+        if (caseInsensitive && !fullWord) return results;
+        return results.stream().filter(si -> {
+            String name = si.getName();
+            String n = caseInsensitive ? name.toLowerCase() : name;
+            String q = caseInsensitive ? query.toLowerCase() : query;
+            return fullWord ? n.equals(q) : n.contains(q);
+        }).collect(Collectors.toList());
+    }
+
+    // -----------------------------------------------------------------------
     // Result presentation
     // -----------------------------------------------------------------------
 
     private static void showResults(Shell shell, String query, IProject project,
+                                    boolean caseInsensitive, boolean fullWord,
                                     List<SymbolInformation> results) {
         if (shell == null || shell.isDisposed()) return;
 
         if (results.isEmpty()) {
-            InputDialog dlg = new InputDialog(shell,
+            boolean retry = MessageDialog.openQuestion(shell,
                     "Find All Declarations",
                     "No declarations found for '" + query + "'.\n"
                     + "Tip: use OpenJML \u25b8 Index Project first.\n\n"
-                    + "Search again with a different identifier:",
-                    query,
-                    input -> isValidIdentifier(input.trim())
-                            ? null : "Enter a valid Java identifier");
+                    + "Search again?");
+            if (!retry) return;
+            FindDialog dlg = new FindDialog(shell, query, caseInsensitive, fullWord);
             if (dlg.open() != Window.OK) return;
-            String newQuery = dlg.getValue().trim();
+            String newQuery = dlg.query;
             if (newQuery.isEmpty()) return;
-            scheduleSearch(shell, newQuery, project);
+            lastCaseInsensitive = dlg.caseInsensitive;
+            lastFullWord        = dlg.fullWord;
+            scheduleSearch(shell, newQuery, project, dlg.caseInsensitive, dlg.fullWord);
             return;
         }
 
@@ -251,7 +360,7 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
                         int line    = loc != null ? loc.getRange().getStart().getLine() + 1 : 0;
                         String cont = si.getContainerName();
                         return si.getName()
-                                + (cont != null && !cont.isEmpty() ? " — " + cont : "")
+                                + (cont != null && !cont.isEmpty() ? " \u2014 " + cont : "")
                                 + "  [" + file + ":" + line + "]";
                     }
                 });
@@ -275,22 +384,12 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     // Helpers
     // -----------------------------------------------------------------------
 
-    /** Returns the selection text if it is a valid Java identifier, else {@code null}. */
-    private static String getSelectedIdentifier(IEditorPart editor) {
-        if (editor == null) return null;
+    /** Returns the current editor selection text (trimmed), or empty string. */
+    private static String getSelectedText(IEditorPart editor) {
+        if (editor == null) return "";
         var sel = editor.getSite().getSelectionProvider().getSelection();
-        if (!(sel instanceof ITextSelection ts)) return null;
-        String text = ts.getText().trim();
-        return isValidIdentifier(text) ? text : null;
-    }
-
-    /** Returns {@code true} if {@code s} is a non-empty valid Java identifier. */
-    private static boolean isValidIdentifier(String s) {
-        if (s == null || s.isEmpty()) return false;
-        if (!Character.isJavaIdentifierStart(s.charAt(0))) return false;
-        for (int i = 1; i < s.length(); i++)
-            if (!Character.isJavaIdentifierPart(s.charAt(i))) return false;
-        return true;
+        if (!(sel instanceof ITextSelection ts)) return "";
+        return ts.getText().trim();
     }
 
     /** Returns the project of the active editor's file, falling back to the first JML project. */

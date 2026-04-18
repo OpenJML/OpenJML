@@ -113,15 +113,17 @@ public class WorkspaceSymbolTest {
     }
 
     /**
-     * Query the declaration index exactly as {@link OpenJMLTextDocumentService#symbols}
-     * does: exact case-sensitive match; empty query returns all non-synthetic names.
+     * Query the declaration index with the same matching criterion as
+     * {@link OpenJMLTextDocumentService#symbols}: case-insensitive substring
+     * match; empty query returns all non-synthetic names.
      */
     private List<String> queryNames(String query) {
         List<String> names = new ArrayList<>();
         cache.forEachDeclaration((sym, loc) -> {
             String name = sym.name.toString();
             if (name.isEmpty() || name.startsWith("<")) return;
-            if (!query.isEmpty() && !name.equals(query)) return;
+            if (!query.isEmpty()
+                    && !name.toLowerCase().contains(query.toLowerCase())) return;
             names.add(name);
         });
         return names;
@@ -145,34 +147,38 @@ public class WorkspaceSymbolTest {
     }
 
     /**
-     * Each declaration name must be found by an exact query for that name,
-     * and must NOT be found by a query for a different name.
+     * A substring query must match all declarations whose name contains the
+     * query as a substring (case-insensitively).
      * All variable declarations are indexed so that go-to-definition works for
      * formals and JML quantifier-bound variables.
      */
     @Test
-    public void testExactMatchFindsEachDeclaration() {
+    public void testSubstringMatchFindsDeclarations() {
         indexDirectory(tmp.getRoot());
 
-        // Each exact name must produce exactly one match.
-        assertTrue("NeedleClass must be found by exact query",
-                queryNames("NeedleClass").contains("NeedleClass"));
-        assertTrue("needleMethod must be found by exact query",
-                queryNames("needleMethod").contains("needleMethod"));
-        assertTrue("needleField must be found by exact query",
-                queryNames("needleField").contains("needleField"));
-        // Formal parameter — also indexed (go-to-definition depends on this)
-        assertTrue("Formal parameter 'needle' must be found by exact query",
-                queryNames("needle").contains("needle"));
-        // Local variable — also indexed
-        assertTrue("Local variable 'needleLocal' must be found by exact query",
-                queryNames("needleLocal").contains("needleLocal"));
+        // "needle" (lower-case) must hit all needleXxx names AND NeedleClass.
+        List<String> byNeedle = queryNames("needle");
+        assertTrue("'needle' must match NeedleClass (case-insensitive)",
+                byNeedle.contains("NeedleClass"));
+        assertTrue("'needle' must match needleMethod",
+                byNeedle.contains("needleMethod"));
+        assertTrue("'needle' must match needleField",
+                byNeedle.contains("needleField"));
+        assertTrue("'needle' must match formal parameter 'needle'",
+                byNeedle.contains("needle"));
+        assertTrue("'needle' must match local variable 'needleLocal'",
+                byNeedle.contains("needleLocal"));
 
-        // A partial name must NOT match (exact, not substring).
-        assertTrue("'needle' query must NOT match 'NeedleClass'",
-                !queryNames("needle").contains("NeedleClass"));
-        assertTrue("'needle' query must NOT match 'needleMethod'",
-                !queryNames("needle").contains("needleMethod"));
+        // Upper-case query must produce the same results.
+        List<String> byUpper = queryNames("NEEDLE");
+        assertTrue("'NEEDLE' must match NeedleClass (case-insensitive)",
+                byUpper.contains("NeedleClass"));
+        assertTrue("'NEEDLE' must match needleMethod (case-insensitive)",
+                byUpper.contains("needleMethod"));
+
+        // An unrelated name must NOT appear in needle results.
+        assertFalse("'needle' must not match 'OtherClass'",
+                byNeedle.contains("OtherClass"));
     }
 
     /**
@@ -215,28 +221,31 @@ public class WorkspaceSymbolTest {
     }
 
     /**
-     * Matching is case-sensitive: "needle" must NOT match "NeedleClass",
-     * and "NeedleClass" must NOT match "needle".
+     * Matching is case-insensitive: "needleclass" must match "NeedleClass",
+     * and "NeedleClass" must also match "needleField" (shares the "needle" substring).
      */
     @Test
-    public void testCaseSensitiveMatch() {
+    public void testCaseInsensitiveMatch() {
         indexDirectory(tmp.getRoot());
 
-        // "needle" matches only the parameter, not the class or method.
-        List<String> lower = queryNames("needle");
-        assertFalse("'needle' must not match 'NeedleClass' (case-sensitive)",
+        // "needleclass" must match the class despite the different casing.
+        List<String> lower = queryNames("needleclass");
+        assertTrue("'needleclass' must match 'NeedleClass' (case-insensitive)",
                 lower.contains("NeedleClass"));
-        assertFalse("'needle' must not match 'needleMethod' (case-sensitive)",
-                lower.contains("needleMethod"));
-        assertTrue("'needle' must match the parameter 'needle'",
-                lower.contains("needle"));
 
-        // "NeedleClass" matches only the class.
+        // "NeedleClass" as query must not match "needleField" (no substring match).
         List<String> cls = queryNames("NeedleClass");
         assertTrue("'NeedleClass' must match the class",
                 cls.contains("NeedleClass"));
-        assertFalse("'NeedleClass' must not match 'needleField' (case-sensitive)",
+        assertFalse("'NeedleClass' must not match 'needleField' (not a substring)",
                 cls.contains("needleField"));
+
+        // "NEEDLEMETHOD" must match needleMethod case-insensitively.
+        List<String> upper = queryNames("NEEDLEMETHOD");
+        assertTrue("'NEEDLEMETHOD' must match 'needleMethod' (case-insensitive)",
+                upper.contains("needleMethod"));
+        assertFalse("'NEEDLEMETHOD' must not match 'needleField'",
+                upper.contains("needleField"));
     }
 
     /**

@@ -381,7 +381,6 @@
           "order": 7,
           "description": "Classpath for pre-compiled dependencies (-classpath). Separate multiple entries with ':' (Unix) or ';' (Windows). Leave empty if no external jars are needed."
         },
-
         "openjml.escEngine": {
           "type": "string",
           "enum": [

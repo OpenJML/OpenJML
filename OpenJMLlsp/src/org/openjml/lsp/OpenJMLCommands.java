@@ -182,7 +182,7 @@ public final class OpenJMLCommands {
      *
      * <p>Arguments: {@code [query, projectRoot]}.
      * <ul>
-     *   <li>{@code query} — exact case-sensitive symbol name; empty = return all.</li>
+     *   <li>{@code query} — case-insensitive substring to match; empty = return all.</li>
      *   <li>{@code projectRoot} — file-system path of the Eclipse project root
      *       ({@code IProject.getLocation().toOSString()}).  When absent or empty,
      *       symbols from all projects are returned.</li>

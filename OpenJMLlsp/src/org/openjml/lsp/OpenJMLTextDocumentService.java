@@ -1462,7 +1462,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * matched against all projects, preserving backward compatibility with
      * VS Code and other single-project clients.
      *
-     * @param query       identifier to match (exact case-sensitive), optionally
+     * @param query       identifier substring to match (case-insensitive), optionally
      *                    prefixed with a project root and newline; empty = return all
      * @param projectRoot explicit project-root filter; takes precedence over any
      *                    root encoded in {@code query}; {@code null} = no filter
@@ -1498,8 +1498,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             String name = sym.name.toString();
             // Skip synthetic names (<init>, <clinit>, empty).
             if (name.isEmpty() || name.startsWith("<")) return;
-            // Filter by query: exact case-sensitive match; empty query = accept all.
-            if (!effectiveQuery.isEmpty() && !name.equals(effectiveQuery)) return;
+            // Filter by query: case-insensitive substring match; empty query = accept all.
+            if (!effectiveQuery.isEmpty()
+                    && !name.toLowerCase().contains(effectiveQuery.toLowerCase())) return;
             // Offset → Position requires source content.
             // Prefer in-memory content (for unsaved edits); fall back to disk.
             String content = lastContent.get(loc.uri());
