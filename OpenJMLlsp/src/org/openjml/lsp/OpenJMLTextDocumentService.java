@@ -456,13 +456,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             MethodStatus s = statuses.getOrDefault(m.startLine(), MethodStatus.UNKNOWN);
             var range = new Range(new Position(m.startLine(), 0),
                                   new Position(m.startLine(), 0));
-            // Method reference encodes both name and start line so overloads are
-            // distinguished and the server can locate the exact method on the next request.
-            // The command is always RUN_ESC_FOR_METHOD regardless of state: when the
-            // method is currently CHECKING, scheduleEscForMethod cancels the in-flight
-            // run instead of starting a new one.  Using a single command avoids VS Code
-            // treating a command change as a new lens and showing duplicates.
-            String methodRef = m.name() + "@" + m.startLine();
+            // Method reference is the unique per-project FQN (rawName from
+            // Utils.uniqueSymbolName), e.g. "com.example.MyClass.add(int,int)".
+            // This uniquely identifies the method across the project without relying on
+            // line numbers, which shift as code is edited.
+            String methodRef = m.rawName();
             lenses.add(new CodeLens(range,
                     new Command(s.label(), OpenJMLCommands.RUN_ESC_FOR_METHOD,
                                 List.<Object>of(uri, methodRef)),
@@ -1840,7 +1838,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     .getOrDefault(uri, Map.of())
                     .getOrDefault(target.startLine(), MethodStatus.UNKNOWN);
             if (current.result() == EscResult.CHECKING) {
-                String methodKey = uri + "#" + target.name() + "@" + target.startLine();
+                String methodKey = uri + "#" + target.rawName();
                 System.out.println("[OpenJML] Cancel lens pressed for " + target.name()
                         + " in " + uri
                         + "; methodApis=" + runningEscMethodApis.containsKey(methodKey)
@@ -1884,10 +1882,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /**
      * Locate a method in {@code content} from a name reference that is either:
      * <ul>
-     *   <li>{@code "name@startLine"} — code-lens format; matched by start line
-     *       so overloads are distinguished correctly, or</li>
-     *   <li>a plain name or FQN — matched by simple name (first match wins;
-     *       ambiguous for overloads, retained for VS Code / legacy callers).</li>
+     *   <li>a FQN — e.g. {@code "com.example.MyClass.add(int,int)"} from
+     *       {@code Utils.uniqueSymbolName}; exact {@code rawName} match, or</li>
+     *   <li>a plain name — simple name match, first occurrence wins.</li>
      * </ul>
      *
      * <p>Uses AST-based method discovery when a cached AST is available for
@@ -1902,28 +1899,25 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
                 ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
                 : JavaSourceScanner.findMethods(content);
-        int at = nameOrRef.lastIndexOf('@');
-        if (at >= 0) {
+        // "@line" format: client does not have a FQN; find method containing that line.
+        if (nameOrRef.startsWith("@")) {
             try {
-                int line = Integer.parseInt(nameOrRef.substring(at + 1));
-                if (at == 0) {
-                    // "@cursorLine" format (no name prefix): find the method whose range
-                    // contains the cursor line, so the menu command works when the cursor
-                    // is anywhere inside the method body, not just on the declaration line.
-                    for (JavaSourceScanner.MethodInfo m : methods) {
-                        if (m.contains(line)) return m;
-                    }
-                    return null;
-                }
-                // "name@startLine" format: exact start-line match (code-lens path).
+                int line = Integer.parseInt(nameOrRef.substring(1));
                 for (JavaSourceScanner.MethodInfo m : methods) {
-                    if (m.startLine() == line) return m;
+                    if (m.contains(line)) return m;
                 }
             } catch (NumberFormatException ignored) {}
+            return null;
         }
-        // Fallback: plain name or FQN — strip to simple name and match first occurrence.
-        int dot = nameOrRef.lastIndexOf('.');
-        String simpleName = dot >= 0 ? nameOrRef.substring(dot + 1) : nameOrRef;
+        // Primary: exact FQN match against rawName (e.g. "pkg.Class.method(int,int)").
+        for (JavaSourceScanner.MethodInfo m : methods) {
+            if (nameOrRef.equals(m.rawName())) return m;
+        }
+        // Fallback: strip to simple name (drop package/class prefix and parameter types).
+        int dot  = nameOrRef.lastIndexOf('.');
+        String afterDot  = dot >= 0 ? nameOrRef.substring(dot + 1) : nameOrRef;
+        int paren = afterDot.indexOf('(');
+        String simpleName = paren >= 0 ? afterDot.substring(0, paren) : afterDot;
         for (JavaSourceScanner.MethodInfo m : methods) {
             if (simpleName.equals(m.name())) return m;
         }
@@ -1948,11 +1942,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             ExecutorService pool) {
 
         // Determine the tracking key and cancel any in-flight predecessor.
-        // Per-method runs use a "uri#methodName@startLine" key so concurrent runs on
-        // different methods (or overloads with the same name) coexist.
+        // Per-method runs use a "uri#FQN" key (rawName from Utils.uniqueSymbolName)
+        // so concurrent runs on different methods (including overloads) coexist.
         final String methodKey;
         if (target != null) {
-            methodKey = uri + "#" + target.name() + "@" + target.startLine();
+            methodKey = uri + "#" + target.rawName();
             Future<?> prev = runningEscMethodTasks.remove(methodKey);
             if (prev != null) prev.cancel(false);
             IAPI prevApi = runningEscMethodApis.remove(methodKey);

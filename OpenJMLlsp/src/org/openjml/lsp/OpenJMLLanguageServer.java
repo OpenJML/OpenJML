@@ -98,8 +98,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC_FOR_METHOD, args -> {
-            // Code-lens format: [uri, name@startLine]         isCodeLensFormat() == true
-            // Standard format:  [projectId, uri, name@startLine]  (projectId may be "")
+            // Code-lens format: [uri, methodFqn]              isCodeLensFormat() == true
+            // Standard format:  [projectId, uri, methodFqn]   (projectId may be "")
             final String proj, uri, method;
             if (isCodeLensFormat(args)) {
                 proj = null; uri = str(args, 0); method = str(args, 1);

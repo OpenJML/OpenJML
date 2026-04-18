@@ -924,21 +924,58 @@ public abstract class LspCommandHandler extends AbstractHandler {
             String uri = fileUri.toString();
             Console.log(lspCommand + " -> " + uri);
 
-            // Encode cursor position as "@line" so the server finds the method that
-            // contains the cursor, rather than requiring the cursor on the declaration.
-            String methodRef = "";
+            // Determine cursor line (0-based).
+            int cursorLine = -1;
             var sel = HandlerUtil.getCurrentSelection(event);
-            if (sel instanceof org.eclipse.jface.text.ITextSelection ts) {
-                methodRef = "@" + ts.getStartLine();
-            }
+            if (sel instanceof org.eclipse.jface.text.ITextSelection ts) cursorLine = ts.getStartLine();
+            final int cursorLineFinal = cursorLine;
 
-            InvocationContext ctx = resolveInvocationContext(file.getProject());
-            List<Object> args = prefixArgs(ctx);
-            args.add(uri);
-            args.add(methodRef);
-            ExecuteCommandParams params =
-                    new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args);
-            dispatchCommand(params, getDocument(file), file.getProject());
+            // Prefer the FQN from server-provided code lenses (more precise); fall back to
+            // "@line" so the server can locate the method from the AST when no lens is cached.
+            OpenJMLLanguageClient lc = OpenJMLCodeMiningProvider.languageClient;
+            org.eclipse.lsp4j.services.LanguageServer ls = lc != null ? lc.server() : null;
+            if (ls == null) {
+                MessageDialog.openWarning(Display.getDefault().getActiveShell(),
+                        "OpenJML", "OpenJML language server is not connected.");
+                return null;
+            }
+            org.eclipse.lsp4j.CodeLensParams clParams = new org.eclipse.lsp4j.CodeLensParams(
+                    new org.eclipse.lsp4j.TextDocumentIdentifier(uri));
+            ls.getTextDocumentService().codeLens(clParams).thenAccept(lenses -> {
+                org.eclipse.lsp4j.CodeLens matched = null;
+                if (lenses != null) {
+                    List<org.eclipse.lsp4j.CodeLens> sorted = lenses.stream()
+                            .filter(l -> l.getCommand() != null
+                                    && OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD.equals(l.getCommand().getCommand())
+                                    && l.getCommand().getArguments() != null
+                                    && l.getCommand().getArguments().size() >= 2
+                                    && !String.valueOf(l.getCommand().getArguments().get(1)).isEmpty())
+                            .sorted((a, b) -> Integer.compare(
+                                    a.getRange().getStart().getLine(),
+                                    b.getRange().getStart().getLine()))
+                            .toList();
+                    for (org.eclipse.lsp4j.CodeLens l : sorted) {
+                        if (cursorLineFinal < 0 || l.getRange().getStart().getLine() <= cursorLineFinal)
+                            matched = l;
+                        else break;
+                    }
+                }
+                List<Object> args;
+                if (matched != null) {
+                    // Use the FQN from the lens args: [uri, methodFqn]
+                    args = new ArrayList<>(matched.getCommand().getArguments());
+                } else if (cursorLineFinal >= 0) {
+                    // Fall back to "@line" — server resolves method from AST
+                    args = List.of(uri, "@" + cursorLineFinal);
+                } else {
+                    Display.getDefault().asyncExec(() -> MessageDialog.openWarning(
+                            Display.getDefault().getActiveShell(), "OpenJML",
+                            "Cannot determine method — place the cursor inside a method and try again."));
+                    return;
+                }
+                ls.getWorkspaceService().executeCommand(
+                        new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args));
+            });
             return null;
         }
 

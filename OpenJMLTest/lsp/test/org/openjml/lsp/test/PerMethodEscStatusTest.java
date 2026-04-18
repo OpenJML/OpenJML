@@ -191,7 +191,7 @@ public class PerMethodEscStatusTest {
         JsonArray lenses = requestCodeLens(uri);
         assertNotNull("Expected code lenses after check", lenses);
         assertFalse("Expected at least one code lens", lenses.isEmpty());
-        String methodRef = extractMethodRef(lenses, "m@");
+        String methodRef = extractMethodRef(lenses, ".m(");
         assertNotNull("Code lens must include method ref arg", methodRef);
 
         // Code-lens format: exactly 2 args, first starts with "file://"
@@ -235,7 +235,7 @@ public class PerMethodEscStatusTest {
 
         JsonArray lenses = requestCodeLens(uri);
         assertNotNull("Expected code lenses", lenses);
-        String methodRef = extractMethodRef(lenses, "identity@");
+        String methodRef = extractMethodRef(lenses, ".identity(");
         assertNotNull("Expected methodRef from code lens", methodRef);
 
         String argsJson = "[\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
@@ -343,5 +343,77 @@ public class PerMethodEscStatusTest {
         if (title == null) title = pollLensTitleUntil(uri, "\u2717", 10);
         if (title == null) title = pollLensTitleUntil(uri, "Not verified", 10);
         assertNotNull("Expected at least one code lens after standard-format ESC", title);
+    }
+
+    // -----------------------------------------------------------------------
+    // (5) @line fallback — server resolves method from AST when FQN unavailable
+    // -----------------------------------------------------------------------
+
+    /**
+     * {@code openjml.runEscForMethod} with {@code @<line>} as the method ref
+     * (no FQN): the server must locate the containing method from the AST and
+     * run ESC, producing a NOT_VERIFIED code lens for a failing postcondition.
+     *
+     * <p>This exercises the {@code @line} fallback path in {@code findMethod}
+     * that clients use when no code-lens FQN is available yet.
+     */
+    @Test
+    public void testRunEscForMethod_AtLineFallback_NotVerified() throws Exception {
+        String uri    = "file:///AtLineFallbackFail.java";
+        String source =
+                "public class AtLineFallbackFail {\n"
+                + "    //@ ensures false;\n"
+                + "    public int fail(int x) { return x; }\n"  // declaration on line 2 (0-based)
+                + "}\n";
+
+        didOpen(uri, source);
+        nextDiagsFor("AtLineFallbackFail", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        // Line 2 (0-based) is inside "fail" — pass @2 so the server resolves the method.
+        String argsJson = "[\"" + uri + "\",\"@2\"]";
+        client.sendRequest("workspace/executeCommand",
+                "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
+                + "\",\"arguments\":" + argsJson + "}");
+        client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+
+        JsonObject note = nextNonEmptyDiagsFor("AtLineFallbackFail", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected non-empty diagnostics after @line-fallback ESC", note);
+
+        String title = pollLensTitleUntil(uri, "\u2717", 30);
+        if (title == null) title = pollLensTitleUntil(uri, "Not verified", 10);
+        assertNotNull("Expected code lens after @line-fallback ESC", title);
+        assertTrue("NOT_VERIFIED title must contain '✗' or 'Not verified'; got: " + title,
+                title.contains("\u2717") || title.contains("Not verified"));
+    }
+
+    /**
+     * {@code openjml.runEscForMethod} with {@code @<line>} on a method with a
+     * trivially true postcondition must produce a VERIFIED code lens.
+     */
+    @Test
+    public void testRunEscForMethod_AtLineFallback_Verified() throws Exception {
+        String uri    = "file:///AtLineFallbackPass.java";
+        String source =
+                "public class AtLineFallbackPass {\n"
+                + "    //@ ensures \\result == x;\n"
+                + "    public int id(int x) { return x; }\n"  // declaration on line 2 (0-based)
+                + "}\n";
+
+        didOpen(uri, source);
+        nextDiagsFor("AtLineFallbackPass", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        String argsJson = "[\"" + uri + "\",\"@2\"]";
+        client.sendRequest("workspace/executeCommand",
+                "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
+                + "\",\"arguments\":" + argsJson + "}");
+        client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+
+        nextDiagsFor("AtLineFallbackPass", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        String title = pollLensTitleUntil(uri, "\u2713", 30);
+        if (title == null) title = pollLensTitleUntil(uri, "Verified", 10);
+        assertNotNull("Expected code lens after @line-fallback ESC", title);
+        assertTrue("VERIFIED title must contain '✓' or 'Verified'; got: " + title,
+                title.contains("\u2713") || title.contains("Verified"));
     }
 }

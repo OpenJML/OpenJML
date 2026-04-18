@@ -38,9 +38,9 @@ public class JavaSourceScanner {
      *
      * <ul>
      *   <li>{@code name}         — display name (class name for constructors, method name otherwise)</li>
-     *   <li>{@code rawName}      — proof-result lookup key: {@code "<init>"} for constructors,
-     *       same as {@code name} for regular methods.  Use this to look up entries in the
-     *       {@code proofResults} map returned by {@link org.openjml.lsp.CheckRunner.CheckResult}.</li>
+     *   <li>{@code rawName}      — unique per-project FQN from {@code Utils.uniqueSymbolName},
+     *       e.g. {@code "com.example.MyClass.add(int,int)"}.  Used as the code-lens method
+     *       reference, the per-method ESC tracking key, and the proof-result lookup key.</li>
      *   <li>{@code startLine}    — line of the method declaration (used for code-lens placement)</li>
      *   <li>{@code specStartLine} — first JML {@code //@} annotation line immediately before
      *       the declaration; equals {@code startLine} if there are no spec lines.
