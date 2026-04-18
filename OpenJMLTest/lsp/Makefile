@@ -54,9 +54,9 @@ TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
 ## Approximate sequential timings: PropertiesFileOptionsTest 121s, FastTests 108s,
 ## RenameTest1 75s, RenameTest2 71s, ReferenceFinderJmlTest 54s, DoEscTest 53s,
 ## DiagnosticsTest 49s, EscStatusTest 44s, MethodAndClassTest 40s,
-## DefinitionFinderJmlTest 34s, DefinitionFinderTest 34s,
+## DefinitionFinderJmlTest 34s,
 ## CommandDispatchTest 31s, DocumentSymbolTest 31s,
-## RenameJmlTest 24s, RenameTest3 24s, ReferenceFinderTest 24s,
+## RenameJmlTest 24s, RenameTest3 24s,
 ## RenameTest4 23s, RacTest 23s, RenameJmlTest2 22s,
 ## MultiFileEscTest 19s, DocumentLifecycleTest 18s.
 TEST_CLASSES := \
@@ -74,12 +74,13 @@ TEST_CLASSES := \
   EscStatusTest \
   MethodAndClassTest \
   DefinitionFinderJmlTest \
-  DefinitionFinderTest \
   CommandDispatchTest \
   DocumentSymbolTest \
   RenameJmlTest \
+  RenameJmlTest2 \
+  RenameMethodAndClassTest \
+  RenameProtocolTest \
   RenameTest3 \
-  ReferenceFinderTest \
   RenameTest4 \
   RacTest \
   RenameJmlTest2 \
