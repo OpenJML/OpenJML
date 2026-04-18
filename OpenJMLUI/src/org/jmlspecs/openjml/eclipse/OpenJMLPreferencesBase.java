@@ -193,8 +193,9 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.checkTriggerOnKey,
                 "JML type-check trigger:",
                 new String[][] {
-                    { "On edit (instant feedback)", "edit" },
-                    { "On save only",               "save" } },
+                    { "On edit (instant feedback)", "edit"   },
+                    { "On save only",               "save"   },
+                    { "Manual only — slow/problematic codebases", "manual" } },
                 parent));
 
         addEditor(new ComboFieldEditor(OpenJMLOptions.escTriggerOnKey,
@@ -224,9 +225,7 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new StringFieldEditor(OpenJMLOptions.specsPathKey,
                 "Specs path (blank = default from launcher):",
                 parent));
-        addEditor(new StringFieldEditor(OpenJMLOptions.solversPathKey,
-                "Solvers path (blank = default from launcher):",
-                parent));
+
         addEditor(new StringFieldEditor(OpenJMLOptions.sourcePathKey,
                 "Source path for -sourcepath (blank = single-file):",
                 parent));

@@ -45,8 +45,7 @@ public class OpenJMLOptions {
     public static final String propertiesFileKey       = "openjml.propertiesFile";
     /** Path to OpenJML specs directory (blank = use launcher default). */
     public static final String specsPathKey            = "openjml.specsPath";
-    /** Path to SMT solvers directory (blank = use launcher default). */
-    public static final String solversPathKey          = "openjml.solversPath";
+
     /** Source root(s) for -sourcepath (blank = single-file mode). */
     public static final String sourcePathKey           = "openjml.sourcePath";
     /** Classpath for pre-compiled dependencies (blank = none). */
@@ -564,7 +563,7 @@ public class OpenJMLOptions {
         opts.put("checkTriggerOn",         nonBlank(value(checkTriggerOnKey),  "edit"));
         opts.put("escTriggerOn",           nonBlank(value(escTriggerOnKey),    "manual"));
         opts.put("specsPath",              value(specsPathKey));
-        opts.put("solversPath",            value(solversPathKey));
+
         opts.put("escEngine",              nonBlank(value(escEngineKey), "subprocess"));
         opts.put("useIntegratedOutline",   value(useIntegratedOutlineKey));
         opts.put("syntaxColoringStrategy", nonBlank(value(syntaxColoringStrategyKey), "ast"));

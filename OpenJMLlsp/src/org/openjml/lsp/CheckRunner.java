@@ -1052,7 +1052,6 @@ public class CheckRunner {
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
             modifiedSettings.sourcePath  = settings.sourcePath;
             modifiedSettings.specsPath   = buildEffectiveSpecsPath(null, settings);
-            modifiedSettings.solversPath = settings.solversPath;
             modifiedSettings.classPath   = settings.classPath;
             var listener = new LspDiagnosticListener();
             var out = new java.io.PrintWriter(new java.io.StringWriter());
@@ -1101,7 +1100,6 @@ public class CheckRunner {
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
             modifiedSettings.sourcePath      = tempDir.toString();
             modifiedSettings.specsPath       = buildEffectiveSpecsPath(tempDir, settings);
-            modifiedSettings.solversPath     = settings.solversPath;
             modifiedSettings.classPath       = settings.classPath;
 
             // Run a single --check invocation on all files so cross-file dependencies
@@ -1188,7 +1186,6 @@ public class CheckRunner {
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
             modifiedSettings.sourcePath  = buildEffectiveSourcePath(null, settings);
             modifiedSettings.specsPath   = buildEffectiveSpecsPath(null, settings);
-            modifiedSettings.solversPath = settings.solversPath;
             modifiedSettings.classPath   = settings.classPath;
             var listener = new LspDiagnosticListener();
             var out = new java.io.PrintWriter(new java.io.StringWriter());
@@ -1244,7 +1241,6 @@ public class CheckRunner {
             OpenJMLSettings modifiedSettings = new OpenJMLSettings();
             modifiedSettings.sourcePath  = buildEffectiveSourcePath(tempDir, settings);
             modifiedSettings.specsPath   = buildEffectiveSpecsPath(tempDir, settings);
-            modifiedSettings.solversPath = settings.solversPath;
             modifiedSettings.classPath   = settings.classPath;
 
             var listener = new LspDiagnosticListener();
@@ -2380,10 +2376,7 @@ public class CheckRunner {
             args.add("--specs-path");
             args.add(settings.specsPath);
         }
-        if (settings.solversPath != null && !settings.solversPath.isEmpty()) {
-            args.add("--solvers-path");
-            args.add(settings.solversPath);
-        }
+
         String sp = buildEffectiveSourcePath(prefixDir, settings);
         if (!sp.isEmpty()) {
             args.add("-sourcepath");

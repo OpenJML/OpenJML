@@ -121,7 +121,7 @@ public class OpenJMLSettings {
     /**
      * Path to an OpenJML {@code .properties} file, passed as {@code --properties}.
      * Options in this file are read before command-line args, so IDE settings
-     * (specsPath, solversPath, etc.) and invocation-specific flags ({@code --esc},
+     * (specsPath, etc.) and invocation-specific flags ({@code --esc},
      * {@code --method}) override it.
      *
      * <p>If {@code null} or empty the server auto-discovers {@code openjml.properties}
@@ -134,12 +134,6 @@ public class OpenJMLSettings {
      * {@code null} or empty means use the server's default.
      */
     public volatile String specsPath;
-
-    /**
-     * Path to the SMT solvers directory, passed as {@code --solvers-path}.
-     * {@code null} or empty means use the server's default.
-     */
-    public volatile String solversPath;
 
     /**
      * Source root(s) for resolving cross-file references, passed as
@@ -191,10 +185,13 @@ public class OpenJMLSettings {
     /**
      * When to run the {@code --check} pass:
      * <ul>
-     *   <li>{@code "edit"} (default) — check on every document change (debounced)</li>
-     *   <li>{@code "save"} — check only when the file is saved</li>
+     *   <li>{@code "edit"} (default) — check on every document change (debounced),
+     *       on open, and on save</li>
+     *   <li>{@code "save"} — check on open and on save, but not on change</li>
+     *   <li>{@code "manual"} — never automatic; only via the explicit
+     *       {@code openjml.checkJml} command.  Intended for codebases where
+     *       checking is slow or where automatic checks cause problems.</li>
      * </ul>
-     * In both modes a check always runs when the file is first opened or saved.
      */
     public volatile String checkTriggerOn = "edit";
 
@@ -208,8 +205,14 @@ public class OpenJMLSettings {
      */
     public volatile String escTriggerOn = "manual";
 
-    /** Returns {@code true} if --check should fire on every edit. */
-    public boolean isCheckOnEdit() { return !"save".equalsIgnoreCase(checkTriggerOn); }
+    /** Returns {@code true} if --check should fire on every edit (debounced). */
+    public boolean isCheckOnEdit()  { return "edit".equalsIgnoreCase(checkTriggerOn); }
+
+    /** Returns {@code true} if --check should fire on save (and open). */
+    public boolean isCheckOnSave()  { return "save".equalsIgnoreCase(checkTriggerOn); }
+
+    /** Returns {@code true} if --check should only fire on explicit command. */
+    public boolean isCheckManual()  { return "manual".equalsIgnoreCase(checkTriggerOn); }
 
     /** Returns {@code true} if --esc should fire on every edit. */
     public boolean isEscOnEdit()   { return "edit".equalsIgnoreCase(escTriggerOn); }
@@ -404,7 +407,7 @@ public class OpenJMLSettings {
     public OpenJMLSettings(OpenJMLSettings src) {
         this.propertiesFile          = src.propertiesFile;
         this.specsPath               = src.specsPath;
-        this.solversPath             = src.solversPath;
+
         this.sourcePath              = src.sourcePath;
         this.rootPaths               = src.rootPaths;
         this.classPath               = src.classPath;
