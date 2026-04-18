@@ -15,12 +15,11 @@ import static org.junit.Assert.*;
 public class OpenJMLSettingsTest {
 
     // -----------------------------------------------------------------------
-    // isCheckOnEdit — true unless checkTriggerOn == "save"
+    // isCheckOnEdit / isCheckOnSave / isCheckManual
     // -----------------------------------------------------------------------
 
     @Test
     public void testCheckOnEditDefaultIsTrue() {
-        // Default checkTriggerOn = "edit"
         assertTrue(new OpenJMLSettings().isCheckOnEdit());
     }
 
@@ -36,6 +35,38 @@ public class OpenJMLSettingsTest {
         OpenJMLSettings s = new OpenJMLSettings();
         s.checkTriggerOn = "SAVE";
         assertFalse(s.isCheckOnEdit());
+    }
+
+    @Test
+    public void testCheckOnEditManualIsFalse() {
+        OpenJMLSettings s = new OpenJMLSettings();
+        s.checkTriggerOn = "manual";
+        assertFalse(s.isCheckOnEdit());
+    }
+
+    @Test
+    public void testCheckOnSave() {
+        OpenJMLSettings s = new OpenJMLSettings();
+        s.checkTriggerOn = "save";
+        assertTrue(s.isCheckOnSave());
+        assertFalse(s.isCheckOnEdit());
+        assertFalse(s.isCheckManual());
+    }
+
+    @Test
+    public void testCheckManual() {
+        OpenJMLSettings s = new OpenJMLSettings();
+        s.checkTriggerOn = "manual";
+        assertTrue(s.isCheckManual());
+        assertFalse(s.isCheckOnEdit());
+        assertFalse(s.isCheckOnSave());
+    }
+
+    @Test
+    public void testCheckManualCaseInsensitive() {
+        OpenJMLSettings s = new OpenJMLSettings();
+        s.checkTriggerOn = "MANUAL";
+        assertTrue(s.isCheckManual());
     }
 
     // -----------------------------------------------------------------------

@@ -339,8 +339,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // This ensures the initial "—" status appears even before the first --check.
         refreshCodeLenses();
 
-        // --check: always on open
-        scheduleCheckNow(uri, content);
+        // --check: on open unless manual-only mode
+        if (!globalSettings.isCheckManual()) scheduleCheckNow(uri, content);
         // ESC is never triggered on open — only on save/edit (per trigger setting)
         // or the explicit openjml.runEsc command.
     }
@@ -399,11 +399,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         dirtyUris.remove(uri);
         cancelPending(uri);
 
-        // --check: always on save.
+        // --check: on save unless manual-only mode.
         // ESC on save is handled by the VS Code extension (onDidSaveTextDocument),
         // which can distinguish manual saves from auto-saves.  The server never
         // triggers ESC from didSave.
-        scheduleCheckFile(uri);
+        if (!globalSettings.isCheckManual()) scheduleCheckFile(uri);
     }
 
     @Override

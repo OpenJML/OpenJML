@@ -328,11 +328,12 @@
           "type": "string",
           "enum": [
             "edit",
-            "save"
+            "save",
+            "manual"
           ],
           "default": "edit",
           "order": 1,
-          "markdownDescription": "When to run the JML type-check (`--check`):\n- `edit` — check on every change (instant feedback)\n- `save` — check only when the file is saved"
+          "markdownDescription": "When to run the JML type-check (`--check`):\n- `edit` — check on every change (instant feedback), on open, and on save\n- `save` — check on open and on save only\n- `manual` — never automatic; use the **OpenJML: Check JML** command (for slow or problematic codebases)"
         },
         "openjml.escTriggerOn": {
           "type": "string",
@@ -380,12 +381,7 @@
           "order": 7,
           "description": "Classpath for pre-compiled dependencies (-classpath). Separate multiple entries with ':' (Unix) or ';' (Windows). Leave empty if no external jars are needed."
         },
-        "openjml.solversPath": {
-          "type": "string",
-          "default": "",
-          "order": 8,
-          "description": "Path to the SMT solvers directory. Leave empty to use the default from the launcher script."
-        },
+
         "openjml.escEngine": {
           "type": "string",
           "enum": [
@@ -394,7 +390,7 @@
             "fresh"
           ],
           "default": "subprocess",
-          "order": 9,
+          "order": 8,
           "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `concurrent` — calls `IAPI.doESC` in-process on the cached AST; methods within a file are serialized; methods across files run concurrently\n- `fresh` — creates a fresh IAPI per method; all methods run truly concurrently in the thread pool; higher startup cost (re-parse and re-typecheck per method) but no shared state"
         },
         "openjml.escThreads": {

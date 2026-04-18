@@ -6,7 +6,9 @@
  * Starts the OpenJML LSP server (openjml-lsp) as a child process connected
  * via stdio.  Two independent checks are supported:
  *
- *   --check (JML type-check): triggered on edit or save (openjml.checkTriggerOn)
+ *   --check (JML type-check): triggered on edit, save, or manually
+ *           (openjml.checkTriggerOn).  The command "OpenJML: Check JML" triggers
+ *           an explicit check in manual mode.
  *   --esc   (extended static check): triggered on edit, save, or manually
  *           (openjml.escTriggerOn).  The command "OpenJML: Run ESC" sends an
  *           explicit workspace/executeCommand to the server.
@@ -440,7 +442,7 @@ function getSettings() {
         escTriggerOn:            cfg.get('escTriggerOn',            'manual'),
         propertiesFile:          cfg.get('propertiesFile',          ''),
         specsPath:               cfg.get('specsPath',               ''),
-        solversPath:             cfg.get('solversPath',             ''),
+
         sourcePath:              cfg.get('sourcePath',              ''),
         classPath:               cfg.get('classPath',               ''),
         racOutputDir:            cfg.get('racOutputDir',            ''),
