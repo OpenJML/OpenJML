@@ -320,6 +320,76 @@ public class CheckRunnerDirTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
+    // runCheckDirWithContext — directory path exercises directory-walking branch
+    // -----------------------------------------------------------------------
+
+    /**
+     * When a {@code paths} entry is a directory rather than a file,
+     * {@link CheckRunner#runCheckDirWithContext} must walk the directory tree,
+     * collect {@code .java} files, and substitute any that appear in the snapshot.
+     *
+     * <p>This exercises the {@code if (Files.isDirectory(p))} branch in the
+     * mock-file path of {@code runCheckDirWithContext}.
+     */
+    @Test
+    public void testRunCheckDirWithContext_DirectoryPath() throws Exception {
+        File f = writeJava("CkCtxDirPath.java",
+                "public class CkCtxDirPath {\n" +
+                "    public int add(int a, int b) { return a + b; }\n" +
+                "}\n");
+
+        // Dirty snapshot introduces a type error for the file in the directory.
+        String dirtyContent =
+                "public class CkCtxDirPath {\n" +
+                "    public int m() { return \"not an int\"; }\n" +
+                "}\n";
+
+        // Pass the containing directory — exercises the directory-walking branch.
+        CheckRunner.DirCheckResult result = CheckRunner.runCheckDirWithContext(
+                List.of(tmp.getRoot().getAbsolutePath()),
+                Map.of(fileUri(f), dirtyContent),
+                new OpenJMLSettings());
+
+        boolean hasError = result.diagnosticsByUri().values().stream()
+                .anyMatch(d -> !d.isEmpty());
+        assertTrue("Expected diagnostic from dirty snapshot content reached via directory walk",
+                hasError);
+        // Diagnostic keys must not be raw filesystem temp paths.
+        for (String key : result.diagnosticsByUri().keySet()) {
+            assertFalse("Diagnostic key must not be a temp-dir path: " + key,
+                    key.contains("openjml-lsp-check-"));
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // runEscDir — directory path (--esc --dirs <dir>)
+    // -----------------------------------------------------------------------
+
+    /**
+     * {@link CheckRunner#runEscDir} passes {@code --esc --dirs} to OpenJML.
+     * When the path entry is a directory, OpenJML discovers all {@code .java}
+     * files in that directory and runs ESC on them.
+     *
+     * <p>This exercises the primary directory-ESC dispatch path.
+     */
+    @Test
+    public void testRunEscDir_DirectoryPath() throws Exception {
+        writeJava("EscDirPath.java",
+                "public class EscDirPath {\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int m(int x) { return x; }\n" +
+                "}\n");
+
+        // Pass the directory rather than the individual file path.
+        CheckRunner.DirCheckResult result = CheckRunner.runEscDir(
+                List.of(tmp.getRoot().getAbsolutePath()), new OpenJMLSettings());
+
+        assertNotNull("Expected non-null result from directory-path ESC", result);
+        assertFalse("Expected at least one proof result from directory-path --esc --dirs",
+                result.proofResults().isEmpty());
+    }
+
+    // -----------------------------------------------------------------------
     // runRacPaths — clean file produces class file
     // -----------------------------------------------------------------------
 

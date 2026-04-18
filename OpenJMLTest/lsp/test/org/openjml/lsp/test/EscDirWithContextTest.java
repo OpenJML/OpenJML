@@ -343,6 +343,49 @@ public class EscDirWithContextTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
+    // runEscDirWithContext — directory path exercises directory-walking branch
+    // -----------------------------------------------------------------------
+
+    /**
+     * When a {@code paths} entry is a directory rather than a file,
+     * {@link CheckRunner#runEscDirWithContext} must walk the directory tree,
+     * collect {@code .java} files, and substitute any whose URI appears in the snapshot.
+     *
+     * <p>This exercises the {@code if (Files.isDirectory(p))} branch in the
+     * mock-file path of {@code runEscDirWithContext}.
+     */
+    @Test
+    public void testRunEscDirWithContext_DirectoryPath() throws Exception {
+        // Disk file: no specs — ESC on it alone would find nothing to verify.
+        File f = writeJava("EscCtxDirPath.java",
+                "public class EscCtxDirPath {\n" +
+                "    public int m(int x) { return x; }\n" +
+                "}\n");
+
+        // Snapshot carries a trivially-verifiable spec so we get proof results.
+        String dirtyContent =
+                "public class EscCtxDirPath {\n" +
+                "    //@ ensures \\result == x;\n" +
+                "    public int m(int x) { return x; }\n" +
+                "}\n";
+
+        // Pass the containing directory — exercises the directory-walking branch.
+        CheckRunner.DirCheckResult result = CheckRunner.runEscDirWithContext(
+                List.of(tmp.getRoot().getAbsolutePath()),
+                Map.of(fileUri(f), dirtyContent),
+                new OpenJMLSettings(), null);
+
+        assertNotNull("Expected non-null result from directory-path ESC with context", result);
+        assertFalse("Expected at least one proof result when directory is walked and snapshot applied",
+                result.proofResults().isEmpty());
+        // Diagnostic keys must be real URIs, not temp paths.
+        for (String key : result.diagnosticsByUri().keySet()) {
+            assertFalse("Diagnostic key must not be a temp-dir path: " + key,
+                    key.contains("openjml-lsp-esc-"));
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // uriToPath — basic unit tests (low-priority, in this class for convenience)
     // -----------------------------------------------------------------------
 
