@@ -677,7 +677,13 @@ async function activate(context) {
             vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC.');
             return;
         }
+        const escTriggerOn = vscode.workspace.getConfiguration('openjml').get('escTriggerOn', 'manual');
         await editor.document.save();
+        // If escTriggerOn is not "manual", ESC is already triggered automatically
+        // ("save" → server ESC on didSave; "edit" → server ESC on every edit).
+        // Sending an additional openjml.runEsc would double-verify.
+        if (escTriggerOn !== 'manual') { startEscPolling(); return; }
+
         let targetUri = editor.document.uri;
         if (editor.document.languageId === 'jml') {
             const javaUri = await resolveCompanionJavaUri(editor.document);

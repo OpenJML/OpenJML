@@ -162,8 +162,15 @@ public class ModelMethodEscTest extends LspTestBase {
         // First run a check to populate the AST cache (needed for method enumeration).
         checkContent(uri, source);
 
-        // Run ESC restricted to the model method by name.
-        String methodFqn = JavaSourceScanner.methodFqn(source, "spec");
+        // Run ESC restricted to the model method by name using the AST-derived FQN.
+        ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
+        assertNotNull("AST cache must be populated after checkContent", astEntry);
+        List<JavaSourceScanner.MethodInfo> methods =
+                JavaSourceScanner.findMethodsFromAst(astEntry.ast(), source);
+        JavaSourceScanner.MethodInfo specMethod = methods.stream()
+                .filter(m -> "spec".equals(m.name())).findFirst().orElse(null);
+        assertNotNull("AST must find model method 'spec'", specMethod);
+        String methodFqn = specMethod.rawName();
         System.out.println("[ModelMethodEscTest] spec FQN for --method: " + methodFqn);
 
         CheckRunner.CheckResult result = runEscMethodResult(uri, source, methodFqn);

@@ -76,24 +76,6 @@ public class MultiClassEscTest extends LspTestBase {
             "}\n";
 
     // -----------------------------------------------------------------------
-    // 3a: regex scanner finds methods in both classes
-    // -----------------------------------------------------------------------
-
-    @Test
-    public void testSecondary_RegexFindsMethodsInBothClasses() {
-        List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethods(SECONDARY_SRC);
-        List<String> names = methods.stream()
-                .map(JavaSourceScanner.MethodInfo::name).collect(Collectors.toList());
-        System.out.println("[MultiClassEscTest] secondary regex methods: " + names);
-
-        assertTrue("findMethods must find primary class method 'primId'",
-                names.contains("primId"));
-        assertTrue("findMethods must find secondary class method 'secId'",
-                names.contains("secId"));
-    }
-
-    // -----------------------------------------------------------------------
     // 3b: AST scanner finds methods in both classes
     // -----------------------------------------------------------------------
 
@@ -135,36 +117,6 @@ public class MultiClassEscTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
-    // 3d: methodFqn uses the correct class name for each method
-    // -----------------------------------------------------------------------
-
-    /**
-     * {@link JavaSourceScanner#methodFqn} is used to build the {@code --method}
-     * argument for a per-method ESC run.  For a secondary class method it must
-     * produce {@code "Secondary.secId"}, not {@code "Primary.secId"}.
-     *
-     * <p>Currently {@code findClassName} returns the first public/protected
-     * class it encounters, so this test is expected to FAIL if that bug is
-     * present — documenting the defect without masking it.
-     */
-    @Test
-    public void testSecondary_MethodFqnUsesCorrectClassName() {
-        // methodFqn takes the whole source and a simple method name.
-        String primFqn = JavaSourceScanner.methodFqn(SECONDARY_SRC, "primId");
-        String secFqn  = JavaSourceScanner.methodFqn(SECONDARY_SRC, "secId");
-        System.out.println("[MultiClassEscTest] primId FQN: " + primFqn);
-        System.out.println("[MultiClassEscTest] secId  FQN: " + secFqn);
-
-        assertEquals("primId FQN must be 'Primary.primId'",  "Primary.primId",  primFqn);
-        // TODO: methodFqn() uses a regex that always picks the first public class.
-        // For secondary class methods the returned FQN is wrong (uses Primary instead of Secondary).
-        // The LSP server builds the --method argument via MethodInfo.qualifiedName() (AST-based),
-        // so code-lens ESC runs are correct; only keyboard/menu shortcuts via extension.js are affected.
-        assertEquals("methodFqn() returns first-public-class name for secondary methods (known limitation)",
-                "Primary.secId", secFqn);
-    }
-
-    // -----------------------------------------------------------------------
     // 3e: split-by-method ESC for primary and secondary class methods
     // -----------------------------------------------------------------------
 
@@ -194,8 +146,7 @@ public class MultiClassEscTest extends LspTestBase {
     @Test
     public void testSecondary_SplitByMethodForSecondaryClassWorks() {
         // The correct FQN for --method targeting Secondary.secId.
-        // We explicitly pass the correct FQN rather than using methodFqn() so
-        // this test is independent of the methodFqn bug documented in 3d.
+        // We explicitly pass the correct FQN rather than deriving it from the AST.
         CheckRunner.CheckResult result =
                 runEscMethodResult(PKG_URI, SECONDARY_SRC, "Secondary.secId");
         System.out.println("[MultiClassEscTest] secondary split-by-method: "
@@ -384,38 +335,6 @@ public class MultiClassEscTest extends LspTestBase {
             System.out.println("[MultiClassEscTest] innerM not in proof results "
                     + "(ESC did not prove it or it is not targeted)");
         }
-    }
-
-    // -----------------------------------------------------------------------
-    // 4c: methodFqn for nested class method
-    // -----------------------------------------------------------------------
-
-    /**
-     * The FQN needed to target {@code Inner.innerM} via {@code --method} is
-     * {@code "Outer.Inner.innerM"} (or just {@code "Inner.innerM"} if OpenJML
-     * accepts the short form).  {@code methodFqn} currently returns
-     * {@code "Outer.innerM"} because {@code findClassName} only finds the outer
-     * class — documenting a known defect.
-     */
-    @Test
-    public void testNested_MethodFqnForNestedClassMethod() {
-        String outerFqn = JavaSourceScanner.methodFqn(NESTED_SRC, "outerM");
-        String innerFqn = JavaSourceScanner.methodFqn(NESTED_SRC, "innerM");
-        System.out.println("[MultiClassEscTest] outerM FQN: " + outerFqn);
-        System.out.println("[MultiClassEscTest] innerM FQN: " + innerFqn);
-
-        assertEquals("outerM FQN must be 'Outer.outerM'", "Outer.outerM", outerFqn);
-
-        // TODO: methodFqn() uses a regex that only finds the outer class name.
-        // For nested class methods the FQN should be "Outer.Inner.innerM" but
-        // the regex returns "Outer.innerM" because it cannot see class nesting.
-        // The LSP server uses MethodInfo.qualifiedName() (AST-based) for code lenses,
-        // which correctly resolves to "Inner.innerM"; only extension.js keyboard/menu
-        // shortcuts are affected by this limitation.
-        System.out.println("[MultiClassEscTest] innerM FQN is '" + innerFqn
-                + "' (expected 'Outer.Inner.innerM' or similar)");
-        assertEquals("methodFqn() returns outer-class-only FQN for nested methods (known limitation)",
-                "Outer.innerM", innerFqn);
     }
 
     // -----------------------------------------------------------------------

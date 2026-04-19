@@ -32,9 +32,9 @@ import static org.junit.Assert.*;
  *       ({@code scheduleEscSplitByFile}) and publishes diagnostics via
  *       {@code publishMerged} when each task completes.</li>
  *   <li>{@link #testRunEscSplitByMethod} — {@code openjml.runEscSplitByMethod}
- *       discovers methods in the file (regex fallback when no AST cache entry exists),
- *       submits one ESC task per method ({@code scheduleEscSplitByMethod}), and
- *       publishes diagnostics for each method result.</li>
+ *       runs {@code --check} to populate the AST if needed, discovers methods via
+ *       the AST, submits one ESC task per method ({@code scheduleEscSplitByMethod}),
+ *       and publishes diagnostics for each method result.</li>
  * </ul>
  *
  * <h3>Command argument format</h3>
@@ -188,8 +188,8 @@ public class SplitEscTest {
      * {@code openjml.runEscSplitByMethod} on a file with two methods must:
      * <ol>
      *   <li>Expand the path to one {@code .java} file.</li>
-     *   <li>Discover two methods via regex ({@code JavaSourceScanner.findMethods}
-     *       — no AST cache entry exists for an un-opened disk file).</li>
+     *   <li>Run {@code --check} to populate the AST cache (no cache entry exists for
+     *       an un-opened disk file), then discover methods via the AST.</li>
      *   <li>Submit two ESC tasks, one per method, and call {@code publishMerged(uri)}
      *       as each method finishes.</li>
      * </ol>

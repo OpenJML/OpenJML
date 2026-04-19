@@ -23,7 +23,6 @@ import org.junit.runners.Suite;
     JmlCompletionProviderTest.class,
     OpenJMLSettingsTest.class,
     DiagnosticConverterTest.class,
-    JavaSourceScannerTest.class,
     CodeLensTest.class,
     CheckRunnerDirTest.class,
     WorkspaceSymbolTest.class,

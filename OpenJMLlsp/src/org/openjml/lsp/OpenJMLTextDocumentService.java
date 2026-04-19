@@ -447,7 +447,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
         List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
                 ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
-                : JavaSourceScanner.findMethods(content);
+                : List.of();
         Map<Integer, MethodStatus> statuses = methodEscStatus.getOrDefault(uri, Map.of());
 
         List<CodeLens> lenses = new ArrayList<>(methods.size());
@@ -604,7 +604,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
 
         // Otherwise show the JML spec of the enclosing method.
-        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        ASTCache.Entry hoverAstEntry = CheckRunner.getASTCache().get(uri);
+        List<JavaSourceScanner.MethodInfo> methods = (hoverAstEntry != null)
+                ? JavaSourceScanner.findMethodsFromAst(hoverAstEntry.ast(), content)
+                : List.of();
         JavaSourceScanner.MethodInfo method = null;
         for (JavaSourceScanner.MethodInfo m : methods) {
             if (line >= m.startLine() && line <= m.endLine()) {
@@ -1245,10 +1248,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     /**
      * Split-by-method ESC: recursively expand {@code paths} to individual {@code .java}
-     * files, discover methods in each (AST cache preferred, regex fallback), and submit
-     * each method as a separate ESC task on {@link OpenJMLSettings#escPool}.
+     * files, discover methods in each via the AST cache, and submit each method as a
+     * separate ESC task on {@link OpenJMLSettings#escPool}.
      *
-     * <p>File content is read synchronously before task submission so that method
+     * <p>If the AST cache has no entry for a file (e.g. it has never been opened via
+     * {@code didOpen}), a {@code --check} run is performed first to populate it.
+     * File content is read synchronously before task submission so that method
      * discovery and all per-method lambdas share a coherent snapshot.
      */
     void scheduleEscSplitByMethod(List<String> paths, String projectId) {
@@ -1271,11 +1276,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
             final String finalContent = content;
 
-            // Discover methods: AST cache preferred, regex fallback (same as codeLens).
             ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
+            if (astEntry == null) {
+                // No AST yet (file not opened via didOpen) — run --check to discover methods.
+                // runCheckDir stores entries in the nav tier; use getNav() to retrieve them.
+                CheckRunner.runCheckDirWithContext(List.of(javaFile.toString()), snapshot, s);
+                astEntry = CheckRunner.getASTCache().getNav(uri);
+            }
             List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
                     ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
-                    : JavaSourceScanner.findMethods(content);
+                    : List.of();
             if (methods.isEmpty()) continue;
 
             // Mark all methods in this file as CHECKING before submitting.
@@ -1850,7 +1860,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                               CheckRunner.MethodEscResult r) {
         String content = lastContent.get(uri);
         if (content == null) return;
-        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        ASTCache.Entry escAstEntry = CheckRunner.getASTCache().get(uri);
+        List<JavaSourceScanner.MethodInfo> methods = (escAstEntry != null)
+                ? JavaSourceScanner.findMethodsFromAst(escAstEntry.ast(), content)
+                : List.of();
         for (JavaSourceScanner.MethodInfo m : methods) {
             if (!m.name().equals(r.name())) continue;
             Map<Integer, MethodStatus> statuses =
@@ -1933,8 +1946,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *
      * <p>Uses AST-based method discovery when a cached AST is available for
      * {@code uri}, so that {@link JavaSourceScanner.MethodInfo#rawName()} carries
-     * the FQN+signature key needed to look up proof results.  Falls back to
-     * the regex scanner when no AST is available (e.g. before the first check).
+     * the FQN+signature key needed to look up proof results.  Returns {@code null}
+     * if no AST is available (e.g. before the first check completes).
      */
     private static JavaSourceScanner.MethodInfo findMethod(String uri, String content,
                                                             String nameOrRef) {
@@ -1942,7 +1955,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         ASTCache.Entry astEntry = uri != null ? CheckRunner.getASTCache().get(uri) : null;
         List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
                 ? JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content)
-                : JavaSourceScanner.findMethods(content);
+                : List.of();
         // "@line" format: client does not have a FQN; find method containing that line.
         if (nameOrRef.startsWith("@")) {
             try {
@@ -2668,7 +2681,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void markAllMethodStatus(String uri, MethodStatus status) {
         String content = lastContent.get(uri);
         if (content == null) return;
-        List<JavaSourceScanner.MethodInfo> methods = JavaSourceScanner.findMethods(content);
+        ASTCache.Entry markAstEntry = CheckRunner.getASTCache().get(uri);
+        List<JavaSourceScanner.MethodInfo> methods = (markAstEntry != null)
+                ? JavaSourceScanner.findMethodsFromAst(markAstEntry.ast(), content)
+                : List.of();
         if (methods.isEmpty()) return;
         Map<Integer, MethodStatus> statuses = new HashMap<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
@@ -2692,8 +2708,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // making it visible to the LSP handler thread when it responds to codeLens requests.
         Map<Integer, MethodStatus> current =
                 new HashMap<>(methodEscStatus.getOrDefault(uri, Map.of()));
+        ASTCache.Entry markCheckAstEntry = CheckRunner.getASTCache().get(uri);
+        List<JavaSourceScanner.MethodInfo> markCheckMethods = (markCheckAstEntry != null)
+                ? JavaSourceScanner.findMethodsFromAst(markCheckAstEntry.ast(), content)
+                : List.of();
         boolean changed = false;
-        for (JavaSourceScanner.MethodInfo m : JavaSourceScanner.findMethods(content)) {
+        for (JavaSourceScanner.MethodInfo m : markCheckMethods) {
             if (m.name().equals(methodName)) {
                 current.put(m.startLine(), MethodStatus.CHECKING);
                 changed = true;

@@ -40,8 +40,9 @@ public final class OpenJMLCommands {
      * Per-method ESC: {@code openjml.runEscForMethod}.
      *
      * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, uri, methodFqn]}.
-     * {@code uri} is the document URI and {@code methodFqn} is {@code pkg.Class.method}
-     * as produced by {@link JavaSourceScanner#methodFqn}.  An empty {@code methodFqn}
+     * {@code uri} is the document URI and {@code methodFqn} is the fully-qualified method
+     * name (e.g. {@code pkg.Class.method(int,int)}) from {@link JavaSourceScanner.MethodInfo#rawName()}.
+     * An empty {@code methodFqn}
      * causes the server to ESC the whole file.
      */
     public static final String RUN_ESC_FOR_METHOD = "openjml.runEscForMethod";
