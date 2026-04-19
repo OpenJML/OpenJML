@@ -14,7 +14,6 @@ import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -335,7 +334,7 @@ public class CheckRunner {
     public static DirCheckResult runCheckDir(List<String> paths, OpenJMLSettings settings,
                                              String projectId) {
         var listener = new LspDiagnosticListener();
-        var out = new PrintWriter(new StringWriter());
+        var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         List<String> args = buildArgs(settings, "--check");
         args.add("--dirs");
@@ -427,7 +426,7 @@ public class CheckRunner {
         if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of());
 
         var listener = new LspDiagnosticListener();
-        var out = new PrintWriter(new StringWriter());
+        var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         List<String> args = buildArgs(settings, "--check");
         args.addAll(fileList);
@@ -521,7 +520,7 @@ public class CheckRunner {
             if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of());
 
             var listener = new LspDiagnosticListener();
-            var out = new PrintWriter(new StringWriter());
+            var out = new PrintWriter(System.err, true);
             var api = IAPI.make(out, listener);
             List<String> args = buildArgs(settings, "--check", tempDir);
             args.addAll(fileList);
@@ -577,7 +576,7 @@ public class CheckRunner {
             EscProgressCallback perFileCallback, Consumer<IAPI> onApiReady) {
         var listener = new LspDiagnosticListener();
         listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
-        var out = new PrintWriter(new StringWriter());
+        var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         ProofResultCollector[] prcRef = {null};
         prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
@@ -698,7 +697,7 @@ public class CheckRunner {
 
         var listener = new LspDiagnosticListener();
         listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
-        var out = new PrintWriter(new StringWriter());
+        var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         ProofResultCollector[] prcRef = {null};
         prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
@@ -814,7 +813,7 @@ public class CheckRunner {
 
             var listener = new LspDiagnosticListener();
             listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
-            var out = new PrintWriter(new StringWriter());
+            var out = new PrintWriter(System.err, true);
             var api = IAPI.make(out, listener);
             ProofResultCollector[] prcRef = {null};
             prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
@@ -883,7 +882,7 @@ public class CheckRunner {
      */
     public static CheckResult runRacPaths(List<String> paths, OpenJMLSettings settings) {
         var listener = new LspDiagnosticListener();
-        var out = new PrintWriter(new StringWriter());
+        var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
 
         List<String> args = buildArgs(settings, "--rac");
@@ -1048,7 +1047,7 @@ public class CheckRunner {
             modifiedSettings.specsPath   = buildEffectiveSpecsPath(null, settings);
             modifiedSettings.classPath   = settings.classPath;
             var listener = new LspDiagnosticListener();
-            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var out = new java.io.PrintWriter(System.err, true);
             var api = IAPI.make(out, listener);
             List<String> args = buildArgs(modifiedSettings, "--check");
             args.addAll(filePaths);
@@ -1099,7 +1098,7 @@ public class CheckRunner {
             // Run a single --check invocation on all files so cross-file dependencies
             // (e.g., A.java referencing a renamed symbol in B.java) are caught.
             var listener = new LspDiagnosticListener();
-            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var out = new java.io.PrintWriter(System.err, true);
             var api = IAPI.make(out, listener);
             List<String> args = buildArgs(modifiedSettings, "--check");
             args.addAll(filePaths);
@@ -1182,7 +1181,7 @@ public class CheckRunner {
             modifiedSettings.specsPath   = buildEffectiveSpecsPath(null, settings);
             modifiedSettings.classPath   = settings.classPath;
             var listener = new LspDiagnosticListener();
-            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var out = new java.io.PrintWriter(System.err, true);
             var api = IAPI.make(out, listener);
             ASTCache freshCache = new ASTCache();
             IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
@@ -1238,7 +1237,7 @@ public class CheckRunner {
             modifiedSettings.classPath   = settings.classPath;
 
             var listener = new LspDiagnosticListener();
-            var out = new java.io.PrintWriter(new java.io.StringWriter());
+            var out = new java.io.PrintWriter(System.err, true);
             var api = IAPI.make(out, listener);
 
             // Populate a fresh (private) AST cache — never touches the shared AST_CACHE.
@@ -1310,7 +1309,7 @@ public class CheckRunner {
                                                  OpenJMLSettings settings) {
         var listener = new LspDiagnosticListener();
         listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
-        var out = new PrintWriter(new StringWriter());
+        var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         var prc = new ProofResultCollector();
         api.setProofResultListener(prc);
@@ -1625,7 +1624,7 @@ public class CheckRunner {
         var listener = new LspDiagnosticListener();
         if (content != null) listener.setSourceContent(content);
         if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
-        var out      = new PrintWriter(new StringWriter());
+        var out      = new PrintWriter(System.err, true);
         var api      = IAPI.make(out, listener);
 
         ProofResultCollector prc = null;
@@ -1942,7 +1941,7 @@ public class CheckRunner {
             java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
         var listener = new LspDiagnosticListener();
         if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
-        var out = new PrintWriter(new StringWriter());
+        var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
 
         ProofResultCollector prc = null;
