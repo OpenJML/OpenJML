@@ -163,22 +163,17 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
      * {@code "B.java"}, in the order first seen, without duplicates.
      */
     public List<String> toForeignMessages(String sourcePath) {
-        String base = baseName(sourcePath);
+        String base = DiagnosticConverter.baseName(sourcePath);
         List<String> files = new ArrayList<>();
         java.util.Set<String> seen = new java.util.LinkedHashSet<>();
         for (var d : collected) {
             if (d.getSource() == null) continue;
             String srcName = d.getSource().getName();
             if (srcName.isEmpty() || srcName.endsWith(base)) continue;
-            String fileName = baseName(srcName);
+            String fileName = DiagnosticConverter.baseName(srcName);
             if (seen.add(fileName)) files.add(fileName);
         }
         return files;
-    }
-
-    private static String baseName(String path) {
-        int i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-        return path.substring(i + 1);
     }
 
     /**

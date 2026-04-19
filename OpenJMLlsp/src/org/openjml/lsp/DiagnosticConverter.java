@@ -232,7 +232,7 @@ public class DiagnosticConverter {
         return lsp;
     }
 
-    private static String baseName(String path) {
+    static String baseName(String path) {
         int i = path.lastIndexOf('/');
         int j = path.lastIndexOf('\\');
         return path.substring(Math.max(i, j) + 1);

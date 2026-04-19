@@ -438,21 +438,6 @@ public class ASTCache {
      * @param projectRoot file-system path of the Eclipse project root, or
      *                    {@code null} to return all projects
      */
-    /**
-     * Iterate over indexed declarations, optionally restricted to one project.
-     *
-     * <p>When {@code projectRoot} is non-null, only nav sections that
-     * {@linkplain NavSection#coversProjectRoot cover} that root and live-tier
-     * entries whose URI falls under that root are included.  When
-     * {@code projectRoot} is {@code null}, all sections and all live entries
-     * are included.
-     *
-     * <p>Used by {@code workspace/symbol} and the {@code openjml.symbolsForProject}
-     * command to search within a specific project.
-     *
-     * @param projectRoot file-system path of the Eclipse project root, or
-     *                    {@code null} to return all projects
-     */
     public void forEachDeclaration(String projectRoot,
             java.util.function.BiConsumer<Symbol, SymbolLocation> action) {
         // Collect the set of URIs covered by the nav sections we will iterate,

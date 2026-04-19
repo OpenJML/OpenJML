@@ -6,22 +6,21 @@ package org.openjml.lsp;
  * <p>These strings are shared constants used by all clients -- the VS Code extension,
  * the Eclipse plugin, and the server itself.
  *
- * <p><b>Unified argument encoding.</b>  All commands share a fixed 4-element prefix:
+ * <p><b>Unified argument encoding.</b>  All commands share a common prefix:
  * <pre>
- *   args[0]  sourcePath     -- OS path(s) for -sourcepath (empty = use server default)
- *   args[1]  classPath      -- OS path(s) for -classpath  (empty = use server default)
- *   args[2]  specsPath      -- path to OpenJML specs dir   (empty = use server default)
- *   args[3]  propertiesFile -- path to generated .properties file (empty = none)
+ *   args[0]  projectId  -- registered project name, or "" for global/single-project settings
+ *   args[1+]            -- command-specific paths / URIs
  * </pre>
- * Command-specific arguments follow at position 4+.  Empty strings are used for
- * absent optional values so that positions are always fixed.
+ * Path configuration ({@code sourcePath}, {@code classPath}, {@code specsPath}, etc.) is
+ * sent once at initialization via {@code initializationOptions} and updated via
+ * {@code workspace/didChangeConfiguration}; it is not repeated in command arguments.
  */
 public final class OpenJMLCommands {
 
     /**
      * JML type-check: {@code openjml.checkJML}.
      *
-     * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]}.
+     * <p>Arguments: {@code [projectId, path1, path2, ...]}.
      * {@code path1..N} are OS file-system paths (files or directories) passed to
      * {@code --check --dirs}.
      */
@@ -30,7 +29,7 @@ public final class OpenJMLCommands {
     /**
      * Multi-target ESC: {@code openjml.runEsc}.
      *
-     * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]}.
+     * <p>Arguments: {@code [projectId, path1, path2, ...]}.
      * {@code path1..N} are OS file-system paths (files or directories) passed to
      * {@code --esc --dirs}.
      */
@@ -39,19 +38,18 @@ public final class OpenJMLCommands {
     /**
      * Per-method ESC: {@code openjml.runEscForMethod}.
      *
-     * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, uri, methodFqn]}.
-     * {@code uri} is the document URI and {@code methodFqn} is the fully-qualified method
-     * name (e.g. {@code pkg.Class.method(int,int)}) from {@link JavaSourceScanner.MethodInfo#rawName()}.
-     * An empty {@code methodFqn}
-     * causes the server to ESC the whole file.
+     * <p>Standard format: {@code [projectId, uri, methodFqn]}.
+     * Code-lens format (detected automatically): {@code [uri, methodFqn]} where
+     * {@code uri} starts with {@code file://}.
+     * {@code methodFqn} is the unique per-project method name from
+     * {@link JavaSourceScanner.MethodInfo#rawName()} (e.g. {@code pkg.Class.method(int,int)}).
      */
     public static final String RUN_ESC_FOR_METHOD = "openjml.runEscForMethod";
 
     /**
      * Split-by-file ESC: {@code openjml.runEscSplitByFile}.
      *
-     * <p>Arguments: same format as {@link #RUN_ESC}:
-     * {@code [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]}.
+     * <p>Arguments: {@code [projectId, path1, path2, ...]}.
      * The server recursively walks each path for {@code .java} files and submits
      * each file as a separate task to the bounded ESC thread pool.
      */
@@ -60,8 +58,7 @@ public final class OpenJMLCommands {
     /**
      * Split-by-method ESC: {@code openjml.runEscSplitByMethod}.
      *
-     * <p>Arguments: same format as {@link #RUN_ESC}:
-     * {@code [sourcePath, classPath, specsPath, propertiesFile, path1, path2, ...]}.
+     * <p>Arguments: {@code [projectId, path1, path2, ...]}.
      * The server expands paths to {@code .java} files, discovers methods in each
      * (AST cache preferred, regex fallback), and submits each method as a separate
      * task to the bounded ESC thread pool.
@@ -71,10 +68,10 @@ public final class OpenJMLCommands {
     /**
      * Multi-target RAC: {@code openjml.runRac}.
      *
-     * <p>Arguments: {@code [sourcePath, classPath, specsPath, propertiesFile, outputDir, path1, path2, ...]}.
-     * {@code outputDir} is the output directory for compiled class files (empty = use server default).
+     * <p>Arguments: {@code [projectId, path1, path2, ...]}.
      * {@code path1..N} are OS file-system paths (files or directories) passed to
-     * {@code --rac --dirs}.
+     * {@code --rac --dirs}.  The output directory for compiled class files is taken
+     * from the project's {@code ProjectConfig.outputDir}.
      */
     public static final String RUN_RAC            = "openjml.runRac";
 
@@ -181,12 +178,12 @@ public final class OpenJMLCommands {
      * cross-project leakage that occurs when multiple projects are indexed and the
      * client-side URI comparison is unreliable.
      *
-     * <p>Arguments: {@code [query, projectRoot]}.
+     * <p>Arguments: {@code [query, projectId]}.
      * <ul>
      *   <li>{@code query} — case-insensitive substring to match; empty = return all.</li>
-     *   <li>{@code projectRoot} — file-system path of the Eclipse project root
-     *       ({@code IProject.getLocation().toOSString()}).  When absent or empty,
-     *       symbols from all projects are returned.</li>
+     *   <li>{@code projectId} — project identifier from the {@code projects} settings array
+     *       (e.g. {@code IProject.getName()} in the Eclipse plugin).  When absent or empty,
+     *       symbols from all projects are returned.  An unknown ID is reported as an error.</li>
      * </ul>
      *
      * <p>Returns a {@code List<SymbolInformation>} serialized as JSON.

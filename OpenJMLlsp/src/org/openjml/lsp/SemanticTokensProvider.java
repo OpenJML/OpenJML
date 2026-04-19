@@ -860,7 +860,7 @@ public class SemanticTokensProvider {
             } else {
                 // JML-only mode, non-JML variable: still emit any JML modifier tokens.
                 emitJmlMods(tree.mods);
-                //super.visitVarDef(tree);
+                //super.visitVarDef(tree); -- suppressed: avoids recursing into vartype/init for non-JML variables in JML-only mode
             }
         }
 
@@ -958,7 +958,7 @@ public class SemanticTokensProvider {
                 scan(d);
             }
 
-            //super.visitClassDef(tree);
+            //super.visitClassDef(tree); -- suppressed: tree.defs already scanned above with JML-mode filtering
         }
 
         // ---- Java literals and type identifiers ----------------------------

@@ -451,7 +451,7 @@ public class CheckRunner {
             // Also cache the companion .jml spec CU in the live tier so that
             // codeLensForJml can look it up via ASTCache.get(jmlUri).
             cacheSpecsCu((org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast, astCtx,
-                         normToReal, null, true);
+                         normToReal, null);
         };
         api.setASTListener(astListener);
         int rc;
@@ -965,25 +965,9 @@ public class CheckRunner {
      * Run {@code --esc} on {@code content} for {@code uri}, making all other
      * open (possibly unsaved) files in {@code openContent} visible as in-memory source.
      *
-     * <p>Same as {@link #checkWithContext} but runs ESC instead of --check.
-     */
-    public static CheckResult escWithContext(
-            String uri, String content,
-            Map<String, String> openContent, OpenJMLSettings settings) {
-        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, null);
-    }
-
-    /** Like {@link #escWithContext} but fires {@code onApiReady} after the IAPI is set up. */
-    public static CheckResult escWithContext(
-            String uri, String content,
-            Map<String, String> openContent, OpenJMLSettings settings,
-            Consumer<IAPI> onApiReady) {
-        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, onApiReady, null);
-    }
-
-    /**
-     * Like {@link #escWithContext(String, String, Map, OpenJMLSettings, Consumer)} but also
-     * fires {@code onMethodStarted} each time a method proof begins (RUNNING event),
+     * <p>Same as {@link #checkWithContext} but runs ESC instead of {@code --check}.
+     * {@code onApiReady} fires once the IAPI is set up (use to register cancellation hooks).
+     * {@code onMethodStarted} fires each time a method proof begins (RUNNING event),
      * allowing the caller to update the code lens to CHECKING before the result arrives.
      */
     public static CheckResult escWithContext(
@@ -1120,13 +1104,7 @@ public class CheckRunner {
             System.err.println("[CheckRunner.checkModifiedFiles] I/O error: " + e);
             return List.of();
         } finally {
-            if (tempDir != null) {
-                try {
-                    Files.walk(tempDir)
-                         .sorted(Comparator.reverseOrder())
-                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
-                } catch (IOException ignored) {}
-            }
+            deleteTempDir(tempDir);
         }
     }
 
@@ -1273,13 +1251,7 @@ public class CheckRunner {
             System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] I/O error: " + e);
             return new CheckAndCacheResult(List.of(), new ASTCache(), Map.of());
         } finally {
-            if (tempDir != null) {
-                try {
-                    Files.walk(tempDir)
-                         .sorted(Comparator.reverseOrder())
-                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
-                } catch (IOException ignored) {}
-            }
+            deleteTempDir(tempDir);
         }
     }
 
@@ -1366,13 +1338,7 @@ public class CheckRunner {
             System.err.println("[CheckRunner.runEscWithSources] I/O error: " + e);
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
         } finally {
-            if (tempDir != null) {
-                try {
-                    Files.walk(tempDir)
-                         .sorted(Comparator.reverseOrder())
-                         .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
-                } catch (IOException ignored) {}
-            }
+            deleteTempDir(tempDir);
         }
     }
 
@@ -1581,11 +1547,10 @@ public class CheckRunner {
      *                         or {@code null} when no temp directory is in use
      * @param tempDirPrefix    URI prefix string of the temp directory (used to
      *                         detect and skip unmapped temp-dir paths), or {@code null}
-     * @param live             unused — retained for call-site compatibility; always stores in live tier
      */
     private static void cacheSpecsCu(JmlCompilationUnit javaAst, Context ctx,
                                      Map<String, String> tempUriToRealUri,
-                                     String tempDirPrefix, boolean live) {
+                                     String tempDirPrefix) {
         JmlCompilationUnit specs = javaAst.specsCompilationUnit;
         if (specs == null || specs == javaAst || specs.sourcefile == null) return;
         String specsUri = specs.sourcefile.toUri().toString();
@@ -1725,7 +1690,7 @@ public class CheckRunner {
                     }
                     JmlCompilationUnit cu = (JmlCompilationUnit) ast;
                     AST_CACHE.put(realUri, astCtx, cu);
-                    cacheSpecsCu(cu, astCtx, mockUriToRealUri, null, true);
+                    cacheSpecsCu(cu, astCtx, mockUriToRealUri, null);
                     try {
                         Path p = java.nio.file.Paths.get(java.net.URI.create(jfoUri));
                         compiledPathToRealUri.put(p.toString(), realUri);
@@ -1749,12 +1714,12 @@ public class CheckRunner {
                     } else {
                         AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
                     }
-                    cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null, true);
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null);
                 } else if ("--esc".equals(modeFlag)) {
                     ASTCache.Entry existing = AST_CACHE.get(uri);
                     if (existing == null || !existing.supportsDoEsc()) {
                         AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
-                        cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null, true);
+                        cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null);
                     }
                 }
             }
@@ -1854,7 +1819,7 @@ public class CheckRunner {
                     if (realUri != null) {
                         JmlCompilationUnit cu = (JmlCompilationUnit) ast;
                         AST_CACHE.put(realUri, astCtx, cu);
-                        cacheSpecsCu(cu, astCtx, tempUriToRealUri, tempDirPrefix, true);
+                        cacheSpecsCu(cu, astCtx, tempUriToRealUri, tempDirPrefix);
                         // Record that this file was compiled so we can extract its diags.
                         try {
                             Path p = java.nio.file.Paths.get(java.net.URI.create(jfoUri));
@@ -1880,12 +1845,12 @@ public class CheckRunner {
                     } else {
                         AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
                     }
-                    cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix, true);
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix);
                 } else if ("--esc".equals(modeFlag)) {
                     ASTCache.Entry existing = AST_CACHE.get(uri);
                     if (existing == null || !existing.supportsDoEsc()) {
                         AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
-                        cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix, true);
+                        cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix);
                     }
                 }
             }
@@ -2003,7 +1968,7 @@ public class CheckRunner {
                 // Additional files pulled in via -sourcepath: store basic entry.
                 JmlCompilationUnit cu = (JmlCompilationUnit) ast;
                 AST_CACHE.put(jfoUri, ctx, cu);
-                cacheSpecsCu(cu, ctx, null, null, true);
+                cacheSpecsCu(cu, ctx, null, null);
             }
         };
         api.setASTListener(astListener);
@@ -2024,12 +1989,12 @@ public class CheckRunner {
                 } else {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
                 }
-                cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
+                cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null);
             } else if ("--esc".equals(modeFlag)) {
                 ASTCache.Entry existing = AST_CACHE.get(uri);
                 if (existing == null || !existing.supportsDoEsc()) {
                     AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
-                    cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, true);
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null);
                 }
             }
         }
@@ -2462,7 +2427,7 @@ public class CheckRunner {
         } else {
             // No explicit source path: fall back to per-project rootPaths or effective roots.
             if (settings.rootPaths != null && !settings.rootPaths.isEmpty()) {
-                parts.add(settings.rootPaths);
+                parts.add(String.join(java.io.File.pathSeparator, settings.rootPaths));
             } else {
                 List<String> roots = settings.effectiveRoots();
                 if (!roots.isEmpty())

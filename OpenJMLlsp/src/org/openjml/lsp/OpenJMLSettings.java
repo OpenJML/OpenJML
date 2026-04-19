@@ -1,6 +1,5 @@
 package org.openjml.lsp;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,7 +48,7 @@ public class OpenJMLSettings {
     public volatile List<ProjectConfig> projects;
 
     /**
-     * Per-project filesystem root paths (path-separator-separated).
+     * Per-project filesystem root paths.
      *
      * <p>This field is set on <em>per-project</em> {@link OpenJMLSettings}
      * instances built by
@@ -59,7 +58,7 @@ public class OpenJMLSettings {
      * {@link OpenJMLTextDocumentService#settingsForUri} can map a file URI to
      * the correct project.
      */
-    public volatile String rootPaths;
+    public volatile List<String> rootPaths;
 
     /**
      * Per-project configuration record.
@@ -161,8 +160,8 @@ public class OpenJMLSettings {
                     .collect(Collectors.toList());
         }
         // Per-project settings object (built by updateProjectSettings).
-        if (rootPaths != null && !rootPaths.isBlank())
-            return Arrays.asList(rootPaths.split(java.io.File.pathSeparator));
+        if (rootPaths != null && !rootPaths.isEmpty())
+            return rootPaths;
         return List.of();
     }
 

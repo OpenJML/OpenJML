@@ -430,10 +430,6 @@ public class Renamer {
     // Identifier validation
     // -----------------------------------------------------------------------
 
-    /**
-     * Returns {@code true} if {@code name} is a non-empty Java identifier that
-     * is not a keyword or boolean/null literal.
-     */
     /** Returns true if the given URI falls under any of the given OS-path roots. */
     private static boolean isUnderRoots(String uri, List<String> roots) {
         String filePath;
