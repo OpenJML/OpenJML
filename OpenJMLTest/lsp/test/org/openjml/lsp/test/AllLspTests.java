@@ -67,5 +67,6 @@ import org.junit.runners.Suite;
     CheckRunnerEscContextTest.class,
     LegacyEscSmokeTest.class,
     SymlinkWorkspaceTest.class,
+    EscSessionGenTest.class,
 })
 public class AllLspTests {}
