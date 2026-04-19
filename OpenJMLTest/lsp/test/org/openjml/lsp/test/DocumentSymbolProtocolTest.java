@@ -76,7 +76,7 @@ public class DocumentSymbolProtocolTest {
                 + "    public int getValue() { return value; }\n"
                 + "}\n";
 
-        didOpen(uri, source);
+        didOpenAndWaitForCheck(uri, source);
 
         client.sendRequest("textDocument/documentSymbol",
                 "{\"textDocument\":{\"uri\":\"" + jsonEscape(uri) + "\"}}");
@@ -112,7 +112,7 @@ public class DocumentSymbolProtocolTest {
                 + "    public int value;\n"
                 + "}\n";
 
-        didOpen(uri, source);
+        didOpenAndWaitForCheck(uri, source);
 
         client.sendRequest("textDocument/documentSymbol",
                 "{\"textDocument\":{\"uri\":\"" + jsonEscape(uri) + "\"}}");
@@ -159,5 +159,11 @@ public class DocumentSymbolProtocolTest {
                 "{\"textDocument\":{\"uri\":\"" + uri
                 + "\",\"languageId\":\"java\",\"version\":1,"
                 + "\"text\":\"" + jsonEscape(source) + "\"}}");
+    }
+
+    /** Send didOpen and wait for the server's publishDiagnostics to confirm the check finished. */
+    private void didOpenAndWaitForCheck(String uri, String source) throws Exception {
+        didOpen(uri, source);
+        client.nextNotification("textDocument/publishDiagnostics", TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 }
