@@ -329,6 +329,11 @@ public class CheckRunner {
      * Returns diagnostics grouped by source-file URI.
      */
     public static DirCheckResult runCheckDir(List<String> paths, OpenJMLSettings settings) {
+        return runCheckDir(paths, settings, null);
+    }
+
+    public static DirCheckResult runCheckDir(List<String> paths, OpenJMLSettings settings,
+                                             String projectId) {
         var listener = new LspDiagnosticListener();
         var out = new PrintWriter(new StringWriter());
         var api = IAPI.make(out, listener);
@@ -336,12 +341,10 @@ public class CheckRunner {
         args.add("--dirs");
         args.addAll(paths);
         logInvocation("runCheckDir", args);
-        // Clear nav-cache entries for files under these roots, then populate
-        // fresh entries via the AST listener so workspace/symbol can find them.
-        AST_CACHE.clearNavForRoots(paths);
+        AST_CACHE.clearNavForRoots(paths, projectId);
         IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
             String uri = jfo.toUri().normalize().toString();
-            AST_CACHE.putNav(uri, ctx, (JmlCompilationUnit) ast, paths);
+            AST_CACHE.putNav(uri, ctx, (JmlCompilationUnit) ast, paths, projectId);
         };
         api.setASTListener(astListener);
         int rc;
@@ -370,8 +373,14 @@ public class CheckRunner {
      */
     public static DirCheckResult runCheckDirWithContext(
             List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings) {
-        if (snapshot.isEmpty()) return runCheckDir(paths, settings);
-        if (!useMockFiles) return runCheckDirWithContextLegacy(paths, snapshot, settings);
+        return runCheckDirWithContext(paths, snapshot, settings, null);
+    }
+
+    public static DirCheckResult runCheckDirWithContext(
+            List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings,
+            String projectId) {
+        if (snapshot.isEmpty()) return runCheckDir(paths, settings, projectId);
+        if (!useMockFiles) return runCheckDirWithContextLegacy(paths, snapshot, settings, projectId);
 
         Map<String, String> allPathToRealUri = new java.util.LinkedHashMap<>();
         org.openjml.MockFiles mockFiles = new org.openjml.MockFiles();
@@ -428,7 +437,7 @@ public class CheckRunner {
             try { normToReal.put(java.net.URI.create(e.getKey()).normalize().toString(), e.getKey()); }
             catch (Exception ignored) {}
         }
-        AST_CACHE.clearNavForRoots(paths);
+        AST_CACHE.clearNavForRoots(paths, projectId);
         IAPI.IASTListener astListener = (astCtx, jfo, ast) -> {
             String jfoUri = jfo.toUri().normalize().toString();
             String realUri = normToReal.getOrDefault(jfoUri, jfoUri);
@@ -439,7 +448,7 @@ public class CheckRunner {
                         + (jfoUri.equals(astSrcUri) ? "" : " ast.sourcefile=" + astSrcUri));
             } catch (Exception ignored) {}
             AST_CACHE.putNav(realUri, astCtx,
-                    (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast, paths);
+                    (org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast, paths, projectId);
             // Also cache the companion .jml spec CU in the live tier so that
             // codeLensForJml can look it up via ASTCache.get(jmlUri).
             cacheSpecsCu((org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast, astCtx,
@@ -461,7 +470,8 @@ public class CheckRunner {
     /** Legacy temp-file implementation of {@link #runCheckDirWithContext}, used when
      *  {@link #useMockFiles} is {@code false}. */
     private static DirCheckResult runCheckDirWithContextLegacy(
-            List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings) {
+            List<String> paths, Map<String, String> snapshot, OpenJMLSettings settings,
+            String projectId) {
         Path tempDir = null;
         try {
             tempDir = Files.createTempDirectory("openjml-lsp-check-");
@@ -523,7 +533,7 @@ public class CheckRunner {
             return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of());
         } catch (IOException e) {
             System.err.println("[CheckRunner.runCheckDirWithContextLegacy] I/O error: " + e);
-            return runCheckDir(paths, settings);
+            return runCheckDir(paths, settings, projectId);
         } finally {
             deleteTempDir(tempDir);
         }

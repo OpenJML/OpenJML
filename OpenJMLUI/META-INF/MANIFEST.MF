@@ -26,7 +26,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.search,
  org.eclipse.ui.genericeditor,
  org.eclipse.ui.views
-Import-Package: org.eclipse.ui.texteditor,
+Import-Package: com.google.gson,
+ org.eclipse.ui.texteditor,
  org.osgi.framework.wiring
 Automatic-Module-Name: org.openjml.openjmlui
 Bundle-ActivationPolicy: lazy

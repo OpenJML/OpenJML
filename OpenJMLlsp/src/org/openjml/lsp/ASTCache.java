@@ -146,26 +146,14 @@ public class ASTCache {
     }
 
     /**
-     * Project root-path set → its {@link NavSection}.
+     * Project → its {@link NavSection}.
      *
-     * <p>The key is a normalized, sorted, newline-joined concatenation of the
-     * source-directory paths supplied to {@link #putNav}.  This is stable across
-     * re-index calls for the same project.
+     * <p>The key is the project ID when one is known (supplied by the caller via
+     * {@link #putNav}), or a normalized, sorted, newline-joined concatenation of
+     * the source-directory paths otherwise.  Using the project ID is preferred:
+     * it is stable, human-readable, and does not depend on resolving symlinks.
      */
     private final Map<String, NavSection> navSections = new ConcurrentHashMap<>();
-
-    /** Compute the stable map key for a set of project root paths. */
-    private static String sectionKey(List<String> paths) {
-        return paths.stream()
-                .map(p -> {
-                    try { return java.nio.file.Path.of(p).toRealPath().toString(); }
-                    catch (java.io.IOException e) {
-                        return java.nio.file.Path.of(p).normalize().toAbsolutePath().toString();
-                    }
-                })
-                .sorted()
-                .collect(java.util.stream.Collectors.joining("\n"));
-    }
 
     // -----------------------------------------------------------------------
     // Live tier — user-triggered --check / --esc runs
@@ -196,7 +184,16 @@ public class ASTCache {
      * {@link #rebuildNavIndex()} after the check completes.
      */
     public void clearNavForRoots(List<String> rootPaths) {
-        String key = sectionKey(rootPaths);
+        clearNavForRoots(rootPaths, null);
+    }
+
+    /**
+     * Remove stale nav-cache entries for the section identified by {@code projectId}
+     * (preferred) or by {@code rootPaths} (fallback when {@code projectId} is null).
+     */
+    public void clearNavForRoots(List<String> rootPaths, String projectId) {
+        String key = (projectId != null && !projectId.isEmpty())
+                ? projectId : OpenJMLSettings.WORKSPACE_PROJECT_ID;
         NavSection section = navSections.get(key);
         if (section != null) section.navCache.clear();
     }
@@ -207,20 +204,29 @@ public class ASTCache {
     }
 
     /**
-     * Store an AST into the nav section identified by {@code projectRoots}.
-     * Called by the per-invocation {@code IASTListener} registered in
-     * {@link CheckRunner#runCheckDir} / {@link CheckRunner#runCheckDirWithContext}.
-     * All entries stored in a single pass share one IAPI compilation context,
-     * so symbol identity holds across all of them.
+     * Store an AST into the nav section for this project.
      *
-     * @param projectRoots the source-directory paths passed to {@code runCheckDir}
-     *                     for the project that produced this AST
+     * <p>When {@code projectId} is non-null the section is keyed and looked up
+     * by project ID; otherwise the key is derived from {@code projectRoots}.
+     * All entries from one {@code --check --dirs} pass share one IAPI context,
+     * so symbol identity holds across files.
+     *
+     * @param projectId    project identifier, or {@code null} for generic clients
+     * @param projectRoots source-directory paths (used as fallback key and stored
+     *                     in the section for {@code coversProjectRoot} matching)
      */
     public void putNav(String uri, Context ctx, JmlCompilationUnit ast,
-                       List<String> projectRoots) {
-        String key = sectionKey(projectRoots);
+                       List<String> projectRoots, String projectId) {
+        String key = (projectId != null && !projectId.isEmpty())
+                ? projectId : OpenJMLSettings.WORKSPACE_PROJECT_ID;
         navSections.computeIfAbsent(key, k -> new NavSection(projectRoots))
                    .navCache.put(uri, Entry.basic(ast, ctx));
+    }
+
+    /** Overload for callers without a project ID — uses the workspace sentinel key. */
+    public void putNav(String uri, Context ctx, JmlCompilationUnit ast,
+                       List<String> projectRoots) {
+        putNav(uri, ctx, ast, projectRoots, null);
     }
 
     /**
@@ -423,6 +429,21 @@ public class ASTCache {
      * @param projectRoot file-system path of the Eclipse project root, or
      *                    {@code null} to return all projects
      */
+    /**
+     * Iterate over indexed declarations, optionally restricted to one project.
+     *
+     * <p>When {@code projectRoot} is non-null, only nav sections that
+     * {@linkplain NavSection#coversProjectRoot cover} that root and live-tier
+     * entries whose URI falls under that root are included.  When
+     * {@code projectRoot} is {@code null}, all sections and all live entries
+     * are included.
+     *
+     * <p>Used by {@code workspace/symbol} and the {@code openjml.symbolsForProject}
+     * command to search within a specific project.
+     *
+     * @param projectRoot file-system path of the Eclipse project root, or
+     *                    {@code null} to return all projects
+     */
     public void forEachDeclaration(String projectRoot,
             java.util.function.BiConsumer<Symbol, SymbolLocation> action) {
         // Collect the set of URIs covered by the nav sections we will iterate,
@@ -448,6 +469,38 @@ public class ASTCache {
         liveDeclarationIndex.forEach((sym, loc) -> {
             if (navCoveredUris.contains(loc.uri())) return;
             if (projectRoot != null && !uriUnderRoot(loc.uri(), projectRoot)) return;
+            action.accept(sym, loc);
+        });
+    }
+
+    /**
+     * Iterate over all declarations belonging to the project with the given ID.
+     *
+     * <p>The nav section is looked up directly by project ID (O(1)).  All symbols
+     * in that section are included — no per-symbol URI filtering — because the
+     * section was built exclusively from this project's sources.  Live-tier entries
+     * are included if they fall under any of the section's root paths.
+     * When {@code projectId} is null or empty, delegates to
+     * {@link #forEachDeclaration(String, java.util.function.BiConsumer)} with a
+     * null filter (all projects).
+     */
+    public void forEachDeclarationForProject(String projectId,
+            java.util.function.BiConsumer<Symbol, SymbolLocation> action) {
+        if (projectId == null || projectId.isEmpty()) {
+            forEachDeclaration((String) null, action);
+            return;
+        }
+        NavSection section = navSections.get(projectId);
+        Set<String> navCoveredUris = ConcurrentHashMap.newKeySet();
+        if (section != null) {
+            navCoveredUris.addAll(section.navCache.keySet());
+            section.declarationIndex.forEach(action);
+        }
+        // Live-tier: include entries under any of this project's source roots.
+        List<String> roots = section != null ? section.rootPaths : List.of();
+        liveDeclarationIndex.forEach((sym, loc) -> {
+            if (navCoveredUris.contains(loc.uri())) return;
+            if (roots.stream().noneMatch(r -> uriUnderRoot(loc.uri(), r))) return;
             action.accept(sym, loc);
         });
     }

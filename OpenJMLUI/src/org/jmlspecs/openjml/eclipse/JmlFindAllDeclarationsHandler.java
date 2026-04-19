@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -23,12 +26,10 @@ import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.window.Window;
 import org.eclipse.lsp4e.LSPEclipseUtils;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
-import org.eclipse.lsp4j.WorkspaceSymbol;
-import org.eclipse.lsp4j.WorkspaceSymbolLocation;
-import org.eclipse.lsp4j.WorkspaceSymbolParams;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -63,9 +64,9 @@ import org.eclipse.ui.handlers.HandlerUtil;
  * </ul>
  *
  * <p><b>Project filtering:</b>
- * The project root of the active editor is encoded into the {@code workspace/symbol}
- * query string as {@code "<projectRoot>\n<identifier>"}.  The server extracts the
- * root and filters its declaration index to files under that project.
+ * The Eclipse project name is passed as the {@code projectId} argument to the
+ * {@code openjml.symbolsForProject} custom command, which filters the declaration
+ * index to files belonging to that project.
  *
  * <p><b>Persistent state:</b> The "Case insensitive" and "Full word" toggle values
  * are remembered for the lifetime of the Eclipse session (static fields).
@@ -206,11 +207,10 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     // -----------------------------------------------------------------------
 
     private static List<SymbolInformation> queryDeclarations(String query, IProject project) {
-        String projectRoot = (project != null && project.getLocation() != null)
-                ? project.getLocation().toOSString() : null;
+        String projectId = (project != null) ? project.getName() : "";
 
         List<SymbolInformation> results = symbolsViaWrapper(
-                LspPartListener.cachedWrapper, query, projectRoot);
+                LspPartListener.cachedWrapper, query, projectId);
         if (results != null) return results;
 
         System.err.println("[OpenJML] find declarations: server not available");
@@ -218,15 +218,14 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     }
 
     /**
-     * Send a {@code workspace/symbol} request to the language server.
+     * Send an {@code openjml.symbolsForProject} command to the language server.
      *
-     * <p>The project root is encoded into the query string as
-     * {@code "<projectRoot>\n<identifier>"} so the server can filter its
-     * declaration index to files under that project without requiring a custom
-     * command or any Gson dependency on the client side.
+     * <p>The project ID (Eclipse {@code IProject.getName()}) is passed as the second
+     * argument; the server looks up the project's source roots and filters its
+     * declaration index accordingly.
      */
     private static List<SymbolInformation> symbolsViaWrapper(
-            Object wrapper, String query, String projectRoot) {
+            Object wrapper, String query, String projectId) {
         if (wrapper == null) return null;
         try {
             java.lang.reflect.Method getServer = null;
@@ -250,14 +249,12 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
             }
             if (server == null) return null;
 
-            String encodedQuery = (projectRoot != null && !projectRoot.isEmpty())
-                    ? projectRoot + "\n" + query : query;
-            WorkspaceSymbolParams params = new WorkspaceSymbolParams(encodedQuery);
-
-            var either = server.getWorkspaceService().symbol(params)
+            ExecuteCommandParams params = new ExecuteCommandParams(
+                    OpenJMLConstants.CMD_SYMBOLS_FOR_PROJECT, List.of(query, projectId));
+            Object raw = server.getWorkspaceService().executeCommand(params)
                     .get(15, TimeUnit.SECONDS);
 
-            List<SymbolInformation> symbols = eitherToList(either);
+            List<SymbolInformation> symbols = parseSymbolList(raw);
             System.err.println("[OpenJML] find declarations: query=\"" + query
                     + "\" -> " + symbols.size() + " result(s) (before client filter)");
             return symbols;
@@ -268,30 +265,49 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
         }
     }
 
-    private static List<SymbolInformation> eitherToList(
-            Either<List<? extends SymbolInformation>,
-                   List<? extends WorkspaceSymbol>> either) {
-        if (either == null) return List.of();
-        if (either.isLeft()) return new ArrayList<>(either.getLeft());
+    /** Deserialize the raw JSON result of {@code openjml.symbolsForProject} into a typed list. */
+    private static List<SymbolInformation> parseSymbolList(Object raw) {
+        if (!(raw instanceof JsonArray arr)) return List.of();
         List<SymbolInformation> result = new ArrayList<>();
-        for (WorkspaceSymbol ws : either.getRight()) {
-            Location loc;
-            Either<Location, WorkspaceSymbolLocation> wloc = ws.getLocation();
-            if (wloc != null && wloc.isLeft()) {
-                loc = wloc.getLeft();
-            } else if (wloc != null && wloc.isRight()) {
-                loc = new Location(wloc.getRight().getUri(),
-                        new org.eclipse.lsp4j.Range(
-                                new org.eclipse.lsp4j.Position(0, 0),
-                                new org.eclipse.lsp4j.Position(0, 0)));
-            } else {
-                loc = null;
+        for (JsonElement el : arr) {
+            if (!el.isJsonObject()) continue;
+            JsonObject obj = el.getAsJsonObject();
+            String name = obj.has("name") ? obj.get("name").getAsString() : "";
+            SymbolKind kind = SymbolKind.forValue(
+                    obj.has("kind") ? obj.get("kind").getAsInt() : 13);
+            String container = obj.has("containerName") && !obj.get("containerName").isJsonNull()
+                    ? obj.get("containerName").getAsString() : null;
+            Location loc = null;
+            JsonObject locObj = obj.has("location") ? obj.getAsJsonObject("location") : null;
+            if (locObj != null && locObj.has("uri")) {
+                String uri = locObj.get("uri").getAsString();
+                JsonObject rangeObj = locObj.has("range")
+                        ? locObj.getAsJsonObject("range") : null;
+                org.eclipse.lsp4j.Range range = parseRange(rangeObj);
+                loc = new Location(uri, range);
             }
-            SymbolInformation si = new SymbolInformation(ws.getName(), ws.getKind(), loc);
-            si.setContainerName(ws.getContainerName());
+            SymbolInformation si = new SymbolInformation(name, kind, loc);
+            si.setContainerName(container);
             result.add(si);
         }
         return result;
+    }
+
+    private static org.eclipse.lsp4j.Range parseRange(JsonObject rangeObj) {
+        org.eclipse.lsp4j.Position start = new org.eclipse.lsp4j.Position(0, 0);
+        org.eclipse.lsp4j.Position end   = new org.eclipse.lsp4j.Position(0, 0);
+        if (rangeObj != null) {
+            start = parsePosition(rangeObj.has("start") ? rangeObj.getAsJsonObject("start") : null);
+            end   = parsePosition(rangeObj.has("end")   ? rangeObj.getAsJsonObject("end")   : null);
+        }
+        return new org.eclipse.lsp4j.Range(start, end);
+    }
+
+    private static org.eclipse.lsp4j.Position parsePosition(JsonObject posObj) {
+        if (posObj == null) return new org.eclipse.lsp4j.Position(0, 0);
+        int line = posObj.has("line") ? posObj.get("line").getAsInt() : 0;
+        int ch   = posObj.has("character") ? posObj.get("character").getAsInt() : 0;
+        return new org.eclipse.lsp4j.Position(line, ch);
     }
 
     // -----------------------------------------------------------------------

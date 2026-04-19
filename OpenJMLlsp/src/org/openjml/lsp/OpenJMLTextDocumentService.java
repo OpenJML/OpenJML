@@ -1008,7 +1008,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             pendingCheckPaths = null;
             executor.submit(() -> {
                 try {
-                    CheckRunner.DirCheckResult result = CheckRunner.runCheckDirWithContext(pathsCopy, snapshot, s);
+                    CheckRunner.DirCheckResult result = CheckRunner.runCheckDirWithContext(pathsCopy, snapshot, s, projectId);
                     if (result.exitCode() == 2) {
                         reportCommandLineError(result.diagnosticsByUri().values().stream()
                                 .flatMap(List::stream).collect(java.util.stream.Collectors.toList()));
@@ -1451,6 +1451,53 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
+     * Query the declaration index restricted to a named project.
+     * Resolves the project ID to its configured root paths and delegates to
+     * {@link #symbols(String, String)}.  An unknown ID is reported as an error
+     * and returns an empty list.  A null/empty ID searches all projects.
+     */
+    List<SymbolInformation> symbolsForProject(String query, String projectId) {
+        if (projectId != null && !projectId.isEmpty() && !isKnownProject(projectId)) {
+            clientError("OpenJML: symbolsForProject — unknown project id '" + projectId + "'.");
+            return List.of();
+        }
+        if (navCacheDirty)
+            clientLog("workspace/symbol: project index not yet complete — results may be incomplete");
+        return collectSymbols(query,
+                cb -> CheckRunner.getASTCache().forEachDeclarationForProject(projectId, cb));
+    }
+
+    /** Build a {@code SymbolInformation} list by iterating declarations via {@code iterator}. */
+    private List<SymbolInformation> collectSymbols(String query,
+            java.util.function.Consumer<java.util.function.BiConsumer<
+                    com.sun.tools.javac.code.Symbol, ASTCache.SymbolLocation>> iterator) {
+        final String effectiveQuery = (query == null ? "" : query.trim());
+        List<SymbolInformation> result = new ArrayList<>();
+        iterator.accept((sym, loc) -> {
+            String name = sym.name.toString();
+            if (name.isEmpty() || name.startsWith("<")) return;
+            if (!effectiveQuery.isEmpty()
+                    && !name.toLowerCase().contains(effectiveQuery.toLowerCase())) return;
+            String content = lastContent.get(loc.uri());
+            if (content == null) {
+                String path = CheckRunner.uriToPath(loc.uri());
+                if (path != null) {
+                    try { content = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
+                    catch (java.io.IOException e) {
+                        System.err.println("[OpenJML] symbols: cannot read " + loc.uri()
+                                + ": " + e.getMessage());
+                    }
+                }
+            }
+            if (content == null) return;
+            Position pos = offsetToPosition(content, loc.charOffset());
+            var location = new Location(loc.uri(), new Range(pos, pos));
+            result.add(new SymbolInformation(name, symbolKind(sym), location));
+        });
+        return result;
+    }
+
+    /**
      * Query the declaration index, optionally restricted to one project.
      *
      * <p>The {@code query} string may encode a project root using a newline
@@ -1491,32 +1538,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         System.err.println("[symbols] query=\"" + effectiveQuery + "\""
                 + (projectRoot != null ? " root=\"" + projectRoot + "\"" : "")
                 + "  navCacheDirty=" + navCacheDirty);
-        List<SymbolInformation> result = new ArrayList<>();
-        CheckRunner.getASTCache().forEachDeclaration(projectRoot, (sym, loc) -> {
-            String name = sym.name.toString();
-            // Skip synthetic names (<init>, <clinit>, empty).
-            if (name.isEmpty() || name.startsWith("<")) return;
-            // Filter by query: case-insensitive substring match; empty query = accept all.
-            if (!effectiveQuery.isEmpty()
-                    && !name.toLowerCase().contains(effectiveQuery.toLowerCase())) return;
-            // Offset → Position requires source content.
-            // Prefer in-memory content (for unsaved edits); fall back to disk.
-            String content = lastContent.get(loc.uri());
-            if (content == null) {
-                String path = CheckRunner.uriToPath(loc.uri());
-                if (path != null) {
-                    try { content = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
-                    catch (java.io.IOException e) {
-                        System.err.println("[OpenJML] workspace/symbol: cannot read " + loc.uri()
-                                + ": " + e.getMessage());
-                    }
-                }
-            }
-            if (content == null) return;
-            Position pos = offsetToPosition(content, loc.charOffset());
-            var location = new Location(loc.uri(), new Range(pos, pos));
-            result.add(new SymbolInformation(name, symbolKind(sym), location));
-        });
+        final String rootFilter = projectRoot;
+        List<SymbolInformation> result =
+                collectSymbols(effectiveQuery,
+                        cb -> CheckRunner.getASTCache().forEachDeclaration(rootFilter, cb));
         System.err.println("[symbols] returning " + result.size() + " result(s)"
                 + (result.isEmpty() ? "" : ", first URI=" + result.get(0).getLocation().getUri()));
         return result;
@@ -1612,6 +1637,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     OpenJMLSettings settingsForProject(String projectId) {
         if (projectId == null || projectId.isBlank()) return globalSettings;
+        if (OpenJMLSettings.WORKSPACE_PROJECT_ID.equals(projectId)) return globalSettings;
         OpenJMLSettings s = projectSettings.get(projectId);
         if (s == null) {
             clientError("OpenJML: unknown project ID '" + projectId
@@ -1657,6 +1683,24 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
         }
         return wildcard;   // null if no wildcard project is registered
+    }
+
+    /** Returns the project ID whose rootPaths cover {@code uri}, or null if none match. */
+    String projectIdForUri(String uri) {
+        String filePath;
+        try { filePath = java.net.URI.create(uri).getPath(); }
+        catch (Exception e) { return null; }
+        String sep = java.io.File.separator;
+        for (Map.Entry<String, OpenJMLSettings> e : projectSettings.entrySet()) {
+            OpenJMLSettings s = e.getValue();
+            if (s.rootPaths == null || s.rootPaths.isBlank()) continue;
+            for (String root : s.rootPaths.split(java.io.File.pathSeparator)) {
+                if (root.isBlank()) continue;
+                String r = root.endsWith(sep) ? root : root + sep;
+                if (filePath.startsWith(r)) return e.getKey();
+            }
+        }
+        return null;
     }
 
     // -----------------------------------------------------------------------
@@ -2100,9 +2144,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         if (type == FileChangeType.Deleted) {
             String javaUri = resolveCompanionJavaUri(uri, "");
-            if (javaUri != null && client != null)
-                client.publishDiagnostics(new PublishDiagnosticsParams(javaUri, List.of()));
+            if (javaUri != null) {
+                CheckRunner.getASTCache().remove(javaUri);
+                if (client != null)
+                    client.publishDiagnostics(new PublishDiagnosticsParams(javaUri, List.of()));
+            }
             CheckRunner.getASTCache().remove(uri);
+            navCacheDirty = true;
             return;
         }
         // Created or Changed: read content from disk, re-check companion .java.
@@ -2443,16 +2491,28 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return matching.isEmpty() ? allRoots : matching;
     }
 
-    private boolean runProjectCheck() {
-        return runProjectCheck(globalSettings.effectiveRoots(), globalSettings);
+    /**
+     * Run a project check for every configured project, or a single workspace
+     * check when no project list is configured.  Used by {@link #ensureNavCacheReady}.
+     */
+    private void runAllProjectChecks() {
+        if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
+            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
+                if (cfg.rootPaths == null || cfg.rootPaths.isEmpty()) continue;
+                runProjectCheck(cfg.rootPaths, cfg.id);
+            }
+        } else {
+            runProjectCheck(globalSettings.effectiveRoots(), OpenJMLSettings.WORKSPACE_PROJECT_ID);
+        }
     }
 
-    private boolean runProjectCheck(List<String> roots, OpenJMLSettings s) {
+    private boolean runProjectCheck(List<String> roots, String projectId) {
         if (roots.isEmpty()) return false;
+        OpenJMLSettings s = settingsForProject(projectId);
         Map<String, String> snapshot = dirtySnapshot();
         try {
             CheckRunner.DirCheckResult result =
-                    CheckRunner.runCheckDirWithContext(roots, snapshot, s);
+                    CheckRunner.runCheckDirWithContext(roots, snapshot, s, projectId);
             result.diagnosticsByUri().forEach((diagUri, diags) -> {
                 storeCheckDiags(diagUri, diags);
                 publishMerged(diagUri);
@@ -2479,7 +2539,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private CompletableFuture<Void> ensureNavCacheReady() {
         if (!navCacheDirty) return CompletableFuture.completedFuture(null);
-        return CompletableFuture.runAsync(this::runProjectCheck, executor);
+        return CompletableFuture.runAsync(this::runAllProjectChecks, executor);
     }
 
     /**
@@ -2532,10 +2592,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             checkFuture = CompletableFuture.runAsync(() -> {
                 OpenJMLSettings s = settingsForUri(primaryUri);
                 if (s == null) { System.err.println("[ensureFreshAndConfirm] no project for " + primaryUri); return; }
+                String pid = projectIdForUri(primaryUri);
                 List<String> roots = rootsForUri(primaryUri, s.effectiveRoots());
                 System.err.println("[ensureFreshAndConfirm] op=" + operationName
                         + " uri=" + primaryUri + " roots=" + roots);
-                if (!runProjectCheck(roots, s)) {
+                if (!runProjectCheck(roots, pid)) {
                     System.err.println("[ensureFreshAndConfirm] no roots — falling back to single-file check");
                     // No roots configured: fall back to single-file check.
                     String content = lastContent.get(primaryUri);
@@ -3391,19 +3452,26 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     /**
      * Index the source directories of the specified project (or all projects
-     * when {@code projectId} is null or empty) by scheduling a {@code --check}
-     * pass.  This rebuilds the declaration index used by
-     * {@code workspace/symbol} without clearing existing diagnostics or the
-     * AST cache.
+     * when {@code projectId} is null or empty) by running a {@code --check}
+     * pass.  Diagnostics and nav-tier AST cache entries are replaced for every
+     * file the check touches; files not reached retain their previous values.
      */
     void indexProject(String projectId) {
         List<String> sourceDirs = new ArrayList<>();
+        boolean hasProjects = globalSettings.projects != null && !globalSettings.projects.isEmpty();
+        boolean projectIdGiven = projectId != null && !projectId.isEmpty();
 
-        if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
+        if (hasProjects) {
+            boolean matched = false;
             for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
-                if (projectId == null || projectId.isEmpty() || projectId.equals(cfg.id)) {
+                if (!projectIdGiven || projectId.equals(cfg.id)) {
+                    matched = true;
                     if (cfg.rootPaths != null) sourceDirs.addAll(cfg.rootPaths);
                 }
+            }
+            if (projectIdGiven && !matched) {
+                clientError("OpenJML: indexProject — unknown project id '" + projectId + "'.");
+                return;
             }
         }
 
@@ -3413,9 +3481,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
 
         navCacheDirty = true;
-        OpenJMLSettings s = settingsForProject(projectId);
         List<String> roots = List.copyOf(sourceDirs);
-        executor.submit(() -> runProjectCheck(roots, s));
+        executor.submit(() -> runProjectCheck(roots, projectId));
     }
 
     /** Shut down all executor services. Called from the language server's shutdown sequence. */
