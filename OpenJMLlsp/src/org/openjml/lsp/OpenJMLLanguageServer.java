@@ -366,7 +366,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     /**
      * Returns {@code true} if {@code args} uses the two-element code-lens format
-     * {@code [uri, "name@startLine"]} emitted by {@code codeLens()} for the
+     * {@code [uri, methodFqn]} emitted by {@code codeLens()} for the
      * {@code openjml.runEscForMethod} command.
      *
      * <p>Detected by: exactly two arguments whose first element starts with
