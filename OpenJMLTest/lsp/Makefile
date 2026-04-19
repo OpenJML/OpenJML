@@ -164,9 +164,9 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	  exit 1; \
 	fi
 
-## Run all test classes in parallel (default: 5 concurrent JVMs).
+## Run all test classes in parallel (default: 4 concurrent JVMs).
 ## Override with: make run-tests JOBS=3
-JOBS ?= 5
+JOBS ?= 4
 
 ## Two-phase: compile first (serial), then dispatch log targets in parallel.
 _run-logs: $(LOG_FILES)

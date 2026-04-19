@@ -117,7 +117,13 @@ public class ASTCache {
         final Map<Symbol, SymbolLocation> declarationIndex = new ConcurrentHashMap<>();
 
         NavSection(List<String> rootPaths) {
-            this.rootPaths = List.copyOf(rootPaths);
+            this.rootPaths = rootPaths.stream().map(p -> {
+                try {
+                    return java.nio.file.Path.of(p).toRealPath().toString();
+                } catch (java.io.IOException e) {
+                    return java.nio.file.Path.of(p).normalize().toAbsolutePath().toString();
+                }
+            }).collect(java.util.stream.Collectors.toUnmodifiableList());
         }
 
         /**
@@ -131,6 +137,9 @@ public class ASTCache {
          */
         boolean coversProjectRoot(String projectRoot) {
             if (projectRoot == null) return true;
+            // Canonicalize for symlink-transparent comparison.
+            try { projectRoot = java.nio.file.Path.of(projectRoot).toRealPath().toString(); }
+            catch (java.io.IOException e) { projectRoot = java.nio.file.Path.of(projectRoot).normalize().toAbsolutePath().toString(); }
             String prWithSep = projectRoot.endsWith(java.io.File.separator)
                     ? projectRoot : projectRoot + java.io.File.separator;
             for (String root : rootPaths) {

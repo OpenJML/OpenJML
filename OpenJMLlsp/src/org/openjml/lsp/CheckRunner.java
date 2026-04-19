@@ -1537,12 +1537,34 @@ public class CheckRunner {
     /**
      * Convert a {@code file://} URI to an absolute file path, or {@code null}
      * if the URI is not a file URI or cannot be parsed.
+     * Returns the path component of {@code uri} without resolving symlinks,
+     * so that the path matches whatever key the client and AST listener used.
      */
     public static String uriToPath(String uri) {
         try {
             return URI.create(uri).getPath();
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /**
+     * Canonicalize {@code uri} by resolving symlinks and normalizing the path.
+     * Returns the input unchanged if the URI cannot be parsed or the path does
+     * not exist (the fall-through keeps the server functional during early
+     * initialization when workspace roots may not yet be on disk).
+     */
+    public static String canonicalUri(String uri) {
+        if (uri == null) return null;
+        try {
+            java.nio.file.Path p = java.nio.file.Path.of(java.net.URI.create(uri));
+            try {
+                return p.toRealPath().toUri().toString();
+            } catch (java.io.IOException e) {
+                return p.normalize().toAbsolutePath().toUri().toString();
+            }
+        } catch (Exception e) {
+            return uri;
         }
     }
 
