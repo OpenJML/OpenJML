@@ -3,28 +3,6 @@
   "name": "JML",
   "scopeName": "source.jml.injection",
   "injectionSelector": "L:comment.line.double-slash.java, L:comment.block.java",
-  "patterns": [
-    { "include": "#jml-annotation" }
-  ],
-  "repository": {
-    "jml-annotation": {
-      "comment": "Match the @ marker that starts a JML annotation, then colour the rest of the line/block",
-      "begin": "(?<=//|/\\*)@+",
-      "end": "(?=@\\*/|$)",
-      "patterns": [
-        { "include": "#jml-backslash" },
-        { "include": "#jml-keywords" }
-      ]
-    },
-    "jml-keywords": {
-      "comment": "JML clause and modifier keywords — keep in sync with JmlKeywords.JML_KEYWORDS in OpenJMLlsp/src/org/openjml/lsp/JmlKeywords.java",
-      "name": "keyword.other.jml",
-      "match": "\\b(requires|old|ensures|signals|signals_only|assignable|modifies|accessible|callable|measured_by|captures|diverges|when|working_space|duration|breaks|continues|returns|invariant|initially|constraint|represents|axiom|readable|writable|monitors_for|also|implies_that|for_example|example|behavior|normal_behavior|exceptional_behavior|pure|spec_pure|strictly_pure|no_state|two_state|ghost|model|spec_public|spec_protected|non_null|non_null_by_default|nullable|nullable_by_default|helper|instance|query|secret|monitored|uninitialized|code_java_math|code_safe_math|code_bigint_math|spec_java_math|spec_safe_math|spec_bigint_math|loop_invariant|maintaining|decreasing|decreases|assume|assert|set|debug|hence_by|unreachable|reachable|in|maps)\\b"
-    },
-    "jml-backslash": {
-      "comment": "JML backslash-expressions — keep in sync with JmlKeywords.JML_BACKSLASH in OpenJMLlsp/src/org/openjml/lsp/JmlKeywords.java",
-      "name": "variable.language.jml",
-      "match": "\\\\(result|old|pre|past|fresh|reach|forall|exists|min|max|sum|product|num_of|nothing|everything|not_specified|strictly_nothing|typeof|type|elemtype|bigint|real|set|map|string|array|seq|datagroup|locset|lockset|nonnullelements|nonnullelementsx|invariant_for|is_initialized|not_assigned|not_modified|only_accessed|only_assigned|only_called|only_captured|lbl|lblneg|lblpos|duration|space|working_space|values|count|index|let|exception|same)\\b"
-    }
-  }
+  "patterns": [],
+  "repository": {}
 }

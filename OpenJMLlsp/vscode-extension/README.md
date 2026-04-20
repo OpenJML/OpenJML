@@ -117,11 +117,10 @@ extension is active.
 ### Strategies
 
 **`ast`** (default): uses the attributed AST after the first `--check` completes.  Precise —
-no false positives for Java identifiers named `requires`, `ensures`, etc.  Falls back to
-regex before the first check.
+no false positives for Java identifiers named `requires`, `ensures`, etc.
 
-**`regex`**: always uses line-pattern matching against JML comment regions.  Instant on every
-keystroke, but may incorrectly color Java identifiers that share a name with a JML keyword.
+**`regex`**: always uses regex-based line scanning instead of the AST.  Available as a
+fallback but may incorrectly color Java identifiers that share a name with a JML keyword.
 
 ### Customizing colors
 
@@ -155,7 +154,7 @@ The names match the token type strings listed in the table above.
 | `openjml.escEngine` | `subprocess` | ESC execution engine: `subprocess` (default — spawns a fresh OpenJML process), `concurrent` (in-process per-method, serialized within a file), or `fresh` (truly concurrent, higher startup cost). |
 | `openjml.escThreads` | `5` | Maximum concurrent ESC threads (only used when `escEngine` is `concurrent`). |
 | `openjml.syntaxColoringScope` | `preserve Java coloring` | How OpenJML's semantic tokens interact with Java coloring: `preserve Java coloring` (default) — emit tokens only inside JML annotation context, leaving Java code to the Java language server; `overwrite Java coloring` — emit tokens for all Java and JML constructs, replacing whatever the Java language server produced. |
-| `openjml.syntaxColoringStrategy` | `ast` | JML syntax coloring strategy: `ast` (uses the attributed AST when available — precise, no false positives; falls back to regex before the first type-check) or `regex` (always uses regex — instant on every keystroke, but may color Java identifiers that share a name with a JML keyword). |
+| `openjml.syntaxColoringStrategy` | `ast` | JML syntax coloring strategy: `ast` (uses the attributed AST when available — precise, no false positives) or `regex` (always uses regex line scanning — may color Java identifiers that share a name with a JML keyword). |
 | `openjml.useIntegratedOutline` | `true` | When `true`, the Outline panel shows all Java and JML symbols together. When `false`, only JML-specific symbols are shown (complementing the Red Hat Java Extension's outline). |
 | `openjml.javaMode` | `jml-only` | Controls which constructs are highlighted and navigated. `jml-only` (default) — only JML constructs; defers Java navigation and coloring to the Red Hat Java Extension. `full` — all Java and JML constructs; use when no Java extension is installed. |
 | `openjml.client` | `vscode-java` | Client identifier sent to the server. Controls `javaMode` defaults. Leave as `vscode-java` when the Red Hat Java Extension is active. |
