@@ -219,9 +219,10 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         // ── Paths ───────────────────────────────────────────────────────────
         addLabel(parent, "Paths", SWT.SEPARATOR | SWT.HORIZONTAL);
 
-        addEditor(new StringFieldEditor(OpenJMLOptions.propertiesFileKey,
-                "openjml.properties file (blank = auto-discover):",
-                parent));
+        // propertiesFile preference hidden — use toolOptions instead.
+        // addEditor(new StringFieldEditor(OpenJMLOptions.propertiesFileKey,
+        //         "openjml.properties file (blank = auto-discover):",
+        //         parent));
         addEditor(new StringFieldEditor(OpenJMLOptions.specsPathKey,
                 "Specs path (blank = default from launcher):",
                 parent));

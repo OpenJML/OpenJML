@@ -375,7 +375,7 @@ async function startClient() {
                 if (!action || action.kind !== 'openPreferences') return;
                 // Map abstract target to VS Code settings section.
                 const section = action.target === 'toolOptions'
-                    ? 'openjml.propertiesFile'
+                    ? 'openjml.toolOptions'
                     : 'openjml';
                 vscode.commands.executeCommand('workbench.action.openSettings', section);
             });
@@ -528,7 +528,7 @@ function getSettings() {
     return {
         checkTriggerOn:          cfg.get('checkTriggerOn',          'edit'),
         escTriggerOn:            cfg.get('escTriggerOn',            'manual'),
-        propertiesFile:          cfg.get('propertiesFile',          ''),
+        toolOptions:             cfg.get('toolOptions',             []),
         specsPath:               cfg.get('specsPath',               ''),
 
         sourcePath:              cfg.get('sourcePath',              ''),

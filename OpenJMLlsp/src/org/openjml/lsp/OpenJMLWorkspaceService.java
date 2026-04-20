@@ -115,7 +115,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     }
 
     private void applyUpdate(OpenJMLSettings src) {
-        if (src.propertiesFile  != null) globalSettings.propertiesFile  = src.propertiesFile;
+        if (src.toolOptions     != null) globalSettings.toolOptions     = src.toolOptions;
         if (src.specsPath       != null) globalSettings.specsPath       = src.specsPath;
 
         if (src.sourcePath      != null) globalSettings.sourcePath      = src.sourcePath;

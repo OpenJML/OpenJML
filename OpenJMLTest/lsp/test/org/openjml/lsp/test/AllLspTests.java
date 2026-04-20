@@ -46,6 +46,7 @@ import org.junit.runners.Suite;
     FreshParallelEscTest.class,
     CheckRunnerEscAndRacTest.class,
     PropertiesFileOptionsTest.class,
+    ToolOptionsTest.class,
     RacTest.class,
     CodeLensAndStatusTest.class,
     HoverTest.class,

@@ -61,6 +61,7 @@ TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
 ## MultiFileEscTest 19s, DocumentLifecycleTest 18s.
 TEST_CLASSES := \
   PropertiesFileOptionsTest \
+  ToolOptionsTest \
   FastTests \
   RenameTest1 \
   RenameTest2 \

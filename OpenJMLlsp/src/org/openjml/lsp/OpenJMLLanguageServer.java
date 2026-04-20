@@ -161,26 +161,6 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // Propagate capability flag — must be read after applyRaw() has populated it.
         textDocumentService.setClientSupportsActionMessages(globalSettings.supportsActionMessages);
 
-        // Auto-discover openjml.properties at each workspace root unless the
-        // client already supplied an explicit propertiesFile setting.
-        if (globalSettings.propertiesFile == null || globalSettings.propertiesFile.isEmpty()) {
-            outer:
-            for (OpenJMLSettings.ProjectConfig p : globalSettings.projects) {
-                if (p.rootPaths == null) continue;
-                for (String root : p.rootPaths) {
-                    try {
-                        java.nio.file.Path candidate =
-                                java.nio.file.Path.of(root).resolve("openjml.properties");
-                        if (java.nio.file.Files.isRegularFile(candidate)) {
-                            globalSettings.propertiesFile = candidate.toString();
-                            System.err.println("[OpenJML] Auto-discovered properties file: " + candidate);
-                            break outer;
-                        }
-                    } catch (Exception ignored) {}
-                }
-            }
-        }
-
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(globalSettings.incrementalSync
                 ? TextDocumentSyncKind.Incremental

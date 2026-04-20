@@ -3,6 +3,8 @@ package org.openjml.lsp.test;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLSettings;
 
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -179,6 +181,24 @@ public class OpenJMLSettingsTest {
         assertEquals(orig.syntaxColoringStrategy, copy.syntaxColoringStrategy);
         assertEquals(orig.escEngine,              copy.escEngine);
         assertEquals(orig.specsPath,              copy.specsPath);
+    }
+
+    @Test
+    public void testCopyConstructorCopiesToolOptions() {
+        OpenJMLSettings orig = new OpenJMLSettings();
+        orig.toolOptions = List.of("--keys", "MYKEY");
+        OpenJMLSettings copy = new OpenJMLSettings(orig);
+        assertEquals(orig.toolOptions, copy.toolOptions);
+    }
+
+    @Test
+    public void testCopyConstructorToolOptionsIsIndependent() {
+        OpenJMLSettings orig = new OpenJMLSettings();
+        orig.toolOptions = List.of("--keys", "A");
+        OpenJMLSettings copy = new OpenJMLSettings(orig);
+        copy.toolOptions = List.of("--keys", "B");
+        assertEquals("orig.toolOptions must not change when copy is mutated",
+                List.of("--keys", "A"), orig.toolOptions);
     }
 
     @Test

@@ -368,11 +368,12 @@
           "order": 3,
           "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, silently\n- `run` — always run ESC on the saved disk file without saving"
         },
-        "openjml.propertiesFile": {
-          "type": "string",
-          "default": "",
+        "openjml.toolOptions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
           "order": 4,
-          "markdownDescription": "Path to an OpenJML `.properties` file containing project-level options (prover, timeout, nullable-by-default, etc.). Leave empty to auto-discover `openjml.properties` in the workspace root. Options in this file are overridden by the settings below and by invocation-specific flags."
+          "markdownDescription": "Project-independent OpenJML command-line options prepended to every tool invocation. Use `[\"--properties\", \"/path/to/file\"]` to pass a properties file (one idiomatic way to supply options; alternatively put them directly as individual flags in this array). Project-dependent settings (source path, class path, specs path) are kept in the named settings below."
         },
         "openjml.specsPath": {
           "type": "string",

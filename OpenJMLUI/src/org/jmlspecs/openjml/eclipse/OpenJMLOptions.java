@@ -378,13 +378,7 @@ public class OpenJMLOptions {
     // Internal policy flags
     // -----------------------------------------------------------------------
 
-    /**
-     * When {@code true} (default), Tab-2 options are communicated to the LSP
-     * server via a generated {@code .properties} file passed as
-     * {@code --properties}.  When {@code false}, options are passed as
-     * individual command-line flags in a {@code toolArgs} list.
-     */
-    private static final boolean USE_PROPERTIES_FILE = true;
+    private static final boolean USE_PROPERTIES_FILE = true; // kept for writePropertiesFile / buildToolCommandLineArgs
 
     /**
      * Strips all whitespace around commas in a comma-separated list value.
@@ -574,18 +568,16 @@ public class OpenJMLOptions {
             catch (NumberFormatException ignored) {}
         }
 
-        // Tab 2 — tool options communicated via properties file or args list.
-        // The generated file path is also included per-project below.
-        java.nio.file.Path propsFile = USE_PROPERTIES_FILE ? writePropertiesFile() : null;
-        if (!USE_PROPERTIES_FILE) {
-            opts.put("toolArgs", buildToolCommandLineArgs());
+        // Tab 2 — tool options sent as a toolOptions array: ["--properties", "<file>"].
+        // This is project-independent; per-project path fields are in the projects list.
+        java.nio.file.Path propsFile = writePropertiesFile();
+        if (propsFile != null) {
+            opts.put("toolOptions",
+                    java.util.List.of("--properties", propsFile.toString()));
         }
 
-        // Per-project configs — each open JML-natured project sends its own
-        // sourcePath, classPath, specsPath, propertiesFile, rootPaths, and outputDir.
-        // The server uses these to look up settings when it receives a projectId command.
-        java.util.List<java.util.Map<String, Object>> projects =
-                buildProjectsList(propsFile);
+        // Per-project configs — sourcePath, classPath, specsPath, rootPaths, outputDir.
+        java.util.List<java.util.Map<String, Object>> projects = buildProjectsList();
         if (!projects.isEmpty()) opts.put("projects", projects);
 
         return opts;
@@ -642,23 +634,15 @@ public class OpenJMLOptions {
      *   <li>{@code classPath} — transitive dep output dirs + user classpath pref,
      *       path-separator-separated; passed as {@code -classpath}</li>
      *   <li>{@code specsPath} — global specs path preference</li>
-     *   <li>{@code propertiesFile} — user-supplied properties file preference</li>
-     *   <li>{@code generatedPropertiesFile} — auto-generated tool-option properties file
-     *       ({@code null} if not yet written or {@link #USE_PROPERTIES_FILE} is false)</li>
      *   <li>{@code outputDir} — JDT output folder for RAC {@code -d}</li>
      *   <li>{@code rootPaths} — this project's own source folders only (not deps),
      *       as a {@code List<String>}; used by the server for URI→project lookup</li>
      * </ul>
-     *
-     * @param generatedPropsFile path to the shared generated properties file, or {@code null}
      */
-    public static java.util.List<java.util.Map<String, Object>> buildProjectsList(
-            java.nio.file.Path generatedPropsFile) {
+    public static java.util.List<java.util.Map<String, Object>> buildProjectsList() {
         var result = new java.util.ArrayList<java.util.Map<String, Object>>();
 
-        String globalSpecsPath    = value(specsPathKey);
-        String globalPropsFile    = value(propertiesFileKey);
-        String generatedPropsStr  = generatedPropsFile != null ? generatedPropsFile.toString() : null;
+        String globalSpecsPath = value(specsPathKey);
 
         org.eclipse.core.resources.IWorkspaceRoot wsRoot =
                 ResourcesPlugin.getWorkspace().getRoot();
@@ -712,10 +696,6 @@ public class OpenJMLOptions {
             cfg.put("classPath",  String.join(java.io.File.pathSeparator, cpParts));
             if (globalSpecsPath != null && !globalSpecsPath.isBlank())
                 cfg.put("specsPath", globalSpecsPath);
-            if (globalPropsFile != null && !globalPropsFile.isBlank())
-                cfg.put("propertiesFile", globalPropsFile);
-            if (generatedPropsStr != null)
-                cfg.put("generatedPropertiesFile", generatedPropsStr);
             if (outputDir != null)
                 cfg.put("outputDir", outputDir);
             cfg.put("rootPaths", ownSrcFolders.isEmpty()

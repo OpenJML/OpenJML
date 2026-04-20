@@ -197,7 +197,7 @@ public class CheckRunnerDirTest extends LspTestBase {
             w.write("org.openjml.option.require-white-space=true\n");
         }
         OpenJMLSettings overrideSettings = new OpenJMLSettings();
-        overrideSettings.generatedPropertiesFile = props.getAbsolutePath();
+        overrideSettings.toolOptions = List.of("--properties", props.getAbsolutePath());
 
         CheckRunner.DirCheckResult overrideResult =
                 CheckRunner.runCheckDir(List.of(f.getAbsolutePath()), overrideSettings);

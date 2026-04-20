@@ -14,70 +14,50 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
- * Checks that the two {@code jml.tmLanguage.json} TextMate grammar files are consistent
- * with the authoritative keyword sets in {@link JmlKeywords}.
+ * Checks that the Eclipse UI {@code jml.tmLanguage.json} TextMate grammar file
+ * is consistent with the authoritative keyword sets in {@link JmlKeywords}.
+ *
+ * <p>The VSCode grammar ({@code OpenJMLlsp/vscode-extension/syntaxes/jml.tmLanguage.json})
+ * is intentionally empty (no coloring rules) because semantic tokens overwrite any
+ * TextMate coloring after the first {@code --check}.  Only the Eclipse UI grammar
+ * is checked for keyword sync.
  *
  * <p>Grammar file paths are supplied via system properties set in the Makefile:
  * <ul>
- *   <li>{@code jml.grammar.lsp} — {@code OpenJMLlsp/vscode-extension/syntaxes/jml.tmLanguage.json}</li>
- *   <li>{@code jml.grammar.ui}  — {@code OpenJMLUI/syntaxes/jml.tmLanguage.json}</li>
+ *   <li>{@code jml.grammar.ui} — {@code OpenJMLUI/syntaxes/jml.tmLanguage.json}</li>
  * </ul>
  */
 public class JmlKeywordSyncTest {
 
-    private static final String PROP_LSP = "jml.grammar.lsp";
-    private static final String PROP_UI  = "jml.grammar.ui";
+    private static final String PROP_UI = "jml.grammar.ui";
 
     // -----------------------------------------------------------------------
     // Tests
     // -----------------------------------------------------------------------
 
-    /** Every word in {@link JmlKeywords#JML_KEYWORDS} must appear in both grammar files,
+    /** Every word in {@link JmlKeywords#JML_KEYWORDS} must appear in the UI grammar,
      *  and vice versa. */
     @Test
     public void testJmlKeywordsVsGrammar() throws Exception {
-        checkSync("jml-keywords", JmlKeywords.JML_KEYWORDS, false);
+        Path ui = grammarPath(PROP_UI);
+        StringBuilder errors = new StringBuilder();
+        checkOneGrammar("jml-keywords", JmlKeywords.JML_KEYWORDS, false, ui, errors);
+        if (errors.length() > 0) fail(errors.toString());
     }
 
-    /** Every word in {@link JmlKeywords#JML_BACKSLASH} must appear in both grammar files,
+    /** Every word in {@link JmlKeywords#JML_BACKSLASH} must appear in the UI grammar,
      *  and vice versa. */
     @Test
     public void testJmlBackslashVsGrammar() throws Exception {
-        checkSync("jml-backslash", JmlKeywords.JML_BACKSLASH, true);
-    }
-
-    /** The LSP and UI grammar files must be identical. */
-    @Test
-    public void testGrammarsIdentical() throws Exception {
-        Path lsp = grammarPath(PROP_LSP);
-        Path ui  = grammarPath(PROP_UI);
-        String lspContent = Files.readString(lsp);
-        String uiContent  = Files.readString(ui);
-        assertEquals("Grammar files differ:\n  " + lsp + "\n  " + ui, lspContent, uiContent);
+        Path ui = grammarPath(PROP_UI);
+        StringBuilder errors = new StringBuilder();
+        checkOneGrammar("jml-backslash", JmlKeywords.JML_BACKSLASH, true, ui, errors);
+        if (errors.length() > 0) fail(errors.toString());
     }
 
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
-
-    /**
-     * Core sync check.
-     * @param sectionName  the JSON repository key ({@code "jml-keywords"} or {@code "jml-backslash"})
-     * @param javaSet      the authoritative set from {@link JmlKeywords}
-     * @param stripLeadingBackslash if true, the grammar match has a literal {@code \} before the
-     *                     alternation (backslash expressions), which must be stripped from extracted tokens
-     */
-    private static void checkSync(String sectionName, Set<String> javaSet,
-                                   boolean stripLeadingBackslash) throws Exception {
-        Path lsp = grammarPath(PROP_LSP);
-        Path ui  = grammarPath(PROP_UI);
-
-        StringBuilder errors = new StringBuilder();
-        checkOneGrammar(sectionName, javaSet, stripLeadingBackslash, lsp, errors);
-        checkOneGrammar(sectionName, javaSet, stripLeadingBackslash, ui,  errors);
-
-        if (errors.length() > 0) fail(errors.toString());
-    }
 
     private static void checkOneGrammar(String sectionName, Set<String> javaSet,
                                          boolean stripLeadingBackslash,
@@ -103,23 +83,15 @@ public class JmlKeywordSyncTest {
     /**
      * Extracts the set of alternation tokens from the {@code match} field of the named
      * repository section in a TextMate JSON grammar file.
-     *
-     * <p>The match patterns look like (after JSON-unescaping):
-     * <ul>
-     *   <li>jml-keywords: {@code \b(word1|word2|...)\b}</li>
-     *   <li>jml-backslash: {@code \\(word1|word2|...)\b}</li>
-     * </ul>
      */
     private static Set<String> extractFromGrammar(Path file, String sectionName,
                                                     boolean stripLeadingBackslash) throws Exception {
         String content = Files.readString(file);
 
-        // Find the named section, then the "match" field within it.
         int secIdx = content.indexOf("\"" + sectionName + "\"");
         if (secIdx < 0)
             throw new IllegalArgumentException("Section \"" + sectionName + "\" not found in " + file);
 
-        // The match value is a JSON string: extract the raw value between the quotes.
         Pattern matchPat = Pattern.compile("\"match\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"");
         Matcher m = matchPat.matcher(content);
         if (!m.find(secIdx))
@@ -127,15 +99,12 @@ public class JmlKeywordSyncTest {
 
         String rawMatch = m.group(1);
 
-        // Unescape the JSON string value: \\ → \, \b → (removed — word boundary), \( → (
-        // We don't need full JSON unescaping; just enough to extract the alternation.
         String unescaped = rawMatch
-                .replace("\\\\b", "")     // \b word-boundary markers
-                .replace("\\\\(", "(")    // escaped open paren
-                .replace("\\\\)", ")")    // escaped close paren
-                .replace("\\\\\\\\", "\\"); // \\ → \
+                .replace("\\\\b", "")
+                .replace("\\\\(", "(")
+                .replace("\\\\)", ")")
+                .replace("\\\\\\\\", "\\");
 
-        // Extract the alternation: between the first '(' and last ')'.
         int open  = unescaped.indexOf('(');
         int close = unescaped.lastIndexOf(')');
         if (open < 0 || close <= open)
@@ -146,8 +115,6 @@ public class JmlKeywordSyncTest {
         TreeSet<String> result = new TreeSet<>();
         for (String token : alternation.split("\\|")) {
             String t = token.trim();
-            // For backslash sections the literal \ precedes the alternation;
-            // after our unescaping it shows up as a leading \ on the first token only.
             if (stripLeadingBackslash && t.startsWith("\\"))
                 t = t.substring(1);
             if (!t.isEmpty()) result.add(t);

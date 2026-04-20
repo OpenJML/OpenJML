@@ -1645,8 +1645,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * synthesizing the {@code "__workspace__"} project for single-project clients.
      *
      * <p>For each project, per-project fields (sourcePath, classPath, specsPath,
-     * propertiesFile, generatedPropertiesFile, outputDir) override the global settings
-     * when non-null; all other fields are inherited.  The {@code "__workspace__"} project
+     * outputDir) override the global settings when non-null; all other fields are
+     * inherited.  {@code toolOptions} is global-only and is inherited unchanged.  The {@code "__workspace__"} project
      * has no overrides and therefore inherits everything from global settings.
      */
     void updateProjectSettings(List<OpenJMLSettings.ProjectConfig> configs) {
@@ -1657,10 +1657,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             OpenJMLSettings s = new OpenJMLSettings(globalSettings);
             s.sourcePath              = cfg.sourcePath              != null ? cfg.sourcePath              : "";
             s.classPath               = cfg.classPath               != null ? cfg.classPath               : "";
-            s.specsPath               = cfg.specsPath               != null ? cfg.specsPath               : globalSettings.specsPath;
-            s.propertiesFile          = cfg.propertiesFile          != null ? cfg.propertiesFile          : globalSettings.propertiesFile;
-            s.generatedPropertiesFile = cfg.generatedPropertiesFile != null ? cfg.generatedPropertiesFile : globalSettings.generatedPropertiesFile;
-            s.racOutputDir            = cfg.outputDir               != null ? cfg.outputDir               : globalSettings.racOutputDir;
+            s.specsPath               = cfg.specsPath  != null ? cfg.specsPath  : globalSettings.specsPath;
+            s.racOutputDir            = cfg.outputDir  != null ? cfg.outputDir  : globalSettings.racOutputDir;
             // Store rootPaths so settingsForUri can match file URIs to this project.
             if (cfg.rootPaths != null && !cfg.rootPaths.isEmpty())
                 s.rootPaths = cfg.rootPaths;
@@ -1873,8 +1871,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 updateEscStatus(uri, primaryDiags, result.proofResults(),
                         result.exitCode(), result.foreignMessages(), myGen,
                         result.diagsByMethod());
-                // Publish all URIs that have ESC diagnostics in diagsByMethod
-                result.diagsByMethod().keySet().forEach(diagUri -> publishMerged(diagUri));
+                // diagsByMethod keys are method FQNs; URIs are the inner map keys.
+                result.diagsByMethod().values().stream()
+                        .flatMap(m -> m.keySet().stream())
+                        .filter(u -> !u.equals(uri))
+                        .distinct()
+                        .forEach(OpenJMLTextDocumentService.this::publishMerged);
+                publishMerged(uri);
             }
         }).exceptionally(t -> {
             System.err.println("[OpenJML] ESC (" + modeName + ") failed: " + t);
@@ -2447,7 +2450,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     } else {
                         updateEscStatus(uri, primaryDiags, result.proofResults(), result.exitCode(),
                                             result.foreignMessages(), myGen, result.diagsByMethod());
-                        result.diagsByMethod().keySet().forEach(diagUri -> publishMerged(diagUri));
+                        result.diagsByMethod().values().stream()
+                                .flatMap(m -> m.keySet().stream())
+                                .filter(u -> !u.equals(uri))
+                                .distinct()
+                                .forEach(this::publishMerged);
+                        publishMerged(uri);
                     }
                 }
             } catch (Throwable t) {
