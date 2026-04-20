@@ -83,42 +83,16 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             if (!paths.isEmpty()) textDocumentService.scheduleCheckForPaths(paths, cmdProject(args));
             return null;
         });
-        registry.on(OpenJMLCommands.RUN_ESC, args -> {
-            String proj = cmdProject(args);
-            List<String> uris = new java.util.ArrayList<>();
-            List<String> paths = new java.util.ArrayList<>();
-            for (String p : cmdPaths(args)) {
-                if (p.startsWith("file://")) uris.add(p);
-                else paths.add(p);
-            }
-            for (String uri : uris)
-                textDocumentService.scheduleEscForUri(uri, proj);
-            if (!paths.isEmpty())
-                textDocumentService.scheduleEscForPaths(paths, proj);
-            return null;
-        });
-        registry.on(OpenJMLCommands.RUN_ESC_FOR_METHOD, args -> {
-            // Code-lens format: [uri, methodFqn]              isCodeLensFormat() == true
-            // Standard format:  [projectId, uri, methodFqn]   (projectId may be "")
-            final String proj, uri, method;
-            if (isCodeLensFormat(args)) {
-                proj = null; uri = str(args, 0); method = str(args, 1);
-            } else {
-                proj = str(args, 0); uri = str(args, 1); method = str(args, 2);
-            }
-            if (uri != null) textDocumentService.scheduleEscForMethod(uri, method, proj);
-            return null;
-        });
+        registry.on(OpenJMLCommands.RUN_ESC,            this::handleRunEsc);
+        registry.on(OpenJMLCommands.RUN_ESC_FOR_METHOD, this::handleRunEscForMethod);
         registry.on(OpenJMLCommands.RUN_ESC_SPLIT_BY_FILE, args -> {
             List<String> paths = cmdPaths(args);
-            if (!paths.isEmpty())
-                textDocumentService.scheduleEscSplitByFile(paths, cmdProject(args));
+            if (!paths.isEmpty()) textDocumentService.scheduleEscSplitByFile(paths, cmdProject(args));
             return null;
         });
         registry.on(OpenJMLCommands.RUN_ESC_SPLIT_BY_METHOD, args -> {
             List<String> paths = cmdPaths(args);
-            if (!paths.isEmpty())
-                textDocumentService.scheduleEscSplitByMethod(paths, cmdProject(args));
+            if (!paths.isEmpty()) textDocumentService.scheduleEscSplitByMethod(paths, cmdProject(args));
             return null;
         });
         registry.on(OpenJMLCommands.RUN_RAC, args -> {
@@ -131,25 +105,11 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.onUriReturn (OpenJMLCommands.GET_SEMANTIC_TOKENS, textDocumentService::getSemanticTokens);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
-        registry.on          (OpenJMLCommands.INDEX_PROJECT, args -> {
-            textDocumentService.indexProject(cmdProject(args));
-            return null;
-        });
-        registry.on          (OpenJMLCommands.SYMBOLS_FOR_PROJECT, args -> {
-            String query = str(args, 0);
-            String projectId = cmdProject(args);
-            return textDocumentService.symbolsForProject(query != null ? query : "", projectId);
-        });
-        registry.on          (OpenJMLCommands.CANCEL_ESC, args -> {
-            textDocumentService.cancelEsc(str(args, 0));
-            return null;
-        });
-        registry.on          (OpenJMLCommands.ABORT_CURRENT_PROOF, args -> {
-            textDocumentService.abortCurrentProof(str(args, 0));
-            return null;
-        });
-        registry.on          (OpenJMLCommands.GET_RUNNING_ESC_TASKS,
-                              args -> textDocumentService.getRunningEscUris());
+        registry.on(OpenJMLCommands.INDEX_PROJECT,        args -> { textDocumentService.indexProject(cmdProject(args)); return null; });
+        registry.on(OpenJMLCommands.SYMBOLS_FOR_PROJECT,  args -> textDocumentService.symbolsForProject(str(args, 0) != null ? str(args, 0) : "", cmdProject(args)));
+        registry.on(OpenJMLCommands.CANCEL_ESC,           args -> { textDocumentService.cancelEsc(str(args, 0)); return null; });
+        registry.on(OpenJMLCommands.ABORT_CURRENT_PROOF,  args -> { textDocumentService.abortCurrentProof(str(args, 0)); return null; });
+        registry.on(OpenJMLCommands.GET_RUNNING_ESC_TASKS, args -> textDocumentService.getRunningEscUris());
 
         this.workspaceService = new OpenJMLWorkspaceService(globalSettings, registry,
                 textDocumentService::symbols,
@@ -348,6 +308,40 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             if (p != null && !p.isEmpty()) result.add(p);
         }
         return result;
+    }
+
+    // -----------------------------------------------------------------------
+    // Command handlers (extracted from constructor for readability)
+    // -----------------------------------------------------------------------
+
+    /** Dispatches {@code openjml.runEsc}: URIs go to scheduleEscForUri, paths to scheduleEscForPaths. */
+    private Object handleRunEsc(java.util.List<?> args) {
+        String proj = cmdProject(args);
+        List<String> uris = new java.util.ArrayList<>();
+        List<String> paths = new java.util.ArrayList<>();
+        for (String p : cmdPaths(args)) {
+            if (p.startsWith("file://")) uris.add(p);
+            else paths.add(p);
+        }
+        uris.forEach(uri -> textDocumentService.scheduleEscForUri(uri, proj));
+        if (!paths.isEmpty()) textDocumentService.scheduleEscForPaths(paths, proj);
+        return null;
+    }
+
+    /**
+     * Dispatches {@code openjml.runEscForMethod}.
+     * Code-lens format: {@code [uri, methodFqn]} (first arg starts with {@code file://}).
+     * Standard format:  {@code [projectId, uri, methodFqn]}.
+     */
+    private Object handleRunEscForMethod(java.util.List<?> args) {
+        final String proj, uri, method;
+        if (isCodeLensFormat(args)) {
+            proj = null; uri = str(args, 0); method = str(args, 1);
+        } else {
+            proj = str(args, 0); uri = str(args, 1); method = str(args, 2);
+        }
+        if (uri != null) textDocumentService.scheduleEscForMethod(uri, method, proj);
+        return null;
     }
 
     // -----------------------------------------------------------------------
