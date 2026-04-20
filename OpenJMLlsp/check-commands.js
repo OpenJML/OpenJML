@@ -44,9 +44,16 @@ function extractJsCommands(src) {
 
 // ---------------------------------------------------------------------------
 // Extract from OpenJMLConstants.java (Eclipse plugin)
-// Lines of the form:   public static final String CMD_FOO = "openjml.bar";
-// Same pattern as OpenJMLCommands.java — reuse extractJavaCommands().
+// Only CMD_* fields are LSP workspace/executeCommand names; other openjml.*
+// constants are Eclipse plugin IDs, preference keys, etc.
 // ---------------------------------------------------------------------------
+function extractEclipseCommands(src) {
+    const re = /public\s+static\s+final\s+String\s+CMD_\w+\s*=\s*"(openjml\.[^"]+)"\s*;/g;
+    const found = new Set();
+    let m;
+    while ((m = re.exec(src)) !== null) found.add(m[1]);
+    return found;
+}
 
 // ---------------------------------------------------------------------------
 // Server commands intentionally not used by the VS Code extension.
@@ -75,7 +82,7 @@ catch (e) { console.error('ERROR: cannot read ' + ECLIPSE_FILE + ': ' + e.messag
 
 const javaCmds    = extractJavaCommands(javaSrc);
 const jsCmds      = extractJsCommands(jsSrc);
-const eclipseCmds = extractJavaCommands(eclipseSrc);
+const eclipseCmds = extractEclipseCommands(eclipseSrc);
 
 // ---------------------------------------------------------------------------
 // Check 1: VS Code extension vs server

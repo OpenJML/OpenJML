@@ -162,6 +162,17 @@ public final class OpenJMLConstants {
     public static final String CMD_CANCEL_ESC = "openjml.cancelEsc";
 
     /**
+     * Abort-method-proof command sent via {@code workspace/executeCommand}.
+     * Aborts the SMT proof for one specific method without stopping the overall
+     * ESC run.  Argument: the method's fully-qualified rawName
+     * (e.g., {@code "com.example.Foo.add(int,int)"});  omit or pass {@code null}
+     * to abort whichever proof is currently active.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.ABORT_METHOD_PROOF}.
+     */
+    public static final String CMD_ABORT_METHOD_PROOF = "openjml.abortMethodProof";
+
+    /**
      * Get-running-ESC-tasks query sent via {@code workspace/executeCommand}.
      * Returns a {@code List<String>} of file URIs currently being verified.
      *

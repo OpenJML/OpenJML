@@ -944,12 +944,19 @@ public abstract class LspCommandHandler extends AbstractHandler {
             ls.getTextDocumentService().codeLens(clParams).thenAccept(lenses -> {
                 org.eclipse.lsp4j.CodeLens matched = null;
                 if (lenses != null) {
+                    // Accept both command types: RUN_ESC_FOR_METHOD (args=[uri,fqn])
+                    // and ABORT_METHOD_PROOF (args=[fqn]) — the latter appears when
+                    // a method is currently CHECKING.  In either case we extract the
+                    // FQN and send CMD_RUN_ESC_FOR_METHOD (keyboard shortcut always runs).
                     List<org.eclipse.lsp4j.CodeLens> sorted = lenses.stream()
                             .filter(l -> l.getCommand() != null
-                                    && OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD.equals(l.getCommand().getCommand())
                                     && l.getCommand().getArguments() != null
-                                    && l.getCommand().getArguments().size() >= 2
-                                    && !String.valueOf(l.getCommand().getArguments().get(1)).isEmpty())
+                                    && (OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD.equals(l.getCommand().getCommand())
+                                            ? l.getCommand().getArguments().size() >= 2
+                                                    && !String.valueOf(l.getCommand().getArguments().get(1)).isEmpty()
+                                            : OpenJMLConstants.CMD_ABORT_METHOD_PROOF.equals(l.getCommand().getCommand())
+                                                    && !l.getCommand().getArguments().isEmpty()
+                                                    && !String.valueOf(l.getCommand().getArguments().get(0)).isEmpty()))
                             .sorted((a, b) -> Integer.compare(
                                     a.getRange().getStart().getLine(),
                                     b.getRange().getStart().getLine()))
@@ -962,8 +969,13 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 }
                 List<Object> args;
                 if (matched != null) {
-                    // Use the FQN from the lens args: [uri, methodFqn]
-                    args = new ArrayList<>(matched.getCommand().getArguments());
+                    // Normalize to [uri, fqn] regardless of which command the lens carries.
+                    List<?> lensArgs = matched.getCommand().getArguments();
+                    boolean isAbort = OpenJMLConstants.CMD_ABORT_METHOD_PROOF
+                            .equals(matched.getCommand().getCommand());
+                    args = isAbort
+                            ? List.of(uri, lensArgs.get(0))          // [rawName] → [uri, rawName]
+                            : new ArrayList<>(lensArgs);             // already [uri, fqn]
                 } else if (cursorLineFinal >= 0) {
                     // Fall back to "@line" — server resolves method from AST
                     args = List.of(uri, "@" + cursorLineFinal);

@@ -41,7 +41,7 @@ full path of the `openjml-lsp` launcher script from the OpenJML distribution.
 | `openjml.clearMarkersSelected` | OpenJML: Clear Markers for Selection | — |
 | `openjml.clearAndReindex` | OpenJML: Clear Caches and Reindex | — |
 | `openjml.cancelEsc` | OpenJML: Cancel ESC | — |
-| `openjml.abortCurrentProof` | OpenJML: Abort Current Proof | — |
+| `openjml.abortMethodProof` | OpenJML: Abort Method Proof | — |
 
 **Run ESC for Method** uses the code lens at or above the cursor to identify the method and its
 fully-qualified name, so it works correctly for methods in secondary classes and nested classes.

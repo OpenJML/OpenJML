@@ -56,7 +56,7 @@ const CMD_INDEX_PROJECT        = 'openjml.indexProject';
 const CMD_CLEAR_AND_REINDEX    = 'openjml.clearAndReindex';
 const CMD_CLEAR_MARKERS        = 'openjml.clearMarkers';
 const CMD_CANCEL_ESC           = 'openjml.cancelEsc';
-const CMD_ABORT_CURRENT_PROOF  = 'openjml.abortCurrentProof';
+const CMD_ABORT_METHOD_PROOF   = 'openjml.abortMethodProof';
 const CMD_GET_RUNNING_ESC      = 'openjml.getRunningEscTasks';
 const CMD_GET_SEMANTIC_TOKENS  = 'openjml.getSemanticTokens';
 const CMD_FOCUS_FILE           = 'openjml.focusFile';
@@ -334,7 +334,7 @@ async function startClient() {
                 CMD_RUN_ESC, CMD_RUN_ESC_FOR_METHOD, CMD_RUN_ESC_SPLIT_FILE,
                 CMD_RUN_ESC_SPLIT_METHOD, CMD_CHECK_JML, CMD_RUN_RAC,
                 CMD_INDEX_PROJECT, CMD_CLEAR_AND_REINDEX, CMD_CLEAR_MARKERS,
-                CMD_CANCEL_ESC, CMD_ABORT_CURRENT_PROOF,
+                CMD_CANCEL_ESC, CMD_ABORT_METHOD_PROOF,
                 CMD_GET_RUNNING_ESC, CMD_GET_SEMANTIC_TOKENS, CMD_FOCUS_FILE,
             ];
             for (const cmd of clientCmds) {
@@ -951,16 +951,18 @@ async function activate(context) {
     });
     context.subscriptions.push(cancelEscCmd);
 
-    // "Abort Current Proof" — aborts only the method currently being proved by the
-    // SMT solver, then allows the ESC loop to continue with remaining methods.
+    // "Abort Method Proof" — aborts only the SMT proof for one specific method,
+    // then allows the ESC loop to continue with remaining methods.
     // Unlike Cancel ESC (which stops all proofs), this is a "skip this one" action
     // useful when a single method is taking too long in a split-by-method run.
-    const abortProofCmd = vscode.commands.registerCommand('openjml.abortCurrentProof', async () => {
+    // When invoked from the command palette (no rawName), the server aborts
+    // whatever proof is currently active.
+    const abortProofCmd = vscode.commands.registerCommand('openjml.abortMethodProof', async (rawName) => {
         if (!client) { requireServer(); return; }
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_ABORT_CURRENT_PROOF,
-                arguments: [],
+                command:   CMD_ABORT_METHOD_PROOF,
+                arguments: rawName ? [rawName] : [],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML abort proof failed: ' + err);

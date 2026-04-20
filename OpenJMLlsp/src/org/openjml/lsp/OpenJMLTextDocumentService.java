@@ -479,10 +479,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             // This uniquely identifies the method across the project without relying on
             // line numbers, which shift as code is edited.
             String methodRef = m.rawName();
-            lenses.add(new CodeLens(range,
-                    new Command(s.label(), OpenJMLCommands.RUN_ESC_FOR_METHOD,
-                                List.<Object>of(uri, methodRef)),
-                    null));
+            // While CHECKING, the lens acts as a "skip this proof" button:
+            // it sends abortMethodProof(rawName) so only this method is aborted
+            // and the ESC loop continues.  Otherwise it sends runEscForMethod.
+            boolean checking = s.result() == EscResult.CHECKING;
+            String cmd  = checking ? OpenJMLCommands.ABORT_METHOD_PROOF
+                                   : OpenJMLCommands.RUN_ESC_FOR_METHOD;
+            List<Object> args = checking ? List.<Object>of(methodRef)
+                                         : List.<Object>of(uri, methodRef);
+            lenses.add(new CodeLens(range, new Command(s.label(), cmd, args), null));
         }
         return CompletableFuture.completedFuture(lenses);
     }
@@ -1918,23 +1923,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = lastContent.get(uri);
         JavaSourceScanner.MethodInfo target = findMethod(uri, content, methodName);
 
-        // If the method is currently CHECKING, the user clicked "✕ Cancel":
-        // abort the in-flight proof only; do not stop the whole ESC run.
-        if (target != null) {
-            String mKey = methodKey(uri, target);
-            ProofResult pr = proofResults.get(mKey);
-            MethodStatus current = (pr != null) ? pr.status() : MethodStatus.UNKNOWN;
-            if (current.result() == EscResult.CHECKING) {
-                System.out.println("[OpenJML] Cancel lens pressed for " + target.name()
-                        + " in " + uri
-                        + "; methodSession=" + runningSessions.containsKey(mKey)
-                        + " fileSession=" + runningSessions.containsKey(uri)
-                        + " allSessionKeys=" + runningSessions.keySet());
-                abortCurrentProof(mKey);
-                return;
-            }
-        }
-
         // rawName() carries "owner.FQN.methodName(sig)" for AST-derived MethodInfo entries,
         // which OpenJML's --method flag accepts.  For regex-derived entries (before the first
         // check) rawName() is the bare method name, which still works for simple cases.
@@ -3119,43 +3107,51 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Abort only the currently-running method proof for the given target, then
-     * allow the ESC loop to continue with the next method.  Same target format as
-     * {@link #cancelEsc(String)}, but calls {@link org.openjml.IAPI#abortCurrentProof()}
-     * instead of {@link org.openjml.IAPI#cancelEsc()}, so the ESC run is not terminated.
+     * Abort the SMT proof for one specific method, then allow the ESC loop to
+     * continue with the next method.  Unlike {@link #cancelEsc(String)}, this
+     * does not cancel the overall ESC run.
+     *
+     * <p>{@code rawName} is the fully-qualified method name as returned by
+     * {@code Utils.uniqueSymbolName()} (e.g., {@code "com.example.Foo.add(int,int)"}).
+     * The method searches {@link #runningSessions} for any key whose suffix after
+     * {@code '#'} equals {@code rawName}.
+     *
+     * <p>When {@code rawName} is {@code null} or empty, all currently-active proofs
+     * are aborted (same effect as a broad "skip current" across all parallel runs).
      */
-    void abortCurrentProof(String target) {
-        if (target != null && target.contains("#")) {
-            abortCurrentProofForKey(target);
-        } else if (target != null && !target.isEmpty()) {
-            abortCurrentProofForKey(target);
+    void abortMethodProof(String rawName) {
+        if (rawName != null && !rawName.isEmpty()) {
+            String suffix = "#" + rawName;
+            new ArrayList<>(runningSessions.keySet()).stream()
+                    .filter(k -> k.endsWith(suffix))
+                    .forEach(this::abortMethodProofForKey);
         } else {
-            new ArrayList<>(runningSessions.keySet()).forEach(this::abortCurrentProofForKey);
+            new ArrayList<>(runningSessions.keySet()).forEach(this::abortMethodProofForKey);
         }
     }
 
-    private void abortCurrentProofForKey(String key) {
-        // Try the exact key first (per-method or per-file session).
+    private void abortMethodProofForKey(String key) {
+        // Try the exact per-method session key first.
         RunningSession session = runningSessions.get(key);
         if (session != null) {
             IAPI api = session.api().get();
             if (api != null) {
-                System.out.println("[OpenJML] abortCurrentProof: found session API for " + key);
+                System.out.println("[OpenJML] abortMethodProof: found session API for " + key);
                 api.abortCurrentProof();
                 return;
             }
         }
-        // For a method key (uri#method), fall back to the file-level session.
+        // For a method key (uri#rawName), fall back to the file-level session.
         if (key.contains("#")) {
             String uri = key.substring(0, key.indexOf('#'));
             RunningSession fileSession = runningSessions.get(uri);
             if (fileSession != null) {
                 IAPI fileApi = fileSession.api().get();
                 if (fileApi != null) {
-                    System.out.println("[OpenJML] abortCurrentProof: found file-level API for uri=" + uri);
+                    System.out.println("[OpenJML] abortMethodProof: found file-level API for uri=" + uri);
                     fileApi.abortCurrentProof();
                 } else {
-                    System.out.println("[OpenJML] abortCurrentProof: NO API found for uri=" + uri
+                    System.out.println("[OpenJML] abortMethodProof: NO API found for uri=" + uri
                             + "; runningSessions keys=" + runningSessions.keySet());
                 }
             }

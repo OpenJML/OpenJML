@@ -89,8 +89,8 @@
         "category": "OpenJML"
       },
       {
-        "command": "openjml.abortCurrentProof",
-        "title": "Abort Current Proof",
+        "command": "openjml.abortMethodProof",
+        "title": "Abort Method Proof",
         "category": "OpenJML"
       }
     ],
@@ -291,7 +291,7 @@
           "command": "openjml.clearAndReindex"
         },
         {
-          "command": "openjml.abortCurrentProof"
+          "command": "openjml.abortMethodProof"
         },
         {
           "command": "openjml.cancelEsc"
