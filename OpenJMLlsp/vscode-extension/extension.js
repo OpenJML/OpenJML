@@ -539,6 +539,7 @@ function getSettings() {
         escEngine:               cfg.get('escEngine',               'subprocess'),
         escThreads:              cfg.get('escThreads',              5),
         useIntegratedOutline:    cfg.get('useIntegratedOutline',    true),
+        javaMode:                cfg.get('javaMode',               'jml-only'),
         client:                  'vscode-java',
         workspaceFolderPaths:    workspaceFolderPaths,
     };
