@@ -36,14 +36,6 @@ public class InlayHintProvider {
     private InlayHintProvider() {}
 
     /**
-     * Compute inlay hints for the given document.
-     *
-     * @param params  the LSP inlay-hint request parameters
-     * @param content the current source text of the document
-     * @param cache   the AST cache to look up the attributed AST
-     * @return list of inlay hints (never null; empty if no hints or no cached AST)
-     */
-    /**
      * If the hover position falls on a {@code var}-declared variable in the cached AST,
      * return a string of the form {@code ": TypeName"}.  Returns {@code null} if the
      * position is not on a {@code var} declaration or no AST is cached.
@@ -99,6 +91,16 @@ public class InlayHintProvider {
         return result[0];
     }
 
+    /**
+     * Compute inlay hints for the given document.
+     *
+     * @param params           the LSP inlay-hint request parameters
+     * @param content          the current source text of the document
+     * @param cache            the AST cache to look up the attributed AST
+     * @param suppressJavaVars when {@code true}, skip plain Java {@code var} hints
+     *                         (used when a co-present Java language server already shows them)
+     * @return list of inlay hints (never null; empty if no hints or no cached AST)
+     */
     public static List<InlayHint> compute(InlayHintParams params,
                                           String content,
                                           ASTCache cache,

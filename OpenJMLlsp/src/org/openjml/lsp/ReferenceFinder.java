@@ -110,6 +110,11 @@ public class ReferenceFinder {
             this.results           = results;
         }
         
+        /**
+         * Scan {@code t}, using {@code AST_JAVA_MODE} when a separate specs
+         * compilation unit is present to avoid double-counting JML clause nodes
+         * that appear in both {@code defs} and {@code typeSpecs.clauses}.
+         */
         public void scanCU(org.jmlspecs.openjml.JmlTree.JmlCompilationUnit t) {
             if (t.specsCompilationUnit == t) {
                 scan(t);

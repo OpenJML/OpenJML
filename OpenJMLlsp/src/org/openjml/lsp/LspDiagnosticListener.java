@@ -161,6 +161,7 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         return result;
     }
 
+    /** Returns an unmodifiable view of all diagnostics collected so far. */
     public List<Diagnostic<? extends JavaFileObject>> getDiagnostics() {
         return Collections.unmodifiableList(collected);
     }
@@ -188,12 +189,6 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         return result;
     }
 
-    /**
-     * Convert collected diagnostics to LSP Diagnostics.
-     *
-     * @param sourcePath the temp-file path actually passed to OpenJML (for filtering)
-     * @param targetUri  the LSP document URI to report diagnostics against
-     */
     /**
      * Return the names of files OTHER than the primary {@code sourcePath} that
      * produced at least one diagnostic (i.e. dependency files whose errors
@@ -290,6 +285,13 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         return result;
     }
 
+    /**
+     * Convert collected diagnostics to LSP diagnostics, filtering to those from {@code sourcePath}.
+     *
+     * @param sourcePath the path of the primary file passed to OpenJML (used to filter out
+     *                   diagnostics from dependency files)
+     * @param targetUri  the LSP document URI to report diagnostics against
+     */
     public List<org.eclipse.lsp4j.Diagnostic> toLspDiagnostics(String sourcePath, String targetUri) {
         var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
         for (var d : collected) {

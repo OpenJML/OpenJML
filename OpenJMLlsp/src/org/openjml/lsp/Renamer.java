@@ -93,6 +93,11 @@ public class Renamer {
         return new RefsAndEdits(refs, edits);
     }
 
+    /** Convenience wrapper for logging: convert LSP (line, character) to a source offset. */
+    public static int offsetOf(String source, int line, int col) {
+        return DefinitionFinder.lineColToOffset(source, line, col);
+    }
+
     /**
      * Apply a list of text edits (sorted in descending position order) to a
      * source string.
@@ -102,16 +107,10 @@ public class Renamer {
      * once; each edit's range is replaced with its new text.  This is O(n) in the
      * source length regardless of the number of edits.
      *
-     * @param source                  original source text
-     * @param sortedEditsDescending   edits sorted so that later positions in the
-     *                                file come first
+     * @param source                original source text
+     * @param sortedEditsDescending edits sorted so that later positions in the file come first
      * @return the modified source text
      */
-    /** Convenience wrapper for logging: convert LSP (line, character) to a source offset. */
-    public static int offsetOf(String source, int line, int col) {
-        return DefinitionFinder.lineColToOffset(source, line, col);
-    }
-
     public static String applyEdits(String source, List<TextEdit> sortedEditsDescending) {
         // Resolve all offsets first (against the original, unmodified source).
         record Replacement(int start, int end, String text) {}

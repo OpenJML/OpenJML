@@ -306,6 +306,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         this.clientSupportsActionMessages = supports;
     }
 
+    /** Called by {@link OpenJMLLanguageServer} when the client connects; wires log and warning callbacks. */
     public void connect(LanguageClient client) {
         this.client = client;
         CheckRunner.setLogCallback(msg -> {
@@ -1419,10 +1420,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Run ESC on the given URI immediately (for the {@code openjml.runEsc} command).
-     * Uses the file on disk; if the file does not exist the call is a no-op.
-     */
-    /**
      * Return the flat semantic token integer data for {@code uri}, or an empty
      * list if the file is not currently open.  Called by the workspace service
      * in response to the {@code openjml.getSemanticTokens} command so the VS
@@ -1493,7 +1490,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * <p>Called by {@link OpenJMLWorkspaceService} in response to
      * {@code workspace/symbol} requests (Cmd+T / Ctrl+T in VS Code).
      */
-    /** Query the declaration index across all projects. */
     List<SymbolInformation> symbols(String query) {
         return symbols(query, null);
     }
@@ -1623,11 +1619,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return SymbolKind.Object;
     }
 
-    // -----------------------------------------------------------------------
-    // Per-project path overrides
-    // -----------------------------------------------------------------------
-
-    /**
     // -----------------------------------------------------------------------
     // Per-project settings registry
     // -----------------------------------------------------------------------
@@ -1787,6 +1778,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         executor.submit(() -> runCheckContent(uri, content));
     }
 
+    /**
+     * Trigger an ESC run on the given URI, dispatching to the engine configured in
+     * {@link OpenJMLSettings}: api-mode, fresh-parallel, or subprocess.
+     */
     void scheduleEscForUri(String uri, String projectId) {
         OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
         if (s.isEscApiMode()) {
@@ -2488,23 +2483,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // refreshCodeLenses().  Partially-typed code during editing must not disturb
     // the ESC code-lens status that the user sees.
 
-    /**
-     * Run a project-wide {@code --check --dirs} pass over all roots in
-     * {@link OpenJMLSettings#effectiveRoots()}, supplying current in-memory
-     * content as context.  All files are compiled in a single IAPI invocation
-     * so their symbols share the same compilation context, enabling reliable
-     * cross-file navigation (go-to-declaration, find-references, rename).
-     *
-     * <p>After the check completes, {@link #lastCheckedContent} is updated for
-     * every currently-open file so that focus-triggered {@link #recheckUri}
-     * calls (which skip files whose content is unchanged) become no-ops until
-     * the next real edit.
-     *
-     * <p>If no roots are configured, falls back to a no-op (returns {@code false}).
-     *
-     * @return {@code true} if a project check was performed, {@code false} if
-     *         no roots are configured and nothing was done
-     */
     /**
      * Returns the subset of {@code allRoots} (OS paths) that are ancestors of
      * the given {@code uri}.  Falls back to {@code allRoots} if none match,
