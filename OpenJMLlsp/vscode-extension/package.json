@@ -87,6 +87,11 @@
         "command": "openjml.cancelEsc",
         "title": "Cancel ESC",
         "category": "OpenJML"
+      },
+      {
+        "command": "openjml.abortCurrentProof",
+        "title": "Abort Current Proof",
+        "category": "OpenJML"
       }
     ],
     "keybindings": [
@@ -94,19 +99,19 @@
         "command": "openjml.runEsc",
         "key": "ctrl+e",
         "mac": "cmd+e",
-        "when": "editorLangId == java && editorFocus"
+        "when": "(editorLangId == java || editorLangId == jml) && editorFocus"
       },
       {
         "command": "openjml.runEscForMethod",
         "key": "ctrl+alt+e",
         "mac": "cmd+alt+e",
-        "when": "editorLangId == java && editorFocus"
+        "when": "(editorLangId == java || editorLangId == jml) && editorFocus"
       },
       {
         "command": "openjml.saveAndRunEsc",
         "key": "ctrl+shift+e",
         "mac": "ctrl+cmd+e",
-        "when": "editorLangId == java && editorFocus"
+        "when": "(editorLangId == java || editorLangId == jml) && editorFocus"
       }
     ],
     "menus": {
@@ -283,6 +288,12 @@
           "command": "openjml.clearMarkersSelected"
         },
         {
+          "command": "openjml.clearAndReindex"
+        },
+        {
+          "command": "openjml.abortCurrentProof"
+        },
+        {
           "command": "openjml.cancelEsc"
         }
       ]
@@ -396,7 +407,7 @@
           "type": "integer",
           "default": 5,
           "minimum": 1,
-          "order": 10,
+          "order": 9,
           "markdownDescription": "Maximum number of concurrent ESC threads (**`concurrent` engine only** — ignored when `escEngine` is `subprocess`). Methods from different files are verified concurrently up to this limit; methods within the same file are serialized."
         },
         "openjml.syntaxColoringStrategy": {

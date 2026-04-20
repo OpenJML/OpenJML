@@ -1,5 +1,6 @@
 package org.openjml.lsp;
 
+import org.eclipse.lsp4j.ExecuteCommandOptions;
 import org.eclipse.lsp4j.CodeLensOptions;
 import org.eclipse.lsp4j.CompletionOptions;
 import org.eclipse.lsp4j.DidChangeWatchedFilesRegistrationOptions;
@@ -56,6 +57,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private final OpenJMLTextDocumentService  textDocumentService;
     private final OpenJMLWorkspaceService     workspaceService;
 
+    private final CommandRegistry      registry;
     private LanguageClient client   = null;
     private int            exitCode    = 1;
     /** Set to {@code true} when the {@code initialized} notification arrives.
@@ -73,7 +75,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         this.textDocumentService = new OpenJMLTextDocumentService(globalSettings,
                 OpenJMLCommands.RUN_ESC_FOR_METHOD);
 
-        CommandRegistry registry = new CommandRegistry();
+        CommandRegistry registry = this.registry = new CommandRegistry();
 
         // Command argument format: args[0] = projectId (or "" for global/single-project settings),
         //                          args[1+] = command-specific paths/URIs.
@@ -213,6 +215,10 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         var inlayHintsOpts = new InlayHintRegistrationOptions();
         inlayHintsOpts.setResolveProvider(false);
         caps.setInlayHintProvider(Either.forRight(inlayHintsOpts));
+
+        // Advertise all registered workspace/executeCommand names so that clients
+        // can validate their command-name constants against this list at startup.
+        caps.setExecuteCommandProvider(new ExecuteCommandOptions(registry.commandNames()));
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }

@@ -22,6 +22,47 @@ const path   = require('path');
 const vscode = require('vscode');
 const { LanguageClient, TransportKind, RevealOutputChannelOn, State } = require('vscode-languageclient/node');
 
+// ── Constants ───────────────────────────────────────────────────────────────
+
+/** How often (ms) the ESC-task status bar polls the server while tasks are running. */
+const ESC_POLL_INTERVAL_MS = 800;
+
+/** Debounce delay (ms) before sending a focusFile notification on editor focus change. */
+const FOCUS_DEBOUNCE_MS = 200;
+
+/** Maximum number of code lenses requested when resolving the method under the cursor. */
+const CODE_LENS_REQUEST_LIMIT = 50;
+
+/** Maximum number of workspace files returned when searching for a companion .java file. */
+const COMPANION_SEARCH_LIMIT = 10;
+
+/** LSP MessageType values (https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#messageType). */
+const LSP_MSG_ERROR = 1;
+const LSP_MSG_INFO  = 3;
+
+/** LSP method names used in sendRequest / onNotification calls. */
+const LSP_EXECUTE_COMMAND         = 'workspace/executeCommand';
+const LSP_SEMANTIC_TOKENS_REFRESH = 'workspace/semanticTokens/refresh';
+const LSP_ACTION_MESSAGE          = '$/openjml/actionMessage';
+
+/** OpenJML server command names sent as workspace/executeCommand arguments. */
+const CMD_RUN_ESC              = 'openjml.runEsc';
+const CMD_RUN_ESC_FOR_METHOD   = 'openjml.runEscForMethod';
+const CMD_RUN_ESC_SPLIT_FILE   = 'openjml.runEscSplitByFile';
+const CMD_RUN_ESC_SPLIT_METHOD = 'openjml.runEscSplitByMethod';
+const CMD_CHECK_JML            = 'openjml.checkJML';
+const CMD_RUN_RAC              = 'openjml.runRac';
+const CMD_INDEX_PROJECT        = 'openjml.indexProject';
+const CMD_CLEAR_AND_REINDEX    = 'openjml.clearAndReindex';
+const CMD_CLEAR_MARKERS        = 'openjml.clearMarkers';
+const CMD_CANCEL_ESC           = 'openjml.cancelEsc';
+const CMD_ABORT_CURRENT_PROOF  = 'openjml.abortCurrentProof';
+const CMD_GET_RUNNING_ESC      = 'openjml.getRunningEscTasks';
+const CMD_GET_SEMANTIC_TOKENS  = 'openjml.getSemanticTokens';
+const CMD_FOCUS_FILE           = 'openjml.focusFile';
+
+// ────────────────────────────────────────────────────────────────────────────
+
 let client;
 let outputChannel;
 
@@ -39,6 +80,13 @@ let jmlTokensEmitter;
  */
 let intentionalStop = false;
 
+/**
+ * {@code true} while the crash-recovery dialog is already visible.
+ * Prevents a second simultaneous crash from opening a second dialog and
+ * racing two concurrent {@link startClient} calls into two live clients.
+ */
+let crashDialogShowing = false;
+
 /** The VS Code ExtensionContext — set once in activate(). */
 let extensionContext;
 
@@ -49,30 +97,38 @@ let escStatusBar;
 let escPollTimer = null;
 
 /**
+ * One poll tick: ask the server how many ESC tasks are running and update the
+ * status bar.  Stops polling automatically when the count reaches zero.
+ */
+async function pollEscTasks() {
+    if (!client) { stopEscPolling(); return; }
+    try {
+        const uris = await client.sendRequest(LSP_EXECUTE_COMMAND, {
+            command:   CMD_GET_RUNNING_ESC,
+            arguments: [],
+        });
+        const n = Array.isArray(uris) ? uris.length : 0;
+        if (n === 0) {
+            stopEscPolling();
+        } else {
+            escStatusBar.text = `OpenJML ${n} ESC task${n === 1 ? '' : 's'} running \u2026`;
+            escStatusBar.show();
+        }
+    } catch (_) {
+        stopEscPolling();
+    }
+}
+
+/**
  * Start (or keep alive) the ESC-task polling loop.
- * Queries the server every 800 ms; updates the status bar with the task count.
+ * Fires an immediate first tick (the executeCommand roundtrip has already
+ * completed, so the server has registered the task) then polls every 800 ms.
  * Stops automatically once the count reaches zero.
  */
 function startEscPolling() {
     if (escPollTimer !== null) return;   // already polling
-    escPollTimer = setInterval(async () => {
-        if (!client) { stopEscPolling(); return; }
-        try {
-            const uris = await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.getRunningEscTasks',
-                arguments: [],
-            });
-            const n = Array.isArray(uris) ? uris.length : 0;
-            if (n === 0) {
-                stopEscPolling();
-            } else {
-                escStatusBar.text = `OpenJML ${n} ESC task${n === 1 ? '' : 's'} running \u2026`;
-                escStatusBar.show();
-            }
-        } catch (_) {
-            stopEscPolling();
-        }
-    }, 800);
+    pollEscTasks();   // immediate first tick — server task is already registered
+    escPollTimer = setInterval(pollEscTasks, ESC_POLL_INTERVAL_MS);
 }
 
 /** Stop the ESC-task polling loop and hide the status bar item. */
@@ -259,11 +315,37 @@ async function startClient() {
         }
     });
 
-    // Register the client as a subscription so VS Code disposes it on deactivate.
-    extensionContext.subscriptions.push(client);
-
+    // Do NOT push client onto subscriptions — startClient() is called on every
+    // restart and subscriptions has no removal API, so repeated pushes accumulate
+    // stale client objects.  deactivate() calls client.stop() directly instead.
     client.start().then(() => {
         outputChannel.appendLine(ts() + ' server started');
+
+        // Validate that each CMD_* constant this extension sends matches a command
+        // name actually registered on the server (advertised via executeCommandProvider).
+        // A mismatch means the two sides are out of sync — likely a rename on one side
+        // that was not reflected on the other.  Logged to the output channel only;
+        // does not affect extension functionality.
+        const serverCmds = new Set(
+            client.initializeResult?.capabilities?.executeCommandProvider?.commands || []
+        );
+        if (serverCmds.size > 0) {
+            const clientCmds = [
+                CMD_RUN_ESC, CMD_RUN_ESC_FOR_METHOD, CMD_RUN_ESC_SPLIT_FILE,
+                CMD_RUN_ESC_SPLIT_METHOD, CMD_CHECK_JML, CMD_RUN_RAC,
+                CMD_INDEX_PROJECT, CMD_CLEAR_AND_REINDEX, CMD_CLEAR_MARKERS,
+                CMD_CANCEL_ESC, CMD_ABORT_CURRENT_PROOF,
+                CMD_GET_RUNNING_ESC, CMD_GET_SEMANTIC_TOKENS, CMD_FOCUS_FILE,
+            ];
+            for (const cmd of clientCmds) {
+                if (!serverCmds.has(cmd)) {
+                    outputChannel.appendLine(
+                        `WARNING: command '${cmd}' is not registered on the server — ` +
+                        'possible name mismatch between extension.js CMD_* and OpenJMLCommands.java'
+                    );
+                }
+            }
+        }
 
         // Handle workspace/semanticTokens/refresh — server sends this after each
         // --check so clients know to re-request tokens (regex → AST-based upgrade).
@@ -272,28 +354,28 @@ async function startClient() {
         // own (suppressed) LSP-channel provider, not our direct custom provider.
         // Firing jmlTokensEmitter causes VS Code to re-call provideDocumentSemanticTokens
         // on the next render cycle for all open Java/JML files.
-        client.onRequest('workspace/semanticTokens/refresh', () => {
+        client.onRequest(LSP_SEMANTIC_TOKENS_REFRESH, () => {
             if (jmlTokensEmitter) jmlTokensEmitter.fire(undefined);
             return null;
         });
 
         // Handle $/openjml/actionMessage — richer alternative to window/logMessage
         // sent by the server when the client declares supportsActionMessages: true.
-        client.onNotification('$/openjml/actionMessage', params => {
+        client.onNotification(LSP_ACTION_MESSAGE, params => {
             outputChannel.appendLine(params.message);
             const actions = params.actions;
             if (!Array.isArray(actions) || actions.length === 0) return;
             // Build button list and show VS Code message dialog.
             const titles = actions.map(a => a.title || 'OK');
-            const show = params.type === 1
-                ? vscode.window.showErrorMessage
-                : vscode.window.showWarningMessage;
+            const show = params.type === LSP_MSG_ERROR ? vscode.window.showErrorMessage
+                       : params.type === LSP_MSG_INFO  ? vscode.window.showInformationMessage
+                       : vscode.window.showWarningMessage;
             show(params.message, ...titles).then(chosen => {
                 const action = actions.find(a => a.title === chosen);
                 if (!action || action.kind !== 'openPreferences') return;
                 // Map abstract target to VS Code settings section.
                 const section = action.target === 'toolOptions'
-                    ? 'openjml.toolOptions'
+                    ? 'openjml.propertiesFile'
                     : 'openjml';
                 vscode.commands.executeCommand('workbench.action.openSettings', section);
             });
@@ -308,19 +390,25 @@ async function startClient() {
  * and offers to restart it.
  */
 async function showCrashRecoveryDialog() {
-    const serverPath = findServerPath() || '(not configured)';
-    outputChannel.appendLine(ts() + ' OpenJML LSP server stopped unexpectedly (path: ' + serverPath + ')');
-    const choice = await vscode.window.showWarningMessage(
-        'OpenJML: the LSP server has stopped unexpectedly.\n\n' +
-        'Server path: ' + serverPath + '\n\n' +
-        'Without a running server, all OpenJML features (type-checking, ESC, RAC, ' +
-        'syntax coloring, etc.) are non-functional.\n\n' +
-        'Click "Restart" to restart the server now.',
-        'Restart', 'Continue without OpenJML'
-    );
-    if (choice === 'Restart') {
-        client = null;
-        await startClient();
+    if (crashDialogShowing) return;
+    crashDialogShowing = true;
+    try {
+        const serverPath = findServerPath() || '(not configured)';
+        outputChannel.appendLine(ts() + ' OpenJML LSP server stopped unexpectedly (path: ' + serverPath + ')');
+        const choice = await vscode.window.showWarningMessage(
+            'OpenJML: the LSP server has stopped unexpectedly.\n\n' +
+            'Server path: ' + serverPath + '\n\n' +
+            'Without a running server, all OpenJML features (type-checking, ESC, RAC, ' +
+            'syntax coloring, etc.) are non-functional.\n\n' +
+            'Click "Restart" to restart the server now.',
+            'Restart', 'Continue without OpenJML'
+        );
+        if (choice === 'Restart') {
+            client = null;
+            await startClient();
+        }
+    } finally {
+        crashDialogShowing = false;
     }
 }
 
@@ -380,7 +468,7 @@ async function resolveCompanionJavaUri(jmlDoc) {
     if (!cls) return null;
 
     const relPath = (pkg ? pkg.replace(/\./g, '/') + '/' : '') + cls + '.java';
-    const matches = await vscode.workspace.findFiles('**/' + cls + '.java', '**/node_modules/**', 10);
+    const matches = await vscode.workspace.findFiles('**/' + cls + '.java', '**/node_modules/**', COMPANION_SEARCH_LIMIT);
     // Prefer the match whose path ends with the full package-relative path
     const best = matches.find(u => u.path.replace(/\\/g, '/').endsWith(relPath));
     return best || (matches.length > 0 ? matches[0] : null);
@@ -489,12 +577,22 @@ function resolveTargetPaths(explorerUri, explorerSelection) {
 }
 
 /**
- * Returns the single-element command prefix used by all openjml.* commands.
- * args[0] is the project ID; an empty string means "use global/single-project settings".
- * Path configuration (sourcePath, classPath, etc.) is sent once at initialization
- * via initializationOptions and updated via workspace/didChangeConfiguration.
+ * Returns the project-ID prefix array used as {@code args[0]} in all openjml.*
+ * {@code workspace/executeCommand} calls.
+ *
+ * The server protocol reserves {@code args[0]} for a project identifier so that
+ * a single server instance can serve multiple independent projects (each with its
+ * own {@code sourcePath}, {@code classPath}, {@code propertiesFile}, etc.).
+ * An empty string means "use global / single-project settings", which is the
+ * correct value for the current single-workspace VS Code client.
+ *
+ * Multi-project support is not yet implemented on the client side.  When it is,
+ * this function should return the ID of the project that owns the active file,
+ * and the extension will need to register named projects with the server via an
+ * {@code openjml/registerProject} notification on activation.  This is the single
+ * place to change when that work is done.
  */
-function commandPrefix() {
+function projectId() {
     return [''];
 }
 
@@ -539,9 +637,9 @@ async function activate(context) {
 
         const fsPath = doc.uri.fsPath;
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEsc',
-                arguments: [...commandPrefix(), fsPath],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_RUN_ESC,
+                arguments: [...projectId(), fsPath],
             });
             startEscPolling();
         } catch (err) {
@@ -558,9 +656,9 @@ async function activate(context) {
         const paths = resolveTargetPaths(explorerUri, explorerSelection);
         if (!paths) return;
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.checkJml',
-                arguments: [...commandPrefix(), ...paths],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_CHECK_JML,
+                arguments: [...projectId(), ...paths],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML check failed: ' + err);
@@ -593,7 +691,7 @@ async function activate(context) {
             let matchedLens = null;
             try {
                 const allLenses = await vscode.commands.executeCommand(
-                    'vscode.executeCodeLensProvider', editor.document.uri, 50);
+                    'vscode.executeCodeLensProvider', editor.document.uri, CODE_LENS_REQUEST_LIMIT);
                 const methodLenses = (allLenses || [])
                     .filter(l => l.command?.command === 'openjml.runEscForMethod'
                               && l.command.arguments?.[1])  // non-empty = per-method, not whole-file
@@ -616,9 +714,9 @@ async function activate(context) {
         if (doc && !await checkDirtyAndProceed(doc)) return;
 
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEscForMethod',
-                arguments: [...commandPrefix(), uri, methodName],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_RUN_ESC_FOR_METHOD,
+                arguments: [...projectId(), uri, methodName],
             });
             startEscPolling();
         } catch (err) {
@@ -635,9 +733,9 @@ async function activate(context) {
         const paths = resolveTargetPaths(explorerUri, explorerSelection);
         if (!paths) return;
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEscSplitByFile',
-                arguments: [...commandPrefix(), ...paths],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_RUN_ESC_SPLIT_FILE,
+                arguments: [...projectId(), ...paths],
             });
             startEscPolling();
         } catch (err) {
@@ -654,9 +752,9 @@ async function activate(context) {
         const paths = resolveTargetPaths(explorerUri, explorerSelection);
         if (!paths) return;
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEscSplitByMethod',
-                arguments: [...commandPrefix(), ...paths],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_RUN_ESC_SPLIT_METHOD,
+                arguments: [...projectId(), ...paths],
             });
             startEscPolling();
         } catch (err) {
@@ -695,9 +793,9 @@ async function activate(context) {
         }
         const fsPath = targetUri.fsPath;
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEsc',
-                arguments: [...commandPrefix(), fsPath],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_RUN_ESC,
+                arguments: [...projectId(), fsPath],
             });
             startEscPolling();
         } catch (err) {
@@ -715,9 +813,9 @@ async function activate(context) {
         if (!paths) return;
         const outputDir = getSettings().racOutputDir || '';
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runRac',
-                arguments: [...commandPrefix(), outputDir, ...paths],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_RUN_RAC,
+                arguments: [...projectId(), outputDir, ...paths],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML RAC compile failed: ' + err);
@@ -737,9 +835,9 @@ async function activate(context) {
         }
         const paths = folders.map(f => f.uri.fsPath);
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.runEsc',
-                arguments: [...commandPrefix(), ...paths],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_RUN_ESC,
+                arguments: [...projectId(), ...paths],
             });
             startEscPolling();
         } catch (err) {
@@ -753,8 +851,8 @@ async function activate(context) {
     const clearCmd = vscode.commands.registerCommand('openjml.clearAndReindex', async () => {
         if (!client) { requireServer(); return; }
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.clearAndReindex',
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_CLEAR_AND_REINDEX,
                 arguments: [],
             });
         } catch (err) {
@@ -777,9 +875,9 @@ async function activate(context) {
             return;
         }
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.indexProject',
-                arguments: [...commandPrefix(), ...paths],
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_INDEX_PROJECT,
+                arguments: [...projectId(), ...paths],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML index project failed: ' + err);
@@ -790,8 +888,8 @@ async function activate(context) {
     const clearMarkersCmd = vscode.commands.registerCommand('openjml.clearMarkers', async () => {
         if (!client) { requireServer(); return; }
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.clearMarkers',
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_CLEAR_MARKERS,
                 arguments: [],
             });
         } catch (err) {
@@ -808,8 +906,8 @@ async function activate(context) {
         const paths = resolveTargetPaths(explorerUri, explorerSelection);
         if (!paths) return;
         try {
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.clearMarkers',
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_CLEAR_MARKERS,
                 arguments: [...paths],
             });
         } catch (err) {
@@ -824,8 +922,8 @@ async function activate(context) {
     const cancelEscCmd = vscode.commands.registerCommand('openjml.cancelEsc', async () => {
         if (!client) { requireServer(); return; }
         try {
-            const uris = await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.getRunningEscTasks',
+            const uris = await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_GET_RUNNING_ESC,
                 arguments: [],
             }) || [];
 
@@ -843,8 +941,8 @@ async function activate(context) {
             );
             if (choice !== 'Cancel ESC') return;
 
-            await client.sendRequest('workspace/executeCommand', {
-                command:   'openjml.cancelEsc',
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_CANCEL_ESC,
                 arguments: [],
             });
         } catch (err) {
@@ -852,6 +950,23 @@ async function activate(context) {
         }
     });
     context.subscriptions.push(cancelEscCmd);
+
+    // "Abort Current Proof" — aborts only the method currently being proved by the
+    // SMT solver, then allows the ESC loop to continue with remaining methods.
+    // Unlike Cancel ESC (which stops all proofs), this is a "skip this one" action
+    // useful when a single method is taking too long in a split-by-method run.
+    const abortProofCmd = vscode.commands.registerCommand('openjml.abortCurrentProof', async () => {
+        if (!client) { requireServer(); return; }
+        try {
+            await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                command:   CMD_ABORT_CURRENT_PROOF,
+                arguments: [],
+            });
+        } catch (err) {
+            vscode.window.showErrorMessage('OpenJML abort proof failed: ' + err);
+        }
+    });
+    context.subscriptions.push(abortProofCmd);
 
     // Warn if java.format.enabled is on — it adds a space after // in line comments,
     // changing //@ to // @ and silently disabling all JML annotations.
@@ -934,8 +1049,8 @@ async function activate(context) {
             async provideDocumentSemanticTokens(document) {
                 if (!client) return new vscode.SemanticTokens(new Uint32Array([]));
                 try {
-                    const data = await client.sendRequest('workspace/executeCommand', {
-                        command:   'openjml.getSemanticTokens',
+                    const data = await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                        command:   CMD_GET_SEMANTIC_TOKENS,
                         arguments: [document.uri.toString()],
                     });
                     if (!Array.isArray(data) || data.length === 0)
@@ -963,11 +1078,11 @@ async function activate(context) {
             focusDebounceTimer = setTimeout(() => {
                 focusDebounceTimer = null;
                 if (!client) return;
-                client.sendRequest('workspace/executeCommand', {
-                    command:   'openjml.focusFile',
+                client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command:   CMD_FOCUS_FILE,
                     arguments: [uri],
                 }).catch(() => {});  // ignore errors (server may not be ready)
-            }, 200);
+            }, FOCUS_DEBOUNCE_MS);
         })
     );
 

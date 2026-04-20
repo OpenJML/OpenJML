@@ -112,9 +112,14 @@ TEST_CLASSES := \
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 
-.PHONY: all compile run-tests run-tests-seq _run-logs clean cov-test cov-report cov-show .FORCE
+.PHONY: all compile run-tests run-tests-seq _run-logs clean cov-test cov-report cov-show check-commands .FORCE
 
 all: run-tests
+
+## Verify that command-name constants in extension.js match OpenJMLCommands.java.
+## Requires node (any modern version) on the PATH.
+check-commands:
+	node $(LSPROOT)/check-commands.js
 
 ## Build the LSP server jar when any server source file is newer than the jar.
 $(LSP_JAR) jar: $(LSP_SRCS)

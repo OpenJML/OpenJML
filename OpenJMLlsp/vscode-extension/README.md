@@ -41,6 +41,7 @@ full path of the `openjml-lsp` launcher script from the OpenJML distribution.
 | `openjml.clearMarkersSelected` | OpenJML: Clear Markers for Selection | — |
 | `openjml.clearAndReindex` | OpenJML: Clear Caches and Reindex | — |
 | `openjml.cancelEsc` | OpenJML: Cancel ESC | — |
+| `openjml.abortCurrentProof` | OpenJML: Abort Current Proof | — |
 
 **Run ESC for Method** uses the code lens at or above the cursor to identify the method and its
 fully-qualified name, so it works correctly for methods in secondary classes and nested classes.
@@ -130,15 +131,14 @@ The names match the token type strings listed in the table above.
 
 | Setting | Default | Description |
 |---|---|---|
-| `openjml.serverPath` | `` | Path to the `openjml-lsp` launcher script. Leave empty to use the bundled script (development) or the default installation path. |
-| `openjml.checkTriggerOn` | `edit` | When to run `--check`: `edit` (on every change) or `save` (only on file save). |
+| `openjml.serverPath` | `` | Path to the `openjml-lsp` launcher script. Leave empty to auto-discover it in the parent directory of the extension or on the system PATH. Requires OpenJML to be installed separately. |
+| `openjml.checkTriggerOn` | `edit` | When to run `--check`: `edit` (on every change), `save` (only on file save), or `manual` (never automatic; use the OpenJML: Check JML command). |
 | `openjml.escTriggerOn` | `manual` | When to run `--esc`: `manual` (only via command), `save` (on file save), or `edit` (on every change — expensive). |
 | `openjml.dirtyFileAction` | `ask` | What to do when ESC is invoked on a file with unsaved changes: `ask` (prompt each time), `save` (always save silently first), or `run` (always run on the saved disk file). |
 | `openjml.propertiesFile` | `` | Path to an OpenJML `.properties` file for project-level options (prover, timeout, nullable-by-default, etc.). Leave empty to auto-discover `openjml.properties` in the workspace root. |
 | `openjml.specsPath` | `` | Path to the OpenJML specs directory. Leave empty to use the default from the launcher script. |
 | `openjml.sourcePath` | `` | Source root(s) for cross-file references (`-sourcepath`). Separate multiple roots with `:` (Unix) or `;` (Windows). Leave empty for single-file projects. |
 | `openjml.classPath` | `` | Classpath for pre-compiled dependencies (`-classpath`). Separate multiple entries with `:` (Unix) or `;` (Windows). Leave empty if no external jars are needed. |
-| `openjml.solversPath` | `` | Path to the SMT solvers directory. Leave empty to use the default from the launcher script. |
 | `openjml.escEngine` | `subprocess` | ESC execution engine: `subprocess` (default — spawns a fresh OpenJML process), `concurrent` (in-process per-method, serialized within a file), or `fresh` (truly concurrent, higher startup cost). |
 | `openjml.escThreads` | `5` | Maximum concurrent ESC threads (only used when `escEngine` is `concurrent`). |
 | `openjml.syntaxColoringScope` | `preserve Java coloring` | How OpenJML's semantic tokens interact with Java coloring: `preserve Java coloring` (default) — emit tokens only inside JML annotation context, leaving Java code to the Java language server; `overwrite Java coloring` — emit tokens for all Java and JML constructs, replacing whatever the Java language server produced. |
@@ -158,7 +158,8 @@ coloring — and defers Java navigation, outline, inlay hints, and Java coloring
 extension.  The JML semantic tokens are merged *additively* on top of whatever the Red Hat
 extension produces, so JML keywords and modifiers are colored without disturbing Java coloring.
 
-**Warning:** The Red Hat Java formatter rewrites `//@ ` comment lines to `// @` (adds a space),
-which silently disables all JML annotations. The extension warns once per workspace on activation
+**Warning:** The Red Hat Java formatter normalizes `//` comment lines by inserting a space after
+`//`, changing `//@ requires ...` to `// @ requires ...`, which silently disables all JML
+annotations on those lines. The extension warns once per workspace on activation
 and offers to disable `java.format.enabled`. Manual formatting (Shift+Alt+F) is still available;
 configure a formatter profile that excludes comment reformatting if you need both.

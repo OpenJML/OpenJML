@@ -80,6 +80,15 @@ public final class CommandRegistry {
     }
 
     /**
+     * Returns the names of all registered commands, in registration order.
+     * Used by {@link OpenJMLLanguageServer} to populate {@code executeCommandProvider}
+     * in the LSP {@code initialize} response.
+     */
+    public List<String> commandNames() {
+        return new java.util.ArrayList<>(map.keySet());
+    }
+
+    /**
      * Dispatch {@code cmd} to the registered handler.
      *
      * @return the handler's return value, or {@code null} if no handler is registered
