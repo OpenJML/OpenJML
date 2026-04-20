@@ -153,10 +153,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return uri + "#" + m.rawName();
     }
 
+    /** Status-only update. For same gen: preserves existing byUri. For new gen: clears byUri. */
     private void storeProofResult(String key, long gen, MethodStatus status) {
         proofResults.compute(key, (k, existing) -> {
             if (existing != null && existing.gen() > gen) return existing;
-            return new ProofResult(k, gen, status);
+            Map<String, List<Diagnostic>> keepByUri =
+                (existing != null && existing.gen() == gen) ? existing.byUri() : Map.of();
+            return new ProofResult(k, gen, status, keepByUri);
+        });
+    }
+
+    /** Full update: always uses the provided byUri (for final proof results). */
+    private void storeProofResult(String key, long gen, MethodStatus status,
+                                   Map<String, List<Diagnostic>> byUri) {
+        proofResults.compute(key, (k, existing) -> {
+            if (existing != null && existing.gen() > gen) return existing;
+            return new ProofResult(k, gen, status, byUri);
         });
     }
 
@@ -194,14 +206,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Latest --check diagnostics per URI. */
     private final Map<String, List<Diagnostic>> checkDiags = new ConcurrentHashMap<>();
 
-    /** Latest --esc diagnostics per URI (proof failures and verified hints only). */
-    private final Map<String, List<Diagnostic>> escDiags   = new ConcurrentHashMap<>();
-
     /** Monotonic counter: incremented once per proof session at source-read time. */
     private final AtomicLong sessionCounter = new AtomicLong();
 
     /** Proof result per method, keyed by uri+"#"+rawMethodName. */
-    record ProofResult(String methodKey, long gen, MethodStatus status) {}
+    record ProofResult(String methodKey, long gen, MethodStatus status,
+                       Map<String, List<Diagnostic>> byUri) {}
     private final ConcurrentHashMap<String, ProofResult> proofResults = new ConcurrentHashMap<>();
 
     /** Tracks an in-progress ESC task: its session gen, the Future, and the IAPI (set after start). */
@@ -421,7 +431,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String uri = params.getTextDocument().getUri();
         dirtyUris.remove(uri);
         cancelPending(uri);
-        // Retain checkDiags and escDiags: the server caches diagnostics for all
+        // Retain checkDiags: the server caches diagnostics for all
         // project files regardless of open/closed state, and multi-file --check
         // runs produce diagnostics for files the user never explicitly opened.
         // Clearing on close would blank the Problems panel for valid diagnostics.
@@ -1146,11 +1156,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         markMethodCheckingByName(uri, methodName, myBatchGen);
                         executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
                     } else {
-                        // Completion event: update diagnostics and final status progressively.
-                        if (!diags.isEmpty()) storeEscDiags(uri, diags);
-                        if (partialResults.containsValue(IProverResult.UNSAT)) {
-                            addVerifiedDiagnostics(uri, partialResults, null);
-                        }
+                        // Completion event: update status progressively.
                         updateEscStatusPartial(uri, diags, partialResults, myBatchGen);
                         executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
                     }
@@ -1164,16 +1170,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 // After the full run, publish the final state for every affected file
                 // (catches any remaining diagnostics not yet covered by the callback).
                 for (var entry : result.diagnosticsByUri().entrySet()) {
-                    storeEscDiags(entry.getKey(), entry.getValue());
                     publishMerged(entry.getKey());
                 }
-                // Clear ESC diagnostics for files that had none but are currently open.
+                // Clear (publishMerged) for files that had none but are currently open.
                 for (String path : paths) {
                     String uri;
                     try { uri = java.nio.file.Path.of(path).toUri().toString(); }
                     catch (Exception e) { continue; }
                     if (!result.diagnosticsByUri().containsKey(uri) && lastContent.containsKey(uri)) {
-                        storeEscDiags(uri, List.of());
                         publishMerged(uri);
                     }
                 }
@@ -1185,7 +1189,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         List<Diagnostic> diags =
                                 result.diagnosticsByUri().getOrDefault(uri, List.of());
                         updateEscStatus(uri, diags,
-                                result.proofResults(), result.exitCode(), List.of(), myBatchGen);
+                                result.proofResults(), result.exitCode(), List.of(), myBatchGen,
+                                result.diagsByMethod());
                         publishMerged(uri);
                     }
                 }
@@ -1266,14 +1271,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             : CheckRunner.runEscFile(filePath, uri, s,
                                     api -> { apiRef.set(api); RunningSession rs = runningSessions.get(uri); if (rs != null) rs.api().set(api); },
                                     methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString(), myGen); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); });
-                    result.allDiagnostics().forEach((diagUri, diagsList) -> {
-                        storeEscDiags(diagUri, diagsList);
-                        publishMerged(diagUri);
-                    });
                     List<Diagnostic> primaryDiags =
                             result.allDiagnostics().getOrDefault(uri, result.diagnostics());
                     updateEscStatus(uri, primaryDiags, result.proofResults(),
-                            result.exitCode(), result.foreignMessages(), myGen);
+                            result.exitCode(), result.foreignMessages(), myGen,
+                            result.diagsByMethod());
+                    result.diagsByMethod().keySet().forEach(diagUri -> publishMerged(diagUri));
                     refreshCodeLenses();
                 } catch (Throwable t) {
                     System.err.println("[scheduleEscSplitByFile] error for " + uri + ": " + t);
@@ -1859,10 +1862,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             CompletableFuture<CheckRunner.CheckResult> cf, String modeName) {
         cf.thenAccept(result -> {
             if (!isCurrentSession(uri, myGen)) return;
-            result.allDiagnostics().forEach((diagUri, diagsList) -> {
-                storeEscDiags(diagUri, diagsList);
-                publishMerged(diagUri);
-            });
             List<Diagnostic> primaryDiags =
                     result.allDiagnostics().getOrDefault(uri, result.diagnostics());
             if (result.isInternalError()) {
@@ -1872,12 +1871,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 refreshCodeLenses();
             } else {
                 updateEscStatus(uri, primaryDiags, result.proofResults(),
-                        result.exitCode(), result.foreignMessages(), myGen);
+                        result.exitCode(), result.foreignMessages(), myGen,
+                        result.diagsByMethod());
+                // Publish all URIs that have ESC diagnostics in diagsByMethod
+                result.diagsByMethod().keySet().forEach(diagUri -> publishMerged(diagUri));
             }
         }).exceptionally(t -> {
             System.err.println("[OpenJML] ESC (" + modeName + ") failed: " + t);
             if (isCurrentSession(uri, myGen)) {
-                updateEscStatus(uri, List.of(), Map.of(), -1, List.of(), myGen);
+                updateEscStatus(uri, List.of(), Map.of(), -1, List.of(), myGen, Map.of());
                 refreshCodeLenses();
             }
             return null;
@@ -2056,17 +2058,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // Mark only the target method as CHECKING.
         if (target != null) {
             // Use a placeholder gen; the real gen is set inside the task body.
-            // We need to show CHECKING immediately so the lens updates before the task runs.
-            // We use a temporary gen that will be superseded by the real gen in the task body.
-            // Remove any Verified (Hint) marker for this method immediately so it
-            // disappears while the re-run is in progress rather than lingering.
-            List<Diagnostic> diags = new ArrayList<>(escDiags.getOrDefault(uri, List.of()));
-            if (diags.removeIf(d -> DiagnosticSeverity.Hint.equals(d.getSeverity())
-                    && DiagnosticConverter.SOURCE_ESC.equals(d.getSource())
-                    && target.contains(d.getRange().getStart().getLine()))) {
-                escDiags.put(uri, diags);
-                publishMerged(uri);
-            }
+            // Verified hint is now in ProofResult.byUri and will be cleared when
+            // storeProofResult is called with a new gen at proof start.
             refreshCodeLenses();
         } else {
             // Whole-file run: mark all methods CHECKING below inside the task.
@@ -2105,7 +2098,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
                 if (result.isInternalError()) {
                     System.err.println("[OpenJML] ESC for method: internal error (exit code " + result.exitCode() + ")");
-                    storeEscDiags(uri, result.diagnostics());
                     publishMerged(uri);
                     if (target != null) {
                         storeProofResult(scopeKey, myGen, MethodStatus.CHECK_ERROR);
@@ -2116,15 +2108,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
                 List<Diagnostic> diags = result.diagnostics();
                 if (target != null) {
-                    // Replace only the diagnostics inside the target method's line range.
-                    // Split new diags: type/annotation errors → checkDiags, proof failures → escDiags.
+                    // Replace only the check diagnostics inside the target method's line range.
+                    // Split new diags: type/annotation errors → checkDiags.
                     int start = target.startLine();
                     int end   = target.endLine();
                     List<Diagnostic> newCheckPart = new ArrayList<>();
-                    List<Diagnostic> newEscPart   = new ArrayList<>();
                     for (Diagnostic d : diags) {
-                        if (DiagnosticConverter.isEscVerificationFailure(d)) newEscPart.add(d);
-                        else newCheckPart.add(d);
+                        if (!DiagnosticConverter.isEscVerificationFailure(d)) newCheckPart.add(d);
                     }
                     List<Diagnostic> keptCheck = new ArrayList<>(
                             checkDiags.getOrDefault(uri, List.of()));
@@ -2132,12 +2122,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     keptCheck.addAll(newCheckPart);
                     if (keptCheck.isEmpty()) checkDiags.remove(uri);
                     else checkDiags.put(uri, keptCheck);
-                    List<Diagnostic> keptEsc = new ArrayList<>(
-                            escDiags.getOrDefault(uri, List.of()));
-                    keptEsc.removeIf(d -> target.contains(d.getRange().getStart().getLine()));
-                    keptEsc.addAll(newEscPart);
-                    if (keptEsc.isEmpty()) escDiags.remove(uri);
-                    else escDiags.put(uri, keptEsc);
 
                     // Update only the target method's code-lens status using
                     // the proof result if available, else fall back to diag count.
@@ -2147,17 +2131,24 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             CheckRunner.bareMethodName(target.rawName()));
                     MethodStatus ms = proofResultToStatus(kind, diags, start, end,
                                                           result.exitCode(), result.hasForeignErrors());
-                    storeProofResult(scopeKey, myGen, ms);
-                    addVerifiedDiagnostics(uri, result.proofResults(), target);
+                    Map<String, List<Diagnostic>> escByUri = new java.util.HashMap<>(
+                            result.diagsByMethod().getOrDefault(target.rawName(), Map.of()));
+                    if (kind == IProverResult.UNSAT) {
+                        Diagnostic hint = createVerifiedHintDiag(uri, target);
+                        if (hint != null)
+                            escByUri.computeIfAbsent(uri, k -> new java.util.ArrayList<>()).add(hint);
+                    }
+                    storeProofResult(scopeKey, myGen, ms, java.util.Collections.unmodifiableMap(escByUri));
                 } else {
-                    result.allDiagnostics().forEach((diagUri, diagsList) -> {
-                        storeEscDiags(diagUri, diagsList);
-                        publishMerged(diagUri);
-                    });
+                    // No storeEscDiags — updateEscStatus handles all ESC diagnostics via diagsByMethod
                     List<Diagnostic> primaryDiags =
                             result.allDiagnostics().getOrDefault(uri, diags);
                     updateEscStatus(uri, primaryDiags, result.proofResults(), result.exitCode(),
-                                        result.foreignMessages(), myGen);
+                                        result.foreignMessages(), myGen, result.diagsByMethod());
+                    // Also publish any foreign URIs referenced in diagsByMethod
+                    result.diagsByMethod().keySet().stream()
+                            .filter(diagUri -> !diagUri.equals(uri))
+                            .forEach(diagUri -> publishMerged(diagUri));
                 }
                 publishMerged(uri);
                 refreshCodeLenses();
@@ -2464,10 +2455,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 }
                 // Only publish if this task is still the latest for this URI.
                 if (isCurrentSession(uri, myGen)) {
-                    result.allDiagnostics().forEach((diagUri, diagsList) -> {
-                        storeEscDiags(diagUri, diagsList);
-                        publishMerged(diagUri);
-                    });
                     List<Diagnostic> primaryDiags =
                             result.allDiagnostics().getOrDefault(uri, result.diagnostics());
                     if (result.isInternalError()) {
@@ -2476,13 +2463,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         refreshCodeLenses();
                     } else {
                         updateEscStatus(uri, primaryDiags, result.proofResults(), result.exitCode(),
-                                            result.foreignMessages(), myGen);
+                                            result.foreignMessages(), myGen, result.diagsByMethod());
+                        result.diagsByMethod().keySet().forEach(diagUri -> publishMerged(diagUri));
                     }
                 }
             } catch (Throwable t) {
                 System.err.println("[OpenJML] ESC failed: " + t);
                 if (isCurrentSession(uri, myGen)) {
-                    updateEscStatus(uri, List.of(), Map.of(), -1, List.of(), myGen);
+                    updateEscStatus(uri, List.of(), Map.of(), -1, List.of(), myGen, Map.of());
                     refreshCodeLenses();
                 }
             } finally {
@@ -2771,7 +2759,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private void updateEscStatus(String uri, List<Diagnostic> diags,
                                  Map<String, IProverResult.Kind> escProofResults, int exitCode,
-                                 List<String> foreignFiles, long gen) {
+                                 List<String> foreignFiles, long gen,
+                                 Map<String, Map<String, List<Diagnostic>>> diagsByMethod) {
         String content = lastContent.get(uri);
         if (content == null) return;
         // ESC always produces an attributed AST which is stored in the cache, so
@@ -2789,11 +2778,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         for (JavaSourceScanner.MethodInfo m : methods) {
             if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
             IProverResult.Kind kind = CheckRunner.lookupResult(escProofResults, m.rawName());
-            storeProofResult(methodKey(uri, m), gen,
-                    proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
-                                        exitCode, hasForeignErrors));
+            MethodStatus ms = proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
+                                                   exitCode, hasForeignErrors);
+            Map<String, List<Diagnostic>> byUri = new java.util.HashMap<>(
+                    diagsByMethod.getOrDefault(m.rawName(), Map.of()));
+            if (kind == IProverResult.UNSAT) {
+                Diagnostic hint = createVerifiedHintDiag(uri, m);
+                if (hint != null)
+                    byUri.computeIfAbsent(uri, k -> new java.util.ArrayList<>()).add(hint);
+            }
+            storeProofResult(methodKey(uri, m), gen, ms, java.util.Collections.unmodifiableMap(byUri));
         }
-        addVerifiedDiagnostics(uri, escProofResults, null);
 
         // Also update .jml companion files whose model methods were proved in this run.
         // These files have their own code-lens status maps, keyed by .jml line numbers,
@@ -2805,7 +2800,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 jmlUris.add(m.sourceUri());
         }
         for (String jmlUri : jmlUris) {
-            updateJmlEscStatus(jmlUri, diags, escProofResults, exitCode, hasForeignErrors, gen);
+            updateJmlEscStatus(jmlUri, diags, escProofResults, exitCode, hasForeignErrors, gen, diagsByMethod);
         }
 
         refreshCodeLenses();
@@ -2828,7 +2823,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private void updateJmlEscStatus(String jmlUri, List<Diagnostic> diags,
                                     Map<String, IProverResult.Kind> escProofResults,
-                                    int exitCode, boolean hasForeignErrors, long gen) {
+                                    int exitCode, boolean hasForeignErrors, long gen,
+                                    Map<String, Map<String, List<Diagnostic>>> diagsByMethod) {
         String jmlContent = lastContent.get(jmlUri);
         if (jmlContent == null) return;   // .jml editor not open
         ASTCache.Entry jmlEntry = CheckRunner.getASTCache().get(jmlUri);
@@ -2840,83 +2836,36 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         for (JavaSourceScanner.MethodInfo m : jmlMethods) {
             IProverResult.Kind kind = CheckRunner.lookupResult(escProofResults, m.rawName());
-            storeProofResult(methodKey(jmlUri, m), gen,
-                    proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
-                                        exitCode, hasForeignErrors));
+            MethodStatus ms = proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
+                                                   exitCode, hasForeignErrors);
+            Map<String, List<Diagnostic>> byUri = new java.util.HashMap<>(
+                    diagsByMethod.getOrDefault(m.rawName(), Map.of()));
+            if (kind == IProverResult.UNSAT) {
+                Diagnostic hint = createVerifiedHintDiag(jmlUri, m);
+                if (hint != null)
+                    byUri.computeIfAbsent(jmlUri, k -> new java.util.ArrayList<>()).add(hint);
+            }
+            storeProofResult(methodKey(jmlUri, m), gen, ms, java.util.Collections.unmodifiableMap(byUri));
         }
-        addVerifiedDiagnostics(jmlUri, escProofResults, null);
         publishMerged(jmlUri);
     }
 
-    /**
-     * For each method in {@code uri} whose proof result is UNSAT (verified),
-     * append a Hint-severity diagnostic at the method-name token so that the
-     * Eclipse client can attach a green {@code ESCInfoAnnotation} marker there.
-     *
-     * <p>The diagnostic range spans the method name on the declaration line.
-     * The source is {@link DiagnosticConverter#SOURCE_ESC} so it is routed to
-     * the ESC marker type ({@code JMLESCProblem}) by {@code OpenJMLLanguageClient}.
-     */
-    /**
-     * Add Verified (Hint) diagnostics for methods that appear in {@code proofResults}
-     * with {@link IProverResult#UNSAT}.
-     *
-     * <p>When {@code target} is non-null (per-method run) only the marker for that
-     * specific method is removed and replaced, leaving other methods' Verified markers
-     * intact.  When {@code target} is null (whole-file run) all existing Verified
-     * markers are cleared before adding the new set.
-     */
-    private void addVerifiedDiagnostics(String uri,
-                                        Map<String, IProverResult.Kind> proofResults,
-                                        JavaSourceScanner.MethodInfo target) {
+    private Diagnostic createVerifiedHintDiag(String uri, JavaSourceScanner.MethodInfo m) {
         String content = lastContent.get(uri);
-        if (content == null || proofResults.isEmpty()) return;
+        if (content == null) return null;
         String[] lines = content.split("\n", -1);
-
-        ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
-        if (astEntry == null) return;
-        List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content);
-
-        List<Diagnostic> verified = new ArrayList<>();
-        for (JavaSourceScanner.MethodInfo m : methods) {
-            if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
-            // For per-method runs consider only the target method.
-            if (target != null && m.startLine() != target.startLine()) continue;
-            // Use rawName() for the proof-result lookup: FQN+sig key from AST, bare name
-            // from regex fallback. lookupResult() handles both cases.
-            if (CheckRunner.lookupResult(proofResults, m.rawName()) != IProverResult.UNSAT) continue;
-            int line = m.startLine();   // 0-based
-            if (line >= lines.length) continue;
-            String lineText = lines[line];
-            // For constructors m.name() is the class name; for methods it is the method name.
-            // Both appear on the declaration line, so indexOf finds the right token.
-            int col = lineText.indexOf(m.name());
-            if (col < 0) col = 0;
-            int endCol = col + m.name().length();
-            System.out.println("[OpenJML] Verified marker: method=" + m.name()
-                    + " rawName=" + m.rawName()
-                    + " line=" + line + " col=" + col + " endCol=" + endCol
-                    + " lineText='" + lineText.stripTrailing() + "'");
-            Range range = new Range(new Position(line, col), new Position(line, endCol));
-            Diagnostic d = new Diagnostic(range, "Verified",
-                    DiagnosticSeverity.Hint, DiagnosticConverter.SOURCE_ESC);
-            verified.add(d);
-        }
-
-        List<Diagnostic> existing = new ArrayList<>(escDiags.getOrDefault(uri, List.of()));
-        if (target != null) {
-            // Per-method: remove only the Verified marker within this method's line range.
-            existing.removeIf(d -> DiagnosticSeverity.Hint.equals(d.getSeverity())
-                    && DiagnosticConverter.SOURCE_ESC.equals(d.getSource())
-                    && target.contains(d.getRange().getStart().getLine()));
-        } else {
-            // Whole-file: replace all Verified markers.
-            existing.removeIf(d -> DiagnosticSeverity.Hint.equals(d.getSeverity())
-                    && DiagnosticConverter.SOURCE_ESC.equals(d.getSource()));
-        }
-        existing.addAll(verified);
-        escDiags.put(uri, existing);
+        int line = m.startLine();
+        if (line >= lines.length) return null;
+        String lineText = lines[line];
+        int col = lineText.indexOf(m.name());
+        if (col < 0) col = 0;
+        int endCol = col + m.name().length();
+        System.out.println("[OpenJML] Verified marker: method=" + m.name()
+                + " rawName=" + m.rawName()
+                + " line=" + line + " col=" + col + " endCol=" + endCol
+                + " lineText='" + lineText.stripTrailing() + "'");
+        Range range = new Range(new Position(line, col), new Position(line, endCol));
+        return new Diagnostic(range, "Verified", DiagnosticSeverity.Hint, DiagnosticConverter.SOURCE_ESC);
     }
 
     /**
@@ -3157,57 +3106,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Store ESC diagnostics for {@code uri}, clearing any stale {@code --check}
-     * results.  ESC subsumes check (it performs all the same type and annotation
-     * checks), so check diagnostics are no longer useful once ESC has run.
-     * An empty {@code diags} list removes both stores.
-     */
-    /**
-     * Store ESC results for {@code uri}.  Clears both {@code checkDiags} and
-     * {@code escDiags} for the URI, then splits the incoming list:
-     * ESC proof-failure diagnostics ({@link DiagnosticConverter#isEscVerificationFailure})
-     * go into {@code escDiags} so they survive a subsequent re-check; everything else
-     * (type errors, annotation errors also caught by {@code --check}) goes into
-     * {@code checkDiags}.
-     */
-    private void storeEscDiags(String uri, List<Diagnostic> diags) {
-        checkDiags.remove(uri);
-        escDiags.remove(uri);
-        if (diags.isEmpty()) return;
-        List<Diagnostic> checkPart = new ArrayList<>();
-        List<Diagnostic> escPart   = new ArrayList<>();
-        for (Diagnostic d : diags) {
-            if (DiagnosticConverter.isEscVerificationFailure(d)) escPart.add(d);
-            else checkPart.add(d);
-        }
-        if (!checkPart.isEmpty()) checkDiags.put(uri, checkPart);
-        if (!escPart.isEmpty())   escDiags.put(uri, escPart);
-    }
-
-    /**
-     * Store {@code --check} diagnostics for {@code uri}, retaining only ESC
-     * <em>verification failures</em> from any previous ESC run.  Check-level
-     * ESC diagnostics (type errors, annotation errors also caught by
-     * {@code --check}) are dropped so that the fresh check result is authoritative
-     * for those categories.  ESC proof-failure diagnostics are kept because they
-     * represent information {@code --check} cannot produce.
-     */
-    /**
      * Store CHECK or RAC results for {@code uri}.  Replaces {@code checkDiags}
-     * for the URI.  ESC proof-failure diagnostics and verified-method Hint markers
-     * in {@code escDiags} are preserved — they represent information that
-     * {@code --check} cannot produce and must survive re-checks triggered by edits.
+     * for the URI.
      */
     private void storeCheckDiags(String uri, List<Diagnostic> diags) {
-        List<Diagnostic> prev = escDiags.get(uri);
-        if (prev != null && !prev.isEmpty()) {
-            List<Diagnostic> kept = prev.stream()
-                    .filter(d -> DiagnosticConverter.isEscVerificationFailure(d)
-                              || DiagnosticSeverity.Hint.equals(d.getSeverity()))
-                    .collect(java.util.stream.Collectors.toList());
-            if (kept.isEmpty()) escDiags.remove(uri);
-            else                escDiags.put(uri, kept);
-        }
         if (diags.isEmpty()) checkDiags.remove(uri);
         else checkDiags.put(uri, diags);
     }
@@ -3215,7 +3117,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void publishMerged(String uri) {
         List<Diagnostic> merged = new ArrayList<>();
         merged.addAll(checkDiags.getOrDefault(uri, List.of()));
-        merged.addAll(escDiags.getOrDefault(uri, List.of()));
+        proofResults.values().forEach(pr -> merged.addAll(pr.byUri().getOrDefault(uri, List.of())));
         publishDiags(uri, merged);
     }
 
@@ -3336,7 +3238,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /**
      * Clear all OpenJML diagnostic markers without scheduling any new checks.
      *
-     * <p>Clears {@code checkDiags}, {@code escDiags}, and
+     * <p>Clears {@code checkDiags} and
      * {@code proofResults}, then publishes empty diagnostic lists for every
      * open file so the client removes the markers immediately.  Code lenses are
      * refreshed so per-method ESC status indicators reset to the idle state.
@@ -3347,7 +3249,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     void clearMarkers() {
         checkDiags.clear();
-        escDiags.clear();
         proofResults.clear();
         // Snapshot markedUris before clearing so we don't modify the set while iterating.
         List<String> toClean = new ArrayList<>(markedUris);
@@ -3407,7 +3308,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         // Clear all diagnostic and status caches.
         checkDiags.clear();
-        escDiags.clear();
         proofResults.clear();
         lastCheckedContent.clear();
         // Clear the dirty-file set so that the subsequent workspace index reads

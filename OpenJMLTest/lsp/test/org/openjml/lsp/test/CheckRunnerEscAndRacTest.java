@@ -92,15 +92,15 @@ public class CheckRunnerEscAndRacTest extends LspTestBase {
     @Test
     public void testCheckResultHasForeignErrors() {
         CheckRunner.CheckResult noForeign = new CheckRunner.CheckResult(
-                List.of(), 0, Map.of(), List.of(), Map.of());
+                List.of(), 0, Map.of(), List.of(), Map.of(), Map.of());
         CheckRunner.CheckResult hasForeign = new CheckRunner.CheckResult(
-                List.of(), 0, Map.of(), List.of("error in dep"), Map.of());
+                List.of(), 0, Map.of(), List.of("error in dep"), Map.of(), Map.of());
         assertFalse(noForeign.hasForeignErrors());
         assertTrue(hasForeign.hasForeignErrors());
     }
 
     private static CheckRunner.CheckResult makeResult(int exitCode) {
-        return new CheckRunner.CheckResult(List.of(), exitCode, Map.of(), List.of(), Map.of());
+        return new CheckRunner.CheckResult(List.of(), exitCode, Map.of(), List.of(), Map.of(), Map.of());
     }
 
     // -----------------------------------------------------------------------

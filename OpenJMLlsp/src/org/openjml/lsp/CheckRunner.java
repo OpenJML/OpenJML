@@ -171,7 +171,8 @@ public class CheckRunner {
     public record CheckResult(List<org.eclipse.lsp4j.Diagnostic> diagnostics, int exitCode,
                                Map<String, IProverResult.Kind> proofResults,
                                List<String> foreignMessages,
-                               Map<String, List<org.eclipse.lsp4j.Diagnostic>> allDiagnostics) {
+                               Map<String, List<org.eclipse.lsp4j.Diagnostic>> allDiagnostics,
+                               Map<String, Map<String, List<org.eclipse.lsp4j.Diagnostic>>> diagsByMethod) {
         /** Returns {@code true} when OpenJML reported a catastrophic error (exit codes 3 and 4
          *  are not distinguished — both indicate resource exhaustion, misconfiguration, or
          *  an internal bug). */
@@ -236,6 +237,12 @@ public class CheckRunner {
      */
     private static class ProofResultCollector implements IAPI.IProofResultListener {
         private final Map<String, IProverResult.Kind> results = new LinkedHashMap<>();
+        private final Map<String, Map<String, List<org.eclipse.lsp4j.Diagnostic>>> diagsByMethod = new LinkedHashMap<>();
+
+        /**
+         * Optional listener used to capture per-method diagnostics via window open/close.
+         */
+        private final LspDiagnosticListener diagListener;
 
         /**
          * Optional callback invoked after each final proof result is recorded.
@@ -251,9 +258,17 @@ public class CheckRunner {
          */
         private java.util.function.Consumer<JmlMethodDecl> onMethodStarted;
 
-        ProofResultCollector() { this(null); }
+        ProofResultCollector() { this(null, null); }
 
         ProofResultCollector(java.util.function.Consumer<JmlMethodDecl> perMethodCallback) {
+            this(null, perMethodCallback);
+        }
+
+        ProofResultCollector(LspDiagnosticListener listener) { this(listener, null); }
+
+        ProofResultCollector(LspDiagnosticListener listener,
+                             java.util.function.Consumer<JmlMethodDecl> perMethodCallback) {
+            this.diagListener = listener;
             this.perMethodCallback = perMethodCallback;
         }
 
@@ -265,6 +280,7 @@ public class CheckRunner {
         public void reportProofResult(JmlMethodDecl methodDecl, IProverResult result) {
             IProverResult.Kind kind = result.result();
             if (kind == IProverResult.RUNNING) {
+                if (diagListener != null) diagListener.startMethodWindow();
                 if (onMethodStarted != null) onMethodStarted.accept(methodDecl);
                 return;
             }
@@ -275,6 +291,9 @@ public class CheckRunner {
                     ? Utils.uniqueSymbolName(methodDecl.sym)
                     : methodDecl.name.toString();
             results.put(key, kind);
+            if (diagListener != null) {
+                diagsByMethod.put(key, diagListener.stopMethodWindow());
+            }
             // Log immediately so the console shows progress as each method completes.
             javax.tools.JavaFileObject src =
                     methodDecl.sym != null && methodDecl.sym.enclClass() != null
@@ -286,6 +305,10 @@ public class CheckRunner {
 
         Map<String, IProverResult.Kind> getResults() {
             return Collections.unmodifiableMap(results);
+        }
+
+        Map<String, Map<String, List<org.eclipse.lsp4j.Diagnostic>>> getDiagsByMethod() {
+            return Collections.unmodifiableMap(diagsByMethod);
         }
     }
 
@@ -301,7 +324,8 @@ public class CheckRunner {
     public record DirCheckResult(
             Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagnosticsByUri,
             int exitCode,
-            Map<String, IProverResult.Kind> proofResults) {
+            Map<String, IProverResult.Kind> proofResults,
+            Map<String, Map<String, List<org.eclipse.lsp4j.Diagnostic>>> diagsByMethod) {
         /**
          * Look up a proof result by simple method name, ignoring the class-owner prefix
          * and signature suffix in the FQN+signature key.
@@ -355,7 +379,7 @@ public class CheckRunner {
         System.err.println("[CheckRunner.runCheckDir] exit code " + rc
                 + " for " + paths.size() + " path(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
-        return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of());
+        return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of(), Map.of());
     }
 
     /**
@@ -423,7 +447,7 @@ public class CheckRunner {
             }
         }
 
-        if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of());
+        if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of(), Map.of());
 
         var listener = new LspDiagnosticListener();
         var out = new PrintWriter(System.err, true);
@@ -463,7 +487,7 @@ public class CheckRunner {
         System.err.println("[CheckRunner.runCheckDirWithContext] exit code " + rc
                 + " for " + fileList.size() + " file(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
-        return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of());
+        return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of(), Map.of());
     }
 
     /** Legacy temp-file implementation of {@link #runCheckDirWithContext}, used when
@@ -517,7 +541,7 @@ public class CheckRunner {
                 }
             }
 
-            if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of());
+            if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of(), Map.of());
 
             var listener = new LspDiagnosticListener();
             var out = new PrintWriter(System.err, true);
@@ -529,7 +553,7 @@ public class CheckRunner {
             System.err.println("[CheckRunner.runCheckDirWithContextLegacy] exit code " + rc
                     + " for " + fileList.size() + " file(s)");
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
-            return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of());
+            return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of(), Map.of());
         } catch (IOException e) {
             System.err.println("[CheckRunner.runCheckDirWithContextLegacy] I/O error: " + e);
             return runCheckDir(paths, settings, projectId);
@@ -579,7 +603,7 @@ public class CheckRunner {
         var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         ProofResultCollector[] prcRef = {null};
-        prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
+        prcRef[0] = new ProofResultCollector(listener, perFileCallback == null ? null : methodDecl -> {
             javax.tools.JavaFileObject src =
                     methodDecl.sym != null && methodDecl.sym.enclClass() != null
                     ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
@@ -621,7 +645,7 @@ public class CheckRunner {
         else
             log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
-        return new DirCheckResult(diagsByUri, rc, proofResults);
+        return new DirCheckResult(diagsByUri, rc, proofResults, prc.getDiagsByMethod());
     }
 
     /** Convenience overload with no progressive callback. */
@@ -690,7 +714,7 @@ public class CheckRunner {
             }
         }
 
-        if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of());
+        if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of(), Map.of());
 
         final Map<String, String> finalAllPathToRealUri =
                 java.util.Collections.unmodifiableMap(allPathToRealUri);
@@ -700,7 +724,7 @@ public class CheckRunner {
         var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         ProofResultCollector[] prcRef = {null};
-        prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
+        prcRef[0] = new ProofResultCollector(listener, perFileCallback == null ? null : methodDecl -> {
             javax.tools.JavaFileObject src =
                     methodDecl.sym != null && methodDecl.sym.enclClass() != null
                     ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
@@ -746,7 +770,7 @@ public class CheckRunner {
         else
             log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
-        return new DirCheckResult(diagsByUri, rc, proofResults);
+        return new DirCheckResult(diagsByUri, rc, proofResults, prc.getDiagsByMethod());
     }
 
     /** Convenience overload with no progressive callback. */
@@ -806,7 +830,7 @@ public class CheckRunner {
                 }
             }
 
-            if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of());
+            if (fileList.isEmpty()) return new DirCheckResult(Map.of(), 0, Map.of(), Map.of());
 
             final Map<String, String> finalAllPathToRealUri =
                     java.util.Collections.unmodifiableMap(allPathToRealUri);
@@ -816,7 +840,7 @@ public class CheckRunner {
             var out = new PrintWriter(System.err, true);
             var api = IAPI.make(out, listener);
             ProofResultCollector[] prcRef = {null};
-            prcRef[0] = new ProofResultCollector(perFileCallback == null ? null : methodDecl -> {
+            prcRef[0] = new ProofResultCollector(listener, perFileCallback == null ? null : methodDecl -> {
                 javax.tools.JavaFileObject src =
                         methodDecl.sym != null && methodDecl.sym.enclClass() != null
                         ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
@@ -861,7 +885,7 @@ public class CheckRunner {
         else
             log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
-            return new DirCheckResult(diagsByUri, rc, proofResults);
+            return new DirCheckResult(diagsByUri, rc, proofResults, prc.getDiagsByMethod());
         } catch (IOException e) {
             System.err.println("[CheckRunner.runEscDirWithContextLegacy] I/O error: " + e);
             return runEscDir(paths, settings, perFileCallback);
@@ -918,7 +942,7 @@ public class CheckRunner {
         }
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new CheckResult(List.of(), rc, Map.of(), List.of(),
-                listener.toLspDiagnosticsByFile());
+                listener.toLspDiagnosticsByFile(), Map.of());
     }
 
     // --- public API: --check ---
@@ -1283,7 +1307,7 @@ public class CheckRunner {
         listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
-        var prc = new ProofResultCollector();
+        var prc = new ProofResultCollector(listener);
         api.setProofResultListener(prc);
 
         if (useMockFiles) {
@@ -1306,7 +1330,8 @@ public class CheckRunner {
             return new CheckResult(
                     listener.toLspDiagnostics(primaryJfo.getName(), primaryUri),
                     rc, prc.getResults(),
-                    listener.toForeignMessages(primaryJfo.getName()), Map.of());
+                    listener.toForeignMessages(primaryJfo.getName()), Map.of(),
+                    prc.getDiagsByMethod());
         }
 
         Path tempDir = null;
@@ -1333,10 +1358,11 @@ public class CheckRunner {
             return new CheckResult(
                     listener.toLspDiagnostics(tempFile.toString(), primaryUri),
                     rc, prc.getResults(),
-                    listener.toForeignMessages(tempFile.toString()), Map.of());
+                    listener.toForeignMessages(tempFile.toString()), Map.of(),
+                    prc.getDiagsByMethod());
         } catch (IOException e) {
             System.err.println("[CheckRunner.runEscWithSources] I/O error: " + e);
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         } finally {
             deleteTempDir(tempDir);
         }
@@ -1449,7 +1475,7 @@ public class CheckRunner {
         CheckResult r = runRacPaths(List.of(filePath), s);
         List<org.eclipse.lsp4j.Diagnostic> fileDiags =
                 r.allDiagnostics().getOrDefault(uri, List.of());
-        return new CheckResult(fileDiags, r.exitCode(), Map.of(), List.of(), r.allDiagnostics());
+        return new CheckResult(fileDiags, r.exitCode(), Map.of(), List.of(), r.allDiagnostics(), Map.of());
     }
 
     /**
@@ -1464,7 +1490,7 @@ public class CheckRunner {
             s.racOutputDir = outputDir;
         }
         CheckResult r = runRacPaths(paths, s);
-        return new DirCheckResult(r.allDiagnostics(), r.exitCode(), Map.of());
+        return new DirCheckResult(r.allDiagnostics(), r.exitCode(), Map.of(), Map.of());
     }
 
     // --- utility ---
@@ -1616,7 +1642,7 @@ public class CheckRunner {
 
         ProofResultCollector prc = null;
         if (collectProofResults) {
-            prc = new ProofResultCollector();
+            prc = new ProofResultCollector(listener);
             if (onMethodStarted != null) prc.setOnMethodStarted(onMethodStarted);
             api.setProofResultListener(prc);
         }
@@ -1649,7 +1675,7 @@ public class CheckRunner {
                 primaryIdUri = primaryJfo.toUri().toString();
             } else {
                 primaryArg   = uriToPath(uri);
-                if (primaryArg == null) return new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of());
+                if (primaryArg == null) return new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of(), Map.of());
                 primaryIdUri = new java.io.File(primaryArg).toURI().toString();
             }
 
@@ -1742,7 +1768,8 @@ public class CheckRunner {
                 log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
-                    listener.toForeignMessages(primaryArg), allDiags);
+                    listener.toForeignMessages(primaryArg), allDiags,
+                    prc != null ? prc.getDiagsByMethod() : Map.of());
         }
 
         Path tempDir = null;
@@ -1769,7 +1796,7 @@ public class CheckRunner {
                 primaryArg = tempFile.toString();
             } else {
                 primaryArg = uriToPath(uri);
-                if (primaryArg == null) return new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of());
+                if (primaryArg == null) return new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of(), Map.of());
             }
 
             List<String> args = buildArgs(settings, modeFlag, tempDir);
@@ -1876,9 +1903,10 @@ public class CheckRunner {
                 log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
-                    listener.toForeignMessages(primaryArg), allDiags);
+                    listener.toForeignMessages(primaryArg), allDiags,
+                    prc != null ? prc.getDiagsByMethod() : Map.of());
         } catch (IOException e) {
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         } finally {
             if (tempDir != null) {
                 try {
@@ -1933,7 +1961,7 @@ public class CheckRunner {
 
         ProofResultCollector prc = null;
         if (collectProofResults) {
-            prc = new ProofResultCollector();
+            prc = new ProofResultCollector(listener);
             if (onMethodStarted != null) prc.setOnMethodStarted(onMethodStarted);
             api.setProofResultListener(prc);
         }
@@ -2011,7 +2039,8 @@ public class CheckRunner {
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new CheckResult(diags, rc,
                 proofResults, listener.toForeignMessages(filePath),
-                listener.toLspDiagnosticsByFile());
+                listener.toLspDiagnosticsByFile(),
+                prc != null ? prc.getDiagsByMethod() : Map.of());
     }
 
     // --- public API: in-process doESC via cached IAPI ---
@@ -2042,7 +2071,7 @@ public class CheckRunner {
                     + " — falling back to subprocess");
             String filePath = uriToPath(uri);
             if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         }
 
         String simple = simpleName(methodName);
@@ -2052,7 +2081,7 @@ public class CheckRunner {
                     + "' not found in cached AST for " + uri + " — falling back to subprocess");
             String filePath = uriToPath(uri);
             if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         }
 
         List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
@@ -2064,7 +2093,7 @@ public class CheckRunner {
             allDiags.addAll(r.diags());
             if (r.exitCode() != 0) exitCode = r.exitCode();
         }
-        return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of());
+        return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of(), Map.of());
     }
 
     /** Holds the result of a single-method doESC call. */
@@ -2096,14 +2125,14 @@ public class CheckRunner {
             String filePath = uriToPath(uri);
             CheckResult result = (filePath != null)
                     ? runEscFile(filePath, uri, settings)
-                    : new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+                    : new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
             return CompletableFuture.completedFuture(result);
         }
 
         List<JmlTree.JmlMethodDecl> methods = findAllMethods(entry.ast());
         if (methods.isEmpty()) {
             return CompletableFuture.completedFuture(
-                    new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of()));
+                    new CheckResult(List.of(), 0, Map.of(), List.of(), Map.of(), Map.of()));
         }
 
         // Submit each method to the pool; fire the callback as each completes.
@@ -2137,7 +2166,7 @@ public class CheckRunner {
                     }
                     System.err.println("[CheckRunner.runDoEscFileAsync] done, exitCode="
                             + exitCode + " diags=" + allDiags.size() + " uri=" + uri);
-                    return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of());
+                    return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of(), Map.of());
                 });
     }
 
@@ -2147,10 +2176,10 @@ public class CheckRunner {
             return runDoEscFileAsync(uri, settings, null).get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         } catch (ExecutionException e) {
             System.err.println("[CheckRunner.runDoEscFile] failed: " + e.getCause());
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         }
     }
 
@@ -2189,7 +2218,7 @@ public class CheckRunner {
             CheckResult result = (content != null)
                     ? runEsc(uri, content, settings)
                     : (filePath != null ? runEscFile(filePath, uri, settings)
-                                       : new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of()));
+                                       : new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of()));
             return CompletableFuture.completedFuture(result);
         }
 
@@ -2237,7 +2266,7 @@ public class CheckRunner {
                     }
                     log(ts() + " --esc " + fname + " [fresh-parallel] complete: "
                             + proofResults.size() + " method(s), " + allDiags.size() + " diagnostic(s)");
-                    return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of());
+                    return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of(), Map.of());
                 });
     }
 
@@ -2248,10 +2277,10 @@ public class CheckRunner {
             return runFreshParallelEscFileAsync(uri, content, settings, null).get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         } catch (ExecutionException e) {
             System.err.println("[CheckRunner.runFreshParallelEscFile] failed: " + e.getCause());
-            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of());
+            return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         }
     }
 

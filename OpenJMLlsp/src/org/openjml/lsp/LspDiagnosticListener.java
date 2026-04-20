@@ -62,6 +62,44 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
     private final List<Diagnostic<? extends JavaFileObject>> collected =
             Collections.synchronizedList(new ArrayList<Diagnostic<? extends JavaFileObject>>());
 
+    /** Index into {@code collected} at which the current method's diagnostic window started; -1 = no window open. */
+    private volatile int methodWindowStart = -1;
+
+    /** Open a per-method diagnostic accumulation window. Call at RUNNING event (proof start). */
+    public void startMethodWindow() {
+        methodWindowStart = collected.size();
+    }
+
+    /**
+     * Close the window and return diagnostics emitted since {@link #startMethodWindow()},
+     * grouped by their source URI. Each diagnostic's URI is derived from
+     * {@code d.getSource().getName()} → {@code Path.of(srcPath).toUri().toString()}.
+     * Diagnostics with null source are skipped. Resets the window to closed.
+     */
+    public Map<String, List<org.eclipse.lsp4j.Diagnostic>> stopMethodWindow() {
+        int start = methodWindowStart;
+        methodWindowStart = -1;
+        if (start < 0) return Map.of();
+        List<Diagnostic<? extends JavaFileObject>> window;
+        synchronized (collected) {
+            int end = collected.size();
+            if (start >= end) return Map.of();
+            window = new java.util.ArrayList<>(collected.subList(start, end));
+        }
+        Map<String, List<org.eclipse.lsp4j.Diagnostic>> result = new java.util.LinkedHashMap<>();
+        for (var d : window) {
+            if (d.getSource() == null) continue;
+            String srcPath = d.getSource().getName();
+            if (srcPath == null || srcPath.isEmpty()) continue;
+            String uri;
+            try { uri = java.nio.file.Path.of(srcPath).toUri().toString(); }
+            catch (Exception e) { continue; }
+            result.computeIfAbsent(uri, k -> new java.util.ArrayList<>())
+                  .add(DiagnosticConverter.convert(d, uri, null, sourceTag));
+        }
+        return result;
+    }
+
     /** Per-thread capture list; non-null only while a doESC call is active on that thread. */
     private final ThreadLocal<List<Diagnostic<? extends JavaFileObject>>> captureMode =
             new ThreadLocal<>();
