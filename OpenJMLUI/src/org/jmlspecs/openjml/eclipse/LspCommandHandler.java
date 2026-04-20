@@ -325,7 +325,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 return null;
               });
         } catch (Throwable t) {
-            Console.log("dispatchCommand exception: " + t);
+            Console.errorlog("dispatchCommand exception", t);
         }
     }
 

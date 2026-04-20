@@ -190,8 +190,7 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
                 results = queryDeclarations(query, project);
                 results = applyClientFilter(results, query, caseInsensitive, fullWord);
             } catch (Throwable t) {
-                System.err.println("[OpenJML] find declarations job error: " + t);
-                t.printStackTrace(System.err);
+                Console.errorlog("Find declarations job error", t);
                 results = List.of();
             }
             final List<SymbolInformation> finalResults = results;
@@ -213,7 +212,7 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
                 LspPartListener.cachedWrapper, query, projectId);
         if (results != null) return results;
 
-        System.err.println("[OpenJML] find declarations: server not available");
+        Console.errorlog("Find declarations: OpenJML server not available");
         return List.of();
     }
 
@@ -255,12 +254,11 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
                     .get(15, TimeUnit.SECONDS);
 
             List<SymbolInformation> symbols = parseSymbolList(raw);
-            System.err.println("[OpenJML] find declarations: query=\"" + query
+            Console.log("Find declarations: query=\"" + query
                     + "\" -> " + symbols.size() + " result(s) (before client filter)");
             return symbols;
         } catch (Throwable t) {
-            System.err.println("[OpenJML] find declarations exception: "
-                    + t.getClass().getName() + ": " + t.getMessage());
+            Console.errorlog("Find declarations exception", t);
             return null;
         }
     }
@@ -272,19 +270,24 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
         for (JsonElement el : arr) {
             if (!el.isJsonObject()) continue;
             JsonObject obj = el.getAsJsonObject();
-            String name = obj.has("name") ? obj.get("name").getAsString() : "";
-            SymbolKind kind = SymbolKind.forValue(
-                    obj.has("kind") ? obj.get("kind").getAsInt() : 13);
-            String container = obj.has("containerName") && !obj.get("containerName").isJsonNull()
-                    ? obj.get("containerName").getAsString() : null;
+            JsonElement nameEl = obj.get("name");
+            String name = nameEl != null ? nameEl.getAsString() : "";
+            JsonElement kindEl = obj.get("kind");
+            SymbolKind kind = SymbolKind.forValue(kindEl != null ? kindEl.getAsInt() : 13);
+            JsonElement containerEl = obj.get("containerName");
+            String container = (containerEl != null && !containerEl.isJsonNull())
+                    ? containerEl.getAsString() : null;
             Location loc = null;
-            JsonObject locObj = obj.has("location") ? obj.getAsJsonObject("location") : null;
-            if (locObj != null && locObj.has("uri")) {
-                String uri = locObj.get("uri").getAsString();
-                JsonObject rangeObj = locObj.has("range")
-                        ? locObj.getAsJsonObject("range") : null;
-                org.eclipse.lsp4j.Range range = parseRange(rangeObj);
-                loc = new Location(uri, range);
+            JsonElement locEl = obj.get("location");
+            if (locEl != null && locEl.isJsonObject()) {
+                JsonObject locObj = locEl.getAsJsonObject();
+                JsonElement uriEl = locObj.get("uri");
+                if (uriEl != null) {
+                    JsonElement rangeEl = locObj.get("range");
+                    org.eclipse.lsp4j.Range range = parseRange(
+                            rangeEl != null && rangeEl.isJsonObject() ? rangeEl.getAsJsonObject() : null);
+                    loc = new Location(uriEl.getAsString(), range);
+                }
             }
             SymbolInformation si = new SymbolInformation(name, kind, loc);
             si.setContainerName(container);
@@ -294,20 +297,22 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     }
 
     private static org.eclipse.lsp4j.Range parseRange(JsonObject rangeObj) {
-        org.eclipse.lsp4j.Position start = new org.eclipse.lsp4j.Position(0, 0);
-        org.eclipse.lsp4j.Position end   = new org.eclipse.lsp4j.Position(0, 0);
-        if (rangeObj != null) {
-            start = parsePosition(rangeObj.has("start") ? rangeObj.getAsJsonObject("start") : null);
-            end   = parsePosition(rangeObj.has("end")   ? rangeObj.getAsJsonObject("end")   : null);
-        }
-        return new org.eclipse.lsp4j.Range(start, end);
+        if (rangeObj == null) return new org.eclipse.lsp4j.Range(
+                new org.eclipse.lsp4j.Position(0, 0), new org.eclipse.lsp4j.Position(0, 0));
+        JsonElement startEl = rangeObj.get("start");
+        JsonElement endEl   = rangeObj.get("end");
+        return new org.eclipse.lsp4j.Range(
+                parsePosition(startEl != null && startEl.isJsonObject() ? startEl.getAsJsonObject() : null),
+                parsePosition(endEl   != null && endEl.isJsonObject()   ? endEl.getAsJsonObject()   : null));
     }
 
     private static org.eclipse.lsp4j.Position parsePosition(JsonObject posObj) {
         if (posObj == null) return new org.eclipse.lsp4j.Position(0, 0);
-        int line = posObj.has("line") ? posObj.get("line").getAsInt() : 0;
-        int ch   = posObj.has("character") ? posObj.get("character").getAsInt() : 0;
-        return new org.eclipse.lsp4j.Position(line, ch);
+        JsonElement lineEl = posObj.get("line");
+        JsonElement chEl   = posObj.get("character");
+        return new org.eclipse.lsp4j.Position(
+                lineEl != null ? lineEl.getAsInt() : 0,
+                chEl   != null ? chEl.getAsInt()   : 0);
     }
 
     // -----------------------------------------------------------------------
@@ -387,7 +392,7 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
         if (dlg.open() != Window.OK) return;
 
         Object[] chosen = dlg.getResult();
-        if (chosen == null || chosen.length == 0) return;
+        if (chosen == null || chosen.length == 0 || chosen[0] == null) return;
 
         SymbolInformation si = (SymbolInformation) chosen[0];
         Location loc = si.getLocation();

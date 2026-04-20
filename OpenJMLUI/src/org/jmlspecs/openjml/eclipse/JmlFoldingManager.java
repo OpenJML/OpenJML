@@ -358,7 +358,11 @@ public class JmlFoldingManager {
             int endOffset   = document.getLineOffset(endLine) + document.getLineLength(endLine);
             out.put(new ProjectionAnnotation(), new Position(startOffset, endOffset - startOffset));
         } catch (BadLocationException e) {
-            // skip
+            // Positions are likely stale relative to the current document snapshot.
+            java.net.URI uri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(document);
+            Console.errorlog("JmlFoldingManager.addRegion: startLine=" + startLine
+                    + " endLine=" + endLine + " out of range for document "
+                    + (uri != null ? uri : "(unknown)"), e);
         }
     }
 }

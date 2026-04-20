@@ -197,6 +197,12 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
      * caret on the current logical line, i.e. the caret is still inside a method
      * call argument list.  Called after a Backspace key release to decide whether
      * the popup should be dismissed.
+     *
+     * <p>String and character literals are skipped backward so that {@code (} or
+     * {@code )} inside a literal does not corrupt the paren-depth count.
+     * Comment skipping is not attempted (complex going backward); text blocks
+     * are handled implicitly because they span lines and the {@code \n} stop
+     * terminates the scan before reaching their content.
      */
     private static boolean isStillInCall(StyledText st) {
         if (st == null || st.isDisposed()) return false;
@@ -210,17 +216,45 @@ public class JmlSignatureHelpHandler extends AbstractHandler {
             return false;
         }
         int depth = 0;
-        for (int i = text.length() - 1; i >= 0; i--) {
+        int i = text.length() - 1;
+        while (i >= 0) {
             char c = text.charAt(i);
-            if (c == ')') depth++;
-            else if (c == '(') {
-                if (depth > 0) depth--;
-                else return true;
-            } else if (c == ';' || c == '{' || c == '}' || c == '\n') {
-                return false;
+            switch (c) {
+                case '"'  -> i = skipQuotedBackward(text, i, '"');
+                case '\'' -> i = skipQuotedBackward(text, i, '\'');
+                case ')'  -> { depth++; i--; }
+                case '('  -> { if (depth > 0) { depth--; i--; } else return true; }
+                case ';', '{', '}', '\n' -> { return false; }
+                default   -> i--;
             }
         }
         return false;
+    }
+
+    /**
+     * Skips backward past a quoted literal (string or char) whose closing
+     * delimiter is at position {@code i}.  Handles backslash-escape sequences.
+     * Stops at {@code \n} to avoid crossing a line boundary.
+     *
+     * @return the index just before the opening delimiter, or {@code i - 1} if
+     *         the opening delimiter is not found (malformed literal or scan limit)
+     */
+    private static int skipQuotedBackward(String text, int i, char delim) {
+        i--; // move past the closing delimiter
+        while (i >= 0) {
+            char c = text.charAt(i);
+            if (c == '\n') return i - 1; // cannot cross a line boundary
+            if (c == delim) {
+                // Count immediately-preceding backslashes to detect escaping.
+                int bs = 0, j = i - 1;
+                while (j >= 0 && text.charAt(j) == '\\') { bs++; j--; }
+                if (bs % 2 == 0) return i - 1; // unescaped: this is the opening delimiter
+                i = j; // escaped delimiter: keep scanning
+            } else {
+                i--;
+            }
+        }
+        return -1;
     }
 
     /**

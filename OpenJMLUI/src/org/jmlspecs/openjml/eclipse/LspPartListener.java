@@ -194,7 +194,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             // takes effect immediately without waiting for the next --check.
             refreshAllColorizers();
         } catch (Exception e) {
-            System.err.println("[OpenJML] sendSettingsToServer failed: " + e);
+            Console.errorlog("sendSettingsToServer failed", e);
         }
     }
 
@@ -234,7 +234,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                             return java.util.concurrent.CompletableFuture.completedFuture(null);
                         });
             } catch (Exception e) {
-                System.err.println("[OpenJML] scheduleFocusFile failed: " + e);
+                Console.errorlog("scheduleFocusFile failed", e);
             }
         }, 200, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
@@ -387,7 +387,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                                         + file.getName());
                             }
                         } catch (Throwable t) {
-                            System.err.println("[OpenJML] updateCodeMinings failed: " + t);
+                            Console.errorlog("updateCodeMinings failed", t);
                         }
                         // Re-trigger all colorizers now that the server is connected and has
                         // processed didOpen. This covers the startup case where refreshAsync()
@@ -402,7 +402,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     }
                 }
             } else {
-                System.err.println("[OpenJML] LspPartListener: startLanguageServer method not found");
+                Console.errorlog("startLanguageServer method not found on LanguageServiceAccessor");
             }
         } catch (Throwable t) {
             Console.errorlog("LSP start/connect failed", t);
@@ -460,7 +460,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             }
             if (clientField == null) {
                 // The field was not found in any superclass — this is a permanent failure.
-                System.err.println("[OpenJML] diagnosticsHook: languageClient field not found");
+                Console.errorlog("diagnosticsHook: languageClient field not found on LanguageServerWrapper");
                 diagnosticsHookInstalled = true;  // don't retry
                 return;
             }
@@ -492,7 +492,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             }
             if (setter == null) {
-                System.err.println("[OpenJML] diagnosticsHook: setDiagnosticsConsumer not found");
+                Console.errorlog("diagnosticsHook: setDiagnosticsConsumer not found on DefaultLanguageClient");
                 return;
             }
             final java.util.function.Consumer<Object> orig = original;
@@ -535,7 +535,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[OpenJML] refreshColorizerForUri error: " + e);
+            Console.errorlog("refreshColorizerForUri error", e);
         }
     }
 
@@ -564,7 +564,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("[OpenJML] invalidateJmlEditorPresentation: " + e);
+                Console.errorlog("invalidateJmlEditorPresentation failed", e);
             }
         });
     }
@@ -657,7 +657,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             org.eclipse.core.runtime.IExtensionPoint ep =
                     extReg.getExtensionPoint("org.eclipse.lsp4e.languageServer");
             if (ep == null) {
-                System.err.println("[OpenJML] lsp4e.languageServer extension point not found");
+                Console.errorlog("lsp4e.languageServer extension point not found — OpenJML server cannot start");
                 return null;
             }
             org.eclipse.core.runtime.IConfigurationElement ourCE = null;
@@ -673,7 +673,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             }
             if (ourCE == null) {
-                System.err.println("[OpenJML] Our IConfigurationElement not found");
+                Console.errorlog("OpenJML IConfigurationElement not found in lsp4e.languageServer extension point");
                 return null;
             }
             System.err.println("[OpenJML] Found our IConfigurationElement id="
@@ -703,7 +703,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 } catch (Exception ignored) {}
             }
             if (defClass == null) {
-                System.err.println("[OpenJML] Could not resolve ExtensionLanguageServerDefinition class");
+                Console.errorlog("Could not resolve ExtensionLanguageServerDefinition class — OpenJML server cannot start");
                 return null;
             }
 
@@ -727,11 +727,11 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     return def;
                 }
             }
-            System.err.println("[OpenJML] No matching constructor on " + defClass.getName()
-                    + "; available:");
-            for (java.lang.reflect.Constructor<?> c : defClass.getDeclaredConstructors()) {
-                System.err.println("[OpenJML]   " + c);
-            }
+            StringBuilder ctors = new StringBuilder(
+                    "No matching constructor on " + defClass.getName() + "; available:");
+            for (java.lang.reflect.Constructor<?> c : defClass.getDeclaredConstructors())
+                ctors.append("\n  ").append(c);
+            Console.errorlog(ctors.toString());
         } catch (Throwable t) {
             Console.errorlog("findOurDefinition failed", t);
         }
@@ -828,7 +828,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             }
         } catch (Throwable t) {
-            System.err.println("[OpenJML] refreshAllCodeMinings failed: " + t);
+            Console.errorlog("refreshAllCodeMinings failed", t);
         }
     }
 
@@ -885,11 +885,11 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         return (r instanceof java.util.concurrent.CompletableFuture<?> cf) ? cf : null;
                     }
                 } catch (Exception e) {
-                    System.err.println("[OpenJML] " + methodName + "() invocation failed: " + e);
+                    Console.errorlog(methodName + "() invocation failed", e);
                 }
             }
         }
-        System.err.println("[OpenJML] No connect method matched on "
+        Console.errorlog("No connect method matched on "
                 + wrapperClass.getName() + " for " + file.getName());
         return null;
     }
@@ -903,7 +903,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             IEditorPart ge = page.openEditor(new FileEditorInput(file), GENERIC_EDITOR_ID, false);
             System.err.println("[OpenJML] LspPartListener: Generic Editor fallback: " + (ge != null));
         } catch (Throwable e) {
-            System.err.println("[OpenJML] LspPartListener: Generic Editor fallback failed: " + e);
+            Console.errorlog("Generic Editor fallback failed", e);
         }
     }
 }

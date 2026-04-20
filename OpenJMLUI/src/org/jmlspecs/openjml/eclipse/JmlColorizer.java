@@ -97,7 +97,14 @@ public class JmlColorizer implements ITextPresentationListener {
         try {
             store = org.openjml.ui.Activator.getDefault().getPreferenceStore();
         } catch (Exception e) {
-            return; // activator not yet available
+            // Activator not running (plugin not yet started or already stopped).
+            // Console is also unavailable, so write directly to the Eclipse error log.
+            org.eclipse.core.runtime.Platform.getLog(JmlColorizer.class).log(
+                    new org.eclipse.core.runtime.Status(
+                            org.eclipse.core.runtime.IStatus.ERROR, JmlColorizer.class,
+                            "JmlColorizer.ensureColors: could not load JML token colors"
+                            + " — OpenJML Activator not running", e));
+            return;
         }
         var reg = JFaceResources.getColorRegistry();
         for (OpenJMLOptions.TokenColorEntry entry : OpenJMLOptions.TOKEN_COLORS) {

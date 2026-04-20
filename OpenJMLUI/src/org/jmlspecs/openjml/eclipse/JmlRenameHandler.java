@@ -158,7 +158,7 @@ public class JmlRenameHandler extends AbstractHandler {
                 .thenAccept(optEdit -> optEdit.ifPresent(edit -> {
                         int totalEdits = edit.getChanges() != null
                                 ? edit.getChanges().values().stream().mapToInt(List::size).sum() : 0;
-                        System.err.println("[OpenJML] rename to '" + newName + "': " + totalEdits + " edit(s)");
+                        Console.log("Rename to '" + newName + "': " + totalEdits + " edit(s)");
                         Display.getDefault().asyncExec(() ->
                                 applyWorkspaceEditPreservingDirty(edit, label));
                 }))
@@ -224,7 +224,7 @@ public class JmlRenameHandler extends AbstractHandler {
             IFile ifile = org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
                     .getRoot().getFileForLocation(filePath);
             if (ifile == null) {
-                System.err.println("[OpenJML] rename: IFile not found: " + fileUri);
+                Console.errorlog("Rename: IFile not found: " + fileUri);
                 return;
             }
             IWorkbenchPage page = null;
@@ -247,7 +247,7 @@ public class JmlRenameHandler extends AbstractHandler {
             }
             applyEditsToDisk(fileUri, textEdits);
         } catch (Exception ex) {
-            System.err.println("[OpenJML] rename: error opening editor for " + fileUri + ": " + ex);
+            Console.errorlog("Rename: error opening editor for " + fileUri, ex);
         }
     }
 
@@ -268,7 +268,7 @@ public class JmlRenameHandler extends AbstractHandler {
             IFile ifile = org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
                     .getRoot().getFileForLocation(filePath);
             if (ifile == null) {
-                System.err.println("[OpenJML] rename: IFile not found for disk write: " + fileUri);
+                Console.errorlog("Rename: IFile not found for disk write: " + fileUri);
                 return;
             }
             String charset = ifile.getCharset();
@@ -284,7 +284,7 @@ public class JmlRenameHandler extends AbstractHandler {
             ifile.setContents(new java.io.ByteArrayInputStream(bytes),
                     false /* force */, true /* keepHistory */, null);
         } catch (Exception ex) {
-            System.err.println("[OpenJML] rename: error writing to disk for " + fileUri + ": " + ex);
+            Console.errorlog("Rename: error writing to disk for " + fileUri, ex);
         }
     }
 
@@ -305,7 +305,7 @@ public class JmlRenameHandler extends AbstractHandler {
         try {
             filePath = new Path(URI.create(fileUri).getPath());
         } catch (Exception e) {
-            System.err.println("[OpenJML] rename: bad URI: " + fileUri + ": " + e);
+            Console.errorlog("Rename: bad URI: " + fileUri, e);
             return null;
         }
         IFile ifile = org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
@@ -358,7 +358,7 @@ public class JmlRenameHandler extends AbstractHandler {
                 doc.replace(start, end - start, te.getNewText());
             }
         } catch (Exception ex) {
-            System.err.println("[OpenJML] rename: error applying edits to buffer for " + fileUri + ": " + ex);
+            Console.errorlog("Rename: error applying edits to buffer for " + fileUri, ex);
         }
     }
 
