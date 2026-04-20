@@ -1,12 +1,25 @@
+<!-- SYNC: This file and openjml.github.io/documentation/openjml-vscode.md are kept as
+     strict copies of each other (the .md file has a Jekyll front-matter header instead
+     of this heading).  Edit one and apply the same change to the other. -->
 # OpenJML for Visual Studio Code
 
 JML specification type-checking and extended static checking (ESC) for Java,
 powered by the [OpenJML](https://www.openjml.org) tool.
 
+## Installation
+
+1. Download a current [OpenJML release](https://github.com/OpenJML/OpenJML/releases) into a clean folder.
+2. Unzip the release `.zip` file in that folder.
+3. Run `./install-vscode-extension` from that folder (do not move the script or any other contents of the installation folder).
+
+The script installs the VS Code extension and sets `openjml.serverPath` automatically.
+If the script fails it prints instructions for a manual workaround.
+
 ## Requirements
 
-Install OpenJML and set `openjml.serverPath` in your workspace settings to the
-full path of the `openjml-lsp` launcher script from the OpenJML distribution.
+The extension requires an OpenJML installation on the local machine.
+`openjml.serverPath` must point to the `openjml-lsp` launcher script from the OpenJML distribution;
+the installer sets this automatically.
 
 ## Features
 
@@ -163,3 +176,10 @@ extension produces, so JML keywords and modifiers are colored without disturbing
 annotations on those lines. The extension warns once per workspace on activation
 and offers to disable `java.format.enabled`. Manual formatting (Shift+Alt+F) is still available;
 configure a formatter profile that excludes comment reformatting if you need both.
+
+**Outline duplication:** With `useIntegratedOutline: true` (the default), the Outline panel
+receives declarations from both the Red Hat Java extension (Java symbols) and the OpenJML
+extension (Java + JML symbols together). This produces duplicate Java entries. To remove the
+duplicates either fold/close the Java contribution in the Outline panel, or set
+`openjml.useIntegratedOutline` to `false` so OpenJML shows only JML-specific symbols and
+defers Java symbols entirely to the Red Hat extension.
