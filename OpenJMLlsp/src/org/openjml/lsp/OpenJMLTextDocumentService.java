@@ -67,6 +67,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -180,6 +181,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final OpenJMLSettings globalSettings;
     private final String codeLensCommand;
     private LanguageClient client;
+    private boolean clientSupportsSemanticTokenRefresh = false;
 
     /**
      * Set to {@code true} when the client declared {@code supportsActionMessages: true}
@@ -280,17 +282,25 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final Map<String, CompletableFuture<Void>> lastCheckFuture = new ConcurrentHashMap<>();
 
     /**
-     * Set to {@code true} when any open document is edited ({@link #didChange}).
-     * Cleared after a project-wide {@code --check} pass completes.  Navigation
-     * operations ({@code definition}, {@code declaration}, {@code references},
-     * {@code rename}) trigger a fresh project-wide check when this flag is set,
-     * ensuring all files share a single IAPI compilation context so that
-     * cross-file symbol identity holds.
-     *
-     * <p>Focus changes and saves do NOT set this flag: they do not alter
-     * in-memory content and therefore cannot invalidate the nav context.
+     * Per-project dirty flags for the nav (declaration) cache.
+     * An absent entry is treated as dirty (true).  Populated eagerly on
+     * {@link #initProjectNavState()} so that {@link #didChange} can set the
+     * flag without a ConcurrentHashMap lookup on the hot path.
      */
-    private volatile boolean navCacheDirty = true;
+    private final ConcurrentHashMap<String, AtomicBoolean> projectNavDirty = new ConcurrentHashMap<>();
+
+    /** One monitor object per project — held for the entire check+rebuild cycle. */
+    private final ConcurrentHashMap<String, Object> projectNavLocks = new ConcurrentHashMap<>();
+
+    /**
+     * Dirty flag for the project that owns the currently focused editor.
+     * Set once in {@link #didOpen}; used directly (no lookup) in {@link #didChange}.
+     * Never null: falls back to {@link #NOOP_DIRTY} for files outside any project.
+     */
+    private AtomicBoolean currentNavDirty = NOOP_DIRTY;
+
+    /** Sentinel used when the focused file belongs to no configured project. */
+    private static final AtomicBoolean NOOP_DIRTY = new AtomicBoolean(false);
 
     /**
      * @param globalSettings  shared settings object
@@ -304,6 +314,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Called by {@link org.openjml.lsp.OpenJMLLanguageServer} after reading initializationOptions. */
     public void setClientSupportsActionMessages(boolean supports) {
         this.clientSupportsActionMessages = supports;
+    }
+
+    public void setClientRefreshCapabilities(boolean semanticTokens) {
+        this.clientSupportsSemanticTokenRefresh = semanticTokens;
     }
 
     /** Called by {@link OpenJMLLanguageServer} when the client connects; wires log and warning callbacks. */
@@ -344,6 +358,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String content = params.getTextDocument().getText();
         System.err.println("[didOpen] uri=" + uri);
         lastContent.put(uri, content);
+        // Cache the nav-dirty flag for this project so didChange needs no lookup.
+        String openPid = projectIdForUri(uri);
+        AtomicBoolean d = openPid != null ? projectNavDirty.get(openPid) : null;
+        currentNavDirty = (d != null) ? d : NOOP_DIRTY;
 
         // Notify the client to re-query code lenses now that lastContent is populated.
         // This ensures the initial "—" status appears even before the first --check.
@@ -366,8 +384,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 : params.getContentChanges().get(0).getText();
         lastContent.put(uri, content);
         dirtyUris.add(uri);
-        // Mark nav cache dirty: the next navigation will trigger a project-wide check.
-        navCacheDirty = true;
+        currentNavDirty.set(true);
         // Invalidate cached check state for all other open files so that focus-triggered
         // rechecks pick up this change in their cross-file context.  When the primary
         // check completes, companion files that were actually compiled will be re-marked
@@ -707,11 +724,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     return ready.thenApply(v2 -> {
                         ASTCache.Entry entry = cache.get(javaUri);
                         if (entry == null) {
-                            System.err.println("[OpenJML] definition: no AST for " + javaUri);
+                            System.err.println("[FindDeclaration] definition: no AST for " + javaUri);
                             return Either.<List<? extends Location>, List<? extends LocationLink>>
                                     forLeft(List.of());
                         }
-                        System.err.println("[OpenJML] definition: redirecting to java AST " + javaUri);
+                        System.err.println("[FindDeclaration] definition: redirecting to java AST " + javaUri);
                         Map<String, String> synthetic = new java.util.HashMap<>(lastContent);
                         synthetic.put(javaUri, jmlSource);
                         Location loc = DefinitionFinder.findDefinition(
@@ -720,7 +737,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                 params.getPosition().getCharacter(),
                                 synthetic,
                                 cache);
-                        System.err.println("[OpenJML] definition result (jml): " + loc);
+                        System.err.println("[FindDeclaration] definition result (jml): " + DefinitionFinder.locStr(loc));
                         List<Location> res = loc != null ? List.of(loc) : List.of();
                         return Either.<List<? extends Location>, List<? extends LocationLink>>
                                 forLeft(res);
@@ -735,7 +752,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     lastContent,
                     cache);
 
-            System.err.println("[OpenJML] definition result: " + loc);
+            System.err.println("[OpenJML] definition result: " + DefinitionFinder.locStr(loc));
             List<Location> result = loc != null ? List.of(loc) : List.of();
             return CompletableFuture.completedFuture(Either.forLeft(result));
         });
@@ -1510,10 +1527,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             clientError("OpenJML: symbolsForProject — unknown project id '" + projectId + "'.");
             return List.of();
         }
-        if (navCacheDirty)
-            clientLog("workspace/symbol: project index not yet complete — results may be incomplete");
-        return collectSymbols(query,
-                cb -> CheckRunner.getASTCache().forEachDeclarationForProject(projectId, cb));
+        // Ensure nav cache is up to date before querying.
+        waitForProjectNav(projectId != null && !projectId.isEmpty() ? projectId : null).join();
+        ASTCache cache = CheckRunner.getASTCache();
+        System.err.println("[symbolsForProject] navSectionKeys=" + cache.navSectionKeys()
+                + " liveDecls=" + cache.liveDeclarationCount()
+                + " query=\"" + (query != null ? query : "")
+                + "\" project=" + (projectId != null && !projectId.isEmpty() ? projectId : "(all)"));
+        List<SymbolInformation> result = collectSymbols(query,
+                cb -> cache.forEachDeclarationForProject(projectId, cb));
+        System.err.println("[symbolsForProject] -> " + result.size() + " result(s)"
+                + (result.isEmpty() ? "" : ", first=" + result.get(0).getName()));
+        return result;
     }
 
     /** Build a {@code SymbolInformation} list by iterating declarations via {@code iterator}. */
@@ -1539,8 +1564,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 }
             }
             if (content == null) return;
-            Position pos = offsetToPosition(content, loc.charOffset());
-            var location = new Location(loc.uri(), new Range(pos, pos));
+            Position start = offsetToPosition(content, loc.charOffset());
+            Position end   = offsetToPosition(content, loc.charOffset() + name.length());
+            var location = new Location(loc.uri(), new Range(start, end));
             result.add(new SymbolInformation(name, symbolKind(sym), location));
         });
         return result;
@@ -1562,9 +1588,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *                    root encoded in {@code query}; {@code null} = no filter
      */
     List<SymbolInformation> symbols(String query, String projectRoot) {
-        if (navCacheDirty) {
-            clientLog("workspace/symbol: project index not yet complete — results may be incomplete");
-        }
         String raw = query == null ? "" : query.trim();
 
         // Extract an encoded project root from the query string.
@@ -1585,8 +1608,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         final String effectiveQuery = raw;
         System.err.println("[symbols] query=\"" + effectiveQuery + "\""
-                + (projectRoot != null ? " root=\"" + projectRoot + "\"" : "")
-                + "  navCacheDirty=" + navCacheDirty);
+                + (projectRoot != null ? " root=\"" + projectRoot + "\"" : ""));
         final String rootFilter = projectRoot;
         List<SymbolInformation> result =
                 collectSymbols(effectiveQuery,
@@ -1671,6 +1693,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     boolean isKnownProject(String projectId) {
         return projectSettings.containsKey(projectId);
     }
+
 
     /**
      * Returns the settings for the given project ID, or global settings if the ID is
@@ -2171,7 +2194,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     client.publishDiagnostics(new PublishDiagnosticsParams(javaUri, List.of()));
             }
             CheckRunner.getASTCache().remove(uri);
-            navCacheDirty = true;
+            setNavDirtyForUri(uri);
             return;
         }
         // Created or Changed: read content from disk, re-check companion .java.
@@ -2202,8 +2225,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (client != null)
                 client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
         } else if (type == FileChangeType.Created) {
-            // Mark nav cache dirty; the new file will be covered by the next project check.
-            navCacheDirty = true;
+            setNavDirtyForUri(uri);
         }
         // FileChangeType.Changed (not open): no action — let user open to trigger re-check
     }
@@ -2354,7 +2376,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // If the nav cache is clean, the project-wide check already covered all files
         // with current content.  Saves do not change in-memory content, so re-checking
         // here would only create a new IAPI context that invalidates the nav context.
-        if (!navCacheDirty) return;
+        String filePid = projectIdForUri(uri);
+        AtomicBoolean fileDirty = filePid != null ? projectNavDirty.get(filePid) : null;
+        if (fileDirty != null && !fileDirty.get()) return;
         // .jml files are spec files; redirect check to companion .java.
         // Use content-based check so companion diagnostics (including .jml markers) are updated.
         if (uri.endsWith(".jml")) {
@@ -2498,23 +2522,97 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return matching.isEmpty() ? allRoots : matching;
     }
 
+    // -----------------------------------------------------------------------
+    // Per-project nav cache management
+    // -----------------------------------------------------------------------
+
     /**
-     * Run a project check for every configured project, or a single workspace
-     * check when no project list is configured.  Used by {@link #ensureNavCacheReady}.
+     * Ensure per-project nav state exists for every configured project.
+     * Called before any schedule/wait operation so that dirty flags and locks
+     * are available without a ConcurrentHashMap.computeIfAbsent on the hot path.
      */
-    private void runAllProjectChecks() {
+    private void initProjectNavState() {
         if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
             for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
-                if (cfg.rootPaths == null || cfg.rootPaths.isEmpty()) continue;
-                runProjectCheck(cfg.rootPaths, cfg.id);
+                projectNavDirty.computeIfAbsent(cfg.id, k -> new AtomicBoolean(true));
+                projectNavLocks.computeIfAbsent(cfg.id, k -> new Object());
             }
         } else {
-            runProjectCheck(globalSettings.effectiveRoots(), OpenJMLSettings.WORKSPACE_PROJECT_ID);
+            projectNavDirty.computeIfAbsent(
+                    OpenJMLSettings.WORKSPACE_PROJECT_ID, k -> new AtomicBoolean(true));
+            projectNavLocks.computeIfAbsent(
+                    OpenJMLSettings.WORKSPACE_PROJECT_ID, k -> new Object());
         }
     }
 
-    private boolean runProjectCheck(List<String> roots, String projectId) {
-        if (roots.isEmpty()) return false;
+    /**
+     * Returns the configured source roots for the given project, or an empty
+     * list if the project is not found.
+     */
+    private List<String> rootsForProject(String projectId) {
+        if (globalSettings.projects != null) {
+            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
+                if (projectId != null && projectId.equals(cfg.id))
+                    return cfg.rootPaths != null ? cfg.rootPaths : List.of();
+            }
+        }
+        if (OpenJMLSettings.WORKSPACE_PROJECT_ID.equals(projectId))
+            return globalSettings.effectiveRoots();
+        return List.of();
+    }
+
+    /**
+     * Mark the nav dirty flag for the project that owns {@code uri}.
+     * No-op if the URI does not belong to any configured project.
+     */
+    private void setNavDirtyForUri(String uri) {
+        String pid = projectIdForUri(uri);
+        if (pid == null) return;
+        AtomicBoolean d = projectNavDirty.get(pid);
+        if (d != null) d.set(true);
+    }
+
+    /**
+     * Blocking: run project checks for {@code projectId} until the nav-dirty
+     * flag is stable (false), then rebuild the declaration index once.
+     *
+     * <p>Holds the per-project lock for the entire duration so that at most
+     * one check runs per project at a time.  If {@link #didChange} sets the
+     * dirty flag while a check is running, the loop detects this on the next
+     * iteration and runs another check before rebuilding.
+     *
+     * <p>If {@code projectId} is {@code null}, updates all configured projects.
+     */
+    private void requestNavUpdate(String projectId) {
+        if (projectId == null) {
+            // Update every project.
+            if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
+                for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects)
+                    requestNavUpdate(cfg.id);
+            } else {
+                requestNavUpdate(OpenJMLSettings.WORKSPACE_PROJECT_ID);
+            }
+            return;
+        }
+        Object lock = projectNavLocks.computeIfAbsent(projectId, k -> new Object());
+        AtomicBoolean dirty = projectNavDirty.computeIfAbsent(
+                projectId, k -> new AtomicBoolean(true));
+        synchronized (lock) {
+            while (dirty.compareAndSet(true, false)) {
+                runProjectCheck(projectId);
+            }
+            // Nav is now stable: rebuild the declaration index once.
+            CheckRunner.getASTCache().rebuildNavIndex(projectId);
+        }
+    }
+
+    /**
+     * Run a {@code --check} pass for the given project and store diagnostics.
+     * Does NOT rebuild the nav index (that is the caller's responsibility).
+     */
+    private void runProjectCheck(String projectId) {
+        List<String> roots = rootsForProject(projectId);
+        if (roots.isEmpty()) return;
         OpenJMLSettings s = settingsForProject(projectId);
         Map<String, String> snapshot = dirtySnapshot();
         try {
@@ -2524,29 +2622,29 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 storeCheckDiags(diagUri, diags);
                 publishMerged(diagUri);
             });
-            // Mark every currently-open file as checked with its current content.
-            // This suppresses redundant focus-triggered rechecks until the next edit.
             lastCheckedContent.putAll(snapshot);
-            navCacheDirty = false;
-            // Rebuild the nav declaration index from the nav-cache ASTs populated
-            // by the project check.  All share one IAPI context so symbol identity
-            // holds across files and cross-file navigation works correctly.
-            CheckRunner.getASTCache().rebuildNavIndex();
         } catch (Throwable t) {
             System.err.println("[runProjectCheck] error: " + t);
         }
-        return true;
+    }
+
+    /**
+     * Returns a future that completes once the nav cache for {@code projectId}
+     * is up to date.  If the cache is already clean and no check is running,
+     * the returned future may complete immediately.
+     *
+     * <p>If {@code projectId} is {@code null}, waits for all configured projects.
+     */
+    private CompletableFuture<Void> waitForProjectNav(String projectId) {
+        return CompletableFuture.runAsync(() -> requestNavUpdate(projectId), executor);
     }
 
     /**
      * Ensure the project-wide nav cache is up to date before a navigation
-     * operation.  If {@link #navCacheDirty} is set, schedules a
-     * {@link #runProjectCheck()} on the executor and returns a future that
-     * completes when it finishes.  Otherwise completes immediately.
+     * operation.  Returns a future that completes when all projects are clean.
      */
     private CompletableFuture<Void> ensureNavCacheReady() {
-        if (!navCacheDirty) return CompletableFuture.completedFuture(null);
-        return CompletableFuture.runAsync(this::runAllProjectChecks, executor);
+        return waitForProjectNav(null);
     }
 
     /**
@@ -2594,22 +2692,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private CompletableFuture<Boolean> ensureFreshAndConfirm(
             String primaryUri, String operationName) {
+        String pid = projectIdForUri(primaryUri);
+        AtomicBoolean pidDirty = pid != null ? projectNavDirty.get(pid) : null;
         CompletableFuture<Void> checkFuture;
-        if (navCacheDirty) {
-            checkFuture = CompletableFuture.runAsync(() -> {
-                OpenJMLSettings s = settingsForUri(primaryUri);
-                if (s == null) { System.err.println("[ensureFreshAndConfirm] no project for " + primaryUri); return; }
-                String pid = projectIdForUri(primaryUri);
-                List<String> roots = rootsForUri(primaryUri, s.effectiveRoots());
-                System.err.println("[ensureFreshAndConfirm] op=" + operationName
-                        + " uri=" + primaryUri + " roots=" + roots);
-                if (!runProjectCheck(roots, pid)) {
-                    System.err.println("[ensureFreshAndConfirm] no roots — falling back to single-file check");
-                    // No roots configured: fall back to single-file check.
-                    String content = lastContent.get(primaryUri);
-                    if (content != null) runCheckContent(primaryUri, content);
-                }
-            }, executor);
+        if (pidDirty != null && pidDirty.get()) {
+            System.err.println("[ensureFreshAndConfirm] op=" + operationName
+                    + " uri=" + primaryUri + " pid=" + pid + " — nav dirty, updating");
+            checkFuture = waitForProjectNav(pid);
         } else {
             checkFuture = CompletableFuture.completedFuture(null);
         }
@@ -2943,7 +3032,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void refreshSemanticTokens() {
-        if (client != null) client.refreshSemanticTokens();
+        if (client != null && clientSupportsSemanticTokenRefresh) client.refreshSemanticTokens();
     }
 
     // --- diagnostic merging ---
@@ -3311,8 +3400,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         // Clear the AST cache (both tiers and declaration indexes).
         CheckRunner.getASTCache().clear();
-        // Mark nav cache dirty so the next Rename/FindReferences triggers a fresh project check.
-        navCacheDirty = true;
+        // Mark all projects dirty so the next nav operation triggers fresh checks.
+        projectNavDirty.values().forEach(d -> d.set(true));
 
         // Publish empty diagnostics for all marked URIs so stale markers disappear.
         List<String> toClean = new ArrayList<>(markedUris);
@@ -3342,12 +3431,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * the same indexing logic.
      */
     void scheduleWorkspaceReindex() {
+        initProjectNavState();
         if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
-            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
-                indexProject(cfg.id);
-            }
+            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects)
+                executor.submit(() -> requestNavUpdate(cfg.id));
         } else {
-            indexProject(null);
+            executor.submit(() -> requestNavUpdate(OpenJMLSettings.WORKSPACE_PROJECT_ID));
         }
     }
 
@@ -3358,32 +3447,28 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * file the check touches; files not reached retain their previous values.
      */
     void indexProject(String projectId) {
-        List<String> sourceDirs = new ArrayList<>();
         boolean hasProjects = globalSettings.projects != null && !globalSettings.projects.isEmpty();
         boolean projectIdGiven = projectId != null && !projectId.isEmpty();
 
-        if (hasProjects) {
-            boolean matched = false;
-            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
-                if (!projectIdGiven || projectId.equals(cfg.id)) {
-                    matched = true;
-                    if (cfg.rootPaths != null) sourceDirs.addAll(cfg.rootPaths);
-                }
-            }
-            if (projectIdGiven && !matched) {
+        if (hasProjects && projectIdGiven) {
+            boolean matched = globalSettings.projects.stream()
+                    .anyMatch(cfg -> projectId.equals(cfg.id));
+            if (!matched) {
                 clientError("OpenJML: indexProject — unknown project id '" + projectId + "'.");
                 return;
             }
         }
 
-        if (sourceDirs.isEmpty()) {
-            clientLog("OpenJML: no source directories configured — cannot index project.");
-            return;
+        // Mark dirty and submit a nav update (requestNavUpdate computes roots itself).
+        String effectiveId = projectIdGiven ? projectId : null;
+        if (effectiveId != null) {
+            AtomicBoolean d = projectNavDirty.computeIfAbsent(
+                    effectiveId, k -> new AtomicBoolean(true));
+            d.set(true);
+        } else {
+            projectNavDirty.values().forEach(d -> d.set(true));
         }
-
-        navCacheDirty = true;
-        List<String> roots = List.copyOf(sourceDirs);
-        executor.submit(() -> runProjectCheck(roots, projectId));
+        executor.submit(() -> requestNavUpdate(effectiveId));
     }
 
     /** Shut down all executor services. Called from the language server's shutdown sequence. */

@@ -323,16 +323,49 @@ public class ASTCache {
      * same IAPI invocation, so all symbol objects within a section are
      * identity-compatible.
      */
-    public void rebuildNavIndex() {
-        int totalDecls = 0;
-        for (NavSection section : navSections.values()) {
-            section.declarationIndex.clear();
-            section.navCache.forEach((uri, entry) ->
-                    new DeclarationIndexer(section.declarationIndex, uri).scan(entry.ast()));
-            totalDecls += section.declarationIndex.size();
+    /**
+     * Rebuild the declaration index for a single project's nav section.
+     * Each project check calls this for its own section only, so concurrent
+     * checks for different projects do not interfere with each other.
+     *
+     * @param projectId the project whose nav section to rebuild;
+     *                  if null/empty, rebuilds all sections (legacy path)
+     */
+    public void rebuildNavIndex(String projectId) {
+        if (projectId == null || projectId.isEmpty()) {
+            // Rebuild all sections (used when no specific project is known).
+            for (java.util.Map.Entry<String, NavSection> e : navSections.entrySet()) {
+                int n = rebuildSection(e.getKey(), e.getValue());
+                System.err.println("[ASTCache] nav index rebuilt for " + e.getKey()
+                        + ": " + n + " declaration(s)");
+            }
+        } else {
+            NavSection section = navSections.get(projectId);
+            if (section != null) {
+                int n = rebuildSection(projectId, section);
+                System.err.println("[ASTCache] nav index rebuilt for " + projectId
+                        + ": " + n + " declaration(s)");
+            } else {
+                System.err.println("[ASTCache] nav index rebuild: no section for project '"
+                        + projectId + "'");
+            }
         }
-        System.err.println("[ASTCache] nav index rebuilt: " + navSections.size()
-                + " section(s), " + totalDecls + " total declarations");
+    }
+
+    private int rebuildSection(String projectId, NavSection section) {
+        section.declarationIndex.clear();
+        section.navCache.forEach((uri, entry) ->
+                new DeclarationIndexer(section.declarationIndex, uri).scan(entry.ast()));
+        return section.declarationIndex.size();
+    }
+
+    /** Rebuild the declaration index for all nav sections. */
+    public void rebuildNavIndex() {
+        for (java.util.Map.Entry<String, NavSection> e : navSections.entrySet()) {
+            int n = rebuildSection(e.getKey(), e.getValue());
+            System.err.println("[ASTCache] nav index rebuilt for " + e.getKey()
+                    + ": " + n + " declaration(s)");
+        }
     }
 
     /** Return the declaration location for {@code sym}, or {@code null} if unknown. */
@@ -412,6 +445,12 @@ public class ASTCache {
     public void forEach(java.util.function.BiConsumer<String, Entry> action) {
         liveCache.forEach(action);
     }
+
+    /** Returns the set of project IDs currently held in nav sections (for diagnostics). */
+    public java.util.Set<String> navSectionKeys() { return navSections.keySet(); }
+
+    /** Returns the number of entries in the live declaration index (for diagnostics). */
+    public int liveDeclarationCount() { return liveDeclarationIndex.size(); }
 
     /**
      * Iterate over all indexed declarations from all nav sections and the live tier.
