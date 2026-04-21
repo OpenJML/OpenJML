@@ -35,7 +35,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     private final OpenJMLSettings globalSettings;
     private final CommandRegistry commands;
-    private final Function<String, List<SymbolInformation>> symbolsRequester;
+    private final Function<String, List<org.eclipse.lsp4j.WorkspaceSymbol>> symbolsRequester;
     private final BiConsumer<String, FileChangeType> jmlFileChangeHandler;
     private final BiConsumer<String, FileChangeType> javaFileChangeHandler;
     private final Runnable watcherReregistrar;
@@ -45,7 +45,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
      * @param globalSettings        shared settings object (mutated by didChangeConfiguration)
      * @param commands              registry of command-name → handler mappings
      * @param symbolsRequester      called with a query string for {@code workspace/symbol} requests;
-     *                              returns matching {@link SymbolInformation} list
+     *                              returns matching {@link org.eclipse.lsp4j.WorkspaceSymbol} list
      * @param jmlFileChangeHandler  called when a watched {@code .jml} file changes on disk
      * @param javaFileChangeHandler called when a watched {@code .java} file is created/deleted on disk
      * @param watcherReregistrar    called when the effective roots change so file watchers
@@ -55,7 +55,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
      */
     public OpenJMLWorkspaceService(OpenJMLSettings globalSettings,
                                    CommandRegistry commands,
-                                   Function<String, List<SymbolInformation>> symbolsRequester,
+                                   Function<String, List<org.eclipse.lsp4j.WorkspaceSymbol>> symbolsRequester,
                                    BiConsumer<String, FileChangeType> jmlFileChangeHandler,
                                    BiConsumer<String, FileChangeType> javaFileChangeHandler,
                                    Runnable watcherReregistrar,
@@ -208,11 +208,11 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
             symbol(WorkspaceSymbolParams params) {
         String query = params.getQuery() != null ? params.getQuery() : "";
         System.err.println("[workspace/symbol] request: query=\"" + query + "\"");
-        List<SymbolInformation> results =
+        List<org.eclipse.lsp4j.WorkspaceSymbol> results =
                 symbolsRequester != null ? symbolsRequester.apply(query) : List.of();
         System.err.println("[workspace/symbol] response: " + results.size() + " result(s)"
                 + (results.isEmpty() ? "" : ", first=" + results.get(0).getName()));
-        return CompletableFuture.completedFuture(Either.forLeft(results));
+        return CompletableFuture.completedFuture(Either.forRight(results));
     }
 
     @Override

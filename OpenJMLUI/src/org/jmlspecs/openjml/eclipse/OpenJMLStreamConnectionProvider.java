@@ -367,9 +367,11 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
             Object params = n.getParams();
             String text = extractField(params, "message");
             if (text == null) return;
-            int type = extractIntField(params, "type", 3);
-            if (type == 4) Console.logRaw(text);
-            else           Console.log(text);
+            boolean isLog = (params instanceof org.eclipse.lsp4j.MessageParams mp)
+                    ? mp.getType() == org.eclipse.lsp4j.MessageType.Log
+                    : extractIntField(params, "type", 3) == 4;
+            if (isLog) Console.logRaw(text);
+            else       Console.log(text);
         }
     }
 

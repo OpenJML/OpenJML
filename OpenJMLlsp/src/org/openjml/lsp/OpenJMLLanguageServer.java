@@ -108,7 +108,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
         registry.on(OpenJMLCommands.INDEX_PROJECT,        args -> { textDocumentService.indexProject(cmdProject(args)); return null; });
-        registry.on(OpenJMLCommands.SYMBOLS_FOR_PROJECT,  args -> textDocumentService.symbolsForProject(str(args, 0) != null ? str(args, 0) : "", cmdProject(args)));
+        registry.on(OpenJMLCommands.SYMBOLS_FOR_PROJECT,  args -> textDocumentService.symbolsForProject(str(args, 0) != null ? str(args, 0) : "", str(args, 1)));
         registry.on(OpenJMLCommands.CANCEL_ESC,           args -> { textDocumentService.cancelEsc(str(args, 0)); return null; });
         registry.on(OpenJMLCommands.ABORT_METHOD_PROOF,   args -> { textDocumentService.abortMethodProof(str(args, 0)); return null; });
         registry.on(OpenJMLCommands.GET_RUNNING_ESC_TASKS, args -> textDocumentService.getRunningEscUris());
@@ -158,8 +158,13 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // is never empty (at minimum it contains the "__workspace__" entry).
         textDocumentService.updateProjectSettings(globalSettings.projects);
 
-        // Propagate capability flag — must be read after applyRaw() has populated it.
+        // Propagate capability flags — must be read after applyRaw() has populated settings.
         textDocumentService.setClientSupportsActionMessages(globalSettings.supportsActionMessages);
+        var cc = params.getCapabilities();
+        var ws = cc != null ? cc.getWorkspace() : null;
+        var stCap = ws != null ? ws.getSemanticTokens() : null;
+        textDocumentService.setClientRefreshCapabilities(
+                stCap != null && Boolean.TRUE.equals(stCap.getRefreshSupport()));
 
         var caps = new ServerCapabilities();
         caps.setTextDocumentSync(globalSettings.incrementalSync

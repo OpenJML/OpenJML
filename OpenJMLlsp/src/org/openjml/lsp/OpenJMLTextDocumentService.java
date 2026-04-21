@@ -1512,7 +1512,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * <p>Called by {@link OpenJMLWorkspaceService} in response to
      * {@code workspace/symbol} requests (Cmd+T / Ctrl+T in VS Code).
      */
-    List<SymbolInformation> symbols(String query) {
+    List<org.eclipse.lsp4j.WorkspaceSymbol> symbols(String query) {
         return symbols(query, null);
     }
 
@@ -1522,7 +1522,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * {@link #symbols(String, String)}.  An unknown ID is reported as an error
      * and returns an empty list.  A null/empty ID searches all projects.
      */
-    List<SymbolInformation> symbolsForProject(String query, String projectId) {
+    List<org.eclipse.lsp4j.WorkspaceSymbol> symbolsForProject(String query, String projectId) {
         if (projectId != null && !projectId.isEmpty() && !isKnownProject(projectId)) {
             clientError("OpenJML: symbolsForProject — unknown project id '" + projectId + "'.");
             return List.of();
@@ -1534,19 +1534,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 + " liveDecls=" + cache.liveDeclarationCount()
                 + " query=\"" + (query != null ? query : "")
                 + "\" project=" + (projectId != null && !projectId.isEmpty() ? projectId : "(all)"));
-        List<SymbolInformation> result = collectSymbols(query,
+        List<org.eclipse.lsp4j.WorkspaceSymbol> result = collectSymbols(query,
                 cb -> cache.forEachDeclarationForProject(projectId, cb));
         System.err.println("[symbolsForProject] -> " + result.size() + " result(s)"
                 + (result.isEmpty() ? "" : ", first=" + result.get(0).getName()));
         return result;
     }
 
-    /** Build a {@code SymbolInformation} list by iterating declarations via {@code iterator}. */
-    private List<SymbolInformation> collectSymbols(String query,
+    /** Build a {@code WorkspaceSymbol} list by iterating declarations via {@code iterator}. */
+    private List<org.eclipse.lsp4j.WorkspaceSymbol> collectSymbols(String query,
             java.util.function.Consumer<java.util.function.BiConsumer<
                     com.sun.tools.javac.code.Symbol, ASTCache.SymbolLocation>> iterator) {
         final String effectiveQuery = (query == null ? "" : query.trim());
-        List<SymbolInformation> result = new ArrayList<>();
+        List<org.eclipse.lsp4j.WorkspaceSymbol> result = new ArrayList<>();
         iterator.accept((sym, loc) -> {
             String name = sym.name.toString();
             if (name.isEmpty() || name.startsWith("<")) return;
@@ -1567,7 +1567,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             Position start = offsetToPosition(content, loc.charOffset());
             Position end   = offsetToPosition(content, loc.charOffset() + name.length());
             var location = new Location(loc.uri(), new Range(start, end));
-            result.add(new SymbolInformation(name, symbolKind(sym), location));
+            var ws = new org.eclipse.lsp4j.WorkspaceSymbol(name, symbolKind(sym),
+                    Either.forLeft(location));
+            result.add(ws);
         });
         return result;
     }
@@ -1587,17 +1589,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * @param projectRoot explicit project-root filter; takes precedence over any
      *                    root encoded in {@code query}; {@code null} = no filter
      */
-    List<SymbolInformation> symbols(String query, String projectRoot) {
+    List<org.eclipse.lsp4j.WorkspaceSymbol> symbols(String query, String projectRoot) {
         String raw = query == null ? "" : query.trim();
 
-        // Extract an encoded project root from the query string.
-        // Format: "<projectRoot>\n<identifier>" — newlines cannot appear in
+        // Extract an encoded project ID from the query string.
+        // Format: "<projectId>\n<identifier>" — newlines cannot appear in
         // Java identifiers, so this separator is unambiguous.
-        // An explicit projectRoot argument takes precedence.
+        String projectId = projectRoot; // explicit argument takes precedence
         int nlIdx = raw.indexOf('\n');
-        if (nlIdx >= 0 && projectRoot == null) {
-            projectRoot = raw.substring(0, nlIdx).trim();
+        if (nlIdx >= 0 && projectId == null) {
+            projectId = raw.substring(0, nlIdx).trim();
             raw = raw.substring(nlIdx + 1).trim();
+            if (projectId.isEmpty()) projectId = null;
         }
 
         // Strip any surrounding quote characters that a client might accidentally include.
@@ -1606,15 +1609,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     || (raw.startsWith("'") && raw.endsWith("'")))) {
             raw = raw.substring(1, raw.length() - 1).trim();
         }
-        final String effectiveQuery = raw;
-        System.err.println("[symbols] query=\"" + effectiveQuery + "\""
-                + (projectRoot != null ? " root=\"" + projectRoot + "\"" : ""));
-        final String rootFilter = projectRoot;
-        List<SymbolInformation> result =
-                collectSymbols(effectiveQuery,
-                        cb -> CheckRunner.getASTCache().forEachDeclaration(rootFilter, cb));
+        System.err.println("[symbols] query=\"" + raw + "\""
+                + (projectId != null ? " projectId=\"" + projectId + "\"" : ""));
+
+        // When a project ID is present, delegate to symbolsForProject which
+        // searches only that project's ASTs and waits for nav to be ready.
+        if (projectId != null && !projectId.isEmpty()) {
+            return symbolsForProject(raw, projectId);
+        }
+
+        List<org.eclipse.lsp4j.WorkspaceSymbol> result =
+                collectSymbols(raw, cb -> CheckRunner.getASTCache().forEachDeclaration(null, cb));
         System.err.println("[symbols] returning " + result.size() + " result(s)"
-                + (result.isEmpty() ? "" : ", first URI=" + result.get(0).getLocation().getUri()));
+                + (result.isEmpty() ? "" : ", first URI=" + result.get(0).getLocation().getLeft().getUri()));
         return result;
     }
 

@@ -93,9 +93,33 @@ public class DefinitionFinder {
         if (declSource == null) declSource = openContent.get(decl.uri());
         if (declSource == null) return null;
 
-        int[] lc = offsetToLineCol(declSource, decl.charOffset());
-        var pos = new Position(lc[0], lc[1]);
-        return new Location(decl.uri(), new Range(pos, pos));
+        String symName = sym.name.toString();
+        int[] startLc = offsetToLineCol(declSource, decl.charOffset());
+        int[] endLc   = offsetToLineCol(declSource, decl.charOffset() + symName.length());
+        return new Location(decl.uri(), new Range(
+                new Position(startLc[0], startLc[1]),
+                new Position(endLc[0],   endLc[1])));
+    }
+
+    /**
+     * Returns a compact, single-line representation of a {@link Location} for logging.
+     * Format: {@code filename:line:startChar-endChar} (line is 1-based).
+     * Example: {@code A.java:6:14-17}
+     */
+    public static String locStr(Location loc) {
+        if (loc == null) return "null";
+        String uri = loc.getUri();
+        int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
+        String file = slash >= 0 ? uri.substring(slash + 1) : uri;
+        Range r = loc.getRange();
+        if (r == null) return file;
+        Position s = r.getStart(), e = r.getEnd();
+        int line = s.getLine() + 1;
+        int sc   = s.getCharacter();
+        int ec   = e.getCharacter();
+        return sc == ec
+                ? file + ":" + line + ":" + sc
+                : file + ":" + line + ":" + sc + "-" + ec;
     }
 
     /**

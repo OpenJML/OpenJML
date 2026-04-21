@@ -949,6 +949,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
                     // a method is currently CHECKING.  In either case we extract the
                     // FQN and send CMD_RUN_ESC_FOR_METHOD (keyboard shortcut always runs).
                     List<org.eclipse.lsp4j.CodeLens> sorted = lenses.stream()
+                            .map(l -> (org.eclipse.lsp4j.CodeLens) l)
                             .filter(l -> l.getCommand() != null
                                     && l.getCommand().getArguments() != null
                                     && (OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD.equals(l.getCommand().getCommand())

@@ -535,21 +535,17 @@
                     label="Find All Declarations"/>
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
+           <separator name="sep2" visible="true"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>
            <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
                     label="Remove OpenJML Nature"/>
-           <separator name="sep2" visible="true"/>
            <menu id="org.jmlspecs.openjml.editorPopupMenu.clearMarkers" label="Clear Markers">
               <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                        label="All"/>
               <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
                        label="Selected Files"/>
            </menu>
-           <command commandId="org.jmlspecs.openjml.commands.indexProject"
-                    label="Index Project"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
-                    label="Clear and Reindex"/>
         </menu>
      </menuContribution>
      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
@@ -568,9 +564,12 @@
               <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
                        label="For Method Under Cursor"/>
            </menu>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"
                     tooltip="%command.tooltip.15"/>
+           <separator name="sep1a" visible="true"/>
            <command commandId="org.openjml.eclipse.commands.findDeclaration"
                     label="Find Declaration"/>
            <command commandId="org.openjml.eclipse.commands.findReferences"
@@ -579,12 +578,11 @@
                     label="Find All Declarations"/>
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
-           <separator name="sep1a" visible="true"/>
+           <separator name="sep2a" visible="true"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>
            <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
                     label="Remove OpenJML Nature"/>
-           <separator name="sep2a" visible="true"/>
            <menu id="org.jmlspecs.openjml.mainMenu.clearMarkers" label="Clear Markers">
               <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                        label="All"/>
@@ -595,8 +593,6 @@
                     label="Index Project"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
-           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
-                    label="Cancel ESC"/>
         </menu>
      </menuContribution>
 
@@ -629,10 +625,25 @@
               <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
                        label="Split by Method"/>
            </menu>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"
                     tooltip="%command.tooltip.15"/>
            <separator name="sep1b" visible="true"/>
+           <command commandId="org.openjml.eclipse.commands.findDeclaration"
+                    label="Find Declaration"/>
+           <command commandId="org.openjml.eclipse.commands.findReferences"
+                    label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.findAllDeclarations"
+                    label="Find All Declarations"/>
+           <command commandId="org.openjml.eclipse.commands.rename"
+                    label="Rename (JML-aware)"/>
+           <separator name="sep2b" visible="true"/>
+           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
+                    label="Add OpenJML Nature"/>
+           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
+                    label="Remove OpenJML Nature"/>
            <menu id="org.jmlspecs.openjml.viewPopupMenu.clearMarkers" label="Clear Markers">
               <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
                        label="All"/>
@@ -641,15 +652,6 @@
            </menu>
            <command commandId="org.jmlspecs.openjml.commands.indexProject"
                     label="Index Project"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
-                    label="Clear and Reindex"/>
-           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
-                    label="Cancel ESC"/>
-           <separator name="sep2b" visible="true"/>
-           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
-                    label="Add OpenJML Nature"/>
-           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
-                    label="Remove OpenJML Nature"/>
         </menu>
      </menuContribution>
 
@@ -708,6 +710,7 @@
   <!-- The genericeditor.source.menu contribution is kept as a secondary path
        for the Generic Editor's Source submenu (.jml files).  The primary
        editor popup is now via popup:#TextEditorContext above. -->
+  <!--
   <extension point="org.eclipse.ui.menus">
      <menuContribution locationURI="popup:org.eclipse.ui.genericeditor.source.menu?before=additions">
         <command
@@ -721,10 +724,10 @@
               label="Rename (JML-aware)"/>
      </menuContribution>
   </extension>
+  -->
 
-
-  <!-- FIXME - review default key bindings -->
   <!-- Keybindings -->
+  <!--
   <extension point="org.eclipse.ui.bindings">
      <key sequence="M1+M2+J E" commandId="org.jmlspecs.openjml.commands.runESC"
           contextId="org.eclipse.ui.textEditorScope"
@@ -746,6 +749,7 @@
            contextId="org.eclipse.ui.genericeditor.genericEditorContext"
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
   </extension>
+  -->
   
     <!-- LSP-based hover for JML specs in the JDT Java editor.
        LSP4E's hover is registered only for the generic text editor;
@@ -887,6 +891,10 @@
            class="org.jmlspecs.openjml.eclipse.JmlReferencesResultPage"
            id="org.jmlspecs.openjml.jmlReferencesPage"
            searchResultClass="org.jmlspecs.openjml.eclipse.JmlReferencesSearchQuery$JmlReferencesSearchResult"/>
+     <viewPage
+           class="org.jmlspecs.openjml.eclipse.JmlDeclarationsResultPage"
+           id="org.jmlspecs.openjml.jmlDeclarationsPage"
+           searchResultClass="org.jmlspecs.openjml.eclipse.JmlFindAllDeclarationsHandler$DeclarationSearchResult"/>
   </extension>
   
   <extension

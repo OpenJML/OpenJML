@@ -370,7 +370,9 @@
         },
         "openjml.toolOptions": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "order": 4,
           "markdownDescription": "Project-independent OpenJML command-line options prepended to every tool invocation. Use `[\"--properties\", \"/path/to/file\"]` to pass a properties file (one idiomatic way to supply options; alternatively put them directly as individual flags in this array). Project-dependent settings (source path, class path, specs path) are kept in the named settings below."
