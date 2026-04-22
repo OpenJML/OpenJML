@@ -224,8 +224,14 @@ Note that removing the JML Nature from a project also removes all OpenJML error 
 
 <H3><A NAME="ClearMarkers">Clear Markers</A></H3>
 
-These two operations remove OpenJML markers from all files in all JML projects or from all selected JML projects, respectively.
-It is useful if somehow there are stale JML markers that are obsolete and won't otherwise clear.
+These two operations remove OpenJML markers from the workspace.
+<UL>
+<LI><B>All</B> removes all OpenJML check and ESC markers from every file in every JML project.</LI>
+<LI><B>Selected</B> removes all OpenJML check and ESC markers from the files and folders currently selected in the Package Explorer (or from the active editor if nothing is selected).
+Selecting a folder or project removes markers from all files within it.
+The server's cached diagnostics are also cleared so that the markers do not reappear until a new check is run.</LI>
+</UL>
+Both operations are useful when markers are stale or obsolete and will not otherwise clear.
 
 <H3><A NAME="IndexProject">Index Project</A></H3>
 

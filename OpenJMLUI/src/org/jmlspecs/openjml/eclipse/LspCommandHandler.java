@@ -1093,6 +1093,26 @@ public abstract class LspCommandHandler extends AbstractHandler {
         public Object execute(ExecutionEvent event) {
             List<SelectionResolver.Target> targets = SelectionResolver.resolve(
                     HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+            if (targets.isEmpty()) {
+                Console.log("ClearMarkersSelected: no files or folders selected.");
+                return null;
+            }
+            List<Object> uris = new java.util.ArrayList<>();
+            for (SelectionResolver.Target t : targets) {
+                switch (t) {
+                    case SelectionResolver.Target.File   f -> uris.add(org.eclipse.lsp4e.LSPEclipseUtils.toUri(f.file()).toString());
+                    case SelectionResolver.Target.Method m -> uris.add(org.eclipse.lsp4e.LSPEclipseUtils.toUri(m.file()).toString());
+                    case SelectionResolver.Target.Dir    d -> {
+                        java.net.URI loc = d.container().getLocationURI();
+                        if (loc != null) uris.add(loc.toString());
+                    }
+                }
+            }
+            if (uris.isEmpty()) {
+                Console.log("ClearMarkersSelected: could not resolve URIs for selection.");
+                return null;
+            }
+            // Clear Eclipse markers directly (covers stale markers not tracked by the server).
             int deleted = 0;
             try {
                 for (SelectionResolver.Target t : targets) {
@@ -1101,16 +1121,21 @@ public abstract class LspCommandHandler extends AbstractHandler {
                         case SelectionResolver.Target.Method m -> m.file();
                         case SelectionResolver.Target.Dir    d -> d.container();
                     };
-                    deleted += clearFromResource(res);
+                    deleted += clearMarkersFromResource(res);
                 }
             } catch (CoreException e) {
-                Console.log("ClearMarkersSelected failed: " + e);
+                Console.log("ClearMarkersSelected: marker deletion failed: " + e);
             }
-            Console.log("Cleared " + deleted + " OpenJML marker(s) from selected files.");
+            // Also tell the server to clear its cached diagnostics so they don't republish.
+            ExecuteCommandParams params = new ExecuteCommandParams(
+                    OpenJMLConstants.CMD_CLEAR_MARKERS_FOR_URIS, uris);
+            if (!sendViaWrapper(LspPartListener.cachedWrapper, params)) {
+                Console.errorlog("ClearMarkersSelected: server not available; cleared " + deleted + " marker(s) locally only.", null);
+            }
             return null;
         }
 
-        private static int clearFromResource(org.eclipse.core.resources.IResource res)
+        private static int clearMarkersFromResource(org.eclipse.core.resources.IResource res)
                 throws CoreException {
             int deleted = 0;
             for (org.eclipse.core.resources.IMarker m : res.findMarkers(

@@ -113,6 +113,16 @@ public final class OpenJMLCommands {
     public static final String CLEAR_MARKERS      = "openjml.clearMarkers";
 
     /**
+     * Clear markers for specific URIs: {@code openjml.clearMarkersForUris}.
+     *
+     * <p>Arguments: one or more URI strings (files or folder URIs).  Folder URIs
+     * clear all marked files whose URI starts with that folder prefix.
+     * Clears server-side {@code checkDiags} and proof results for matching URIs
+     * and publishes empty diagnostics so Eclipse/VSCode removes the markers.
+     */
+    public static final String CLEAR_MARKERS_FOR_URIS = "openjml.clearMarkersForUris";
+
+    /**
      * Cancel ESC: {@code openjml.cancelEsc}.
      *
      * <p>Cancels a specific running ESC task or all running ESC tasks.

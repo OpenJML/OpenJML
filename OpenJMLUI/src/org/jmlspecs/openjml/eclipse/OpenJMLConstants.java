@@ -153,6 +153,7 @@ public final class OpenJMLConstants {
      * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.CLEAR_MARKERS}.
      */
     public static final String CMD_CLEAR_MARKERS = "openjml.clearMarkers";
+    public static final String CMD_CLEAR_MARKERS_FOR_URIS = "openjml.clearMarkersForUris";
 
     /**
      * Cancel-ESC command sent via {@code workspace/executeCommand}.

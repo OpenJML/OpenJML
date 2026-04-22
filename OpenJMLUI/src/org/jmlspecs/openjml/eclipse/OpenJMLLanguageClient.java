@@ -186,6 +186,8 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
                     checkDiags.add(d);
                 }
             }
+            Console.log("[OpenJMLLanguageClient] publishDiagnostics received uri=" + params.getUri()
+                    + " check=" + checkDiags.size() + " esc=" + escDiags.size());
             checkConsumer.accept(new PublishDiagnosticsParams(params.getUri(), checkDiags));
             escHandler.accept(new PublishDiagnosticsParams(params.getUri(), escDiags));
         });

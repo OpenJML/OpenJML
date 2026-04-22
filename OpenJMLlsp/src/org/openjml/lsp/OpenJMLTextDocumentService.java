@@ -392,16 +392,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         lastCheckedContent.keySet().removeIf(k -> !k.equals(uri));
 
         // --check: debounced if in edit mode
+        ServerLog.serverLog("[didChange.jml] isCheckOnEdit=" + globalSettings.isCheckOnEdit() + " uri=" + uri);
         if (globalSettings.isCheckOnEdit()) {
             if (uri.endsWith(".jml")) {
                 // .jml files are spec files; redirect check to companion .java.
                 // The dirty .jml content is already in lastContent so checkWithContext
                 // will use it when writing the temp directory.
                 String javaUri = resolveCompanionJavaUri(uri, content);
+                ServerLog.serverLog("[didChange.jml] resolveCompanionJavaUri=" + javaUri);
                 if (javaUri != null) {
                     final String fJavaUri = javaUri;
                     debounce(pendingCheck, fJavaUri,
                             () -> { String jc = lastContent.get(fJavaUri);
+                                    ServerLog.serverLog("[didChange.jml] running check on " + fJavaUri + " jc=" + (jc == null ? "null" : "present"));
                                     if (jc != null) runCheckContent(fJavaUri, jc); },
                             CHECK_DEBOUNCE_MS);
                 }
@@ -1824,6 +1827,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     void scheduleCheckForUri(String uri, String projectId) {
         OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
+        if (uri.endsWith(".jml")) {
+            String javaUri = resolveCompanionJavaUri(uri, null);
+            ServerLog.serverLog("[scheduleCheckForUri] .jml redirect: javaUri=" + javaUri);
+            if (javaUri == null) return;
+            final String fJavaUri = javaUri;
+            final String javaContent = lastContent.get(javaUri);
+            executor.submit(() -> runCheckContent(fJavaUri, javaContent, s));
+            return;
+        }
         final String content = lastContent.get(uri);
         executor.submit(() -> runCheckContent(uri, content, s));
     }
@@ -2773,12 +2785,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void runCheckContent(String uri, String content, OpenJMLSettings s) {
         // .jml files are spec files; should not be passed to OpenJML on command line.
         // scheduleCheckNow redirects to the companion .java, but guard here as well.
-        if (uri.endsWith(".jml")) return;
+        if (uri.endsWith(".jml")) { ServerLog.serverLog("[runCheckContent] early return for .jml uri=" + uri); return; }
+        Map<String, String> snapshot = dirtySnapshot();
+        ServerLog.serverLog("[runCheckContent] uri=" + uri + " content=" + (content == null ? "null(disk)" : "present") + " dirtySnapshot=" + snapshot.keySet());
         if (content != null) lastCheckedContent.put(uri, content);
         try {
             // Snapshot lastContent at execution time so that concurrent edits do not
             // mutate the context map while OpenJML is parsing it.
-            Map<String, String> snapshot = dirtySnapshot();
             CheckRunner.CheckResult result = CheckRunner.checkWithContext(
                     uri, content, snapshot, s);
             // Publish diagnostics for all compiled files (primary + companions) uniformly.
@@ -3204,6 +3217,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void publishDiags(String uri, List<Diagnostic> diags) {
+        clientLog("[publishDiags] uri=" + uri + " count=" + diags.size() + " client=" + (client == null ? "null" : "present"));
         if (client == null) return;
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
         if (diags.isEmpty()) markedUris.remove(uri);
@@ -3215,14 +3229,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * for the URI.
      */
     private void storeCheckDiags(String uri, List<Diagnostic> diags) {
+        clientLog("[storeCheckDiags] uri=" + uri + " count=" + diags.size());
         if (diags.isEmpty()) checkDiags.remove(uri);
         else checkDiags.put(uri, diags);
     }
 
     private void publishMerged(String uri) {
+        List<Diagnostic> checkList = checkDiags.getOrDefault(uri, List.of());
+        List<Diagnostic> escList = new ArrayList<>();
+        proofResults.values().forEach(pr -> escList.addAll(pr.byUri().getOrDefault(uri, List.of())));
+        clientLog("[publishMerged] uri=" + uri + " checkDiags=" + checkList.size() + " escDiags=" + escList.size());
         List<Diagnostic> merged = new ArrayList<>();
-        merged.addAll(checkDiags.getOrDefault(uri, List.of()));
-        proofResults.values().forEach(pr -> merged.addAll(pr.byUri().getOrDefault(uri, List.of())));
+        merged.addAll(checkList);
+        merged.addAll(escList);
         publishDiags(uri, merged);
     }
 
@@ -3369,6 +3388,31 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         for (String uri : toClean) {
             if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
         }
+        refreshCodeLenses();
+    }
+
+    void clearMarkersForUris(List<String> targetUris) {
+        // Build normalized folder prefixes (always end with /).
+        List<String> prefixes = new java.util.ArrayList<>();
+        for (String t : targetUris) prefixes.add(t.endsWith("/") ? t : t + "/");
+
+        List<String> toClear = new ArrayList<>();
+        for (String marked : markedUris) {
+            for (int i = 0; i < targetUris.size(); i++) {
+                if (marked.equals(targetUris.get(i)) || marked.startsWith(prefixes.get(i))) {
+                    toClear.add(marked);
+                    break;
+                }
+            }
+        }
+        for (String uri : toClear) {
+            checkDiags.remove(uri);
+            String uriPrefix = uri + "#";
+            proofResults.keySet().removeIf(k -> k.equals(uri) || k.startsWith(uriPrefix));
+            markedUris.remove(uri);
+            if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+        }
+        clientLog("[OpenJML] Cleared diagnostics for " + toClear.size() + " file(s).");
         refreshCodeLenses();
     }
 

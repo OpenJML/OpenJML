@@ -106,7 +106,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.onUri       (OpenJMLCommands.FOCUS_FILE,          textDocumentService::recheckUri);
         registry.onUriReturn (OpenJMLCommands.GET_SEMANTIC_TOKENS, textDocumentService::getSemanticTokens);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
-        registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,       textDocumentService::clearMarkers);
+        registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,          textDocumentService::clearMarkers);
+        registry.onStringList(OpenJMLCommands.CLEAR_MARKERS_FOR_URIS, textDocumentService::clearMarkersForUris);
         registry.on(OpenJMLCommands.INDEX_PROJECT,        args -> { textDocumentService.indexProject(cmdProject(args)); return null; });
         registry.on(OpenJMLCommands.SYMBOLS_FOR_PROJECT,  args -> textDocumentService.symbolsForProject(str(args, 0) != null ? str(args, 0) : "", str(args, 1)));
         registry.on(OpenJMLCommands.CANCEL_ESC,           args -> { textDocumentService.cancelEsc(str(args, 0)); return null; });
