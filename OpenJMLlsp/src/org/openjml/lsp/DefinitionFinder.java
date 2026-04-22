@@ -70,19 +70,19 @@ public class DefinitionFinder {
         // specsCompilationUnit positions are in .jml coordinate space, not .java coordinate space.
         NodeMatch match = findNodeAt(entry.ast(), targetOffset, source, uri.endsWith(".jml"));
         if (match == null || match.sym() == null) {
-            System.err.println("[DefinitionFinder] no symbol found at offset " + targetOffset);
+            ServerLog.serverLog("[DefinitionFinder] no symbol found at offset " + targetOffset);
             return null;
         }
 
         com.sun.tools.javac.code.Symbol sym = match.sym();
-        System.err.println("[DefinitionFinder] symbol=" + sym
+        ServerLog.serverLog("[DefinitionFinder] symbol=" + sym
                 + "  class=" + sym.getClass().getSimpleName()
                 + "  owner=" + sym.owner
                 + "  ownerClass=" + (sym.owner == null ? "null" : sym.owner.getClass().getSimpleName())
                 + "  qualifiedName=" + sym.getQualifiedName());
 
         ASTCache.SymbolLocation decl = cache.getDeclarationLocation(sym);
-        System.err.println("[DefinitionFinder] declarationLocation=" + decl);
+        ServerLog.serverLog("[DefinitionFinder] declarationLocation=" + decl);
         if (decl == null) return null;
 
         // For the declaration source, prefer the actual file content (AST or disk)

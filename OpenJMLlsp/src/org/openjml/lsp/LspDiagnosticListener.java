@@ -124,7 +124,7 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         // Investigate: log diagnostics with no source or no position so we can trace
         // tool-level warnings (e.g. bad --warn key) that might otherwise be silently dropped.
         if (diagnostic.getSource() == null || diagnostic.getLineNumber() == Diagnostic.NOPOS) {
-            System.err.println("[LspDiagnosticListener.report] nopos/nosource:"
+            ServerLog.serverLog("[LspDiagnosticListener.report] nopos/nosource:"
                     + " kind=" + diagnostic.getKind()
                     + " source=" + (diagnostic.getSource() == null ? "<null>"
                                                                     : diagnostic.getSource().getName())
@@ -297,7 +297,7 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         for (var d : collected) {
             if (DEBUG_DIAGNOSTICS) {
                 String src = d.getSource() == null ? "<null>" : d.getSource().getName();
-                System.err.println("  raw: kind=" + d.getKind()
+                ServerLog.serverLog("  raw: kind=" + d.getKind()
                         + " code=" + d.getCode()
                         + " line=" + d.getLineNumber()
                         + " src=" + src
@@ -307,11 +307,11 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
             // they are routed to the client console via toGlobalMessages(), not here.
             if (d.getSource() == null) continue;
             if (!DiagnosticConverter.matchesSourcePath(d, sourcePath)) {
-                if (DEBUG_DIAGNOSTICS) System.err.println("    ^ filtered (wrong source file)");
+                if (DEBUG_DIAGNOSTICS) ServerLog.serverLog("    ^ filtered (wrong source file)");
                 // Log diagnostics that are silently dropped — helps trace tool-level warnings
                 // that have a non-null source which doesn't match the target file.
                 String dSrc = d.getSource() == null ? "<null>" : d.getSource().getName();
-                System.err.println("[LspDiagnosticListener.toLspDiagnostics] filtered:"
+                ServerLog.serverLog("[LspDiagnosticListener.toLspDiagnostics] filtered:"
                         + " source=" + dSrc
                         + " line=" + d.getLineNumber()
                         + " vs path=" + sourcePath

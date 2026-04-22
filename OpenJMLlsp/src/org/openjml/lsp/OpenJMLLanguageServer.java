@@ -195,7 +195,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 SemanticTokensProvider.TOKEN_MODIFIERS);
         var stOpts = new SemanticTokensWithRegistrationOptions(stLegend, Boolean.TRUE);
         caps.setSemanticTokensProvider(stOpts);
-        System.err.println("[initialize] semanticTokensProvider.full=" + stOpts.getFull());
+        ServerLog.serverLog("[initialize] semanticTokensProvider.full=" + stOpts.getFull());
 
         var inlayHintsOpts = new InlayHintRegistrationOptions();
         inlayHintsOpts.setResolveProvider(false);

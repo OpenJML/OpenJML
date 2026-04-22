@@ -356,7 +356,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri     = params.getTextDocument().getUri();
         String content = params.getTextDocument().getText();
-        System.err.println("[didOpen] uri=" + uri);
+        ServerLog.serverLog("[didOpen] uri=" + uri);
         lastContent.put(uri, content);
         // Cache the nav-dirty flag for this project so didChange needs no lookup.
         String openPid = projectIdForUri(uri);
@@ -377,7 +377,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void didChange(DidChangeTextDocumentParams params) {
         if (params.getContentChanges().isEmpty()) return;
         String uri     = params.getTextDocument().getUri();
-        System.err.println("[didChange] uri=" + uri);
+        ServerLog.serverLog("[didChange] uri=" + uri);
         String content = globalSettings.incrementalSync
                 ? IncrementalSyncApplier.apply(lastContent.get(uri),
                                                params.getContentChanges())
@@ -720,7 +720,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return ensureNavCacheReady().thenCompose(v -> {
             ASTCache cache = CheckRunner.getASTCache();
             boolean hasAst = cache.get(uri) != null;
-            System.err.println("[OpenJML] definition: uri=" + uri
+            ServerLog.serverLog("[OpenJML] definition: uri=" + uri
                     + "  hasContent=true  hasAST=" + hasAst);
 
             // For .jml spec files: if the .jml AST is cached directly (via cacheSpecsCu),
@@ -737,11 +737,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     return ready.thenApply(v2 -> {
                         ASTCache.Entry entry = cache.get(javaUri);
                         if (entry == null) {
-                            System.err.println("[FindDeclaration] definition: no AST for " + javaUri);
+                            ServerLog.serverLog("[FindDeclaration] definition: no AST for " + javaUri);
                             return Either.<List<? extends Location>, List<? extends LocationLink>>
                                     forLeft(List.of());
                         }
-                        System.err.println("[FindDeclaration] definition: redirecting to java AST " + javaUri);
+                        ServerLog.serverLog("[FindDeclaration] definition: redirecting to java AST " + javaUri);
                         Map<String, String> synthetic = new java.util.HashMap<>(lastContent);
                         synthetic.put(javaUri, jmlSource);
                         Location loc = DefinitionFinder.findDefinition(
@@ -750,7 +750,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                 params.getPosition().getCharacter(),
                                 synthetic,
                                 cache);
-                        System.err.println("[FindDeclaration] definition result (jml): " + DefinitionFinder.locStr(loc));
+                        ServerLog.serverLog("[FindDeclaration] definition result (jml): " + DefinitionFinder.locStr(loc));
                         List<Location> res = loc != null ? List.of(loc) : List.of();
                         return Either.<List<? extends Location>, List<? extends LocationLink>>
                                 forLeft(res);
@@ -765,7 +765,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     lastContent,
                     cache);
 
-            System.err.println("[OpenJML] definition result: " + DefinitionFinder.locStr(loc));
+            ServerLog.serverLog("[OpenJML] definition result: " + DefinitionFinder.locStr(loc));
             List<Location> result = loc != null ? List.of(loc) : List.of();
             return CompletableFuture.completedFuture(Either.forLeft(result));
         });
@@ -1116,7 +1116,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                               + result.diagnosticsByUri().size() + " file(s)";
                     clientLog(summary);
                 } catch (Throwable e) {
-                    System.err.println("[scheduleCheckForPaths] error: " + e.getMessage());
+                    ServerLog.serverLog("[scheduleCheckForPaths] error: " + e.getMessage());
                     clientError("Check failed: " + e.getMessage());
                 }
             });
@@ -1253,7 +1253,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     }
                 }
             } catch (Throwable e) {
-                System.err.println("[scheduleEscForPaths] error: " + e.getMessage());
+                ServerLog.serverLog("[scheduleEscForPaths] error: " + e.getMessage());
             } finally {
                 runningSessions.remove(batchKey);
                 // Clean up per-file URI keys registered during RUNNING events.
@@ -1286,7 +1286,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                           if (seenRealPaths.add(realPath)) result.add(f);
                       });
             } catch (java.io.IOException | java.io.UncheckedIOException e) {
-                System.err.println("[collectJavaFiles] error walking " + p + ": " + e);
+                ServerLog.serverLog("[collectJavaFiles] error walking " + p + ": " + e);
             }
         }
         return result;
@@ -1337,7 +1337,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     result.diagsByMethod().keySet().forEach(diagUri -> publishMerged(diagUri));
                     refreshCodeLenses();
                 } catch (Throwable t) {
-                    System.err.println("[scheduleEscSplitByFile] error for " + uri + ": " + t);
+                    ServerLog.serverLog("[scheduleEscSplitByFile] error for " + uri + ": " + t);
                 } finally {
                     runningSessions.remove(uri);
                 }
@@ -1373,7 +1373,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (content == null) {
                 try { content = java.nio.file.Files.readString(javaFile); }
                 catch (Exception e) {
-                    System.err.println("[scheduleEscSplitByMethod] cannot read " + javaFile + ": " + e);
+                    ServerLog.serverLog("[scheduleEscSplitByMethod] cannot read " + javaFile + ": " + e);
                     continue;
                 }
             }
@@ -1470,7 +1470,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     });
                 }
             } catch (Throwable e) {
-                System.err.println("[scheduleRacForPaths] error: " + e.getMessage());
+                ServerLog.serverLog("[scheduleRacForPaths] error: " + e.getMessage());
                 clientError("RAC failed: " + e.getMessage());
             }
         });
@@ -1565,13 +1565,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // Ensure nav cache is up to date before querying.
         waitForProjectNav(projectId != null && !projectId.isEmpty() ? projectId : null).join();
         ASTCache cache = CheckRunner.getASTCache();
-        System.err.println("[symbolsForProject] navSectionKeys=" + cache.navSectionKeys()
+        ServerLog.serverLog("[symbolsForProject] navSectionKeys=" + cache.navSectionKeys()
                 + " liveDecls=" + cache.liveDeclarationCount()
                 + " query=\"" + (query != null ? query : "")
                 + "\" project=" + (projectId != null && !projectId.isEmpty() ? projectId : "(all)"));
         List<org.eclipse.lsp4j.WorkspaceSymbol> result = collectSymbols(query,
                 cb -> cache.forEachDeclarationForProject(projectId, cb));
-        System.err.println("[symbolsForProject] -> " + result.size() + " result(s)"
+        ServerLog.serverLog("[symbolsForProject] -> " + result.size() + " result(s)"
                 + (result.isEmpty() ? "" : ", first=" + result.get(0).getName()));
         return result;
     }
@@ -1593,7 +1593,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 if (path != null) {
                     try { content = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
                     catch (java.io.IOException e) {
-                        System.err.println("[OpenJML] symbols: cannot read " + loc.uri()
+                        ServerLog.serverLog("[OpenJML] symbols: cannot read " + loc.uri()
                                 + ": " + e.getMessage());
                     }
                 }
@@ -1644,7 +1644,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     || (raw.startsWith("'") && raw.endsWith("'")))) {
             raw = raw.substring(1, raw.length() - 1).trim();
         }
-        System.err.println("[symbols] query=\"" + raw + "\""
+        ServerLog.serverLog("[symbols] query=\"" + raw + "\""
                 + (projectId != null ? " projectId=\"" + projectId + "\"" : ""));
 
         // When a project ID is present, delegate to symbolsForProject which
@@ -1655,7 +1655,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         List<org.eclipse.lsp4j.WorkspaceSymbol> result =
                 collectSymbols(raw, cb -> CheckRunner.getASTCache().forEachDeclaration(null, cb));
-        System.err.println("[symbols] returning " + result.size() + " result(s)"
+        ServerLog.serverLog("[symbols] returning " + result.size() + " result(s)"
                 + (result.isEmpty() ? "" : ", first URI=" + result.get(0).getLocation().getLeft().getUri()));
         return result;
     }
@@ -1728,7 +1728,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 s.rootPaths = cfg.rootPaths;
             projectSettings.put(cfg.id, s);
         }
-        System.err.println("[OpenJML] project registry updated: " + projectSettings.keySet());
+        ServerLog.serverLog("[OpenJML] project registry updated: " + projectSettings.keySet());
     }
 
     /** Returns {@code true} if {@code projectId} is in the current project registry. */
@@ -1928,7 +1928,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             List<Diagnostic> primaryDiags =
                     result.allDiagnostics().getOrDefault(uri, result.diagnostics());
             if (result.isInternalError()) {
-                System.err.println("[OpenJML] ESC (" + modeName + ") internal error (exit code "
+                ServerLog.serverLog("[OpenJML] ESC (" + modeName + ") internal error (exit code "
                         + result.exitCode() + ")");
                 markAllMethodStatus(uri, MethodStatus.CHECK_ERROR, myGen);
                 refreshCodeLenses();
@@ -1945,7 +1945,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 publishMerged(uri);
             }
         }).exceptionally(t -> {
-            System.err.println("[OpenJML] ESC (" + modeName + ") failed: " + t);
+            ServerLog.serverLog("[OpenJML] ESC (" + modeName + ") failed: " + t);
             if (isCurrentSession(uri, myGen)) {
                 updateEscStatus(uri, List.of(), Map.of(), -1, List.of(), myGen, Map.of());
                 refreshCodeLenses();
@@ -2148,7 +2148,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 if (target == null && !isCurrentSession(scopeKey, myGen)) return;
 
                 if (result.isInternalError()) {
-                    System.err.println("[OpenJML] ESC for method: internal error (exit code " + result.exitCode() + ")");
+                    ServerLog.serverLog("[OpenJML] ESC for method: internal error (exit code " + result.exitCode() + ")");
                     publishMerged(uri);
                     if (target != null) {
                         storeProofResult(scopeKey, myGen, MethodStatus.CHECK_ERROR);
@@ -2204,7 +2204,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 publishMerged(uri);
                 refreshCodeLenses();
             } catch (Throwable t) {
-                System.err.println("[OpenJML] ESC for method failed unexpectedly: " + t);
+                ServerLog.serverLog("[OpenJML] ESC for method failed unexpectedly: " + t);
                 if (target != null) {
                     storeProofResult(scopeKey, myGen, MethodStatus.UNKNOWN);
                     refreshCodeLenses();
@@ -2283,7 +2283,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             return new String(java.nio.file.Files.readAllBytes(java.nio.file.Path.of(path)),
                     java.nio.charset.StandardCharsets.UTF_8);
         } catch (Exception e) {
-            System.err.println("[OpenJML] readFileFromDisk failed for " + path + ": " + e);
+            ServerLog.serverLog("[OpenJML] readFileFromDisk failed for " + path + ": " + e);
             return null;
         }
     }
@@ -2510,7 +2510,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     List<Diagnostic> primaryDiags =
                             result.allDiagnostics().getOrDefault(uri, result.diagnostics());
                     if (result.isInternalError()) {
-                        System.err.println("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
+                        ServerLog.serverLog("[OpenJML] ESC internal error (exit code " + result.exitCode() + ")");
                         markAllMethodStatus(uri, MethodStatus.CHECK_ERROR, myGen);
                         refreshCodeLenses();
                     } else {
@@ -2525,7 +2525,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     }
                 }
             } catch (Throwable t) {
-                System.err.println("[OpenJML] ESC failed: " + t);
+                ServerLog.serverLog("[OpenJML] ESC failed: " + t);
                 if (isCurrentSession(uri, myGen)) {
                     updateEscStatus(uri, List.of(), Map.of(), -1, List.of(), myGen, Map.of());
                     refreshCodeLenses();
@@ -2666,7 +2666,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             });
             lastCheckedContent.putAll(snapshot);
         } catch (Throwable t) {
-            System.err.println("[runProjectCheck] error: " + t);
+            ServerLog.serverLog("[runProjectCheck] error: " + t);
         }
     }
 
@@ -2738,7 +2738,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         AtomicBoolean pidDirty = pid != null ? projectNavDirty.get(pid) : null;
         CompletableFuture<Void> checkFuture;
         if (pidDirty != null && pidDirty.get()) {
-            System.err.println("[ensureFreshAndConfirm] op=" + operationName
+            ServerLog.serverLog("[ensureFreshAndConfirm] op=" + operationName
                     + " uri=" + primaryUri + " pid=" + pid + " — nav dirty, updating");
             checkFuture = waitForProjectNav(pid);
         } else {
@@ -2795,7 +2795,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
             // Do NOT call refreshCodeLenses() here.
         } catch (Throwable t) {
-            System.err.println("[OpenJML] check failed for " + uri + ": " + t);
+            ServerLog.serverLog("[OpenJML] check failed for " + uri + ": " + t);
         }
     }
 
@@ -2872,7 +2872,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // AST-based discovery is always available here.  Regex fallback is not needed.
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
         if (astEntry == null) {
-            System.err.println("[OpenJML] updateEscStatus: no AST for " + uri + " — skipping");
+            ServerLog.serverLog("[OpenJML] updateEscStatus: no AST for " + uri + " — skipping");
             return;
         }
         List<JavaSourceScanner.MethodInfo> methods =
@@ -3331,10 +3331,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             int k = key.lastIndexOf('/');
             String name = k == -1 ? key : key.substring(k+1);
             if (api != null) {
-                System.err.println("[OpenJML] ESC cancelled for " + name);
+                ServerLog.serverLog("[OpenJML] ESC cancelled for " + name);
                 api.cancelEsc();
             } else {
-                System.err.println("[OpenJML] ESC task cancelled (queued, not yet running) for " + name);
+                ServerLog.serverLog("[OpenJML] ESC task cancelled (queued, not yet running) for " + name);
             }
         }
     }

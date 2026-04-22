@@ -86,7 +86,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                     : GSON.fromJson(obj,    OpenJMLSettings.class);
             applyUpdate(src);
         } catch (Exception e) {
-            System.err.println("[OpenJML] Failed to parse settings: " + e);
+            ServerLog.serverLog("[OpenJML] Failed to parse settings: " + e);
         }
     }
 
@@ -106,7 +106,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         try {
             applyUpdate(GSON.fromJson(element, OpenJMLSettings.class));
         } catch (Exception e) {
-            System.err.println("[OpenJML] Failed to parse settings: " + e);
+            ServerLog.serverLog("[OpenJML] Failed to parse settings: " + e);
         }
     }
 
@@ -207,10 +207,10 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     public CompletableFuture<Either<List<? extends SymbolInformation>, List<? extends org.eclipse.lsp4j.WorkspaceSymbol>>>
             symbol(WorkspaceSymbolParams params) {
         String query = params.getQuery() != null ? params.getQuery() : "";
-        System.err.println("[workspace/symbol] request: query=\"" + query + "\"");
+        ServerLog.serverLog("[workspace/symbol] request: query=\"" + query + "\"");
         List<org.eclipse.lsp4j.WorkspaceSymbol> results =
                 symbolsRequester != null ? symbolsRequester.apply(query) : List.of();
-        System.err.println("[workspace/symbol] response: " + results.size() + " result(s)"
+        ServerLog.serverLog("[workspace/symbol] response: " + results.size() + " result(s)"
                 + (results.isEmpty() ? "" : ", first=" + results.get(0).getName()));
         return CompletableFuture.completedFuture(Either.forRight(results));
     }

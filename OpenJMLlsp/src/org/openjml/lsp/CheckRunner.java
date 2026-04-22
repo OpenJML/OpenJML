@@ -119,11 +119,11 @@ public class CheckRunner {
      * writer ({@code Console.errorlog}), so no prefix is added here.
      */
     private static void postExecute(int rc, String modeFlag, LspDiagnosticListener listener) {
-        System.err.println("[CheckRunner] exit code " + rc + " (" + modeFlag + ")");
+        ServerLog.serverLog("[CheckRunner] exit code " + rc + " (" + modeFlag + ")");
         if (rc != 0) {
             listener.getDiagnostics().forEach(d -> {
                 String src = d.getSource() != null ? d.getSource().toUri().toString() : "?";
-                System.err.println("[CheckRunner]   diag: "
+                ServerLog.serverLog("[CheckRunner]   diag: "
                         + src + ":" + d.getLineNumber() + " " + d.getMessage(null));
             });
         }
@@ -376,7 +376,7 @@ public class CheckRunner {
         } finally {
             api.removeASTListener(astListener);
         }
-        System.err.println("[CheckRunner.runCheckDir] exit code " + rc
+        ServerLog.serverLog("[CheckRunner.runCheckDir] exit code " + rc
                 + " for " + paths.size() + " path(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of(), Map.of());
@@ -467,7 +467,7 @@ public class CheckRunner {
             try {
                 String astSrcUri = ((org.jmlspecs.openjml.JmlTree.JmlCompilationUnit) ast)
                         .sourcefile.toUri().normalize().toString();
-                System.err.println("[AST listener] jfo=" + jfoUri
+                ServerLog.serverLog("[AST listener] jfo=" + jfoUri
                         + (jfoUri.equals(astSrcUri) ? "" : " ast.sourcefile=" + astSrcUri));
             } catch (Exception ignored) {}
             AST_CACHE.putNav(realUri, astCtx,
@@ -484,7 +484,7 @@ public class CheckRunner {
         } finally {
             api.removeASTListener(astListener);
         }
-        System.err.println("[CheckRunner.runCheckDirWithContext] exit code " + rc
+        ServerLog.serverLog("[CheckRunner.runCheckDirWithContext] exit code " + rc
                 + " for " + fileList.size() + " file(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of(), Map.of());
@@ -509,7 +509,7 @@ public class CheckRunner {
                     uriToTempPath.put(uri, tempFile.toString());
                     allPathToRealUri.put(tempFile.toString(), uri);
                 } catch (IOException ex) {
-                    System.err.println("[CheckRunner.runCheckDirWithContextLegacy] write failed for " + uri + ": " + ex);
+                    ServerLog.serverLog("[CheckRunner.runCheckDirWithContextLegacy] write failed for " + uri + ": " + ex);
                 }
             }
 
@@ -550,12 +550,12 @@ public class CheckRunner {
             args.addAll(fileList);
             logInvocation("runCheckDirWithContextLegacy", args);
             int rc = api.execute(args.toArray(new String[0]));
-            System.err.println("[CheckRunner.runCheckDirWithContextLegacy] exit code " + rc
+            ServerLog.serverLog("[CheckRunner.runCheckDirWithContextLegacy] exit code " + rc
                     + " for " + fileList.size() + " file(s)");
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new DirCheckResult(listener.toLspDiagnosticsAll(allPathToRealUri), rc, Map.of(), Map.of());
         } catch (IOException e) {
-            System.err.println("[CheckRunner.runCheckDirWithContextLegacy] I/O error: " + e);
+            ServerLog.serverLog("[CheckRunner.runCheckDirWithContextLegacy] I/O error: " + e);
             return runCheckDir(paths, settings, projectId);
         } finally {
             deleteTempDir(tempDir);
@@ -798,7 +798,7 @@ public class CheckRunner {
                     uriToTempPath.put(uri, tempFile.toString());
                     allPathToRealUri.put(tempFile.toString(), uri);
                 } catch (IOException ex) {
-                    System.err.println("[CheckRunner.runEscDirWithContextLegacy] write failed for " + uri + ": " + ex);
+                    ServerLog.serverLog("[CheckRunner.runEscDirWithContextLegacy] write failed for " + uri + ": " + ex);
                 }
             }
 
@@ -887,7 +887,7 @@ public class CheckRunner {
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new DirCheckResult(diagsByUri, rc, proofResults, prc.getDiagsByMethod());
         } catch (IOException e) {
-            System.err.println("[CheckRunner.runEscDirWithContextLegacy] I/O error: " + e);
+            ServerLog.serverLog("[CheckRunner.runEscDirWithContextLegacy] I/O error: " + e);
             return runEscDir(paths, settings, perFileCallback);
         } finally {
             deleteTempDir(tempDir);
@@ -925,7 +925,7 @@ public class CheckRunner {
         }
         try { java.nio.file.Files.createDirectories(outputPath); }
         catch (java.io.IOException e) {
-            System.err.println("[CheckRunner.runRacPaths] failed to create output dir: " + e);
+            ServerLog.serverLog("[CheckRunner.runRacPaths] failed to create output dir: " + e);
         }
         args.add("-d");
         args.add(outputPath.toString());
@@ -933,7 +933,7 @@ public class CheckRunner {
         args.addAll(paths);
         logInvocation("runRacPaths", args);
         int rc = api.execute(args.toArray(new String[0]));
-        System.err.println("[CheckRunner.runRacPaths] exit code " + rc
+        ServerLog.serverLog("[CheckRunner.runRacPaths] exit code " + rc
                 + " for " + paths.size() + " path(s)");
         if (rc != 0) {
             StringBuilder sb = new StringBuilder("RAC command args:");
@@ -1063,7 +1063,7 @@ public class CheckRunner {
             try {
                 api.execute(args.toArray(new String[0]), mockFiles);
             } catch (Throwable t) {
-                System.err.println("[CheckRunner.checkModifiedFiles] execute failed: " + t);
+                ServerLog.serverLog("[CheckRunner.checkModifiedFiles] execute failed: " + t);
             }
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             List<org.eclipse.lsp4j.Diagnostic> allDiags = new ArrayList<>();
@@ -1114,7 +1114,7 @@ public class CheckRunner {
             try {
                 api.execute(args.toArray(new String[0]));
             } catch (Throwable t) {
-                System.err.println("[CheckRunner.checkModifiedFiles] execute failed: " + t);
+                ServerLog.serverLog("[CheckRunner.checkModifiedFiles] execute failed: " + t);
             }
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             // Collect all diagnostics across files.
@@ -1125,7 +1125,7 @@ public class CheckRunner {
             }
             return allDiags;
         } catch (IOException e) {
-            System.err.println("[CheckRunner.checkModifiedFiles] I/O error: " + e);
+            ServerLog.serverLog("[CheckRunner.checkModifiedFiles] I/O error: " + e);
             return List.of();
         } finally {
             deleteTempDir(tempDir);
@@ -1172,8 +1172,8 @@ public class CheckRunner {
                 if (!e.getKey().endsWith(".jml"))
                     fileArgToRealUri.put(jfo.getName(), e.getKey());
             }
-            System.err.println("[CheckRunner.checkModifiedFilesAndGetCache/mock] fileArgToRealUri keys:");
-            fileArgToRealUri.forEach((k, v) -> System.err.println("[CheckRunner]   jfoName='" + k + "' -> realUri='" + v + "'"));
+            ServerLog.serverLog("[CheckRunner.checkModifiedFilesAndGetCache/mock] fileArgToRealUri keys:");
+            fileArgToRealUri.forEach((k, v) -> ServerLog.serverLog("[CheckRunner]   jfoName='" + k + "' -> realUri='" + v + "'"));
             // Pass individual files so the IASTListener fires for each compiled file.
             // The -sourcepath handles cross-file resolution; MockAwareFileManager serves
             // modified content for files in modifiedContent, real disk for everything else.
@@ -1190,7 +1190,7 @@ public class CheckRunner {
                 String jfoPath = jfo.toUri().getPath();
                 String jfoName = jfo.getName();
                 String realUri = fileArgToRealUri.get(jfoPath);
-                System.err.println("[CheckRunner.checkModifiedFilesAndGetCache/mock] AST fired:"
+                ServerLog.serverLog("[CheckRunner.checkModifiedFilesAndGetCache/mock] AST fired:"
                         + " jfoName='" + jfoName + "' jfoPath='" + jfoPath + "' realUri=" + realUri);
                 if (realUri != null) {
                     freshCache.put(realUri, astCtx, (JmlCompilationUnit) ast);
@@ -1203,7 +1203,7 @@ public class CheckRunner {
             try {
                 api.execute(args.toArray(new String[0]), mockFiles);
             } catch (Throwable t) {
-                System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] execute failed: " + t);
+                ServerLog.serverLog("[CheckRunner.checkModifiedFilesAndGetCache] execute failed: " + t);
             } finally {
                 api.removeASTListener(astListener);
             }
@@ -1260,7 +1260,7 @@ public class CheckRunner {
             try {
                 api.execute(args.toArray(new String[0]));
             } catch (Throwable t) {
-                System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] execute failed: " + t);
+                ServerLog.serverLog("[CheckRunner.checkModifiedFilesAndGetCache] execute failed: " + t);
             } finally {
                 api.removeASTListener(astListener);
             }
@@ -1272,7 +1272,7 @@ public class CheckRunner {
             }
             return new CheckAndCacheResult(allDiags, freshCache, tempPathToRealUri);
         } catch (IOException e) {
-            System.err.println("[CheckRunner.checkModifiedFilesAndGetCache] I/O error: " + e);
+            ServerLog.serverLog("[CheckRunner.checkModifiedFilesAndGetCache] I/O error: " + e);
             return new CheckAndCacheResult(List.of(), new ASTCache(), Map.of());
         } finally {
             deleteTempDir(tempDir);
@@ -1325,7 +1325,7 @@ public class CheckRunner {
             }
             logInvocation("runEscWithSources", args, primaryContent);
             int rc = api.execute(args.toArray(new String[0]), mockFiles);
-            System.err.println("[CheckRunner.runEscWithSources] exit code " + rc);
+            ServerLog.serverLog("[CheckRunner.runEscWithSources] exit code " + rc);
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new CheckResult(
                     listener.toLspDiagnostics(primaryJfo.getName(), primaryUri),
@@ -1353,7 +1353,7 @@ public class CheckRunner {
 
             logInvocation("runEscWithSources", args, primaryContent);
             int rc = api.execute(args.toArray(new String[0]));
-            System.err.println("[CheckRunner.runEscWithSources] exit code " + rc);
+            ServerLog.serverLog("[CheckRunner.runEscWithSources] exit code " + rc);
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new CheckResult(
                     listener.toLspDiagnostics(tempFile.toString(), primaryUri),
@@ -1361,7 +1361,7 @@ public class CheckRunner {
                     listener.toForeignMessages(tempFile.toString()), Map.of(),
                     prc.getDiagsByMethod());
         } catch (IOException e) {
-            System.err.println("[CheckRunner.runEscWithSources] I/O error: " + e);
+            ServerLog.serverLog("[CheckRunner.runEscWithSources] I/O error: " + e);
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         } finally {
             deleteTempDir(tempDir);
@@ -1522,7 +1522,7 @@ public class CheckRunner {
                       consumer.accept(f);
                   });
         } catch (IOException | java.io.UncheckedIOException ex) {
-            System.err.println("[CheckRunner." + label + "] walk failed for " + dir + ": " + ex);
+            ServerLog.serverLog("[CheckRunner." + label + "] walk failed for " + dir + ": " + ex);
         }
     }
 
@@ -2006,7 +2006,7 @@ public class CheckRunner {
         } finally {
             api.removeASTListener(astListener);
         }
-        System.err.println("[CheckRunner.runOnFile] exit code " + rc
+        ServerLog.serverLog("[CheckRunner.runOnFile] exit code " + rc
                 + " (" + modeFlag + ")");
 
         if (capturedAst[0] != null) {
@@ -2067,7 +2067,7 @@ public class CheckRunner {
                                               OpenJMLSettings settings) {
         ASTCache.Entry entry = AST_CACHE.get(uri);
         if (entry == null || !entry.supportsDoEsc()) {
-            System.err.println("[CheckRunner.runDoEscMethod] no cached IAPI for " + uri
+            ServerLog.serverLog("[CheckRunner.runDoEscMethod] no cached IAPI for " + uri
                     + " — falling back to subprocess");
             String filePath = uriToPath(uri);
             if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
@@ -2077,7 +2077,7 @@ public class CheckRunner {
         String simple = simpleName(methodName);
         List<JmlTree.JmlMethodDecl> methods = findMethodsBySimpleName(entry.ast(), simple);
         if (methods.isEmpty()) {
-            System.err.println("[CheckRunner.runDoEscMethod] method '" + simple
+            ServerLog.serverLog("[CheckRunner.runDoEscMethod] method '" + simple
                     + "' not found in cached AST for " + uri + " — falling back to subprocess");
             String filePath = uriToPath(uri);
             if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
@@ -2120,7 +2120,7 @@ public class CheckRunner {
             Consumer<MethodEscResult> onMethodComplete) {
         ASTCache.Entry entry = AST_CACHE.get(uri);
         if (entry == null || !entry.supportsDoEsc()) {
-            System.err.println("[CheckRunner.runDoEscFileAsync] no cached IAPI for " + uri
+            ServerLog.serverLog("[CheckRunner.runDoEscFileAsync] no cached IAPI for " + uri
                     + " — falling back to subprocess");
             String filePath = uriToPath(uri);
             CheckResult result = (filePath != null)
@@ -2145,7 +2145,7 @@ public class CheckRunner {
                     }, settings.escPool)
                     .whenComplete((r, ex) -> {
                         if (r != null && onMethodComplete != null) onMethodComplete.accept(r);
-                        if (ex != null) System.err.println(
+                        if (ex != null) ServerLog.serverLog(
                                 "[CheckRunner.runDoEscFileAsync] task failed: " + ex);
                     });
             futures.add(f);
@@ -2164,7 +2164,7 @@ public class CheckRunner {
                         allDiags.addAll(r.diags());
                         if (r.exitCode() != 0) exitCode = r.exitCode();
                     }
-                    System.err.println("[CheckRunner.runDoEscFileAsync] done, exitCode="
+                    ServerLog.serverLog("[CheckRunner.runDoEscFileAsync] done, exitCode="
                             + exitCode + " diags=" + allDiags.size() + " uri=" + uri);
                     return new CheckResult(allDiags, exitCode, proofResults, List.of(), Map.of(), Map.of());
                 });
@@ -2178,7 +2178,7 @@ public class CheckRunner {
             Thread.currentThread().interrupt();
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         } catch (ExecutionException e) {
-            System.err.println("[CheckRunner.runDoEscFile] failed: " + e.getCause());
+            ServerLog.serverLog("[CheckRunner.runDoEscFile] failed: " + e.getCause());
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         }
     }
@@ -2213,7 +2213,7 @@ public class CheckRunner {
         ASTCache.Entry entry = AST_CACHE.get(uri);
         List<JmlTree.JmlMethodDecl> methods = (entry != null) ? findAllMethods(entry.ast()) : List.of();
         if (methods.isEmpty()) {
-            System.err.println("[CheckRunner.runFreshParallelEscFileAsync] no method list for "
+            ServerLog.serverLog("[CheckRunner.runFreshParallelEscFileAsync] no method list for "
                     + uri + " — falling back to full ESC");
             CheckResult result = (content != null)
                     ? runEsc(uri, content, settings)
@@ -2246,7 +2246,7 @@ public class CheckRunner {
                     }, settings.escPool)
                     .whenComplete((r, ex) -> {
                         if (r != null && onMethodComplete != null) onMethodComplete.accept(r);
-                        if (ex != null) System.err.println(
+                        if (ex != null) ServerLog.serverLog(
                                 "[CheckRunner.runFreshParallelEscFileAsync] task failed: " + ex);
                     });
             futures.add(f);
@@ -2279,7 +2279,7 @@ public class CheckRunner {
             Thread.currentThread().interrupt();
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         } catch (ExecutionException e) {
-            System.err.println("[CheckRunner.runFreshParallelEscFile] failed: " + e.getCause());
+            ServerLog.serverLog("[CheckRunner.runFreshParallelEscFile] failed: " + e.getCause());
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         }
     }
@@ -2307,7 +2307,7 @@ public class CheckRunner {
         String msig = method.sym != null
                 ? method.sym.owner.toString() + " " + method.sym.toString()
                 : method.name.toString();
-        System.err.println("[CheckRunner.doEscOneMethod] doESC on " + method.name + " in " + uri);
+        ServerLog.serverLog("[CheckRunner.doEscOneMethod] doESC on " + method.name + " in " + uri);
         log(ts() + " --esc " + msig + " starting");
         entry.diagListener().startCapture();
         IProverResult result;
@@ -2324,7 +2324,7 @@ public class CheckRunner {
                         rawDiags, entry.sourcePath(), uri, DiagnosticConverter.SOURCE_ESC);
         IProverResult.Kind kind = result != null ? result.result() : null;
         int exitCode = (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) ? 6 : 0;
-        System.err.println("[CheckRunner.doEscOneMethod] " + method.name
+        ServerLog.serverLog("[CheckRunner.doEscOneMethod] " + method.name
                 + " -> " + kind + ", exitCode=" + exitCode);
         log(ts() + " --esc " + msig + ": " + kindLabel(kind));
         return new SingleEscResult(method.name.toString(), kind, lspDiags, exitCode);
@@ -2491,7 +2491,7 @@ public class CheckRunner {
         //sb.append("  OPENJML_INSTALL=").append(System.getenv("OPENJML_INSTALL")).append('\n');
         //sb.append("  OPENJML_SPECS=").append(System.getenv("OPENJML_SPECS")).append('\n');
         //sb.append("  OPENJML_SOLVERS=").append(System.getenv("OPENJML_SOLVERS")).append('\n');
-        System.err.print(sb);
+        ServerLog.serverLog(sb.toString());
     }
 
     /**

@@ -308,9 +308,9 @@ public class SemanticTokensProvider {
             Position.LineMap lm = forceLineOffsetFallback.get() ? null : cu.lineMap;
             if (lm == null) {
                 if (cu.lineMap != null)
-                    System.err.println("[SemanticTokens] NOTE: forceLineOffsetFallback active — using buildLineOffsets.");
+                    ServerLog.serverLog("[SemanticTokens] NOTE: forceLineOffsetFallback active — using buildLineOffsets.");
                 else
-                    System.err.println("[SemanticTokens] WARNING: lineMap is null — " +
+                    ServerLog.serverLog("[SemanticTokens] WARNING: lineMap is null — " +
                         "falling back to source-scanning for offset→line:col. " +
                         "If this persists, verify that -g is passed to OpenJML invocations.");
                 this.lineMap    = null;

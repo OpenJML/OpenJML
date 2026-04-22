@@ -103,7 +103,7 @@ public final class IncrementalSyncApplier {
         // multi-change sb.replace() path.
         int numIncremental = changes.size() - firstIdx;
         if (numIncremental > 1) {
-            System.err.println("[IncrementalSyncApplier] " + numIncremental
+            ServerLog.serverLog("[IncrementalSyncApplier] " + numIncremental
                     + " incremental changes in one didChange event");
         }
 

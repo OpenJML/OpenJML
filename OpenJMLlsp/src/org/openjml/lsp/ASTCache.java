@@ -336,17 +336,17 @@ public class ASTCache {
             // Rebuild all sections (used when no specific project is known).
             for (java.util.Map.Entry<String, NavSection> e : navSections.entrySet()) {
                 int n = rebuildSection(e.getKey(), e.getValue());
-                System.err.println("[ASTCache] nav index rebuilt for " + e.getKey()
+                ServerLog.serverLog("[ASTCache] nav index rebuilt for " + e.getKey()
                         + ": " + n + " declaration(s)");
             }
         } else {
             NavSection section = navSections.get(projectId);
             if (section != null) {
                 int n = rebuildSection(projectId, section);
-                System.err.println("[ASTCache] nav index rebuilt for " + projectId
+                ServerLog.serverLog("[ASTCache] nav index rebuilt for " + projectId
                         + ": " + n + " declaration(s)");
             } else {
-                System.err.println("[ASTCache] nav index rebuild: no section for project '"
+                ServerLog.serverLog("[ASTCache] nav index rebuild: no section for project '"
                         + projectId + "'");
             }
         }
@@ -363,7 +363,7 @@ public class ASTCache {
     public void rebuildNavIndex() {
         for (java.util.Map.Entry<String, NavSection> e : navSections.entrySet()) {
             int n = rebuildSection(e.getKey(), e.getValue());
-            System.err.println("[ASTCache] nav index rebuilt for " + e.getKey()
+            ServerLog.serverLog("[ASTCache] nav index rebuilt for " + e.getKey()
                     + ": " + n + " declaration(s)");
         }
     }
