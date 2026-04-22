@@ -544,6 +544,38 @@ public abstract class LspCommandHandler extends AbstractHandler {
     }
 
     /**
+     * Send {@code textDocument/didChange} with full text to the server for every
+     * open dirty source editor. Called after Clear &amp; Reindex so the server's
+     * in-memory content for unsaved files is restored after the cache wipe.
+     */
+    private static void sendDirtyEditorsToServer() {
+        for (IEditorPart editor : dirtySourceEditors()) {
+            if (!(editor.getEditorInput() instanceof IFileEditorInput fei)) continue;
+            IFile file = fei.getFile();
+            if (!JmlNature.hasNature(file.getProject())) continue;
+            org.eclipse.jface.text.IDocument doc = getDocument(file);
+            if (doc == null) continue;
+            String uri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(file).toString();
+            String text = doc.get();
+            org.eclipse.lsp4j.DidChangeTextDocumentParams params =
+                    new org.eclipse.lsp4j.DidChangeTextDocumentParams();
+            org.eclipse.lsp4j.VersionedTextDocumentIdentifier id =
+                    new org.eclipse.lsp4j.VersionedTextDocumentIdentifier(uri, 1);
+            params.setTextDocument(id);
+            org.eclipse.lsp4j.TextDocumentContentChangeEvent change =
+                    new org.eclipse.lsp4j.TextDocumentContentChangeEvent(text);
+            params.setContentChanges(List.of(change));
+            try {
+                LanguageServers.forDocument(doc).computeFirst(
+                        server -> { server.getTextDocumentService().didChange(params); return null; });
+                Console.log("Sent didChange for dirty editor: " + file.getName());
+            } catch (Exception e) {
+                Console.errorlog("sendDirtyEditorsToServer failed for " + file.getName(), e);
+            }
+        }
+    }
+
+    /**
      * Check for dirty source editors and, based on the
      * {@link OpenJMLOptions#escDirtyFilesBehaviorKey} preference, either save
      * them, proceed as-is (server uses in-memory content), or ask the user.
@@ -1129,6 +1161,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
             // 2. Send clearAndReindex to the server.
             ExecuteCommandParams p = new ExecuteCommandParams(OpenJMLConstants.CMD_CLEAR_AND_REINDEX, List.of());
             if (sendViaWrapper(LspPartListener.cachedWrapper, p)) {
+                sendDirtyEditorsToServer();
                 return null;
             }
             for (org.eclipse.core.resources.IProject project :
@@ -1137,6 +1170,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 if (JmlNature.hasNature(project)) {
                     LanguageServers.forProject(project).computeFirst(
                             server -> server.getWorkspaceService().executeCommand(p));
+                    sendDirtyEditorsToServer();
                     return null;
                 }
             }

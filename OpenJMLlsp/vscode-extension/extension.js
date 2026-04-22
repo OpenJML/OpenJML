@@ -851,6 +851,18 @@ async function activate(context) {
     // from scratch: re-checks open files and re-indexes the workspace.
     const clearCmd = vscode.commands.registerCommand('openjml.clearAndReindex', async () => {
         if (!client) { requireServer(); return; }
+        // Require all dirty source editors to be saved first — the server wipes its
+        // in-memory content cache and re-reads from disk, so unsaved changes would be lost.
+        const dirtyDocs = vscode.workspace.textDocuments.filter(
+            d => d.isDirty && (d.languageId === 'java' || d.fileName.endsWith('.jml')));
+        if (dirtyDocs.length > 0) {
+            const names = dirtyDocs.map(d => d.fileName.split('/').pop()).join(', ');
+            const choice = await vscode.window.showWarningMessage(
+                `OpenJML: save unsaved files before Clear & Reindex?\n${names}`,
+                'Save All', 'Cancel');
+            if (choice !== 'Save All') return;
+            await vscode.workspace.saveAll(false);
+        }
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command:   CMD_CLEAR_AND_REINDEX,
