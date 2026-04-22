@@ -25,11 +25,11 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.window.Window;
-import org.eclipse.lsp4e.LSPEclipseUtils;
+import org.eclipse.lsp4e.LanguageServers;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
-import org.eclipse.lsp4j.WorkspaceSymbolParams;
 import org.eclipse.search.ui.ISearchQuery;
 import org.eclipse.search.ui.ISearchResult;
 import org.eclipse.search.ui.NewSearchUI;
@@ -355,75 +355,46 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
 
     private static List<SymbolInformation> queryDeclarations(String query, IProject project) {
         String projectId = (project != null) ? project.getName() : null;
-        List<SymbolInformation> results = symbolsViaWrapper(
-                LspPartListener.cachedWrapper, query, projectId);
-        if (results == null) {
-            Console.log("Find declarations: OpenJML server not available");
-            return List.of();
+        List<Object> args = new java.util.ArrayList<>();
+        args.add(query != null ? query : "");
+        args.add(projectId);   // null → server searches all projects
+        ExecuteCommandParams params = new ExecuteCommandParams(
+                OpenJMLConstants.CMD_SYMBOLS_FOR_PROJECT, args);
+
+        // 1. Try direct access via cached language client (fastest — same JVM).
+        OpenJMLLanguageClient lc = OpenJMLCodeMiningProvider.languageClient;
+        org.eclipse.lsp4j.services.LanguageServer ls = lc != null ? lc.server() : null;
+        if (ls != null) {
+            try {
+                Object raw = ls.getWorkspaceService().executeCommand(params)
+                        .get(15, TimeUnit.SECONDS);
+                Console.log("Find declarations (direct): " + raw);
+                return parseSymbolList(raw);
+            } catch (Throwable t) {
+                Console.log("Find declarations (direct) failed: " + t);
+            }
         }
-        return results;
+
+        // 2. Fall back to LSP4E routing via the active project.
+        if (project != null) {
+            try {
+                Object raw = LanguageServers.forProject(project)
+                        .computeFirst(server -> server.getWorkspaceService().executeCommand(params))
+                        .get(15, TimeUnit.SECONDS)
+                        .orElse(null);
+                Console.log("Find declarations (LSP4E): " + raw);
+                return parseSymbolList(raw);
+            } catch (Throwable t) {
+                Console.log("Find declarations (LSP4E) failed: " + t);
+            }
+        }
+
+        Console.errorlog("Find declarations: OpenJML server not available");
+        return List.of();
     }
 
     /**
-     * Send a {@code workspace/symbol} request to the language server with the
-     * project ID encoded in the query string as {@code "<projectId>\n<query>"}.
-     */
-    private static List<SymbolInformation> symbolsViaWrapper(
-            Object wrapper, String query, String projectId) {
-        if (wrapper == null) {
-            Console.log("OpenJML: Find declarations — server not available");
-            return null;
-        }
-        try {
-            java.lang.reflect.Method getServer = null;
-            for (Class<?> c = wrapper.getClass();
-                    c != null && c != Object.class; c = c.getSuperclass()) {
-                try {
-                    getServer = c.getDeclaredMethod("getServer");
-                    getServer.setAccessible(true);
-                    break;
-                } catch (NoSuchMethodException ignored) {}
-            }
-            if (getServer == null) {
-                Console.log("OpenJML: Find declarations — getServer() not found on "
-                        + wrapper.getClass().getName());
-                return null;
-            }
-
-            Object serverFuture = getServer.invoke(wrapper);
-            org.eclipse.lsp4j.services.LanguageServer server = null;
-            if (serverFuture instanceof java.util.concurrent.CompletableFuture<?> cf) {
-                Object res = cf.get(5, TimeUnit.SECONDS);
-                if (res instanceof org.eclipse.lsp4j.services.LanguageServer ls) server = ls;
-            } else if (serverFuture instanceof org.eclipse.lsp4j.services.LanguageServer ls) {
-                server = ls;
-            }
-            if (server == null) {
-                Console.log("OpenJML: Find declarations — server not ready");
-                return null;
-            }
-
-            String encodedQuery = (projectId != null && !projectId.isEmpty())
-                    ? projectId + "\n" + query : query;
-            WorkspaceSymbolParams wsParams = new WorkspaceSymbolParams(encodedQuery);
-            Object wsRaw = server.getWorkspaceService().symbol(wsParams)
-                    .get(15, TimeUnit.SECONDS);
-
-            Object listObj = wsRaw;
-            if (wsRaw instanceof org.eclipse.lsp4j.jsonrpc.messages.Either<?,?> either) {
-                listObj = either.isLeft() ? either.getLeft() : either.getRight();
-            }
-
-            return parseSymbolList(listObj);
-        } catch (Throwable t) {
-            Console.log("OpenJML: Find declarations exception: " + t);
-            t.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * Deserialize the raw {@code workspace/symbol} result into a typed list.
+     * Deserialize the raw {@code openjml.symbolsForProject} result into a typed list.
      *
      * <p>LSP4j may deliver the response as typed {@code WorkspaceSymbol} objects
      * (when the response is processed within the same JVM), or as a {@code JsonArray},

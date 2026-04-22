@@ -1,5 +1,6 @@
 package org.openjml.lsp;
 
+import com.google.gson.JsonNull;
 import com.google.gson.JsonPrimitive;
 
 import java.util.LinkedHashMap;
@@ -110,6 +111,7 @@ public final class CommandRegistry {
     /** Unwrap a Gson {@link JsonPrimitive} or fall back to {@link String#valueOf}. */
     static String extractString(Object arg) {
         if (arg instanceof JsonPrimitive jp) return jp.getAsString();
+        if (arg instanceof JsonNull) return null;
         if (arg != null) return String.valueOf(arg);
         return null;
     }

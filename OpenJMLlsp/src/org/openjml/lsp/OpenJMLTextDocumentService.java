@@ -1625,17 +1625,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *                    root encoded in {@code query}; {@code null} = no filter
      */
     List<org.eclipse.lsp4j.WorkspaceSymbol> symbols(String query, String projectRoot) {
-        String raw = query == null ? "" : query.trim();
-
-        // Extract an encoded project ID from the query string.
-        // Format: "<projectId>\n<identifier>" — newlines cannot appear in
-        // Java identifiers, so this separator is unambiguous.
+        // Extract the encoded project ID before trimming: trim() strips trailing '\n',
+        // which would hide an empty identifier after "ProjectId\n".
         String projectId = projectRoot; // explicit argument takes precedence
-        int nlIdx = raw.indexOf('\n');
+        String raw;
+        int nlIdx = (query != null) ? query.indexOf('\n') : -1;
         if (nlIdx >= 0 && projectId == null) {
-            projectId = raw.substring(0, nlIdx).trim();
-            raw = raw.substring(nlIdx + 1).trim();
+            projectId = query.substring(0, nlIdx).trim();
+            raw = query.substring(nlIdx + 1).trim();
             if (projectId.isEmpty()) projectId = null;
+        } else {
+            raw = query == null ? "" : query.trim();
         }
 
         // Strip any surrounding quote characters that a client might accidentally include.

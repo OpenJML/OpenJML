@@ -22,19 +22,23 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.*;
 
 /**
- * Protocol-layer tests for {@code openjml.symbolsForProject}.
+ * Protocol-layer tests for {@code openjml.symbolsForProject} and
+ * {@code workspace/symbol}.
  *
- * <p>Verifies that after a project-wide index, the command returns the correct
- * {@code SymbolInformation} objects — including the symbol name, kind, and a
- * location pointing to the right file.  Also covers the live-tier fallback path
- * (declarations in the live index are found even when no nav section has been
- * indexed for the project ID yet, e.g. after a server restart).
- *
- * <p>Two source files are used:
+ * <p>Single-project tests verify that after a project-wide index the command
+ * returns correct {@code WorkspaceSymbol} objects.  Multi-project tests verify
+ * that:
  * <ul>
- *   <li>{@code Alpha.java} — declares class {@code Alpha} with method {@code compute}</li>
- *   <li>{@code Beta.java} — declares class {@code Beta}</li>
- *   <li>{@code Marker.java} — has a type error, used as indexProject sync marker</li>
+ *   <li>{@code workspace/symbol} with an encoded project ID and
+ *       {@code openjml.symbolsForProject} return identical results for the same
+ *       project.</li>
+ *   <li>All three APIs ({@code workspace/symbol} scoped, {@code symbolsForProject},
+ *       and {@code workspace/symbol} unscoped) return results in the same
+ *       {@code WorkspaceSymbol} format (name, kind, location with uri+range).</li>
+ *   <li>The unscoped {@code workspace/symbol} result is a superset of the scoped
+ *       results when multiple projects are indexed.</li>
+ *   <li>Specific symbol names, kinds (LSP {@code SymbolKind} integers), and file
+ *       URIs are correct.</li>
  * </ul>
  */
 public class SymbolsForProjectTest {
@@ -273,6 +277,214 @@ public class SymbolsForProjectTest {
         JsonArray results = querySymbols("Alpha", "NonExistentProject");
         assertEquals("Unknown project ID must return empty array", 0, results.size());
     }
+
+    /**
+     * Send {@code workspace/symbol} with the given query and return the result array.
+     * The query may contain a newline to encode a project ID:
+     * {@code "<projectId>\nidentifier"}.
+     */
+    private JsonArray queryWorkspaceSymbol(String query) throws Exception {
+        String jsonQuery = query
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
+        client.sendRequest("workspace/symbol", "{\"query\":\"" + jsonQuery + "\"}");
+        JsonObject resp = client.nextResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Server must respond to workspace/symbol", resp);
+        assertFalse("workspace/symbol must not return an error", resp.has("error"));
+        assertTrue("workspace/symbol result must be present", resp.has("result"));
+        JsonElement resultEl = resp.get("result");
+        assertTrue("workspace/symbol result must be a JSON array", resultEl.isJsonArray());
+        return resultEl.getAsJsonArray();
+    }
+
+    /** Configure two named projects with separate root directories. */
+    private void configureMultiProject(String alphaRoot, String betaRoot) throws Exception {
+        String rootA = escape(alphaRoot);
+        String rootB = escape(betaRoot);
+        String settings = "{\"openjml\":{\"projects\":["
+                + "{\"id\":\"ProjectAlpha\",\"rootPaths\":[\"" + rootA + "\"]},"
+                + "{\"id\":\"ProjectBeta\",\"rootPaths\":[\"" + rootB + "\"]}"
+                + "]}}";
+        client.sendNotification("workspace/didChangeConfiguration",
+                "{\"settings\":" + settings + "}");
+        Thread.sleep(100);
+    }
+
+    /** Index a named project and wait for the marker file to publish diagnostics. */
+    private void indexNamedProject(String projectId, String markerFileName) throws Exception {
+        client.sendRequest("workspace/executeCommand",
+                "{\"command\":\"" + OpenJMLCommands.INDEX_PROJECT
+                + "\",\"arguments\":[\"" + projectId + "\"]}");
+        client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
+        while (true) {
+            long rem = deadline - System.nanoTime();
+            assertTrue("indexProject " + projectId + " must complete within timeout", rem > 0);
+            JsonObject msg = client.nextNotification(
+                    "textDocument/publishDiagnostics", rem, TimeUnit.NANOSECONDS);
+            assertNotNull("indexProject " + projectId + " must publish diagnostics", msg);
+            JsonObject params = msg.getAsJsonObject("params");
+            if (!params.get("uri").getAsString().contains(markerFileName)) continue;
+            if (!params.getAsJsonArray("diagnostics").isEmpty()) break;
+        }
+    }
+
+    /**
+     * Assert every element in {@code arr} is a well-formed {@code WorkspaceSymbol}:
+     * has {@code name}, {@code kind}, and {@code location} with {@code uri} and
+     * {@code range} (with {@code start} and {@code end}).
+     */
+    private static void assertWorkspaceSymbolFormat(JsonArray arr, String label) {
+        assertFalse(label + " must not be empty for format check", arr.isEmpty());
+        for (JsonElement el : arr) {
+            assertTrue(label + ": each element must be a JSON object", el.isJsonObject());
+            JsonObject obj = el.getAsJsonObject();
+            assertTrue(label + ": must have 'name'",     obj.has("name"));
+            assertTrue(label + ": must have 'kind'",     obj.has("kind"));
+            assertTrue(label + ": must have 'location'", obj.has("location"));
+            JsonObject loc = obj.getAsJsonObject("location");
+            assertTrue(label + ": location must have 'uri'",   loc.has("uri"));
+            assertTrue(label + ": location must have 'range'", loc.has("range"));
+            JsonObject range = loc.getAsJsonObject("range");
+            assertTrue(label + ": range must have 'start'", range.has("start"));
+            assertTrue(label + ": range must have 'end'",   range.has("end"));
+        }
+    }
+
+    /**
+     * Assert that two symbol arrays contain the same set of symbols, identified
+     * by the triple (name, kind, uri).
+     */
+    private static void assertSameSymbols(String label, JsonArray a, JsonArray b) {
+        java.util.Set<String> keysA = symbolKeys(a);
+        java.util.Set<String> keysB = symbolKeys(b);
+        assertEquals(label, keysA, keysB);
+    }
+
+    private static java.util.Set<String> symbolKeys(JsonArray arr) {
+        java.util.Set<String> keys = new java.util.LinkedHashSet<>();
+        for (JsonElement el : arr) {
+            JsonObject obj = el.getAsJsonObject();
+            String name = obj.get("name").getAsString();
+            int    kind = obj.get("kind").getAsInt();
+            String uri  = obj.getAsJsonObject("location").get("uri").getAsString();
+            keys.add(name + ":" + kind + ":" + uri);
+        }
+        return keys;
+    }
+
+    // -----------------------------------------------------------------------
+    // Multi-project tests
+    // -----------------------------------------------------------------------
+
+    /**
+     * Two named projects, each with a {@code sharedCompute} method plus project-unique
+     * class names.  Verifies:
+     * <ol>
+     *   <li>All three APIs return the same {@code WorkspaceSymbol} JSON format.</li>
+     *   <li>{@code workspace/symbol} with {@code "ProjectAlpha\nsharedCompute"} and
+     *       {@code openjml.symbolsForProject("sharedCompute","ProjectAlpha")} return
+     *       identical results.</li>
+     *   <li>Unscoped {@code workspace/symbol("sharedCompute")} is a superset: it
+     *       contains {@code sharedCompute} from both {@code AlphaOnly.java} and
+     *       {@code BetaOnly.java}.</li>
+     *   <li>The scoped result points only to {@code AlphaOnly.java}, not
+     *       {@code BetaOnly.java}.</li>
+     *   <li>The {@code AlphaOnly} class itself (SymbolKind.Class = 5) appears in the
+     *       scoped result with its location in {@code AlphaOnly.java}.</li>
+     * </ol>
+     */
+    @Test
+    public void testMultiProject_symbolConsistencyAndSuperset() throws Exception {
+        Path alphaDir = tmpDir.resolve("alpha");
+        Path betaDir  = tmpDir.resolve("beta");
+        Files.createDirectories(alphaDir);
+        Files.createDirectories(betaDir);
+
+        Files.writeString(alphaDir.resolve("AlphaOnly.java"),
+                "public class AlphaOnly {\n"
+                + "    public int sharedCompute(int x) { return x + 1; }\n"
+                + "}\n", StandardCharsets.UTF_8);
+        Files.writeString(alphaDir.resolve("AlphaMarker.java"),
+                "public class AlphaMarker {\n"
+                + "    public int m() { return \"type error\"; }\n"
+                + "}\n", StandardCharsets.UTF_8);
+
+        Files.writeString(betaDir.resolve("BetaOnly.java"),
+                "public class BetaOnly {\n"
+                + "    public int sharedCompute(int x) { return x * 2; }\n"
+                + "}\n", StandardCharsets.UTF_8);
+        Files.writeString(betaDir.resolve("BetaMarker.java"),
+                "public class BetaMarker {\n"
+                + "    public int m() { return \"type error\"; }\n"
+                + "}\n", StandardCharsets.UTF_8);
+
+        configureMultiProject(alphaDir.toAbsolutePath().toString(),
+                              betaDir.toAbsolutePath().toString());
+        indexNamedProject("ProjectAlpha", "AlphaMarker");
+        indexNamedProject("ProjectBeta",  "BetaMarker");
+
+        // Query 1: workspace/symbol scoped to ProjectAlpha via encoded query.
+        JsonArray wsAlpha  = queryWorkspaceSymbol("ProjectAlpha\nsharedCompute");
+        // Query 2: openjml.symbolsForProject scoped to ProjectAlpha.
+        JsonArray sfpAlpha = querySymbols("sharedCompute", "ProjectAlpha");
+        // Query 3: workspace/symbol with no project filter.
+        JsonArray wsAll    = queryWorkspaceSymbol("sharedCompute");
+
+        // All three must use the WorkspaceSymbol format.
+        assertWorkspaceSymbolFormat(wsAlpha,  "workspace/symbol(ProjectAlpha)");
+        assertWorkspaceSymbolFormat(sfpAlpha, "symbolsForProject(ProjectAlpha)");
+        assertWorkspaceSymbolFormat(wsAll,    "workspace/symbol(all)");
+
+        // Queries 1 and 2 must return exactly the same symbol set.
+        assertFalse("workspace/symbol(ProjectAlpha) must be non-empty",  wsAlpha.isEmpty());
+        assertFalse("symbolsForProject(ProjectAlpha) must be non-empty", sfpAlpha.isEmpty());
+        assertSameSymbols(
+                "workspace/symbol(ProjectAlpha) and symbolsForProject(ProjectAlpha) must match",
+                wsAlpha, sfpAlpha);
+
+        // Query 3 must be a superset.
+        assertTrue("workspace/symbol(all) must have at least as many results as scoped query",
+                wsAll.size() >= wsAlpha.size());
+
+        // Scoped result: sharedCompute must point to AlphaOnly.java only.
+        JsonObject alphaMethod = findSymbol(wsAlpha, "sharedCompute", 6);
+        assertNotNull("sharedCompute (Method=6) must appear in ProjectAlpha results", alphaMethod);
+        String alphaMethodUri = alphaMethod.getAsJsonObject("location").get("uri").getAsString();
+        assertTrue("sharedCompute in ProjectAlpha must point to AlphaOnly.java; got: " + alphaMethodUri,
+                alphaMethodUri.contains("AlphaOnly"));
+        assertFalse("sharedCompute in ProjectAlpha must NOT point to BetaOnly.java; got: " + alphaMethodUri,
+                alphaMethodUri.contains("BetaOnly"));
+
+        // Query all ProjectAlpha symbols (empty query) to check for the AlphaOnly class.
+        JsonArray wsAlphaAll = queryWorkspaceSymbol("ProjectAlpha\n");
+        assertWorkspaceSymbolFormat(wsAlphaAll, "workspace/symbol(ProjectAlpha, all)");
+        JsonObject alphaClass = findSymbol(wsAlphaAll, "AlphaOnly", 5);
+        assertNotNull("AlphaOnly (Class=5) must appear in ProjectAlpha all-symbol results", alphaClass);
+        String alphaClassUri = alphaClass.getAsJsonObject("location").get("uri").getAsString();
+        assertTrue("AlphaOnly class must point to AlphaOnly.java; got: " + alphaClassUri,
+                alphaClassUri.contains("AlphaOnly"));
+
+        // Unscoped result: sharedCompute must appear for both AlphaOnly and BetaOnly.
+        boolean hasAlpha = false, hasBeta = false;
+        for (JsonElement el : wsAll) {
+            JsonObject obj = el.getAsJsonObject();
+            if (!"sharedCompute".equals(obj.get("name").getAsString())) continue;
+            if (obj.get("kind").getAsInt() != 6) continue;
+            String uri = obj.getAsJsonObject("location").get("uri").getAsString();
+            if (uri.contains("AlphaOnly")) hasAlpha = true;
+            if (uri.contains("BetaOnly"))  hasBeta  = true;
+        }
+        assertTrue("workspace/symbol(all) must include sharedCompute from AlphaOnly", hasAlpha);
+        assertTrue("workspace/symbol(all) must include sharedCompute from BetaOnly",  hasBeta);
+    }
+
+    // -----------------------------------------------------------------------
+    // Live-index fallback
+    // -----------------------------------------------------------------------
 
     /**
      * Even without a prior {@code openjml.indexProject}, a file that was opened
