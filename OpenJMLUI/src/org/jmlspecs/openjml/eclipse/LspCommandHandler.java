@@ -84,6 +84,11 @@ public abstract class LspCommandHandler extends AbstractHandler {
         this.lspCommand = lspCommand;
     }
 
+    // Debounce: ignore duplicate dispatches of the same command+args within this window.
+    private static final long DEBOUNCE_MS = 500;
+    private static final java.util.concurrent.ConcurrentHashMap<String, Long> lastDispatch =
+            new java.util.concurrent.ConcurrentHashMap<>();
+
     /**
      * Default execute: resolve targets and dispatch grouped by project.
      * Handlers that need pre-dispatch logic (e.g. dirty-file checks) override this.
@@ -304,6 +309,11 @@ public abstract class LspCommandHandler extends AbstractHandler {
     private static void dispatchCommand(ExecuteCommandParams params,
                                         org.eclipse.jface.text.IDocument doc,
                                         org.eclipse.core.resources.IProject project) {
+        // Debounce: drop duplicate dispatches within DEBOUNCE_MS (e.g. double-click on toolbar).
+        String key = params.getCommand() + "|" + params.getArguments();
+        long now = System.currentTimeMillis();
+        Long prev = lastDispatch.put(key, now);
+        if (prev != null && (now - prev) < DEBOUNCE_MS) return;
         try {
             java.util.concurrent.CompletableFuture<java.util.Optional<Object>> cf =
                     doc != null

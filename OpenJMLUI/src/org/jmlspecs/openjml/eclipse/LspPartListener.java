@@ -52,6 +52,14 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     private final java.util.Map<org.eclipse.core.runtime.IPath, JmlColorizer> colorizersByPath =
             new java.util.concurrent.ConcurrentHashMap<>();
 
+    /**
+     * URIs whose document content has changed since the last colorizer refresh.
+     * Set by the per-document change listener installed in {@link #setupColorizer};
+     * cleared after a colorizer refresh so that ESC-only runs (no edit) don't trigger one.
+     */
+    private static final java.util.Set<String> editedSinceRefresh =
+            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+
     /** .java editors that have had JmlAutoEditStrategy installed (to avoid duplicates). */
     private final java.util.Set<IEditorPart> autoEditEditors =
             java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(
@@ -498,9 +506,15 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             final java.util.function.Consumer<Object> orig = original;
             java.util.function.Consumer<Object> wrapped = params -> {
                 if (orig != null) orig.accept(params);
+                // Refresh the colorizer only if the document content changed since the last
+                // refresh (tracked by the per-document listener installed in setupColorizer).
+                // This fires correctly after any check/ESC that follows an edit, but is a
+                // no-op for ESC runs on unchanged source — where tokens cannot have changed.
                 try {
                     String uri = (String) params.getClass().getMethod("getUri").invoke(params);
-                    if (uri != null) refreshColorizerForUri(uri);
+                    if (uri != null && editedSinceRefresh.remove(uri)) {
+                        refreshColorizerForUri(uri);
+                    }
                 } catch (Exception ignored) {}
                 // Code-mining refresh is handled by OpenJMLLanguageClient.refreshCodeLenses().
             };
@@ -594,6 +608,14 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 JmlColorizer colorizer = new JmlColorizer(viewer, doc, fileUri);
                 ext4.addTextPresentationListener(colorizer);
                 colorizersByPath.put(file.getFullPath(), colorizer);
+                // Mark URI dirty whenever the document content changes so the diagnostics
+                // hook knows to refresh the colorizer after the next check completes.
+                doc.addDocumentListener(new org.eclipse.jface.text.IDocumentListener() {
+                    @Override public void documentAboutToBeChanged(org.eclipse.jface.text.DocumentEvent e) {}
+                    @Override public void documentChanged(org.eclipse.jface.text.DocumentEvent e) {
+                        editedSinceRefresh.add(fileUri);
+                    }
+                });
                 System.err.println("[OpenJML] JML colorizer installed for " + file.getName());
                 // Immediate fetch — gets cached tokens if a prior check has already run.
                 colorizer.refreshAsync();
