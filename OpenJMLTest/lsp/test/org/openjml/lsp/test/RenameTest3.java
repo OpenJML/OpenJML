@@ -72,13 +72,17 @@ public class RenameTest3 extends RenameTestBase {
         int idPos = errSrc.indexOf("field", lineStart);
         int[] lc = DefinitionFinder.offsetToLineCol(errSrc, idPos);
 
-        WorkspaceEdit edit = Renamer.rename(
+        // Use renameWithErrors() so the pre-existing JML error is returned rather
+        // than causing a hard rejection.  The edit is still computed; only the
+        // pre-existing "noSuchSymbol" error appears in the errors list.
+        Renamer.RenameResponse resp = Renamer.renameWithErrors(
                 errUri, lc[0], lc[1], "renamedField",
                 Map.of(errUri, errSrc),
                 CheckRunner.getASTCache(),
-                s);
+                s, null);
 
-        assertNotNull("rename must succeed despite pre-existing JML error", edit);
+        WorkspaceEdit edit = resp.edit();
+        assertNotNull("rename must produce an edit despite pre-existing JML error", edit);
         assertNotNull("edit must have changes", edit.getChanges());
         assertFalse("edit must not be empty", edit.getChanges().isEmpty());
         String modified = Renamer.applyEdits(errSrc, edit.getChanges().get(errUri));

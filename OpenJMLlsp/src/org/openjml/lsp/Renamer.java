@@ -138,17 +138,60 @@ public class Renamer {
     }
 
     /**
+     * The result of a rename operation: a {@link WorkspaceEdit} plus any
+     * compilation-error messages introduced by the rename.
+     *
+     * <p>Hard failures (invalid name, no renameable symbol, reference capture)
+     * are still reported by throwing {@link ResponseErrorException}.
+     * Only "would introduce compilation errors" is surfaced here so callers
+     * can offer the user the choice to apply the edit anyway.
+     */
+    public record RenameResponse(WorkspaceEdit edit, List<String> errors) {
+        public boolean hasErrors() { return !errors.isEmpty(); }
+    }
+
+    /**
+     * Like {@link #rename}, but instead of throwing when the rename would
+     * introduce compilation errors, returns them in {@link RenameResponse#errors}.
+     * Hard failures (invalid identifier, no symbol, reference capture) still throw.
+     */
+    public static RenameResponse renameWithErrors(
+            String uri, int line, int col, String newName,
+            Map<String, String> openContent, ASTCache cache,
+            OpenJMLSettings settings,
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> publishedDiags) {
+        return renameCore(uri, line, col, newName, openContent, cache, settings, publishedDiags);
+    }
+
+    /**
      * Rename the symbol at ({@code line}, {@code col}) in {@code uri} to
      * {@code newName}, validate the result, and return the workspace edit.
      *
      * @throws ResponseErrorException if {@code newName} is not a valid Java
-     *         identifier, no renameable symbol is found at the cursor, or the
-     *         rename would introduce compilation errors
+     *         identifier, no renameable symbol is found at the cursor, the
+     *         rename would introduce compilation errors, or references would
+     *         be captured or lost
      */
     public static WorkspaceEdit rename(
             String uri, int line, int col, String newName,
             Map<String, String> openContent, ASTCache cache,
-            OpenJMLSettings settings) {
+            OpenJMLSettings settings,
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> publishedDiags) {
+        RenameResponse resp = renameCore(uri, line, col, newName, openContent, cache, settings, publishedDiags);
+        if (resp.hasErrors()) {
+            throw new ResponseErrorException(new ResponseError(
+                    ResponseErrorCode.InvalidParams,
+                    "Rename would introduce errors: " + resp.errors().get(0),
+                    null));
+        }
+        return resp.edit();
+    }
+
+    private static RenameResponse renameCore(
+            String uri, int line, int col, String newName,
+            Map<String, String> openContent, ASTCache cache,
+            OpenJMLSettings settings,
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> publishedDiags) {
 
         // 1. Validate new name.
         if (!isValidJavaIdentifier(newName)) {
@@ -219,18 +262,16 @@ public class Renamer {
         }
 
         // 4. Validate: check that the rename does not INTRODUCE new errors.
-        // We compare the ERROR-severity diagnostic count of the original sources
-        // against the modified sources.  Pre-existing warnings/errors are not a
-        // reason to reject the rename; only newly added ERROR-severity diagnostics
-        // are.  Using error-only counts prevents false rejections when warnings
-        // disappear (e.g., "overrides without 'also'") while new errors appear at
-        // the same time (keeping total count equal but hiding a real problem).
-        // We also reuse the fresh AST produced here for the stability check below.
-        List<org.eclipse.lsp4j.Diagnostic> baselineDiags =
-                CheckRunner.checkModifiedFiles(completeContent, settings);
-        long baselineErrors = baselineDiags.stream()
-                .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
-                .count();
+        // The baseline is the server's last-published error count (from checkDiags),
+        // which matches what the user sees in the IDE.  Using published diagnostics
+        // avoids spurious recompilation that can pick up stale content or errors in
+        // files not relevant to the rename, and also avoids false rejections when
+        // the user has already cleared markers that are no longer relevant.
+        long baselineErrors = (publishedDiags == null) ? 0L :
+                publishedDiags.values().stream()
+                        .flatMap(List::stream)
+                        .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
+                        .count();
 
         Map<String, String> allSources = new HashMap<>(completeContent);
         allSources.putAll(modifiedSources);
@@ -240,29 +281,20 @@ public class Renamer {
                 .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
                 .count();
 
+        List<String> errors = new ArrayList<>();
         if (afterErrors > baselineErrors) {
-            org.eclipse.lsp4j.Diagnostic d = checkResult.diagnostics().stream()
+            checkResult.diagnostics().stream()
                     .filter(di -> di.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
-                    .findFirst().orElse(checkResult.diagnostics().get(0));
-            var msg = d.getMessage();
-            String firstMsg = msg.isLeft() ? msg.getLeft() : msg.getRight().getValue();
-            throw new ResponseErrorException(new ResponseError(
-                    ResponseErrorCode.InvalidParams,
-                    "Rename would introduce errors: " + firstMsg,
-                    null));
+                    .forEach(di -> {
+                        var msg = di.getMessage();
+                        errors.add(msg.isLeft() ? msg.getLeft() : msg.getRight().getValue());
+                    });
         }
 
-        // 4.5. Reference stability check: the set of positions that reference the
-        // renamed symbol must not change (modulo the expected position shifts from
-        // the rename itself).  This catches "reference capture" — cases where the
-        // renamed symbol silently takes over a reference that previously resolved
-        // to a different symbol with the same new name, or loses a reference because
-        // another symbol of the same name is now in scope and shadows it.
-        //
-        // A fast-fail size comparison is done first; set equality is checked only
-        // when the counts match (to catch the rarer equal-count / different-position
-        // case that size alone cannot detect).
-        if (!beforeRefs.isEmpty()) {
+        // 4.5. Reference stability check — only when no compile errors, because a
+        // broken AST produces unreliable reference sets and would generate false
+        // stability failures.
+        if (errors.isEmpty() && !beforeRefs.isEmpty()) {
             int oldNameLen = beforeRefs.get(0).getRange().getEnd().getCharacter()
                            - beforeRefs.get(0).getRange().getStart().getCharacter();
             verifyReferenceStability(uri, line, col,
@@ -270,20 +302,14 @@ public class Renamer {
                     editsByUri, allSources, checkResult);
         }
 
-        // 5. Build and return WorkspaceEdit.
+        // 5. Build and return RenameResponse.
         WorkspaceEdit wsEdit = new WorkspaceEdit();
         Map<String, List<TextEdit>> lsp4jEdits = new HashMap<>();
         for (Map.Entry<String, List<TextEdit>> entry : editsByUri.entrySet()) {
             lsp4jEdits.put(entry.getKey(), entry.getValue());
         }
         wsEdit.setChanges(lsp4jEdits);
-        return wsEdit;
-    }
-
-    private static long countErrors(List<org.eclipse.lsp4j.Diagnostic> diags) {
-        return diags.stream()
-                .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
-                .count();
+        return new RenameResponse(wsEdit, errors);
     }
 
     // -----------------------------------------------------------------------

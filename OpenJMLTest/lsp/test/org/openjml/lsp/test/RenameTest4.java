@@ -66,7 +66,7 @@ public class RenameTest4 extends RenameTestBase {
 
         try {
             Renamer.rename(uri, lc[0], lc[1], "xx",
-                    Map.of(uri, src), CheckRunner.getASTCache(), s);
+                    Map.of(uri, src), CheckRunner.getASTCache(), s, null);
             fail("Expected ResponseErrorException: rename should be rejected because "
                     + "the renamed parameter would capture the body reference to field xx");
         } catch (ResponseErrorException e) {
@@ -104,7 +104,7 @@ public class RenameTest4 extends RenameTestBase {
 
         try {
             Renamer.rename(uri, lc[0], lc[1], "xx",
-                    Map.of(uri, src), CheckRunner.getASTCache(), s);
+                    Map.of(uri, src), CheckRunner.getASTCache(), s, null);
             fail("Expected ResponseErrorException: field xx reference would be captured");
         } catch (ResponseErrorException e) {
             assertNotNull(e.getResponseError());
@@ -135,7 +135,7 @@ public class RenameTest4 extends RenameTestBase {
         int[] lc = DefinitionFinder.offsetToLineCol(src, src.indexOf("int aa") + 4);
 
         WorkspaceEdit edit = Renamer.rename(uri, lc[0], lc[1], "bb",
-                Map.of(uri, src), CheckRunner.getASTCache(), s);
+                Map.of(uri, src), CheckRunner.getASTCache(), s, null);
 
         assertNotNull("Safe rename must succeed", edit);
         assertNotNull("Edit must have changes", edit.getChanges());
@@ -159,7 +159,7 @@ public class RenameTest4 extends RenameTestBase {
                     primaryUri, lc[0], lc[1], "newName",
                     Map.of(primaryUri, primarySrc, helperUri, helperSrc),
                     CheckRunner.getASTCache(),
-                    settings);
+                    settings, null);
             fail("Expected ResponseErrorException when cursor is not on a symbol");
         } catch (ResponseErrorException e) {
             assertNotNull(e.getResponseError());

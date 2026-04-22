@@ -162,7 +162,7 @@ public class RenameMethodAndClassTest extends LspTestBase {
         int idPos = source.indexOf(id, ctxPos);
         assertTrue("Identifier «" + id + "» not found after context", idPos >= 0);
         int[] lc = DefinitionFinder.offsetToLineCol(source, idPos);
-        return Renamer.rename(uri, lc[0], lc[1], newName, openContent, CheckRunner.getASTCache(), settings);
+        return Renamer.rename(uri, lc[0], lc[1], newName, openContent, CheckRunner.getASTCache(), settings, null);
     }
 
     private Map<String, String> applyEdit(WorkspaceEdit edit) {

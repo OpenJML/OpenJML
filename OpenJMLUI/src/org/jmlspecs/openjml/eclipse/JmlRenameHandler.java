@@ -8,6 +8,9 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -28,6 +31,7 @@ import org.eclipse.lsp4j.RenameParams;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.TextEdit;
 import org.eclipse.lsp4j.WorkspaceEdit;
+import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
@@ -149,9 +153,10 @@ public class JmlRenameHandler extends AbstractHandler {
         String newName = dialog.getValue().trim();
         if (newName.isEmpty() || newName.equals(currentName)) return null;
 
+        String label = "Rename '" + currentName + "' to '" + newName + "'";
+
         TextDocumentIdentifier tdi = new TextDocumentIdentifier(docUri.toString());
         RenameParams params = new RenameParams(tdi, pos, newName);
-        String label = "Rename '" + currentName + "' to '" + newName + "'";
 
         LanguageServers.forDocument(doc)
                 .computeFirst(server -> server.getTextDocumentService().rename(params))
@@ -164,12 +169,93 @@ public class JmlRenameHandler extends AbstractHandler {
                 }))
                 .exceptionally(t -> {
                     Throwable cause = t.getCause() != null ? t.getCause() : t;
+                    if (cause instanceof ResponseErrorException ree) {
+                        String msg = ree.getResponseError() != null
+                                ? ree.getResponseError().getMessage() : cause.getMessage();
+                        if (msg != null && msg.startsWith("Rename would introduce errors")) {
+                            WorkspaceEdit edit = extractEditFromError(ree);
+                            Display.getDefault().asyncExec(() -> {
+                                if (edit != null) {
+                                    boolean apply = MessageDialog.openQuestion(shell,
+                                            "Rename Would Introduce Errors",
+                                            "The rename of '" + currentName + "' to '" + newName
+                                            + "' would introduce the following compilation error(s):\n\n"
+                                            + msg.replaceFirst("^Rename would introduce errors:\\s*", "")
+                                            + "\n\nProceed with the rename anyway?");
+                                    if (apply) applyWorkspaceEditPreservingDirty(edit, label);
+                                } else {
+                                    MessageDialog.openError(shell, "Rename Failed", msg);
+                                }
+                            });
+                            return null;
+                        }
+                    }
                     Display.getDefault().asyncExec(() ->
                             MessageDialog.openError(shell, "Rename Failed", cause.getMessage()));
                     return null;
                 });
 
         return null;
+    }
+
+    // -----------------------------------------------------------------------
+    // Error-with-edit parsing helpers
+    // -----------------------------------------------------------------------
+
+    /**
+     * If the {@code ResponseError.data} field of {@code ree} contains a serialized
+     * {@link WorkspaceEdit}, parse and return it; otherwise return {@code null}.
+     */
+    private static WorkspaceEdit extractEditFromError(ResponseErrorException ree) {
+        if (ree.getResponseError() == null) return null;
+        Object data = ree.getResponseError().getData();
+        if (!(data instanceof JsonObject obj)) return null;
+        return parseWorkspaceEdit(obj);
+    }
+
+    private static WorkspaceEdit parseWorkspaceEdit(JsonObject obj) {
+        JsonElement changesEl = obj.get("changes");
+        if (!(changesEl instanceof JsonObject changesObj)) return null;
+        Map<String, List<TextEdit>> changes = new java.util.HashMap<>();
+        for (Map.Entry<String, JsonElement> entry : changesObj.entrySet()) {
+            if (!(entry.getValue() instanceof JsonArray arr)) continue;
+            List<TextEdit> edits = new java.util.ArrayList<>();
+            for (JsonElement el : arr) {
+                if (!(el instanceof JsonObject teObj)) continue;
+                TextEdit te = parseTextEdit(teObj);
+                if (te != null) edits.add(te);
+            }
+            changes.put(entry.getKey(), edits);
+        }
+        WorkspaceEdit edit = new WorkspaceEdit();
+        edit.setChanges(changes);
+        return edit;
+    }
+
+    private static TextEdit parseTextEdit(JsonObject obj) {
+        JsonElement rangeEl = obj.get("range");
+        JsonElement newTextEl = obj.get("newText");
+        if (!(rangeEl instanceof JsonObject rangeObj) || newTextEl == null) return null;
+        org.eclipse.lsp4j.Range range = parseRange(rangeObj);
+        return new TextEdit(range, newTextEl.getAsString());
+    }
+
+    private static org.eclipse.lsp4j.Range parseRange(JsonObject obj) {
+        org.eclipse.lsp4j.Position start = parsePosition(obj.get("start"));
+        org.eclipse.lsp4j.Position end   = parsePosition(obj.get("end"));
+        return new org.eclipse.lsp4j.Range(start, end);
+    }
+
+    private static org.eclipse.lsp4j.Position parsePosition(JsonElement el) {
+        if (!(el instanceof JsonObject obj)) return new org.eclipse.lsp4j.Position(0, 0);
+        int line = jsonInt(obj, "line");
+        int ch   = jsonInt(obj, "character");
+        return new org.eclipse.lsp4j.Position(line, ch);
+    }
+
+    private static int jsonInt(JsonObject obj, String key) {
+        JsonElement el = obj.get(key);
+        return (el != null && el.isJsonPrimitive()) ? el.getAsInt() : 0;
     }
 
     /**

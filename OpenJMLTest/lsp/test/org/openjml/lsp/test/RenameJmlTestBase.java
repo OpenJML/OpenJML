@@ -71,7 +71,7 @@ public abstract class RenameJmlTestBase extends LspTestBase {
         assertTrue("Identifier «" + id + "» not found after context", idPos >= 0);
         int[] lc = DefinitionFinder.offsetToLineCol(source, idPos);
         return Renamer.rename(uri, lc[0], lc[1], newName, openContent,
-                CheckRunner.getASTCache(), settings);
+                CheckRunner.getASTCache(), settings, null);
     }
 
     protected Map<String, String> applyEdit(WorkspaceEdit edit) {

@@ -31,13 +31,17 @@ public class JavaSourceScanner {
      *       the declaration; equals {@code startLine} if there are no spec lines.
      *       Use this as the lower bound when matching diagnostics to a method, because
      *       OpenJML reports verification failures on the spec line, not the declaration.</li>
+     *   <li>{@code bodyStartLine} — 0-based line of the opening {@code {}} of the method body;
+     *       equals {@code endLine} for abstract/interface methods with no body.</li>
      *   <li>{@code endLine}      — last line attributed to this method (exclusive of next method's spec)</li>
      * </ul>
      */
     public record MethodInfo(String name, String rawName, int startLine, int specStartLine,
-                             int endLine, String sourceUri) {
+                             int bodyStartLine, int endLine, String sourceUri) {
         /** Convenience: does the given 0-based line fall within this method's full range? */
         public boolean contains(int line) { return line >= specStartLine && line <= endLine; }
+        /** True if {@code line} is on the spec comments or method signature (before the body). */
+        public boolean onSignature(int line) { return line >= specStartLine && line <= bodyStartLine; }
     }
 
     /**
@@ -108,10 +112,13 @@ public class JavaSourceScanner {
             int endLine = (endOffset > tree.pos)
                     ? Math.max(startLine, (int) cu.lineMap.getLineNumber(endOffset) - 1)
                     : startLine;
+            int bodyStart = (tree.body != null && tree.body.pos > tree.pos)
+                    ? Math.max(startLine, (int) cu.lineMap.getLineNumber(tree.body.pos) - 1)
+                    : endLine;
             // findSpecStart scans lines[] (the .java source); only meaningful for methods
             // declared in the same file.  For companion .jml methods use startLine as-is.
             int specStart = sourceUri.equals(cuUri) ? findSpecStart(lines, startLine) : startLine;
-            result.add(new MethodInfo(name, fqnKey, startLine, specStart, endLine, sourceUri));
+            result.add(new MethodInfo(name, fqnKey, startLine, specStart, bodyStart, endLine, sourceUri));
             // Recurse into the method body so that local classes declared inside are visited.
             super.visitMethodDef(tree);
         }

@@ -643,14 +643,27 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             return CompletableFuture.completedFuture(hover);
         }
 
-        // Otherwise show the JML spec of the enclosing method.
+        // If a diagnostic covers this position, let it take precedence.
+        List<Diagnostic> uriDiags = checkDiags.get(uri);
+        if (uriDiags != null) {
+            for (Diagnostic d : uriDiags) {
+                org.eclipse.lsp4j.Range r = d.getRange();
+                int sl = r.getStart().getLine(), el = r.getEnd().getLine();
+                int sc = r.getStart().getCharacter(), ec = r.getEnd().getCharacter();
+                boolean covers = (line > sl || (line == sl && col >= sc))
+                              && (line < el || (line == el && col <= ec));
+                if (covers) return CompletableFuture.completedFuture(null);
+            }
+        }
+
+        // Show the JML spec only when hovering over the signature (not the body).
         ASTCache.Entry hoverAstEntry = CheckRunner.getASTCache().get(uri);
         List<JavaSourceScanner.MethodInfo> methods = (hoverAstEntry != null)
                 ? JavaSourceScanner.findMethodsFromAst(hoverAstEntry.ast(), content)
                 : List.of();
         JavaSourceScanner.MethodInfo method = null;
         for (JavaSourceScanner.MethodInfo m : methods) {
-            if (line >= m.startLine() && line <= m.endLine()) {
+            if (m.onSignature(line)) {
                 method = m;
                 break;
             }
@@ -782,6 +795,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         return ensureFreshAndConfirm(uri, "Find References").thenApply(proceed -> {
             if (!proceed) return List.of();
+            String refPid = projectIdForUri(uri);
+            if (refPid != null) waitForProjectNav(refPid).join();
             return ReferenceFinder.findReferences(
                     uri,
                     params.getPosition().getLine(),
@@ -964,27 +979,34 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return ensureFreshAndConfirm(uri, "Rename").thenCompose(proceed -> {
             if (!proceed) return CompletableFuture.completedFuture(null);
             try {
-                System.err.println("[rename] lastContent URIs (" + lastContent.size() + "):");
-                lastContent.keySet().forEach(k -> System.err.println("[rename]   " + k));
+                String renamePid = projectIdForUri(uri);
+                if (renamePid != null) waitForProjectNav(renamePid).join();
                 OpenJMLSettings renameS = settingsForUri(uri);
                 if (renameS == null) return null;
-                WorkspaceEdit edit = Renamer.rename(
+                Renamer.RenameResponse resp = Renamer.renameWithErrors(
                         uri,
                         params.getPosition().getLine(),
                         params.getPosition().getCharacter(),
                         params.getNewName(),
                         lastContent,
                         CheckRunner.getASTCache(),
-                        renameS);
+                        renameS,
+                        checkDiags);
+                if (resp.hasErrors()) {
+                    String allMsgs = String.join("\n", resp.errors());
+                    throw new ResponseErrorException(new org.eclipse.lsp4j.jsonrpc.messages.ResponseError(
+                            org.eclipse.lsp4j.jsonrpc.messages.ResponseErrorCode.InvalidParams,
+                            "Rename would introduce errors:\n" + allMsgs,
+                            resp.edit()));
+                }
+                WorkspaceEdit edit = resp.edit();
                 // Proactively update lastContent for open files modified by the rename.
                 // Eclipse (and some other clients) do not send textDocument/didChange
                 // after applying a server-initiated WorkspaceEdit, so the server must
                 // update its own snapshot to avoid serving stale content on the next check.
                 if (edit != null && edit.getChanges() != null) {
-                    System.err.println("[rename] WorkspaceEdit URIs (" + edit.getChanges().size() + "):");
                     edit.getChanges().forEach((fileUri, edits) -> {
                         boolean inLastContent = lastContent.containsKey(fileUri);
-                        System.err.println("[rename]   uri=" + fileUri + " edits=" + edits.size() + " inLastContent=" + inLastContent);
                         // Do NOT patch lastContent for tracked files (inLastContent=true).
                         // Tracked files will receive a textDocument/didChange from the client
                         // computed against their pre-rename content.  If we patched here, the
