@@ -164,8 +164,10 @@ public class JmlRenameHandler extends AbstractHandler {
                         int totalEdits = edit.getChanges() != null
                                 ? edit.getChanges().values().stream().mapToInt(List::size).sum() : 0;
                         Console.log("Rename to '" + newName + "': " + totalEdits + " edit(s)");
-                        Display.getDefault().asyncExec(() ->
-                                applyWorkspaceEditPreservingDirty(edit, label));
+                        Display.getDefault().asyncExec(() -> {
+                            applyWorkspaceEditPreservingDirty(edit, label);
+                            schedulePostRenameCheck(doc, edit);
+                        });
                 }))
                 .exceptionally(t -> {
                     Throwable cause = t.getCause() != null ? t.getCause() : t;
@@ -182,7 +184,7 @@ public class JmlRenameHandler extends AbstractHandler {
                                             + "' would introduce the following compilation error(s):\n\n"
                                             + msg.replaceFirst("^Rename would introduce errors:\\s*", "")
                                             + "\n\nProceed with the rename anyway?");
-                                    if (apply) applyWorkspaceEditPreservingDirty(edit, label);
+                                    if (apply) { applyWorkspaceEditPreservingDirty(edit, label); schedulePostRenameCheck(doc, edit); }
                                 } else {
                                     MessageDialog.openError(shell, "Rename Failed", msg);
                                 }
@@ -196,6 +198,36 @@ public class JmlRenameHandler extends AbstractHandler {
                 });
 
         return null;
+    }
+
+    // -----------------------------------------------------------------------
+    // Post-rename coordinated recheck
+    // -----------------------------------------------------------------------
+
+    /**
+     * After all rename edits have been applied, send a single {@code openjml.checkJML}
+     * command covering every file in the {@link WorkspaceEdit}.  Because LSP messages
+     * are ordered, this command arrives at the server after all {@code didChange}
+     * notifications from the rename, so the server sees a fully-consistent snapshot.
+     *
+     * <p>The server also cancels any per-URI debounce checks that were triggered by
+     * the individual {@code didChange} notifications, preventing redundant checks.
+     */
+    private static void schedulePostRenameCheck(IDocument doc, WorkspaceEdit edit) {
+        if (edit.getChanges() == null || edit.getChanges().isEmpty()) return;
+        List<Object> args = new java.util.ArrayList<>();
+        args.add(""); // projectId — empty means "match by file path"
+        for (String fileUri : edit.getChanges().keySet()) {
+            try {
+                String path = java.nio.file.Path.of(java.net.URI.create(fileUri)).toString();
+                args.add(path);
+            } catch (Exception ignored) {}
+        }
+        if (args.size() <= 1) return; // no valid paths collected
+        org.eclipse.lsp4j.ExecuteCommandParams cmd =
+                new org.eclipse.lsp4j.ExecuteCommandParams("openjml.checkJML", args);
+        LanguageServers.forDocument(doc)
+                .computeFirst(server -> server.getWorkspaceService().executeCommand(cmd));
     }
 
     // -----------------------------------------------------------------------

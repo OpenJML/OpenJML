@@ -1060,9 +1060,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         OpenJMLSettings s = settingsForProject(projectId);
         List<String> pathsCopy = List.copyOf(paths);
 
-        // Snapshot dirty-file content at submission time so rapid edits during the
-        // debounce window do not mutate the context passed to OpenJML.
-        Map<String, String> snapshot = dirtySnapshot();
+        // (dirty snapshot is taken inside the debounce callback — see below)
+
+        // Cancel any per-URI debounce checks that are pending for these specific
+        // files.  This is important for post-rename coordination: the client sends
+        // this command after applying all edits, so the individual per-URI debounces
+        // triggered by each didChange are superseded by this combined check.
+        for (String path : pathsCopy) {
+            try {
+                String uri = java.nio.file.Path.of(path).toUri().normalize().toString();
+                cancelPending(uri);
+            } catch (Exception ignored) {}
+        }
 
         // Debounce: cancel any previously scheduled check-paths task so that rapid
         // toolbar clicks collapse into a single check.  A 300 ms delay is short enough
@@ -1071,6 +1080,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (prev != null) prev.cancel(false);
         pendingCheckPaths = scheduler.schedule(() -> {
             pendingCheckPaths = null;
+            // Snapshot dirty content here (inside the debounce callback) so that
+            // all didChange notifications from the rename have been processed before
+            // the snapshot is taken.
+            Map<String, String> snapshot = dirtySnapshot();
             executor.submit(() -> {
                 try {
                     CheckRunner.DirCheckResult result = CheckRunner.runCheckDirWithContext(pathsCopy, snapshot, s, projectId);
