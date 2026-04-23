@@ -217,7 +217,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final ConcurrentHashMap<String, ProofResult> proofResults = new ConcurrentHashMap<>();
 
     /** Tracks an in-progress ESC task: its session gen, the Future, and the IAPI (set after start). */
-    record RunningSession(long sessionGen, Future<?> future, java.util.concurrent.atomic.AtomicReference<IAPI> api) {}
+    record RunningSession(long sessionGen, Future<?> future, java.util.concurrent.atomic.AtomicReference<IAPI> api, boolean visible) {
+        RunningSession(long sessionGen, Future<?> future, java.util.concurrent.atomic.AtomicReference<IAPI> api) {
+            this(sessionGen, future, api, true);
+        }
+    }
     /** Running ESC sessions keyed by uri (file runs) or uri+"#"+rawMethodName (per-method runs) or "batch:"+n (batch runs). */
     private final ConcurrentHashMap<String, RunningSession> runningSessions = new ConcurrentHashMap<>();
 
@@ -1211,7 +1215,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         if (batchApi != null) {
                             runningSessions.put(uri, new RunningSession(myBatchGen,
                                     batchFutureRef.get(),
-                                    new java.util.concurrent.atomic.AtomicReference<>(batchApi)));
+                                    new java.util.concurrent.atomic.AtomicReference<>(batchApi),
+                                    false /* batch sub-entry — not shown in Cancel ESC list */));
                             batchUriKeys.add(uri);
                         }
                         markMethodCheckingByName(uri, methodName, myBatchGen);
@@ -3469,7 +3474,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * {@code "uri#methodName"} format.
      */
     List<String> getRunningEscUris() {
-        return List.copyOf(runningSessions.keySet());
+        return runningSessions.entrySet().stream()
+                .filter(e -> e.getValue().visible())
+                .map(Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     /**

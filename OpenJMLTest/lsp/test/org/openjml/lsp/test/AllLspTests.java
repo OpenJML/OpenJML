@@ -73,5 +73,6 @@ import org.junit.runners.Suite;
     SymbolsForProjectTest.class,
     EscPerMethodMarkerTest.class,
     EscInvocationVariantsTest.class,
+    ClearAndReescTest.class,
 })
 public class AllLspTests {}
