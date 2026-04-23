@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Locates method and constructor declarations in Java source files via AST walking.
  *
- * <p>Use {@link #findMethodsFromAst(JmlCompilationUnit, String)} when an attributed
+ * <p>Use {@link #findMethodsFromAst(JmlCompilationUnit)} when an attributed
  * AST is available from the {@link ASTCache}.  Before the first check completes,
  * callers should return an empty list rather than attempt heuristic fallbacks.
  */
@@ -27,10 +27,8 @@ public class JavaSourceScanner {
      *       e.g. {@code "com.example.MyClass.add(int,int)"}.  Used as the code-lens method
      *       reference, the per-method ESC tracking key, and the proof-result lookup key.</li>
      *   <li>{@code startLine}    — line of the method declaration (used for code-lens placement)</li>
-     *   <li>{@code specStartLine} — first JML {@code //@} annotation line immediately before
-     *       the declaration; equals {@code startLine} if there are no spec lines.
-     *       Use this as the lower bound when matching diagnostics to a method, because
-     *       OpenJML reports verification failures on the spec line, not the declaration.</li>
+     *   <li>{@code specStartLine} — equals {@code startLine} (the method declaration's AST
+     *       start position).  Used as the lower bound when matching diagnostics to a method.</li>
      *   <li>{@code bodyStartLine} — 0-based line of the opening {@code {}} of the method body;
      *       equals {@code endLine} for abstract/interface methods with no body.</li>
      *   <li>{@code endLine}      — last line attributed to this method (exclusive of next method's spec)</li>
@@ -48,16 +46,15 @@ public class JavaSourceScanner {
      * Return all method declarations found by walking {@code ast}, ordered by line.
      *
      * <p>Handles nested classes, constructors, and package-private methods correctly.
-     * Returns an empty list if {@code ast} or {@code source} is {@code null} (i.e.,
-     * before the first check completes).
+     * Returns an empty list if {@code ast} is {@code null} (i.e., before the first
+     * check completes).  Code-lens position is taken from the method declaration's
+     * AST start position ({@code specStartLine} equals {@code startLine}).
      *
-     * @param ast    attributed compilation unit from the {@link ASTCache}
-     * @param source full source text (used to locate JML spec-comment lines above each method)
+     * @param ast attributed compilation unit from the {@link ASTCache}
      */
-    public static List<MethodInfo> findMethodsFromAst(JmlCompilationUnit ast, String source) {
-        if (ast == null || source == null) return List.of();
-        String[] lines = source.split("\\r?\\n", -1);
-        MethodLensWalker walker = new MethodLensWalker(ast, lines);
+    public static List<MethodInfo> findMethodsFromAst(JmlCompilationUnit ast) {
+        if (ast == null) return List.of();
+        MethodLensWalker walker = new MethodLensWalker(ast);
         walker.scan(ast);
         return walker.result;
     }
@@ -69,14 +66,12 @@ public class JavaSourceScanner {
     private static class MethodLensWalker extends JmlTreeScanner {
         private final JmlCompilationUnit cu;
         private final String cuUri;
-        private final String[] lines;
         final List<MethodInfo> result = new ArrayList<>();
 
-        MethodLensWalker(JmlCompilationUnit cu, String[] lines) {
+        MethodLensWalker(JmlCompilationUnit cu) {
             super(null);   // null context → AST_JML_MODE
             this.cu    = cu;
             this.cuUri = cu.sourcefile != null ? cu.sourcefile.toUri().normalize().toString() : "";
-            this.lines = lines;
         }
 
         @Override
@@ -115,33 +110,10 @@ public class JavaSourceScanner {
             int bodyStart = (tree.body != null && tree.body.pos > tree.pos)
                     ? Math.max(startLine, (int) cu.lineMap.getLineNumber(tree.body.pos) - 1)
                     : endLine;
-            // findSpecStart scans lines[] (the .java source); only meaningful for methods
-            // declared in the same file.  For companion .jml methods use startLine as-is.
-            int specStart = sourceUri.equals(cuUri) ? findSpecStart(lines, startLine) : startLine;
-            result.add(new MethodInfo(name, fqnKey, startLine, specStart, bodyStart, endLine, sourceUri));
+            result.add(new MethodInfo(name, fqnKey, startLine, startLine, bodyStart, endLine, sourceUri));
             // Recurse into the method body so that local classes declared inside are visited.
             super.visitMethodDef(tree);
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Shared helper
-    // -----------------------------------------------------------------------
-
-    /**
-     * Walk backwards from {@code startLine} to find the first consecutive
-     * {@code //@} JML spec comment line that immediately precedes the declaration.
-     * Returns {@code startLine} if there are no spec lines.
-     */
-    private static int findSpecStart(String[] lines, int startLine) {
-        int specStart = startLine;
-        for (int j = startLine - 1; j >= 0; j--) {
-            String t = lines[j].trim();
-            if (t.startsWith("//@")) specStart = j;
-            else if (t.isEmpty() || t.startsWith("//") || t.startsWith("*")
-                    || t.startsWith("/*") || t.startsWith("@")) { /* skip */ }
-            else break;
-        }
-        return specStart;
-    }
 }

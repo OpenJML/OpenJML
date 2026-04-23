@@ -449,6 +449,12 @@ public class ASTCache {
     /** Returns the set of project IDs currently held in nav sections (for diagnostics). */
     public java.util.Set<String> navSectionKeys() { return navSections.keySet(); }
 
+    /** Iterate over nav sections: action receives (projectId, navCache-size, navUri-list). */
+    public void forEachNavSection(java.util.function.BiConsumer<String,
+            java.util.Set<String>> action) {
+        navSections.forEach((pid, section) -> action.accept(pid, section.navCache.keySet()));
+    }
+
     /** Returns the number of entries in the live declaration index (for diagnostics). */
     public int liveDeclarationCount() { return liveDeclarationIndex.size(); }
 

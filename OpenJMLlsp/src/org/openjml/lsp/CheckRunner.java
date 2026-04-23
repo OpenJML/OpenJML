@@ -212,20 +212,12 @@ public class CheckRunner {
     }
 
     /**
-     * Look up a proof result by {@code rawName}, trying the exact FQN+signature key
-     * first (succeeds when {@code rawName} is AST-derived), then falling back to a
-     * bare-method-name search (handles regex-derived {@code rawName} which lacks the
-     * class prefix and signature suffix).
+     * Look up a proof result by exact FQN+signature key.
+     * Returns {@code null} if no entry matches.
      */
     public static IProverResult.Kind lookupResult(
             Map<String, IProverResult.Kind> proofResults, String rawName) {
-        IProverResult.Kind k = proofResults.get(rawName);
-        if (k != null) return k;
-        String bare = bareMethodName(rawName);
-        for (var e : proofResults.entrySet()) {
-            if (bareMethodName(e.getKey()).equals(bare)) return e.getValue();
-        }
-        return null;
+        return proofResults.get(rawName);
     }
 
     /**
@@ -582,7 +574,8 @@ public class CheckRunner {
         void accept(String uri,
                     String startingMethod,
                     List<org.eclipse.lsp4j.Diagnostic> diagsSoFar,
-                    Map<String, IProverResult.Kind> proofResultsSoFar);
+                    Map<String, IProverResult.Kind> proofResultsSoFar,
+                    Map<String, Map<String, List<org.eclipse.lsp4j.Diagnostic>>> diagsByMethodSoFar);
     }
 
     /**
@@ -616,7 +609,8 @@ public class CheckRunner {
             try { uri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
             catch (Exception e) { log("[runEscDir callback] URI conversion failed: " + e); return; }
             List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(uri);
-            perFileCallback.accept(uri, methodDecl.name.toString(), diags, Map.copyOf(prcRef[0].getResults()));
+            perFileCallback.accept(uri, methodDecl.name.toString(), diags,
+                    Map.copyOf(prcRef[0].getResults()), Map.copyOf(prcRef[0].getDiagsByMethod()));
         });
         ProofResultCollector prc = prcRef[0];
         // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
@@ -629,10 +623,16 @@ public class CheckRunner {
                 String onUri;
                 try { onUri = java.nio.file.Path.of(src.getName()).toUri().toString(); }
                 catch (Exception e) { return; }
-                perFileCallback.accept(onUri, methodDecl.name.toString(), null, null);
+                perFileCallback.accept(onUri, methodDecl.name.toString(), null, null, null);
             });
         }
         api.setProofResultListener(prc);
+        IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
+            String uri = jfo.toUri().normalize().toString();
+            AST_CACHE.put(uri, ctx, (JmlCompilationUnit) ast);
+            cacheSpecsCu((JmlCompilationUnit) ast, ctx, null, null);
+        };
+        api.setASTListener(astListener);
         if (onApiReady != null) onApiReady.accept(api);
 
         List<String> args = buildArgs(settings, "--esc");
@@ -641,6 +641,7 @@ public class CheckRunner {
         logInvocation("runEscDir", args);
         log(ts() + " --esc --dirs " + paths + invocationSuffix(args));
         int rc = api.execute(args.toArray(new String[0]));
+        api.removeASTListener(astListener);
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri = listener.toLspDiagnosticsByFile();
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
         int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
@@ -740,7 +741,8 @@ public class CheckRunner {
             catch (Exception ex) { log("[runEscDirWithContext callback] URI failed: " + ex); return; }
             String realUri = finalAllPathToRealUri.getOrDefault(srcName, lookupUri);
             List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
-            perFileCallback.accept(realUri, methodDecl.name.toString(), diags, Map.copyOf(prcRef[0].getResults()));
+            perFileCallback.accept(realUri, methodDecl.name.toString(), diags,
+                    Map.copyOf(prcRef[0].getResults()), Map.copyOf(prcRef[0].getDiagsByMethod()));
         });
         ProofResultCollector prc = prcRef[0];
         // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
@@ -755,10 +757,17 @@ public class CheckRunner {
                 try { onUri = finalAllPathToRealUri.getOrDefault(srcName,
                         java.nio.file.Path.of(srcName).toUri().toString()); }
                 catch (Exception ex) { return; }
-                perFileCallback.accept(onUri, methodDecl.name.toString(), null, null);
+                perFileCallback.accept(onUri, methodDecl.name.toString(), null, null, null);
             });
         }
         api.setProofResultListener(prc);
+        IAPI.IASTListener escAstListener = (ctx, jfo, ast) -> {
+            String jfoUri = jfo.toUri().normalize().toString();
+            String realUri = finalAllPathToRealUri.getOrDefault(jfo.getName(), jfoUri);
+            AST_CACHE.put(realUri, ctx, (JmlCompilationUnit) ast);
+            cacheSpecsCu((JmlCompilationUnit) ast, ctx, finalAllPathToRealUri, null);
+        };
+        api.setASTListener(escAstListener);
         if (onApiReady != null) onApiReady.accept(api);
 
         List<String> args = buildArgs(settings, "--esc");
@@ -766,6 +775,7 @@ public class CheckRunner {
         logInvocation("runEscDirWithContext", args);
         log(ts() + " --esc " + fileList.size() + " file(s)" + invocationSuffix(args));
         int rc = api.execute(args.toArray(new String[0]), mockFiles);
+        api.removeASTListener(escAstListener);
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri =
                 listener.toLspDiagnosticsAll(finalAllPathToRealUri);
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
@@ -857,7 +867,8 @@ public class CheckRunner {
                 catch (Exception ex) { log("[runEscDirWithContextLegacy callback] URI failed: " + ex); return; }
                 String realUri = finalAllPathToRealUri.getOrDefault(srcName, lookupUri);
                 List<org.eclipse.lsp4j.Diagnostic> diags = listener.getLspDiagnosticsForUri(lookupUri);
-                perFileCallback.accept(realUri, methodDecl.name.toString(), diags, Map.copyOf(prcRef[0].getResults()));
+                perFileCallback.accept(realUri, methodDecl.name.toString(), diags,
+                        Map.copyOf(prcRef[0].getResults()), Map.copyOf(prcRef[0].getDiagsByMethod()));
             });
             ProofResultCollector prc = prcRef[0];
             // Fire callback with null diags on RUNNING events so callers can flip to CHECKING early.
@@ -872,16 +883,27 @@ public class CheckRunner {
                     try { onUri = finalAllPathToRealUri.getOrDefault(srcName,
                             java.nio.file.Path.of(srcName).toUri().toString()); }
                     catch (Exception ex) { return; }
-                    perFileCallback.accept(onUri, methodDecl.name.toString(), null, null);
+                    perFileCallback.accept(onUri, methodDecl.name.toString(), null, null, null);
                 });
             }
             api.setProofResultListener(prc);
+            final String legacyTempPrefix = tempDir.toUri().toString();
+            IAPI.IASTListener legacyAstListener = (ctx, jfo, ast) -> {
+                String jfoUri = jfo.toUri().normalize().toString();
+                String realUri = finalAllPathToRealUri.getOrDefault(jfo.getName(), null);
+                if (realUri == null && !jfoUri.startsWith(legacyTempPrefix)) realUri = jfoUri;
+                if (realUri == null) return;
+                AST_CACHE.put(realUri, ctx, (JmlCompilationUnit) ast);
+                cacheSpecsCu((JmlCompilationUnit) ast, ctx, finalAllPathToRealUri, legacyTempPrefix);
+            };
+            api.setASTListener(legacyAstListener);
             if (onApiReady != null) onApiReady.accept(api);
 
             List<String> args = buildArgs(settings, "--esc", tempDir);
             args.addAll(fileList);
             logInvocation("runEscDirWithContextLegacy", args);
             int rc = api.execute(args.toArray(new String[0]));
+            api.removeASTListener(legacyAstListener);
             Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri =
                     listener.toLspDiagnosticsAll(finalAllPathToRealUri);
             Map<String, IProverResult.Kind> proofResults = prc.getResults();
