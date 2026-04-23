@@ -396,6 +396,41 @@ public abstract class LspCommandHandler extends AbstractHandler {
         }
     }
 
+    /**
+     * Dispatches {@code params} to the server for {@code project}, without debouncing.
+     * Used for clear commands that iterate multiple projects in a tight loop (debouncing
+     * would suppress all but the first dispatch if all share the same command+args key).
+     * Falls back to {@link #sendViaWrapper} when {@code forProject} finds no server.
+     */
+    private static void dispatchCommand(org.eclipse.core.resources.IProject project,
+            ExecuteCommandParams params, String label) {
+        try {
+            LanguageServers.forProject(project)
+                    .computeFirst(s -> s.getWorkspaceService().executeCommand(params))
+                    .orTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                    .thenAccept(opt -> {
+                        if (opt == null || opt.isEmpty()) {
+                            boolean sent = sendViaWrapper(LspPartListener.cachedWrapper, params);
+                            if (!sent) Console.errorlog(label + ": server not available.", null);
+                        }
+                    })
+                    .exceptionally(t -> {
+                        Console.errorlog(label + ": dispatch error: " + t.getMessage(), null);
+                        return null;
+                    });
+        } catch (Throwable t) {
+            Console.errorlog(label + ": dispatch failed: " + t.getMessage(), t);
+        }
+    }
+
+    private static void clearMarkersFromResource(org.eclipse.core.resources.IResource res)
+            throws CoreException {
+        res.deleteMarkers(OpenJMLConstants.JML_PROBLEM_MARKER, true,
+                org.eclipse.core.resources.IResource.DEPTH_INFINITE);
+        res.deleteMarkers(OpenJMLConstants.JML_ESC_MARKER, false,
+                org.eclipse.core.resources.IResource.DEPTH_INFINITE);
+    }
+
     // -----------------------------------------------------------------------
     // Per-project invocation context
     // -----------------------------------------------------------------------
@@ -1048,38 +1083,25 @@ public abstract class LspCommandHandler extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) {
             try {
-                org.eclipse.core.resources.IWorkspaceRoot root =
-                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
-                int deleted = 0;
-                for (org.eclipse.core.resources.IMarker m : root.findMarkers(
-                        OpenJMLConstants.JML_PROBLEM_MARKER, true,
-                        org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
-                    m.delete(); deleted++;
-                }
-                for (org.eclipse.core.resources.IMarker m : root.findMarkers(
-                        OpenJMLConstants.JML_ESC_MARKER, false,
-                        org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
-                    m.delete(); deleted++;
-                }
-                Console.log("Cleared " + deleted + " OpenJML marker(s).");
+                clearMarkersFromResource(
+                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot());
+                Console.log("Cleared OpenJML markers.");
             } catch (org.eclipse.core.runtime.CoreException e) {
-                Console.log("ClearMarkers failed: " + e);
+                Console.errorlog("ClearMarkers failed: " + e.getMessage(), e);
             }
             // Tell the server to clear its internal diagnostic state so that
             // stale diagnostics are not re-published on the next LSP4E event.
-            org.eclipse.lsp4j.ExecuteCommandParams p =
-                    new org.eclipse.lsp4j.ExecuteCommandParams(
-                            OpenJMLConstants.CMD_CLEAR_MARKERS, java.util.List.of());
+            ExecuteCommandParams p = new ExecuteCommandParams(
+                    OpenJMLConstants.CMD_CLEAR_MARKERS, java.util.List.of());
+            boolean any = false;
             for (org.eclipse.core.resources.IProject proj :
-                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
-                            .getRoot().getProjects()) {
-                if (proj.isOpen() && JmlNature.hasNature(proj)) {
-                    org.eclipse.lsp4e.LanguageServers.forProject(proj)
-                            .computeFirst(server ->
-                                    server.getWorkspaceService().executeCommand(p));
-                    break;  // one server instance handles all projects
-                }
+                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+                if (!proj.isOpen() || !JmlNature.hasNature(proj)) continue;
+                dispatchCommand(proj, p, "ClearMarkers");
+                any = true;
             }
+            if (!any)
+                Console.errorlog("ClearMarkers: no open JML-nature projects found; markers cleared locally only.", null);
             return null;
         }
     }
@@ -1104,7 +1126,15 @@ public abstract class LspCommandHandler extends AbstractHandler {
                     case SelectionResolver.Target.Method m -> uris.add(org.eclipse.lsp4e.LSPEclipseUtils.toUri(m.file()).toString());
                     case SelectionResolver.Target.Dir    d -> {
                         java.net.URI loc = d.container().getLocationURI();
-                        if (loc != null) uris.add(loc.toString());
+                        if (loc != null) {
+                            try {
+                                // Normalize to file:///path (triple-slash) to match markedUris on the server.
+                                // IResource.getLocationURI() returns file:/path (single-slash).
+                                uris.add(java.nio.file.Path.of(loc).toUri().toString());
+                            } catch (Exception e) {
+                                uris.add(loc.toString());
+                            }
+                        }
                     }
                 }
             }
@@ -1113,7 +1143,6 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 return null;
             }
             // Clear Eclipse markers directly (covers stale markers not tracked by the server).
-            int deleted = 0;
             try {
                 for (SelectionResolver.Target t : targets) {
                     org.eclipse.core.resources.IResource res = switch (t) {
@@ -1121,35 +1150,22 @@ public abstract class LspCommandHandler extends AbstractHandler {
                         case SelectionResolver.Target.Method m -> m.file();
                         case SelectionResolver.Target.Dir    d -> d.container();
                     };
-                    deleted += clearMarkersFromResource(res);
+                    clearMarkersFromResource(res);
                 }
             } catch (CoreException e) {
-                Console.log("ClearMarkersSelected: marker deletion failed: " + e);
+                Console.errorlog("ClearMarkersSelected: marker deletion failed: " + e.getMessage(), e);
             }
             // Also tell the server to clear its cached diagnostics so they don't republish.
             ExecuteCommandParams params = new ExecuteCommandParams(
                     OpenJMLConstants.CMD_CLEAR_MARKERS_FOR_URIS, uris);
-            if (!sendViaWrapper(LspPartListener.cachedWrapper, params)) {
-                Console.errorlog("ClearMarkersSelected: server not available; cleared " + deleted + " marker(s) locally only.", null);
-            }
+            targets.stream()
+                    .map(t -> owningProject(t))
+                    .filter(java.util.Objects::nonNull)
+                    .distinct()
+                    .forEach(proj -> dispatchCommand(proj, params, "ClearMarkersSelected"));
             return null;
         }
 
-        private static int clearMarkersFromResource(org.eclipse.core.resources.IResource res)
-                throws CoreException {
-            int deleted = 0;
-            for (org.eclipse.core.resources.IMarker m : res.findMarkers(
-                    OpenJMLConstants.JML_PROBLEM_MARKER, true,
-                    org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
-                m.delete(); deleted++;
-            }
-            for (org.eclipse.core.resources.IMarker m : res.findMarkers(
-                    OpenJMLConstants.JML_ESC_MARKER, false,
-                    org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
-                m.delete(); deleted++;
-            }
-            return deleted;
-        }
     }
 
     /**
@@ -1165,22 +1181,11 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
             // 1. Clear all OpenJML Eclipse markers workspace-wide.
             try {
-                org.eclipse.core.resources.IWorkspaceRoot root =
-                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot();
-                int deleted = 0;
-                for (org.eclipse.core.resources.IMarker m : root.findMarkers(
-                        OpenJMLConstants.JML_PROBLEM_MARKER, true,
-                        org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
-                    m.delete(); deleted++;
-                }
-                for (org.eclipse.core.resources.IMarker m : root.findMarkers(
-                        OpenJMLConstants.JML_ESC_MARKER, false,
-                        org.eclipse.core.resources.IResource.DEPTH_INFINITE)) {
-                    m.delete(); deleted++;
-                }
-                Console.log("Cleared " + deleted + " marker(s).");
+                clearMarkersFromResource(
+                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot());
+                Console.log("Cleared OpenJML markers.");
             } catch (org.eclipse.core.runtime.CoreException e) {
-                Console.log("Warning: could not clear markers: " + e.getMessage());
+                Console.errorlog("Could not clear markers: " + e.getMessage(), e);
             }
 
             // 2. Send clearAndReindex to the server.

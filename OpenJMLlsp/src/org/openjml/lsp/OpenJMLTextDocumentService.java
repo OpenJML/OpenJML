@@ -1220,7 +1220,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             batchUriKeys.add(uri);
                         }
                         markMethodCheckingByName(uri, methodName, myBatchGen);
-                        executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
+                        publishMerged(uri);  // synchronous: clears old markers before completion can race
+                        executor.execute(OpenJMLTextDocumentService.this::refreshCodeLenses);
                     } else {
                         // Completion event: update status progressively.
                         ServerLog.serverLog("[scheduleEscForPaths] COMPLETION uri=" + uri
@@ -1228,7 +1229,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                 + " diags=" + diags.size()
                                 + " partialResults=" + partialResults.size());
                         updateEscStatusPartial(uri, diags, partialResults, myBatchGen);
-                        executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
+                        publishMerged(uri);
+                        refreshCodeLenses();
                     }
                 }, hook);
                 if (client == null) return;
@@ -1236,11 +1238,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     reportCommandLineError(result.diagnosticsByUri().values().stream()
                             .flatMap(List::stream).collect(java.util.stream.Collectors.toList()));
                     return;
-                }
-                // After the full run, publish the final state for every affected file
-                // (catches any remaining diagnostics not yet covered by the callback).
-                for (var entry : result.diagnosticsByUri().entrySet()) {
-                    publishMerged(entry.getKey());
                 }
                 // Clear (publishMerged) for files that had none but are currently open.
                 for (String path : paths) {
@@ -3493,6 +3490,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * instead when a full restart is needed.
      */
     void clearMarkers() {
+        ServerLog.serverLog("[clearMarkers] clearing all markers; markedUris=" + markedUris.size()
+                + " checkDiags=" + checkDiags.size() + " proofResults=" + proofResults.size()
+                + (markedUris.isEmpty() ? " (no markers to clear)" : ""));
         checkDiags.clear();
         proofResults.clear();
         // Snapshot markedUris before clearing so we don't modify the set while iterating.
@@ -3505,6 +3505,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     void clearMarkersForUris(List<String> targetUris) {
+        ServerLog.serverLog("[clearMarkersForUris] targets=" + targetUris
+                + " markedUris=" + markedUris);
         // Build normalized folder prefixes (always end with /).
         List<String> prefixes = new java.util.ArrayList<>();
         for (String t : targetUris) prefixes.add(t.endsWith("/") ? t : t + "/");
@@ -3518,6 +3520,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 }
             }
         }
+        if (toClear.isEmpty()) {
+            ServerLog.serverLog("[clearMarkersForUris] no markers found for targets");
+        } else {
+            ServerLog.serverLog("[clearMarkersForUris] matched=" + toClear);
+        }
         for (String uri : toClear) {
             checkDiags.remove(uri);
             String uriPrefix = uri + "#";
@@ -3525,7 +3532,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             markedUris.remove(uri);
             if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
         }
-        clientLog("[OpenJML] Cleared diagnostics for " + toClear.size() + " file(s).");
+        clientLog("[OpenJML] Cleared selected diagnostics.");
         refreshCodeLenses();
     }
 

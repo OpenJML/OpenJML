@@ -18,7 +18,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.lsp4e.LSPEclipseUtils;
 import org.eclipse.lsp4e.client.DefaultLanguageClient;
 import org.eclipse.lsp4j.Diagnostic;
@@ -80,15 +79,19 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
 
         if (diags.isEmpty()) return;
 
-        // Read file content once for char-offset computation.
+        // Prefer the live IDocument (file open in editor); fall back to reading the file
+        // directly and building a line-start offset table for files not open in any editor.
+        org.eclipse.jface.text.IDocument doc = LSPEclipseUtils.getDocument(file);
         int[] lineOffsets = null;
-        try (var stream = file.getContents()) {
-            // getCharset() (checkImplicit=true) always returns a valid charset;
-            // getCharset(false) can return null for files with no explicit charset set.
-            String content = new String(stream.readAllBytes(), file.getCharset());
-            lineOffsets = buildLineOffsets(content);
-        } catch (Exception e) {
-            // Proceed without char offsets (line-only markers).
+        if (doc == null) {
+            try (java.io.InputStream in = file.getContents()) {
+                String content = new String(in.readAllBytes(),
+                        file.getCharset() != null ? java.nio.charset.Charset.forName(file.getCharset())
+                                                  : java.nio.charset.StandardCharsets.UTF_8);
+                lineOffsets = buildLineOffsets(content);
+            } catch (Exception e) {
+                // Could not read file — char offsets will be omitted for all diagnostics.
+            }
         }
 
         for (Diagnostic d : diags) {
@@ -100,19 +103,37 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
             int startLine = range.getStart().getLine();        // 0-based
             attrs.put(IMarker.LINE_NUMBER, startLine + 1);     // IMarker uses 1-based
 
-            if (lineOffsets != null && startLine < lineOffsets.length) {
-                int charStart = lineOffsets[startLine] + range.getStart().getCharacter();
-                int endLine   = range.getEnd().getLine();
-                int charEnd   = (endLine < lineOffsets.length)
-                        ? lineOffsets[endLine] + range.getEnd().getCharacter()
-                        : charStart + 1;
-                attrs.put(IMarker.CHAR_START, charStart);
-                attrs.put(IMarker.CHAR_END,   charEnd);
+            if (doc != null) {
+                try {
+                    int charStart = doc.getLineOffset(startLine) + range.getStart().getCharacter();
+                    int charEnd   = doc.getLineOffset(range.getEnd().getLine()) + range.getEnd().getCharacter();
+                    attrs.put(IMarker.CHAR_START, charStart);
+                    attrs.put(IMarker.CHAR_END,   charEnd);
+                } catch (org.eclipse.jface.text.BadLocationException e) {
+                    // Line out of range — skip char offsets for this diagnostic.
+                }
+            } else if (lineOffsets != null) {
+                int endLine = range.getEnd().getLine();
+                if (startLine < lineOffsets.length && endLine < lineOffsets.length) {
+                    attrs.put(IMarker.CHAR_START, lineOffsets[startLine] + range.getStart().getCharacter());
+                    attrs.put(IMarker.CHAR_END,   lineOffsets[endLine]   + range.getEnd().getCharacter());
+                }
             }
 
             IMarker marker = file.createMarker(OpenJMLConstants.JML_ESC_MARKER);
             marker.setAttributes(attrs);
         }
+    }
+
+    /** Returns a 0-based array where {@code result[i]} is the char offset of the start of line {@code i}. */
+    private static int[] buildLineOffsets(String content) {
+        java.util.List<Integer> offsets = new java.util.ArrayList<>();
+        offsets.add(0);
+        int pos = 0;
+        while ((pos = content.indexOf('\n', pos)) >= 0) {
+            offsets.add(++pos);
+        }
+        return offsets.stream().mapToInt(Integer::intValue).toArray();
     }
 
     /** Maps LSP {@link DiagnosticSeverity} to {@link IMarker} severity integer. */
@@ -123,19 +144,6 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
             case Warning -> IMarker.SEVERITY_WARNING;
             default      -> IMarker.SEVERITY_INFO;
         };
-    }
-
-    /**
-     * Builds a table of character offsets for the first character of each line.
-     * Index {@code i} is the offset of line {@code i} (0-based).
-     */
-    private static int[] buildLineOffsets(String content) {
-        var offsets = new ArrayList<Integer>();
-        offsets.add(0);
-        for (int i = 0; i < content.length(); i++) {
-            if (content.charAt(i) == '\n') offsets.add(i + 1);
-        }
-        return offsets.stream().mapToInt(Integer::intValue).toArray();
     }
 
     /**
@@ -233,6 +241,8 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
                         if (OpenJMLConstants.SOURCE_ESC.equals(d.getSource())) escList.add(d);
                         else checkList.add(d);
                     }
+                    Console.log("[OpenJMLLanguageClient] publishDiagnostics uri=" + params.getUri()
+                            + " check=" + checkList.size() + " esc=" + escList.size());
                     // Route check diags through hookConsumer (may include LspPartListener's
                     // colorizer refresh).  On re-entry the guard routes to lsp4eConsumer.
                     // An empty checkList clears stale check markers — always forward it.
