@@ -241,8 +241,8 @@ public class OpenJMLLanguageClient extends DefaultLanguageClient {
                         if (OpenJMLConstants.SOURCE_ESC.equals(d.getSource())) escList.add(d);
                         else checkList.add(d);
                     }
-                    Console.log("[OpenJMLLanguageClient] publishDiagnostics uri=" + params.getUri()
-                            + " check=" + checkList.size() + " esc=" + escList.size());
+                    //Console.log("[OpenJMLLanguageClient] publishDiagnostics uri=" + params.getUri()
+                    //        + " check=" + checkList.size() + " esc=" + escList.size());
                     // Route check diags through hookConsumer (may include LspPartListener's
                     // colorizer refresh).  On re-entry the guard routes to lsp4eConsumer.
                     // An empty checkList clears stale check markers — always forward it.
