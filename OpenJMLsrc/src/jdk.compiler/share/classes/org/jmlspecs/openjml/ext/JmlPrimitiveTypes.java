@@ -39,7 +39,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         return sym == null ? "<ERROR>" : jmlNames.get(sym.toString());
     }
 
-    public JmlPrimitiveTypes(Context context) {
+    public JmlPrimitiveTypes() {
     }
     
     public static class JmlTypeKind extends IJmlClauseKind {
@@ -106,14 +106,13 @@ public class JmlPrimitiveTypes extends JmlExtension {
 
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-            init(parser);
             var name = getName(parser.context);
             JCIdent id = parser.maker().at(parser.pos()).Ident(keyword);
             int p = parser.pos();
             int ep = parser.endPos();
             parser.nextToken();
-            if (parser.token().kind == TokenKind.LPAREN) { 
-                utils.error(p, ep, "jml.message", "An ill-formed type");
+            if (parser.token().kind == TokenKind.LPAREN) {
+                Utils.instance(parser.context).error(p, ep, "jml.message", "An ill-formed type");
                 parser.nextToken();
                 return null;
             } else {
@@ -122,11 +121,11 @@ public class JmlPrimitiveTypes extends JmlExtension {
                 JCExpression typeExpr = parser.typeArgumentsOpt(id);
                 if (hasAngleBracket) {
                     if (expectedNumArgs == 0) {
-                        utils.error(parser.token().pos, parser.token().endPos, "jml.message",
+                        Utils.instance(parser.context).error(parser.token().pos, parser.token().endPos, "jml.message",
                             "A " + keyword + " does not expect type arguments");
                         typeExpr = parser.maker().at(p).Erroneous();
                     } else if (((com.sun.tools.javac.tree.JCTree.JCTypeApply)typeExpr).arguments.size() != expectedNumArgs) {
-                        utils.error(parser.token().pos, parser.token().endPos, "jml.message",
+                        Utils.instance(parser.context).error(parser.token().pos, parser.token().endPos, "jml.message",
                                 "A " + keyword + " expects " + expectedNumArgs + " type arguments");
                         typeExpr = parser.maker().at(p).Erroneous();
                     } else {
@@ -134,11 +133,11 @@ public class JmlPrimitiveTypes extends JmlExtension {
                     }
                 } else {
                     if (expectedNumArgs != 0 ) {
-                        utils.error(parser.token().pos, parser.token().endPos, "jml.message",
+                        Utils.instance(parser.context).error(parser.token().pos, parser.token().endPos, "jml.message",
                             "A " + keyword + " must have type arguments");
                         typeExpr = parser.maker().at(p).Erroneous();
                     } else {
-                        // typeExxpr is already just equal to id
+                        // typeExpr is already just equal to id
                     }
                 }
                 typeExpr = parser.bracketsOpt(typeExpr);
@@ -363,7 +362,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
         private void test(Type t, JmlAttr attr, DiagnosticPosition p) {
             JmlTypes types = JmlTypes.instance(attr.context);
             if (types.isSameType(t, stringTypeKind.getSymbol(attr.context).type) || types.isSameType(t, attr.syms.stringType) || types.isSameType(t, attr.syms.charType)) return;
-            utils.error(p, "jml.message", "Cannot convert " + t + " to \\string");
+            Utils.instance(attr.context).error(p, "jml.message", "Cannot convert " + t + " to \\string");
         }
     };
     
@@ -402,22 +401,20 @@ public class JmlPrimitiveTypes extends JmlExtension {
         public int numTypeArguments() { return 0; }
 		@Override
 		public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-			// TODO Auto-generated method stub
-			init(parser);
 			JCIdent id = parser.maker().at(parser.pos()).Ident(keyword);
 			int p = parser.pos();
 			int ep = parser.endPos();
 			parser.nextToken();
-			if (parser.token().kind == TokenKind.LPAREN) { 
+			if (parser.token().kind == TokenKind.LPAREN) {
 				if (!parser.inExprMode()) {
-					utils.error(p, ep, "jml.message",
+					Utils.instance(parser.context).error(p, ep, "jml.message",
 							"Did not expect a \\locset expression here");
 					// But go on to treat it like a function-like expression
 				}
 				parser.nextToken();
 				var list = parser.parseExpressionList();
 				if (parser.token().kind != TokenKind.RPAREN) {
-					utils.error(p, ep, "jml.message",
+					Utils.instance(parser.context).error(p, ep, "jml.message",
 							"Either an ill-formed expression or missing right-parenthesis");
 				} else {
 					parser.nextToken();
@@ -426,7 +423,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 				return sr;
 			} else {
 				if (!parser.inTypeMode()) {
-					utils.error(p, ep, "jml.message",
+					Utils.instance(parser.context).error(p, ep, "jml.message",
 							"Did not expect a type identifier here");
 					// But go on to treat it like an identifier
 				}
@@ -445,7 +442,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
 					else if (t instanceof JCTree.JCIdent) {}
 					else if (t instanceof JmlTree.JmlStoreRefArrayRange) {}
 					else if (t instanceof JmlTree.JmlSingleton && ((JmlTree.JmlSingleton)t).kind instanceof LocSet) {}
-					else utils.error(t.pos(), "jml.message", "Only location expressions may be arguments to \\locset: " + t + " (" + t.getClass() + ")");
+					else Utils.instance(attr.context).error(t.pos(), "jml.message", "Only location expressions may be arguments to \\locset: " + t + " (" + t.getClass() + ")");
 				});
 				tree.type = getSymbol(attr.context).type;
 				return tree.type;

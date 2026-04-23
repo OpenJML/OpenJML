@@ -8802,7 +8802,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //        				}
 //        			}
 
-        			if (specDecl != null && utils.isSpecFile(specDecl.sourcefile) && !utils.isJML(specDecl) && !utils.isGeneratedConstructor(specDecl.sym) && specDecl.body != null) {
+        			if (specDecl != null && utils.isSpecFile(specDecl.sourcefile) && !utils.isJML(specDecl) && !Utils.isGeneratedConstructor(specDecl.sym) && specDecl.body != null) {
         			    // No body if (a) declared in a .jml file (b) is not a model method (c) and not a generated constructor
         				utils.error(specDecl.sourcefile, specDecl.body, "jml.message", "The specification of the method " + ((ClassSymbol)specDecl.sym.owner).flatname + "." + specDecl.sym + " must not have a body");
         			}

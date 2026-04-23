@@ -221,7 +221,7 @@ public class SolverProcess {
 		if (process == null) return;
 		if (shutdownThread != null) Runtime.getRuntime().removeShutdownHook(shutdownThread);
 		shutdownThread = null;
-		process.destroy();
+		process.destroyForcibly();
 		process = null;
 		toProcess = null;
 		if (log != null) {

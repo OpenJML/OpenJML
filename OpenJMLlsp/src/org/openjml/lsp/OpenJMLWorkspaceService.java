@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.ExecuteCommandParams;
+import org.eclipse.lsp4j.FileChangeType;
+import org.eclipse.lsp4j.FileEvent;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.WorkspaceSymbolParams;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -13,6 +15,8 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -29,22 +33,40 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     private static final Gson GSON = new Gson();
 
-    private final OpenJMLSettings settings;
+    private final OpenJMLSettings globalSettings;
     private final CommandRegistry commands;
-    private final Function<String, List<SymbolInformation>> symbolsRequester;
+    private final Function<String, List<org.eclipse.lsp4j.WorkspaceSymbol>> symbolsRequester;
+    private final BiConsumer<String, FileChangeType> jmlFileChangeHandler;
+    private final BiConsumer<String, FileChangeType> javaFileChangeHandler;
+    private final Runnable watcherReregistrar;
+    private final Consumer<List<OpenJMLSettings.ProjectConfig>> projectConfigUpdater;
 
     /**
-     * @param settings         shared settings object (mutated by didChangeConfiguration)
-     * @param commands         registry of command-name → handler mappings
-     * @param symbolsRequester called with a query string for {@code workspace/symbol} requests;
-     *                         returns matching {@link SymbolInformation} list
+     * @param globalSettings        shared settings object (mutated by didChangeConfiguration)
+     * @param commands              registry of command-name → handler mappings
+     * @param symbolsRequester      called with a query string for {@code workspace/symbol} requests;
+     *                              returns matching {@link org.eclipse.lsp4j.WorkspaceSymbol} list
+     * @param jmlFileChangeHandler  called when a watched {@code .jml} file changes on disk
+     * @param javaFileChangeHandler called when a watched {@code .java} file is created/deleted on disk
+     * @param watcherReregistrar    called when the effective roots change so file watchers
+     *                              are re-registered with the updated scope
+     * @param projectConfigUpdater  called with the parsed project list whenever
+     *                              {@code didChangeConfiguration} carries a {@code projects} entry
      */
-    public OpenJMLWorkspaceService(OpenJMLSettings settings,
+    public OpenJMLWorkspaceService(OpenJMLSettings globalSettings,
                                    CommandRegistry commands,
-                                   Function<String, List<SymbolInformation>> symbolsRequester) {
-        this.settings          = settings;
-        this.commands          = commands;
-        this.symbolsRequester  = symbolsRequester;
+                                   Function<String, List<org.eclipse.lsp4j.WorkspaceSymbol>> symbolsRequester,
+                                   BiConsumer<String, FileChangeType> jmlFileChangeHandler,
+                                   BiConsumer<String, FileChangeType> javaFileChangeHandler,
+                                   Runnable watcherReregistrar,
+                                   Consumer<List<OpenJMLSettings.ProjectConfig>> projectConfigUpdater) {
+        this.globalSettings         = globalSettings;
+        this.commands               = commands;
+        this.symbolsRequester       = symbolsRequester;
+        this.jmlFileChangeHandler   = jmlFileChangeHandler;
+        this.javaFileChangeHandler  = javaFileChangeHandler;
+        this.watcherReregistrar     = watcherReregistrar;
+        this.projectConfigUpdater   = projectConfigUpdater;
     }
 
     @Override
@@ -64,7 +86,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                     : GSON.fromJson(obj,    OpenJMLSettings.class);
             applyUpdate(src);
         } catch (Exception e) {
-            System.err.println("[OpenJML] Failed to parse settings: " + e);
+            ServerLog.serverLog("[OpenJML] Failed to parse settings: " + e);
         }
     }
 
@@ -84,7 +106,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         try {
             applyUpdate(GSON.fromJson(element, OpenJMLSettings.class));
         } catch (Exception e) {
-            System.err.println("[OpenJML] Failed to parse settings: " + e);
+            ServerLog.serverLog("[OpenJML] Failed to parse settings: " + e);
         }
     }
 
@@ -93,23 +115,86 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     }
 
     private void applyUpdate(OpenJMLSettings src) {
-        if (src.propertiesFile  != null) settings.propertiesFile  = src.propertiesFile;
-        if (src.specsPath       != null) settings.specsPath       = src.specsPath;
-        if (src.solversPath     != null) settings.solversPath     = src.solversPath;
-        if (src.sourcePath      != null) settings.sourcePath      = src.sourcePath;
-        if (src.classPath       != null) settings.classPath       = src.classPath;
-        if (src.checkTriggerOn         != null) settings.checkTriggerOn         = src.checkTriggerOn;
-        if (src.escTriggerOn           != null) settings.escTriggerOn           = src.escTriggerOn;
-        if (src.syntaxColoringStrategy != null) settings.syntaxColoringStrategy = src.syntaxColoringStrategy;
-        if (src.escEngine              != null) settings.escEngine              = src.escEngine;
-        if (src.racOutputDir         != null) settings.racOutputDir         = src.racOutputDir;
-        if (src.useIntegratedOutline != null) settings.useIntegratedOutline = src.useIntegratedOutline;
-        if (src.escThreads > 0 && src.escThreads != settings.escThreads) {
-            settings.escThreads = src.escThreads;
-            var old = settings.escPool;
-            settings.escPool = java.util.concurrent.Executors.newFixedThreadPool(src.escThreads);
+        if (src.toolOptions     != null) globalSettings.toolOptions     = src.toolOptions;
+        if (src.specsPath       != null) globalSettings.specsPath       = src.specsPath;
+
+        if (src.sourcePath      != null) globalSettings.sourcePath      = src.sourcePath;
+        if (src.classPath       != null) globalSettings.classPath       = src.classPath;
+        if (src.checkTriggerOn         != null) globalSettings.checkTriggerOn         = src.checkTriggerOn;
+        if (src.escTriggerOn           != null) globalSettings.escTriggerOn           = src.escTriggerOn;
+        if (src.syntaxColoringStrategy != null) globalSettings.syntaxColoringStrategy = src.syntaxColoringStrategy;
+        if (src.syntaxColoringScope    != null) globalSettings.syntaxColoringScope    = src.syntaxColoringScope;
+        if (src.escEngine              != null) globalSettings.escEngine              = src.escEngine;
+        if (src.racOutputDir         != null) globalSettings.racOutputDir         = src.racOutputDir;
+        if (src.useIntegratedOutline != null) globalSettings.useIntegratedOutline = src.useIntegratedOutline;
+        if (src.javaMode != null) globalSettings.javaMode = src.javaMode;
+        if (src.client  != null) globalSettings.client   = src.client;
+        // Boolean primitive: always propagate — clients that declare support always send true.
+        if (src.supportsActionMessages) globalSettings.supportsActionMessages = true;
+        if (src.escThreads > 0 && src.escThreads != globalSettings.escThreads) {
+            globalSettings.escThreads = src.escThreads;
+            var old = globalSettings.escPool;
+            globalSettings.escPool = java.util.concurrent.Executors.newFixedThreadPool(src.escThreads);
             old.shutdown();
         }
+        // Per-project configs: update the project registry and re-register file watchers.
+        if (src.projects != null) {
+            globalSettings.projects = src.projects;
+            if (projectConfigUpdater != null) projectConfigUpdater.accept(src.projects);
+            if (watcherReregistrar != null) watcherReregistrar.run();
+        }
+    }
+
+    /**
+     * Handle {@code workspace/didChangeWorkspaceFolders} notifications.
+     *
+     * <p>For standard LSP clients (VS Code, bare LSP) the server synthesizes a
+     * {@code "__workspace__"} project at initialization time.  This handler keeps
+     * that project's {@code rootPaths} in sync as the user opens and closes folders.
+     *
+     * <p>For multi-project Eclipse clients the project list is managed via
+     * {@code didChangeConfiguration}, so this notification is a no-op.
+     */
+    @Override
+    public void didChangeWorkspaceFolders(
+            org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams params) {
+        if (params == null || params.getEvent() == null) return;
+
+        // Find the synthesized __workspace__ project.
+        OpenJMLSettings.ProjectConfig wp = null;
+        if (globalSettings.projects != null) {
+            for (OpenJMLSettings.ProjectConfig p : globalSettings.projects) {
+                if (OpenJMLSettings.WORKSPACE_PROJECT_ID.equals(p.id)) { wp = p; break; }
+            }
+        }
+        if (wp == null) return;   // Eclipse client — ignore.
+
+        List<String> roots = wp.rootPaths != null
+                ? new java.util.ArrayList<>(wp.rootPaths)
+                : new java.util.ArrayList<>();
+
+        var event = params.getEvent();
+        if (event.getAdded() != null) {
+            for (var folder : event.getAdded()) {
+                String path = uriToOsPath(folder.getUri());
+                if (path != null && !roots.contains(path)) roots.add(path);
+            }
+        }
+        if (event.getRemoved() != null) {
+            for (var folder : event.getRemoved()) {
+                String path = uriToOsPath(folder.getUri());
+                if (path != null) roots.remove(path);
+            }
+        }
+
+        wp.rootPaths = roots;
+        if (watcherReregistrar != null) watcherReregistrar.run();
+    }
+
+    private static String uriToOsPath(String uri) {
+        if (uri == null || !uri.startsWith("file:")) return null;
+        try { return java.nio.file.Path.of(java.net.URI.create(uri)).toString(); }
+        catch (Exception e) { return null; }
     }
 
     /**
@@ -122,11 +207,37 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     public CompletableFuture<Either<List<? extends SymbolInformation>, List<? extends org.eclipse.lsp4j.WorkspaceSymbol>>>
             symbol(WorkspaceSymbolParams params) {
         String query = params.getQuery() != null ? params.getQuery() : "";
-        List<SymbolInformation> results =
+        ServerLog.serverLog("[workspace/symbol] request: query=\"" + query + "\"");
+        List<org.eclipse.lsp4j.WorkspaceSymbol> results =
                 symbolsRequester != null ? symbolsRequester.apply(query) : List.of();
-        return CompletableFuture.completedFuture(Either.forLeft(results));
+        ServerLog.serverLog("[workspace/symbol] response: " + results.size() + " result(s)"
+                + (results.isEmpty() ? "" : ", first=" + results.get(0).getName()));
+        return CompletableFuture.completedFuture(Either.forRight(results));
     }
 
     @Override
-    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {}
+    public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
+        for (FileEvent event : params.getChanges()) {
+            String uri  = event.getUri();
+            FileChangeType type = event.getType();
+            if (!isUnderEffectiveRoot(uri)) continue;
+            if (uri.endsWith(".jml") && jmlFileChangeHandler != null) {
+                jmlFileChangeHandler.accept(uri, type);
+            } else if (uri.endsWith(".java") && javaFileChangeHandler != null) {
+                javaFileChangeHandler.accept(uri, type);
+            }
+        }
+    }
+
+    /** Returns {@code true} if {@code uri} falls under one of the effective workspace roots. */
+    private boolean isUnderEffectiveRoot(String uri) {
+        List<String> roots = globalSettings.effectiveRoots();
+        if (roots.isEmpty()) return true;   // no filter configured — accept everything
+        String path = CheckRunner.uriToPath(uri);
+        if (path == null) return false;
+        for (String root : roots) {
+            if (path.startsWith(root)) return true;
+        }
+        return false;
+    }
 }

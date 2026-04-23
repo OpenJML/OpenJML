@@ -23,10 +23,16 @@ import org.junit.runners.Suite;
     JmlCompletionProviderTest.class,
     OpenJMLSettingsTest.class,
     DiagnosticConverterTest.class,
-    JavaSourceScannerTest.class,
     CodeLensTest.class,
     CheckRunnerDirTest.class,
-    EscDirWithContextTest.class,
+    WorkspaceSymbolTest.class,
+    MockFileCornerCasesTest.class,
+    LegacyDiskIOSmokeTest.class,
     JmlKeywordSyncTest.class,
+    IncrementalSyncApplierTest.class,
+    InlayHintsVarTypesTest.class,
+    WatchedFilesTest.class,
+    WatchedFilesHandlerTest.class,
+    SuiteVsMakefileTest.class,
 })
 public class FastTests {}

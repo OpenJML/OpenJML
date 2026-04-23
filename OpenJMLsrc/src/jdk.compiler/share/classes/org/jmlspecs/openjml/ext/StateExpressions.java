@@ -43,7 +43,6 @@ public class StateExpressions extends JmlExtension {
         @Override
         public JCExpression parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int p = parser.pos();
             var jt = parser.jmlTokenClauseKind();
             parser.nextToken();
@@ -54,7 +53,7 @@ public class StateExpressions extends JmlExtension {
             }
             int pp = parser.pos();
             List<JCExpression> args = parser.arguments();
-            JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(this, args));
+            JmlMethodInvocation t = parser.toP(parser.maker().at(pp).JmlMethodInvocation(this, args));
             t.startpos = p;
             t.kind = jt;
             return parser.primaryTrailers(t, null); // FIXME - was primarySuffix
@@ -69,13 +68,13 @@ public class StateExpressions extends JmlExtension {
             Name label = null;
             int n = tree.args.size();
             if (!(n == 1 || (tree.kind != preKind && n == 2))) {
-                if (tree.kind != preKind) error(tree,"jml.wrong.number.args",keyword(),
+                if (tree.kind != preKind) error(attr.context, tree,"jml.wrong.number.args",keyword(),
                         "1 or 2",n);
-                else error(tree,"jml.one.arg",keyword(), n);
+                else error(attr.context, tree,"jml.one.arg",keyword(), n);
             } else if (tree.kind == preKind) {
                 // pre
                 if (!clauseKind.preAllowed()) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\pre token", clauseKind.keyword());
+                    Log.instance(attr.context).error(tree.pos+1, "jml.misplaced.old", "\\pre token", clauseKind.keyword());
                 } else {
                 	label = attr.preLabel;
                 	t = null;
@@ -86,9 +85,9 @@ public class StateExpressions extends JmlExtension {
                     // OK
                 	t = null;
                 } else if (!clauseKind.oldNoLabelAllowed() && clauseKind != MethodSimpleClauseExtensions.declClause) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", clauseKind.keyword());
+                    Log.instance(attr.context).error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", clauseKind.keyword());
                 } else if (clauseKind == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", clauseKind.keyword());
+                    Log.instance(attr.context).error(tree.pos+1, "jml.misplaced.old", "\\old token with no label", clauseKind.keyword());
                 } else {
                 	label = attr.oldLabel;
                 	t = null;
@@ -99,9 +98,9 @@ public class StateExpressions extends JmlExtension {
                     label = attr.checkLabel(tree.args.get(1));
                     if (label != null) t = null;
                 } else if (!clauseKind.preOrOldWithLabelAllowed() && clauseKind != MethodSimpleClauseExtensions.declClause) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", clauseKind.keyword());
+                    Log.instance(attr.context).error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", clauseKind.keyword());
                 } else if (clauseKind == MethodSimpleClauseExtensions.declClause && localEnv.enclMethod == null) {
-                    log.error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", clauseKind.keyword());
+                    Log.instance(attr.context).error(tree.pos+1, "jml.misplaced.old", "\\old token with a label", clauseKind.keyword());
                 } else {
                 	label = attr.checkLabel(tree.args.get(1));
                 	if (label != null) t = null;

@@ -39,10 +39,9 @@ public class StatementLocationsExtension extends JmlExtension {
         @Override
         public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
-                error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
+                error(parser.context, mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;
             }
-            init(parser);
             
             int pp = parser.pos();
             int pe = parser.endPos();
@@ -74,7 +73,7 @@ public class StatementLocationsExtension extends JmlExtension {
             // FIXME - refactor to use wrapup
             var st = keyword.equals(havocID) ? (parser.maker().at(pp).JmlHavocStatement(list.toList()))
             					: parser.maker().at(pp).JmlStatementLoopModifies(clauseType, list.toList());
-            wrapup(st, clauseType, true, false);
+            wrapup(parser, st, clauseType, true, false);
             return st;
         }
         

@@ -4,7 +4,7 @@
  */
 package org.jmlspecs.openjml.proverinterface;
 
-import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.openjml.*;
 import org.openjml.IProverResult.*;
 
@@ -35,9 +35,9 @@ public class ProverResult implements IProverResult {
     /*@non_null*/
     protected Date timestamp;
     
-    /** The Method symbol of the target method of this proof attempt */
+    /** The method declaration of the target method of this proof attempt */
     /*@non_null*/
-    public MethodSymbol methodSymbol;
+    public JmlMethodDecl methodDecl;
     
     /** Other information - user defined */
     /*@nullable*/
@@ -51,11 +51,11 @@ public class ProverResult implements IProverResult {
      * description and basic result initialized.
      * @param prover A description of the prover used
      */
-    public ProverResult(String prover, Kind result, MethodSymbol msym) {
+    public ProverResult(String prover, Kind result, JmlMethodDecl decl) {
         this.prover = prover;
         this.timestamp = new Date(); // current time
         this.result = result;
-        this.methodSymbol = msym;
+        this.methodDecl = decl;
     }
 
     /** Returns the category of result that the prover obtained
@@ -78,10 +78,11 @@ public class ProverResult implements IProverResult {
     /** Sets the time to compute this result */
     public void accumulateDuration(double d) { duration += d; episodes++; }
     
-    /** The method that was the target of this proof attempt */
+    /** The method declaration that was the target of this proof attempt */
     /*@non_null*/
-    public MethodSymbol methodSymbol() { return methodSymbol; }
-    
+    @Override
+    public JmlMethodDecl methodDecl() { return methodDecl; }
+
     /** The time at which the computation of the result began */
     /*@non_null*/
     public Date timestamp() { return timestamp; }

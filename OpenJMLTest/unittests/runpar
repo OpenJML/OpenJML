@@ -88,13 +88,26 @@ set -o pipefail
 echo MID `date`
 ./retry -run  2>&1 | tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
 ERR=$?
-echo END `date`
 if [ $ERR -eq 0 ]; then 
     echo Completed all retrys successfully
 else
     echo Completed retrys with remaining failures
     if [ -n "$OPT" ]; then cat logretry ; fi
     grep -E 'FAILED' logretry
-    echo "LIST:" `grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
+    FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
+    echo "LIST:" $FAILURES
+    echo "Second round retrys"
+    runtests $FAILURES 2>&1 | tee logretry | grep  --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout'
+    ERR=$?
+    if [ $ERR -eq 0 ]; then 
+        echo Completed all retrys successfully
+    else
+        echo Completed retrys with remaining failures
+        if [ -n "$OPT" ]; then cat logretry ; fi
+        grep -E 'FAILED' logretry
+        FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
+        echo "LIST:" $FAILURES
+    fi
 fi
+echo END `date`
 exit $(( ERR || RUNERR ))

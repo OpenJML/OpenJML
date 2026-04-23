@@ -29,7 +29,6 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
         public 
         JmlTree.JmlTypeClauseMonitorsFor parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
-            init(parser);
             parser.nextToken();
             Name nn = parser.parseOptionalName();
             List<JCExpression> elist = List.<JCExpression>nil();
@@ -37,12 +36,12 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
             int identPos = parser.pos();
             TokenKind tk = parser.token().kind;
             if (tk != IDENTIFIER) {
-                error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
+                error(parser.context, parser.pos(), parser.endPos(), "jml.expected", "an identifier");
                 n = parser.names.asterisk; // place holder for an error situation
             } else {
                 n = parser.ident(); // Advances to next token
                 if (parser.token().kind != TokenKind.EQ && parser.jmlTokenClauseKind() != org.jmlspecs.openjml.ext.Operators.leftarrowKind) {
-                    error(parser.pos(), parser.endPos(), "jml.expected",
+                    error(parser.context, parser.pos(), parser.endPos(), "jml.expected",
                             "an = or <- token");
                 } else {
                     parser.nextToken();
@@ -50,8 +49,8 @@ public class TypeMonitorsForClauseExtension extends JmlExtension {
                 }
             }
             JCTree.JCIdent id = parser.to(parser.maker().at(identPos).Ident(n));
-            var t = toP(parser.maker().at(pp).JmlTypeClauseMonitorsFor(mods, id, elist));
-            wrapup(t, clauseType, true, true);
+            var t = parser.toP(parser.maker().at(pp).JmlTypeClauseMonitorsFor(mods, id, elist));
+            wrapup(parser, t, clauseType, true, true);
             return t;
         }
         

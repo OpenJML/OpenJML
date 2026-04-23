@@ -44,7 +44,6 @@ public class DatatypeExt extends JmlExtension {
         @Override
         public JmlDatatypeDecl parse(JCModifiers xmods, String keyword,
                 IJmlClauseKind clauseKind, JmlParser parser) {
-            init(parser);
             Comment dc = parser.token().comment(CommentStyle.JAVADOC);
             int pos = parser.token().pos;
             JCModifiers mods = parser.modifiersOpt(xmods);
@@ -104,7 +103,7 @@ public class DatatypeExt extends JmlExtension {
             // Implicitly model
             JmlSpecs.instance(parser.context).addModifier(pos, Modifiers.MODEL, mods);
             // FIXME - make this a novel primitive type
-            Type at = utils.createClassSymbol(com.sun.tools.javac.code.Symtab.instance(parser.context).java_base, "org.jmlspecs.lang.IJmlDatatype").type;
+            Type at = Utils.instance(parser.context).createClassSymbol(com.sun.tools.javac.code.Symtab.instance(parser.context).java_base, "org.jmlspecs.lang.IJmlDatatype").type;
             JCExpression dtype = parser.jmlF.at(pos).Type(at);
             JmlDatatypeDecl d = new JmlDatatypeDecl(mods, datatypeName, typarams, null, List.<JCExpression>of(dtype), defs.toList(), null);
             d.constructors = cons.toList();

@@ -62,6 +62,44 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
     private final List<Diagnostic<? extends JavaFileObject>> collected =
             Collections.synchronizedList(new ArrayList<Diagnostic<? extends JavaFileObject>>());
 
+    /** Index into {@code collected} at which the current method's diagnostic window started; -1 = no window open. */
+    private volatile int methodWindowStart = -1;
+
+    /** Open a per-method diagnostic accumulation window. Call at RUNNING event (proof start). */
+    public void startMethodWindow() {
+        methodWindowStart = collected.size();
+    }
+
+    /**
+     * Close the window and return diagnostics emitted since {@link #startMethodWindow()},
+     * grouped by their source URI. Each diagnostic's URI is derived from
+     * {@code d.getSource().getName()} → {@code Path.of(srcPath).toUri().toString()}.
+     * Diagnostics with null source are skipped. Resets the window to closed.
+     */
+    public Map<String, List<org.eclipse.lsp4j.Diagnostic>> stopMethodWindow() {
+        int start = methodWindowStart;
+        methodWindowStart = -1;
+        if (start < 0) return Map.of();
+        List<Diagnostic<? extends JavaFileObject>> window;
+        synchronized (collected) {
+            int end = collected.size();
+            if (start >= end) return Map.of();
+            window = new java.util.ArrayList<>(collected.subList(start, end));
+        }
+        Map<String, List<org.eclipse.lsp4j.Diagnostic>> result = new java.util.LinkedHashMap<>();
+        for (var d : window) {
+            if (d.getSource() == null) continue;
+            String srcPath = d.getSource().getName();
+            if (srcPath == null || srcPath.isEmpty()) continue;
+            String uri;
+            try { uri = java.nio.file.Path.of(srcPath).toUri().toString(); }
+            catch (Exception e) { continue; }
+            result.computeIfAbsent(uri, k -> new java.util.ArrayList<>())
+                  .add(DiagnosticConverter.convert(d, uri, null, sourceTag));
+        }
+        return result;
+    }
+
     /** Per-thread capture list; non-null only while a doESC call is active on that thread. */
     private final ThreadLocal<List<Diagnostic<? extends JavaFileObject>>> captureMode =
             new ThreadLocal<>();
@@ -83,6 +121,17 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
 
     @Override
     public void report(Diagnostic<? extends JavaFileObject> diagnostic) {
+        // Investigate: log diagnostics with no source or no position so we can trace
+        // tool-level warnings (e.g. bad --warn key) that might otherwise be silently dropped.
+        if (diagnostic.getSource() == null || diagnostic.getLineNumber() == Diagnostic.NOPOS) {
+            ServerLog.serverLog("[LspDiagnosticListener.report] nopos/nosource:"
+                    + " kind=" + diagnostic.getKind()
+                    + " source=" + (diagnostic.getSource() == null ? "<null>"
+                                                                    : diagnostic.getSource().getName())
+                    + " line=" + diagnostic.getLineNumber()
+                    + " code=" + diagnostic.getCode()
+                    + " msg=" + diagnostic.getMessage(java.util.Locale.ENGLISH));
+        }
         List<Diagnostic<? extends JavaFileObject>> cap = captureMode.get();
         if (cap != null) {
             cap.add(diagnostic);  // capture mode: goes to thread-local list only
@@ -112,27 +161,34 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         return result;
     }
 
-    /**
-     * {@link #toLspDiagnosticsFromList} with {@link DiagnosticConverter#SOURCE_CHECK}
-     * as the source tag.
-     */
-    public static List<org.eclipse.lsp4j.Diagnostic> toLspDiagnosticsFromList(
-            List<Diagnostic<? extends JavaFileObject>> rawDiags,
-            String sourcePath, String targetUri) {
-        return toLspDiagnosticsFromList(rawDiags, sourcePath, targetUri,
-                                        DiagnosticConverter.SOURCE_CHECK);
-    }
-
+    /** Returns an unmodifiable view of all diagnostics collected so far. */
     public List<Diagnostic<? extends JavaFileObject>> getDiagnostics() {
         return Collections.unmodifiableList(collected);
     }
 
     /**
-     * Convert collected diagnostics to LSP Diagnostics.
-     *
-     * @param sourcePath the temp-file path actually passed to OpenJML (for filtering)
-     * @param targetUri  the LSP document URI to report diagnostics against
+     * Returns the plain-text messages of diagnostics that represent tool-level warnings —
+     * those with no source file ({@code getSource() == null}) or no source position
+     * ({@code getLineNumber() == NOPOS}).  Examples include an unrecognised {@code --warn}
+     * key, which OpenJML emits with {@code NOPOS} rather than a real line number.
+     * The standard conversion methods skip these; this method surfaces them so callers
+     * can route them to the client console via {@code window/logMessage}.
      */
+    public List<String> toGlobalMessages() {
+        var result = new ArrayList<String>();
+        for (var d : collected) {
+            // Include null-source diagnostics AND diagnostics with NOPOS that have no
+            // meaningful source location — both represent tool-level messages (e.g. a bad
+            // --warn key warning) that cannot be attributed to a specific file/line.
+            boolean nullSource = (d.getSource() == null);
+            boolean noPos = (d.getLineNumber() == Diagnostic.NOPOS);
+            if (!nullSource && !noPos) continue;
+            String msg = d.getMessage(java.util.Locale.ENGLISH);
+            if (msg != null && !msg.isBlank()) result.add(msg);
+        }
+        return result;
+    }
+
     /**
      * Return the names of files OTHER than the primary {@code sourcePath} that
      * produced at least one diagnostic (i.e. dependency files whose errors
@@ -140,22 +196,17 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
      * {@code "B.java"}, in the order first seen, without duplicates.
      */
     public List<String> toForeignMessages(String sourcePath) {
-        String base = baseName(sourcePath);
+        String base = DiagnosticConverter.baseName(sourcePath);
         List<String> files = new ArrayList<>();
         java.util.Set<String> seen = new java.util.LinkedHashSet<>();
         for (var d : collected) {
             if (d.getSource() == null) continue;
             String srcName = d.getSource().getName();
             if (srcName.isEmpty() || srcName.endsWith(base)) continue;
-            String fileName = baseName(srcName);
+            String fileName = DiagnosticConverter.baseName(srcName);
             if (seen.add(fileName)) files.add(fileName);
         }
         return files;
-    }
-
-    private static String baseName(String path) {
-        int i = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-        return path.substring(i + 1);
     }
 
     /**
@@ -234,19 +285,37 @@ public class LspDiagnosticListener implements DiagnosticListener<JavaFileObject>
         return result;
     }
 
+    /**
+     * Convert collected diagnostics to LSP diagnostics, filtering to those from {@code sourcePath}.
+     *
+     * @param sourcePath the path of the primary file passed to OpenJML (used to filter out
+     *                   diagnostics from dependency files)
+     * @param targetUri  the LSP document URI to report diagnostics against
+     */
     public List<org.eclipse.lsp4j.Diagnostic> toLspDiagnostics(String sourcePath, String targetUri) {
         var result = new ArrayList<org.eclipse.lsp4j.Diagnostic>();
         for (var d : collected) {
             if (DEBUG_DIAGNOSTICS) {
                 String src = d.getSource() == null ? "<null>" : d.getSource().getName();
-                System.err.println("  raw: kind=" + d.getKind()
+                ServerLog.serverLog("  raw: kind=" + d.getKind()
                         + " code=" + d.getCode()
                         + " line=" + d.getLineNumber()
                         + " src=" + src
                         + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
             }
+            // Null-source diagnostics are tool-level warnings (e.g. bad --warn key);
+            // they are routed to the client console via toGlobalMessages(), not here.
+            if (d.getSource() == null) continue;
             if (!DiagnosticConverter.matchesSourcePath(d, sourcePath)) {
-                if (DEBUG_DIAGNOSTICS) System.err.println("    ^ filtered (wrong source file)");
+                if (DEBUG_DIAGNOSTICS) ServerLog.serverLog("    ^ filtered (wrong source file)");
+                // Log diagnostics that are silently dropped — helps trace tool-level warnings
+                // that have a non-null source which doesn't match the target file.
+                String dSrc = d.getSource() == null ? "<null>" : d.getSource().getName();
+                ServerLog.serverLog("[LspDiagnosticListener.toLspDiagnostics] filtered:"
+                        + " source=" + dSrc
+                        + " line=" + d.getLineNumber()
+                        + " vs path=" + sourcePath
+                        + " msg=" + d.getMessage(java.util.Locale.ENGLISH));
                 continue;
             }
             result.add(DiagnosticConverter.convert(d, targetUri, lineStartOffsets, sourceTag));

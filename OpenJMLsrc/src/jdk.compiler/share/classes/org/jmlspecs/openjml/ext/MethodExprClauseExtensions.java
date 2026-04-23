@@ -113,9 +113,8 @@ public class MethodExprClauseExtensions extends JmlExtension {
         @Override
         public 
         JmlMethodClauseBehaviors parse(JCModifiers mods, String keyword, IJmlClauseKind clauseKind, JmlParser parser) {
-            init(parser);
             if (mods != null && mods.flags != 0) {
-                error(mods, "jml.message", "A " + keyword + " clause may not have modifiers : " + mods);
+                error(parser.context, mods, "jml.message", "A " + keyword + " clause may not have modifiers : " + mods);
             }
             
             int pp = parser.pos();
@@ -128,15 +127,15 @@ public class MethodExprClauseExtensions extends JmlExtension {
             if (e instanceof JCIdent id) {
                 var s = id.getName().toString();
                 if (!java.util.Arrays.stream(behaviorsCommands).filter(x->x.equals(s)).findFirst().isPresent()) {
-                    error(e, "jml.message", "this word is not a recognized 'behaviors' option: " + s);
+                    error(parser.context, e, "jml.message", "this word is not a recognized 'behaviors' option: " + s);
                 } else {
                     cl = parser.maker().at(pp).JmlMethodClauseBehaviors(s);
                     cl.name = n;
                 }
             } else {
-                error(e, "jml.message", "the content of a behaviors clause must be a simple identifier");
+                error(parser.context, e, "jml.message", "the content of a behaviors clause must be a simple identifier");
             }
-            wrapup(cl, clauseKind, true, true);
+            wrapup(parser, cl, clauseKind, true, true);
             return cl;           
         }
 

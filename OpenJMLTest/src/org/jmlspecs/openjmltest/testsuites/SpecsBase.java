@@ -125,10 +125,12 @@ public class SpecsBase extends TCBase {
             addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
+            // Register by URI in the existing mockFiles (same object as main.mockFiles).
+            mockFiles.addMockByUri(f.toUri().normalize(), f);
             // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
             int ex = main.compile(new String[]{
-                    "-Xlint:removal","-Xlint:deprecation"},
-                    files).exitCode;
+                    "-Xlint:removal","-Xlint:deprecation", f.getName()},
+                    mockFiles).exitCode;
             int expected = expectedExit;
             boolean allNotes = collector.getDiagnostics().stream().allMatch(d->d.toString().contains("Note:"));
             boolean anyErrors = collector.getDiagnostics().stream().anyMatch(d->d.toString().contains("error:"));

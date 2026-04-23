@@ -71,7 +71,7 @@ public abstract class RenameTestBase extends LspTestBase {
                 uri, lc[0], lc[1], newName,
                 Map.of(primaryUri, primarySrc, helperUri, helperSrc),
                 CheckRunner.getASTCache(),
-                settings);
+                settings, null);
     }
 
     /**

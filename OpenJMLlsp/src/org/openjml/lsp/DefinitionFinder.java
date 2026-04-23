@@ -14,6 +14,7 @@ import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -54,7 +55,7 @@ public class DefinitionFinder {
     public static Location findDefinition(String uri, int line, int col,
                                           Map<String, String> openContent,
                                           ASTCache cache) {
-        ASTCache.Entry entry = cache.get(uri);
+        ASTCache.Entry entry = cache.getNav(uri);
         if (entry == null) return null;
 
         String source = openContent.get(uri);
@@ -68,9 +69,20 @@ public class DefinitionFinder {
         // Only scan specsCompilationUnit when the cursor is already in a .jml file:
         // specsCompilationUnit positions are in .jml coordinate space, not .java coordinate space.
         NodeMatch match = findNodeAt(entry.ast(), targetOffset, source, uri.endsWith(".jml"));
-        if (match == null || match.sym() == null) return null;
+        if (match == null || match.sym() == null) {
+            ServerLog.serverLog("[DefinitionFinder] no symbol found at offset " + targetOffset);
+            return null;
+        }
 
-        ASTCache.SymbolLocation decl = cache.getDeclarationLocation(match.sym());
+        com.sun.tools.javac.code.Symbol sym = match.sym();
+        ServerLog.serverLog("[DefinitionFinder] symbol=" + sym
+                + "  class=" + sym.getClass().getSimpleName()
+                + "  owner=" + sym.owner
+                + "  ownerClass=" + (sym.owner == null ? "null" : sym.owner.getClass().getSimpleName())
+                + "  qualifiedName=" + sym.getQualifiedName());
+
+        ASTCache.SymbolLocation decl = cache.getDeclarationLocation(sym);
+        ServerLog.serverLog("[DefinitionFinder] declarationLocation=" + decl);
         if (decl == null) return null;
 
         // For the declaration source, prefer the actual file content (AST or disk)
@@ -81,9 +93,33 @@ public class DefinitionFinder {
         if (declSource == null) declSource = openContent.get(decl.uri());
         if (declSource == null) return null;
 
-        int[] lc = offsetToLineCol(declSource, decl.charOffset());
-        var pos = new Position(lc[0], lc[1]);
-        return new Location(decl.uri(), new Range(pos, pos));
+        String symName = sym.name.toString();
+        int[] startLc = offsetToLineCol(declSource, decl.charOffset());
+        int[] endLc   = offsetToLineCol(declSource, decl.charOffset() + symName.length());
+        return new Location(decl.uri(), new Range(
+                new Position(startLc[0], startLc[1]),
+                new Position(endLc[0],   endLc[1])));
+    }
+
+    /**
+     * Returns a compact, single-line representation of a {@link Location} for logging.
+     * Format: {@code filename:line:startChar-endChar} (line is 1-based).
+     * Example: {@code A.java:6:14-17}
+     */
+    public static String locStr(Location loc) {
+        if (loc == null) return "null";
+        String uri = loc.getUri();
+        int slash = Math.max(uri.lastIndexOf('/'), uri.lastIndexOf('\\'));
+        String file = slash >= 0 ? uri.substring(slash + 1) : uri;
+        Range r = loc.getRange();
+        if (r == null) return file;
+        Position s = r.getStart(), e = r.getEnd();
+        int line = s.getLine() + 1;
+        int sc   = s.getCharacter();
+        int ec   = e.getCharacter();
+        return sc == ec
+                ? file + ":" + line + ":" + sc
+                : file + ":" + line + ":" + sc + "-" + ec;
     }
 
     /**
@@ -97,7 +133,7 @@ public class DefinitionFinder {
     static com.sun.tools.javac.code.Symbol findSymbolAt(
             String uri, int line, int col,
             Map<String, String> openContent, ASTCache cache) {
-        ASTCache.Entry entry = cache.get(uri);
+        ASTCache.Entry entry = cache.getNav(uri);
         if (entry == null) return null;
 
         String source = openContent.get(uri);
@@ -118,12 +154,90 @@ public class DefinitionFinder {
     /** Convert 0-indexed (line, col) to a character offset in {@code source}. */
     static int lineColToOffset(String source, int line, int col) {
         int offset = 0;
-        int currentLine = 0;
-        while (currentLine < line && offset < source.length()) {
-            if (source.charAt(offset) == '\n') currentLine++;
-            offset++;
+        for (int i = 0; i < line; i++) {
+            int next = source.indexOf('\n', offset);
+            if (next < 0) return source.length() + col; // line beyond EOF
+            offset = next + 1;
         }
         return offset + col;
+    }
+
+    /**
+     * Lazy line-start index that survives incremental edits.
+     *
+     * <p>Maintains a growing {@code int[]} where {@code starts[i]} is the
+     * character offset of the first character on line {@code i} (0-indexed).
+     * Entries are computed on demand; {@link #toOffset} only scans the
+     * characters between the last built line and the requested line.
+     *
+     * <p>After an in-place edit, call {@link #applyEdit} to shift the cached
+     * line-start offsets that lie beyond the edited range, and call
+     * {@link #rebind} to point the index at the updated source buffer.  This
+     * avoids the O(n) {@code StringBuilder.toString()} snapshot that would
+     * otherwise be required before each subsequent change in a multi-delta
+     * event.
+     *
+     * <p>For single-change events (the common case) just construct, call
+     * {@link #toOffset} twice, and discard.
+     */
+    static final class LineIndex {
+        private CharSequence source;
+        private int[] starts;
+        private int built; // number of entries stored (starts[0..built-1] are valid)
+
+        LineIndex(CharSequence source) {
+            this.source = source;
+            // Assumes average line length >= 32 chars (typical for Java source),
+            // so (length >> 5) + 1 is a sufficient line-count upper bound.
+            // Files with shorter average lines will trigger a resize in toOffset().
+            this.starts = new int[Math.max(64, (source.length() >> 5) + 1)];
+            this.starts[0] = 0;
+            this.built = 1; // line 0 always starts at offset 0
+        }
+
+        /** Switch the backing source (e.g. from the original String to a StringBuilder). */
+        void rebind(CharSequence newSource) { this.source = newSource; }
+
+        /** Convert 0-indexed (line, col) to a character offset. */
+        int toOffset(int line, int col) {
+            if (line < built) return starts[line] + col;
+            // Grow the starts array if needed.
+            if (line >= starts.length)
+                starts = Arrays.copyOf(starts, Math.max(starts.length * 2, line + 1));
+            int offset = starts[built - 1];
+            while (built <= line) {
+                int next = indexOfNewline(offset);
+                if (next < 0) return source.length() + col; // line beyond EOF
+                starts[built++] = next + 1;
+                offset = next + 1;
+            }
+            return offset + col;
+        }
+
+        /**
+         * Invalidate all cached line-start entries at or after {@code startLine + 1}.
+         *
+         * <p>After an edit that begins on {@code startLine}, the start offset of
+         * {@code startLine} itself ({@code starts[startLine]}) is still valid — it
+         * precedes the edit point.  Every subsequent entry is potentially wrong
+         * (the replacement text may contain a different number of newlines than
+         * the deleted range).  Truncating {@code built} to {@code startLine + 1}
+         * causes {@link #toOffset} to lazily rescan from {@code starts[startLine]}
+         * through the updated source on the next call.
+         */
+        void applyEdit(int startLine) {
+            built = Math.min(built, startLine + 1);
+        }
+
+        /** Fast newline search: uses intrinsic/optimised paths for String and StringBuilder. */
+        private int indexOfNewline(int from) {
+            if (source instanceof String s)        return s.indexOf('\n', from);
+            if (source instanceof StringBuilder sb) return sb.indexOf("\n", from);
+            // Generic fallback for any other CharSequence.
+            int len = source.length();
+            for (int i = from; i < len; i++) if (source.charAt(i) == '\n') return i;
+            return -1;
+        }
     }
 
     /** Convert a character offset to 0-indexed (line, col). */
@@ -305,7 +419,7 @@ public class DefinitionFinder {
      * then fall back to reading from disk.
      */
     private static String getSource(String uri, ASTCache cache) {
-        ASTCache.Entry entry = cache.get(uri);
+        ASTCache.Entry entry = cache.getNav(uri);
         if (entry != null) {
             String s = readFromAst(entry);
             if (s != null) return s;

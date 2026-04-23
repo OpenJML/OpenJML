@@ -29,8 +29,7 @@ public class CallableClauseExtension extends JmlExtension {
         public JmlMethodClauseCallable parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
             int pe = parser.endPos();
-            init(parser);
-            
+
             parser.warnNotImplemented(pp, keyword, "JmlParser");
             parser.nextToken();
             var n = parser.parseOptionalName();
@@ -38,7 +37,7 @@ public class CallableClauseExtension extends JmlExtension {
             JmlSingleton refkeyword = parser.parseOptStoreRefKeyword();
             List<JmlMethodSig> sigs = null;
             if (refkeyword == null) {
-                sigs = parseMethodNameList();
+                sigs = parseMethodNameList(parser);
             }
             JmlMethodClauseCallable ec;
             if (refkeyword != null) {
@@ -46,7 +45,7 @@ public class CallableClauseExtension extends JmlExtension {
             } else {
                 ec = parser.maker().at(pp).JmlMethodClauseCallable(sigs);
             }
-            wrapup(ec, clauseType, true, true);
+            wrapup(parser, ec, clauseType, true, true);
             ec.name = n;
             return ec;
         }

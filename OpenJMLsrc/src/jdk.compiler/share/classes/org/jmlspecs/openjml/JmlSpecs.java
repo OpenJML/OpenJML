@@ -531,15 +531,30 @@ public class JmlSpecs {
      * @param classSym The Symbol of the class whose specification file is to be found
      * @return The file found, or null if none found
      */
+    /** If {@code jfo} has a mock override registered in the context's MockFiles
+     *  URI map, return the mock; otherwise return {@code jfo} unchanged.
+     *  Returns {@code null} when {@code jfo} is {@code null}.
+     *  Both specs-path search ({@link #findSpecFile}) and sibling lookup
+     *  ({@code JmlCompiler.checkForSpecsFile}) funnel through here so that
+     *  mock substitution is applied consistently in one place.
+     */
+    public static JavaFileObject withMockOverride(JavaFileObject jfo, Context context) {
+        if (jfo == null) return null;
+        var main = context.get(Main.key);
+        if (main == null || !main.mockFiles.hasUriEntries()) return jfo;
+        JavaFileObject mock = main.mockFiles.getByUri(jfo.toUri().normalize());
+        return mock != null ? mock : jfo;
+    }
+
     //@ nullable
     public JavaFileObject findSpecFile(String classFlatName) {
         boolean print = false; // qclassFlatName.equals("org.jmlspecs.lang.internal.TYPE");
-        String suffix = Strings.specsSuffix; 
+        String suffix = Strings.specsSuffix;
         String s = classFlatName.replace('.','/') + suffix;
         for (Dir dir: getSpecsPath()) {
             JavaFileObject j = dir.findFile(s, context);
             if (print) System.out.println("parser+: TRYING " + dir + " " + s + " FOUND " + j);
-            if (j != null) return j;
+            if (j != null) return withMockOverride(j, context);
         }
         return null;
     }

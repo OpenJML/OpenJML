@@ -13,12 +13,13 @@ import java.util.Set;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.MethodSymbol;
 import com.sun.tools.javac.tree.JCTree;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 
 public interface IProverResult {
     
     public static interface IFactory {
         @SuppressWarnings("exports")
-        public IProverResult makeProverResult(MethodSymbol msym, String prover, Kind kind, Date start);
+        public IProverResult makeProverResult(JmlMethodDecl methodDecl, String prover, Kind kind, Date start);
     }
 
     /** Kinds of results a prover can produce */
@@ -92,9 +93,13 @@ public interface IProverResult {
     /** The time at which the computation of the result began */
     public Date timestamp();
 
-    /** The method for which this result was obtained */
+    /** The method declaration for which this result was obtained */
     @SuppressWarnings("exports")
-    public Symbol.MethodSymbol methodSymbol();
+    public JmlMethodDecl methodDecl();
+
+    /** The method symbol for which this result was obtained */
+    @SuppressWarnings("exports")
+    default Symbol.MethodSymbol methodSymbol() { return methodDecl().sym; }
 
     /** The satisfying assignment produced by the prover.
      * @return The satisfying assignment produced by the prover

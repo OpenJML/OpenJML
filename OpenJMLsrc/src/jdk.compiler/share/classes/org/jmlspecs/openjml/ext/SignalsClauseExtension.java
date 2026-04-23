@@ -35,11 +35,10 @@ public class SignalsClauseExtension extends JmlExtension {
         @Override
         public JmlMethodClause parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
-                error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
+                error(parser.context, mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;
             }
             int pp = parser.pos();
-            init(parser);
             
             parser.nextToken();
 
@@ -67,11 +66,11 @@ public class SignalsClauseExtension extends JmlExtension {
                 if (parser.token().kind != RPAREN) {
                     parser.syntaxError(rpos, null, "jml.expected.rparen.signals");
                     parser.skipToSemi();
-                    e = toP(parser.maker().at(parser.pos()).Erroneous());
+                    e = parser.toP(parser.maker().at(parser.pos()).Erroneous());
                 } else {
                     parser.nextToken();
                     if (parser.token().kind == SEMI) {
-                        e = toP(parser.maker().at(parser.pos()).Literal(TypeTag.BOOLEAN, 1)); // Boolean.TRUE));
+                        e = parser.toP(parser.maker().at(parser.pos()).Literal(TypeTag.BOOLEAN, 1)); // Boolean.TRUE));
                     } else {
                         e = parser.parseExpression();
                     }
@@ -87,7 +86,7 @@ public class SignalsClauseExtension extends JmlExtension {
             } else {
                 parser.nextToken();
             }
-            return toP(parser.maker().at(pp).JmlMethodClauseSignals(keyword, clauseType, var, e));
+            return parser.toP(parser.maker().at(pp).JmlMethodClauseSignals(keyword, clauseType, var, e));
 
         }
         

@@ -29,8 +29,6 @@ public class TypeDeclClauseExtension extends JmlExtension {
         
         public 
         JmlTypeClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
-            
             int pp = parser.pos();
             
             parser.nextToken();
@@ -39,7 +37,7 @@ public class TypeDeclClauseExtension extends JmlExtension {
             Maker M = parser.maker().at(pp);
             if (mods == null) mods = M.Modifiers(0);
             JmlTypeClauseExpr tcl = M.JmlTypeClauseExpr(mods, keyword, clauseType, e);
-            wrapup(tcl, typedeclClause, true, true);
+            wrapup(parser, tcl, typedeclClause, true, true);
             return tcl;
         }
         

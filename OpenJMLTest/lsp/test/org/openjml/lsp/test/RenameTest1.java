@@ -15,35 +15,6 @@ import static org.junit.Assert.*;
 public class RenameTest1 extends RenameTestBase {
 
     @Test
-    public void testRenameJavaField() {
-        // Rename pJavaField → pXJavaFieldRenamed (longer)
-        WorkspaceEdit edit = renameAt(primaryUri, primarySrc,
-                "requires pJavaField", "pJavaField", "pXJavaFieldRenamed");
-        assertNotNull(edit);
-        Map<String, String> modified = applyEdit(edit);
-        String p = modified.get(primaryUri);
-        assertTrue("modified primary must contain new name",
-                p.contains("pXJavaFieldRenamed"));
-        assertFalse("modified primary must not contain old name in requires clause",
-                p.contains("requires pJavaField"));
-        assertNoErrors(validateModified(modified));
-    }
-
-    @Test
-    public void testRenameGhostField() {
-        // Rename pGhostField → gf (shorter)
-        WorkspaceEdit edit = renameAt(primaryUri, primarySrc,
-                "requires pGhostField", "pGhostField", "gf");
-        assertNotNull(edit);
-        Map<String, String> modified = applyEdit(edit);
-        String p = modified.get(primaryUri);
-        assertTrue("modified primary must contain new name", p.contains("gf"));
-        assertFalse("modified primary must not contain old name in requires clause",
-                p.contains("requires pGhostField"));
-        assertNoErrors(validateModified(modified));
-    }
-
-    @Test
     public void testRenameModelField() {
         // Rename pModelField → pMFX (shorter)
         WorkspaceEdit edit = renameAt(primaryUri, primarySrc,

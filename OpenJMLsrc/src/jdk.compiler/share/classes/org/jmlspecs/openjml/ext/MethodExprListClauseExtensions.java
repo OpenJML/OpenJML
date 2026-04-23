@@ -2,6 +2,7 @@ package org.jmlspecs.openjml.ext;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlMethodClauseInvariants;
 
 import com.sun.tools.javac.code.Type;
@@ -26,9 +27,8 @@ public class MethodExprListClauseExtensions extends JmlExtension {
         @Override
         public 
         JmlMethodClauseInvariants parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
-            if (!utils.hasNone(mods)) {
-                error(mods.pos(), "jml.message", "a " + keyword + " clause may not have modifiers: " + mods);
+            if (!Utils.instance(parser.context).hasNone(mods)) {
+                error(parser.context, mods.pos(), "jml.message", "a " + keyword + " clause may not have modifiers: " + mods);
                 return null;
             }
             
@@ -40,7 +40,7 @@ public class MethodExprListClauseExtensions extends JmlExtension {
             var exprs = parser.parseExpressionList();
             JmlMethodClauseInvariants cl = parser.maker().at(pp).JmlMethodClauseInvariants(exprs);
             if (cl != null) cl.name = n;
-            wrapup(cl, clauseType, true, true);
+            wrapup(parser, cl, clauseType, true, true);
             return cl;
         }
         

@@ -75,7 +75,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            if (this == elseKind) strictCheck(e);
+            if (this == elseKind) strictCheck(parser.context, e);
         }
     };
     
@@ -122,7 +122,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            strictCheck(e);
+            strictCheck(parser.context, e);
         }
     };
     
@@ -162,7 +162,7 @@ public class SingletonExpressions extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlSingleton e, String rep) {
-            strictCheck(e);
+            strictCheck(parser.context, e);
         }
     };
     
@@ -181,7 +181,6 @@ public class SingletonExpressions extends JmlExtension {
     	public LabelKind(String name) { super(name); }
         @Override
         public JCTree.JCExpression parse(JCTree.JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
 //            IJmlClauseKind jt = parser.jmlTokenClauseKind();
             int p = parser.pos();
 //            String stringRep = parser.getScanner().chars();

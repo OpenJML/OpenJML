@@ -6,11 +6,27 @@
 
 set -e
 
-LOG="${OPENJML_LSP_LOG:-/tmp/openjml-lsp-debug.log}"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -d "$DIR/jdk" ]; then
+    ## Release layout: PID-qualified log so multiple instances don't clobber each other.
+    ## Override with OPENJML_LSP_LOG for a custom location.
+    mkdir -p "$HOME/.openjml/logs"
+    LOG="${OPENJML_LSP_LOG:-$HOME/.openjml/logs/openjml-lsp-$$.log}"
+    ## Sweep dead-process logs older than 1 day (best-effort; leave any still-running instance alone)
+    for _f in "$HOME/.openjml/logs"/openjml-lsp-*.log; do
+        [ -f "$_f" ] || continue
+        _pid="${_f##*-}"; _pid="${_pid%.log}"
+        kill -0 "$_pid" 2>/dev/null && continue   # process still running — leave it
+        find "$_f" -mtime +1 -delete 2>/dev/null || true
+    done
+else
+    ## Dev layout: fixed path, truncated on each restart for easy tail -f.
+    ## Override with OPENJML_LSP_LOG for a custom location.
+    LOG="${OPENJML_LSP_LOG:-/tmp/openjml-lsp-debug.log}"
+fi
 echo "$(date): openjml-lsp invoked, args: $*" > "$LOG"
 exec 2>>"$LOG"   # redirect stderr to log so Java errors are captured too
-
-DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 LSP4J_VERSION=1.0.0
 

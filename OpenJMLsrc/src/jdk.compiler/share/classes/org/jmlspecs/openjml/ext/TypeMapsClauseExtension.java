@@ -8,6 +8,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.STAR;
 import static org.jmlspecs.openjml.ext.MiscExtensions.intoKind;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlGroupName;
 import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
@@ -36,16 +37,15 @@ public class TypeMapsClauseExtension extends JmlExtension {
         public 
         JmlTypeClauseMaps parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
-            init(parser);
-            JmlTypeClauseMaps mapsClause = parseMaps(pp, mods, null);
+            JmlTypeClauseMaps mapsClause = parseMaps(parser, pp, mods, null);
             return mapsClause;
         }
-        
+
         /** Parses a maps clause */
-        public JmlTypeClauseMaps parseMaps(int pos, JCModifiers mods,
+        public JmlTypeClauseMaps parseMaps(JmlParser parser, int pos, JCModifiers mods,
                 ListBuffer<JCTree> list) {
             if (!parser.isNone(mods))
-                utils.error(mods.getStartPosition(), mods.getPreferredPosition(),
+                Utils.instance(parser.context).error(mods.getStartPosition(), mods.getPreferredPosition(),
                         parser.getEndPos(mods), "jml.no.mods.allowed",
                         mapsClause.keyword());
             parser.nextToken(); // skip over the maps token
@@ -59,7 +59,7 @@ public class TypeMapsClauseExtension extends JmlExtension {
             }
             ListBuffer<JmlGroupName> glist;
             if (parser.jmlTokenClauseKind() != intoKind) {
-                utils.error(parser.pos(), parser.endPos(), "jml.expected",
+                Utils.instance(parser.context).error(parser.pos(), parser.endPos(), "jml.expected",
                         "an \\into token here, or the maps target is ill-formed");
                 glist = new ListBuffer<JmlGroupName>();
                 parser.skipToSemi();
@@ -67,8 +67,8 @@ public class TypeMapsClauseExtension extends JmlExtension {
                 parser.nextToken();
                 glist = parser.parseGroupNameList();
             }
-            var t = toP(parser.jmlF.at(pos).JmlTypeClauseMaps(exprs.toList(), glist.toList()));
-            wrapup(t, TypeInClauseExtension.inClause, true, true); // FIXME - make a proper mapsClauseKind
+            var t = parser.toP(parser.jmlF.at(pos).JmlTypeClauseMaps(exprs.toList(), glist.toList()));
+            wrapup(parser, t, TypeInClauseExtension.inClause, true, true); // FIXME - make a proper mapsClauseKind
             return t;
         }
 

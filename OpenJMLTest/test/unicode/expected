@@ -1,0 +1,23 @@
+ASCII
+EmDashTest.java:1: error: unmappable character (0xE2) for encoding ascii
+// Test file: em-dash \u2014 in comment ��� does javac accept this?
+                                        ^
+EmDashTest.java:1: error: unmappable character (0x80) for encoding ascii
+// Test file: em-dash \u2014 in comment ��� does javac accept this?
+                                         ^
+EmDashTest.java:1: error: unmappable character (0x94) for encoding ascii
+// Test file: em-dash \u2014 in comment ��� does javac accept this?
+                                          ^
+EmDashTest.java:3: error: unmappable character (0xE2) for encoding ascii
+    // A method ��� just returns zero
+                ^
+EmDashTest.java:3: error: unmappable character (0x80) for encoding ascii
+    // A method ��� just returns zero
+                 ^
+EmDashTest.java:3: error: unmappable character (0x94) for encoding ascii
+    // A method ��� just returns zero
+                  ^
+6 errors
+UTF-8
+DEFAULT
+DONE

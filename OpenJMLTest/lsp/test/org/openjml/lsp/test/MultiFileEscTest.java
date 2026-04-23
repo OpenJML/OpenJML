@@ -131,7 +131,7 @@ public class MultiFileEscTest extends LspTestBase {
         // Both files compile cleanly → ESC runs → A.m is verified
         assertEquals("Expected exit code 0 (both A and B are clean)", 0, result.exitCode());
 
-        IProverResult.Kind kind = result.proofResults().get("m");
+        IProverResult.Kind kind = result.proofResultForMethod("m");
         assertNotNull("Expected a proof result for method m", kind);
         assertEquals("Expected UNSAT for verified method m", IProverResult.UNSAT, kind);
 

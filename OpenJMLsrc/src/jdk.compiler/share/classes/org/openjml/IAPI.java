@@ -38,9 +38,12 @@ public interface IAPI {
     public static final int CANCELLED = Main.Result.CANCELLED.exitCode;
     public static final int VERIFY = Main.Result.VERIFY.exitCode;
     
-//    @SuppressWarnings("exports")
-//    public Context context();
-//     
+    /** Returns the compilation context for this API object.
+     * Each {@link #make} call creates a fresh context; this allows callers
+     * to identify which concurrent invocation produced a given callback. */
+    @SuppressWarnings("exports")
+    public Context context();
+//
 //    //@ public model boolean isOpen; private represents isOpen = main != null;
 //
 //
@@ -51,25 +54,18 @@ public interface IAPI {
 //    public /*@non_null*/ String version();
 //
 //
-//    /** The compilation context for this API object */
-//    //@ ensures \result == context;
-//    /*@pure*/
-//    public /*@nullable*/ Context context();
-//
 //    /** The compiler object for this context. */
 //    /*@pure*/
 //    public Main main();
 //
     
-    public final static java.util.List<IASTListener> astListeners = new java.util.LinkedList<>();
-    
-    public static void setASTListener(IASTListener listener) {
-        synchronized (astListeners) { astListeners.add(listener); }
-    }
+    /** Register an AST listener on this IAPI instance.  Each instance has its
+     *  own listener list (stored on its {@code Main}), so concurrent IAPI
+     *  executions cannot interfere with each other. */
+    void setASTListener(IASTListener listener);
 
-    public static void removeASTListener(IASTListener listener) {
-        synchronized (astListeners) { astListeners.remove(listener); }
-    }
+    /** Remove a previously registered AST listener from this IAPI instance. */
+    void removeASTListener(IASTListener listener);
 
     /** An interface for progress information; the implementation reports progress
      * by calling report(...); clients will receive notification of progress
@@ -106,9 +102,9 @@ public interface IAPI {
     }
     
     public static interface IProofResultListener {
-        
+
         @SuppressWarnings("exports")
-        void reportProofResult(MethodSymbol msym, IProverResult result);
+        void reportProofResult(JmlTree.JmlMethodDecl methodDecl, IProverResult result);
         default IProofResultListener setListener(IProofResultListener listener) { return null; }
     }
 
@@ -181,7 +177,21 @@ public interface IAPI {
      * @return the exit code (0 is success; other values are various kinds of errors)
      */
     public int execute(/*@non_null*/ String ... args);
-    
+
+    /**
+     * Executes OpenJML with file-manager interception for dirty source files.
+     * The real file paths must appear in {@code args} as usual; {@code mockFiles}
+     * provides in-memory content keyed by normalized URI (for {@code .java} files
+     * intercepted by {@link MockAwareFileManager}) and by {@code "$dir/relPath"}
+     * (for {@code .jml} files served via MockDir on the specs path).
+     * Pass {@code null} if there are no dirty files.
+     *
+     * @param args      command-line arguments including real file paths
+     * @param mockFiles mock content registry; may be {@code null}
+     * @return the exit code
+     */
+    public int execute(String[] args, org.openjml.MockFiles mockFiles);
+
     /** Executes the command-line version of openjml, in a new context, returning the exit code.
      * The arguments are used to initialize the options and files just as
      * described for initOptions() and the constructor for Main().
@@ -573,7 +583,43 @@ public interface IAPI {
     @SuppressWarnings("exports")
     public IProverResult doESC(JmlTree.JmlMethodDecl methodDecl);
 
-    /** Executes static checking on the methods of the given class; assumes that all 
+    /**
+     * Requests cancellation of any in-progress ESC run on this IAPI instance.
+     * Safe to call from a different thread than the one running the ESC.
+     * If no ESC is currently running the call is a no-op.
+     * Cancellation is best-effort: it aborts the current method proof and prevents
+     * further methods from being started, but the ESC thread may take a short time
+     * to unwind after this call returns.
+     */
+    public void cancelEsc();
+
+    /**
+     * Aborts only the currently-running method proof, then allows the ESC loop to
+     * continue with the next method.  The in-progress SMT solver invocation is killed
+     * immediately and the method is reported CANCELLED, but subsequent methods are
+     * unaffected.
+     *
+     * <p>Unlike {@link #cancelEsc()}, this call does <em>not</em> set the global
+     * {@code canceled} flag, so the ESC run is not terminated.
+     *
+     * <p>Safe to call from a different thread than the one running the ESC.
+     * No-op if no ESC is currently running.
+     */
+    public void abortCurrentProof();
+
+    /**
+     * Returns {@code true} once the ESC engine ({@link JmlEsc}) has been constructed
+     * inside the compiler context for the current {@link #execute} call.  This is a
+     * best-effort signal that proving is underway; it does <em>not</em> guarantee that
+     * any method proof has actually completed yet, and in principle a JmlEsc instance
+     * could be created before active proving begins.  A stronger signal would be
+     * waiting until at least one (or two) proof results have been delivered to the
+     * registered {@link IProofResultListener}.
+     * Safe to call from any thread.
+     */
+    public boolean isEscPhaseStarted();
+
+    /** Executes static checking on the methods of the given class; assumes that all
      * relevant ASTs have been typechecked
      * @param csym the class to check
      */

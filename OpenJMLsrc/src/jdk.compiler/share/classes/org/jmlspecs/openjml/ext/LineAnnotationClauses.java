@@ -40,7 +40,7 @@ public class LineAnnotationClauses extends JmlExtension {
         public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlScanner scanner) {
             Context context = scanner.context;
             JmlFactory M = JmlTree.Maker.instance(context);
-            utils = Utils.instance(context);
+            Utils utils = Utils.instance(context);
             java.util.List<JCExpression> exprs = new java.util.LinkedList<>();
             try {
                 int tokenPos = scanner.token().pos;

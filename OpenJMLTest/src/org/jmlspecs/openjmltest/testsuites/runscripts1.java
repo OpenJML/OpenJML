@@ -71,6 +71,10 @@ public class runscripts1 extends RunBase {
         doTest();
     }
     
+    @Test public void unicode() {
+        doTest();
+    }
+
     @Test public void unicodeErrors() {
         doTest();
     }

@@ -9,25 +9,26 @@ public class Run {
     public static void main(String... args) {
       try {
         IAPI api = IAPI.make();
-        IAPI.setASTListener(new Listener());
+        api.setASTListener(new Listener());
         System.out.println("ABOUT TO EXECUTE");
-	api.execute("--check", "-cp", "data", "./data/A.java");
+        api.execute("--check", "-cp", "data", "./data/A.java");
         System.out.println("DOING ESC");
         api = IAPI.make();
         var x = api.execute("--check", "-cp", "data", "data/Q.java");
-	System.out.println("RES " + x);
+        System.out.println("RES " + x);
         for (var d: Walk.topclass.defs) {
           if (d instanceof JmlMethodDecl m) {
+            System.out.println("METHOD-DOESC " + m.sym + " " + m);
             var r = api.doESC(m);
             System.out.println("RES " + m.sym + " " + r);
           }
-	}
-	System.out.println("DOING CLASS");
+        }
+        System.out.println("DOING CLASS");
         api.doESC((JmlClassDecl)Walk.topclass);
-        
-	System.out.println("DONE");
+
+        System.out.println("DONE");
       } catch (Exception e) {
-        System.out.println("EXCEPTION: " + e);
+          System.out.println("EXCEPTION: " + e);
       }
     }
 }

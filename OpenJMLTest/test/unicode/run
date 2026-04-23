@@ -1,0 +1,18 @@
+#! /usr/bin/env bash
+
+## Checks that even though OpenJDK requires ASCII text for its own source code
+## (and OpenJML's) the default is UTF-8 for source code it compiles.
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+(\
+echo ASCII ;\
+openjml -encoding ascii *.java ;\
+echo UTF-8 ;\
+openjml -encoding UTF-8 *.java ;\
+echo DEFAULT ;\
+openjml *.java ;\
+echo DONE ;\
+) | tee actual | diff - expected
+

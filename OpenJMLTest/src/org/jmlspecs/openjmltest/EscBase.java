@@ -201,7 +201,11 @@ public abstract class EscBase extends JmlTestSuite {
     protected void helpEsc(List<JavaFileObject> files, Object... expectedResults) {
 
         try {
-            int ex = main.compile(new String[]{}, files).exitCode;
+            // Register each file by URI in the existing mockFiles (same object as main.mockFiles),
+            // preserving any .jml spec mocks already added via addMockFile().
+            for (JavaFileObject jfo : files) mockFiles.addMockByUri(jfo.toUri().normalize(), jfo);
+            String[] fileArgs = files.stream().map(javax.tools.JavaFileObject::getName).toArray(String[]::new);
+            int ex = main.compile(fileArgs, mockFiles).exitCode;
             int verifyExit = JmlOption.EXITVERIFY.getInt(main.context());
             if (captureOutput) collectSystemOutput(false);
             { 

@@ -31,10 +31,9 @@ public class RecommendsClause extends JmlExtension {
         public 
         JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
-                error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
+                error(parser.context, mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;
             }
-            init(parser);
             
             int pp = parser.pos();
             parser.nextToken();
@@ -49,7 +48,7 @@ public class RecommendsClause extends JmlExtension {
             }
             Node cl = new Node(pp, e, ex);
             cl.exception = ex;
-            wrapup(cl, clauseType, true, true);
+            wrapup(parser, cl, clauseType, true, true);
             return cl;
         }
         

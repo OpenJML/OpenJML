@@ -3,6 +3,8 @@ package org.openjml.lsp.test;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLSettings;
 
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 /**
@@ -15,12 +17,11 @@ import static org.junit.Assert.*;
 public class OpenJMLSettingsTest {
 
     // -----------------------------------------------------------------------
-    // isCheckOnEdit — true unless checkTriggerOn == "save"
+    // isCheckOnEdit / isCheckOnSave / isCheckManual
     // -----------------------------------------------------------------------
 
     @Test
     public void testCheckOnEditDefaultIsTrue() {
-        // Default checkTriggerOn = "edit"
         assertTrue(new OpenJMLSettings().isCheckOnEdit());
     }
 
@@ -36,6 +37,38 @@ public class OpenJMLSettingsTest {
         OpenJMLSettings s = new OpenJMLSettings();
         s.checkTriggerOn = "SAVE";
         assertFalse(s.isCheckOnEdit());
+    }
+
+    @Test
+    public void testCheckOnEditManualIsFalse() {
+        OpenJMLSettings s = new OpenJMLSettings();
+        s.checkTriggerOn = "manual";
+        assertFalse(s.isCheckOnEdit());
+    }
+
+    @Test
+    public void testCheckOnSave() {
+        OpenJMLSettings s = new OpenJMLSettings();
+        s.checkTriggerOn = "save";
+        assertTrue(s.isCheckOnSave());
+        assertFalse(s.isCheckOnEdit());
+        assertFalse(s.isCheckManual());
+    }
+
+    @Test
+    public void testCheckManual() {
+        OpenJMLSettings s = new OpenJMLSettings();
+        s.checkTriggerOn = "manual";
+        assertTrue(s.isCheckManual());
+        assertFalse(s.isCheckOnEdit());
+        assertFalse(s.isCheckOnSave());
+    }
+
+    @Test
+    public void testCheckManualCaseInsensitive() {
+        OpenJMLSettings s = new OpenJMLSettings();
+        s.checkTriggerOn = "MANUAL";
+        assertTrue(s.isCheckManual());
     }
 
     // -----------------------------------------------------------------------
@@ -148,6 +181,24 @@ public class OpenJMLSettingsTest {
         assertEquals(orig.syntaxColoringStrategy, copy.syntaxColoringStrategy);
         assertEquals(orig.escEngine,              copy.escEngine);
         assertEquals(orig.specsPath,              copy.specsPath);
+    }
+
+    @Test
+    public void testCopyConstructorCopiesToolOptions() {
+        OpenJMLSettings orig = new OpenJMLSettings();
+        orig.toolOptions = List.of("--keys", "MYKEY");
+        OpenJMLSettings copy = new OpenJMLSettings(orig);
+        assertEquals(orig.toolOptions, copy.toolOptions);
+    }
+
+    @Test
+    public void testCopyConstructorToolOptionsIsIndependent() {
+        OpenJMLSettings orig = new OpenJMLSettings();
+        orig.toolOptions = List.of("--keys", "A");
+        OpenJMLSettings copy = new OpenJMLSettings(orig);
+        copy.toolOptions = List.of("--keys", "B");
+        assertEquals("orig.toolOptions must not change when copy is mutated",
+                List.of("--keys", "A"), orig.toolOptions);
     }
 
     @Test

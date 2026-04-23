@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleFactory;
@@ -103,7 +105,7 @@ public class Console {
     public static synchronized void logRaw(String message) {
         try {
             getNormalStream().println(message);
-        } catch (Exception ignored) {}
+        } catch (Exception e) { logConsoleFailure("logRaw", e); }
     }
 
     /**
@@ -118,7 +120,7 @@ public class Console {
             String indent = " ".repeat(prefix.length());
             String msg = message.endsWith("\n") ? message.substring(0, message.length() - 1) : message;
             getNormalStream().println(prefix + msg.replace("\n", "\n" + indent));
-        } catch (Exception ignored) {}
+        } catch (Exception e) { logConsoleFailure("log", e); }
     }
 
     /**
@@ -129,9 +131,9 @@ public class Console {
      */
     public static void errorlogRaw(String message) {
         try (MessageConsoleStream stream = getConsole().newMessageStream()) {
-            stream.setColor(new org.eclipse.swt.graphics.Color(255, 0, 0));
+            stream.setColor(org.eclipse.swt.widgets.Display.getDefault().getSystemColor(org.eclipse.swt.SWT.COLOR_RED));
             stream.println(message);
-        } catch (Exception ignored) {}
+        } catch (Exception e) { logConsoleFailure("errorlogRaw", e); }
     }
 
     /**
@@ -149,7 +151,7 @@ public class Console {
      */
     public static void errorlog(String message, Throwable ex) {
         try (MessageConsoleStream stream = getConsole().newMessageStream()) {
-            stream.setColor(new org.eclipse.swt.graphics.Color(255,0,0)); // Red for errors
+            stream.setColor(org.eclipse.swt.widgets.Display.getDefault().getSystemColor(org.eclipse.swt.SWT.COLOR_RED));
             String prefix = ts();
             String indent = " ".repeat(prefix.length());
             String msg = message.endsWith("\n") ? message.substring(0, message.length() - 1) : message;
@@ -160,9 +162,18 @@ public class Console {
                 stream.print(sw.toString());
             }
             show();
-        } catch (Exception ignored) {}
+        } catch (Exception e) { logConsoleFailure("errorlog", e); }
     }
     
+    private static void logConsoleFailure(String method, Exception e) {
+        try {
+            Platform.getLog(Console.class).log(new Status(Status.ERROR, Console.class, "OpenJML Console." + method + " failed", e));
+        } catch (Exception ignored) {
+            // Last resort: both the console write and the Eclipse error log failed.
+            // This is extremely unlikely in practice and there is nowhere else to report it.
+        }
+    }
+
     /** Make the console visible in the GUI */
     public static void show() {
         IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();

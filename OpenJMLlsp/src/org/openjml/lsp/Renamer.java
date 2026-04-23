@@ -93,6 +93,11 @@ public class Renamer {
         return new RefsAndEdits(refs, edits);
     }
 
+    /** Convenience wrapper for logging: convert LSP (line, character) to a source offset. */
+    public static int offsetOf(String source, int line, int col) {
+        return DefinitionFinder.lineColToOffset(source, line, col);
+    }
+
     /**
      * Apply a list of text edits (sorted in descending position order) to a
      * source string.
@@ -102,9 +107,8 @@ public class Renamer {
      * once; each edit's range is replaced with its new text.  This is O(n) in the
      * source length regardless of the number of edits.
      *
-     * @param source                  original source text
-     * @param sortedEditsDescending   edits sorted so that later positions in the
-     *                                file come first
+     * @param source                original source text
+     * @param sortedEditsDescending edits sorted so that later positions in the file come first
      * @return the modified source text
      */
     public static String applyEdits(String source, List<TextEdit> sortedEditsDescending) {
@@ -134,17 +138,60 @@ public class Renamer {
     }
 
     /**
+     * The result of a rename operation: a {@link WorkspaceEdit} plus any
+     * compilation-error messages introduced by the rename.
+     *
+     * <p>Hard failures (invalid name, no renameable symbol, reference capture)
+     * are still reported by throwing {@link ResponseErrorException}.
+     * Only "would introduce compilation errors" is surfaced here so callers
+     * can offer the user the choice to apply the edit anyway.
+     */
+    public record RenameResponse(WorkspaceEdit edit, List<String> errors) {
+        public boolean hasErrors() { return !errors.isEmpty(); }
+    }
+
+    /**
+     * Like {@link #rename}, but instead of throwing when the rename would
+     * introduce compilation errors, returns them in {@link RenameResponse#errors}.
+     * Hard failures (invalid identifier, no symbol, reference capture) still throw.
+     */
+    public static RenameResponse renameWithErrors(
+            String uri, int line, int col, String newName,
+            Map<String, String> openContent, ASTCache cache,
+            OpenJMLSettings settings,
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> publishedDiags) {
+        return renameCore(uri, line, col, newName, openContent, cache, settings, publishedDiags);
+    }
+
+    /**
      * Rename the symbol at ({@code line}, {@code col}) in {@code uri} to
      * {@code newName}, validate the result, and return the workspace edit.
      *
      * @throws ResponseErrorException if {@code newName} is not a valid Java
-     *         identifier, no renameable symbol is found at the cursor, or the
-     *         rename would introduce compilation errors
+     *         identifier, no renameable symbol is found at the cursor, the
+     *         rename would introduce compilation errors, or references would
+     *         be captured or lost
      */
     public static WorkspaceEdit rename(
             String uri, int line, int col, String newName,
             Map<String, String> openContent, ASTCache cache,
-            OpenJMLSettings settings) {
+            OpenJMLSettings settings,
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> publishedDiags) {
+        RenameResponse resp = renameCore(uri, line, col, newName, openContent, cache, settings, publishedDiags);
+        if (resp.hasErrors()) {
+            throw new ResponseErrorException(new ResponseError(
+                    ResponseErrorCode.InvalidParams,
+                    "Rename would introduce errors: " + resp.errors().get(0),
+                    null));
+        }
+        return resp.edit();
+    }
+
+    private static RenameResponse renameCore(
+            String uri, int line, int col, String newName,
+            Map<String, String> openContent, ASTCache cache,
+            OpenJMLSettings settings,
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> publishedDiags) {
 
         // 1. Validate new name.
         if (!isValidJavaIdentifier(newName)) {
@@ -165,57 +212,89 @@ public class Renamer {
                     null));
         }
 
-        // 3. Apply edits to build modified sources.
+        // 3. Build a complete project content map: all files in the nav cache that
+        // belong to the same project as the cursor (scoped by project roots), reading
+        // non-open files from disk.  Open/in-memory content takes precedence.
+        List<String> projectRoots = OpenJMLTextDocumentService.rootsForUri(
+                uri, settings.effectiveRoots());
+        Map<String, String> completeContent = new HashMap<>();
+        cache.forEachNav((navUri, navEntry) -> {
+            // Always include files that carry rename edits (cross-project references).
+            // For other files, apply the project root filter if one is set.
+            if (!projectRoots.isEmpty()
+                    && !isUnderRoots(navUri, projectRoots)
+                    && !editsByUri.containsKey(navUri)) return;
+            String content = openContent.get(navUri);
+            if (content == null) {
+                String path = CheckRunner.uriToPath(navUri);
+                if (path != null) {
+                    try { content = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
+                    catch (Exception ignored) {}
+                }
+            }
+            if (content != null) completeContent.put(navUri, content);
+        });
+        // Also include any open files in the project not covered by the nav cache,
+        // and any open files that carry rename edits (cross-project references).
+        openContent.forEach((openUri, openSrc) -> {
+            if (projectRoots.isEmpty() || isUnderRoots(openUri, projectRoots)
+                    || editsByUri.containsKey(openUri))
+                completeContent.put(openUri, openSrc);
+        });
+
+        // Apply edits to build modified sources (over the complete content map).
+        // If a file has edits but is not in completeContent (e.g. a companion .jml
+        // that is not a nav cache entry and not currently open), read it from disk.
         Map<String, String> modifiedSources = new HashMap<>();
         for (Map.Entry<String, List<TextEdit>> entry : editsByUri.entrySet()) {
             String fileUri = entry.getKey();
-            String originalSource = openContent.get(fileUri);
-            if (originalSource == null) continue;
-            String modified = applyEdits(originalSource, entry.getValue());
-            modifiedSources.put(fileUri, modified);
+            String originalSource = completeContent.get(fileUri);
+            if (originalSource == null) {
+                String path = CheckRunner.uriToPath(fileUri);
+                if (path != null) {
+                    try { originalSource = java.nio.file.Files.readString(java.nio.file.Path.of(path)); }
+                    catch (Exception ignored) {}
+                }
+                if (originalSource == null) continue;
+                completeContent.put(fileUri, originalSource);
+            }
+            modifiedSources.put(fileUri, applyEdits(originalSource, entry.getValue()));
         }
 
         // 4. Validate: check that the rename does not INTRODUCE new errors.
-        // We compare the ERROR-severity diagnostic count of the original sources
-        // against the modified sources.  Pre-existing warnings/errors are not a
-        // reason to reject the rename; only newly added ERROR-severity diagnostics
-        // are.  Using error-only counts prevents false rejections when warnings
-        // disappear (e.g., "overrides without 'also'") while new errors appear at
-        // the same time (keeping total count equal but hiding a real problem).
-        // We also reuse the fresh AST produced here for the stability check below.
-        long baselineErrors = CheckRunner.checkModifiedFiles(openContent, settings).stream()
-                .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
-                .count();
-        Map<String, String> allSources = new HashMap<>(openContent);
+        // The baseline is the server's last-published error count (from checkDiags),
+        // which matches what the user sees in the IDE.  Using published diagnostics
+        // avoids spurious recompilation that can pick up stale content or errors in
+        // files not relevant to the rename, and also avoids false rejections when
+        // the user has already cleared markers that are no longer relevant.
+        long baselineErrors = (publishedDiags == null) ? 0L :
+                publishedDiags.values().stream()
+                        .flatMap(List::stream)
+                        .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
+                        .count();
+
+        Map<String, String> allSources = new HashMap<>(completeContent);
         allSources.putAll(modifiedSources);
         CheckRunner.CheckAndCacheResult checkResult =
                 CheckRunner.checkModifiedFilesAndGetCache(allSources, settings);
         long afterErrors = checkResult.diagnostics().stream()
                 .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
                 .count();
+
+        List<String> errors = new ArrayList<>();
         if (afterErrors > baselineErrors) {
-            org.eclipse.lsp4j.Diagnostic d = checkResult.diagnostics().stream()
+            checkResult.diagnostics().stream()
                     .filter(di -> di.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
-                    .findFirst().orElse(checkResult.diagnostics().get(0));
-            var msg = d.getMessage();
-            String firstMsg = msg.isLeft() ? msg.getLeft() : msg.getRight().getValue();
-            throw new ResponseErrorException(new ResponseError(
-                    ResponseErrorCode.InvalidParams,
-                    "Rename would introduce errors: " + firstMsg,
-                    null));
+                    .forEach(di -> {
+                        var msg = di.getMessage();
+                        errors.add(msg.isLeft() ? msg.getLeft() : msg.getRight().getValue());
+                    });
         }
 
-        // 4.5. Reference stability check: the set of positions that reference the
-        // renamed symbol must not change (modulo the expected position shifts from
-        // the rename itself).  This catches "reference capture" — cases where the
-        // renamed symbol silently takes over a reference that previously resolved
-        // to a different symbol with the same new name, or loses a reference because
-        // another symbol of the same name is now in scope and shadows it.
-        //
-        // A fast-fail size comparison is done first; set equality is checked only
-        // when the counts match (to catch the rarer equal-count / different-position
-        // case that size alone cannot detect).
-        if (!beforeRefs.isEmpty()) {
+        // 4.5. Reference stability check — only when no compile errors, because a
+        // broken AST produces unreliable reference sets and would generate false
+        // stability failures.
+        if (errors.isEmpty() && !beforeRefs.isEmpty()) {
             int oldNameLen = beforeRefs.get(0).getRange().getEnd().getCharacter()
                            - beforeRefs.get(0).getRange().getStart().getCharacter();
             verifyReferenceStability(uri, line, col,
@@ -223,20 +302,14 @@ public class Renamer {
                     editsByUri, allSources, checkResult);
         }
 
-        // 5. Build and return WorkspaceEdit.
+        // 5. Build and return RenameResponse.
         WorkspaceEdit wsEdit = new WorkspaceEdit();
         Map<String, List<TextEdit>> lsp4jEdits = new HashMap<>();
         for (Map.Entry<String, List<TextEdit>> entry : editsByUri.entrySet()) {
             lsp4jEdits.put(entry.getKey(), entry.getValue());
         }
         wsEdit.setChanges(lsp4jEdits);
-        return wsEdit;
-    }
-
-    private static long countErrors(List<org.eclipse.lsp4j.Diagnostic> diags) {
-        return diags.stream()
-                .filter(d -> d.getSeverity() == org.eclipse.lsp4j.DiagnosticSeverity.Error)
-                .count();
+        return new RenameResponse(wsEdit, errors);
     }
 
     // -----------------------------------------------------------------------
@@ -291,26 +364,6 @@ public class Renamer {
         if (uri.endsWith(".jml")) return;
 
         ASTCache freshCache = checkResult.cache();
-        Map<String, String> tempPathToRealUri = checkResult.tempPathToRealUri();
-
-        // Build reverse map: real URI → temp absolute path.
-        Map<String, String> realUriToTempPath = new HashMap<>();
-        for (Map.Entry<String, String> e : tempPathToRealUri.entrySet()) {
-            realUriToTempPath.put(e.getValue(), e.getKey());
-        }
-
-        // Build content map keyed by temp absolute path (for findReferences).
-        // allSources is keyed by real URIs; we need temp-path keys to match
-        // the fresh cache entries.
-        Map<String, String> tempContentMap = new HashMap<>();
-        for (Map.Entry<String, String> e : allSources.entrySet()) {
-            String tempPath = realUriToTempPath.get(e.getKey());
-            if (tempPath != null) tempContentMap.put(tempPath, e.getValue());
-        }
-
-        // Locate the cursor's temp path.
-        String tempCursorPath = realUriToTempPath.get(uri);
-        if (tempCursorPath == null) return; // no cache entry — skip check
 
         // Compute the shifted cursor position: renames don't add newlines, so
         // only the column shifts for each edit on the same line before the cursor.
@@ -331,19 +384,17 @@ public class Renamer {
         }
 
         // Find references to the renamed symbol in the modified compilation.
+        // freshCache and allSources are both keyed by real URIs, so use uri directly.
         List<Location> afterRefs = ReferenceFinder.findReferences(
-                tempCursorPath, shiftedLine, shiftedCol,
-                tempContentMap, freshCache, /* includeDeclaration= */ true);
+                uri, shiftedLine, shiftedCol,
+                allSources, freshCache, /* includeDeclaration= */ true);
 
         // Count only .java references on each side for the fast-fail comparison.
         // .jml companion files are excluded (see comment above).
         long beforeJavaCount = beforeRefs.stream()
                 .filter(l -> !l.getUri().endsWith(".jml")).count();
         long afterJavaCount  = afterRefs.stream()
-                .filter(l -> {
-                    String real = tempPathToRealUri.getOrDefault(l.getUri(), l.getUri());
-                    return !real.endsWith(".jml");
-                }).count();
+                .filter(l -> !l.getUri().endsWith(".jml")).count();
 
         // Fast-fail: different reference count → capture or loss detected.
         if (afterJavaCount != beforeJavaCount) {
@@ -360,14 +411,14 @@ public class Renamer {
         // fresh pass, so they would produce a spurious count mismatch.
         Set<String> expectedKeys = new HashSet<>();
         for (Location loc : beforeRefs) {
-            String realUri = loc.getUri();
-            if (realUri.endsWith(".jml")) continue;
+            String refUri = loc.getUri();
+            if (refUri.endsWith(".jml")) continue;
             int refLine = loc.getRange().getStart().getLine();
             int refCol  = loc.getRange().getStart().getCharacter();
 
             int shift = 0;
             if (delta != 0) {
-                List<TextEdit> editsForUri = editsByUri.get(realUri);
+                List<TextEdit> editsForUri = editsByUri.get(refUri);
                 if (editsForUri != null) {
                     int k = 0;
                     for (TextEdit e : editsForUri) {
@@ -377,19 +428,18 @@ public class Renamer {
                     shift = k * delta;
                 }
             }
-            expectedKeys.add(realUri + ":" + refLine + ":" + (refCol + shift));
+            expectedKeys.add(refUri + ":" + refLine + ":" + (refCol + shift));
         }
 
-        // Build actual position set: afterRef positions mapped to real URIs.
+        // Build actual position set from afterRefs.
+        // afterRefs locations use real URIs (freshCache is keyed by real URIs).
         // Skip .jml refs (see comment above).
         Set<String> afterKeys = new HashSet<>();
         for (Location loc : afterRefs) {
-            // loc.getUri() is a temp absolute path (matching tempPathToRealUri keys).
-            String realUri = tempPathToRealUri.getOrDefault(loc.getUri(), loc.getUri());
-            if (realUri.endsWith(".jml")) continue;
+            if (loc.getUri().endsWith(".jml")) continue;
             int refLine = loc.getRange().getStart().getLine();
             int refCol  = loc.getRange().getStart().getCharacter();
-            afterKeys.add(realUri + ":" + refLine + ":" + refCol);
+            afterKeys.add(loc.getUri() + ":" + refLine + ":" + refCol);
         }
 
         if (!afterKeys.equals(expectedKeys)) {
@@ -405,10 +455,19 @@ public class Renamer {
     // Identifier validation
     // -----------------------------------------------------------------------
 
-    /**
-     * Returns {@code true} if {@code name} is a non-empty Java identifier that
-     * is not a keyword or boolean/null literal.
-     */
+    /** Returns true if the given URI falls under any of the given OS-path roots. */
+    private static boolean isUnderRoots(String uri, List<String> roots) {
+        String filePath;
+        try { filePath = java.net.URI.create(uri).getPath(); }
+        catch (Exception e) { return false; }
+        String sep = java.io.File.separator;
+        for (String root : roots) {
+            String r = root.endsWith(sep) ? root : root + sep;
+            if (filePath.startsWith(r)) return true;
+        }
+        return false;
+    }
+
     private static boolean isValidJavaIdentifier(String name) {
         if (name == null || name.isEmpty()) return false;
         if (JAVA_KEYWORDS.contains(name)) return false;

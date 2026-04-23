@@ -43,7 +43,6 @@ public class MiscExpressions extends JmlExtension {
 
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int start = parser.pos();
             parser.nextToken();
             int p = parser.pos();
@@ -61,13 +60,13 @@ public class MiscExpressions extends JmlExtension {
                 }
                 if (parser.token().kind != RPAREN) {
                     if (!(e instanceof JCErroneous))
-                        utils.error(parser.pos(), parser.endPos(),
+                        Utils.instance(parser.context).error(parser.pos(), parser.endPos(),
                                 "jml.bad.bstype.expr");
                     parser.skipThroughRightParen();
                 } else
                     parser.nextToken();
                 // FIXME - this should be a type literal
-                JmlMethodInvocation ee = toP(parser.maker().at(p).JmlMethodInvocation(typelcKind, List.of(e)));
+                JmlMethodInvocation ee = parser.toP(parser.maker().at(p).JmlMethodInvocation(typelcKind, List.of(e)));
                 ee.startpos = start;
                 return parser.primaryTrailers(ee, null);
             }
@@ -79,14 +78,14 @@ public class MiscExpressions extends JmlExtension {
             // The argument may contain JML constructs
             int n = expr.args.size();
             if (n != 1) {
-                utils.error(tree,"jml.one.arg",keyword(),n);
+                Utils.instance(attr.context).error(tree,"jml.one.arg",keyword(),n);
             }
             if (n > 0) {
                 JCExpression arg = expr.args.get(0);
                 attr.attribTree(arg, localEnv, attr.new ResultInfo(KindSelector.TYP, Type.noType));
                 if (!expr.javaType && arg.type.tsym.getTypeParameters().size() > 0 &&
                         !arg.type.isParameterized()) {
-                    utils.error(tree,"jml.invalid.erasedtype",JmlPretty.write(arg));
+                    Utils.instance(attr.context).error(tree,"jml.invalid.erasedtype",JmlPretty.write(arg));
                 }
                 if (!expr.javaType) attr.checkForWildcards(arg,arg);
             }
@@ -105,18 +104,18 @@ public class MiscExpressions extends JmlExtension {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             int n = expr.args.size();
             if (n != 1 && n != 2) {
-               utils.error(tree,"jml.wrong.number.args",keyword(),"1 or 2",n);
+               Utils.instance(attr.context).error(tree,"jml.wrong.number.args",keyword(),"1 or 2",n);
             } else {
                 if (n > 1) attr.checkLabel(expr.args.get(1));
                 JCExpression arg = expr.args.get(0);
                 Type tt = attr.attribExpr(arg, localEnv);
                 if (tt.isPrimitive()) {
-                    utils.error(arg,"jml.ref.arg.required", keyword());
+                    Utils.instance(attr.context).error(arg,"jml.ref.arg.required", keyword());
                 }
                 if (!attr.freshClauses.contains(attr.jmlenv.currentClauseKind)) {
-                    // The +1 is to fool the error reporting mechanism into 
+                    // The +1 is to fool the error reporting mechanism into
                     // allowing other error reports about the same token
-                    utils.error(tree.pos+1, "jml.misplaced.token", keyword(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
+                    Utils.instance(attr.context).error(tree.pos+1, "jml.misplaced.token", keyword(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
                 }
             }
             expr.type = attr.syms.booleanType;
@@ -131,14 +130,14 @@ public class MiscExpressions extends JmlExtension {
             JmlMethodInvocation expr = (JmlMethodInvocation)tree;
             int n = expr.args.size();
             if (n != 1 && n != 2) {
-                utils.error(tree,"jml.wrong.number.args",keyword(),"1 or 2",n);
+                Utils.instance(attr.context).error(tree,"jml.wrong.number.args",keyword(),"1 or 2",n);
             }
             if (n > 0) {
                 if (n > 1) attr.checkLabel(expr.args.get(1));
                 JCExpression arg = expr.args.get(0);
                 Type tt = attr.attribExpr(arg, localEnv);
                 if (tt.isPrimitive()) {
-                    utils.error(arg,"jml.ref.arg.required", keyword());
+                    Utils.instance(attr.context).error(arg,"jml.ref.arg.required", keyword());
                 }
             }
             return attr.syms.booleanType;
@@ -150,7 +149,6 @@ public class MiscExpressions extends JmlExtension {
 
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind kind, JmlParser parser) {
-            init(parser);
             int startx = parser.pos();
             if (parser.getScanner().token(1).kind != LPAREN) {
                 return (JCExpression)QuantifiedExpressions.qmaxKind.parse(mods,keyword,QuantifiedExpressions.qmaxKind,parser);
@@ -163,7 +161,7 @@ public class MiscExpressions extends JmlExtension {
                         bsmaxKind, args);
                 te.startpos = startx;
                 te.kind = bsmaxKind;
-                te = toP(te);
+                te = parser.toP(te);
                 return parser.primaryTrailers(te, null);
             }
         }
@@ -178,14 +176,14 @@ public class MiscExpressions extends JmlExtension {
             attr.attribArgs(Kinds.KindSelector.VAL, expr.args, localEnv, argtypesBuf);  // We can't send in Lock as the requested type because Types does not know what to do with it - FIXME: perhaps make a JmlTypes that can handle the new primitives
             int n = expr.args.size();
             if (n != 1) {
-                utils.error(tree,"jml.one.arg",keyword(),n);
+                Utils.instance(attr.context).error(tree,"jml.one.arg",keyword(),n);
             }
             Type t;
             if (n == 0) t = attr.syms.errType;
             else {
                 // FIXME - use type.sameType to compare types?
                 if (!expr.args.get(0).type.equals(attr.JMLSetType)) {  // FIXME - use isSameType or check?  what about errors?
-                    utils.error(expr.args.get(0),"jml.max.expects.lockset",attr.JMLSetType,expr.args.get(0).type.toString());
+                    Utils.instance(attr.context).error(expr.args.get(0),"jml.max.expects.lockset",attr.JMLSetType,expr.args.get(0).type.toString());
                 }
                 t = attr.Lock;
             }
@@ -198,32 +196,31 @@ public class MiscExpressions extends JmlExtension {
 
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int pos = parser.pos();
             parser.nextToken(); // skip over the keyword
             // pos is the position of the \lbl token
             int labelPos = parser.pos();
             if (parser.token().kind == TokenKind.LPAREN) {
-                strictCheck(pos,"functional form of lbl expression");
+                strictCheck(parser.context, pos,"functional form of lbl expression");
                 parser.nextToken();
                 List<JCExpression> args = parser.parseExpressionList();
                 if (parser.token().kind != TokenKind.RPAREN) {
-                    utils.error(parser.pos(),"jml.message", "Expected a comma or right parenthesis here");
+                    Utils.instance(parser.context).error(parser.pos(),"jml.message", "Expected a comma or right parenthesis here");
                 } else if (args.length() != 2) {
-                    utils.error(labelPos, "jml.message", "Expected two arguments to a lbl experession");
+                    Utils.instance(parser.context).error(labelPos, "jml.message", "Expected two arguments to a lbl experession");
                 } else if (!(args.get(0) instanceof JCIdent)) {
-                    utils.error(args.get(0).pos, "jml.message", "The first argument of a lbl expression must be an identifier");
+                    Utils.instance(parser.context).error(args.get(0).pos, "jml.message", "The first argument of a lbl expression must be an identifier");
                 } else {
                     parser.nextToken(); // skip the RPAREN
                     Name id = ((JCIdent)args.get(0)).name;
-                    return toP(parser.maker().at(pos).JmlLblExpression(args.get(0).pos, this, id, args.get(1)));
+                    return parser.toP(parser.maker().at(pos).JmlLblExpression(args.get(0).pos, this, id, args.get(1)));
                 }
-                return toP(parser.maker().at(labelPos).Erroneous());
+                return parser.toP(parser.maker().at(labelPos).Erroneous());
             } else {
                 Name n = parser.ident();
                 JCExpression e = parser.parseExpression();
-                e = toP(parser.maker().at(pos).JmlLblExpression(labelPos,this, n, e));
-                if (this == lblanyKind ) strictCheck(e);
+                e = parser.toP(parser.maker().at(pos).JmlLblExpression(labelPos,this, n, e));
+                if (this == lblanyKind ) strictCheck(parser.context, e);
                 return e;
             }
         }

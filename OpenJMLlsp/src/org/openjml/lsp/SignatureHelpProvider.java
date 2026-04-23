@@ -1,12 +1,15 @@
 package org.openjml.lsp;
 
+import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import org.eclipse.lsp4j.ParameterInformation;
 import org.eclipse.lsp4j.SignatureHelp;
 import org.eclipse.lsp4j.SignatureHelpParams;
 import org.eclipse.lsp4j.SignatureInformation;
+import org.jmlspecs.openjml.JmlTree.JmlClassDecl;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.util.ArrayList;
@@ -148,6 +151,11 @@ public class SignatureHelpProvider {
                                                        String methodName) {
         MethodDeclCollector collector = new MethodDeclCollector(methodName);
         collector.scan(ast);
+        // Also scan the sibling specs compilation unit (a .jml file compiled alongside
+        // this .java file) — model methods declared there may not yet be merged into defs.
+        if (ast.specsCompilationUnit != null && ast.specsCompilationUnit != ast) {
+            collector.scan(ast.specsCompilationUnit);
+        }
         return collector.found;
     }
 
@@ -163,6 +171,21 @@ public class SignatureHelpProvider {
                 found.add(tree);
             }
             super.visitMethodDef(tree);
+        }
+
+        @Override
+        public void visitClassDef(JCClassDecl tree) {
+            super.visitClassDef(tree);
+            // typeSpecs.modelFieldMethods holds accessor methods synthesised for JML
+            // model fields (e.g. "//@ model public int size;").  They are not in defs
+            // and are not visited by the default JmlTreeScanner traversal.
+            if (tree instanceof JmlClassDecl jmlClass && jmlClass.typeSpecs != null) {
+                for (JmlMethodDecl m : jmlClass.typeSpecs.modelFieldMethods) {
+                    if (m.name != null && target.equals(m.name.toString())) {
+                        found.add(m);
+                    }
+                }
+            }
         }
     }
 

@@ -361,7 +361,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             jmlTokenClauseKind = null;
             tk = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenClauseKind
-            if (scannerDebug) System.out.println("READ SUPER " + t.toStringDetail() + " " + jmlTokenClauseKind + " " + skippingTokens + " " + tk + " " + jml);
+            if (scannerDebug) System.out.println("READ SUPER id=" + System.identityHashCode(this) + " thread=" + Thread.currentThread().getName() + " " + t.toStringDetail() + " " + jmlTokenClauseKind + " " + skippingTokens + " " + tk + " " + jml);
             pos = t.pos;
             endPos = t.endPos;
             // FIXME - edit this comment

@@ -38,8 +38,6 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
         
         @Override
         public JmlMethodClauseSignalsOnly parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
-            
             int pp = parser.pos();
             int pe = parser.endPos();
             
@@ -86,7 +84,7 @@ public class SignalsOnlyClauseExtension extends JmlExtension {
                 }
             }
             // FIXME - use wrapup
-            return toP(parser.maker().at(pp).JmlMethodClauseSignalsOnly(keyword, clauseType, list.toList()));
+            return parser.toP(parser.maker().at(pp).JmlMethodClauseSignalsOnly(keyword, clauseType, list.toList()));
         }
         
         @Override

@@ -1,5 +1,8 @@
 package org.openjml.lsp;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * User-configurable settings for the OpenJML language server.
  *
@@ -18,15 +21,106 @@ package org.openjml.lsp;
 public class OpenJMLSettings {
 
     /**
-     * Path to an OpenJML {@code .properties} file, passed as {@code --properties}.
-     * Options in this file are read before command-line args, so IDE settings
-     * (specsPath, solversPath, etc.) and invocation-specific flags ({@code --esc},
-     * {@code --method}) override it.
-     *
-     * <p>If {@code null} or empty the server auto-discovers {@code openjml.properties}
-     * in the workspace root (set during the LSP {@code initialize} handshake).
+     * The project ID used for the synthesized single-project entry created for
+     * generic LSP clients (e.g. VS Code) that do not send an explicit
+     * {@code projects} array.  The same constant is used by
+     * {@code didChangeWorkspaceFolders} to identify and update this entry.
      */
-    public volatile String propertiesFile;
+    public static final String WORKSPACE_PROJECT_ID = "__workspace__";
+
+    // -----------------------------------------------------------------------
+    // Per-project configuration
+    // -----------------------------------------------------------------------
+
+    /**
+     * Per-project configuration sent by the Eclipse plugin in
+     * {@code didChangeConfiguration}.  Each entry corresponds to one open
+     * Eclipse project that has the JML nature.
+     *
+     * <p>When this list is non-empty, the server maintains a per-project
+     * settings registry and ignores the global {@link #sourcePath},
+     * {@link #classPath} fields for source-path construction
+     * (those fields are irrelevant for multi-project clients).
+     *
+     * <p>Single-project clients (e.g. VS Code) do not send this list and
+     * continue to use the global fields.
+     */
+    public volatile List<ProjectConfig> projects;
+
+    /**
+     * Per-project filesystem root paths.
+     *
+     * <p>This field is set on <em>per-project</em> {@link OpenJMLSettings}
+     * instances built by
+     * {@link OpenJMLTextDocumentService#updateProjectSettings} — it is NOT
+     * serialized by the Eclipse plugin.  It holds only this project's own
+     * source folders (not dependency sources) so
+     * {@link OpenJMLTextDocumentService#settingsForUri} can map a file URI to
+     * the correct project.
+     */
+    public volatile List<String> rootPaths;
+
+    /**
+     * Per-project configuration record.
+     *
+     * <p>Sent inside the {@link OpenJMLSettings#projects} list by the Eclipse
+     * plugin.  All path fields use the OS path separator (colon on Unix,
+     * semicolon on Windows).
+     */
+    public static class ProjectConfig {
+        /** Eclipse {@code IProject.getName()} — used as the lookup key. */
+        public String id;
+
+        /**
+         * This project's source folders plus its transitive dependency source
+         * folders, passed as {@code -sourcepath}.
+         */
+        public String sourcePath;
+
+        /**
+         * Classpath: transitive dependency output directories plus any
+         * user-configured classpath preference.
+         */
+        public String classPath;
+
+        /**
+         * OpenJML specs path ({@code --specs-path}).  Per-project because the
+         * default is derived from {@link #sourcePath}.
+         */
+        public String specsPath;
+
+        /**
+         * Output directory for RAC-compiled {@code .class} files
+         * ({@code -d}).  Set to the Eclipse project's JDT output folder.
+         */
+        public String outputDir;
+
+        /**
+         * This project's own source folders only (not dependency sources).
+         * Used by the server to map a file URI to its owning project.
+         */
+        public List<String> rootPaths;
+    }
+
+    // -----------------------------------------------------------------------
+    // Global / single-project fields
+    // -----------------------------------------------------------------------
+
+    /**
+     * Project-independent OpenJML command-line options prepended verbatim to
+     * every tool invocation.  Clients use this to pass {@code --properties},
+     * warning flags, prover settings, or any other OpenJML option that applies
+     * uniformly across all projects in the workspace.
+     *
+     * <p>For example, to point OpenJML at a properties file:
+     * {@code ["--properties", "/path/to/openjml.properties"]}.
+     * Alternatively, individual options such as {@code ["--nullable-by-default"]}
+     * may be listed directly.
+     *
+     * <p>Project-dependent settings (source path, class path, specs path) are kept
+     * in the named fields below and are appended after {@code toolOptions}.
+     */
+    public volatile List<String> toolOptions;
 
     /**
      * Path to the OpenJML specs directory, passed as {@code --specs-path}.
@@ -35,29 +129,40 @@ public class OpenJMLSettings {
     public volatile String specsPath;
 
     /**
-     * Path to the SMT solvers directory, passed as {@code --solvers-path}.
-     * {@code null} or empty means use the server's default.
-     */
-    public volatile String solversPath;
-
-    /**
      * Source root(s) for resolving cross-file references, passed as
      * {@code -sourcepath}.  Colon-separated on Unix, semicolon on Windows.
+     * Used only by single-project clients (VS Code).  Ignored when
+     * {@link #projects} is non-empty.
      */
     public volatile String sourcePath;
 
     /**
-     * Workspace folder paths supplied by the editor at {@code initialize} time,
-     * path-separator-separated.  Not part of the client JSON settings — set
-     * programmatically by {@code OpenJMLLanguageServer.initialize()}.
-     * These are appended to the effective {@code -sourcepath} after any temp
-     * directory but before the user-supplied {@link #sourcePath}.
+     * Returns the effective list of root paths for JML work.
+     *
+     * <p>Priority order:
+     * <ol>
+     *   <li>Global settings with {@link #projects} list — union of all projects' rootPaths.</li>
+     *   <li>Per-project settings object — {@link #rootPaths} (this project's own source folders).</li>
+     * </ol>
      */
-    public volatile String workspaceFolderPaths;
+    public List<String> effectiveRoots() {
+        if (projects != null && !projects.isEmpty()) {
+            return projects.stream()
+                    .filter(p -> p.rootPaths != null)
+                    .flatMap(p -> p.rootPaths.stream())
+                    .filter(r -> r != null && !r.isBlank())
+                    .collect(Collectors.toList());
+        }
+        // Per-project settings object (built by updateProjectSettings).
+        if (rootPaths != null && !rootPaths.isEmpty())
+            return rootPaths;
+        return List.of();
+    }
 
     /**
      * Classpath for pre-compiled dependencies, passed as {@code -classpath}.
      * Colon-separated on Unix, semicolon on Windows.
+     * Used only by single-project clients; ignored when {@link #projects} is non-empty.
      */
     public volatile String classPath;
 
@@ -73,10 +178,13 @@ public class OpenJMLSettings {
     /**
      * When to run the {@code --check} pass:
      * <ul>
-     *   <li>{@code "edit"} (default) — check on every document change (debounced)</li>
-     *   <li>{@code "save"} — check only when the file is saved</li>
+     *   <li>{@code "edit"} (default) — check on every document change (debounced),
+     *       on open, and on save</li>
+     *   <li>{@code "save"} — check on open and on save, but not on change</li>
+     *   <li>{@code "manual"} — never automatic; only via the explicit
+     *       {@code openjml.checkJml} command.  Intended for codebases where
+     *       checking is slow or where automatic checks cause problems.</li>
      * </ul>
-     * In both modes a check always runs when the file is first opened or saved.
      */
     public volatile String checkTriggerOn = "edit";
 
@@ -90,8 +198,14 @@ public class OpenJMLSettings {
      */
     public volatile String escTriggerOn = "manual";
 
-    /** Returns {@code true} if --check should fire on every edit. */
-    public boolean isCheckOnEdit() { return !"save".equalsIgnoreCase(checkTriggerOn); }
+    /** Returns {@code true} if --check should fire on every edit (debounced). */
+    public boolean isCheckOnEdit()  { return "edit".equalsIgnoreCase(checkTriggerOn); }
+
+    /** Returns {@code true} if --check should fire on save (and open). */
+    public boolean isCheckOnSave()  { return "save".equalsIgnoreCase(checkTriggerOn); }
+
+    /** Returns {@code true} if --check should only fire on explicit command. */
+    public boolean isCheckManual()  { return "manual".equalsIgnoreCase(checkTriggerOn); }
 
     /** Returns {@code true} if --esc should fire on every edit. */
     public boolean isEscOnEdit()   { return "edit".equalsIgnoreCase(escTriggerOn); }
@@ -101,6 +215,22 @@ public class OpenJMLSettings {
 
     /** Returns {@code true} if --esc should only fire on explicit command. */
     public boolean isEscManual()   { return "manual".equalsIgnoreCase(escTriggerOn); }
+
+    /**
+     * Syntax coloring scope:
+     * <ul>
+     *   <li>{@code "preserve Java coloring"} (default) — emit tokens only inside JML annotation
+     *       context; Java code outside JML comments is left to the Java language server.</li>
+     *   <li>{@code "overwrite Java coloring"} — emit tokens for all Java and JML constructs;
+     *       OpenJML's colors replace whatever the Java language server produced.</li>
+     * </ul>
+     */
+    public volatile String syntaxColoringScope = "preserve Java coloring";
+
+    /** Returns {@code true} when OpenJML should emit tokens for all Java constructs. */
+    public boolean isOverwriteJavaColoring() {
+        return "overwrite Java coloring".equalsIgnoreCase(syntaxColoringScope);
+    }
 
     /**
      * Syntax coloring strategy for JML tokens:
@@ -133,6 +263,14 @@ public class OpenJMLSettings {
     public boolean isEscApiMode() { return "concurrent".equalsIgnoreCase(escEngine); }
 
     /**
+     * Returns {@code true} if the fresh-parallel engine is selected: each method
+     * gets its own fresh {@link org.openjml.IAPI} instance and all run concurrently
+     * in the ESC thread pool.  Higher startup cost per method (full re-parse and
+     * re-typecheck), but true parallelism with no shared state between methods.
+     */
+    public boolean isFreshParallelMode() { return "fresh".equalsIgnoreCase(escEngine); }
+
+    /**
      * Maximum number of concurrent doESC threads used by the {@code concurrent} engine.
      * Methods from different files run concurrently up to this limit;
      * methods within the same file are serialized (IAPI.doESC is not thread-safe per instance).
@@ -149,34 +287,81 @@ public class OpenJMLSettings {
             java.util.concurrent.Executors.newFixedThreadPool(5);
 
     /**
+     * When {@code true} (default), the server advertises
+     * {@code TextDocumentSyncKind.Incremental} and applies each
+     * {@code textDocument/didChange} event as a set of ranged edits rather than
+     * replacing the full document string.  Set to {@code false} to revert to
+     * full-document sync (useful for debugging or performance comparison).
+     */
+    public volatile boolean incrementalSync = true;
+
+    /**
      * Output directory for {@code --rac}-compiled class files, passed as {@code -d}.
      * Relative paths are resolved against the workspace root.
      * {@code null} or empty means {@code rac-classes} in the workspace root.
+     * Used only by single-project clients; for Eclipse, outputDir is per-project
+     * inside {@link ProjectConfig#outputDir}.
      */
     public volatile String racOutputDir;
 
     /**
-     * Path to a {@code .properties} file generated by the Eclipse plugin from
-     * the Tab-2 ("OpenJML Tool Options") preference page.  Passed as
-     * {@code --properties} <em>before</em> the user-supplied
-     * {@link #propertiesFile} so that the user's workspace file can override
-     * Eclipse preferences.
+     * Java-vs-JML-only master switch.
+     * <ul>
+     *   <li>{@code "full"} (default) — OpenJML emits all Java + JML capabilities
+     *       (inlay hints, signature help, etc.).</li>
+     *   <li>{@code "jml-only"} — suppress capabilities that duplicate a co-present
+     *       Java language server (JDT, Red Hat Java, IntelliJ Java, etc.).</li>
+     * </ul>
+     * Individual capabilities check this setting and return empty results when it
+     * is {@code "jml-only"}.  The value is also influenced by {@link #client}: for
+     * known Java-capable clients the default shifts to {@code "jml-only"} unless
+     * the user explicitly sets this field to {@code "full"}.
      *
-     * <p>Set when the Eclipse plugin's {@code USE_PROPERTIES_FILE} flag is
-     * {@code true} (the default).  {@code null} or empty means no generated
-     * file is available.
+     * @see #resolveDefaults()
      */
-    public volatile String generatedPropertiesFile;
+    public volatile String javaMode;   // null = unset by client; use resolveDefaults()
 
     /**
-     * Flat list of openjml command-line arguments built from the Tab-2
-     * ("OpenJML Tool Options") preference page.  Prepended to the argument
-     * list for every tool invocation.
+     * When {@code true}, the client understands the {@code $/openjml/actionMessage}
+     * custom notification and the server will use it instead of {@code window/logMessage}
+     * for advisory and error messages that may offer actions (e.g. "Open Preferences").
      *
-     * <p>Set when the Eclipse plugin's {@code USE_PROPERTIES_FILE} flag is
-     * {@code false}.  {@code null} or empty means no extra args.
+     * <p>Capable clients set this to {@code true} in {@code initializationOptions}.
+     * Generic clients omit it (defaults to {@code false}), and the server falls back
+     * to plain {@code window/logMessage}.
      */
-    public volatile java.util.List<String> toolArgs;
+    public volatile boolean supportsActionMessages = false;
+
+    /**
+     * Known-client hint — lets the server tailor capability defaults without the
+     * user having to set every flag manually.
+     * <ul>
+     *   <li>{@code "generic"} (default) — no assumptions; all capabilities enabled.</li>
+     *   <li>{@code "eclipse-jdt"} — Eclipse with JDT active; default {@code javaMode}
+     *       to {@code "jml-only"}.  The OpenJMLUI Eclipse plugin sets this automatically
+     *       in its {@code initializationOptions}.</li>
+     *   <li>{@code "vscode-java"} — VS Code with Red Hat Java extension; likewise.</li>
+     *   <li>{@code "intellij"} — IntelliJ IDEA; likewise.</li>
+     * </ul>
+     */
+    public volatile String client = "generic";
+
+    /**
+     * Return the effective {@code javaMode} after applying client-based defaults.
+     * If {@link #javaMode} was explicitly set by the client, that value is returned
+     * directly.  Otherwise the mode is inferred from {@link #client}:
+     * {@code "eclipse-jdt"}, {@code "vscode-java"}, and {@code "intellij"} default
+     * to {@code "jml-only"}; everything else defaults to {@code "full"}.
+     */
+    public String effectiveJavaMode() {
+        if (javaMode != null && !javaMode.isEmpty()) return javaMode;
+        if ("eclipse-jdt".equals(client) || "vscode-java".equals(client)
+                || "intellij".equals(client)) return "jml-only";
+        return "full";
+    }
+
+    /** Returns {@code true} when Java-overlapping capabilities should be suppressed. */
+    public boolean isJmlOnly() { return "jml-only".equals(effectiveJavaMode()); }
 
     /**
      * No-arg constructor.  Used by Gson deserialization (initializationOptions /
@@ -190,21 +375,24 @@ public class OpenJMLSettings {
      * recreated) so the copy participates in the same thread pool.
      */
     public OpenJMLSettings(OpenJMLSettings src) {
-        this.propertiesFile          = src.propertiesFile;
+        this.toolOptions             = src.toolOptions;
         this.specsPath               = src.specsPath;
-        this.solversPath             = src.solversPath;
+
         this.sourcePath              = src.sourcePath;
-        this.workspaceFolderPaths    = src.workspaceFolderPaths;
+        this.rootPaths               = src.rootPaths;
         this.classPath               = src.classPath;
         this.useIntegratedOutline    = src.useIntegratedOutline;
         this.checkTriggerOn          = src.checkTriggerOn;
         this.escTriggerOn            = src.escTriggerOn;
+        this.syntaxColoringScope     = src.syntaxColoringScope;
         this.syntaxColoringStrategy  = src.syntaxColoringStrategy;
         this.escEngine               = src.escEngine;
         this.escThreads              = src.escThreads;
         this.escPool                 = src.escPool;   // share the pool
         this.racOutputDir            = src.racOutputDir;
-        this.generatedPropertiesFile = src.generatedPropertiesFile;
-        this.toolArgs                = src.toolArgs;
+        this.incrementalSync         = src.incrementalSync;
+        this.javaMode                = src.javaMode;
+        this.client                  = src.client;
+        // projects/rootPaths are not copied — per-project instances don't nest
     }
 }

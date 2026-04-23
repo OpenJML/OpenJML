@@ -890,6 +890,20 @@ public class JavaTokenizer extends UnicodeReader {
             TokenKind newtk = tokens.lookupKind(sb.toString());
 
             if (newtk == TokenKind.IDENTIFIER) {
+                if (sb.length() == 0) {
+                    int pos0 = position();
+                    int lo = Math.max(0, pos0 - 40);
+                    int hi = Math.min(length(), pos0 + 40);
+                    String bufSnippet = new String(buffer(), lo, hi - lo)
+                            .replace('\n', '\u23ce').replace('\r', '\u23ce');
+                    System.err.println("[scanOperator] sb is empty after put() + lookupKind;"
+                            + " newtk=" + newtk
+                            + " pos=" + pos0
+                            + " thread=" + Thread.currentThread().getName()
+                            + " bufSnippet='" + bufSnippet + "'");
+                    Thread.dumpStack();
+                    break;
+                }
                 sb.setLength(sb.length() - 1);
                 break;
             }
@@ -913,6 +927,10 @@ public class JavaTokenizer extends UnicodeReader {
             return token;
         }
 
+        if (scannerDebug && sb.length() > 0) {
+            System.err.println("[readToken-sb-notempty] id=" + System.identityHashCode(this)
+                    + " sb='" + sb + "' thread=" + Thread.currentThread().getName());
+        }
         sb.setLength(0);
         name = null;
         radix = 0;

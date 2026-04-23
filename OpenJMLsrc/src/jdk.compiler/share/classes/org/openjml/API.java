@@ -22,6 +22,7 @@ import com.sun.tools.javac.parser.ScannerFactory;
 import com.sun.tools.javac.parser.Tokens;
 import com.sun.tools.javac.code.Symbol;
 import com.sun.tools.javac.code.Symbol.*;
+import com.sun.tools.javac.util.Context;
 
 /** This class is a wrapper and publicly published API for the OpenJML tool 
  * functionality.  In principle, any external programmatic interaction with
@@ -119,15 +120,28 @@ public class API implements IAPI {
 //        // FIXME - handle options and args
 //    }
 //    
-//    /* (non-Javadoc)
-//     * @see org.jmlspecs.openjml.IAPI#context()
-//     */
-//    @Override
-//    //@ ensures \result == main.context;
-//    /*@pure*/
-//    public /*@nullable*/ Context context() {
-//        return main == null ? null : main.context;
-//    }
+    /* (non-Javadoc)
+     * @see org.jmlspecs.openjml.IAPI#context()
+     */
+    @Override
+    @SuppressWarnings("exports")
+    //@ ensures \result == main.context;
+    /*@pure*/
+    public /*@nullable*/ Context context() {
+        return main == null ? null : main.context();
+    }
+
+    @Override
+    public void setASTListener(IASTListener listener) {
+        org.jmlspecs.openjml.Main m = main;
+        if (m != null) synchronized (m.astListeners) { m.astListeners.add(listener); }
+    }
+
+    @Override
+    public void removeASTListener(IASTListener listener) {
+        org.jmlspecs.openjml.Main m = main;
+        if (m != null) synchronized (m.astListeners) { m.astListeners.remove(listener); }
+    }
 //
 //    /** Returns the compiler object for this context. */
 //    @Override /*@pure*/ /*@nullable*/
@@ -194,12 +208,34 @@ public class API implements IAPI {
 //        return Options.instance(context()).get(name);
 //    }
 //    
-//    // Expected to be called in a different thread
-//    @Override
-//    public void abort() {
-//       if (main != null) JmlEsc.instance(main.context()).abort();
-//    }
-//    
+    @Override
+    public boolean isEscPhaseStarted() {
+        if (main == null) return false;
+        return JmlEsc.getIfCreated(main.context()) != null;
+    }
+
+    // Expected to be called from a different thread than the ESC thread.
+    @Override
+    public void cancelEsc() {
+        if (main == null) return;
+        // Set the flag first so no new methods start even if abort() is a no-op.
+        main.canceled = true;
+        // Kill the active z3 process if one is running.  Use getIfCreated() rather than
+        // instance() to avoid triggering JmlEsc construction from this thread, which would
+        // cause a circular-dependency crash if the ESC context is still being initialised.
+        JmlEsc esc = JmlEsc.getIfCreated(main.context());
+        if (esc != null) esc.abort();
+    }
+
+    // Expected to be called from a different thread than the ESC thread.
+    @Override
+    public void abortCurrentProof() {
+        if (main == null) return;
+        // Do NOT set main.canceled - the ESC loop must continue after this method.
+        JmlEsc esc = JmlEsc.getIfCreated(main.context());
+        if (esc != null) esc.abort();
+    }
+
    
     /* (non-Javadoc)
      * @see org.jmlspecs.openjml.IAPI#execute(PrintWriter, DiagnosticListener<JavaFileObject>, Options, String[])
@@ -213,6 +249,11 @@ public class API implements IAPI {
     public int execute(/*@ non_null*/ String ... args) {
         int x = main.compile(args, main.context()).exitCode;
         return x;
+    }
+
+    @Override
+    public int execute(String[] args, org.openjml.MockFiles mockFiles) {
+        return main.compile(args, mockFiles).exitCode;
     }
     
 
@@ -774,15 +815,15 @@ public class API implements IAPI {
     @Override
     public IProverResult doESC(JmlMethodDecl decl) {
         JmlEsc esc = JmlEsc.instance(main.context());
-        class L implements IProofResultListener { 
+        class L implements IProofResultListener {
         	public L(IProofResultListener chained) { this.chained = chained; }
         	public IProofResultListener chained;
-        	public IProverResult result; 
-        	public void reportProofResult(MethodSymbol msym, IProverResult result) { 
+        	public IProverResult result;
+        	public void reportProofResult(JmlMethodDecl methodDecl, IProverResult result) {
                 if (result.result() == IProverResult.COMPLETED) return;
                 if (result.result() == IProverResult.RUNNING) return;
-        		this.result = result; 
-        		if (chained != null) chained.reportProofResult(msym, result);
+        		this.result = result;
+        		if (chained != null) chained.reportProofResult(methodDecl, result);
         	}
         };
         

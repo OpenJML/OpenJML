@@ -242,6 +242,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
                 if (scanMode == AST_JML_MODE) {
                     scan(that.methodSpecs);
                 }
+                boolean isJML = (jcthat.mods.flags & Utils.JMLBIT) != 0; // SHould use Utils.isJML(), but it needs a context value
+                if (isJML && scanMode == AST_JAVA_MODE) return;
                 super.visitMethodDef(that);
             } finally {
                 if (context != null) Log.instance(context).useSource(prev);
@@ -415,9 +417,11 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
 //
     @Override
     public void visitVarDef(JCVariableDecl that) {
-        super.visitVarDef(that);
         // This method is called during the non-JML build of JML, so we guard the JML-specific actions
         if (that instanceof JmlVariableDecl jthat) {
+            boolean isJML = (jthat.mods.flags & Utils.JMLBIT) != 0; // Should use Utils.isJML(flags), but it needs a context value
+            if (isJML && scanMode == AST_JAVA_MODE) return;
+            super.visitVarDef(that);
             if (scanMode == AST_SPEC_MODE) {
                 //            if (that.fieldSpecsCombined != null) {
                 //                scan(that.fieldSpecsCombined.mods);
@@ -430,6 +434,8 @@ public class JmlTreeScanner extends TreeScanner implements IJmlVisitor {
                     scan(jthat.fieldSpecs.list);
                 }
             }
+        } else {
+            super.visitVarDef(that);
         }
     }
 
