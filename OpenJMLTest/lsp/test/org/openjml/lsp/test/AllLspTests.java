@@ -53,6 +53,7 @@ import org.junit.runners.Suite;
     RenamePreflightTest.class,
     DebouncingAndCancellationTest.class,
     BatchAndWatchedFilesTest.class,
+    WatchedFilesHandlerTest.class,
     IncrementalSyncProtocolTest.class,
     MultiProjectTest.class,
     SplitEscTest.class,
@@ -69,5 +70,8 @@ import org.junit.runners.Suite;
     LegacyEscSmokeTest.class,
     SymlinkWorkspaceTest.class,
     EscSessionGenTest.class,
+    SymbolsForProjectTest.class,
+    EscPerMethodMarkerTest.class,
+    EscInvocationVariantsTest.class,
 })
 public class AllLspTests {}

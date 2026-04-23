@@ -1,16 +1,17 @@
-package org.openjml.lsp;
+package org.openjml.lsp.test;
 
 import org.eclipse.lsp4j.FileChangeType;
 import org.junit.Test;
+import org.openjml.lsp.ASTCache;
+import org.openjml.lsp.CheckRunner;
+import org.openjml.lsp.OpenJMLSettings;
+import org.openjml.lsp.OpenJMLTextDocumentService;
 
 import static org.junit.Assert.*;
 
 /**
- * Tests for the package-private watched-file handler methods in
+ * Tests for the watched-file handler methods in
  * {@link OpenJMLTextDocumentService}.
- *
- * <p>This class lives in the {@code org.openjml.lsp} package so it can access
- * package-private methods directly.
  *
  * <ul>
  *   <li>{@code handleWatchedJavaChange(DELETED)} clears the AST cache entry.</li>

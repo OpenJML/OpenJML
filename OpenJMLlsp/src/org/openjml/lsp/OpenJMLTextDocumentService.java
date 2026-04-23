@@ -1218,6 +1218,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
                     } else {
                         // Completion event: update status progressively.
+                        ServerLog.serverLog("[scheduleEscForPaths] COMPLETION uri=" + uri
+                                + " method=" + methodName
+                                + " diags=" + diags.size()
+                                + " partialResults=" + partialResults.size());
                         updateEscStatusPartial(uri, diags, partialResults, myBatchGen);
                         executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
                     }
@@ -1337,7 +1341,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     updateEscStatus(uri, primaryDiags, result.proofResults(),
                             result.exitCode(), result.foreignMessages(), myGen,
                             result.diagsByMethod());
-                    result.diagsByMethod().keySet().forEach(diagUri -> publishMerged(diagUri));
+                    publishMerged(uri);
                     refreshCodeLenses();
                 } catch (Throwable t) {
                     ServerLog.serverLog("[scheduleEscSplitByFile] error for " + uri + ": " + t);
@@ -2237,7 +2241,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * If the file is already open in the editor the editor path handles it and
      * this method returns immediately to avoid a double-check.
      */
-    void handleWatchedJmlChange(String uri, FileChangeType type) {
+    public void handleWatchedJmlChange(String uri, FileChangeType type) {
         if (lastContent.containsKey(uri)) return;  // editor path already handles it
 
         if (type == FileChangeType.Deleted) {
@@ -2272,7 +2276,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * or explicit index command re-runs the full project check.
      * Changed-but-not-open files are ignored — the user opens the file to trigger a check.
      */
-    void handleWatchedJavaChange(String uri, FileChangeType type) {
+    public void handleWatchedJavaChange(String uri, FileChangeType type) {
         if (lastContent.containsKey(uri)) return;  // editor handles it
         if (type == FileChangeType.Deleted) {
             CheckRunner.getASTCache().remove(uri);
@@ -2458,13 +2462,77 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (content != null) {
             Map<String, String> snapshot = dirtySnapshot();
             submitEsc(uri, hook -> CheckRunner.escWithContext(uri, content, snapshot, s, hook,
-                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); }));
+                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); },
+                    (md, kind, diags) -> onEscMethodCompleted(uri, md, kind, diags)));
             return;
         }
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
         submitEsc(uri, hook -> CheckRunner.runEscFile(filePath, uri, s, hook,
                 methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString()); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); }));
+    }
+
+    private void onEscMethodCompleted(String uri,
+                                      org.jmlspecs.openjml.JmlTree.JmlMethodDecl methodDecl,
+                                      org.openjml.IProverResult.Kind kind,
+                                      java.util.Map<String, java.util.List<org.eclipse.lsp4j.Diagnostic>> methodDiags) {
+        String methodName = methodDecl.name != null ? methodDecl.name.toString() : "?";
+        int totalMethodDiags = methodDiags.values().stream().mapToInt(java.util.List::size).sum();
+        ServerLog.serverLog("[onEscMethodCompleted] uri=" + uri + " method=" + methodName
+                + " kind=" + kind + " methodDiags=" + totalMethodDiags
+                + " methodDiagUris=" + methodDiags.keySet());
+        String content = lastContent.get(uri);
+        if (content == null) {
+            ServerLog.serverLog("[onEscMethodCompleted] EARLY RETURN — no content for uri=" + uri);
+            return;
+        }
+
+        // Compute line range directly from AST positions — avoids AST cache dependency
+        // (the shared cache is only populated after the full run completes).
+        int startLine = Math.max(0, offsetToLine(content, methodDecl.pos));
+        int endLine = (methodDecl.body != null && methodDecl.body.endpos >= 0)
+                ? Math.max(startLine, offsetToLine(content, methodDecl.body.endpos))
+                : startLine;
+
+        String rawName = (methodDecl.sym != null)
+                ? org.jmlspecs.openjml.Utils.uniqueSymbolName(methodDecl.sym)
+                : methodDecl.name.toString();
+        String name = methodDecl.name.toString();
+
+        MethodStatus ms = proofResultToStatus(kind, List.of(), startLine, endLine, 0, false);
+        java.util.Map<String, java.util.List<Diagnostic>> byUri = new java.util.HashMap<>(methodDiags);
+        if (kind == org.openjml.IProverResult.UNSAT) {
+            String[] lines = content.split("\n", -1);
+            if (startLine < lines.length) {
+                String lineText = lines[startLine];
+                int col = lineText.indexOf(name);
+                if (col < 0) col = 0;
+                Diagnostic hint = new Diagnostic(
+                        new Range(new Position(startLine, col),
+                                  new Position(startLine, col + name.length())),
+                        "Verified", DiagnosticSeverity.Hint, DiagnosticConverter.SOURCE_ESC);
+                byUri.computeIfAbsent(uri, k -> new java.util.ArrayList<>()).add(hint);
+            }
+        }
+        RunningSession rs = runningSessions.get(uri);
+        long gen = rs != null ? rs.sessionGen() : sessionCounter.get();
+        int storedDiags = byUri.values().stream().mapToInt(java.util.List::size).sum();
+        ServerLog.serverLog("[onEscMethodCompleted] storing key=" + uri + "#" + rawName
+                + " gen=" + gen + " status=" + ms.label() + " byUriDiags=" + storedDiags
+                + " byUriKeys=" + byUri.keySet());
+        storeProofResult(uri + "#" + rawName, gen, ms, java.util.Collections.unmodifiableMap(byUri));
+        executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
+    }
+
+    /** Converts a character offset to a 0-based line number in the given content. */
+    private static int offsetToLine(String content, int offset) {
+        if (offset <= 0) return 0;
+        int line = 0;
+        int limit = Math.min(offset, content.length());
+        for (int i = 0; i < limit; i++) {
+            if (content.charAt(i) == '\n') line++;
+        }
+        return line;
     }
 
 
@@ -2898,14 +2966,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             IProverResult.Kind kind = CheckRunner.lookupResult(escProofResults, m.rawName());
             MethodStatus ms = proofResultToStatus(kind, diags, m.startLine(), m.endLine(),
                                                    exitCode, hasForeignErrors);
-            Map<String, List<Diagnostic>> byUri = new java.util.HashMap<>(
-                    diagsByMethod.getOrDefault(m.rawName(), Map.of()));
-            if (kind == IProverResult.UNSAT) {
-                Diagnostic hint = createVerifiedHintDiag(uri, m);
-                if (hint != null)
-                    byUri.computeIfAbsent(uri, k -> new java.util.ArrayList<>()).add(hint);
+            String key = methodKey(uri, m);
+            ProofResult existing = proofResults.get(key);
+            if (existing != null && existing.gen() == gen && !existing.byUri().isEmpty()) {
+                // updateEscStatusPartial already stored a full result for this method —
+                // just update the status label without re-adding the verified hint.
+                storeProofResult(key, gen, ms);
+            } else {
+                Map<String, List<Diagnostic>> byUri = new java.util.HashMap<>(
+                        diagsByMethod.getOrDefault(m.rawName(), Map.of()));
+                if (kind == IProverResult.UNSAT) {
+                    Diagnostic hint = createVerifiedHintDiag(uri, m);
+                    if (hint != null)
+                        byUri.computeIfAbsent(uri, k -> new java.util.ArrayList<>()).add(hint);
+                }
+                storeProofResult(key, gen, ms, java.util.Collections.unmodifiableMap(byUri));
             }
-            storeProofResult(methodKey(uri, m), gen, ms, java.util.Collections.unmodifiableMap(byUri));
         }
 
         // Also update .jml companion files whose model methods were proved in this run.
@@ -2978,10 +3054,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         int col = lineText.indexOf(m.name());
         if (col < 0) col = 0;
         int endCol = col + m.name().length();
-        System.out.println("[OpenJML] Verified marker: method=" + m.name()
-                + " rawName=" + m.rawName()
-                + " line=" + line + " col=" + col + " endCol=" + endCol
-                + " lineText='" + lineText.stripTrailing() + "'");
         Range range = new Range(new Position(line, col), new Position(line, endCol));
         return new Diagnostic(range, "Verified", DiagnosticSeverity.Hint, DiagnosticConverter.SOURCE_ESC);
     }
@@ -3008,6 +3080,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         List<JavaSourceScanner.MethodInfo> methods =
                 JavaSourceScanner.findMethodsFromAst(astEntry.ast(), content);
         if (methods.isEmpty()) return;
+        ServerLog.serverLog("[updateEscStatusPartial] uri=" + uri
+                + " totalDiags=" + diags.size()
+                + " partialResults=" + partialProofResults.size()
+                + " methods=" + methods.size());
         java.util.Set<String> jmlUris = new java.util.LinkedHashSet<>();
         for (JavaSourceScanner.MethodInfo m : methods) {
             if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) {
@@ -3016,10 +3092,25 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
             IProverResult.Kind kind = CheckRunner.lookupResult(partialProofResults, m.rawName());
             if (kind == null) continue;   // not yet proven — leave as CHECKING or UNKNOWN
-            // exitCode=0: the run is in progress; kind != null so exitCode is not used
-            // by proofResultToStatus (null-kind is the only path that reads exitCode).
-            storeProofResult(methodKey(uri, m), gen,
-                    proofResultToStatus(kind, diags, m.startLine(), m.endLine(), 0, false));
+            MethodStatus status = proofResultToStatus(kind, diags, m.startLine(), m.endLine(), 0, false);
+            // Build byUri from diags in this method's line range so publishMerged can
+            // deliver them incrementally (status-only storeProofResult leaves byUri empty).
+            List<Diagnostic> methodDiags = new java.util.ArrayList<>(diags.stream()
+                    .filter(d -> { int l = d.getRange().getStart().getLine();
+                                   return l >= m.startLine() && l <= m.endLine(); })
+                    .collect(java.util.stream.Collectors.toList()));
+            if (kind == IProverResult.UNSAT) {
+                Diagnostic hint = createVerifiedHintDiag(uri, m);
+                if (hint != null) methodDiags.add(hint);
+            }
+            Map<String, List<Diagnostic>> byUri = methodDiags.isEmpty()
+                    ? Map.of()
+                    : Map.of(uri, java.util.Collections.unmodifiableList(methodDiags));
+            ServerLog.serverLog("[updateEscStatusPartial] method=" + m.rawName()
+                    + " kind=" + kind + " status=" + status.label()
+                    + " methodDiags=" + methodDiags.size());
+            storeProofResult(methodKey(uri, m), gen, status,
+                    java.util.Collections.unmodifiableMap(byUri));
         }
 
         // Propagate partial results to open .jml companion editors.
@@ -3033,8 +3124,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             for (JavaSourceScanner.MethodInfo m : jmlMethods) {
                 IProverResult.Kind kind = CheckRunner.lookupResult(partialProofResults, m.rawName());
                 if (kind == null) continue;
-                storeProofResult(methodKey(jmlUri, m), gen,
-                        proofResultToStatus(kind, diags, m.startLine(), m.endLine(), 0, false));
+                MethodStatus status = proofResultToStatus(kind, diags, m.startLine(), m.endLine(), 0, false);
+                List<Diagnostic> methodDiags = new java.util.ArrayList<>(diags.stream()
+                        .filter(d -> { int l = d.getRange().getStart().getLine();
+                                       return l >= m.startLine() && l <= m.endLine(); })
+                        .collect(java.util.stream.Collectors.toList()));
+                if (kind == IProverResult.UNSAT) {
+                    Diagnostic hint = createVerifiedHintDiag(jmlUri, m);
+                    if (hint != null) methodDiags.add(hint);
+                }
+                Map<String, List<Diagnostic>> byUri = methodDiags.isEmpty()
+                        ? Map.of()
+                        : Map.of(jmlUri, java.util.Collections.unmodifiableList(methodDiags));
+                storeProofResult(methodKey(jmlUri, m), gen, status,
+                        java.util.Collections.unmodifiableMap(byUri));
             }
         }
     }
@@ -3217,7 +3320,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     private void publishDiags(String uri, List<Diagnostic> diags) {
-        clientLog("[publishDiags] uri=" + uri + " count=" + diags.size() + " client=" + (client == null ? "null" : "present"));
         if (client == null) return;
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
         if (diags.isEmpty()) markedUris.remove(uri);
@@ -3229,7 +3331,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * for the URI.
      */
     private void storeCheckDiags(String uri, List<Diagnostic> diags) {
-        clientLog("[storeCheckDiags] uri=" + uri + " count=" + diags.size());
         if (diags.isEmpty()) checkDiags.remove(uri);
         else checkDiags.put(uri, diags);
     }
@@ -3238,7 +3339,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         List<Diagnostic> checkList = checkDiags.getOrDefault(uri, List.of());
         List<Diagnostic> escList = new ArrayList<>();
         proofResults.values().forEach(pr -> escList.addAll(pr.byUri().getOrDefault(uri, List.of())));
-        clientLog("[publishMerged] uri=" + uri + " checkDiags=" + checkList.size() + " escDiags=" + escList.size());
+        ServerLog.serverLog("[publishMerged] uri=" + uri
+                + " checkDiags=" + checkList.size() + " escDiags=" + escList.size()
+                + " proofResultCount=" + proofResults.size()
+                + " proofResultsWithDiags=" + proofResults.values().stream()
+                        .filter(pr -> !pr.byUri().getOrDefault(uri, List.of()).isEmpty()).count());
         List<Diagnostic> merged = new ArrayList<>();
         merged.addAll(checkList);
         merged.addAll(escList);

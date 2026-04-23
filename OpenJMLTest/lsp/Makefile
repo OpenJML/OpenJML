@@ -94,6 +94,7 @@ TEST_CLASSES := \
   RenamePreflightTest \
   DebouncingAndCancellationTest \
   BatchAndWatchedFilesTest \
+  WatchedFilesHandlerTest \
   IncrementalSyncProtocolTest \
   MultiProjectTest \
   SplitEscTest \
@@ -110,7 +111,9 @@ TEST_CLASSES := \
   LegacyEscSmokeTest \
   SymlinkWorkspaceTest \
   EscSessionGenTest \
-  SymbolsForProjectTest
+  SymbolsForProjectTest \
+  EscPerMethodMarkerTest \
+  EscInvocationVariantsTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 

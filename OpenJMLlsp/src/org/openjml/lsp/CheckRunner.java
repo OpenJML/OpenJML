@@ -245,11 +245,17 @@ public class CheckRunner {
         private final LspDiagnosticListener diagListener;
 
         /**
-         * Optional callback invoked after each final proof result is recorded.
-         * Receives the {@link JmlMethodDecl} so the caller can publish per-file
-         * diagnostics immediately rather than waiting for the full run to finish.
+         * Callback invoked when each method proof terminates with a final result.
+         * Receives the method declaration, the proof kind, and the per-method
+         * diagnostics so the LSP layer can publish markers immediately.
          */
-        private final java.util.function.Consumer<JmlMethodDecl> perMethodCallback;
+        @FunctionalInterface
+        public interface MethodResultCallback {
+            void onResult(JmlMethodDecl methodDecl, IProverResult.Kind kind,
+                          Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri);
+        }
+
+        private MethodResultCallback onMethodCompleted;
 
         /**
          * Optional callback invoked when a method proof starts (RUNNING event).
@@ -258,22 +264,17 @@ public class CheckRunner {
          */
         private java.util.function.Consumer<JmlMethodDecl> onMethodStarted;
 
-        ProofResultCollector() { this(null, null); }
-
-        ProofResultCollector(java.util.function.Consumer<JmlMethodDecl> perMethodCallback) {
-            this(null, perMethodCallback);
-        }
-
-        ProofResultCollector(LspDiagnosticListener listener) { this(listener, null); }
-
-        ProofResultCollector(LspDiagnosticListener listener,
-                             java.util.function.Consumer<JmlMethodDecl> perMethodCallback) {
+        ProofResultCollector() { this(null); }
+        ProofResultCollector(LspDiagnosticListener listener) {
             this.diagListener = listener;
-            this.perMethodCallback = perMethodCallback;
         }
 
         void setOnMethodStarted(java.util.function.Consumer<JmlMethodDecl> cb) {
             this.onMethodStarted = cb;
+        }
+
+        void setOnMethodCompleted(MethodResultCallback cb) {
+            this.onMethodCompleted = cb;
         }
 
         @Override
@@ -291,8 +292,10 @@ public class CheckRunner {
                     ? Utils.uniqueSymbolName(methodDecl.sym)
                     : methodDecl.name.toString();
             results.put(key, kind);
+            Map<String, List<org.eclipse.lsp4j.Diagnostic>> methodDiags = Map.of();
             if (diagListener != null) {
-                diagsByMethod.put(key, diagListener.stopMethodWindow());
+                methodDiags = diagListener.stopMethodWindow();
+                diagsByMethod.put(key, methodDiags);
             }
             // Log immediately so the console shows progress as each method completes.
             javax.tools.JavaFileObject src =
@@ -300,7 +303,7 @@ public class CheckRunner {
                     ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
             String fname = src != null ? fileName(src.getName()) : "unknown";
             log(ts() + " --esc " + fname + " " + key + ": " + kindLabel(kind));
-            if (perMethodCallback != null) perMethodCallback.accept(methodDecl);
+            if (onMethodCompleted != null) onMethodCompleted.onResult(methodDecl, kind, methodDiags);
         }
 
         Map<String, IProverResult.Kind> getResults() {
@@ -603,7 +606,8 @@ public class CheckRunner {
         var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         ProofResultCollector[] prcRef = {null};
-        prcRef[0] = new ProofResultCollector(listener, perFileCallback == null ? null : methodDecl -> {
+        prcRef[0] = new ProofResultCollector(listener);
+        if (perFileCallback != null) prcRef[0].setOnMethodCompleted((methodDecl, kind, ignored) -> {
             javax.tools.JavaFileObject src =
                     methodDecl.sym != null && methodDecl.sym.enclClass() != null
                     ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
@@ -724,7 +728,8 @@ public class CheckRunner {
         var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
         ProofResultCollector[] prcRef = {null};
-        prcRef[0] = new ProofResultCollector(listener, perFileCallback == null ? null : methodDecl -> {
+        prcRef[0] = new ProofResultCollector(listener);
+        if (perFileCallback != null) prcRef[0].setOnMethodCompleted((methodDecl, kind, ignored) -> {
             javax.tools.JavaFileObject src =
                     methodDecl.sym != null && methodDecl.sym.enclClass() != null
                     ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
@@ -840,7 +845,8 @@ public class CheckRunner {
             var out = new PrintWriter(System.err, true);
             var api = IAPI.make(out, listener);
             ProofResultCollector[] prcRef = {null};
-            prcRef[0] = new ProofResultCollector(listener, perFileCallback == null ? null : methodDecl -> {
+            prcRef[0] = new ProofResultCollector(listener);
+            if (perFileCallback != null) prcRef[0].setOnMethodCompleted((methodDecl, kind, ignored) -> {
                 javax.tools.JavaFileObject src =
                         methodDecl.sym != null && methodDecl.sym.enclClass() != null
                         ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
@@ -999,7 +1005,17 @@ public class CheckRunner {
             Map<String, String> openContent, OpenJMLSettings settings,
             Consumer<IAPI> onApiReady,
             java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
-        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true, onApiReady, onMethodStarted);
+        return escWithContext(uri, content, openContent, settings, onApiReady, onMethodStarted, null);
+    }
+
+    public static CheckResult escWithContext(
+            String uri, String content,
+            Map<String, String> openContent, OpenJMLSettings settings,
+            Consumer<IAPI> onApiReady,
+            java.util.function.Consumer<JmlMethodDecl> onMethodStarted,
+            ProofResultCollector.MethodResultCallback onMethodCompleted) {
+        return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true,
+                onApiReady, onMethodStarted, onMethodCompleted);
     }
 
     /**
@@ -1607,7 +1623,7 @@ public class CheckRunner {
             Consumer<IAPI> onApiReady) {
         return runOnContentWithContext(uri, content, openContent, settings,
                 modeFlag, methodName, collectProofResults,
-                onApiReady == null ? null : (api, n) -> onApiReady.accept(api), null);
+                onApiReady == null ? null : (api, n) -> onApiReady.accept(api), null, null);
     }
 
     private static CheckResult runOnContentWithContext(
@@ -1618,7 +1634,19 @@ public class CheckRunner {
             java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
         return runOnContentWithContext(uri, content, openContent, settings,
                 modeFlag, methodName, collectProofResults,
-                onApiReady == null ? null : (api, n) -> onApiReady.accept(api), onMethodStarted);
+                onApiReady == null ? null : (api, n) -> onApiReady.accept(api), onMethodStarted, null);
+    }
+
+    private static CheckResult runOnContentWithContext(
+            String uri, String content,
+            Map<String, String> openContent, OpenJMLSettings settings,
+            String modeFlag, String methodName, boolean collectProofResults,
+            Consumer<IAPI> onApiReady,
+            java.util.function.Consumer<JmlMethodDecl> onMethodStarted,
+            ProofResultCollector.MethodResultCallback onMethodCompleted) {
+        return runOnContentWithContext(uri, content, openContent, settings,
+                modeFlag, methodName, collectProofResults,
+                onApiReady == null ? null : (api, n) -> onApiReady.accept(api), onMethodStarted, onMethodCompleted);
     }
 
     /**
@@ -1632,7 +1660,8 @@ public class CheckRunner {
             Map<String, String> openContent, OpenJMLSettings settings,
             String modeFlag, String methodName, boolean collectProofResults,
             BiConsumer<IAPI, Supplier<Integer>> onApiReady,
-            java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
+            java.util.function.Consumer<JmlMethodDecl> onMethodStarted,
+            ProofResultCollector.MethodResultCallback onMethodCompleted) {
 
         var listener = new LspDiagnosticListener();
         if (content != null) listener.setSourceContent(content);
@@ -1643,7 +1672,8 @@ public class CheckRunner {
         ProofResultCollector prc = null;
         if (collectProofResults) {
             prc = new ProofResultCollector(listener);
-            if (onMethodStarted != null) prc.setOnMethodStarted(onMethodStarted);
+            if (onMethodStarted   != null) prc.setOnMethodStarted(onMethodStarted);
+            if (onMethodCompleted != null) prc.setOnMethodCompleted(onMethodCompleted);
             api.setProofResultListener(prc);
         }
         if (onApiReady != null) {
@@ -1940,7 +1970,7 @@ public class CheckRunner {
             String methodName, boolean collectProofResults,
             BiConsumer<IAPI, Supplier<Integer>> onApiCreated) {
         return runOnContentWithContext(uri, content, Map.of(), settings,
-                modeFlag, methodName, collectProofResults, onApiCreated, null);
+                modeFlag, methodName, collectProofResults, onApiCreated, null, null);
     }
 
     private static CheckResult runOnFile(

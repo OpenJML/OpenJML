@@ -32,7 +32,7 @@ import org.junit.runners.Suite;
     IncrementalSyncApplierTest.class,
     InlayHintsVarTypesTest.class,
     WatchedFilesTest.class,
-    org.openjml.lsp.WatchedFilesHandlerTest.class,
+    WatchedFilesHandlerTest.class,
     SuiteVsMakefileTest.class,
 })
 public class FastTests {}
