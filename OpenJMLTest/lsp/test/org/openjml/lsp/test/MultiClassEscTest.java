@@ -86,7 +86,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), SECONDARY_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         List<String> names = methods.stream()
                 .map(JavaSourceScanner.MethodInfo::name).collect(Collectors.toList());
         System.out.println("[MultiClassEscTest] secondary AST methods: " + names);
@@ -127,7 +127,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), SECONDARY_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         JavaSourceScanner.MethodInfo target = methods.stream()
                 .filter(m -> "primId".equals(m.name())).findFirst().orElse(null);
         assertNotNull("AST must find 'primId' for primary class", target);
@@ -164,7 +164,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), SECONDARY_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         JavaSourceScanner.MethodInfo target = methods.stream()
                 .filter(m -> "secId".equals(m.name())).findFirst().orElse(null);
         assertNotNull("AST must find 'secId' for secondary class", target);
@@ -195,7 +195,7 @@ public class MultiClassEscTest extends LspTestBase {
                 + result.proofResults());
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), SECONDARY_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
 
         JavaSourceScanner.MethodInfo prim = methods.stream()
                 .filter(m -> "primId".equals(m.name())).findFirst().orElse(null);
@@ -263,7 +263,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), NESTED_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         List<String> names = methods.stream()
                 .map(JavaSourceScanner.MethodInfo::name).collect(Collectors.toList());
         System.out.println("[MultiClassEscTest] nested AST methods: " + names);
@@ -298,7 +298,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), NESTED_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         JavaSourceScanner.MethodInfo target = methods.stream()
                 .filter(m -> "innerM".equals(m.name())).findFirst().orElse(null);
         assertNotNull("AST must find member nested class method 'innerM'", target);
@@ -417,7 +417,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), LOCAL_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         JavaSourceScanner.MethodInfo target = methods.stream()
                 .filter(m -> "localM".equals(m.name())).findFirst().orElse(null);
         assertNotNull("AST must find local class method 'localM'", target);
@@ -445,7 +445,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), LOCAL_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         List<String> names = methods.stream()
                 .map(JavaSourceScanner.MethodInfo::name).collect(Collectors.toList());
         System.out.println("[MultiClassEscTest] local class methods: " + names);
@@ -461,7 +461,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), LOCAL_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         JavaSourceScanner.MethodInfo localM = methods.stream()
                 .filter(m -> "localM".equals(m.name())).findFirst().orElse(null);
 
@@ -506,7 +506,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), ANON_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         // There are two 'm' entries: one for the abstract interface method (no body)
         // and one for the anonymous class implementation (has a body, distinct FQN).
         // The anonymous class's FQN contains a numeric segment (e.g. ".1.").
@@ -539,7 +539,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), ANON_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         List<String> names = methods.stream()
                 .map(JavaSourceScanner.MethodInfo::name).collect(Collectors.toList());
         System.out.println("[MultiClassEscTest] anonymous class methods: " + names);
@@ -556,7 +556,7 @@ public class MultiClassEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), ANON_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
 
         // Filter to methods with name "m" that have a body (the anonymous impl,
         // not the abstract interface declaration which has pos < 0 and is skipped).
@@ -587,7 +587,7 @@ public class MultiClassEscTest extends LspTestBase {
                 + result.proofResults());
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), NESTED_SRC);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
 
         JavaSourceScanner.MethodInfo outer = methods.stream()
                 .filter(m -> "outerM".equals(m.name())).findFirst().orElse(null);

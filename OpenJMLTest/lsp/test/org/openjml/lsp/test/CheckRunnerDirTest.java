@@ -452,7 +452,7 @@ public class CheckRunnerDirTest extends LspTestBase {
         CheckRunner.runEscDir(
                 List.of(f.getAbsolutePath()),
                 new OpenJMLSettings(),
-                (uri, startingMethod, diags, partialResults) -> {
+                (uri, startingMethod, diags, partialResults, diagsByMethod) -> {
                     callbackUris.add(uri);
                     callbackCount.incrementAndGet();
                 });

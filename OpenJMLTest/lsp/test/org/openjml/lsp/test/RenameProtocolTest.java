@@ -73,6 +73,11 @@ public class RenameProtocolTest {
 
         didOpen(uri, source);
 
+        // Wait for the initial --check to complete so the server has an attributed
+        // AST; rename requires a resolved symbol and will fail with "No renameable
+        // symbol at cursor" if the AST is not yet available.
+        waitForDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
         // prepareRename at "value" on line 1, col 15
         client.sendRequest("textDocument/prepareRename",
                 "{\"textDocument\":{\"uri\":\"" + jsonEscape(uri) + "\"},"
@@ -135,6 +140,21 @@ public class RenameProtocolTest {
 
     private static String jsonEscape(String s) {
         return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
+    }
+
+    /** Wait for any {@code textDocument/publishDiagnostics} notification for {@code uri}. */
+    private void waitForDiagsForUri(String uri, long timeout, TimeUnit unit)
+            throws InterruptedException {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        while (true) {
+            long remaining = deadline - System.nanoTime();
+            if (remaining <= 0) return;
+            JsonObject msg = client.nextNotification(
+                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
+            if (msg == null) return;
+            String msgUri = msg.getAsJsonObject("params").get("uri").getAsString();
+            if (uri.equals(msgUri)) return;
+        }
     }
 
     private void didOpen(String uri, String source) throws Exception {

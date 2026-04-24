@@ -34,7 +34,7 @@ public class CodeLensTest extends LspTestBase {
         assertNotNull("AST cache entry must exist after check", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), source);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
 
         JavaSourceScanner.MethodInfo abs = methods.stream()
                 .filter(m -> m.name().equals("abs")).findFirst().orElse(null);

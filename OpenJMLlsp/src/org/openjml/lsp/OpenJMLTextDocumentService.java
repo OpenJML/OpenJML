@@ -1160,7 +1160,23 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         refreshCodeLenses();
 
-        Map<String, String> escSnapshot = dirtySnapshot();
+        // Build ESC snapshot: dirty files + any in-memory-only files in paths that have no
+        // disk counterpart (e.g. virtual test URIs or files never saved).
+        Map<String, String> escSnapshot;
+        {
+            Map<String, String> snap = new java.util.HashMap<>(dirtySnapshot());
+            for (String path : paths) {
+                try {
+                    java.nio.file.Path pp = java.nio.file.Path.of(path);
+                    if (!java.nio.file.Files.isDirectory(pp) && !java.nio.file.Files.exists(pp)) {
+                        String uri = pp.toUri().toString();
+                        String content = lastContent.get(uri);
+                        if (content != null) snap.putIfAbsent(uri, content);
+                    }
+                } catch (Exception ignored) {}
+            }
+            escSnapshot = java.util.Collections.unmodifiableMap(snap);
+        }
         String batchKey = paths.get(0);
         java.util.Set<String> batchUriKeys =
                 java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
@@ -1206,8 +1222,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 }
                 // Update code-lens status and publish diagnostics for ALL files in the run,
                 // whether or not they are currently open in an editor.
+                // collectJavaFiles covers real on-disk files; the second loop adds in-memory
+                // files (e.g. content-only URIs in lastContent) that don't exist on disk.
+                java.util.Set<String> urisToUpdate = new java.util.LinkedHashSet<>();
                 for (java.nio.file.Path javaFile : collectJavaFiles(paths)) {
-                    String uri = javaFile.toUri().toString();
+                    urisToUpdate.add(javaFile.toUri().toString());
+                }
+                for (String p : paths) {
+                    try {
+                        java.nio.file.Path pp = java.nio.file.Path.of(p);
+                        if (!java.nio.file.Files.isDirectory(pp)) {
+                            String uri = pp.toUri().toString();
+                            if (lastContent.containsKey(uri)) urisToUpdate.add(uri);
+                        }
+                    } catch (Exception ignored) {}
+                }
+                for (String uri : urisToUpdate) {
                     updateEscStatus(uri,
                             result.proofResults(), result.exitCode(), List.of(), myBatchGen,
                             result.diagsByMethod());

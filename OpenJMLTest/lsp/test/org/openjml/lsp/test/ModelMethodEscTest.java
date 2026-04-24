@@ -91,7 +91,7 @@ public class ModelMethodEscTest extends LspTestBase {
         assertNotNull("AST cache entry must exist after check", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), source);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
 
         JavaSourceScanner.MethodInfo spec = methods.stream()
                 .filter(m -> "spec".equals(m.name())).findFirst().orElse(null);
@@ -166,7 +166,7 @@ public class ModelMethodEscTest extends LspTestBase {
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
         assertNotNull("AST cache must be populated after checkContent", astEntry);
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(astEntry.ast(), source);
+                JavaSourceScanner.findMethodsFromAst(astEntry.ast());
         JavaSourceScanner.MethodInfo specMethod = methods.stream()
                 .filter(m -> "spec".equals(m.name())).findFirst().orElse(null);
         assertNotNull("AST must find model method 'spec'", specMethod);
@@ -225,7 +225,7 @@ public class ModelMethodEscTest extends LspTestBase {
 
         // Simulate addVerifiedDiagnostics: find the method in the AST, confirm line.
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), source);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
         JavaSourceScanner.MethodInfo spec = methods.stream()
                 .filter(m -> "spec".equals(m.name())).findFirst().orElse(null);
 
@@ -322,7 +322,7 @@ public class ModelMethodEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated after check with .jml companion", entry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), javaContent);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
 
         System.out.println("[ModelMethodEscTest] jml AST methods: " + methods);
 
@@ -376,7 +376,7 @@ public class ModelMethodEscTest extends LspTestBase {
         assertNotNull("AST cache must be populated", entry);
 
         List<JavaSourceScanner.MethodInfo> all =
-                JavaSourceScanner.findMethodsFromAst(entry.ast(), javaContent);
+                JavaSourceScanner.findMethodsFromAst(entry.ast());
 
         System.out.println("[ModelMethodEscTest] routing test all methods: " + all);
 
@@ -493,7 +493,7 @@ public class ModelMethodEscTest extends LspTestBase {
         assertNotNull("ASTCache must have an entry for the .jml URI", jmlEntry);
 
         List<JavaSourceScanner.MethodInfo> methods =
-                JavaSourceScanner.findMethodsFromAst(jmlEntry.ast(), jmlSource);
+                JavaSourceScanner.findMethodsFromAst(jmlEntry.ast());
         System.out.println("[ModelMethodEscTest] jml-ast-based methods: " + methods);
 
         JavaSourceScanner.MethodInfo spec = methods.stream()
