@@ -43,7 +43,6 @@ import org.junit.runners.Suite;
     DoEscTest.class,
     EscCancellationTest.class,
     ConcurrentEscTest.class,
-    FreshParallelEscTest.class,
     CheckRunnerEscAndRacTest.class,
     PropertiesFileOptionsTest.class,
     ToolOptionsTest.class,
@@ -74,5 +73,6 @@ import org.junit.runners.Suite;
     EscPerMethodMarkerTest.class,
     EscInvocationVariantsTest.class,
     ClearAndReescTest.class,
+    DidCloseTest.class,
 })
 public class AllLspTests {}

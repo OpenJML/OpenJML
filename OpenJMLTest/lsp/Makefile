@@ -69,7 +69,6 @@ TEST_CLASSES := \
   DoEscTest \
   EscCancellationTest \
   ConcurrentEscTest \
-  FreshParallelEscTest \
   CheckRunnerEscAndRacTest \
   DiagnosticsTest \
   EscStatusTest \
@@ -114,7 +113,8 @@ TEST_CLASSES := \
   SymbolsForProjectTest \
   EscPerMethodMarkerTest \
   EscInvocationVariantsTest \
-  ClearAndReescTest
+  ClearAndReescTest \
+  DidCloseTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 

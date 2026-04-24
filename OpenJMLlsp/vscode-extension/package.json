@@ -398,12 +398,11 @@
           "type": "string",
           "enum": [
             "subprocess",
-            "concurrent",
-            "fresh"
+            "concurrent"
           ],
           "default": "subprocess",
           "order": 8,
-          "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `concurrent` — calls `IAPI.doESC` in-process on the cached AST; methods within a file are serialized; methods across files run concurrently\n- `fresh` — creates a fresh IAPI per method; all methods run truly concurrently in the thread pool; higher startup cost (re-parse and re-typecheck per method) but no shared state"
+          "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `concurrent` — calls `IAPI.doESC` in-process on the cached AST; methods within a file are serialized; methods across files run concurrently"
         },
         "openjml.escThreads": {
           "type": "integer",

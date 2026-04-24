@@ -61,7 +61,7 @@ public class ASTCache {
      * <p>The {@code api}, {@code diagListener}, {@code sourcePath}, and {@code escLock}
      * fields are non-null only when the entry was produced by a successful
      * {@code --check} run (exit code 0) on in-memory or on-disk content.
-     * They are used by the in-process {@code doESC} path ({@code escEngine=concurrent}).
+     * They are used by the in-process {@code doESC} path ({@code escEngine="concurrent"}).
      * Nav-tier entries (project-wide check) always have them null.
      *
      * <p>{@link IAPI#doESC} is NOT thread-safe on the same IAPI instance; concurrent

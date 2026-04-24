@@ -201,9 +201,8 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.escTriggerOnKey,
                 "ESC (static checking) trigger:",
                 new String[][] {
-                    { "Manual only",          "manual" },
-                    { "On save",              "save"   },
-                    { "On edit (expensive)",  "edit"   } },
+                    { "Manual only", "manual" },
+                    { "On save",     "save"   } },
                 parent));
 
         addEditor(new ComboFieldEditor(OpenJMLOptions.escDirtyFilesBehaviorKey,
@@ -243,8 +242,7 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 "ESC engine:",
                 new String[][] {
                     { "subprocess (separate process, default)", "subprocess" },
-                    { "concurrent (in-process, shared IAPI)",  "concurrent" },
-                    { "fresh (in-process, fresh IAPI per method)", "fresh"  } },
+                    { "concurrent (in-process, shared IAPI)",  "concurrent" } },
                 parent));
 
         addEditor(new StringFieldEditor(OpenJMLOptions.escThreadsKey,

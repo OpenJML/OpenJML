@@ -31,7 +31,7 @@ public class OpenJMLOptions {
 
     /** When to run --check: "edit" (default) or "save". */
     public static final String checkTriggerOnKey       = "openjml.checkTriggerOn";
-    /** When to run --esc: "manual" (default), "save", or "edit". */
+    /** When to run --esc: "manual" (default) or "save". */
     public static final String escTriggerOnKey         = "openjml.escTriggerOn";
     /**
      * How ESC behaves when there are dirty (unsaved) editors:
@@ -51,7 +51,7 @@ public class OpenJMLOptions {
     /** Classpath for pre-compiled dependencies (blank = none). */
     public static final String classPathKey            = "openjml.classPath";
 
-    /** ESC engine: "subprocess" (default), "concurrent", or "fresh". */
+    /** ESC engine: "subprocess" (default) or "concurrent". */
     public static final String escEngineKey            = "openjml.escEngine";
     /** Number of parallel ESC threads (0 = server default). */
     public static final String escThreadsKey           = "openjml.escThreads";

@@ -444,18 +444,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
-        dirtyUris.remove(uri);
-        cancelPending(uri);
-        // Retain checkDiags: the server caches diagnostics for all
-        // project files regardless of open/closed state, and multi-file --check
-        // runs produce diagnostics for files the user never explicitly opened.
-        // Clearing on close would blank the Problems panel for valid diagnostics.
-        // The next --check on any related file will refresh or remove them.
-        lastContent.remove(uri);
-        proofResults.keySet().removeIf(k -> k.startsWith(uri + "#") || k.equals(uri));
-        CheckRunner.getASTCache().remove(uri);
-        // Do NOT publish empty diagnostics — retain the last-known diagnostics
-        // in the client's Problems panel until a fresh check updates them.
+        dirtyUris.remove(uri);    // unsaved changes are gone when the editor closes
+        lastContent.remove(uri);  // in-memory editor buffer is gone; reads fall back to disk
+        // Retain all pending/running checks, proof results, AST cache, and diagnostics.
+        // Closing an editor does not affect project-level analysis state — checks may
+        // still be running for this file and results remain valid for the Problems panel.
+        // Do NOT publish empty diagnostics.
     }
 
     // --- code lens ---
@@ -1837,14 +1831,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     /**
      * Trigger an ESC run on the given URI, dispatching to the engine configured in
-     * {@link OpenJMLSettings}: api-mode, fresh-parallel, or subprocess.
+     * {@link OpenJMLSettings}: api-mode or subprocess.
      */
     void scheduleEscForUri(String uri, String projectId) {
         OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
         if (s.isEscApiMode()) {
             submitEscApiWorkList(uri, s);
-        } else if (s.isFreshParallelMode()) {
-            submitFreshParallelWorkList(uri, s);
         } else {
             scheduleEscFile(uri, s);
         }
@@ -1872,26 +1864,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Submit the fresh-parallel ESC work list for {@code uri}.
-     *
-     * <p>Each method gets a fresh IAPI instance running on {@link OpenJMLSettings#escPool};
-     * all run truly concurrently.  Per-method and final callbacks are the same as
-     * {@link #submitEscApiWorkList}.
-     */
-    private void submitFreshParallelWorkList(String uri, OpenJMLSettings s) {
-        RunningSession prev = runningSessions.remove(uri);
-        if (prev != null) prev.future().cancel(true);
-
-        long myGen = sessionCounter.incrementAndGet();
-        markEscChecking(uri, myGen);
-
-        String content = lastContent.get(uri);
-        CompletableFuture<CheckRunner.CheckResult> cf =
-                CheckRunner.runFreshParallelEscFileAsync(uri, content, s, onMethodEscResult(uri, myGen));
-        attachEscCallbacks(uri, myGen, cf, "fresh");
-    }
-
-    /**
      * Returns a per-method completion callback shared by both ESC submit methods.
      * Called on a pool thread as each method finishes; updates the code-lens status
      * immediately so the user sees progress.
@@ -1908,7 +1880,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Attaches the shared {@code thenAccept}/{@code exceptionally}/{@code whenComplete}
      * completion callbacks to an ESC future and registers it in {@link #runningSessions}.
      *
-     * @param modeName short label used in log messages, e.g. {@code "api"} or {@code "fresh"}
+     * @param modeName short label used in log messages, e.g. {@code "api"} or {@code "subprocess"}
      */
     private void attachEscCallbacks(String uri, long myGen,
             CompletableFuture<CheckRunner.CheckResult> cf, String modeName) {

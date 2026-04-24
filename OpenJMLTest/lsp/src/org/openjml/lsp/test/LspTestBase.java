@@ -117,16 +117,4 @@ public abstract class LspTestBase {
         return CheckRunner.runDoEscMethod(uri, methodName, new OpenJMLSettings());
     }
 
-    // --- fresh-parallel engine helpers ---
-
-    /**
-     * Run {@code --check} on the given content (to populate the AST cache for method
-     * enumeration), then run the fresh-parallel engine on all methods via
-     * {@link CheckRunner#runFreshParallelEscFile}.
-     */
-    protected CheckRunner.CheckResult runFreshParallelEscFileResult(String uri, String content) {
-        CheckRunner.CheckResult check = CheckRunner.check(uri, content);
-        if (check.exitCode() != 0) return check;
-        return CheckRunner.runFreshParallelEscFile(uri, content, new OpenJMLSettings());
-    }
 }
