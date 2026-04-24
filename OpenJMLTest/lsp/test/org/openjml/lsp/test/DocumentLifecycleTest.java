@@ -4,14 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -31,74 +25,11 @@ import static org.junit.Assert.*;
  * is intact end-to-end, complementing the direct-API tests in
  * {@link DiagnosticsTest}.
  */
-public class DocumentLifecycleTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
-    // -----------------------------------------------------------------------
-    // Setup / teardown
-    // -----------------------------------------------------------------------
-
-    @Before
-    public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-        assertNotNull("Server must respond to initialize", resp);
-        client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
-    }
+public class DocumentLifecycleTest extends ProtocolTestBase {
 
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
-    private void didOpen(String uri, String source) throws Exception {
-        String params = "{\"textDocument\":{\"uri\":\"" + uri + "\","
-                + "\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(source) + "\"}}";
-        client.sendNotification("textDocument/didOpen", params);
-    }
-
-    private void didChange(String uri, int version, String source) throws Exception {
-        String params = "{\"textDocument\":{\"uri\":\"" + uri + "\",\"version\":" + version + "},"
-                + "\"contentChanges\":[{\"text\":\"" + jsonEscape(source) + "\"}]}";
-        client.sendNotification("textDocument/didChange", params);
-    }
-
-    private void didClose(String uri) throws Exception {
-        String params = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
-        client.sendNotification("textDocument/didClose", params);
-    }
-
-    private void didSave(String uri) throws Exception {
-        String params = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
-        client.sendNotification("textDocument/didSave", params);
-    }
 
     private void openDocumentFile(String uri, String source) throws Exception {
         Gson gson = new Gson();
@@ -112,21 +43,6 @@ public class DocumentLifecycleTest {
         String root = System.getProperty("lsp.testdata");
         if (root == null) throw new IllegalStateException("System property lsp.testdata must be set");
         return Paths.get(root).resolve(relative);
-    }
-
-    /** Wait for the next publishDiagnostics whose URI contains {@code uriFragment}. */
-    private JsonObject nextDiagsFor(String uriFragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(uriFragment))
-                return msg;
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -170,10 +86,6 @@ public class DocumentLifecycleTest {
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertTrue("Expected empty diagnostics for clean file", diags.isEmpty());
     }
-
-    // -----------------------------------------------------------------------
-    // textDocument/didChange
-    // -----------------------------------------------------------------------
 
     // -----------------------------------------------------------------------
     // textDocument/completion

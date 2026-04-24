@@ -55,9 +55,6 @@ public class ConcurrentEscTest extends LspTestBase {
         return f;
     }
 
-    private static String fileUri(File f) {
-        return f.toPath().toUri().toString();
-    }
 
     // -----------------------------------------------------------------------
     // (1) Concurrent in-memory per-method runs — correct results for all

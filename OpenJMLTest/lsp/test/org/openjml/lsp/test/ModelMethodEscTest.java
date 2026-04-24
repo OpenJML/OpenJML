@@ -55,9 +55,6 @@ public class ModelMethodEscTest extends LspTestBase {
         return f;
     }
 
-    private static String fileUri(File f) {
-        return f.toPath().toUri().toString();
-    }
 
     /** Return 0-based line number of the first line that contains {@code marker}. */
     private static int lineOf(String source, String marker) {

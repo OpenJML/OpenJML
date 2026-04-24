@@ -3,16 +3,11 @@ package org.openjml.lsp.test;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.openjml.lsp.OpenJMLLanguageServer;
 import org.openjml.lsp.OpenJMLCommands;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,11 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Protocol-layer tests for the OpenJML LSP server.
@@ -35,7 +26,7 @@ import static org.junit.Assert.assertTrue;
  *
  * LSP4J's in-process {@code Launcher} is used only on the server side.
  * The client side sends hand-crafted JSON messages directly over
- * {@link PipedInputStream}/{@link PipedOutputStream} pipes.  This design
+ * {@link java.io.PipedInputStream}/{@link java.io.PipedOutputStream} pipes.  This design
  * avoids the jdk.compiler Gson limitation: jdk.compiler bundles a
  * reflection-disabled Gson, so LSP4J's client-side serialization of types
  * without explicit adapters (e.g., {@code ClientCapabilities}) fails.
@@ -53,45 +44,37 @@ import static org.junit.Assert.assertTrue;
  * Note: OpenJML invocation is inherently slow (JVM warm-up, spec loading),
  * so tests use a generous 60-second timeout per check.
  */
-public class LspProtocolTest {
+public class LspProtocolTest extends ProtocolTestBase {
 
-    private static final long TIMEOUT_SECONDS      = 60;
-    private static final long SHORT_TIMEOUT_SECONDS = 5;
+    // Note: this file used TIMEOUT_SECONDS=60 and SHORT_TIMEOUT_SECONDS=5.
+    // The base class TIMEOUT_SECONDS=120 is more generous; SHORT_TIMEOUT=5 is compatible.
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
     /** The response to the {@code initialize} request, captured during setUp. */
     private JsonObject initializeResponse;
 
     @Before
+    @Override
     public void setUp() throws Exception {
-        // Use large pipe buffers to avoid stalling on big JSON payloads.
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
+        // We need to capture the initialize response for testInitializeResponseCapabilities.
+        // Replicate the server startup manually so we can read the response.
+        java.io.PipedInputStream  serverIn  = new java.io.PipedInputStream(65536);
+        java.io.PipedOutputStream clientOut = new java.io.PipedOutputStream(serverIn);
+        java.io.PipedInputStream  clientIn  = new java.io.PipedInputStream(65536);
+        java.io.PipedOutputStream serverOut = new java.io.PipedOutputStream(clientIn);
 
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
+        server = new org.openjml.lsp.OpenJMLLanguageServer();
+        var launcher = org.eclipse.lsp4j.launch.LSPLauncher.createServerLauncher(server, serverIn, serverOut);
         server.connect(launcher.getRemoteProxy());
         launcher.startListening();
 
         client = new RawLspClient(clientOut, clientIn);
 
         // LSP handshake: initialize + initialized.
-        // We read the initialize response explicitly so (a) tests can inspect
-        // the advertised capabilities, and (b) we know the server is ready
-        // before we send "initialized" and subsequent requests.
         client.sendRequest("initialize",
                 "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        initializeResponse = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        initializeResponse = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to initialize", initializeResponse);
         client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
     }
 
     // -----------------------------------------------------------------------
@@ -247,7 +230,7 @@ public class LspProtocolTest {
 
         JsonObject notification =
                 client.nextNotification("textDocument/publishDiagnostics",
-                        SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                        SHORT_TIMEOUT, TimeUnit.SECONDS);
 
         assertNull("Expected NO publishDiagnostics from didChange in save mode", notification);
     }
@@ -265,7 +248,7 @@ public class LspProtocolTest {
         return file;
     }
 
-    /** Send textDocument/didOpen with the given URI and source content. */
+    /** Send textDocument/didOpen with the given URI and source content (pre-escaped). */
     private void openDocument(String uri, String source) throws Exception {
         String params = "{\"textDocument\":{\"uri\":\"" + uri + "\","
                 + "\"languageId\":\"java\",\"version\":1,\"text\":\""
@@ -306,7 +289,7 @@ public class LspProtocolTest {
     private List<String> queryWorkspaceSymbol(String query) throws Exception {
         Gson gson = new Gson();
         client.sendRequest("workspace/symbol", "{\"query\":" + gson.toJson(query) + "}");
-        JsonObject response = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Expected response to workspace/symbol for query=" + query, response);
         assertFalse("workspace/symbol must not return an error",
                 response.has("error") && !response.get("error").isJsonNull());
@@ -327,8 +310,11 @@ public class LspProtocolTest {
         client.sendNotification("workspace/didChangeConfiguration", params);
     }
 
-    /** Send workspace/executeCommand with no arguments. */
-    private void executeCommand(String command) throws Exception {
+    /**
+     * Send workspace/executeCommand with no arguments and without draining the response.
+     * (Differs from base {@link #executeCommand(String, String)} which requires args.)
+     */
+    private void executeCommandNoArgs(String command) throws Exception {
         String params = "{\"command\":\"" + command + "\",\"arguments\":[]}";
         client.sendRequest("workspace/executeCommand", params);
     }
@@ -341,24 +327,6 @@ public class LspProtocolTest {
         String params = "{\"command\":\"" + command + "\",\"arguments\":[\"\",\"\",\"\",\"\",\""
                 + uri + "\"]}";
         client.sendRequest("workspace/executeCommand", params);
-    }
-
-    /**
-     * Wait for the next publishDiagnostics notification whose URI matches the
-     * given URI.  Ignores notifications for other URIs.
-     */
-    private JsonObject nextDiagsForUri(String uri, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            String msgUri = msg.getAsJsonObject("params").get("uri").getAsString();
-            if (uri.equals(msgUri)) return msg;
-        }
     }
 
     /** Return true if the diagnostics array contains at least one Error-severity (1) entry. */
@@ -542,7 +510,7 @@ public class LspProtocolTest {
                 + "\"position\":{\"line\":3,\"character\":15}}";
         client.sendRequest("textDocument/hover", hoverParams);
 
-        JsonObject response = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Expected a response to textDocument/hover", response);
         // The server returns null when no spec is found — here it should be non-null.
         assertFalse("Hover result must not be an error",
@@ -651,7 +619,7 @@ public class LspProtocolTest {
         String foldParams = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
         client.sendRequest("textDocument/foldingRange", foldParams);
 
-        JsonObject response = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Expected a response to textDocument/foldingRange", response);
         assertFalse("foldingRange response must not be an error",
                 response.has("error") && !response.get("error").isJsonNull());
@@ -798,7 +766,7 @@ public class LspProtocolTest {
         assertFalse("Expected non-empty initial diagnostics", firstDiags.isEmpty());
 
         // Issue clearAndReindex.
-        executeCommand(OpenJMLCommands.CLEAR_AND_REINDEX);
+        executeCommandNoArgs(OpenJMLCommands.CLEAR_AND_REINDEX);
 
         // The server must publish empty diagnostics (markers cleared) for the open file.
         JsonObject cleared = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);

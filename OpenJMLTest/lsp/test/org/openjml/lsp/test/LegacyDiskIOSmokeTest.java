@@ -56,9 +56,6 @@ public class LegacyDiskIOSmokeTest extends LspTestBase {
         return f;
     }
 
-    private static String fileUri(File f) {
-        return f.toPath().toUri().toString();
-    }
 
     // -----------------------------------------------------------------------
     // runCheckDir: basic type error (no snapshot)

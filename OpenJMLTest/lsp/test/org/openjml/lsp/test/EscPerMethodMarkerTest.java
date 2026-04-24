@@ -2,7 +2,6 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -10,13 +9,9 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openjml.lsp.DiagnosticConverter;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -39,49 +34,26 @@ import static org.junit.Assert.*;
  * {@code updateEscStatusPartial} rather than computing new diags from
  * {@code diagsByMethod}.
  */
-public class EscPerMethodMarkerTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
+public class EscPerMethodMarkerTest extends ProtocolTestBase {
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
     @Before
+    @Override
     public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
+        startServer();
     }
 
     @After
+    @Override
     public void tearDown() {
-        if (client != null) client.stop();
+        super.tearDown();
     }
 
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
 
     private File writeJava(String filename, String content) throws Exception {
         File f = tmp.newFile(filename);
@@ -91,76 +63,8 @@ public class EscPerMethodMarkerTest {
 
     /** Open a file in the server and drain the --check notification it triggers. */
     private void didOpenAndDrainCheck(String uri, String source) throws Exception {
-        client.sendNotification("textDocument/didOpen",
-                "{\"textDocument\":{\"uri\":\"" + uri
-                + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(source) + "\"}}");
-        // Drain the check diagnostic triggered by didOpen.
-        nextDiagsFor(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
-    }
-
-    /**
-     * Wait for the next {@code textDocument/publishDiagnostics} notification
-     * whose {@code uri} equals the given URI.
-     */
-    private JsonObject nextDiagsFor(String uri, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().equals(uri))
-                return msg;
-        }
-    }
-
-    /**
-     * Wait for the next {@code textDocument/publishDiagnostics} notification
-     * for the given URI that contains at least one diagnostic.
-     */
-    private JsonObject nextNonEmptyDiagsFor(String uri, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            JsonObject params = msg.getAsJsonObject("params");
-            if (!params.get("uri").getAsString().equals(uri)) continue;
-            if (!params.getAsJsonArray("diagnostics").isEmpty()) return msg;
-        }
-    }
-
-    /**
-     * Wait for the next {@code textDocument/publishDiagnostics} notification
-     * for the given URI that contains at least one error-severity
-     * {@link DiagnosticConverter#SOURCE_ESC} diagnostic.
-     */
-    private JsonObject nextEscErrorDiagsFor(String uri, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            JsonObject params = msg.getAsJsonObject("params");
-            if (!params.get("uri").getAsString().equals(uri)) continue;
-            JsonArray diags = params.getAsJsonArray("diagnostics");
-            for (int i = 0; i < diags.size(); i++) {
-                JsonObject d = diags.get(i).getAsJsonObject();
-                if (d.has("source")
-                        && DiagnosticConverter.SOURCE_ESC.equals(d.get("source").getAsString())
-                        && d.has("severity") && d.get("severity").getAsInt() == 1 /* Error */)
-                    return msg;
-            }
-        }
+        didOpen(uri, source);
+        nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     // -----------------------------------------------------------------------
@@ -198,7 +102,7 @@ public class EscPerMethodMarkerTest {
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
         // Must receive a publishDiagnostics notification with at least one ESC diagnostic.
-        JsonObject note = nextNonEmptyDiagsFor(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextNonEmptyDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("scheduleEscForPaths must publish ESC diagnostics for 'ensures false'",
                 note);
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
@@ -247,7 +151,7 @@ public class EscPerMethodMarkerTest {
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
         // Wait for any publishDiagnostics (the run must complete and publish).
-        JsonObject note = nextDiagsFor(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("scheduleEscForPaths must publish diagnostics after ESC run", note);
 
         // There must be no error-severity ESC failure diagnostics for a verified method.
@@ -299,7 +203,7 @@ public class EscPerMethodMarkerTest {
 
         // Must receive a publishDiagnostics with at least one ESC error.
         // The verified method may publish a Hint notification first — skip those.
-        JsonObject note = nextEscErrorDiagsFor(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextEscErrorDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull(
                 "Mixed-method ESC must publish a notification with an ESC error for 'bad'",
                 note);
@@ -331,7 +235,7 @@ public class EscPerMethodMarkerTest {
                 + "\",\"arguments\":[\"\",\"" + jsonEscape(uri) + "\"]}");
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
-        JsonObject note = nextNonEmptyDiagsFor(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextNonEmptyDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("scheduleEscForUri must publish ESC diagnostics for 'ensures false'", note);
 
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
@@ -346,32 +250,6 @@ public class EscPerMethodMarkerTest {
         }
         assertTrue("URI-route ESC must deliver at least one diagnostic with source="
                 + DiagnosticConverter.SOURCE_ESC, hasEscSource);
-    }
-
-    // -----------------------------------------------------------------------
-    // Helpers for incremental tests
-    // -----------------------------------------------------------------------
-
-    /**
-     * Collects all {@code textDocument/publishDiagnostics} notifications for
-     * {@code uri} that contain at least one diagnostic, until either
-     * {@code wantCount} are collected or the deadline expires.
-     */
-    private List<JsonObject> collectNonEmptyDiagsFor(String uri, int wantCount,
-            long timeout, TimeUnit unit) throws InterruptedException {
-        List<JsonObject> result = new ArrayList<>();
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (result.size() < wantCount) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) break;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) break;
-            JsonObject params = msg.getAsJsonObject("params");
-            if (!params.get("uri").getAsString().equals(uri)) continue;
-            if (!params.getAsJsonArray("diagnostics").isEmpty()) result.add(msg);
-        }
-        return result;
     }
 
     // -----------------------------------------------------------------------
@@ -413,9 +291,7 @@ public class EscPerMethodMarkerTest {
 
         // With incremental publishing each failing method fires a separate
         // publishDiagnostics; we need at least 2 non-empty notifications.
-        // Without the fix all incremental notifications had count=0 and only
-        // one non-empty notification arrived at end-of-run.
-        List<JsonObject> notes = collectNonEmptyDiagsFor(uri, 2, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        List<JsonObject> notes = collectNonEmptyDiagsForUri(uri, 2, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(
                 "Incremental publishing (scheduleEscForPaths) must deliver at least 2 "
                 + "separate non-empty publishDiagnostics notifications for a file with "
@@ -452,7 +328,7 @@ public class EscPerMethodMarkerTest {
                 + "\",\"arguments\":[\"\",\"" + jsonEscape(uri) + "\"]}");
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
-        List<JsonObject> notes = collectNonEmptyDiagsFor(uri, 2, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        List<JsonObject> notes = collectNonEmptyDiagsForUri(uri, 2, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(
                 "Incremental publishing (scheduleEscForUri) must deliver at least 2 "
                 + "separate non-empty publishDiagnostics notifications for a file with "
@@ -501,7 +377,7 @@ public class EscPerMethodMarkerTest {
 
         // Need at least 2 non-empty notifications: one for the verified method
         // (carrying the "Verified" hint) and one for the failing method (error).
-        List<JsonObject> notes = collectNonEmptyDiagsFor(uri, 2, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        List<JsonObject> notes = collectNonEmptyDiagsForUri(uri, 2, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(
                 "Incremental publishing must deliver at least 2 non-empty notifications "
                 + "for a file with one verified and one failing method, got: " + notes.size(),

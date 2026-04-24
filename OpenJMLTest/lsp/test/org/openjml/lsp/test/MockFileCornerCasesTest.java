@@ -41,11 +41,6 @@ public class MockFileCornerCasesTest extends LspTestBase {
         return f;
     }
 
-    /** Three-slash {@code file:///} URI that matches the form CheckRunner uses internally. */
-    private static String fileUri(File f) {
-        return f.toPath().toUri().toString();
-    }
-
     /** Build a {@code file:///} URI for an arbitrary absolute path (may not exist on disk). */
     private static String fileUri(Path p) {
         return p.toUri().toString();

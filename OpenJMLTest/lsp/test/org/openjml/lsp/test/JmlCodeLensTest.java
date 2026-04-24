@@ -2,20 +2,16 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -29,49 +25,24 @@ import static org.junit.Assert.*;
  * on the companion {@code .java} file, which is required to populate the AST
  * cache entry that {@code codeLensForJml} reads.
  */
-public class JmlCodeLensTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
+public class JmlCodeLensTest extends ProtocolTestBase {
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
-    // -----------------------------------------------------------------------
-    // Setup / teardown
-    // -----------------------------------------------------------------------
-
     @Before
+    @Override
     public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-
         // Initialize with the temp folder as workspace root so settingsForUri()
         // finds a project for the real file:// URIs used in these tests.
         String rootUri = tmp.getRoot().toPath().toUri().toString();
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":\"" + rootUri
-                + "\",\"capabilities\":{}}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-        assertNotNull("Server must respond to initialize", resp);
-        client.sendNotification("initialized", "{}");
+        startServer(rootUri);
     }
 
     @After
+    @Override
     public void tearDown() {
-        if (client != null) client.stop();
+        super.tearDown();
     }
 
     // -----------------------------------------------------------------------
@@ -86,82 +57,6 @@ public class JmlCodeLensTest {
 
     private static String fileUri(File f) {
         return f.toPath().toUri().toString();
-    }
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
-    private void didOpen(String uri, String source) throws Exception {
-        String params = "{\"textDocument\":{\"uri\":\"" + uri
-                + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(source) + "\"}}";
-        client.sendNotification("textDocument/didOpen", params);
-    }
-
-    private JsonObject nextDiagsFor(String uriFragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(uriFragment))
-                return msg;
-        }
-    }
-
-    /** Send workspace/executeCommand, drain the immediate null response. */
-    private void sendCommandAndDrainResponse(String command, String argsJson) throws Exception {
-        String params = "{\"command\":\"" + command + "\",\"arguments\":" + argsJson + "}";
-        client.sendRequest("workspace/executeCommand", params);
-        client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-    }
-
-    /** Send textDocument/codeLens and return the result array, or null on timeout. */
-    private JsonArray requestCodeLens(String uri) throws Exception {
-        String params = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
-        client.sendRequest("textDocument/codeLens", params);
-        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-        if (response == null || !response.has("result")
-                || response.get("result").isJsonNull()) return null;
-        return response.getAsJsonArray("result");
-    }
-
-    /** Return the title of the first code lens, or null. */
-    private static String firstLensTitle(JsonArray lenses) {
-        if (lenses == null || lenses.isEmpty()) return null;
-        JsonObject lens = lenses.get(0).getAsJsonObject();
-        if (!lens.has("command")) return null;
-        return lens.getAsJsonObject("command").get("title").getAsString();
-    }
-
-    /**
-     * Poll textDocument/codeLens until any lens title contains {@code expected}
-     * or the timeout expires.  Returns the matching title, or the last-seen
-     * first-lens title if none matched.
-     */
-    private String pollLensTitleUntil(String uri, String expected, long timeoutSeconds)
-            throws Exception {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
-        String last = null;
-        while (System.nanoTime() < deadline) {
-            JsonArray lenses = requestCodeLens(uri);
-            if (lenses != null) {
-                for (int i = 0; i < lenses.size(); i++) {
-                    JsonObject lens = lenses.get(i).getAsJsonObject();
-                    if (!lens.has("command")) continue;
-                    String title = lens.getAsJsonObject("command").get("title").getAsString();
-                    last = title;
-                    if (title.contains(expected)) return title;
-                }
-            }
-            client.nextNotification("textDocument/publishDiagnostics", 200, TimeUnit.MILLISECONDS);
-            Thread.sleep(300);
-        }
-        return last;
     }
 
     // -----------------------------------------------------------------------
@@ -258,8 +153,7 @@ public class JmlCodeLensTest {
 
         // Run ESC on the .java file (not the .jml — ESC runs on .java only).
         // Use the real file-system path so OpenJML can load the companion .jml.
-        String escArgs = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(javaUri) + "\"]";
-        sendCommandAndDrainResponse(OpenJMLCommands.RUN_ESC, escArgs);
+        executeCommand(OpenJMLCommands.RUN_ESC, "[\"\",\"\",\"\",\"\",\"" + jsonEscape(javaUri) + "\"]");
 
         // Wait for ESC to complete.
         nextDiagsFor("JmlLensVerified", TIMEOUT_SECONDS, TimeUnit.SECONDS);

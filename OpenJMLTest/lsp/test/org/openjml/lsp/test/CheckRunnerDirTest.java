@@ -57,9 +57,6 @@ public class CheckRunnerDirTest extends LspTestBase {
      * comparison, which would break the snapshot-key lookup in
      * {@link CheckRunner#runCheckDirWithContext}.
      */
-    private static String fileUri(File f) {
-        return f.toPath().toUri().toString();
-    }
 
     // -----------------------------------------------------------------------
     // runCheckDir — single file with type error

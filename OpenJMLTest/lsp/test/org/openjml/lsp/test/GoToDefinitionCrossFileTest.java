@@ -2,17 +2,13 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,20 +39,15 @@ import static org.junit.Assert.*;
  * <p>After project indexing, the nav cache holds attributed ASTs for all three
  * files in the same IAPI context, allowing cross-file symbol resolution.
  */
-public class GoToDefinitionCrossFileTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
+public class GoToDefinitionCrossFileTest extends ProtocolTestBase {
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
     private Path tmpDir;
 
     @Before
+    @Override
     public void setUp() throws Exception {
         tmpDir = tmp.getRoot().toPath();
 
@@ -90,28 +81,13 @@ public class GoToDefinitionCrossFileTest {
                 + "}\n",
                 StandardCharsets.UTF_8);
 
-        // Start an in-process LSP server.
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
+        startServer();
     }
 
     @After
+    @Override
     public void tearDown() {
-        if (client != null) client.stop();
+        super.tearDown();
     }
 
     // -----------------------------------------------------------------------
@@ -138,35 +114,6 @@ public class GoToDefinitionCrossFileTest {
         client.sendNotification("workspace/didChangeConfiguration",
                 "{\"settings\":" + settingsJson + "}");
         Thread.sleep(100);
-    }
-
-    private JsonObject nextDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(fragment))
-                return msg;
-        }
-    }
-
-    private JsonObject nextNonEmptyDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            JsonObject params = msg.getAsJsonObject("params");
-            if (!params.get("uri").getAsString().contains(fragment)) continue;
-            if (!params.getAsJsonArray("diagnostics").isEmpty()) return msg;
-        }
     }
 
     // -----------------------------------------------------------------------

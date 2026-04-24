@@ -2,14 +2,10 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -50,58 +46,37 @@ import static org.junit.Assert.*;
  *       source only.</li>
  * </ul>
  */
-public class DocumentHighlightTest {
+public class DocumentHighlightTest extends ProtocolTestBase {
 
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-    private Path                  tmpDir;
+    private Path tmpDir;
 
     // -----------------------------------------------------------------------
     // Per-test lifecycle
     // -----------------------------------------------------------------------
 
     @Before
+    @Override
     public void setUp() throws Exception {
         tmpDir = Files.createTempDirectory("DocumentHighlightTest-");
-
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
+        startServer();
     }
 
     @After
-    public void tearDown() throws Exception {
-        if (client != null) client.stop();
+    @Override
+    public void tearDown() {
+        super.tearDown();
         if (tmpDir != null && Files.exists(tmpDir)) {
-            Files.walk(tmpDir)
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(p -> p.toFile().delete());
+            try {
+                Files.walk(tmpDir)
+                        .sorted(Comparator.reverseOrder())
+                        .forEach(p -> p.toFile().delete());
+            } catch (java.io.IOException ignored) {}
         }
     }
 
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
 
     private static String fileUri(Path p) {
         return p.toUri().toString();
@@ -112,10 +87,7 @@ public class DocumentHighlightTest {
      * {@code textDocument/publishDiagnostics} so we know the AST is cached.
      */
     private void openAndWait(String uri, String source) throws Exception {
-        String openParams = "{\"textDocument\":{\"uri\":\"" + uri
-                + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(source) + "\"}}";
-        client.sendNotification("textDocument/didOpen", openParams);
+        didOpen(uri, source);
         // Wait for the initial check to complete (AST is stored before diags are published).
         JsonObject diags = nextDiagsFor(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Expected publishDiagnostics after didOpen for " + uri, diags);
@@ -148,20 +120,6 @@ public class DocumentHighlightTest {
             if (startLine == line) count++;
         }
         return count;
-    }
-
-    private JsonObject nextDiagsFor(String uriFragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(uriFragment))
-                return msg;
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -336,10 +294,10 @@ public class DocumentHighlightTest {
         // With specsPath including tmpDir, OpenJML finds HighlightJml.jml on disk and
         // populates specsCompilationUnit; cacheSpecsCu then stores the specs AST under
         // the .jml URI so documentHighlight can find it.
-        String openParams = "{\"textDocument\":{\"uri\":\"" + jmlUri
+        client.sendNotification("textDocument/didOpen",
+                "{\"textDocument\":{\"uri\":\"" + jmlUri
                 + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(jmlSrc) + "\"}}";
-        client.sendNotification("textDocument/didOpen", openParams);
+                + "\"text\":\"" + jsonEscape(jmlSrc) + "\"}}");
 
         // The check runs on the .java companion; drain its publishDiagnostics.
         JsonObject diags = nextDiagsFor("HighlightJml.java", TIMEOUT_SECONDS, TimeUnit.SECONDS);

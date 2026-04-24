@@ -2,20 +2,15 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openjml.lsp.DiagnosticConverter;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,7 +21,7 @@ import static org.junit.Assert.*;
 
 /**
  * Protocol-layer tests for all ESC invocation variants that Eclipse and VSCode
- * clients use.  Each test drives a real {@link OpenJMLLanguageServer} through
+ * clients use.  Each test drives a real {@link org.openjml.lsp.OpenJMLLanguageServer} through
  * pipes and asserts on the resulting {@code textDocument/publishDiagnostics}
  * notifications.
  *
@@ -45,49 +40,20 @@ import static org.junit.Assert.*;
  * notifications until a deadline and assert on the union, because concurrent
  * tasks complete in arbitrary order.
  */
-public class EscInvocationVariantsTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
+public class EscInvocationVariantsTest extends ProtocolTestBase {
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
     @Before
+    @Override
     public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
+        startServer();
     }
 
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
 
     private File writeJava(String filename, String content) throws Exception {
         File f = tmp.newFile(filename);
@@ -106,21 +72,7 @@ public class EscInvocationVariantsTest {
                 "{\"textDocument\":{\"uri\":\"" + uri
                 + "\",\"languageId\":\"java\",\"version\":1,"
                 + "\"text\":\"" + jsonEscape(source) + "\"}}");
-        nextDiagsFor(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
-    }
-
-    private JsonObject nextDiagsFor(String uri, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().equals(uri))
-                return msg;
-        }
+        nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     /**
@@ -153,27 +105,6 @@ public class EscInvocationVariantsTest {
             }
         }
         return seen;
-    }
-
-    /**
-     * Collects non-empty {@code textDocument/publishDiagnostics} notifications
-     * for {@code uri} until {@code wantCount} arrive or the deadline expires.
-     */
-    private List<JsonObject> collectNonEmptyDiagsFor(String uri, int wantCount,
-            long timeout, TimeUnit unit) throws InterruptedException {
-        List<JsonObject> result = new ArrayList<>();
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (result.size() < wantCount) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) break;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) break;
-            JsonObject params = msg.getAsJsonObject("params");
-            if (!params.get("uri").getAsString().equals(uri)) continue;
-            if (!params.getAsJsonArray("diagnostics").isEmpty()) result.add(msg);
-        }
-        return result;
     }
 
     // -----------------------------------------------------------------------
@@ -342,7 +273,7 @@ public class EscInvocationVariantsTest {
 
         // Collect until we have at least 2 non-empty notifications (one per method).
         // Order is arbitrary since tasks run in parallel.
-        List<JsonObject> notes = collectNonEmptyDiagsFor(uri, 2, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        List<JsonObject> notes = collectNonEmptyDiagsForUri(uri, 2, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertTrue(
                 "runEscSplitByMethod must deliver at least 2 non-empty publishDiagnostics "
                 + "notifications (one per failing method), got: " + notes.size(),

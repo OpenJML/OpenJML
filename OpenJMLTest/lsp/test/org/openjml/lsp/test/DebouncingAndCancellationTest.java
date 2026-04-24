@@ -1,16 +1,9 @@
 package org.openjml.lsp.test;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -36,84 +29,7 @@ import static org.junit.Assert.*;
  *       that the server does not deadlock or refuse further requests.</li>
  * </ul>
  */
-public class DebouncingAndCancellationTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
-    // -----------------------------------------------------------------------
-    // Setup / teardown
-    // -----------------------------------------------------------------------
-
-    @Before
-    public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-        assertNotNull("Server must respond to initialize", resp);
-        client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
-    }
-
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
-    private void didOpen(String uri, String source) throws Exception {
-        String params = "{\"textDocument\":{\"uri\":\"" + uri
-                + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(source) + "\"}}";
-        client.sendNotification("textDocument/didOpen", params);
-    }
-
-    private void didChange(String uri, int version, String source) throws Exception {
-        String params = "{\"textDocument\":{\"uri\":\"" + uri + "\",\"version\":" + version + "},"
-                + "\"contentChanges\":[{\"text\":\"" + jsonEscape(source) + "\"}]}";
-        client.sendNotification("textDocument/didChange", params);
-    }
-
-    private JsonObject nextDiagsFor(String uriFragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(uriFragment))
-                return msg;
-        }
-    }
-
-    private void sendCommandAndDrainResponse(String command, String argsJson) throws Exception {
-        String params = "{\"command\":\"" + command + "\",\"arguments\":" + argsJson + "}";
-        client.sendRequest("workspace/executeCommand", params);
-        client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-    }
+public class DebouncingAndCancellationTest extends ProtocolTestBase {
 
     // -----------------------------------------------------------------------
     // Debouncing: five rapid changes → one check
@@ -240,7 +156,7 @@ public class DebouncingAndCancellationTest {
 
         // Fire ESC: the command returns immediately; the ESC run starts asynchronously.
         String escArgs = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(uri) + "\"]";
-        sendCommandAndDrainResponse(OpenJMLCommands.RUN_ESC, escArgs);
+        executeCommand(OpenJMLCommands.RUN_ESC, escArgs);
 
         // Cancel immediately — may hit the task before or after it starts.
         String cancelParams = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC

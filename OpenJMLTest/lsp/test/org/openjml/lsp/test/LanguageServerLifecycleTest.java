@@ -1,21 +1,17 @@
 package org.openjml.lsp.test;
 
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
 
 /**
- * Protocol-layer tests for {@link OpenJMLLanguageServer} lifecycle paths:
+ * Protocol-layer tests for {@link org.openjml.lsp.OpenJMLLanguageServer} lifecycle paths:
  * {@code initialize}, {@code shutdown}, and the {@code __workspace__} project
  * synthesis branch.
  *
@@ -32,32 +28,24 @@ import static org.junit.Assert.*;
  *       nor 3-arg dispatch, so the server silently skips the command)</li>
  * </ul>
  */
-public class LanguageServerLifecycleTest {
+public class LanguageServerLifecycleTest extends ProtocolTestBase {
 
-    private static final long SHORT_TIMEOUT = 10;
-    private static final long TIMEOUT_SECONDS = 60;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
+    // This file uses SHORT_TIMEOUT=10 (not 5) and TIMEOUT_SECONDS=60 (not 120).
+    // The base class values are fine for correctness; using local overrides only if needed.
+    private static final long LOCAL_SHORT_TIMEOUT  = 10;
+    private static final long LOCAL_TIMEOUT        = 60;
 
     @Before
+    @Override
     public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
+        // Each test controls the initialize handshake itself; only create the pipe.
+        createServerAndClient();
     }
 
     @After
+    @Override
     public void tearDown() {
-        if (client != null) client.stop();
+        super.tearDown();
     }
 
     // -----------------------------------------------------------------------
@@ -66,25 +54,6 @@ public class LanguageServerLifecycleTest {
 
     private static String escape(String s) {
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
-    private static String escapeContent(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"")
-                .replace("\n", "\\n").replace("\r", "");
-    }
-
-    private JsonObject nextDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(fragment))
-                return msg;
-        }
     }
 
     // -----------------------------------------------------------------------
@@ -104,7 +73,7 @@ public class LanguageServerLifecycleTest {
         // "no projects configured" branch that creates the __workspace__ project.
         client.sendRequest("initialize",
                 "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        JsonObject resp = client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to initialize", resp);
         assertTrue("initialize must return a result", resp.has("result"));
         assertFalse("initialize result must not be an error", resp.has("error"));
@@ -124,10 +93,10 @@ public class LanguageServerLifecycleTest {
         client.sendNotification("textDocument/didOpen",
                 "{\"textDocument\":{\"uri\":\"" + uri
                 + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + escapeContent(source) + "\"}}");
+                + "\"text\":\"" + jsonEscape(source) + "\"}}");
 
         // publishDiagnostics must arrive (may be empty for valid code; just needs to arrive).
-        JsonObject note = nextDiagsFor("WorkspaceSynthTest", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextDiagsFor("WorkspaceSynthTest", LOCAL_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("publishDiagnostics must arrive after didOpen on synthesized workspace",
                 note);
     }
@@ -153,7 +122,7 @@ public class LanguageServerLifecycleTest {
         client.sendRequest("initialize",
                 "{\"processId\":null,\"rootUri\":\"" + escape(rootUri)
                 + "\",\"capabilities\":{}}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        JsonObject resp = client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to initialize with rootUri", resp);
         assertTrue("initialize must return a result", resp.has("result"));
         assertFalse("initialize must not return an error", resp.has("error"));
@@ -170,7 +139,7 @@ public class LanguageServerLifecycleTest {
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.GET_RUNNING_ESC_TASKS
                 + "\",\"arguments\":[]}");
-        JsonObject taskResp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        JsonObject taskResp = client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to command after rootUri-based synthesis", taskResp);
         assertTrue("Command must return a result", taskResp.has("result"));
     }
@@ -192,13 +161,13 @@ public class LanguageServerLifecycleTest {
         client.sendRequest("initialize",
                 "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
         assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
+                client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS));
         client.sendNotification("initialized", "{}");
 
         // The LSP spec says the client must not send further requests after
         // shutdown except exit; we send shutdown and verify the response.
         client.sendRequest("shutdown", "{}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        JsonObject resp = client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to shutdown request", resp);
         assertTrue("shutdown response must have a result field", resp.has("result"));
         // Per LSP spec the shutdown result is null.
@@ -241,7 +210,7 @@ public class LanguageServerLifecycleTest {
         client.sendRequest("initialize",
                 "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
         assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
+                client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS));
         client.sendNotification("initialized", "{}");
 
         // 1-arg list: isCodeLensFormat == false (size != 2) and the else-branch
@@ -250,7 +219,7 @@ public class LanguageServerLifecycleTest {
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":[\"file:///SingleArgTest.java\"]}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        JsonObject resp = client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to malformed RUN_ESC_FOR_METHOD", resp);
         // Any response (null result or error) is acceptable; no crash is the key assertion.
     }
@@ -273,7 +242,7 @@ public class LanguageServerLifecycleTest {
                 + "\"workspaceFolders\":[{\"uri\":\"" + escape(folderUri)
                 + "\",\"name\":\"test\"}],"
                 + "\"capabilities\":{}}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        JsonObject resp = client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to initialize with workspaceFolders", resp);
         assertTrue("initialize must return a result", resp.has("result"));
         assertFalse("initialize must not return an error", resp.has("error"));

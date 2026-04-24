@@ -2,22 +2,15 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -39,46 +32,10 @@ import static org.junit.Assert.*;
  * wiring is intact.  Detailed behavioural coverage lives in the direct-API
  * tests ({@link CheckRunnerDirTest}, {@link DiagnosticsTest}, etc.).
  */
-public class CommandDispatchTest {
-
-    private static final long TIMEOUT_SECONDS      = 120;
-    private static final long SHORT_TIMEOUT_SECONDS = 5;
+public class CommandDispatchTest extends ProtocolTestBase {
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
-    // -----------------------------------------------------------------------
-    // Setup / teardown
-    // -----------------------------------------------------------------------
-
-    @Before
-    public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        JsonObject resp = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertNotNull("Server must respond to initialize", resp);
-        client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
-    }
 
     // -----------------------------------------------------------------------
     // Helpers
@@ -88,45 +45,6 @@ public class CommandDispatchTest {
         File f = tmp.newFile(filename);
         try (FileWriter w = new FileWriter(f)) { w.write(content); }
         return f;
-    }
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
-    private void sendCommand(String command, String argsJson) throws IOException {
-        String params = "{\"command\":\"" + command + "\",\"arguments\":" + argsJson + "}";
-        client.sendRequest("workspace/executeCommand", params);
-    }
-
-    private JsonObject nextDiagsContaining(String uriFragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(uriFragment))
-                return msg;
-        }
-    }
-
-    /** Like {@link #nextDiagsContaining} but skips notifications with an empty diagnostics array. */
-    private JsonObject nextNonEmptyDiagsContaining(String uriFragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            JsonObject params = msg.getAsJsonObject("params");
-            if (!params.get("uri").getAsString().contains(uriFragment)) continue;
-            if (!params.getAsJsonArray("diagnostics").isEmpty()) return msg;
-        }
     }
 
     private static boolean hasError(JsonArray diags) {
@@ -154,9 +72,9 @@ public class CommandDispatchTest {
                 "}\n");
 
         String argsJson = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(f.getAbsolutePath()) + "\"]";
-        sendCommand(OpenJMLCommands.CHECK_JML, argsJson);
+        executeCommand(OpenJMLCommands.CHECK_JML, argsJson);
 
-        JsonObject note = nextDiagsContaining("CmdCheckErr", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextDiagsFor("CmdCheckErr", TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Expected publishDiagnostics for CmdCheckErr.java", note);
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected at least one diagnostic", diags.isEmpty());
@@ -181,9 +99,9 @@ public class CommandDispatchTest {
                 "}\n");
 
         String argsJson = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(f.getAbsolutePath()) + "\"]";
-        sendCommand(OpenJMLCommands.RUN_ESC, argsJson);
+        executeCommand(OpenJMLCommands.RUN_ESC, argsJson);
 
-        JsonObject note = nextNonEmptyDiagsContaining("CmdEscFail", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextNonEmptyDiagsFor("CmdEscFail", TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Expected non-empty publishDiagnostics for CmdEscFail.java", note);
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected at least one ESC diagnostic for 'ensures false'", diags.isEmpty());
@@ -219,7 +137,7 @@ public class CommandDispatchTest {
         client.sendNotification("textDocument/didOpen", openParams);
 
         // Drain the open-triggered check (empty diagnostics for clean file).
-        nextDiagsContaining("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        nextDiagsFor("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         // Change the file to dirty content with a type error.
         // didChange adds the URI to dirtyUris so dirtySnapshot() picks it up.
@@ -231,16 +149,16 @@ public class CommandDispatchTest {
         client.sendNotification("textDocument/didChange", changeParams);
 
         // Drain the change-triggered check so the next notification is from the command.
-        nextDiagsContaining("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        nextDiagsFor("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         // Run openjml.checkJML on the file's OS path.
         String argsJson = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(f.getAbsolutePath()) + "\"]";
-        sendCommand(OpenJMLCommands.CHECK_JML, argsJson);
+        executeCommand(OpenJMLCommands.CHECK_JML, argsJson);
 
         // The command snapshots the dirty in-memory content, applies a 300 ms debounce,
         // then runs runCheckDirWithContext which writes the dirty content to a temp dir
         // and checks it instead of the clean disk file.
-        JsonObject note = nextDiagsContaining("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextDiagsFor("CmdDirtyCheck", TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Expected publishDiagnostics after openjml.checkJML on dirty file", note);
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected diagnostics from dirty editor content, not clean disk file",
@@ -268,11 +186,11 @@ public class CommandDispatchTest {
 
         // args[0] = projectId (empty = global), args[1] = source file
         String argsJson = "[\"\",\"" + jsonEscape(f.getAbsolutePath()) + "\"]";
-        sendCommand(OpenJMLCommands.RUN_RAC, argsJson);
+        executeCommand(OpenJMLCommands.RUN_RAC, argsJson);
 
         // scheduleRacForPaths publishes diagnostics for every processed file.
         // For a clean file the list is empty; assert no errors appear.
-        JsonObject note = nextDiagsContaining("CmdRacClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject note = nextDiagsFor("CmdRacClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Expected publishDiagnostics for CmdRacClean.java", note);
         JsonArray diags = note.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected no Error diagnostics for valid Java", hasError(diags));
@@ -306,7 +224,7 @@ public class CommandDispatchTest {
         String argsJson = "[\"\",\""
                 + jsonEscape(good.getAbsolutePath()) + "\",\""
                 + jsonEscape(bad.getAbsolutePath()) + "\"]";
-        sendCommand(OpenJMLCommands.RUN_RAC, argsJson);
+        executeCommand(OpenJMLCommands.RUN_RAC, argsJson);
 
         // Collect diagnostics for both files; order is not guaranteed.
         JsonObject goodNote = null, badNote = null;

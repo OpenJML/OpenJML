@@ -2,22 +2,14 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.openjml.lsp.DiagnosticConverter;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
 import java.io.File;
 import java.io.FileWriter;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -42,49 +34,20 @@ import static org.junit.Assert.*;
  * <p>Specifically the test verifies that after a clear the server does not
  * accumulate old proof results alongside new ones.
  */
-public class ClearAndReescTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
+public class ClearAndReescTest extends ProtocolTestBase {
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
     @Before
+    @Override
     public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
+        startServer();
     }
 
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
 
     private File writeJava(String filename, String content) throws Exception {
         File f = tmp.newFile(filename);
@@ -97,43 +60,7 @@ public class ClearAndReescTest {
                 "{\"textDocument\":{\"uri\":\"" + uri
                 + "\",\"languageId\":\"java\",\"version\":1,"
                 + "\"text\":\"" + jsonEscape(source) + "\"}}");
-        nextDiagsFor(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
-    }
-
-    /** Returns the next publishDiagnostics notification for {@code uri}. */
-    private JsonObject nextDiagsFor(String uri, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().equals(uri))
-                return msg;
-        }
-    }
-
-    private static boolean hasEscError(JsonArray diags) {
-        for (int i = 0; i < diags.size(); i++) {
-            JsonObject d = diags.get(i).getAsJsonObject();
-            if (d.has("source")
-                    && DiagnosticConverter.SOURCE_ESC.equals(d.get("source").getAsString())
-                    && d.has("severity") && d.get("severity").getAsInt() == 1 /* Error */)
-                return true;
-        }
-        return false;
-    }
-
-    private static boolean hasEscDiag(JsonArray diags) {
-        for (int i = 0; i < diags.size(); i++) {
-            JsonObject d = diags.get(i).getAsJsonObject();
-            if (d.has("source") &&
-                    DiagnosticConverter.SOURCE_ESC.equals(d.get("source").getAsString()))
-                return true;
-        }
-        return false;
+        nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     private static int countEscErrors(JsonArray diags) {
@@ -141,7 +68,7 @@ public class ClearAndReescTest {
         for (int i = 0; i < diags.size(); i++) {
             JsonObject d = diags.get(i).getAsJsonObject();
             if (d.has("source")
-                    && DiagnosticConverter.SOURCE_ESC.equals(d.get("source").getAsString())
+                    && org.openjml.lsp.DiagnosticConverter.SOURCE_ESC.equals(d.get("source").getAsString())
                     && d.has("severity") && d.get("severity").getAsInt() == 1 /* Error */)
                 n++;
         }

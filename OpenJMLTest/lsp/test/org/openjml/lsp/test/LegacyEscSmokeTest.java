@@ -53,9 +53,6 @@ public class LegacyEscSmokeTest extends LspTestBase {
         return f;
     }
 
-    private static String fileUri(File f) {
-        return f.toPath().toUri().toString();
-    }
 
     // -----------------------------------------------------------------------
     // runEsc — runOnContentWithContext --esc legacy path

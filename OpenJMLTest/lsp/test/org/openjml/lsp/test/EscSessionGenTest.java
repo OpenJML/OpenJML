@@ -2,15 +2,11 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -42,89 +38,11 @@ import static org.junit.Assert.*;
  * flaky with the old code (races the TOCTOU window) and deterministically correct
  * after step 1.
  */
-public class EscSessionGenTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
-    @Before
-    public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
-    }
+public class EscSessionGenTest extends ProtocolTestBase {
 
     // -----------------------------------------------------------------------
-    // Helpers (duplicated from CodeLensAndStatusTest / PerMethodEscStatusTest
-    // to keep this test class self-contained)
+    // Helpers
     // -----------------------------------------------------------------------
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
-    private void didOpen(String uri, String source) throws Exception {
-        client.sendNotification("textDocument/didOpen",
-                "{\"textDocument\":{\"uri\":\"" + uri
-                + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(source) + "\"}}");
-    }
-
-    private void didChange(String uri, int version, String newSource) throws Exception {
-        client.sendNotification("textDocument/didChange",
-                "{\"textDocument\":{\"uri\":\"" + uri + "\",\"version\":" + version + "},"
-                + "\"contentChanges\":[{\"text\":\"" + jsonEscape(newSource) + "\"}]}");
-    }
-
-    private JsonObject nextDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(fragment))
-                return msg;
-        }
-    }
-
-    private JsonObject nextNonEmptyDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            JsonObject params = msg.getAsJsonObject("params");
-            if (!params.get("uri").getAsString().contains(fragment)) continue;
-            if (!params.getAsJsonArray("diagnostics").isEmpty()) return msg;
-        }
-    }
 
     private void sendEsc(String uri) throws Exception {
         String argsJson = "[\"\",\"" + jsonEscape(uri) + "\"]";
@@ -133,40 +51,10 @@ public class EscSessionGenTest {
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
     }
 
-    private JsonArray requestCodeLens(String uri) throws Exception {
-        client.sendRequest("textDocument/codeLens",
-                "{\"textDocument\":{\"uri\":\"" + uri + "\"}}");
-        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-        if (response == null || !response.has("result") || response.get("result").isJsonNull())
-            return null;
-        return response.getAsJsonArray("result");
-    }
-
-    private String pollLensTitleUntil(String uri, String sub, long timeoutSeconds)
-            throws Exception {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
-        String last = null;
-        while (System.nanoTime() < deadline) {
-            JsonArray lenses = requestCodeLens(uri);
-            if (lenses != null) {
-                for (int i = 0; i < lenses.size(); i++) {
-                    JsonObject lens = lenses.get(i).getAsJsonObject();
-                    if (!lens.has("command")) continue;
-                    String title = lens.getAsJsonObject("command").get("title").getAsString();
-                    if (last == null) last = title;
-                    if (title.contains(sub)) return title;
-                }
-            }
-            client.nextNotification("textDocument/publishDiagnostics", 200, TimeUnit.MILLISECONDS);
-            Thread.sleep(300);
-        }
-        return last;
-    }
-
     /** Collect all code-lens titles for the given URI in one request. */
-    private java.util.List<String> allLensTitles(String uri) throws Exception {
+    private List<String> allLensTitles(String uri) throws Exception {
         JsonArray lenses = requestCodeLens(uri);
-        java.util.List<String> titles = new java.util.ArrayList<>();
+        List<String> titles = new ArrayList<>();
         if (lenses == null) return titles;
         for (int i = 0; i < lenses.size(); i++) {
             JsonObject lens = lenses.get(i).getAsJsonObject();
@@ -174,20 +62,6 @@ public class EscSessionGenTest {
             titles.add(lens.getAsJsonObject("command").get("title").getAsString());
         }
         return titles;
-    }
-
-    /** Return the method ref (args[1]) from the first lens whose ref contains nameContains. */
-    private String extractMethodRef(JsonArray lenses, String nameContains) {
-        if (lenses == null) return null;
-        for (int i = 0; i < lenses.size(); i++) {
-            JsonObject lens = lenses.get(i).getAsJsonObject();
-            if (!lens.has("command")) continue;
-            JsonArray args = lens.getAsJsonObject("command").getAsJsonArray("arguments");
-            if (args == null || args.size() < 2) continue;
-            String ref = args.get(1).getAsString();
-            if (nameContains == null || ref.contains(nameContains)) return ref;
-        }
-        return null;
     }
 
     private void sendEscForMethod(String uri, String methodRef) throws Exception {
@@ -331,7 +205,7 @@ public class EscSessionGenTest {
         pollLensTitleUntil(uri, "\u2717", 60);
 
         // Snapshot all lens titles after file ESC.
-        java.util.List<String> afterFile = allLensTitles(uri);
+        List<String> afterFile = allLensTitles(uri);
         long verifiedCount  = afterFile.stream().filter(t -> t.contains("\u2713") || t.contains("Verified")).count();
         long failingCount   = afterFile.stream().filter(t -> t.contains("\u2717") || t.contains("Not verified")).count();
         assertTrue("File ESC must produce at least one VERIFIED lens", verifiedCount >= 1);
@@ -349,7 +223,7 @@ public class EscSessionGenTest {
 
         // After per-method ESC, 'failing' must still be NOT_VERIFIED.
         // Retry a few times to let the server settle.
-        java.util.List<String> afterPerMethod = null;
+        List<String> afterPerMethod = null;
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
         while (System.nanoTime() < deadline) {
             afterPerMethod = allLensTitles(uri);
@@ -445,7 +319,7 @@ public class EscSessionGenTest {
         long checkDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
         String lastFastTitle = fastTitle;
         while (System.nanoTime() < checkDeadline) {
-            java.util.List<String> titles = allLensTitles(uri);
+            List<String> titles = allLensTitles(uri);
             for (String t : titles) {
                 if (t.contains("fast") || titles.indexOf(t) == 1) {
                     lastFastTitle = t;
@@ -459,7 +333,7 @@ public class EscSessionGenTest {
 
         // 'fast' must still be VERIFIED; it must not have reverted.
         // Find the lens title for 'fast' in the final snapshot.
-        java.util.List<String> finalTitles = allLensTitles(uri);
+        List<String> finalTitles = allLensTitles(uri);
         long verifiedFast = finalTitles.stream()
                 .filter(t -> t.contains("\u2713") || t.contains("Verified")).count();
         assertTrue("'fast' must remain VERIFIED after session 1 completes; "

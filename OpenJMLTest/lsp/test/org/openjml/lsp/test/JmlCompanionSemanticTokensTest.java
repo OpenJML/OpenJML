@@ -2,18 +2,14 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 import org.openjml.lsp.SemanticTokensProvider;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,21 +39,16 @@ import static org.junit.Assert.*;
  * Requesting semantic tokens for the {@code .jml} URI then exercises the AST walker
  * against the attributed {@code .jml} tree.
  */
-public class JmlCompanionSemanticTokensTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
+public class JmlCompanionSemanticTokensTest extends ProtocolTestBase {
 
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
 
     private String javaUri;
     private String jmlUri;
 
     @Before
+    @Override
     public void setUp() throws Exception {
         // Create a .java file and a companion .jml file in the same temp directory.
         Path javaFile = tmp.newFile("CompSpec.java").toPath();
@@ -112,23 +103,7 @@ public class JmlCompanionSemanticTokensTest {
         javaUri = javaFile.toUri().toString();
         jmlUri  = jmlFile.toUri().toString();
 
-        // Start an in-process LSP server.
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
+        startServer();
 
         // Open the .java file: triggers --check which processes the companion .jml.
         String javaContent = Files.readString(javaFile, StandardCharsets.UTF_8);
@@ -152,8 +127,9 @@ public class JmlCompanionSemanticTokensTest {
     }
 
     @After
+    @Override
     public void tearDown() {
-        if (client != null) client.stop();
+        super.tearDown();
     }
 
     // -----------------------------------------------------------------------
@@ -200,20 +176,6 @@ public class JmlCompanionSemanticTokensTest {
 
     private static String escapeContent(String s) {
         return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
-    }
-
-    private JsonObject nextDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(fragment))
-                return msg;
-        }
     }
 
     // -----------------------------------------------------------------------

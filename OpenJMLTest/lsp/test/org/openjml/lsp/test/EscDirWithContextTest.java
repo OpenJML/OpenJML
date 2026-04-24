@@ -41,13 +41,6 @@ public class EscDirWithContextTest extends LspTestBase {
         return f;
     }
 
-    /**
-     * Three-slash {@code file:///} URI — must match the form {@link CheckRunner}
-     * uses internally for snapshot key lookup.
-     */
-    private static String fileUri(File f) {
-        return f.toPath().toUri().toString();
-    }
 
     // -----------------------------------------------------------------------
     // Fast path: empty snapshot delegates to runEscDir

@@ -3,17 +3,13 @@ package org.openjml.lsp.test;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,10 +37,7 @@ import static org.junit.Assert.*;
  *       URIs are correct.</li>
  * </ul>
  */
-public class SymbolsForProjectTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
+public class SymbolsForProjectTest extends ProtocolTestBase {
 
     /** Named project ID — not {@code __workspace__} — to exercise the per-project path. */
     private static final String PROJECT_ID = "TestProject";
@@ -52,11 +45,10 @@ public class SymbolsForProjectTest {
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-    private Path                  tmpDir;
+    private Path tmpDir;
 
     @Before
+    @Override
     public void setUp() throws Exception {
         tmpDir = tmp.getRoot().toPath();
 
@@ -79,40 +71,22 @@ public class SymbolsForProjectTest {
                 + "}\n",
                 StandardCharsets.UTF_8);
 
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
+        startServer();
     }
 
     @After
+    @Override
     public void tearDown() {
-        if (client != null) client.stop();
+        super.tearDown();
     }
 
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
 
-    private static String escape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
-
     /** Configure the server with a named project whose root is {@code tmpDir}. */
     private void configureNamedProject() throws Exception {
-        String root = escape(tmpDir.toAbsolutePath().toString());
+        String root = jsonEscape(tmpDir.toAbsolutePath().toString());
         String settings = "{\"openjml\":{\"projects\":[{\"id\":\"" + PROJECT_ID
                 + "\",\"rootPaths\":[\"" + root + "\"]}]}}";
         client.sendNotification("workspace/didChangeConfiguration",
@@ -146,10 +120,10 @@ public class SymbolsForProjectTest {
      * Asserts that the response has a {@code result} field that is a JSON array.
      */
     private JsonArray querySymbols(String query, String projectId) throws Exception {
-        String pidJson = projectId == null ? "null" : "\"" + escape(projectId) + "\"";
+        String pidJson = projectId == null ? "null" : "\"" + jsonEscape(projectId) + "\"";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.SYMBOLS_FOR_PROJECT
-                + "\",\"arguments\":[\"" + escape(query) + "\"," + pidJson + "]}");
+                + "\",\"arguments\":[\"" + jsonEscape(query) + "\"," + pidJson + "]}");
         JsonObject resp = client.nextResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Server must respond to symbolsForProject", resp);
         assertFalse("symbolsForProject must not return an error", resp.has("error"));
@@ -302,8 +276,8 @@ public class SymbolsForProjectTest {
 
     /** Configure two named projects with separate root directories. */
     private void configureMultiProject(String alphaRoot, String betaRoot) throws Exception {
-        String rootA = escape(alphaRoot);
-        String rootB = escape(betaRoot);
+        String rootA = jsonEscape(alphaRoot);
+        String rootB = jsonEscape(betaRoot);
         String settings = "{\"openjml\":{\"projects\":["
                 + "{\"id\":\"ProjectAlpha\",\"rootPaths\":[\"" + rootA + "\"]},"
                 + "{\"id\":\"ProjectBeta\",\"rootPaths\":[\"" + rootB + "\"]}"
@@ -504,11 +478,9 @@ public class SymbolsForProjectTest {
                 StandardCharsets.UTF_8);
         String alphaUri = tmpDir.resolve("Alpha.java").toUri().toString();
         client.sendNotification("textDocument/didOpen",
-                "{\"textDocument\":{\"uri\":\"" + escape(alphaUri)
+                "{\"textDocument\":{\"uri\":\"" + jsonEscape(alphaUri)
                 + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + alphaContent.replace("\\", "\\\\")
-                                              .replace("\"", "\\\"")
-                                              .replace("\n", "\\n") + "\"}}");
+                + "\"text\":\"" + jsonEscape(alphaContent) + "\"}}");
 
         // Wait for the check to complete (diagnostics published for Alpha.java).
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);

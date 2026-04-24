@@ -2,15 +2,11 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,53 +38,32 @@ import static org.junit.Assert.*;
  *   <li>{@link #testFocusFileSkipsUntrackedUri} — when projects are configured,
  *       {@code openjml.focusFile} for a URI that does not match any project's
  *       {@code rootPaths} is silently skipped ({@code recheckUri} returns early
- *       because {@code settingsForUri(uri) == settings}), and no
+ *       because {@code settingsForUri(uri) == settings}}), and no
  *       {@code textDocument/publishDiagnostics} is published for that URI.</li>
  * </ul>
  */
-public class MultiProjectTest {
+public class MultiProjectTest extends ProtocolTestBase {
 
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-    private Path                  tmpDir;
-
-    // -----------------------------------------------------------------------
-    // Per-test server and temp-file lifecycle
-    // -----------------------------------------------------------------------
+    private Path tmpDir;
 
     @Before
+    @Override
     public void setUp() throws Exception {
         tmpDir = Files.createTempDirectory("MultiProjectTest-");
         createTestFiles();
-
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
+        startServer();
     }
 
     @After
-    public void tearDown() throws Exception {
-        if (client != null) client.stop();
+    @Override
+    public void tearDown() {
+        super.tearDown();
         if (tmpDir != null && Files.exists(tmpDir)) {
-            Files.walk(tmpDir)
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(p -> p.toFile().delete());
+            try {
+                Files.walk(tmpDir)
+                        .sorted(Comparator.reverseOrder())
+                        .forEach(p -> p.toFile().delete());
+            } catch (Exception ignored) {}
         }
     }
 
@@ -128,10 +103,6 @@ public class MultiProjectTest {
         return path.replace("\\", "\\\\");
     }
 
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
     /**
      * Register one project via {@code workspace/didChangeConfiguration}.
      */
@@ -141,7 +112,6 @@ public class MultiProjectTest {
                 + "\",\"rootPaths\":[\"" + root + "\"]}]}}";
         client.sendNotification("workspace/didChangeConfiguration",
                 "{\"settings\":" + settingsJson + "}");
-        // Brief pause to let the server apply the configuration synchronously.
         Thread.sleep(100);
     }
 
@@ -171,20 +141,6 @@ public class MultiProjectTest {
                 + "\",\"arguments\":[\"\",\"\",\"\",\"\",\"" + escaped + "\"]}";
         client.sendRequest("workspace/executeCommand", params);
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-    }
-
-    private JsonObject nextDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(fragment))
-                return msg;
-        }
     }
 
     // -----------------------------------------------------------------------

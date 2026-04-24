@@ -3,14 +3,8 @@ package org.openjml.lsp.test;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -26,38 +20,10 @@ import static org.junit.Assert.*;
  * (ghost fields, model fields, model methods) so that the outline complements
  * rather than duplicates the Java outline provided by the Red Hat extension.
  */
-public class DocumentSymbolProtocolTest {
+public class DocumentSymbolProtocolTest extends ProtocolTestBase {
 
-    private static final long SHORT_TIMEOUT = 10;
-    private static final long TIMEOUT_SECONDS = 30;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
-    @Before
-    public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
-    }
+    // Note: this file used SHORT_TIMEOUT=10 and TIMEOUT_SECONDS=30.
+    // The base class values (120 and 5) are compatible — longer timeout is fine.
 
     /**
      * A plain Java class with no JML members must return a well-formed symbol array.
@@ -76,7 +42,7 @@ public class DocumentSymbolProtocolTest {
                 + "    public int getValue() { return value; }\n"
                 + "}\n";
 
-        didOpenAndWaitForCheck(uri, source);
+        openAndWaitForCheck(uri, source);
 
         client.sendRequest("textDocument/documentSymbol",
                 "{\"textDocument\":{\"uri\":\"" + jsonEscape(uri) + "\"}}");
@@ -112,7 +78,7 @@ public class DocumentSymbolProtocolTest {
                 + "    public int value;\n"
                 + "}\n";
 
-        didOpenAndWaitForCheck(uri, source);
+        openAndWaitForCheck(uri, source);
 
         client.sendRequest("textDocument/documentSymbol",
                 "{\"textDocument\":{\"uri\":\"" + jsonEscape(uri) + "\"}}");
@@ -148,22 +114,5 @@ public class DocumentSymbolProtocolTest {
             }
         }
         return false;
-    }
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
-    private void didOpen(String uri, String source) throws Exception {
-        client.sendNotification("textDocument/didOpen",
-                "{\"textDocument\":{\"uri\":\"" + uri
-                + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(source) + "\"}}");
-    }
-
-    /** Send didOpen and wait for the server's publishDiagnostics to confirm the check finished. */
-    private void didOpenAndWaitForCheck(String uri, String source) throws Exception {
-        didOpen(uri, source);
-        client.nextNotification("textDocument/publishDiagnostics", TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 }

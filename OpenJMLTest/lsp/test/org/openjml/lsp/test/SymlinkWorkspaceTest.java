@@ -1,17 +1,12 @@
 package org.openjml.lsp.test;
 
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -40,10 +35,7 @@ import static org.junit.Assert.*;
  *   <li>Multiple disjoint roots (linked-folder simulation) are all checked</li>
  * </ul>
  */
-public class SymlinkWorkspaceTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
+public class SymlinkWorkspaceTest extends ProtocolTestBase {
 
     // Source with a type error so OpenJML reports a diagnostic we can detect.
     private static final String TYPE_ERROR_SOURCE =
@@ -54,41 +46,21 @@ public class SymlinkWorkspaceTest {
     @Rule
     public TemporaryFolder tmp = new TemporaryFolder();
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
     @Before
+    @Override
     public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
+        startServer();
     }
 
     @After
+    @Override
     public void tearDown() {
-        if (client != null) client.stop();
+        super.tearDown();
     }
 
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
-
-    private static String escape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"");
-    }
 
     private static String escapeContent(String s) {
         return s.replace("\\", "\\\\").replace("\"", "\\\"")
@@ -104,7 +76,7 @@ public class SymlinkWorkspaceTest {
         StringBuilder sb = new StringBuilder("[");
         for (int i = 0; i < osPaths.length; i++) {
             if (i > 0) sb.append(",");
-            sb.append("\"").append(escape(osPaths[i])).append("\"");
+            sb.append("\"").append(jsonEscape(osPaths[i])).append("\"");
         }
         sb.append("]");
         String settings = "{\"openjml\":{\"checkTriggerOn\":\"manual\","
@@ -133,21 +105,6 @@ public class SymlinkWorkspaceTest {
 
     private static String fileUri(Path p) {
         return p.toUri().toString();
-    }
-
-    private JsonObject nextNonEmptyDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            JsonObject p = msg.getAsJsonObject("params");
-            if (!p.get("uri").getAsString().contains(fragment)) continue;
-            if (!p.getAsJsonArray("diagnostics").isEmpty()) return msg;
-        }
     }
 
     /**

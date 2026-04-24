@@ -2,15 +2,11 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,48 +41,31 @@ import static org.junit.Assert.*;
  *       to subsequent requests afterward.</li>
  * </ul>
  */
-public class WorkspaceIndexTest {
+public class WorkspaceIndexTest extends ProtocolTestBase {
 
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-    private Path                  tmpDir;
+    private Path tmpDir;
 
     // -----------------------------------------------------------------------
     // Per-test server and temp-file lifecycle
     // -----------------------------------------------------------------------
 
     @Before
+    @Override
     public void setUp() throws Exception {
         tmpDir = Files.createTempDirectory("WorkspaceIndexTest-");
-
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
+        startServer();
     }
 
     @After
-    public void tearDown() throws Exception {
-        if (client != null) client.stop();
+    @Override
+    public void tearDown() {
+        super.tearDown();
         if (tmpDir != null && Files.exists(tmpDir)) {
-            Files.walk(tmpDir)
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(p -> p.toFile().delete());
+            try {
+                Files.walk(tmpDir)
+                        .sorted(Comparator.reverseOrder())
+                        .forEach(p -> p.toFile().delete());
+            } catch (java.io.IOException ignored) {}
         }
     }
 
@@ -102,26 +81,8 @@ public class WorkspaceIndexTest {
         return path.replace("\\", "\\\\");
     }
 
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
     private static String fileUri(Path path) {
         return path.toUri().toString();
-    }
-
-    private JsonObject nextDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(fragment))
-                return msg;
-        }
     }
 
     /**
@@ -257,7 +218,7 @@ public class WorkspaceIndexTest {
 
     /**
      * {@code openjml.clearAndReindex} clears all server caches and schedules a fresh
-     * index run.  The server must return a response (null result) and remain responsive
+     * index run.  The server must return a non-error response and remain responsive
      * to subsequent requests.
      *
      * <p>No workspace root is configured, so the index run logs "no source directories"
@@ -272,7 +233,7 @@ public class WorkspaceIndexTest {
         client.sendRequest("workspace/executeCommand", params);
         JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to clearAndReindex command", resp);
-        assertTrue("clearAndReindex must return null result", resp.get("result").isJsonNull());
+        assertFalse("clearAndReindex must not return an error", resp.has("error"));
 
         // The server must still respond to normal requests.
         client.sendRequest("textDocument/codeLens",

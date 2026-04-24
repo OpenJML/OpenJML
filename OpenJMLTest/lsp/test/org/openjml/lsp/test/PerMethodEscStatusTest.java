@@ -2,15 +2,9 @@ package org.openjml.lsp.test;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLCommands;
-import org.openjml.lsp.OpenJMLLanguageServer;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.*;
@@ -31,137 +25,7 @@ import static org.junit.Assert.*;
  * <p>The method ref sent to {@code openjml.runEscForMethod} is extracted from the
  * actual {@code textDocument/codeLens} response so the line number is exact.
  */
-public class PerMethodEscStatusTest {
-
-    private static final long TIMEOUT_SECONDS = 120;
-    private static final long SHORT_TIMEOUT   = 5;
-
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
-
-    @Before
-    public void setUp() throws Exception {
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
-
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
-        server.connect(launcher.getRemoteProxy());
-        launcher.startListening();
-
-        client = new RawLspClient(clientOut, clientIn);
-        client.sendRequest("initialize",
-                "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        assertNotNull("Server must respond to initialize",
-                client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS));
-        client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
-    }
-
-    // -----------------------------------------------------------------------
-    // Helpers
-    // -----------------------------------------------------------------------
-
-    private static String jsonEscape(String s) {
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n");
-    }
-
-    private void didOpen(String uri, String source) throws Exception {
-        client.sendNotification("textDocument/didOpen",
-                "{\"textDocument\":{\"uri\":\"" + uri
-                + "\",\"languageId\":\"java\",\"version\":1,"
-                + "\"text\":\"" + jsonEscape(source) + "\"}}");
-    }
-
-    private JsonObject nextDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            if (msg.getAsJsonObject("params").get("uri").getAsString().contains(fragment))
-                return msg;
-        }
-    }
-
-    private JsonObject nextNonEmptyDiagsFor(String fragment, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            JsonObject params = msg.getAsJsonObject("params");
-            if (!params.get("uri").getAsString().contains(fragment)) continue;
-            if (!params.getAsJsonArray("diagnostics").isEmpty()) return msg;
-        }
-    }
-
-    private JsonArray requestCodeLens(String uri) throws Exception {
-        client.sendRequest("textDocument/codeLens",
-                "{\"textDocument\":{\"uri\":\"" + uri + "\"}}");
-        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-        if (response == null || !response.has("result") || response.get("result").isJsonNull())
-            return null;
-        return response.getAsJsonArray("result");
-    }
-
-    private String pollLensTitleUntil(String uri, String sub, long timeoutSeconds)
-            throws Exception {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
-        String last = null;
-        while (System.nanoTime() < deadline) {
-            JsonArray lenses = requestCodeLens(uri);
-            if (lenses != null) {
-                for (int i = 0; i < lenses.size(); i++) {
-                    JsonObject lens = lenses.get(i).getAsJsonObject();
-                    if (!lens.has("command")) continue;
-                    String title = lens.getAsJsonObject("command").get("title").getAsString();
-                    if (i == 0 || last == null) last = title;
-                    if (title.contains(sub)) return title;
-                }
-            }
-            client.nextNotification("textDocument/publishDiagnostics", 200, TimeUnit.MILLISECONDS);
-            Thread.sleep(300);
-        }
-        return last;
-    }
-
-    /**
-     * Extract the first code-lens method-ref arg that contains {@code nameContains}
-     * (or the first one overall if {@code nameContains} is null).
-     * The method ref is args[1] of the lens command arguments.
-     * Returns null if no matching lens is found.
-     */
-    private String extractMethodRef(JsonArray lenses, String nameContains) {
-        if (lenses == null || lenses.isEmpty()) return null;
-        String first = null;
-        for (int i = 0; i < lenses.size(); i++) {
-            JsonObject lens = lenses.get(i).getAsJsonObject();
-            if (!lens.has("command")) continue;
-            JsonArray args = lens.getAsJsonObject("command").getAsJsonArray("arguments");
-            if (args == null || args.size() < 2) continue;
-            String ref = args.get(1).getAsString();
-            if (first == null) first = ref;
-            if (nameContains == null || ref.contains(nameContains)) return ref;
-        }
-        return first; // fallback: return first available ref even if no match
-    }
-
-    private String extractMethodRef(JsonArray lenses) {
-        return extractMethodRef(lenses, null);
-    }
+public class PerMethodEscStatusTest extends ProtocolTestBase {
 
     // -----------------------------------------------------------------------
     // (1) Per-method ESC — code-lens format — NOT_VERIFIED
