@@ -145,7 +145,7 @@ The names match the token type strings listed in the table above.
 |---|---|---|
 | `openjml.serverPath` | `` | Path to the `openjml-lsp` launcher script. Leave empty to auto-discover it in the parent directory of the extension or on the system PATH. Requires OpenJML to be installed separately. |
 | `openjml.checkTriggerOn` | `edit` | When to run `--check`: `edit` (on every change), `save` (only on file save), or `manual` (never automatic; use the OpenJML: Check JML command). |
-| `openjml.escTriggerOn` | `manual` | When to run `--esc`: `manual` (only via command), `save` (on file save), or `edit` (on every change — expensive). |
+| `openjml.escTriggerOn` | `manual` | When to run `--esc`: `manual` (only via command) or `save` (on file save). |
 | `openjml.dirtyFileAction` | `ask` | What to do when ESC is invoked on a file with unsaved changes: `ask` (prompt each time), `save` (always save silently first), or `run` (always run on the saved disk file). |
 | `openjml.toolOptions` | `[]` | Project-independent OpenJML command-line options prepended to every tool invocation. Use `["--properties", "/path/to/file"]` to pass a properties file — one idiomatic way to supply a sequence of options; alternatively put individual flags directly in this array. Project-dependent settings (source path, class path, specs path) belong in the named settings below. |
 | `openjml.specsPath` | `` | Path to the OpenJML specs directory. Leave empty to use the default from the launcher script. |

@@ -9,7 +9,7 @@
  *   --check (JML type-check): triggered on edit, save, or manually
  *           (openjml.checkTriggerOn).  The command "OpenJML: Check JML" triggers
  *           an explicit check in manual mode.
- *   --esc   (extended static check): triggered on edit, save, or manually
+ *   --esc   (extended static check): triggered on save or manually
  *           (openjml.escTriggerOn).  The command "OpenJML: Run ESC" sends an
  *           explicit workspace/executeCommand to the server.
  *
@@ -778,10 +778,9 @@ async function activate(context) {
         }
         const escTriggerOn = vscode.workspace.getConfiguration('openjml').get('escTriggerOn', 'manual');
         await editor.document.save();
-        // If escTriggerOn is not "manual", ESC is already triggered automatically
-        // ("save" → server ESC on didSave; "edit" → server ESC on every edit).
+        // If escTriggerOn is "save", ESC is already triggered automatically on didSave.
         // Sending an additional openjml.runEsc would double-verify.
-        if (escTriggerOn !== 'manual') { startEscPolling(); return; }
+        if (escTriggerOn === 'save') { startEscPolling(); return; }
 
         let targetUri = editor.document.uri;
         if (editor.document.languageId === 'jml') {
@@ -1103,8 +1102,7 @@ async function activate(context) {
 
     // ESC-on-save (escTriggerOn == "save") is handled server-side in didSave.
     // The server fires on every didSave regardless of whether it was a manual or
-    // auto-save (LSP does not carry a save reason).  Users who save frequently
-    // should use escTriggerOn == "manual".
+    // auto-save (LSP does not carry a save reason).
 
     // Start the language client (shows retry dialog if script not found).
     await startClient();

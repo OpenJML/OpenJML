@@ -193,7 +193,6 @@ public class OpenJMLSettings {
      * <ul>
      *   <li>{@code "manual"} (default) — only on explicit command ({@code openjml.runEsc})</li>
      *   <li>{@code "save"} — on every save</li>
-     *   <li>{@code "edit"} — on every document change (debounced; expensive)</li>
      * </ul>
      */
     public volatile String escTriggerOn = "manual";
@@ -206,9 +205,6 @@ public class OpenJMLSettings {
 
     /** Returns {@code true} if --check should only fire on explicit command. */
     public boolean isCheckManual()  { return "manual".equalsIgnoreCase(checkTriggerOn); }
-
-    /** Returns {@code true} if --esc should fire on every edit. */
-    public boolean isEscOnEdit()   { return "edit".equalsIgnoreCase(escTriggerOn); }
 
     /** Returns {@code true} if --esc should fire on save. */
     public boolean isEscOnSave()   { return "save".equalsIgnoreCase(escTriggerOn); }

@@ -77,27 +77,15 @@ public class OpenJMLSettingsTest {
 
     @Test
     public void testEscManualIsDefaultTrue() {
-        // Default escTriggerOn = "manual"
         OpenJMLSettings s = new OpenJMLSettings();
-        assertFalse("isEscOnEdit must be false by default", s.isEscOnEdit());
         assertFalse("isEscOnSave must be false by default", s.isEscOnSave());
         assertTrue("isEscManual must be true by default",   s.isEscManual());
-    }
-
-    @Test
-    public void testEscOnEdit() {
-        OpenJMLSettings s = new OpenJMLSettings();
-        s.escTriggerOn = "edit";
-        assertTrue(s.isEscOnEdit());
-        assertFalse(s.isEscOnSave());
-        assertFalse(s.isEscManual());
     }
 
     @Test
     public void testEscOnSave() {
         OpenJMLSettings s = new OpenJMLSettings();
         s.escTriggerOn = "save";
-        assertFalse(s.isEscOnEdit());
         assertTrue(s.isEscOnSave());
         assertFalse(s.isEscManual());
     }
@@ -105,8 +93,6 @@ public class OpenJMLSettingsTest {
     @Test
     public void testEscTriggerCaseInsensitive() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.escTriggerOn = "EDIT";
-        assertTrue(s.isEscOnEdit());
         s.escTriggerOn = "Save";
         assertTrue(s.isEscOnSave());
         s.escTriggerOn = "MANUAL";
@@ -169,7 +155,7 @@ public class OpenJMLSettingsTest {
     public void testCopyConstructorCopiesFields() {
         OpenJMLSettings orig = new OpenJMLSettings();
         orig.checkTriggerOn         = "save";
-        orig.escTriggerOn           = "edit";
+        orig.escTriggerOn           = "save";
         orig.syntaxColoringStrategy = "regex";
         orig.escEngine              = "concurrent";
         orig.specsPath              = "/path/to/specs";

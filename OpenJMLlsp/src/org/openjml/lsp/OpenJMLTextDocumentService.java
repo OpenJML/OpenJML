@@ -91,9 +91,8 @@ import java.util.function.Supplier;
  * <ul>
  *   <li>{@code "manual"} (default) — only on explicit {@code openjml.runEsc} command</li>
  *   <li>{@code "save"} — on every save</li>
- *   <li>{@code "edit"} — on every change (debounced {@value #ESC_DEBOUNCE_MS} ms; expensive)</li>
  * </ul>
- * ESC is never triggered automatically on open — only on save, edit (per the setting),
+ * ESC is never triggered automatically on open — only on save (per the setting)
  * or the explicit {@code openjml.runEsc} command.
  *
  * <p>Multiple ESC operations may run concurrently on different files.  Within
@@ -419,12 +418,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
         }
 
-        // --esc: debounced if in edit mode
-        if (globalSettings.isEscOnEdit()) {
-            debounce(pendingEsc, uri,
-                    () -> startEscContent(uri),
-                    ESC_DEBOUNCE_MS);
-        }
     }
 
     private void startEscContent(String uri) {
@@ -444,8 +437,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
         // --esc: on save when escTriggerOn == "save".  LSP does not carry a save-reason
         // (manual vs. auto-save), so this fires on every didSave regardless of how the
-        // save was initiated.  Users who save frequently (e.g. Eclipse auto-compile-on-save)
-        // should use escTriggerOn == "manual" to avoid unwanted ESC runs.
+        // save was initiated.
         if (globalSettings.isEscOnSave()) scheduleEscForUri(uri, null);
     }
 

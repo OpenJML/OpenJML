@@ -350,12 +350,11 @@
           "type": "string",
           "enum": [
             "manual",
-            "save",
-            "edit"
+            "save"
           ],
           "default": "manual",
           "order": 2,
-          "markdownDescription": "When to run extended static checking (`--esc`):\n- `manual` — only via the **OpenJML: Run ESC** command or editor button\n- `save` — on every save\n- `edit` — on every change (expensive; not recommended for large files)"
+          "markdownDescription": "When to run extended static checking (`--esc`):\n- `manual` — only via the **OpenJML: Run ESC** command or editor button\n- `save` — on every save"
         },
         "openjml.dirtyFileAction": {
           "type": "string",
