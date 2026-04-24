@@ -1055,7 +1055,45 @@ async function activate(context) {
     // without the user needing to make a document edit.
     jmlTokensEmitter = new vscode.EventEmitter();
     context.subscriptions.push(jmlTokensEmitter);
-    const jmlLegend = new vscode.SemanticTokensLegend(['keyword', 'macro', 'variable'], []);
+    // Token types and modifiers must match SemanticTokensProvider.TOKEN_TYPES /
+    // TOKEN_MODIFIERS on the server (order and length are significant).
+    const jmlLegend = new vscode.SemanticTokensLegend(
+        [
+            'namespace',      //  0
+            'class',          //  1
+            'interface',      //  2
+            'enum',           //  3
+            'struct',         //  4  records
+            'typeParameter',  //  5
+            'type',           //  6  primitives + JML built-in types
+            'parameter',      //  7
+            'variable',       //  8
+            'property',       //  9  fields
+            'enumMember',     // 10
+            'method',         // 11
+            'function',       // 12  backslash tokens (\result, \old, …)
+            'macro',          // 13  reserved (see BACKSLASH_TOKEN_TYPE)
+            'keyword',        // 14
+            'modifier',       // 15  JML modifiers (pure, nullable, …)
+            'decorator',      // 16  annotations (@Override, @NonNull, …)
+            'comment',        // 17  reserved
+            'string',         // 18
+            'number',         // 19
+            'operator',       // 20
+        ],
+        [
+            'declaration',    // bit 0
+            'definition',     // bit 1
+            'readonly',       // bit 2
+            'static',         // bit 3
+            'deprecated',     // bit 4
+            'abstract',       // bit 5
+            'async',          // bit 6  unused
+            'modification',   // bit 7  unused
+            'documentation',  // bit 8  unused
+            'defaultLibrary', // bit 9
+        ]
+    );
     const jmlTokensProvider = vscode.languages.registerDocumentSemanticTokensProvider(
         [{ language: 'java' }, { language: 'jml' }],
         {

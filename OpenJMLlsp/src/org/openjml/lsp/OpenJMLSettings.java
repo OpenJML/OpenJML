@@ -259,15 +259,16 @@ public class OpenJMLSettings {
     public boolean isEscApiMode() { return "concurrent".equalsIgnoreCase(escEngine); }
 
     /**
-     * Maximum number of concurrent doESC threads used by the {@code concurrent} engine.
-     * Methods from different files run concurrently up to this limit;
-     * methods within the same file are serialized (IAPI.doESC is not thread-safe per instance).
+     * Maximum number of concurrent ESC tasks in {@link #escPool}.  Governs
+     * parallelism for all ESC modes: per-method {@code doESC} calls in the
+     * {@code concurrent} engine, and per-file or per-method subprocess invocations
+     * in the {@code fresh} engine when using split-by-file or split-by-method.
      */
     public volatile int escThreads = 5;
 
     /**
-     * Fixed thread pool used by the {@code api} engine to run per-method doESC calls
-     * concurrently.  {@code transient} so Gson never touches it.  Recreated by
+     * Fixed thread pool shared by all ESC execution paths.  {@code transient} so
+     * Gson never touches it.  Recreated by
      * {@link org.openjml.lsp.OpenJMLWorkspaceService} whenever {@link #escThreads}
      * is updated via a configuration change.
      */

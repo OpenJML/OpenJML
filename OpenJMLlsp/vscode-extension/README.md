@@ -8,33 +8,37 @@ powered by the [OpenJML](https://www.openjml.org) tool.
 
 ## Installation
 
+0. Install VSCode, and have the executable findable on PATH or in a standard Applications folder
 1. Download a current [OpenJML release](https://github.com/OpenJML/OpenJML/releases) into a clean folder.
 2. Unzip the release `.zip` file in that folder.
 3. Run `./install-vscode-extension` from that folder (do not move the script or any other contents of the installation folder).
 
 The script installs the VS Code extension and sets `openjml.serverPath` automatically.
-If the script fails it prints instructions for a manual workaround.
+If the script fails it emits instructions for a manual workaround.
 
 ## Requirements
 
 The extension requires an OpenJML installation on the local machine.
-`openjml.serverPath` must point to the `openjml-lsp` launcher script from the OpenJML distribution;
+`openjml.serverPath` must point to the OpenJML installation folder or the `openjml-lsp` launcher script from the OpenJML distribution;
 the installer sets this automatically.
 
 ## Features
 
-- JML type-check diagnostics (squigglies) on edit or save
-- Extended static checking (ESC) via SMT solver — manually, on save, or on edit
+- JML type-check diagnostics (squigglies) on edit or save, with auto-recheck on focus changes
+- Extended static checking (ESC) via SMT solver — manually or on save
 - Per-method ESC status code lens (`✓ Verified` / `✗ N issue(s)`) for all classes in a file,
   including secondary top-level classes, member nested classes, local classes, and anonymous classes
+- Ability to split ESC tasks to promote concurrency
 - Hover showing JML specifications above the method under cursor
 - JML keyword and backslash-token completion inside `//@ ...` and `/*@ ... */` annotations
 - Document outline with Java and JML symbols (classes, methods, ghost/model declarations)
 - Go to definition, find references, and rename for Java and JML identifiers
+- Workspace symbol search (Find All Declarations) for cross-file navigation, populated by Index Project
 - Signature help inside method call argument lists
 - Folding ranges for multi-line JML annotation blocks
 - JML syntax highlighting (semantic tokens) merged additively with Red Hat Java Extension coloring — covers JML clause keywords, modifiers, backslash expressions, operators, and literals inside JML context; in `full` mode also covers all Java symbols
 - Status bar indicator showing how many ESC tasks are currently running
+- Compilation with Runtime Assertion Checking
 - Explorer context menu for running ESC and RAC on files and folders
 
 ## Commands
@@ -63,7 +67,7 @@ fully-qualified name, so it works correctly for methods in secondary classes and
 or one per method — so code lenses update as each proof completes rather than all at once.
 
 **Save and Run ESC** saves the file first, then runs ESC. Useful when `dirtyFileAction` is `run`
-(which would otherwise verify the saved disk copy, not the current edits).
+(which would otherwise run on the editor content without saving first).
 
 **Index Project** runs `--check` on all source files in the workspace, populating the declaration
 index used by "Find All Declarations" (`workspace/symbol`). Run it once after opening a project
@@ -99,10 +103,15 @@ color themes apply automatically:
 | `number` | Numeric and character literals inside JML expressions |
 | `decorator` | `@Override`, `@NonNull`, and other annotations |
 | `method`, `property`, `variable`, `parameter` | Resolved symbols inside JML expressions (AST strategy only) |
+| `class`, `interface`, `enum`, `struct` | Class, interface, enum, and record type references in JML expressions (AST strategy only; `struct` = record) |
+| `namespace` | Package-qualified name prefixes in JML expressions (AST strategy only) |
+| `typeParameter` | Type parameter references in JML expressions (AST strategy only) |
+| `enumMember` | Enum constant references in JML expressions (AST strategy only) |
 
 In addition, the declaration site of a symbol (e.g. a ghost field declaration) receives the
-`declaration` modifier, `final` fields and locals receive `readonly`, and `static` members
-receive `static`.
+`declaration` modifier, `final` fields and locals receive `readonly`, `static` members
+receive `static`, deprecated symbols receive `deprecated`, and abstract methods and classes
+receive `abstract`.
 
 ### Modes
 
@@ -143,16 +152,16 @@ The names match the token type strings listed in the table above.
 
 | Setting | Default | Description |
 |---|---|---|
-| `openjml.serverPath` | `` | Path to the `openjml-lsp` launcher script. Leave empty to auto-discover it in the parent directory of the extension or on the system PATH. Requires OpenJML to be installed separately. |
+| `openjml.serverPath` | `` | Path to the OpenJML installation folder or a `openjml-lsp` launcher script. Leave empty to auto-discover it in the parent directory of the extension or on the system PATH. Requires OpenJML to be installed separately. |
 | `openjml.checkTriggerOn` | `edit` | When to run `--check`: `edit` (on every change), `save` (only on file save), or `manual` (never automatic; use the OpenJML: Check JML command). |
 | `openjml.escTriggerOn` | `manual` | When to run `--esc`: `manual` (only via command) or `save` (on file save). |
-| `openjml.dirtyFileAction` | `ask` | What to do when ESC is invoked on a file with unsaved changes: `ask` (prompt each time), `save` (always save silently first), or `run` (always run on the saved disk file). |
+| `openjml.dirtyFileAction` | `ask` | What to do when ESC is invoked on a file with unsaved changes: `ask` (prompt each time), `save` (always save silently first), or `run` (always run on the editor content). |
 | `openjml.toolOptions` | `[]` | Project-independent OpenJML command-line options prepended to every tool invocation. Use `["--properties", "/path/to/file"]` to pass a properties file — one idiomatic way to supply a sequence of options; alternatively put individual flags directly in this array. Project-dependent settings (source path, class path, specs path) belong in the named settings below. |
 | `openjml.specsPath` | `` | Path to the OpenJML specs directory. Leave empty to use the default from the launcher script. |
 | `openjml.sourcePath` | `` | Source root(s) for cross-file references (`-sourcepath`). Separate multiple roots with `:` (Unix) or `;` (Windows). Leave empty for single-file projects. |
 | `openjml.classPath` | `` | Classpath for pre-compiled dependencies (`-classpath`). Separate multiple entries with `:` (Unix) or `;` (Windows). Leave empty if no external jars are needed. |
 | `openjml.escEngine` | `fresh` | ESC execution engine: `fresh` (default — spawns a fresh OpenJML process) or `concurrent` (in-process per-method using the cached AST, serialized within a file). |
-| `openjml.escThreads` | `5` | Maximum concurrent ESC threads (only used when `escEngine` is `concurrent`). |
+| `openjml.escThreads` | `5` | Maximum number of concurrent ESC tasks. Controls per-method parallelism in the `concurrent` engine, and per-file or per-method subprocess parallelism when using Run ESC Split by File / Split by Method. |
 | `openjml.syntaxColoringScope` | `preserve Java coloring` | How OpenJML's semantic tokens interact with Java coloring: `preserve Java coloring` (default) — emit tokens only inside JML annotation context, leaving Java code to the Java language server; `overwrite Java coloring` — emit tokens for all Java and JML constructs, replacing whatever the Java language server produced. |
 | `openjml.syntaxColoringStrategy` | `ast` | JML syntax coloring strategy: `ast` (uses the attributed AST when available — precise, no false positives) or `regex` (always uses regex line scanning — may color Java identifiers that share a name with a JML keyword). |
 | `openjml.useIntegratedOutline` | `true` | When `true`, the Outline panel shows all Java and JML symbols together. When `false`, only JML-specific symbols are shown (complementing the Red Hat Java Extension's outline). |
