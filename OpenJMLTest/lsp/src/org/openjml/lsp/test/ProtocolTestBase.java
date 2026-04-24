@@ -374,6 +374,23 @@ public abstract class ProtocolTestBase {
      * argument at index 1 contains {@code nameFragment}, or from any lens when
      * {@code nameFragment} is {@code null}.
      */
+    /**
+     * Poll code lenses until a method ref containing {@code nameFragment} is available
+     * (i.e. the method is not in CHECKING state), then return it.
+     * Returns {@code null} if the timeout expires before the ref appears.
+     */
+    protected String pollExtractMethodRef(String uri, String nameFragment,
+                                          long timeoutSeconds) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSeconds);
+        while (System.nanoTime() < deadline) {
+            JsonArray lenses = requestCodeLens(uri);
+            String ref = extractMethodRef(lenses, nameFragment);
+            if (ref != null) return ref;
+            client.nextNotification("textDocument/publishDiagnostics", 200, TimeUnit.MILLISECONDS);
+        }
+        return null;
+    }
+
     protected static String extractMethodRef(JsonArray lenses, String nameFragment) {
         if (lenses == null) return null;
         for (int i = 0; i < lenses.size(); i++) {

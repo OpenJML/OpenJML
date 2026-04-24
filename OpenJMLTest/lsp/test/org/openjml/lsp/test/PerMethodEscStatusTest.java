@@ -140,7 +140,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         nextDiagsFor("PerMethodRunning", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         JsonArray lenses = requestCodeLens(uri);
-        String methodRef = extractMethodRef(lenses, "m@");
+        String methodRef = extractMethodRef(lenses, ".m(");
         assertNotNull("Expected methodRef", methodRef);
 
         // Start per-method ESC.
@@ -187,7 +187,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         nextDiagsFor("PerMethodStd", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         JsonArray lenses = requestCodeLens(uri);
-        String methodRef = extractMethodRef(lenses, "m@");
+        String methodRef = extractMethodRef(lenses, ".m(");
         assertNotNull("Expected methodRef", methodRef);
 
         // Standard format: 3 args, first arg is empty projectId (not a file:// URI).

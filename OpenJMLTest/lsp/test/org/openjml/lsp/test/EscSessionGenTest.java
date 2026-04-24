@@ -212,8 +212,9 @@ public class EscSessionGenTest extends ProtocolTestBase {
         assertTrue("File ESC must produce at least one NOT_VERIFIED lens", failingCount >= 1);
 
         // Per-method ESC session: run ESC only on 'passing'.
-        JsonArray lenses = requestCodeLens(uri);
-        String passingRef = extractMethodRef(lenses, "passing");
+        // Poll until the method ref is available — 'passing' may still be CHECKING
+        // (args.size()==1) if its completion callback fires after nextNonEmptyDiagsFor returns.
+        String passingRef = pollExtractMethodRef(uri, "passing", 30);
         assertNotNull("Must find a method ref for 'passing'", passingRef);
         sendEscForMethod(uri, passingRef);
         // Drain diagnostic notifications from the per-method run.
@@ -297,8 +298,7 @@ public class EscSessionGenTest extends ProtocolTestBase {
 
         // Session 2 (higher gen): per-method ESC for 'fast'.
         // Submitted while session 1 is in the middle of proving 'slow'.
-        JsonArray lenses = requestCodeLens(uri);
-        String fastRef = extractMethodRef(lenses, "fast");
+        String fastRef = pollExtractMethodRef(uri, "fast", 30);
         assertNotNull("Must find a method ref for 'fast'", fastRef);
         sendEscForMethod(uri, fastRef);
 

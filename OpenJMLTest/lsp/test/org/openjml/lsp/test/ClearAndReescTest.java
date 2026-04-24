@@ -221,14 +221,15 @@ public class ClearAndReescTest extends ProtocolTestBase {
         assertTrue("Second ESC must produce ESC errors for A", firstErrA >= 0);
         assertTrue("Second ESC must produce ESC errors for B", firstErrB >= 0);
 
-        // The first error notification for each file must carry exactly 1 error.
-        // Count 2 would mean stale proofResults from before the clear leaked through.
+        // The first error notification for each file must carry exactly 2 errors
+        // (ESC promotes both the main diagnostic and the "associated declaration" to Error).
+        // Count 4 would mean stale proofResults from before the clear leaked through.
         assertEquals(
-                "First error notification for A must have exactly 1 error (not doubled from stale cache)",
-                1, firstErrA);
+                "First error notification for A must have exactly 2 errors (not doubled from stale cache)",
+                2, firstErrA);
         assertEquals(
-                "First error notification for B must have exactly 1 error (not doubled from stale cache)",
-                1, firstErrB);
+                "First error notification for B must have exactly 2 errors (not doubled from stale cache)",
+                2, firstErrB);
 
         // Drain remaining notifications and verify the final count stays at 1.
         int lastErrA = firstErrA, lastErrB = firstErrB;
@@ -248,7 +249,7 @@ public class ClearAndReescTest extends ProtocolTestBase {
             if (uri.equals(uriB)) lastErrB = errors;
         }
 
-        assertEquals("Final ESC notification for A must have exactly 1 error", 1, lastErrA);
-        assertEquals("Final ESC notification for B must have exactly 1 error", 1, lastErrB);
+        assertEquals("Final ESC notification for A must have exactly 2 errors", 2, lastErrA);
+        assertEquals("Final ESC notification for B must have exactly 2 errors", 2, lastErrB);
     }
 }
