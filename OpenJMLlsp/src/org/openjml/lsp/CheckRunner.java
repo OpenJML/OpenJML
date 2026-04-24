@@ -2120,7 +2120,7 @@ public class CheckRunner {
         ASTCache.Entry entry = AST_CACHE.get(uri);
         if (entry == null || !entry.supportsDoEsc()) {
             ServerLog.serverLog("[CheckRunner.runDoEscMethod] no cached IAPI for " + uri
-                    + " — falling back to subprocess");
+                    + " — falling back to fresh engine");
             String filePath = uriToPath(uri);
             if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
@@ -2130,7 +2130,7 @@ public class CheckRunner {
         List<JmlTree.JmlMethodDecl> methods = findMethodsBySimpleName(entry.ast(), simple);
         if (methods.isEmpty()) {
             ServerLog.serverLog("[CheckRunner.runDoEscMethod] method '" + simple
-                    + "' not found in cached AST for " + uri + " — falling back to subprocess");
+                    + "' not found in cached AST for " + uri + " — falling back to fresh engine");
             String filePath = uriToPath(uri);
             if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
@@ -2173,7 +2173,7 @@ public class CheckRunner {
         ASTCache.Entry entry = AST_CACHE.get(uri);
         if (entry == null || !entry.supportsDoEsc()) {
             ServerLog.serverLog("[CheckRunner.runDoEscFileAsync] no cached IAPI for " + uri
-                    + " — falling back to subprocess");
+                    + " — falling back to fresh engine");
             String filePath = uriToPath(uri);
             CheckResult result = (filePath != null)
                     ? runEscFile(filePath, uri, settings)

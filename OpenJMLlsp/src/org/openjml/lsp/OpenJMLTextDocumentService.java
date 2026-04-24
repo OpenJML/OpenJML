@@ -1831,7 +1831,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     /**
      * Trigger an ESC run on the given URI, dispatching to the engine configured in
-     * {@link OpenJMLSettings}: api-mode or subprocess.
+     * {@link OpenJMLSettings}: api-mode or fresh.
      */
     void scheduleEscForUri(String uri, String projectId) {
         OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
@@ -1880,7 +1880,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Attaches the shared {@code thenAccept}/{@code exceptionally}/{@code whenComplete}
      * completion callbacks to an ESC future and registers it in {@link #runningSessions}.
      *
-     * @param modeName short label used in log messages, e.g. {@code "api"} or {@code "subprocess"}
+     * @param modeName short label used in log messages, e.g. {@code "api"} or {@code "fresh"}
      */
     private void attachEscCallbacks(String uri, long myGen,
             CompletableFuture<CheckRunner.CheckResult> cf, String modeName) {

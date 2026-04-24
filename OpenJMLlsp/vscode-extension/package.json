@@ -397,19 +397,19 @@
         "openjml.escEngine": {
           "type": "string",
           "enum": [
-            "subprocess",
+            "fresh",
             "concurrent"
           ],
-          "default": "subprocess",
+          "default": "fresh",
           "order": 8,
-          "markdownDescription": "Which engine to use for ESC:\n- `subprocess` (default) — spawns a fresh OpenJML process with `--esc`\n- `concurrent` — calls `IAPI.doESC` in-process on the cached AST; methods within a file are serialized; methods across files run concurrently"
+          "markdownDescription": "Which engine to use for ESC:\n- `fresh` (default) — spawns a fresh OpenJML process with `--esc`\n- `concurrent` — calls `IAPI.doESC` in-process on the cached AST; methods within a file are serialized; methods across files run concurrently"
         },
         "openjml.escThreads": {
           "type": "integer",
           "default": 5,
           "minimum": 1,
           "order": 9,
-          "markdownDescription": "Maximum number of concurrent ESC threads (**`concurrent` engine only** — ignored when `escEngine` is `subprocess`). Methods from different files are verified concurrently up to this limit; methods within the same file are serialized."
+          "markdownDescription": "Maximum number of concurrent ESC threads (**`concurrent` engine only** — ignored when `escEngine` is `fresh`). Methods from different files are verified concurrently up to this limit; methods within the same file are serialized."
         },
         "openjml.syntaxColoringStrategy": {
           "type": "string",

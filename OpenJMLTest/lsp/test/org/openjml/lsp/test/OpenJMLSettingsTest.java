@@ -129,7 +129,7 @@ public class OpenJMLSettingsTest {
 
     @Test
     public void testEscApiModeDefaultFalse() {
-        // Default escEngine = "subprocess"
+        // Default escEngine = "fresh"
         assertFalse(new OpenJMLSettings().isEscApiMode());
     }
 

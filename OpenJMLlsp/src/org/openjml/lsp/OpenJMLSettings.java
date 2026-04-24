@@ -246,14 +246,14 @@ public class OpenJMLSettings {
     /**
      * Which engine to use for ESC:
      * <ul>
-     *   <li>{@code "subprocess"} (default) — spawn a fresh OpenJML process with {@code --esc}</li>
+     *   <li>{@code "fresh"} (default) — spawn a fresh OpenJML process with {@code --esc}</li>
      *   <li>{@code "concurrent"} — call {@link org.openjml.IAPI#doESC} in-process on the cached AST
      *       from the last successful {@code --check}.  No re-typechecking; ESC attempts on methods
      *       are done concurrently according to the number of threads setting.
-     *       Falls back to subprocess if no cached IAPI is available.</li>
+     *       Falls back to the fresh engine if no cached IAPI is available.</li>
      * </ul>
      */
-    public volatile String escEngine = "subprocess";
+    public volatile String escEngine = "fresh";
 
     /** Returns {@code true} if the concurrent in-process doESC engine is selected. */
     public boolean isEscApiMode() { return "concurrent".equalsIgnoreCase(escEngine); }

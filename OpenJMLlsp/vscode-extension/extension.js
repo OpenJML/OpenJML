@@ -536,7 +536,7 @@ function getSettings() {
         racOutputDir:            cfg.get('racOutputDir',            ''),
         syntaxColoringScope:     cfg.get('syntaxColoringScope',     'preserve Java coloring'),
         syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'ast'),
-        escEngine:               cfg.get('escEngine',               'subprocess'),
+        escEngine:               cfg.get('escEngine',               'fresh'),
         escThreads:              cfg.get('escThreads',              5),
         useIntegratedOutline:    cfg.get('useIntegratedOutline',    true),
         javaMode:                cfg.get('javaMode',               'jml-only'),

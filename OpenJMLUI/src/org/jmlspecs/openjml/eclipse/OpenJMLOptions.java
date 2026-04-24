@@ -51,7 +51,7 @@ public class OpenJMLOptions {
     /** Classpath for pre-compiled dependencies (blank = none). */
     public static final String classPathKey            = "openjml.classPath";
 
-    /** ESC engine: "subprocess" (default) or "concurrent". */
+    /** ESC engine: "fresh" (default) or "concurrent". */
     public static final String escEngineKey            = "openjml.escEngine";
     /** Number of parallel ESC threads (0 = server default). */
     public static final String escThreadsKey           = "openjml.escThreads";
@@ -265,7 +265,7 @@ public class OpenJMLOptions {
         store.setDefault(escTriggerOnKey,             "manual");
         store.setDefault(escDirtyFilesBehaviorKey,    "ask");
         store.setDefault(racSaveBeforeKey,            false);
-        store.setDefault(escEngineKey,                "subprocess");
+        store.setDefault(escEngineKey,                "fresh");
         store.setDefault(escThreadsKey,               "0");
         store.setDefault(useIntegratedOutlineKey,     "true");
         store.setDefault(syntaxColoringStrategyKey,   "ast");
@@ -558,7 +558,7 @@ public class OpenJMLOptions {
         opts.put("escTriggerOn",           nonBlank(value(escTriggerOnKey),    "manual"));
         opts.put("specsPath",              value(specsPathKey));
 
-        opts.put("escEngine",              nonBlank(value(escEngineKey), "subprocess"));
+        opts.put("escEngine",              nonBlank(value(escEngineKey), "fresh"));
         opts.put("useIntegratedOutline",   value(useIntegratedOutlineKey));
         opts.put("syntaxColoringStrategy", nonBlank(value(syntaxColoringStrategyKey), "ast"));
         opts.put("syntaxColoringScope",    nonBlank(value(syntaxColoringScopeKey), "preserve Java coloring"));

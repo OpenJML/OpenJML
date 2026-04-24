@@ -241,7 +241,7 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.escEngineKey,
                 "ESC engine:",
                 new String[][] {
-                    { "subprocess (separate process, default)", "subprocess" },
+                    { "fresh (separate process, default)", "fresh" },
                     { "concurrent (in-process, shared IAPI)",  "concurrent" } },
                 parent));
 

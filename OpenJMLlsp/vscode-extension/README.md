@@ -151,7 +151,7 @@ The names match the token type strings listed in the table above.
 | `openjml.specsPath` | `` | Path to the OpenJML specs directory. Leave empty to use the default from the launcher script. |
 | `openjml.sourcePath` | `` | Source root(s) for cross-file references (`-sourcepath`). Separate multiple roots with `:` (Unix) or `;` (Windows). Leave empty for single-file projects. |
 | `openjml.classPath` | `` | Classpath for pre-compiled dependencies (`-classpath`). Separate multiple entries with `:` (Unix) or `;` (Windows). Leave empty if no external jars are needed. |
-| `openjml.escEngine` | `subprocess` | ESC execution engine: `subprocess` (default — spawns a fresh OpenJML process) or `concurrent` (in-process per-method using the cached AST, serialized within a file). |
+| `openjml.escEngine` | `fresh` | ESC execution engine: `fresh` (default — spawns a fresh OpenJML process) or `concurrent` (in-process per-method using the cached AST, serialized within a file). |
 | `openjml.escThreads` | `5` | Maximum concurrent ESC threads (only used when `escEngine` is `concurrent`). |
 | `openjml.syntaxColoringScope` | `preserve Java coloring` | How OpenJML's semantic tokens interact with Java coloring: `preserve Java coloring` (default) — emit tokens only inside JML annotation context, leaving Java code to the Java language server; `overwrite Java coloring` — emit tokens for all Java and JML constructs, replacing whatever the Java language server produced. |
 | `openjml.syntaxColoringStrategy` | `ast` | JML syntax coloring strategy: `ast` (uses the attributed AST when available — precise, no false positives) or `regex` (always uses regex line scanning — may color Java identifiers that share a name with a JML keyword). |
