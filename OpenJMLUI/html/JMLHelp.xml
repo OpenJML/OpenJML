@@ -8,6 +8,7 @@
         <topic label="Selection" href="html/JMLHelp.html#Selection"/>
         <topic label="Syntax and type-checking" href="html/JMLHelp.html#TypeChecking"/>
         <topic label="Static checking of JML assertions" href="html/JMLHelp.html#ESC"/>
+        <topic label="Canceling ESC tasks" href="html/JMLHelp.html#Cancel"/>
         <topic label="Compiling for Runtime-assertion checking (RAC)" href="html/JMLHelp.html#RAC"/>
         <topic label="Add/Remove OpenJML Nature" href="html/JMLHelp.html#Nature"/>
         <topic label="Clear Markers" href="html/JMLHelp.html#ClearMarkers"/>
@@ -22,8 +23,11 @@
         <topic label="Rename" href="html/JMLHelp.html#Rename"/>
         <topic label="Find all declarations" href="html/JMLHelp.html#FindIdentifiers"/>
         <topic label="Folding" href="html/JMLHelp.html#Folding"/>
+        <topic label="Outline" href="html/JMLHelp.html#Outline"/>
         <topic label="Code Lens information" href="html/JMLHelp.html#CodeLens"/>
         <topic label="Hover and inlay information" href="html/JMLHelp.html#Hover"/>
+        <topic label="Completions" href="html/JMLHelp.html#Completion"/>
+        <topic label="Signature Help" href="html/JMLHelp.html#SignatureHelp"/>
     </topic>
     <topic label="Eclipse functionality adapted to OpenJML" href="html/JMLHelp.html#EclipseFeatures">
         <topic label="Content type and Icon" href="html/JMLHelp.html#ContentType"/>
@@ -31,6 +35,6 @@
         <topic label="A Help page" href="html/JMLHelp.html#HelpPage"/>
         <topic label="Other Eclipse functionality" href="html/JMLHelp.html#OtherEclipse"/>
     </topic>
-    <topic label="Some OpenJML plugin infelicities and troubleshooting" href="html/JMLHelp.html#Troubleshooting"/>
+    <topic label="Some OpenJML plug-in infelicities and troubleshooting" href="html/JMLHelp.html#Troubleshooting"/>
 
 </toc>
