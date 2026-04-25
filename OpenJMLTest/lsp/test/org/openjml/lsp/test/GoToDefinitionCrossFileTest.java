@@ -260,7 +260,7 @@ public class GoToDefinitionCrossFileTest extends ProtocolTestBase {
         String rootPath = escape(tmpDir.toAbsolutePath().toString());
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.SYMBOLS_FOR_PROJECT
-                + "\",\"arguments\":[\"\",\"" + rootPath + "\"]}");
+                + "\",\"arguments\":[\"" + rootPath + "\",\"\"]}");
         JsonObject symResp = client.nextResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Server must respond to symbolsForProject", symResp);
         assertTrue("symbolsForProject must return a result", symResp.has("result"));

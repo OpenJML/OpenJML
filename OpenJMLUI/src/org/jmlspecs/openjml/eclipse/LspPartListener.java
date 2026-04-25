@@ -224,6 +224,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         java.net.URI fileUri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(file);
         if (fileUri == null) return;
         String uri = fileUri.toString();
+        String projectId = file.getProject() != null ? file.getProject().getName() : "";
 
         java.util.concurrent.ScheduledFuture<?> old = pendingFocusTask;
         if (old != null) old.cancel(false);
@@ -235,7 +236,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 org.eclipse.lsp4j.ExecuteCommandParams params =
                         new org.eclipse.lsp4j.ExecuteCommandParams(
                                 OpenJMLConstants.CMD_FOCUS_FILE,
-                                java.util.List.of(uri));
+                                java.util.List.of(projectId, uri));
                 org.eclipse.lsp4e.LanguageServers.forDocument(doc)
                         .computeAll(ls -> {
                             ls.getWorkspaceService().executeCommand(params);

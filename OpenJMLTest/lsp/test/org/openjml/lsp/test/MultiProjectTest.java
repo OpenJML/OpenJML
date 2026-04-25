@@ -325,11 +325,7 @@ public class MultiProjectTest extends ProtocolTestBase {
 
         // Send focusFile.  recheckUri checks lastContent (has the file) and then the
         // project guard (settingsForUri == null for a URI outside all roots) — returns early.
-        String focusParams = "{\"command\":\"" + OpenJMLCommands.FOCUS_FILE
-                + "\",\"arguments\":[\"" + uri + "\"]}";
-        client.sendRequest("workspace/executeCommand", focusParams);
-        JsonObject focusResp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
-        assertNotNull("Server must respond to focusFile command", focusResp);
+        sendFocusFile("", uri);
 
         // No publishDiagnostics should arrive for the untracked URI within 2 seconds.
         JsonObject diags = nextDiagsFor("UntrackedFocus", 2, TimeUnit.SECONDS);

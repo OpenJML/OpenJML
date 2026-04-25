@@ -283,23 +283,13 @@ public abstract class ProtocolTestBase {
     }
 
     /**
-     * Send {@code workspace/executeCommand} with the standard OpenJML 5-element
-     * argument list ({@code ["","","","",uri]}) and drain the response.
+     * Send {@code openjml.focusFile} with the canonical {@code [projectId, uri]} format
+     * and drain the response.  Pass {@code ""} for {@code projectId} in single-project
+     * or generic-client tests.
      */
-    protected void executeCommandForUri(String command, String uri) throws Exception {
-        executeCommand(command, "[\"\",\"\",\"\",\"\",\"" + uri + "\"]");
-    }
-
-    /**
-     * Send {@code workspace/executeCommand} with the standard OpenJML 5-element
-     * argument list followed by additional path arguments, and drain the response.
-     * {@code extraPaths} are appended after the URI at index 4.
-     */
-    protected void executeCommandForPaths(String command, String... osPaths) throws Exception {
-        StringBuilder args = new StringBuilder("[\"\",\"\",\"\",\"\"");
-        for (String p : osPaths) args.append(",\"").append(jsonEscape(p)).append("\"");
-        args.append("]");
-        executeCommand(command, args.toString());
+    protected void sendFocusFile(String projectId, String uri) throws Exception {
+        executeCommand(org.openjml.lsp.OpenJMLCommands.FOCUS_FILE,
+                "[\"" + jsonEscape(projectId) + "\",\"" + jsonEscape(uri) + "\"]");
     }
 
     /**

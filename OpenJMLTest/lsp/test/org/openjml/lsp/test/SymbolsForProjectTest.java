@@ -123,7 +123,7 @@ public class SymbolsForProjectTest extends ProtocolTestBase {
         String pidJson = projectId == null ? "null" : "\"" + jsonEscape(projectId) + "\"";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.SYMBOLS_FOR_PROJECT
-                + "\",\"arguments\":[\"" + jsonEscape(query) + "\"," + pidJson + "]}");
+                + "\",\"arguments\":[" + pidJson + ",\"" + jsonEscape(query) + "\"]}");
         JsonObject resp = client.nextResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Server must respond to symbolsForProject", resp);
         assertFalse("symbolsForProject must not return an error", resp.has("error"));

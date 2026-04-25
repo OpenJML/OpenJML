@@ -356,8 +356,8 @@ public class JmlFindAllDeclarationsHandler extends AbstractHandler {
     private static List<SymbolInformation> queryDeclarations(String query, IProject project) {
         String projectId = (project != null) ? project.getName() : null;
         List<Object> args = new java.util.ArrayList<>();
-        args.add(query != null ? query : "");
         args.add(projectId);   // null → server searches all projects
+        args.add(query != null ? query : "");
         ExecuteCommandParams params = new ExecuteCommandParams(
                 OpenJMLConstants.CMD_SYMBOLS_FOR_PROJECT, args);
 

@@ -199,10 +199,7 @@ public class WorkspaceIndexTest extends ProtocolTestBase {
         // Send focusFile.  recheckUri checks content != lastCheckedContent (true) and
         // no pending future (the debounce future is a ScheduledFuture, not lastCheckFuture).
         // It submits a check synchronously.
-        String focusParams = "{\"command\":\"" + OpenJMLCommands.FOCUS_FILE
-                + "\",\"arguments\":[\"" + uri + "\"]}";
-        client.sendRequest("workspace/executeCommand", focusParams);
-        client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        sendFocusFile("", uri);
 
         // At least one publishDiagnostics must arrive (from focusFile check or debounce).
         // Both would produce error diagnostics for "still broken".

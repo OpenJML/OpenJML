@@ -91,7 +91,7 @@ public class DebouncingAndCancellationTest extends ProtocolTestBase {
      */
     @Test
     public void testCancelEscWhenIdleIsHarmless() throws Exception {
-        String params = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC + "\",\"arguments\":[]}";
+        String params = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC + "\",\"arguments\":[\"\"]}";
         client.sendRequest("workspace/executeCommand", params);
         JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to cancelEsc command", resp);
@@ -116,7 +116,7 @@ public class DebouncingAndCancellationTest extends ProtocolTestBase {
     public void testCancelEscForSpecificUri() throws Exception {
         String uri = "file:///CancelSpecific.java";
         String params = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC
-                + "\",\"arguments\":[\"" + uri + "\"]}";
+                + "\",\"arguments\":[\"\",\"" + uri + "\"]}";
         client.sendRequest("workspace/executeCommand", params);
         JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to cancelEsc", resp);
@@ -160,7 +160,7 @@ public class DebouncingAndCancellationTest extends ProtocolTestBase {
 
         // Cancel immediately — may hit the task before or after it starts.
         String cancelParams = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC
-                + "\",\"arguments\":[\"" + uri + "\"]}";
+                + "\",\"arguments\":[\"\",\"" + uri + "\"]}";
         client.sendRequest("workspace/executeCommand", cancelParams);
         JsonObject cancelResp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to cancelEsc after ESC dispatch", cancelResp);

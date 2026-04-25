@@ -138,7 +138,7 @@ public class LanguageServerLifecycleTest extends ProtocolTestBase {
         // lightweight command that confirms the synthesized project is in place).
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.GET_RUNNING_ESC_TASKS
-                + "\",\"arguments\":[]}");
+                + "\",\"arguments\":[\"\"]}");
         JsonObject taskResp = client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to command after rootUri-based synthesis", taskResp);
         assertTrue("Command must return a result", taskResp.has("result"));

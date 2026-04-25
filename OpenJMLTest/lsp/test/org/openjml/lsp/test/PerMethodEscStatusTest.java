@@ -152,7 +152,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         // Immediately query running tasks (covers getRunningEscUris()).
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.GET_RUNNING_ESC_TASKS
-                + "\",\"arguments\":[]}");
+                + "\",\"arguments\":[\"\"]}");
         JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to getRunningEscTasks", resp);
         assertTrue("getRunningEscTasks must return a result", resp.has("result"));

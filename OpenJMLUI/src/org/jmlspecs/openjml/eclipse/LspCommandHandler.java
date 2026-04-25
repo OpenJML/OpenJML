@@ -1030,11 +1030,11 @@ public abstract class LspCommandHandler extends AbstractHandler {
                             .filter(l -> l.getCommand() != null
                                     && l.getCommand().getArguments() != null
                                     && (OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD.equals(l.getCommand().getCommand())
-                                            ? l.getCommand().getArguments().size() >= 2
-                                                    && !String.valueOf(l.getCommand().getArguments().get(1)).isEmpty()
+                                            ? l.getCommand().getArguments().size() >= 3
+                                                    && !String.valueOf(l.getCommand().getArguments().get(2)).isEmpty()
                                             : OpenJMLConstants.CMD_ABORT_METHOD_PROOF.equals(l.getCommand().getCommand())
-                                                    && !l.getCommand().getArguments().isEmpty()
-                                                    && !String.valueOf(l.getCommand().getArguments().get(0)).isEmpty()))
+                                                    && l.getCommand().getArguments().size() >= 2
+                                                    && !String.valueOf(l.getCommand().getArguments().get(1)).isEmpty()))
                             .sorted((a, b) -> Integer.compare(
                                     a.getRange().getStart().getLine(),
                                     b.getRange().getStart().getLine()))
@@ -1052,8 +1052,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
                     boolean isAbort = OpenJMLConstants.CMD_ABORT_METHOD_PROOF
                             .equals(matched.getCommand().getCommand());
                     args = isAbort
-                            ? List.of(uri, lensArgs.get(0))          // [rawName] → [uri, rawName]
-                            : new ArrayList<>(lensArgs);             // already [uri, fqn]
+                            ? List.of(lensArgs.get(0), uri, lensArgs.get(1))  // [proj, rawName] → [proj, uri, rawName]
+                            : new ArrayList<>(lensArgs);                       // already [proj, uri, fqn]
                 } else if (cursorLineFinal >= 0) {
                     // Fall back to "@line" — server resolves method from AST
                     args = List.of(uri, "@" + cursorLineFinal);
@@ -1156,13 +1156,18 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 Console.errorlog("ClearMarkersSelected: marker deletion failed: " + e.getMessage(), e);
             }
             // Also tell the server to clear its cached diagnostics so they don't republish.
-            ExecuteCommandParams params = new ExecuteCommandParams(
-                    OpenJMLConstants.CMD_CLEAR_MARKERS_FOR_URIS, uris);
             targets.stream()
                     .map(t -> owningProject(t))
                     .filter(java.util.Objects::nonNull)
                     .distinct()
-                    .forEach(proj -> dispatchCommand(proj, params, "ClearMarkersSelected"));
+                    .forEach(proj -> {
+                        List<Object> projUris = new java.util.ArrayList<>();
+                        projUris.add(proj.getName());
+                        projUris.addAll(uris);
+                        dispatchCommand(proj, new ExecuteCommandParams(
+                                OpenJMLConstants.CMD_CLEAR_MARKERS_FOR_URIS, projUris),
+                                "ClearMarkersSelected");
+                    });
             return null;
         }
 
@@ -1328,18 +1333,20 @@ public abstract class LspCommandHandler extends AbstractHandler {
                         org.jmlspecs.openjml.eclipse.OpenJMLCodeMiningProvider.languageClient;
                 LanguageServer ls = lc != null ? lc.server() : null;
                 if (ls != null) {
+                    String pid = project != null ? project.getName() : "";
                     Object raw = ls.getWorkspaceService()
                             .executeCommand(new ExecuteCommandParams(
-                                    OpenJMLConstants.CMD_GET_RUNNING_ESC_TASKS, List.of()))
+                                    OpenJMLConstants.CMD_GET_RUNNING_ESC_TASKS, List.of(pid)))
                             .get(5, java.util.concurrent.TimeUnit.SECONDS);
                     return toStringList(raw);
                 }
                 // Fall back to LSP4E routing.
                 if (project != null) {
+                    final String pid = project.getName();
                     Object raw = LanguageServers.forProject(project)
                             .computeFirst(s -> s.getWorkspaceService()
                                     .executeCommand(new ExecuteCommandParams(
-                                            OpenJMLConstants.CMD_GET_RUNNING_ESC_TASKS, List.of())))
+                                            OpenJMLConstants.CMD_GET_RUNNING_ESC_TASKS, List.of(pid))))
                             .get(5, java.util.concurrent.TimeUnit.SECONDS)
                             .orElse(null);
                     return toStringList(raw);
@@ -1409,7 +1416,8 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         /** Sends {@code openjml.cancelEsc} for the given key (null = cancel all). */
         private static void sendCancelCommand(String key, IProject project) {
-            List<Object> args = (key != null) ? List.of(key) : List.of();
+            String pid = project != null ? project.getName() : "";
+            List<Object> args = (key != null) ? List.of(pid, key) : List.of(pid);
             ExecuteCommandParams params = new ExecuteCommandParams(
                     OpenJMLConstants.CMD_CANCEL_ESC, args);
             if (!sendViaWrapper(org.jmlspecs.openjml.eclipse.LspPartListener.cachedWrapper, params)) {
