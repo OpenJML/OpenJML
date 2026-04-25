@@ -91,6 +91,8 @@ public final class OpenJMLCommands {
      * {@code DocumentSemanticTokensProvider} to obtain JML token data without going
      * through the standard LSP semantic-tokens protocol (which would conflict with the
      * Red Hat Java extension).
+     *
+     * <p>Arguments: {@code [projectId, uri]}.
      */
     public static final String GET_SEMANTIC_TOKENS = "openjml.getSemanticTokens";
 
@@ -115,7 +117,7 @@ public final class OpenJMLCommands {
     /**
      * Clear markers for specific URIs: {@code openjml.clearMarkersForUris}.
      *
-     * <p>Arguments: one or more URI strings (files or folder URIs).  Folder URIs
+     * <p>Arguments: {@code [projectId, uri1, uri2, ...]}.  Folder URIs
      * clear all marked files whose URI starts with that folder prefix.
      * Clears server-side {@code checkDiags} and proof results for matching URIs
      * and publishes empty diagnostics so Eclipse/VSCode removes the markers.
@@ -129,7 +131,9 @@ public final class OpenJMLCommands {
      * Also kills the in-progress SMT solver process so the ESC thread is
      * unblocked immediately.
      *
-     * <p>Arguments: {@code [target]} (optional).  Granularity:
+     * <p>Arguments: {@code [projectId, target]}.  {@code projectId} scopes the
+     * cancel to tasks belonging to that project; empty or absent means cancel
+     * across all projects.  {@code target} is optional; granularity:
      * <ul>
      *   <li>absent or empty — cancel all per-file and per-method tasks.</li>
      *   <li>bare URI (no {@code #}) — cancel the whole-file run for that URI.</li>
@@ -145,11 +149,11 @@ public final class OpenJMLCommands {
      * to continue with the next method.  Unlike {@link #CANCEL_ESC}, this does
      * not cancel the overall ESC run.
      *
-     * <p>Arguments: {@code [rawName]} (optional).
-     * {@code rawName} is the fully-qualified method name as returned by
-     * {@code Utils.uniqueSymbolName()} (e.g., {@code "com.example.Foo.add(int,int)"}).
-     * When {@code rawName} is {@code null} or absent, the currently-active proof
-     * (if any) is aborted.
+     * <p>Arguments: {@code [projectId, rawName]}.  {@code projectId} scopes the
+     * abort to a proof running within that project.  {@code rawName} is the
+     * fully-qualified method name as returned by {@code Utils.uniqueSymbolName()}
+     * (e.g., {@code "com.example.Foo.add(int,int)"}); when absent or empty, the
+     * currently-active proof (if any) is aborted.
      */
     public static final String ABORT_METHOD_PROOF = "openjml.abortMethodProof";
 
@@ -162,7 +166,9 @@ public final class OpenJMLCommands {
      * Intended for use by the client to populate a cancel dialog before calling
      * {@link #CANCEL_ESC}.
      *
-     * <p>Arguments: none.
+     * <p>Arguments: {@code [projectId]}.  When non-empty, the server filters the
+     * returned list to tasks whose URI belongs to that project.  Pass {@code ""}
+     * to return tasks across all projects.
      */
     public static final String GET_RUNNING_ESC_TASKS = "openjml.getRunningEscTasks";
 
@@ -191,12 +197,12 @@ public final class OpenJMLCommands {
      * cross-project leakage that occurs when multiple projects are indexed and the
      * client-side URI comparison is unreliable.
      *
-     * <p>Arguments: {@code [query, projectId]}.
+     * <p>Arguments: {@code [projectId, query]}.
      * <ul>
-     *   <li>{@code query} — case-insensitive substring to match; empty = return all.</li>
      *   <li>{@code projectId} — project identifier from the {@code projects} settings array
      *       (e.g. {@code IProject.getName()} in the Eclipse plugin).  When absent or empty,
      *       symbols from all projects are returned.  An unknown ID is reported as an error.</li>
+     *   <li>{@code query} — case-insensitive substring to match; empty = return all.</li>
      * </ul>
      *
      * <p>Returns a {@code List<SymbolInformation>} serialized as JSON.

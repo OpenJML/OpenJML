@@ -103,16 +103,34 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
             return null;
         });
 
-        registry.onUri       (OpenJMLCommands.FOCUS_FILE,          textDocumentService::recheckUri);
-        registry.onUriReturn (OpenJMLCommands.GET_SEMANTIC_TOKENS, textDocumentService::getSemanticTokens);
+        // FOCUS_FILE: args[0] = projectId, args[1] = uri (same convention as other commands).
+        registry.on(OpenJMLCommands.FOCUS_FILE, args -> {
+            String uri = str(args, 1);
+            if (uri != null) textDocumentService.recheckUri(uri, str(args, 0));
+            return Boolean.TRUE;
+        });
+        // GET_SEMANTIC_TOKENS: args[0]=projectId, args[1]=uri
+        registry.on(OpenJMLCommands.GET_SEMANTIC_TOKENS, args -> {
+            String uri = str(args, 1);
+            return uri != null ? textDocumentService.getSemanticTokens(uri) : null;
+        });
         registry.onNoArgs    (OpenJMLCommands.CLEAR_AND_REINDEX,   textDocumentService::resetAndReindex);
         registry.onNoArgs    (OpenJMLCommands.CLEAR_MARKERS,          textDocumentService::clearMarkers);
-        registry.onStringList(OpenJMLCommands.CLEAR_MARKERS_FOR_URIS, textDocumentService::clearMarkersForUris);
+        // CLEAR_MARKERS_FOR_URIS: args[0]=projectId, args[1+]=uris
+        registry.on(OpenJMLCommands.CLEAR_MARKERS_FOR_URIS, args -> {
+            List<String> uris = extractPaths(args, 1);
+            if (!uris.isEmpty()) textDocumentService.clearMarkersForUris(uris);
+            return Boolean.TRUE;
+        });
         registry.on(OpenJMLCommands.INDEX_PROJECT,        args -> { textDocumentService.indexProject(cmdProject(args)); return null; });
-        registry.on(OpenJMLCommands.SYMBOLS_FOR_PROJECT,  args -> textDocumentService.symbolsForProject(str(args, 0) != null ? str(args, 0) : "", str(args, 1)));
-        registry.on(OpenJMLCommands.CANCEL_ESC,           args -> { textDocumentService.cancelEsc(str(args, 0)); return null; });
-        registry.on(OpenJMLCommands.ABORT_METHOD_PROOF,   args -> { textDocumentService.abortMethodProof(str(args, 0)); return null; });
-        registry.on(OpenJMLCommands.GET_RUNNING_ESC_TASKS, args -> textDocumentService.getRunningEscUris());
+        // SYMBOLS_FOR_PROJECT: args[0]=projectId, args[1]=query
+        registry.on(OpenJMLCommands.SYMBOLS_FOR_PROJECT,  args -> textDocumentService.symbolsForProject(str(args, 1) != null ? str(args, 1) : "", str(args, 0)));
+        // CANCEL_ESC: args[0]=projectId, args[1]=target (optional)
+        registry.on(OpenJMLCommands.CANCEL_ESC,           args -> { textDocumentService.cancelEsc(str(args, 0), str(args, 1)); return null; });
+        // ABORT_METHOD_PROOF: args[0]=projectId, args[1]=rawName (optional)
+        registry.on(OpenJMLCommands.ABORT_METHOD_PROOF,   args -> { textDocumentService.abortMethodProof(str(args, 1)); return null; });
+        // GET_RUNNING_ESC_TASKS: args[0]=projectId; server filters tasks to that project
+        registry.on(OpenJMLCommands.GET_RUNNING_ESC_TASKS, args -> textDocumentService.getRunningEscUris(str(args, 0)));
 
         this.workspaceService = new OpenJMLWorkspaceService(globalSettings, registry,
                 textDocumentService::symbols,

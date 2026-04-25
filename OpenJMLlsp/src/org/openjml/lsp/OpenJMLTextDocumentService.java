@@ -371,7 +371,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         refreshCodeLenses();
 
         // --check: on open unless manual-only mode
-        if (!globalSettings.isCheckManual()) scheduleCheckNow(uri, content);
+        if (!globalSettings.isCheckManual()) scheduleCheckNow(uri, content, openPid);
         // ESC is never triggered on open — only on save/edit (per trigger setting)
         // or the explicit openjml.runEsc command.
     }
@@ -420,20 +420,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     }
 
-    private void startEscContent(String uri) {
-        final OpenJMLSettings s = settingsForUri(uri);
-        if (s == null) return;
-        scheduleEscFile(uri, s, null);
-    }
-
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
         dirtyUris.remove(uri);
         cancelPending(uri);
 
-        // --check: on save unless manual-only mode.
-        if (!globalSettings.isCheckManual()) scheduleCheckFile(uri);
+        // --check: on save unless manual-only mode.  projectId is unavailable from
+        // the LSP didSave message; null causes a root-path lookup in scheduleCheckFile.
+        if (!globalSettings.isCheckManual()) scheduleCheckFile(uri, null);
 
         // --esc: on save when escTriggerOn == "save".  LSP does not carry a save-reason
         // (manual vs. auto-save), so this fires on every didSave regardless of how the
@@ -494,7 +489,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             boolean checking = s.result() == EscResult.CHECKING;
             String cmd  = checking ? OpenJMLCommands.ABORT_METHOD_PROOF
                                    : OpenJMLCommands.RUN_ESC_FOR_METHOD;
-            List<Object> args = checking ? List.<Object>of(methodRef)
+            List<Object> args = checking ? List.<Object>of(proj, methodRef)
                                          : List.<Object>of(proj, uri, methodRef);
             lenses.add(new CodeLens(range, new Command(s.label(), cmd, args), null));
         }
@@ -1817,8 +1812,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * to it after its dependencies were edited).  Uses in-memory content so that
      * unsaved edits are included.  No-op if the file is not currently open.
      */
-    void recheckUri(String uri) {
-        if (settingsForUri(uri) == null) return;
+    void recheckUri(String uri, String projectId) {
+        OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
+        if (s == null) return;
         String content = lastContent.get(uri);
         if (content == null) return;
         // Skip if nothing has changed since the last completed check.
@@ -1827,7 +1823,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         // schedules a check, then onDidChangeActiveTextEditor fires 200ms later).
         CompletableFuture<Void> pending = lastCheckFuture.get(uri);
         if (pending != null && !pending.isDone()) return;
-        executor.submit(() -> runCheckContent(uri, content));
+        final OpenJMLSettings fS = s;
+        executor.submit(() -> runCheckContent(uri, content, fS));
     }
 
     /**
@@ -2150,7 +2147,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String javaContent = lastContent.containsKey(javaUri)
                 ? lastContent.get(javaUri) : readFileFromDisk(javaUri);
         if (javaContent == null) return;
-        scheduleCheckNow(javaUri, javaContent);
+        // projectId unavailable from the watched-files protocol event; null triggers uri lookup.
+        scheduleCheckNow(javaUri, javaContent, null);
     }
 
     /**
@@ -2260,10 +2258,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         return null;
     }
 
-    private void scheduleCheckNow(String uri, String content) {
+    private void scheduleCheckNow(String uri, String content, String projectId) {
         // Skip files that don't belong to any configured project (e.g. non-JML-natured
         // Eclipse projects, or files outside all workspace roots).
-        OpenJMLSettings s = settingsForUri(uri);
+        OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
         if (s == null) return;
         // .jml files are spec files; redirect check to companion .java
         if (uri.endsWith(".jml")) {
@@ -2314,31 +2312,35 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
     }
 
-    private void scheduleCheckFile(String uri) {
+    private void scheduleCheckFile(String uri, String projectId) {
         // If the nav cache is clean, the project-wide check already covered all files
         // with current content.  Saves do not change in-memory content, so re-checking
         // here would only create a new IAPI context that invalidates the nav context.
-        String filePid = projectIdForUri(uri);
+        String filePid = projectId != null ? projectId : projectIdForUri(uri);
         AtomicBoolean fileDirty = filePid != null ? projectNavDirty.get(filePid) : null;
         if (fileDirty != null && !fileDirty.get()) return;
+        OpenJMLSettings s = filePid != null ? settingsForProject(filePid) : settingsForUri(uri);
+        if (s == null) return;
         // .jml files are spec files; redirect check to companion .java.
         // Use content-based check so companion diagnostics (including .jml markers) are updated.
         if (uri.endsWith(".jml")) {
             String javaUri = resolveCompanionJavaUri(uri, null);
             if (javaUri == null) return;
             String javaContent = lastContent.get(javaUri);
+            final OpenJMLSettings fS = s;
             if (javaContent != null) {
-                executor.submit(() -> runCheckContent(javaUri, javaContent));
+                executor.submit(() -> runCheckContent(javaUri, javaContent, fS));
             } else {
                 // java file not open; fall back to file-based check for java
-                scheduleCheckFile(javaUri);
+                scheduleCheckFile(javaUri, filePid);
             }
             return;
         }
         // For .java files: use in-memory content if open, otherwise null (read from disk by OpenJML).
         // Both paths go through runCheckContent so dirty editors are always included.
         final String c = lastContent.get(uri);
-        executor.submit(() -> runCheckContent(uri, c));
+        final OpenJMLSettings fS = s;
+        executor.submit(() -> runCheckContent(uri, c, fS));
     }
 
     private void scheduleEscFile(String uri, OpenJMLSettings s, String projectId) {
@@ -3244,12 +3246,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      *       cancel only that specific method's run.</li>
      * </ul>
      */
-    void cancelEsc(String target) {
+    void cancelEsc(String projectId, String target) {
         if (target != null && !target.isEmpty()) {
             abortEscForKey(target);
         } else {
-            new ArrayList<>(runningSessions.keySet()).forEach(this::abortEscForKey);
+            new ArrayList<>(runningSessions.keySet()).stream()
+                    .filter(k -> matchesProject(k, projectId))
+                    .forEach(this::abortEscForKey);
         }
+    }
+
+    /** Returns true if {@code key} (a URI or "uri#method") belongs to {@code projectId},
+     *  or if {@code projectId} is null/empty (match all). */
+    private boolean matchesProject(String key, String projectId) {
+        if (projectId == null || projectId.isEmpty()) return true;
+        String uri = key.contains("#") ? key.substring(0, key.indexOf('#')) : key;
+        return projectId.equals(projectIdForUri(uri));
     }
 
     private void abortEscForKey(String key) {
@@ -3277,9 +3289,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Whole-file runs are identified by bare URI; per-method runs use
      * {@code "uri#methodName"} format.
      */
-    List<String> getRunningEscUris() {
+    List<String> getRunningEscUris(String projectId) {
         return runningSessions.entrySet().stream()
                 .filter(e -> e.getValue().visible())
+                .filter(e -> matchesProject(e.getKey(), projectId))
                 .map(Map.Entry::getKey)
                 .collect(java.util.stream.Collectors.toList());
     }
@@ -3464,7 +3477,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         pendingEsc.clear();
         ScheduledFuture<?> pcp = pendingCheckPaths;
         if (pcp != null) { pcp.cancel(false); pendingCheckPaths = null; }
-        cancelEsc(null);  // cancel futures and abort any live z3 processes
+        cancelEsc(null, null);  // cancel all futures and abort any live z3 processes
         lastCheckFuture.clear();
 
         // Clear all diagnostic and status caches.

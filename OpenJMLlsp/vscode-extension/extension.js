@@ -937,7 +937,7 @@ async function activate(context) {
         try {
             const uris = await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command:   CMD_GET_RUNNING_ESC,
-                arguments: [],
+                arguments: [''],
             }) || [];
 
             if (!uris || uris.length === 0) {
@@ -956,7 +956,7 @@ async function activate(context) {
 
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command:   CMD_CANCEL_ESC,
-                arguments: [],
+                arguments: [''],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML cancel ESC failed: ' + err);
@@ -975,7 +975,7 @@ async function activate(context) {
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command:   CMD_ABORT_METHOD_PROOF,
-                arguments: rawName ? [rawName] : [],
+                arguments: rawName ? ['', rawName] : [''],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML abort proof failed: ' + err);
@@ -1104,7 +1104,7 @@ async function activate(context) {
                 try {
                     const data = await client.sendRequest(LSP_EXECUTE_COMMAND, {
                         command:   CMD_GET_SEMANTIC_TOKENS,
-                        arguments: [document.uri.toString()],
+                        arguments: ['', document.uri.toString()],
                     });
                     if (!Array.isArray(data) || data.length === 0)
                         return new vscode.SemanticTokens(new Uint32Array([]));
@@ -1133,7 +1133,7 @@ async function activate(context) {
                 if (!client) return;
                 client.sendRequest(LSP_EXECUTE_COMMAND, {
                     command:   CMD_FOCUS_FILE,
-                    arguments: [uri],
+                    arguments: ['', uri],
                 }).catch(() => {});  // ignore errors (server may not be ready)
             }, FOCUS_DEBOUNCE_MS);
         })
