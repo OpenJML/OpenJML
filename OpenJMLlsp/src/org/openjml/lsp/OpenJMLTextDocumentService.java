@@ -154,21 +154,21 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /** Status-only update. For same gen: preserves existing byUri. For new gen: clears byUri. */
-    private void storeProofResult(String key, long gen, MethodStatus status) {
+    private void storeProofResult(String key, long gen, MethodStatus status, String projectId) {
         proofResults.compute(key, (k, existing) -> {
             if (existing != null && existing.gen() > gen) return existing;
             Map<String, List<Diagnostic>> keepByUri =
                 (existing != null && existing.gen() == gen) ? existing.byUri() : Map.of();
-            return new ProofResult(k, gen, status, keepByUri);
+            return new ProofResult(k, gen, status, keepByUri, projectId);
         });
     }
 
     /** Full update: always uses the provided byUri (for final proof results). */
     private void storeProofResult(String key, long gen, MethodStatus status,
-                                   Map<String, List<Diagnostic>> byUri) {
+                                   Map<String, List<Diagnostic>> byUri, String projectId) {
         proofResults.compute(key, (k, existing) -> {
             if (existing != null && existing.gen() > gen) return existing;
-            return new ProofResult(k, gen, status, byUri);
+            return new ProofResult(k, gen, status, byUri, projectId);
         });
     }
 
@@ -212,7 +212,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     /** Proof result per method, keyed by uri+"#"+rawMethodName. */
     record ProofResult(String methodKey, long gen, MethodStatus status,
-                       Map<String, List<Diagnostic>> byUri) {}
+                       Map<String, List<Diagnostic>> byUri, String projectId) {}
     private final ConcurrentHashMap<String, ProofResult> proofResults = new ConcurrentHashMap<>();
 
     /** Tracks an in-progress ESC task: its session gen, the Future, and the IAPI (set after start). */
@@ -423,7 +423,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void startEscContent(String uri) {
         final OpenJMLSettings s = settingsForUri(uri);
         if (s == null) return;
-        scheduleEscFile(uri, s);
+        scheduleEscFile(uri, s, null);
     }
 
     @Override
@@ -480,6 +480,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
             ProofResult pr = proofResults.get(methodKey(uri, m));
             MethodStatus s = (pr != null) ? pr.status() : MethodStatus.UNKNOWN;
+            String proj = (pr != null && pr.projectId() != null) ? pr.projectId() : "";
             var range = new Range(new Position(m.startLine(), 0),
                                   new Position(m.startLine(), 0));
             // Method reference is the unique per-project FQN (rawName from
@@ -494,7 +495,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             String cmd  = checking ? OpenJMLCommands.ABORT_METHOD_PROOF
                                    : OpenJMLCommands.RUN_ESC_FOR_METHOD;
             List<Object> args = checking ? List.<Object>of(methodRef)
-                                         : List.<Object>of(uri, methodRef);
+                                         : List.<Object>of(proj, uri, methodRef);
             lenses.add(new CodeLens(range, new Command(s.label(), cmd, args), null));
         }
         return CompletableFuture.completedFuture(lenses);
@@ -1127,7 +1128,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * under one session key.  Called from the {@code openjml.runEsc} command and
      * from {@link #scheduleEscFile} for single-file auto-ESC.
      */
-    private void scheduleEscForPaths(List<String> paths, OpenJMLSettings s) {
+    private void scheduleEscForPaths(List<String> paths, OpenJMLSettings s, String projectId) {
         if (paths == null || paths.isEmpty()) return;
 
         // Pre-mark open single files as UNKNOWN before submitting so lenses
@@ -1139,7 +1140,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     String uri = p.toUri().toString();
                     if (lastContent.containsKey(uri)) {
                         long pendingGen = sessionCounter.get() + 1;
-                        markAllMethodStatus(uri, MethodStatus.UNKNOWN, pendingGen);
+                        markAllMethodStatus(uri, MethodStatus.UNKNOWN, pendingGen, projectId);
                     }
                 }
             } catch (Exception ignored) {}
@@ -1187,7 +1188,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                                     false /* batch sub-entry — not shown in Cancel ESC list */));
                             batchUriKeys.add(uri);
                         }
-                        markMethodCheckingByName(uri, methodName, myBatchGen);
+                        markMethodCheckingByName(uri, methodName, myBatchGen, projectId);
                         publishMerged(uri);
                         executor.execute(OpenJMLTextDocumentService.this::refreshCodeLenses);
                     } else {
@@ -1195,7 +1196,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         ServerLog.serverLog("[scheduleEscForPaths] COMPLETION uri=" + uri
                                 + " method=" + methodName
                                 + " partialResults=" + partialResults.size());
-                        updateEscStatusPartial(uri, partialResults, myBatchGen, partialDiagsByMethod);
+                        updateEscStatusPartial(uri, partialResults, myBatchGen, partialDiagsByMethod, projectId);
                         publishMerged(uri);
                         refreshCodeLenses();
                     }
@@ -1226,7 +1227,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 for (String uri : urisToUpdate) {
                     updateEscStatus(uri,
                             result.proofResults(), result.exitCode(), List.of(), myBatchGen,
-                            result.diagsByMethod());
+                            result.diagsByMethod(), projectId);
                     publishMerged(uri);
                 }
             } catch (Throwable e) {
@@ -1238,7 +1239,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     void scheduleEscForPaths(List<String> paths, String projectId) {
-        scheduleEscForPaths(paths, settingsForProject(projectId));
+        scheduleEscForPaths(paths, settingsForProject(projectId), projectId);
     }
 
     /**
@@ -1296,18 +1297,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             Future<?> f = s.escPool.submit(() -> {
                 long myGen = sessionCounter.incrementAndGet();
                 runningSessions.put(uri, new RunningSession(myGen, futureRef.get(), apiRef));
-                markAllMethodStatus(uri, MethodStatus.UNKNOWN, myGen);
+                markAllMethodStatus(uri, MethodStatus.UNKNOWN, myGen, projectId);
                 try {
                     CheckRunner.CheckResult result = (content != null)
                             ? CheckRunner.escWithContext(uri, content, snapshot, s,
                                     api -> { apiRef.set(api); RunningSession rs = runningSessions.get(uri); if (rs != null) rs.api().set(api); },
-                                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString(), myGen); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); })
+                                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString(), myGen, projectId); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); })
                             : CheckRunner.runEscFile(filePath, uri, s,
                                     api -> { apiRef.set(api); RunningSession rs = runningSessions.get(uri); if (rs != null) rs.api().set(api); },
-                                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString(), myGen); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); });
+                                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString(), myGen, projectId); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); });
                     updateEscStatus(uri, result.proofResults(),
                             result.exitCode(), result.foreignMessages(), myGen,
-                            result.diagsByMethod());
+                            result.diagsByMethod(), projectId);
                     publishMerged(uri);
                     refreshCodeLenses();
                 } catch (Throwable t) {
@@ -1370,7 +1371,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 submitEscForMethod(uri, method,
                         hook -> CheckRunner.escMethodWithContext(
                                 uri, finalContent, methodName, snapshot, s, hook),
-                        s.escPool);
+                        s.escPool, projectId);
             }
         }
     }
@@ -1836,9 +1837,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleEscForUri(String uri, String projectId) {
         OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
         if (s.isEscApiMode()) {
-            submitEscApiWorkList(uri, s);
+            submitEscApiWorkList(uri, s, projectId);
         } else {
-            scheduleEscFile(uri, s);
+            scheduleEscFile(uri, s, projectId);
         }
     }
 
@@ -1851,16 +1852,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * methods finish a final {@link #publishMerged} flushes the accumulated
      * diagnostics.
      */
-    private void submitEscApiWorkList(String uri, OpenJMLSettings s) {
+    private void submitEscApiWorkList(String uri, OpenJMLSettings s, String projectId) {
         RunningSession prev = runningSessions.remove(uri);
         if (prev != null) prev.future().cancel(false);
 
         long myGen = sessionCounter.incrementAndGet();
-        markEscChecking(uri, myGen);
+        markEscChecking(uri, myGen, projectId);
 
         CompletableFuture<CheckRunner.CheckResult> cf =
-                CheckRunner.runDoEscFileAsync(uri, s, onMethodEscResult(uri, myGen));
-        attachEscCallbacks(uri, myGen, cf, "api");
+                CheckRunner.runDoEscFileAsync(uri, s, onMethodEscResult(uri, myGen, projectId));
+        attachEscCallbacks(uri, myGen, cf, "api", projectId);
     }
 
     /**
@@ -1868,10 +1869,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Called on a pool thread as each method finishes; updates the code-lens status
      * immediately so the user sees progress.
      */
-    private Consumer<CheckRunner.MethodEscResult> onMethodEscResult(String uri, long myGen) {
+    private Consumer<CheckRunner.MethodEscResult> onMethodEscResult(String uri, long myGen,
+                                                                     String projectId) {
         return methodResult -> {
             if (!isCurrentSession(uri, myGen)) return;
-            updateSingleMethodEscStatus(uri, methodResult, myGen);
+            updateSingleMethodEscStatus(uri, methodResult, myGen, projectId);
             refreshCodeLenses();
         };
     }
@@ -1883,7 +1885,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * @param modeName short label used in log messages, e.g. {@code "api"} or {@code "fresh"}
      */
     private void attachEscCallbacks(String uri, long myGen,
-            CompletableFuture<CheckRunner.CheckResult> cf, String modeName) {
+            CompletableFuture<CheckRunner.CheckResult> cf, String modeName, String projectId) {
         cf.thenAccept(result -> {
             if (!isCurrentSession(uri, myGen)) return;
             List<Diagnostic> primaryDiags =
@@ -1891,12 +1893,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (result.isInternalError()) {
                 ServerLog.serverLog("[OpenJML] ESC (" + modeName + ") internal error (exit code "
                         + result.exitCode() + ")");
-                markAllMethodStatus(uri, MethodStatus.CHECK_ERROR, myGen);
+                markAllMethodStatus(uri, MethodStatus.CHECK_ERROR, myGen, projectId);
                 refreshCodeLenses();
             } else {
                 updateEscStatus(uri, result.proofResults(),
                         result.exitCode(), result.foreignMessages(), myGen,
-                        result.diagsByMethod());
+                        result.diagsByMethod(), projectId);
                 // diagsByMethod keys are method FQNs; URIs are the inner map keys.
                 result.diagsByMethod().values().stream()
                         .flatMap(m -> m.keySet().stream())
@@ -1908,7 +1910,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }).exceptionally(t -> {
             ServerLog.serverLog("[OpenJML] ESC (" + modeName + ") failed: " + t);
             if (isCurrentSession(uri, myGen)) {
-                updateEscStatus(uri, Map.of(), -1, List.of(), myGen, Map.of());
+                updateEscStatus(uri, Map.of(), -1, List.of(), myGen, Map.of(), projectId);
                 refreshCodeLenses();
             }
             return null;
@@ -1924,7 +1926,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * unchanged and will be overwritten by the final {@link #updateEscStatus} call.
      */
     private void updateSingleMethodEscStatus(String uri,
-                                              CheckRunner.MethodEscResult r, long myGen) {
+                                              CheckRunner.MethodEscResult r, long myGen,
+                                              String projectId) {
         // content may be null when file not open in editor; findMethodsFromAst tolerates null.
         String content = lastContent.get(uri);
         ASTCache.Entry escAstEntry = CheckRunner.getASTCache().get(uri);
@@ -1934,7 +1937,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         for (JavaSourceScanner.MethodInfo m : methods) {
             if (!m.name().equals(r.name())) continue;
             storeProofResult(methodKey(uri, m), myGen,
-                    proofResultToStatus(r.kind(), r.diags().size(), r.exitCode(), false));
+                    proofResultToStatus(r.kind(), r.diags().size(), r.exitCode(), false),
+                    projectId);
             break;
         }
     }
@@ -1962,7 +1966,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             // doESC path uses the cached IAPI directly; hook not applicable here.
             submitEscForMethod(uri, target,
                     hook -> CheckRunner.runDoEscMethod(uri, escMethodName, s),
-                    s.escPool);
+                    s.escPool, projectId);
         } else {
             String contentForMethod = lastContent.get(uri);
             Map<String, String> snapshot = dirtySnapshot();
@@ -1970,13 +1974,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 final String c = contentForMethod;
                 submitEscForMethod(uri, target,
                         hook -> CheckRunner.escMethodWithContext(uri, c, escMethodName, snapshot, s, hook),
-                        s.escPool);
+                        s.escPool, projectId);
             } else {
                 String filePath = CheckRunner.uriToPath(uri);
                 if (filePath != null)
                     submitEscForMethod(uri, target,
                             hook -> CheckRunner.runEscFileMethod(filePath, uri, escMethodName, s, hook),
-                            s.escPool);
+                            s.escPool, projectId);
             }
         }
     }
@@ -2041,16 +2045,16 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void submitEscForMethod(String uri, JavaSourceScanner.MethodInfo target,
             java.util.function.Function<java.util.function.Consumer<IAPI>,
                                         CheckRunner.CheckResult> task,
-            ExecutorService pool) {
+            ExecutorService pool, String projectId) {
         final String scopeKey = target != null ? methodKey(uri, target) : uri;
         if (target != null) refreshCodeLenses();
 
         submitEscJob(scopeKey, pool, (myGen, hook, futureRef) -> {
             if (target != null) {
-                storeProofResult(scopeKey, myGen, MethodStatus.CHECKING);
+                storeProofResult(scopeKey, myGen, MethodStatus.CHECKING, projectId);
                 refreshCodeLenses();
             } else {
-                markEscChecking(uri, myGen);
+                markEscChecking(uri, myGen, projectId);
             }
             try {
                 CheckRunner.CheckResult result = task.apply(hook);
@@ -2063,7 +2067,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     ServerLog.serverLog("[OpenJML] ESC for method: internal error (exit code " + result.exitCode() + ")");
                     publishMerged(uri);
                     if (target != null) {
-                        storeProofResult(scopeKey, myGen, MethodStatus.CHECK_ERROR);
+                        storeProofResult(scopeKey, myGen, MethodStatus.CHECK_ERROR, projectId);
                         refreshCodeLenses();
                     }
                     return;
@@ -2094,10 +2098,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                         if (hint != null)
                             escByUri.computeIfAbsent(uri, k -> new java.util.ArrayList<>()).add(hint);
                     }
-                    storeProofResult(scopeKey, myGen, ms, java.util.Collections.unmodifiableMap(escByUri));
+                    storeProofResult(scopeKey, myGen, ms, java.util.Collections.unmodifiableMap(escByUri), projectId);
                 } else {
                     updateEscStatus(uri, result.proofResults(), result.exitCode(),
-                                        result.foreignMessages(), myGen, result.diagsByMethod());
+                                        result.foreignMessages(), myGen, result.diagsByMethod(), projectId);
                     result.diagsByMethod().keySet().stream()
                             .filter(diagUri -> !diagUri.equals(uri))
                             .forEach(diagUri -> publishMerged(diagUri));
@@ -2107,7 +2111,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             } catch (Throwable t) {
                 ServerLog.serverLog("[OpenJML] ESC for method failed unexpectedly: " + t);
                 if (target != null) {
-                    storeProofResult(scopeKey, myGen, MethodStatus.UNKNOWN);
+                    storeProofResult(scopeKey, myGen, MethodStatus.UNKNOWN, projectId);
                     refreshCodeLenses();
                 }
             }
@@ -2337,10 +2341,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         executor.submit(() -> runCheckContent(uri, c));
     }
 
-    private void scheduleEscFile(String uri, OpenJMLSettings s) {
+    private void scheduleEscFile(String uri, OpenJMLSettings s, String projectId) {
         String filePath = CheckRunner.uriToPath(uri);
         if (filePath == null) return;
-        scheduleEscForPaths(List.of(filePath), s);
+        scheduleEscForPaths(List.of(filePath), s, projectId);
     }
 
     private void onEscMethodCompleted(String uri,
@@ -2392,7 +2396,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         ServerLog.serverLog("[onEscMethodCompleted] storing key=" + uri + "#" + rawName
                 + " gen=" + gen + " status=" + ms.label() + " byUriDiags=" + storedDiags
                 + " byUriKeys=" + byUri.keySet());
-        storeProofResult(uri + "#" + rawName, gen, ms, java.util.Collections.unmodifiableMap(byUri));
+        storeProofResult(uri + "#" + rawName, gen, ms, java.util.Collections.unmodifiableMap(byUri), null);
         executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); });
     }
 
@@ -2727,7 +2731,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     // --- ESC code-lens status helpers ---
 
     /** Set all detected methods in {@code uri} to the given {@code status}. */
-    private void markAllMethodStatus(String uri, MethodStatus status, long gen) {
+    private void markAllMethodStatus(String uri, MethodStatus status, long gen, String projectId) {
         String content = lastContent.get(uri);
         if (content == null) return;
         ASTCache.Entry markAstEntry = CheckRunner.getASTCache().get(uri);
@@ -2736,7 +2740,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 : List.of();
         if (methods.isEmpty()) return;
         for (JavaSourceScanner.MethodInfo m : methods) {
-            storeProofResult(methodKey(uri, m), gen, status);
+            storeProofResult(methodKey(uri, m), gen, status, projectId);
         }
     }
 
@@ -2749,13 +2753,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * The gen is looked up from {@link #runningSessions} so callers do not need
      * to capture it explicitly.
      */
-    private void markMethodCheckingByName(String uri, String methodName) {
-        RunningSession s = runningSessions.get(uri);
-        long gen = (s != null) ? s.sessionGen() : sessionCounter.get();
-        markMethodCheckingByName(uri, methodName, gen);
-    }
-
-    private void markMethodCheckingByName(String uri, String methodName, long gen) {
+    private void markMethodCheckingByName(String uri, String methodName, long gen, String projectId) {
         String content = lastContent.get(uri);
         if (content == null) return;
         ASTCache.Entry markCheckAstEntry = CheckRunner.getASTCache().get(uri);
@@ -2765,7 +2763,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         boolean changed = false;
         for (JavaSourceScanner.MethodInfo m : markCheckMethods) {
             if (m.name().equals(methodName)) {
-                storeProofResult(methodKey(uri, m), gen, MethodStatus.CHECKING);
+                storeProofResult(methodKey(uri, m), gen, MethodStatus.CHECKING, projectId);
                 changed = true;
             }
         }
@@ -2774,8 +2772,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
     }
 
-    private void markEscChecking(String uri, long gen) {
-        markAllMethodStatus(uri, MethodStatus.CHECKING, gen);
+    private void markEscChecking(String uri, long gen, String projectId) {
+        markAllMethodStatus(uri, MethodStatus.CHECKING, gen, projectId);
         refreshCodeLenses();
     }
 
@@ -2789,7 +2787,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void updateEscStatus(String uri,
                                  Map<String, IProverResult.Kind> escProofResults, int exitCode,
                                  List<String> foreignFiles, long gen,
-                                 Map<String, Map<String, List<Diagnostic>>> diagsByMethod) {
+                                 Map<String, Map<String, List<Diagnostic>>> diagsByMethod,
+                                 String projectId) {
         // ESC always produces an attributed AST.  Single-file ESC stores it in the live
         // cache; project/folder ESC stores it in a nav section.  getNav() checks both.
         ASTCache.Entry astEntry = CheckRunner.getASTCache().getNav(uri);
@@ -2814,7 +2813,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 if (hint != null)
                     byUri.computeIfAbsent(uri, k -> new java.util.ArrayList<>()).add(hint);
             }
-            storeProofResult(methodKey(uri, m), gen, ms, java.util.Collections.unmodifiableMap(byUri));
+            storeProofResult(methodKey(uri, m), gen, ms, java.util.Collections.unmodifiableMap(byUri), projectId);
         }
 
         // Also update .jml companion files whose model methods were proved in this run.
@@ -2827,7 +2826,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 jmlUris.add(m.sourceUri());
         }
         for (String jmlUri : jmlUris) {
-            updateJmlEscStatus(jmlUri, escProofResults, exitCode, hasForeignErrors, gen, diagsByMethod);
+            updateJmlEscStatus(jmlUri, escProofResults, exitCode, hasForeignErrors, gen, diagsByMethod, projectId);
         }
 
         refreshCodeLenses();
@@ -2851,7 +2850,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void updateJmlEscStatus(String jmlUri,
                                     Map<String, IProverResult.Kind> escProofResults,
                                     int exitCode, boolean hasForeignErrors, long gen,
-                                    Map<String, Map<String, List<Diagnostic>>> diagsByMethod) {
+                                    Map<String, Map<String, List<Diagnostic>>> diagsByMethod,
+                                    String projectId) {
         ASTCache.Entry jmlEntry = CheckRunner.getASTCache().get(jmlUri);
         if (jmlEntry == null) return;
 
@@ -2870,7 +2870,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 if (hint != null)
                     byUri.computeIfAbsent(jmlUri, k -> new java.util.ArrayList<>()).add(hint);
             }
-            storeProofResult(methodKey(jmlUri, m), gen, ms, java.util.Collections.unmodifiableMap(byUri));
+            storeProofResult(methodKey(jmlUri, m), gen, ms, java.util.Collections.unmodifiableMap(byUri), projectId);
         }
         publishMerged(jmlUri);
     }
@@ -2904,7 +2904,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private void updateEscStatusPartial(String uri,
             Map<String, IProverResult.Kind> partialProofResults, long gen,
-            Map<String, Map<String, List<Diagnostic>>> diagsByMethod) {
+            Map<String, Map<String, List<Diagnostic>>> diagsByMethod, String projectId) {
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
         if (astEntry == null) return;
         List<JavaSourceScanner.MethodInfo> methods =
@@ -2931,7 +2931,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             }
             ServerLog.serverLog("[updateEscStatusPartial] method=" + m.rawName()
                     + " kind=" + kind + " status=" + status.label() + " diagCount=" + diagCount);
-            storeProofResult(methodKey(uri, m), gen, status, java.util.Collections.unmodifiableMap(byUri));
+            storeProofResult(methodKey(uri, m), gen, status, java.util.Collections.unmodifiableMap(byUri), projectId);
         }
 
         // Propagate partial results to open .jml companion editors.
@@ -2951,7 +2951,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     Diagnostic hint = createVerifiedHintDiag(jmlUri, m);
                     if (hint != null) byUri.computeIfAbsent(jmlUri, k -> new java.util.ArrayList<>()).add(hint);
                 }
-                storeProofResult(methodKey(jmlUri, m), gen, status, java.util.Collections.unmodifiableMap(byUri));
+                storeProofResult(methodKey(jmlUri, m), gen, status, java.util.Collections.unmodifiableMap(byUri), projectId);
             }
         }
     }

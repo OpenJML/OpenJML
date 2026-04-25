@@ -311,8 +311,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         String proj = cmdProject(args);
         List<String> paths = new java.util.ArrayList<>();
         for (String p : cmdPaths(args)) {
-            if (p.startsWith("file:///")) paths.add(p.substring("file:///".length()));
-            else if (p.startsWith("file://")) paths.add(p.substring("file://".length()));
+            if (p == null || p.isEmpty()) continue;
+            if (p.startsWith("file://")) paths.add(p.substring("file://".length()));
             else paths.add(p);
         }
         if (!paths.isEmpty()) textDocumentService.scheduleEscForPaths(paths, proj);
@@ -321,16 +321,14 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     /**
      * Dispatches {@code openjml.runEscForMethod}.
-     * Code-lens format: {@code [uri, methodFqn]} (first arg starts with {@code file://}).
-     * Standard format:  {@code [projectId, uri, methodFqn]}.
+     * Format: {@code [projectId, uri, methodFqn]} — always the three-element form;
+     * the projectId is stored in the {@code ProofResult} when a code lens is created
+     * and echoed back here, so the correct project settings are used for re-runs.
      */
     private Object handleRunEscForMethod(java.util.List<?> args) {
-        final String proj, uri, method;
-        if (isCodeLensFormat(args)) {
-            proj = null; uri = str(args, 0); method = str(args, 1);
-        } else {
-            proj = str(args, 0); uri = str(args, 1); method = str(args, 2);
-        }
+        String proj   = str(args, 0);
+        String uri    = str(args, 1);
+        String method = str(args, 2);
         if (uri != null) textDocumentService.scheduleEscForMethod(uri, method, proj);
         return null;
     }
@@ -347,21 +345,6 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private static String cmdProject(java.util.List<?> args) {
         if (args == null || args.isEmpty()) return null;
         return str(args, 0);
-    }
-
-    /**
-     * Returns {@code true} if {@code args} uses the two-element code-lens format
-     * {@code [uri, methodFqn]} emitted by {@code codeLens()} for the
-     * {@code openjml.runEscForMethod} command.
-     *
-     * <p>Detected by: exactly two arguments whose first element starts with
-     * {@code "file://"}, which is unambiguous because a project ID never
-     * contains a URL scheme.
-     */
-    private static boolean isCodeLensFormat(java.util.List<?> args) {
-        if (args == null || args.size() != 2) return false;
-        String first = str(args, 0);
-        return first != null && first.startsWith("file://");
     }
 
     /** Returns the path/URI arguments from a command (args[1+]). */
