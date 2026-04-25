@@ -171,7 +171,6 @@ OpenJML actions act on the items selected.
     <UL><LI>if the user is right-clicking on an item in a View, that item is selected</LI>
     <LI>otherwise, the file corresponding to the active editor is selected </LI></UL>
 </LI>
-<LI>If nothing is selected in one of those Views, then the file corresponding to the Active Editor is considered selected.</LI>
 <LI>Any item selected that is not a Java element is ignored.</LI>
 <LI>Any item selected that is not in a Java project marked with a JML Nature is warned about.</LI>
 <LI>If nothing is selected, a warning dialog is usually presented.</LI>
@@ -195,12 +194,12 @@ at various times, controlled by a setting in the OpenJML Preferences ("JML type-
     <UL>
         <LI>the toolbar icon, which checks all selected items</LI>
         <LI>the 'Check JML' menu item under the top-level 'OpenJML' menu, which checks all selected items</LI>
-        <LI>the context menu in an Outline, Package Explorer, or Project Explorer View, which checks the specific item right-clicked on</LI>
+        <LI>the context menu in an editor, Outline, Package Explorer, or Project Explorer View, which checks the specific item right-clicked on</LI>
     </UL>
 </UL>
 
 <H3><A NAME="ESC">Static checking of JML assertions</A></H3>
-<P>P>
+<P>
 Performing <I>deductive verification</I> (ESC) on selected items is typically triggered manually because it can be time-consuming and is performed asynchronously.
 There is a Preference that allows triggering ESC automatically on a file at file save.
 One can always trigger ESC manually on whatever Java elements are selected by pressing the toolbar icon,
@@ -213,7 +212,7 @@ Results of proof attempts on each method are reported in the Console and as code
 ESC operations are always separated by project, since projects may have different class- and sourcepaths.
 Within a given project, ESC operations on one or more items can be launched as a single ESC check in OpenJML, divided up by file, 
 or divided up by individual method. Finer division allows more concurrency, but requires more overhead per ESC operation.
-If individual methods are selected in one of the Views, proofs of those methods are alwyas separate, stand-alone tasks.
+If individual methods are selected in one of the Views, proofs of those methods are always separate, stand-alone tasks.
 </P><P>
 ESC operations can be cancelled or retried -- see the cancel and code lens information.
 </P>
@@ -245,7 +244,7 @@ Note that removing the JML Nature from a project also removes all OpenJML error 
 These two operations remove OpenJML markers from the workspace.
 <UL>
 <LI><B>All</B> removes all OpenJML check and ESC markers from every file in every open JML project.</LI>
-<LI><B>Selected</B> removes all OpenJML check and ESC markers from the files and folders currently selected in one of the Views or from the active editor if nothing is selected).
+<LI><B>Selected</B> removes all OpenJML check and ESC markers from the files and folders currently selected.
 Selecting a folder or project removes markers from all files within it.
 The server's cached diagnostics are also cleared so that the markers do not reappear until a new check is run.</LI>
 </UL>
@@ -253,7 +252,7 @@ Both operations are useful when markers are stale or obsolete and will not other
 
 <H3><A NAME="IndexProject">Index Project</A></H3>
 
-This operation checks all files in the project (whether open in editors or not), initializing the index of declarations and ASTs.
+This operation manually initiaite typechecking of all files in the selected project (whether open in editors or not), initializing the index of declarations and ASTs.
 
 <H3><A NAME="ClearAndReindex">Clear and Reindex</A></H3>
 
@@ -314,7 +313,7 @@ References are only renamed within a project.
 
 <H3><A NAME="FindIdentifiers">Find all declarations</A></H3>
 
-This action finds all the declarations of a given identifier.
+This action finds all the declarations of a given identifier within a selected project.
 
 <H3><A NAME="Folding">Folding</A></H3>
 
@@ -330,7 +329,7 @@ for a .jml file. What is currently lacking is a consolidated outline holding bot
 <H3><A NAME="CodeLens">Code Lens information</A></H3>
 <P>
 Code Lens information is shown in conjunction with a method declaration. The code lens information contains the most recent 
-proof (ESC) attempt for that method: either unknown (-), checking (circle with arrow), verified (check mark), or not verified (x). 
+proof (ESC) attempt for that method: either unknown (-), checking, verified (check mark), or not verified (x). 
 Editing the method does not change these "last attempt" results.
 </P><P>
 Clicking on the code lens will cancel a current proof attempt on that method, if a proof is in progress, or otherwise initiate a
@@ -347,12 +346,12 @@ JML backslash keywords (e.g. \forall).
 
 <H3><A NAME="SignatureHelp">Signature Help</A></H3>
 <P></P>
-When there is a partially-typed method call (in JML text), the plug-in shows a meethod signature to aid in completing
+When there is a partially-typed method call (in JML text), the plug-in shows a method signature to aid in completing
 This is standard LSP signature-help functionality.
 </P><P>
-Currently this functionality is a bit limited: it only show one of the potential signatures and only selects one from the same file;
+Currently this functionality is a bit limited: it only shows one of the potential signatures and only selects one from the same file;
 no type information from the receiver is used.
-</P>P>
+</P>
 <H2><A NAME="EclipseFeatures">Eclipse functionality adapted to OpenJML</A></H2>
 
 <H3><A NAME="ContentType">Content type and Icon</A></H3>
