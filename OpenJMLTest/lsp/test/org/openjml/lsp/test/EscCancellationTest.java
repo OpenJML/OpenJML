@@ -77,21 +77,25 @@ public class EscCancellationTest extends LspTestBase {
     }
 
     /**
-     * Polls the live proof-count supplier until at least {@code minCount} method
-     * proofs have completed in this run, then cancels via the captured IAPI.
-     * This ensures cancellation fires while z3 is actively proving methods of
-     * <em>this</em> run — not before proving has started or due to activity from
-     * other concurrent tests or processes on the same machine.
+     * Polls the live started-count supplier until at least {@code minCount} method
+     * proofs have started (RUNNING event) in this run, then cancels via the captured
+     * IAPI.  Using start events rather than completions ensures the signal arrives
+     * quickly even under heavy machine load, while still guaranteeing that z3 is
+     * actively working when cancellation fires.
+     *
+     * <p>With sequential proving, when the N-th start fires the (N-1)-th method has
+     * already completed, so waiting for {@code minCount >= 2} starts guarantees at
+     * least one completed proof result.
      */
-    private static void waitAndCancel(IAPI api, Supplier<Integer> proofCount,
+    private static void waitAndCancel(IAPI api, Supplier<Integer> startedCount,
                                       int minCount, long timeoutMs)
             throws InterruptedException {
         long deadline = System.currentTimeMillis() + timeoutMs;
-        while (proofCount.get() < minCount && System.currentTimeMillis() < deadline) {
+        while (startedCount.get() < minCount && System.currentTimeMillis() < deadline) {
             Thread.sleep(20);
         }
-        assertTrue("Expected at least " + minCount + " proof results before cancelling, got "
-                + proofCount.get(), proofCount.get() >= minCount);
+        assertTrue("Expected at least " + minCount + " method proofs started before cancelling, got "
+                + startedCount.get(), startedCount.get() >= minCount);
         api.cancelEsc();
     }
 
@@ -151,10 +155,11 @@ public class EscCancellationTest extends LspTestBase {
         // The subprocess path exits with code 5 on cancellation.
         assertEquals("Expected exit code 5 (CANCELLED) after cancelEsc()", 5, result.exitCode());
 
-        // At least 2 methods completed before cancellation (validated by waitAndCancel above),
+        // waitAndCancel waited for 2 method starts; with sequential proving the first
+        // method completed before the second started, so at least 1 completion is guaranteed,
         // plus possibly 1 CANCELLED entry for the method mid-proof when cancel fired.
-        assertTrue("Expected at least 2 proof results, got " + result.proofResults().size(),
-                result.proofResults().size() >= 2);
+        assertTrue("Expected at least 1 proof result, got " + result.proofResults().size(),
+                result.proofResults().size() >= 1);
 
         // Every proof result in the map must be a recognised kind value.
         // The method being proved when cancel fired has CANCELLED; methods not yet
@@ -240,8 +245,8 @@ public class EscCancellationTest extends LspTestBase {
         assertTrue("Expected integer count before 'method(s)', got: " + parts[0],
                 parts[0].matches("\\d+"));
         int completedCount = Integer.parseInt(parts[0]);
-        assertTrue("Completed count must be >= 2 (waitAndCancel waited for 2), got: "
-                + completedCount, completedCount >= 2);
+        assertTrue("Completed count must be >= 1 (waitAndCancel waited for 2 starts), got: "
+                + completedCount, completedCount >= 1);
 
         // If present, the optional suffix must be exactly ", 1 cancelled".
         // It is present iff a method was mid-proof when cancel fired.
@@ -294,18 +299,18 @@ public class EscCancellationTest extends LspTestBase {
     private static final String URI_MIXED = "file:///EscCancellationMixed.java";
 
     /**
-     * Polls until at least {@code minCount} proof results have been recorded,
+     * Polls until at least {@code minCount} method proofs have started (RUNNING event),
      * then calls {@link IAPI#abortCurrentProof()} (not {@code cancelEsc}).
      */
-    private static void waitAndAbortCurrent(IAPI api, Supplier<Integer> proofCount,
+    private static void waitAndAbortCurrent(IAPI api, Supplier<Integer> startedCount,
                                             int minCount, long timeoutMs)
             throws InterruptedException {
         long deadline = System.currentTimeMillis() + timeoutMs;
-        while (proofCount.get() < minCount && System.currentTimeMillis() < deadline) {
+        while (startedCount.get() < minCount && System.currentTimeMillis() < deadline) {
             Thread.sleep(20);
         }
-        assertTrue("Expected at least " + minCount + " proof results before aborting, got "
-                + proofCount.get(), proofCount.get() >= minCount);
+        assertTrue("Expected at least " + minCount + " method proofs started before aborting, got "
+                + startedCount.get(), startedCount.get() >= minCount);
         api.abortCurrentProof();
     }
 

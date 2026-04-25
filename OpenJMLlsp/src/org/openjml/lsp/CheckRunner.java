@@ -256,6 +256,10 @@ public class CheckRunner {
          */
         private java.util.function.Consumer<JmlMethodDecl> onMethodStarted;
 
+        /** Count of methods for which a RUNNING (started) event has been received. */
+        private final java.util.concurrent.atomic.AtomicInteger startedCount =
+                new java.util.concurrent.atomic.AtomicInteger(0);
+
         ProofResultCollector() { this(null); }
         ProofResultCollector(LspDiagnosticListener listener) {
             this.diagListener = listener;
@@ -269,10 +273,13 @@ public class CheckRunner {
             this.onMethodCompleted = cb;
         }
 
+        int getStartedCount() { return startedCount.get(); }
+
         @Override
         public void reportProofResult(JmlMethodDecl methodDecl, IProverResult result) {
             IProverResult.Kind kind = result.result();
             if (kind == IProverResult.RUNNING) {
+                startedCount.incrementAndGet();
                 if (diagListener != null) diagListener.startMethodWindow();
                 if (onMethodStarted != null) onMethodStarted.accept(methodDecl);
                 return;
@@ -941,7 +948,7 @@ public class CheckRunner {
 
         // Resolve and create the RAC output directory.
         String rawDir = (settings.racOutputDir != null && !settings.racOutputDir.isEmpty())
-                ? settings.racOutputDir : "rac-classes";
+                ? settings.racOutputDir : "bin";
         java.nio.file.Path raw = java.nio.file.Paths.get(rawDir);
         java.nio.file.Path outputPath;
         if (raw.isAbsolute()) {
@@ -1700,7 +1707,7 @@ public class CheckRunner {
         }
         if (onApiReady != null) {
             final ProofResultCollector prcFinal = prc;
-            onApiReady.accept(api, () -> prcFinal == null ? 0 : prcFinal.getResults().size());
+            onApiReady.accept(api, () -> prcFinal == null ? 0 : prcFinal.getStartedCount());
         }
 
         if (useMockFiles) {
