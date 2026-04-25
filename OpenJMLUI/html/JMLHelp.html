@@ -399,6 +399,12 @@ settings.</LI>
 <LI>JML syntax coloring overwrites Java (JDT) syntax coloring. Syntax coloring may not be enabled immediately in a file editor.</LI>
 <LI>There is currently no good way to review the results of ESC proof attempts; it would also be good to show traces and counterexample information.</LI>
 <LI>There should be a way to see the full (inherited) specifications for a method.</LI>
+<LI><B>Non-disjoint projects are not supported.</B>  If two Eclipse projects share source files
+    (i.e., their root paths overlap), the plug-in cannot reliably associate a file with the correct
+    project.  Symptoms include diagnostics being cleared for the wrong project, ESC tasks being
+    cancelled across project boundaries, and incorrect project settings being applied to a file.
+    Each Eclipse project opened with the OpenJML plug-in must have a source root that is disjoint
+    from every other open project's source root.</LI>
 </UL>
 
 </BODY>
