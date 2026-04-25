@@ -8,6 +8,9 @@
 /OpenJML/strongarm/r-analysis/notebook.nb.html
 /OpenJML/strongarm/r-analysis/notebook.Rmd
 
+# Claude Code local settings and runtime files
+.claude/
+
 # Local scratch / legacy directories never meant for source control
 OpenJMLFeature-OLD/
 old-OpenJML21/
