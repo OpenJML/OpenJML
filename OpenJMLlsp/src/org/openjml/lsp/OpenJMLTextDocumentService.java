@@ -2677,8 +2677,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             MessageActionItem cancel  = new MessageActionItem("Cancel");
             req.setActions(List.of(proceed, cancel));
 
-            return client.showMessageRequest(req).thenApply(action ->
-                    action != null && "Proceed Anyway".equals(action.getTitle()));
+            return client.showMessageRequest(req).thenApply(action -> {
+                if (action != null) return "Proceed Anyway".equals(action.getTitle());
+                // null means the client dismissed or does not support showMessageRequest.
+                clientLog(operationName + " aborted: workspace has compilation errors"
+                        + " and client returned no response to the confirmation dialog.");
+                return false;
+            });
         });
     }
 

@@ -445,6 +445,8 @@ public class SemanticTokensProvider {
                 if ((flags & Flags.ABSTRACT) != 0
                         && (flags & Flags.INTERFACE) == 0) mods |= TM_ABSTRACT;
                 if ((flags & Flags.DEPRECATED) != 0)     mods |= TM_DEPRECATED;
+                String fqn = cs.flatName().toString();
+                if (fqn.startsWith("java.") || fqn.startsWith("javax.")) mods |= TM_DEFAULT_LIB;
 
             } else if (sym instanceof PackageSymbol) {
                 type = TT_NAMESPACE;

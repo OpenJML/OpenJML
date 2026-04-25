@@ -306,16 +306,15 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     // Command handlers (extracted from constructor for readability)
     // -----------------------------------------------------------------------
 
-    /** Dispatches {@code openjml.runEsc}: URIs go to scheduleEscForUri, paths to scheduleEscForPaths. */
+    /** Dispatches {@code openjml.runEsc}: all arguments are OS file-system paths or directories. */
     private Object handleRunEsc(java.util.List<?> args) {
         String proj = cmdProject(args);
-        List<String> uris = new java.util.ArrayList<>();
         List<String> paths = new java.util.ArrayList<>();
         for (String p : cmdPaths(args)) {
-            if (p.startsWith("file://")) uris.add(p);
+            if (p.startsWith("file:///")) paths.add(p.substring("file:///".length()));
+            else if (p.startsWith("file://")) paths.add(p.substring("file://".length()));
             else paths.add(p);
         }
-        uris.forEach(uri -> textDocumentService.scheduleEscForUri(uri, proj));
         if (!paths.isEmpty()) textDocumentService.scheduleEscForPaths(paths, proj);
         return null;
     }
