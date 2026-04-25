@@ -22,6 +22,9 @@ import java.util.Map;
  */
 public abstract class LspTestBase {
 
+    /** Project ID used by VS Code and generic LSP clients (the workspace project). */
+    protected static final String DEFAULT_PROJECT = OpenJMLSettings.WORKSPACE_PROJECT_ID;
+
     /**
      * Convert a {@link File} to a {@code file://} URI string using the three-slash
      * form ({@code file:///path}) that the LSP server uses internally.

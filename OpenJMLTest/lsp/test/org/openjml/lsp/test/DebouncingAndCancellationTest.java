@@ -91,7 +91,7 @@ public class DebouncingAndCancellationTest extends ProtocolTestBase {
      */
     @Test
     public void testCancelEscWhenIdleIsHarmless() throws Exception {
-        String params = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC + "\",\"arguments\":[\"\"]}";
+        String params = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\"]}";
         client.sendRequest("workspace/executeCommand", params);
         JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to cancelEsc command", resp);
@@ -116,7 +116,7 @@ public class DebouncingAndCancellationTest extends ProtocolTestBase {
     public void testCancelEscForSpecificUri() throws Exception {
         String uri = "file:///CancelSpecific.java";
         String params = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC
-                + "\",\"arguments\":[\"\",\"" + uri + "\"]}";
+                + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\",\"" + uri + "\"]}";
         client.sendRequest("workspace/executeCommand", params);
         JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to cancelEsc", resp);
@@ -155,12 +155,12 @@ public class DebouncingAndCancellationTest extends ProtocolTestBase {
         nextDiagsFor("CancelMidEsc", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         // Fire ESC: the command returns immediately; the ESC run starts asynchronously.
-        String escArgs = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(uri) + "\"]";
+        String escArgs = "[\"" + DEFAULT_PROJECT + "\",\"\",\"\",\"\",\"" + jsonEscape(uri) + "\"]";
         executeCommand(OpenJMLCommands.RUN_ESC, escArgs);
 
         // Cancel immediately — may hit the task before or after it starts.
         String cancelParams = "{\"command\":\"" + OpenJMLCommands.CANCEL_ESC
-                + "\",\"arguments\":[\"\",\"" + uri + "\"]}";
+                + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\",\"" + uri + "\"]}";
         client.sendRequest("workspace/executeCommand", cancelParams);
         JsonObject cancelResp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to cancelEsc after ESC dispatch", cancelResp);

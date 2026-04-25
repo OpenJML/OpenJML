@@ -58,7 +58,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         String methodRef = extractMethodRef(lenses, ".m(");
         assertNotNull("Code lens must include method ref arg", methodRef);
 
-        String argsJson = "[\"\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
+        String argsJson = "[\"" + DEFAULT_PROJECT + "\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");
@@ -101,7 +101,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         String methodRef = extractMethodRef(lenses, ".identity(");
         assertNotNull("Expected methodRef from code lens", methodRef);
 
-        String argsJson = "[\"\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
+        String argsJson = "[\"" + DEFAULT_PROJECT + "\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");
@@ -143,7 +143,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         assertNotNull("Expected methodRef", methodRef);
 
         // Start per-method ESC.
-        String escArgs = "[\"\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
+        String escArgs = "[\"" + DEFAULT_PROJECT + "\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + escArgs + "}");
@@ -152,7 +152,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         // Immediately query running tasks (covers getRunningEscUris()).
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.GET_RUNNING_ESC_TASKS
-                + "\",\"arguments\":[\"\"]}");
+                + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\"]}");
         JsonObject resp = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to getRunningEscTasks", resp);
         assertTrue("getRunningEscTasks must return a result", resp.has("result"));
@@ -231,7 +231,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         nextDiagsFor("AtLineFallbackFail", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         // Line 2 (0-based) is inside "fail" — pass @2 so the server resolves the method.
-        String argsJson = "[\"\",\"" + uri + "\",\"@2\"]";
+        String argsJson = "[\"" + DEFAULT_PROJECT + "\",\"" + uri + "\",\"@2\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");
@@ -263,7 +263,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         didOpen(uri, source);
         nextDiagsFor("AtLineFallbackPass", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        String argsJson = "[\"\",\"" + uri + "\",\"@2\"]";
+        String argsJson = "[\"" + DEFAULT_PROJECT + "\",\"" + uri + "\",\"@2\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");

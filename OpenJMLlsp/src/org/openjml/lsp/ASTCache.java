@@ -220,7 +220,7 @@ public class ASTCache {
      * All entries from one {@code --check --dirs} pass share one IAPI context,
      * so symbol identity holds across files.
      *
-     * @param projectId    project identifier, or {@code null} for generic clients
+     * @param projectId    project identifier ({@code ""} for VS Code/generic clients), or {@code null} when unknown
      * @param projectRoots source-directory paths (used as fallback key and stored
      *                     in the section for {@code coversProjectRoot} matching)
      */

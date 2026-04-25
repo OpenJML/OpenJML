@@ -228,7 +228,7 @@ public class JmlCompanionSemanticTokensTest extends ProtocolTestBase {
     public void testGetSemanticTokensCommand_JmlCompanion() throws Exception {
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.GET_SEMANTIC_TOKENS
-                + "\",\"arguments\":[\"\",\"" + escape(jmlUri) + "\"]}");
+                + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\",\"" + escape(jmlUri) + "\"]}");
         JsonObject resp = client.nextResponse(TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Server must respond to getSemanticTokens command", resp);
         assertTrue("Response must have a result field", resp.has("result"));

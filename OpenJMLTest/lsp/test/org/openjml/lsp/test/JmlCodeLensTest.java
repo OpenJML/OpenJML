@@ -55,10 +55,6 @@ public class JmlCodeLensTest extends ProtocolTestBase {
         return f;
     }
 
-    private static String fileUri(File f) {
-        return f.toPath().toUri().toString();
-    }
-
     // -----------------------------------------------------------------------
     // Test 1: .jml code lenses — UNKNOWN status before ESC
     // -----------------------------------------------------------------------

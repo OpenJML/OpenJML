@@ -54,7 +54,7 @@ import static org.junit.Assert.*;
  * position 4.  For {@code openjml.runRac} the output directory is at position 4
  * and the source paths start at position 5.
  */
-public class BatchAndWatchedFilesTest {
+public class BatchAndWatchedFilesTest extends LspTestBase {
 
     private static final long TIMEOUT_SECONDS = 120;
     private static final long SHORT_TIMEOUT   = 5;
@@ -178,7 +178,7 @@ public class BatchAndWatchedFilesTest {
      * propertiesFile} sentinels.
      */
     private static void sendBatchCommand(String command, String... osPaths) throws Exception {
-        StringBuilder sb = new StringBuilder("[\"\",\"\",\"\",\"\"");
+        StringBuilder sb = new StringBuilder("[\"" + DEFAULT_PROJECT + "\",\"\",\"\",\"\"");
         for (String p : osPaths) {
             sb.append(",\"").append(p.replace("\\", "\\\\")).append("\"");
         }
@@ -253,7 +253,7 @@ public class BatchAndWatchedFilesTest {
         String racOutEscaped  = racOut.toAbsolutePath().toString().replace("\\", "\\\\");
         String racPathEscaped = absPath("BatchRac.java").replace("\\", "\\\\");
         String params = "{\"command\":\"" + OpenJMLCommands.RUN_RAC
-                + "\",\"arguments\":[\"\",\"\",\"\",\"\",\""
+                + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\",\"\",\"\",\"\",\""
                 + racOutEscaped + "\",\"" + racPathEscaped + "\"]}";
         client.sendRequest("workspace/executeCommand", params);
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);

@@ -64,7 +64,7 @@ public class CheckRunnerEscContextTest extends ProtocolTestBase {
         //   onApiReady, onMethodStarted).
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC
-                + "\",\"arguments\":[\"\",\"" + jsonEscape(uri) + "\"]}");
+                + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\",\"" + jsonEscape(uri) + "\"]}");
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
         // ESC on "ensures false" must produce at least one diagnostic.
@@ -108,7 +108,7 @@ public class CheckRunnerEscContextTest extends ProtocolTestBase {
         // File-level ESC: scheduleEscForUri → escWithContext with onMethodStarted callback.
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC
-                + "\",\"arguments\":[\"\",\"" + jsonEscape(uri) + "\"]}");
+                + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\",\"" + jsonEscape(uri) + "\"]}");
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
         // At least one publishDiagnostics must arrive; the failure in failing() confirms
@@ -196,7 +196,7 @@ public class CheckRunnerEscContextTest extends ProtocolTestBase {
         // URI dispatch: starts with "file://" → scheduleEscForUri path.
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC
-                + "\",\"arguments\":[\"\",\"" + jsonEscape(uri) + "\"]}");
+                + "\",\"arguments\":[\"" + DEFAULT_PROJECT + "\",\"" + jsonEscape(uri) + "\"]}");
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
         // The trivially-verified postcondition produces no ESC failures,

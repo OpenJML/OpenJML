@@ -18,7 +18,7 @@ import static org.junit.Assert.*;
  * Tests for the {@code workspace/didChangeWatchedFiles} infrastructure:
  * <ul>
  *   <li>{@link OpenJMLSettings#effectiveRoots()} — uses the {@code projects}
- *       list ({@code OpenJMLSettings.WORKSPACE_PROJECT_ID} synthesized project), falls back gracefully
+ *       list ({@code DEFAULT_PROJECT} synthesized project), falls back gracefully
  *       when absent.</li>
  *   <li>{@link OpenJMLWorkspaceService#didChangeConfiguration} — a {@code projects}
  *       update triggers the watcher-reregistrar; an unrelated setting does not.</li>
@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
  *       effective roots.</li>
  * </ul>
  */
-public class WatchedFilesTest {
+public class WatchedFilesTest extends LspTestBase {
 
     // -----------------------------------------------------------------------
     // Helpers
@@ -64,7 +64,7 @@ public class WatchedFilesTest {
     /** Create a synthesized default project with the given root paths. */
     private static OpenJMLSettings.ProjectConfig workspaceProject(String... paths) {
         OpenJMLSettings.ProjectConfig cfg = new OpenJMLSettings.ProjectConfig();
-        cfg.id = OpenJMLSettings.WORKSPACE_PROJECT_ID;
+        cfg.id = DEFAULT_PROJECT;
         cfg.rootPaths = new ArrayList<>(List.of(paths));
         return cfg;
     }
@@ -100,7 +100,7 @@ public class WatchedFilesTest {
     public void effectiveRootsSkipsBlankPaths() {
         OpenJMLSettings s = new OpenJMLSettings();
         OpenJMLSettings.ProjectConfig cfg = new OpenJMLSettings.ProjectConfig();
-        cfg.id = OpenJMLSettings.WORKSPACE_PROJECT_ID;
+        cfg.id = DEFAULT_PROJECT;
         cfg.rootPaths = List.of("/a", "   ", "/b");
         s.projects = List.of(cfg);
         List<String> roots = s.effectiveRoots();
@@ -133,7 +133,8 @@ public class WatchedFilesTest {
         TestSetup ts = new TestSetup();
 
         // Send didChangeConfiguration with a projects array.
-        String json = "{\"openjml\":{\"projects\":[{\"id\":\"__workspace__\","
+        String json = "{\"openjml\":{\"projects\":[{\"id\":\""
+                + DEFAULT_PROJECT + "\","
                 + "\"rootPaths\":[\"/new\"]}]}}";
         org.eclipse.lsp4j.DidChangeConfigurationParams params =
                 new org.eclipse.lsp4j.DidChangeConfigurationParams(
@@ -144,7 +145,7 @@ public class WatchedFilesTest {
                 1, ts.reregistrations.get());
         assertNotNull(ts.settings.projects);
         assertEquals(1, ts.settings.projects.size());
-        assertEquals(OpenJMLSettings.WORKSPACE_PROJECT_ID, ts.settings.projects.get(0).id);
+        assertEquals(DEFAULT_PROJECT, ts.settings.projects.get(0).id);
     }
 
     @Test

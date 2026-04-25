@@ -25,8 +25,13 @@ public class OpenJMLSettings {
      * generic LSP clients (e.g. VS Code) that do not send an explicit
      * {@code projects} array.  The same constant is used by
      * {@code didChangeWorkspaceFolders} to identify and update this entry.
+     *
+     * <p>The value is the empty string so that VS Code and generic clients,
+     * which pass {@code ""} as {@code args[0]} in custom commands, naturally
+     * address this project without any normalization.  {@code null} is the
+     * internal sentinel meaning "project unknown — derive from URI."
      */
-    public static final String WORKSPACE_PROJECT_ID = "__workspace__";
+    public static final String WORKSPACE_PROJECT_ID = "";
 
     // -----------------------------------------------------------------------
     // Per-project configuration

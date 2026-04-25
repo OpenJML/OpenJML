@@ -30,7 +30,7 @@ import static org.junit.Assert.assertNotNull;
  * {@link #startServer()} or {@link #startServer(String)}.  Similarly, extra
  * teardown goes in an overriding {@link #tearDown()} that calls {@code super.tearDown()}.
  */
-public abstract class ProtocolTestBase {
+public abstract class ProtocolTestBase extends LspTestBase {
 
     /** Timeout for operations that involve an OpenJML run (--check, --esc). */
     protected static final long TIMEOUT_SECONDS = 120;

@@ -1687,7 +1687,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         projectSettings.clear();
         if (configs == null) return;
         for (OpenJMLSettings.ProjectConfig cfg : configs) {
-            if (cfg.id == null || cfg.id.isBlank()) continue;
+            if (cfg.id == null) continue;
             OpenJMLSettings s = new OpenJMLSettings(globalSettings);
             s.sourcePath              = cfg.sourcePath              != null ? cfg.sourcePath              : "";
             s.classPath               = cfg.classPath               != null ? cfg.classPath               : "";
@@ -1698,7 +1698,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 s.rootPaths = cfg.rootPaths;
             projectSettings.put(cfg.id, s);
         }
-        ServerLog.serverLog("[OpenJML] project registry updated: " + projectSettings.keySet());
+        ServerLog.serverLog("[OpenJML] project registry updated: "
+                + projectSettings.keySet().stream().map(OpenJMLTextDocumentService::displayProject)
+                        .collect(java.util.stream.Collectors.joining(", ", "[", "]")));
     }
 
     /** Returns {@code true} if {@code projectId} is in the current project registry. */
@@ -1713,8 +1715,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * (indicates the client submitted an unrecognized project name).
      */
     OpenJMLSettings settingsForProject(String projectId) {
-        if (projectId == null || projectId.isBlank()) return globalSettings;
-        if (OpenJMLSettings.WORKSPACE_PROJECT_ID.equals(projectId)) return globalSettings;
+        if (projectId == null) return globalSettings;
         OpenJMLSettings s = projectSettings.get(projectId);
         if (s == null) {
             clientError("OpenJML: unknown project ID '" + projectId
@@ -3256,10 +3257,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
     }
 
+    /** Human-readable project label for logging (empty string → "(workspace)"). */
+    private static String displayProject(String projectId) {
+        if (projectId == null) return "(none)";
+        if (projectId.isEmpty()) return "(workspace)";
+        return projectId;
+    }
+
     /** Returns true if {@code key} (a URI or "uri#method") belongs to {@code projectId},
-     *  or if {@code projectId} is null/empty (match all). */
+     *  or if {@code projectId} is null (match all; used when project is unknown). */
     private boolean matchesProject(String key, String projectId) {
-        if (projectId == null || projectId.isEmpty()) return true;
+        if (projectId == null) return true;
         String uri = key.contains("#") ? key.substring(0, key.indexOf('#')) : key;
         return projectId.equals(projectIdForUri(uri));
     }
@@ -3353,14 +3361,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         var proofByProject  = new java.util.LinkedHashMap<String, java.util.List<String>>();
         checkDiags.forEach((uri, diags) ->
                 checkByProject.computeIfAbsent(
-                        java.util.Objects.toString(projectIdForUri(uri), "(none)"),
+                        displayProject(projectIdForUri(uri)),
                         k -> new java.util.ArrayList<>())
                     .add(uri + " → " + diags.size() + " diag(s)"));
         proofResults.forEach((key, pr) -> {
             String uri = key.contains("#") ? key.substring(0, key.indexOf('#')) : key;
             int total = pr.byUri().values().stream().mapToInt(List::size).sum();
             proofByProject.computeIfAbsent(
-                        java.util.Objects.toString(projectIdForUri(uri), "(none)"),
+                        displayProject(projectIdForUri(uri)),
                         k -> new java.util.ArrayList<>())
                     .add(key + " status=" + pr.status() + " diags=" + total);
         });
