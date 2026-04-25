@@ -1272,51 +1272,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleEscSplitByFile(List<String> paths, String projectId) {
         if (paths == null || paths.isEmpty()) return;
         OpenJMLSettings s = settingsForProject(projectId);
-        Map<String, String> snapshot = dirtySnapshot();
-
+        // Expand paths to individual .java files and queue each as its own ESC job.
+        // scheduleEscForPaths immediately submits to escPool via submitEscJob, so all
+        // files are queued before any begin running, and each gets incremental updates.
         for (java.nio.file.Path javaFile : collectJavaFiles(paths)) {
-            String filePath = javaFile.toString();
-            String uri = javaFile.toUri().toString();
-            String content = snapshot.get(uri);
-            // Cancel any previous whole-file ESC task for this URI.
-            RunningSession prevSession = runningSessions.remove(uri);
-            if (prevSession != null) {
-                prevSession.future().cancel(false);
-                IAPI prevApi = prevSession.api().get();
-                if (prevApi != null) prevApi.cancelEsc();
-            }
-            java.util.concurrent.atomic.AtomicReference<Future<?>> futureRef =
-                    new java.util.concurrent.atomic.AtomicReference<>();
-            java.util.concurrent.atomic.AtomicReference<IAPI> apiRef =
-                    new java.util.concurrent.atomic.AtomicReference<>();
-            Future<?> f = s.escPool.submit(() -> {
-                long myGen = sessionCounter.incrementAndGet();
-                runningSessions.put(uri, new RunningSession(myGen, futureRef.get(), apiRef));
-                markAllMethodStatus(uri, MethodStatus.UNKNOWN, myGen, projectId);
-                try {
-                    CheckRunner.CheckResult result = (content != null)
-                            ? CheckRunner.escWithContext(uri, content, snapshot, s,
-                                    api -> { apiRef.set(api); RunningSession rs = runningSessions.get(uri); if (rs != null) rs.api().set(api); },
-                                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString(), myGen, projectId); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); })
-                            : CheckRunner.runEscFile(filePath, uri, s,
-                                    api -> { apiRef.set(api); RunningSession rs = runningSessions.get(uri); if (rs != null) rs.api().set(api); },
-                                    methodDecl -> { markMethodCheckingByName(uri, methodDecl.name.toString(), myGen, projectId); executor.execute(() -> { publishMerged(uri); refreshCodeLenses(); }); });
-                    updateEscStatus(uri, result.proofResults(),
-                            result.exitCode(), result.foreignMessages(), myGen,
-                            result.diagsByMethod(), projectId);
-                    publishMerged(uri);
-                    refreshCodeLenses();
-                } catch (Throwable t) {
-                    ServerLog.serverLog("[scheduleEscSplitByFile] error for " + uri + ": " + t);
-                } finally {
-                    runningSessions.remove(uri);
-                }
-            });
-            futureRef.set(f);
-            runningSessions.putIfAbsent(uri, new RunningSession(-1L, f, apiRef));
+            scheduleEscForPaths(List.of(javaFile.toString()), s, projectId);
         }
-        // Push the initial UNKNOWN state to the client now that all files are queued.
-        refreshCodeLenses();
     }
 
     /**

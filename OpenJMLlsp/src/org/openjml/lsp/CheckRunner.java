@@ -241,12 +241,6 @@ public class CheckRunner {
          * Receives the method declaration, the proof kind, and the per-method
          * diagnostics so the LSP layer can publish markers immediately.
          */
-        @FunctionalInterface
-        public interface MethodResultCallback {
-            void onResult(JmlMethodDecl methodDecl, IProverResult.Kind kind,
-                          Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri);
-        }
-
         private MethodResultCallback onMethodCompleted;
 
         /**
@@ -269,7 +263,7 @@ public class CheckRunner {
             this.onMethodStarted = cb;
         }
 
-        void setOnMethodCompleted(MethodResultCallback cb) {
+        void setOnMethodCompleted(CheckRunner.MethodResultCallback cb) {
             this.onMethodCompleted = cb;
         }
 
@@ -297,11 +291,16 @@ public class CheckRunner {
                 diagsByMethod.put(key, methodDiags);
             }
             // Log immediately so the console shows progress as each method completes.
-            javax.tools.JavaFileObject src =
-                    methodDecl.sym != null && methodDecl.sym.enclClass() != null
-                    ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
-            String fname = src != null ? fileName(src.getName()) : "unknown";
-            log(ts() + " --esc " + fname + " " + key + ": " + kindLabel(kind));
+            // Suppress SKIPPED: these arise from single-method runs targeting a specific
+            // method — the other methods in the file are intentionally skipped and logging
+            // them adds noise without useful information.
+            if (kind != IProverResult.SKIPPED) {
+                javax.tools.JavaFileObject src =
+                        methodDecl.sym != null && methodDecl.sym.enclClass() != null
+                        ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
+                String fname = src != null ? fileName(src.getName()) : "unknown";
+                log(ts() + " --esc " + fname + " " + key + ": " + kindLabel(kind));
+            }
             if (onMethodCompleted != null) onMethodCompleted.onResult(methodDecl, kind, methodDiags);
         }
 
@@ -583,6 +582,18 @@ public class CheckRunner {
                     List<org.eclipse.lsp4j.Diagnostic> diagsSoFar,
                     Map<String, IProverResult.Kind> proofResultsSoFar,
                     Map<String, Map<String, List<org.eclipse.lsp4j.Diagnostic>>> diagsByMethodSoFar);
+    }
+
+    /**
+     * Callback fired by single-file ESC ({@code escWithContext}, {@code runEscFile})
+     * immediately after each method proof finishes, before the overall run returns.
+     * Allows the LSP layer to update that method's code lens to its final state
+     * (VERIFIED/FAILED) incrementally rather than waiting for the whole file to finish.
+     */
+    @FunctionalInterface
+    public interface MethodResultCallback {
+        void onResult(JmlMethodDecl methodDecl, IProverResult.Kind kind,
+                      Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri);
     }
 
     /**
@@ -1042,7 +1053,7 @@ public class CheckRunner {
             Map<String, String> openContent, OpenJMLSettings settings,
             Consumer<IAPI> onApiReady,
             java.util.function.Consumer<JmlMethodDecl> onMethodStarted,
-            ProofResultCollector.MethodResultCallback onMethodCompleted) {
+            MethodResultCallback onMethodCompleted) {
         return runOnContentWithContext(uri, content, openContent, settings, "--esc", null, true,
                 onApiReady, onMethodStarted, onMethodCompleted);
     }
@@ -1471,7 +1482,7 @@ public class CheckRunner {
     public static CheckResult runEscFile(String filePath, String uri, OpenJMLSettings settings,
                                          Consumer<IAPI> onApiReady,
                                          java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
-        return runOnFile(filePath, uri, settings, "--esc", null, true, onApiReady, onMethodStarted);
+        return runOnFile(filePath, uri, settings, "--esc", null, true, onApiReady, onMethodStarted, null);
     }
 
     /** Run {@code --esc} on a single method in a file already on disk. */
@@ -1672,7 +1683,7 @@ public class CheckRunner {
             String modeFlag, String methodName, boolean collectProofResults,
             Consumer<IAPI> onApiReady,
             java.util.function.Consumer<JmlMethodDecl> onMethodStarted,
-            ProofResultCollector.MethodResultCallback onMethodCompleted) {
+            MethodResultCallback onMethodCompleted) {
         return runOnContentWithContext(uri, content, openContent, settings,
                 modeFlag, methodName, collectProofResults,
                 onApiReady == null ? null : (api, n) -> onApiReady.accept(api), onMethodStarted, onMethodCompleted);
@@ -1690,7 +1701,7 @@ public class CheckRunner {
             String modeFlag, String methodName, boolean collectProofResults,
             BiConsumer<IAPI, Supplier<Integer>> onApiReady,
             java.util.function.Consumer<JmlMethodDecl> onMethodStarted,
-            ProofResultCollector.MethodResultCallback onMethodCompleted) {
+            MethodResultCallback onMethodCompleted) {
 
         var listener = new LspDiagnosticListener();
         if (content != null) listener.setSourceContent(content);
@@ -2013,6 +2024,15 @@ public class CheckRunner {
             String filePath, String uri, OpenJMLSettings settings, String modeFlag,
             String methodName, boolean collectProofResults, Consumer<IAPI> onApiReady,
             java.util.function.Consumer<JmlMethodDecl> onMethodStarted) {
+        return runOnFile(filePath, uri, settings, modeFlag, methodName,
+                collectProofResults, onApiReady, onMethodStarted, null);
+    }
+
+    private static CheckResult runOnFile(
+            String filePath, String uri, OpenJMLSettings settings, String modeFlag,
+            String methodName, boolean collectProofResults, Consumer<IAPI> onApiReady,
+            java.util.function.Consumer<JmlMethodDecl> onMethodStarted,
+            MethodResultCallback onMethodCompleted) {
         var listener = new LspDiagnosticListener();
         if ("--esc".equals(modeFlag)) listener.setSourceTag(DiagnosticConverter.SOURCE_ESC);
         var out = new PrintWriter(System.err, true);
@@ -2022,6 +2042,7 @@ public class CheckRunner {
         if (collectProofResults) {
             prc = new ProofResultCollector(listener);
             if (onMethodStarted != null) prc.setOnMethodStarted(onMethodStarted);
+            if (onMethodCompleted != null) prc.setOnMethodCompleted(onMethodCompleted);
             api.setProofResultListener(prc);
         }
         if (onApiReady != null) onApiReady.accept(api);
