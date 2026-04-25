@@ -533,7 +533,8 @@ function getSettings() {
 
         sourcePath:              cfg.get('sourcePath',              ''),
         classPath:               cfg.get('classPath',               ''),
-        racOutputDir:            cfg.get('racOutputDir',            ''),
+        racOutputDir:            cfg.get('racOutputDir', '').trim() ||
+                                 vscode.workspace.getConfiguration('java').get('project.outputPath', 'bin'),
         syntaxColoringScope:     cfg.get('syntaxColoringScope',     'preserve Java coloring'),
         syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'ast'),
         escEngine:               cfg.get('escEngine',               'fresh'),

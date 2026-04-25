@@ -463,7 +463,7 @@
           "type": "string",
           "default": "",
           "order": 16,
-          "description": "Output directory for RAC-compiled class files (-d option). Relative paths are resolved against the workspace root. Leave empty to use 'rac-classes' in the workspace root."
+          "description": "Output directory for RAC-compiled class files (-d option). Relative paths are resolved against the workspace root. Leave empty to use the value of java.project.outputPath (default 'bin')."
         }
       }
     }

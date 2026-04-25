@@ -64,14 +64,13 @@ the installer sets this automatically.
 fully-qualified name, so it works correctly for methods in secondary classes and nested classes.
 
 **Run ESC Split by File / Split by Method** launch parallel ESC invocations — one per file
-or one per method — so code lenses update as each proof completes rather than all at once.
+or one per method — to take advantage of concurrency.
 
-**Save and Run ESC** saves the file first, then runs ESC. Useful when `dirtyFileAction` is `run`
-(which would otherwise run on the editor content without saving first).
+**Save and Run ESC** saves the file first, then runs ESC. Useful when `dirtyFileAction` is set to `run`,
+which means the default behavior is to check the editor content.
 
 **Index Project** runs `--check` on all source files in the workspace, populating the declaration
-index used by "Find All Declarations" (`workspace/symbol`). Run it once after opening a project
-so that cross-file navigation covers files that have not yet been edited.
+index used by various navigation command.
 
 **Clear Markers for Selection** clears OpenJML diagnostics for the file(s) or folder(s) selected
 in the Explorer. **Clear Markers** clears all OpenJML diagnostics workspace-wide.
@@ -96,12 +95,14 @@ color themes apply automatically:
 |---|---|
 | `keyword` | `requires`, `ensures`, `invariant`, `ghost`, `model`, `also`, `behavior`, `loop_invariant` |
 | `modifier` | `pure`, `spec_public`, `spec_protected`, `nullable`, `non_null`, `strictly_pure`, `helper` |
-| `function` | `\result`, `\old`, `\forall`, `\exists`, `\nothing`, `\fresh`, `\typeof` |
-| `type` | `int`, `boolean`, `\bigint`, `\real`, `\locset` |
+| `function` | <code>\result</code>, <code>\old</code>, <code>\forall</code>, <code>\exists</code>, <code>\nothing</code>, <code>\fresh</code>, <code>\typeof</code> |
+| `type` | `int`, `boolean`, <code>\bigint</code>, <code>\real</code>, <code>\locset</code> |
 | `operator` | `==>`, `<==`, `<==>`, `<:`, `+`, `-`, `==`, … |
 | `string` | String literals and text blocks inside JML expressions |
 | `number` | Numeric and character literals inside JML expressions |
+| `macro` | Reserved; not currently emitted |
 | `decorator` | `@Override`, `@NonNull`, and other annotations |
+| `comment` | Reserved; not currently emitted |
 | `method`, `property`, `variable`, `parameter` | Resolved symbols inside JML expressions (AST strategy only) |
 | `class`, `interface`, `enum`, `struct` | Class, interface, enum, and record type references in JML expressions (AST strategy only; `struct` = record) |
 | `namespace` | Package-qualified name prefixes in JML expressions (AST strategy only) |
@@ -110,18 +111,19 @@ color themes apply automatically:
 
 In addition, the declaration site of a symbol (e.g. a ghost field declaration) receives the
 `declaration` modifier, `final` fields and locals receive `readonly`, `static` members
-receive `static`, deprecated symbols receive `deprecated`, and abstract methods and classes
-receive `abstract`.
+receive `static`, deprecated symbols receive `deprecated`, abstract methods and classes
+receive `abstract`, and type references whose fully-qualified name begins with `java.` or
+`javax.` receive `defaultLibrary`.
 
 ### Modes
 
-**`jml-only`** (default, recommended with Red Hat Java Extension installed): only JML constructs
-are highlighted.  Java constructs outside JML annotation context are left to the Red Hat Java
-Extension.
+**`preserve Java coloring`** (default, `openjml.syntaxColoringScope`; recommended with Red Hat
+Java Extension installed): tokens are emitted only inside JML annotation context.  Java
+constructs outside JML annotations are left to the Red Hat Java Extension.
 
-**`full`** (set `openjml.javaMode` to `full`): all Java and JML constructs are highlighted,
-including class/method/field declarations throughout the file.  Use when no other Java
-extension is active.
+**`overwrite Java coloring`** (set `openjml.syntaxColoringScope` to `overwrite Java coloring`):
+tokens are emitted for all Java and JML constructs throughout the file, replacing whatever the
+Java language server produced.  Use when no other Java extension is active.
 
 ### Strategies
 
@@ -152,7 +154,7 @@ The names match the token type strings listed in the table above.
 
 | Setting | Default | Description |
 |---|---|---|
-| `openjml.serverPath` | `` | Path to the OpenJML installation folder or a `openjml-lsp` launcher script. Leave empty to auto-discover it in the parent directory of the extension or on the system PATH. Requires OpenJML to be installed separately. |
+| `openjml.serverPath` | `` | Path to the OpenJML installation folder or a `openjml-lsp` launcher script. Leave empty to auto-discover it in the OpenJML installation. Requires OpenJML to be installed separately. |
 | `openjml.checkTriggerOn` | `edit` | When to run `--check`: `edit` (on every change), `save` (only on file save), or `manual` (never automatic; use the OpenJML: Check JML command). |
 | `openjml.escTriggerOn` | `manual` | When to run `--esc`: `manual` (only via command) or `save` (on file save). |
 | `openjml.dirtyFileAction` | `ask` | What to do when ESC is invoked on a file with unsaved changes: `ask` (prompt each time), `save` (always save silently first), or `run` (always run on the editor content). |
@@ -160,23 +162,23 @@ The names match the token type strings listed in the table above.
 | `openjml.specsPath` | `` | Path to the OpenJML specs directory. Leave empty to use the default from the launcher script. |
 | `openjml.sourcePath` | `` | Source root(s) for cross-file references (`-sourcepath`). Separate multiple roots with `:` (Unix) or `;` (Windows). Leave empty for single-file projects. |
 | `openjml.classPath` | `` | Classpath for pre-compiled dependencies (`-classpath`). Separate multiple entries with `:` (Unix) or `;` (Windows). Leave empty if no external jars are needed. |
-| `openjml.escEngine` | `fresh` | ESC execution engine: `fresh` (default — spawns a fresh OpenJML process) or `concurrent` (in-process per-method using the cached AST, serialized within a file). |
-| `openjml.escThreads` | `5` | Maximum number of concurrent ESC tasks. Controls per-method parallelism in the `concurrent` engine, and per-file or per-method subprocess parallelism when using Run ESC Split by File / Split by Method. |
+| `openjml.escEngine` | `fresh` | ESC execution engine: `fresh` (default — spawns a fresh OpenJML compilation context for each ESC task) or `concurrent` (share OpenJDK compilation contexts, which shares parsing and typechecking effort). |
+| `openjml.escThreads` | `5` | Maximum number of concurrent ESC tasks. |
 | `openjml.syntaxColoringScope` | `preserve Java coloring` | How OpenJML's semantic tokens interact with Java coloring: `preserve Java coloring` (default) — emit tokens only inside JML annotation context, leaving Java code to the Java language server; `overwrite Java coloring` — emit tokens for all Java and JML constructs, replacing whatever the Java language server produced. |
 | `openjml.syntaxColoringStrategy` | `ast` | JML syntax coloring strategy: `ast` (uses the attributed AST when available — precise, no false positives) or `regex` (always uses regex line scanning — may color Java identifiers that share a name with a JML keyword). |
 | `openjml.useIntegratedOutline` | `true` | When `true`, the Outline panel shows all Java and JML symbols together. When `false`, only JML-specific symbols are shown (complementing the Red Hat Java Extension's outline). |
-| `openjml.javaMode` | `jml-only` | Controls which constructs are highlighted and navigated. `jml-only` (default) — only JML constructs; defers Java navigation and coloring to the Red Hat Java Extension. `full` — all Java and JML constructs; use when no Java extension is installed. |
+| `openjml.javaMode` | `jml-only` | Controls which inlay hints are shown. `jml-only` (default) — suppress `var`-type hints for plain Java locals (assumes the Red Hat Java Extension shows those); JML ghost/model `var` hints are always shown. `full` — show `var`-type hints for all locals. |
 | `openjml.client` | `vscode-java` | Client identifier sent to the server. Controls `javaMode` defaults. Leave as `vscode-java` when the Red Hat Java Extension is active. |
-| `openjml.racOutputDir` | `` | Output directory for RAC-compiled class files (`-d`). Relative paths are resolved against the workspace root. Leave empty to use `rac-classes` in the workspace root. |
+| `openjml.racOutputDir` | `` | Output directory for RAC-compiled class files (`-d`). Relative paths are resolved against the workspace root. Leave empty to use the value of `java.project.outputPath` (default `bin`). |
 
 ## Co-existing with the Red Hat Java Extension
 
 This extension is designed to work alongside the
 [Red Hat Language Support for Java](https://marketplace.visualstudio.com/items?itemName=redhat.java)
-extension.  With `javaMode: "jml-only"` (the default), OpenJML only adds JML-specific
-capabilities — type-check diagnostics, ESC code lenses, JML completions, JML hover, JML syntax
-coloring — and defers Java navigation, outline, inlay hints, and Java coloring to the Red Hat
-extension.  The JML semantic tokens are merged *additively* on top of whatever the Red Hat
+extension.  With the default settings, OpenJML only adds JML-specific capabilities — type-check diagnostics,
+ESC code lenses, JML completions, JML hover, JML syntax coloring — and defers Java navigation,
+outline, and plain-Java `var` inlay hints to the Red Hat extension (`openjml.javaMode: "jml-only"`).
+Java syntax coloring is preserved by default via `openjml.syntaxColoringScope: "preserve Java coloring"`.  The JML semantic tokens are merged *additively* on top of whatever the Red Hat
 extension produces, so JML keywords and modifiers are colored without disturbing Java coloring.
 
 **Warning:** The Red Hat Java formatter normalizes `//` comment lines by inserting a space after
