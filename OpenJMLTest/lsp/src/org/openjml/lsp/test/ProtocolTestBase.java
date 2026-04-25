@@ -397,8 +397,8 @@ public abstract class ProtocolTestBase {
             JsonObject lens = lenses.get(i).getAsJsonObject();
             if (!lens.has("command")) continue;
             JsonArray args = lens.getAsJsonObject("command").getAsJsonArray("arguments");
-            if (args == null || args.size() < 2) continue;
-            String ref = args.get(1).getAsString();
+            if (args == null || args.size() < 3) continue;
+            String ref = args.get(2).getAsString();
             if (nameFragment == null || ref.contains(nameFragment)) return ref;
         }
         return null;

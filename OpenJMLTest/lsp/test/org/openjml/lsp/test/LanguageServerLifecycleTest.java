@@ -193,17 +193,13 @@ public class LanguageServerLifecycleTest extends ProtocolTestBase {
     }
 
     // -----------------------------------------------------------------------
-    // (5) isCodeLensFormat — 1-arg edge case (neither branch executes ESC)
+    // (5) malformed 1-arg edge case (no ESC dispatched)
     // -----------------------------------------------------------------------
 
     /**
-     * {@code openjml.runEscForMethod} with a single-arg list is neither
-     * code-lens format (2 args) nor standard format (3 args).  The server
-     * must respond to the command without crashing; the result is null
-     * because no ESC is scheduled (no URI can be extracted).
-     *
-     * <p>This covers the {@code isCodeLensFormat()} guard that returns
-     * {@code false} for lists with size != 2.
+     * {@code openjml.runEscForMethod} with a single-arg list: the server reads
+     * {@code args[0]=projectId} and {@code args[1]=null} (absent), so no URI is
+     * available and no ESC is scheduled.  The server must respond without crashing.
      */
     @Test
     public void testRunEscForMethod_SingleArg_NoOp() throws Exception {
@@ -213,9 +209,7 @@ public class LanguageServerLifecycleTest extends ProtocolTestBase {
                 client.nextResponse(LOCAL_SHORT_TIMEOUT, TimeUnit.SECONDS));
         client.sendNotification("initialized", "{}");
 
-        // 1-arg list: isCodeLensFormat == false (size != 2) and the else-branch
-        // also fails to dispatch because args[1] (uri) is absent.
-        // The server must silently return null rather than throwing.
+        // 1-arg list: args[1] (uri) is absent — server silently returns null.
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":[\"file:///SingleArgTest.java\"]}");

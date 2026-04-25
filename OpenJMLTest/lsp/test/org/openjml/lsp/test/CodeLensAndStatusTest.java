@@ -69,8 +69,8 @@ public class CodeLensAndStatusTest extends ProtocolTestBase {
         // Drain the open-triggered --check notification.
         nextDiagsFor("CodeLensVerified", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        // Run ESC on the URI (file:// prefix → uses in-memory content from lastContent).
-        String argsJson = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(uri) + "\"]";
+        // Run ESC on the URI; file:// prefix is stripped by the server.
+        String argsJson = "[\"\",\"" + jsonEscape(uri) + "\"]";
         executeCommand(OpenJMLCommands.RUN_ESC, argsJson);
 
         // Wait for the ESC completion publishDiagnostics.
@@ -109,7 +109,7 @@ public class CodeLensAndStatusTest extends ProtocolTestBase {
         nextDiagsFor("CodeLensNotVerified", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         // Run ESC on the URI.
-        String argsJson = "[\"\",\"\",\"\",\"\",\"" + jsonEscape(uri) + "\"]";
+        String argsJson = "[\"\",\"" + jsonEscape(uri) + "\"]";
         executeCommand(OpenJMLCommands.RUN_ESC, argsJson);
 
         // Wait for the ESC failure publishDiagnostics (skip any intermediate empty notifications

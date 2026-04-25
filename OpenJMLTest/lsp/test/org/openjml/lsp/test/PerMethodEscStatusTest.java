@@ -28,11 +28,11 @@ import static org.junit.Assert.*;
 public class PerMethodEscStatusTest extends ProtocolTestBase {
 
     // -----------------------------------------------------------------------
-    // (1) Per-method ESC — code-lens format — NOT_VERIFIED
+    // (1) Per-method ESC — NOT_VERIFIED
     // -----------------------------------------------------------------------
 
     /**
-     * {@code openjml.runEscForMethod} in code-lens format {@code [uri, methodRef]}:
+     * {@code openjml.runEscForMethod} format {@code [projectId, uri, methodRef]}:
      * a method with {@code ensures false} must produce NOT_VERIFIED code lens.
      *
      * The method ref is extracted from the actual code-lens response to guarantee
@@ -58,8 +58,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         String methodRef = extractMethodRef(lenses, ".m(");
         assertNotNull("Code lens must include method ref arg", methodRef);
 
-        // Code-lens format: exactly 2 args, first starts with "file://"
-        String argsJson = "[\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
+        String argsJson = "[\"\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");
@@ -78,7 +77,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
     }
 
     // -----------------------------------------------------------------------
-    // (2) Per-method ESC — code-lens format — VERIFIED
+    // (2) Per-method ESC — VERIFIED
     // -----------------------------------------------------------------------
 
     /**
@@ -102,7 +101,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         String methodRef = extractMethodRef(lenses, ".identity(");
         assertNotNull("Expected methodRef from code lens", methodRef);
 
-        String argsJson = "[\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
+        String argsJson = "[\"\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");
@@ -144,7 +143,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         assertNotNull("Expected methodRef", methodRef);
 
         // Start per-method ESC.
-        String escArgs = "[\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
+        String escArgs = "[\"\",\"" + uri + "\",\"" + jsonEscape(methodRef) + "\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + escArgs + "}");
@@ -170,9 +169,8 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
     // -----------------------------------------------------------------------
 
     /**
-     * {@code openjml.runEscForMethod} in standard format {@code [projectId, uri, methodRef]}
-     * exercises the else-branch of {@code isCodeLensFormat}.  Three args with a non-URI
-     * first arg causes the server to parse {@code args[0]=projectId, args[1]=uri, args[2]=methodRef}.
+     * {@code openjml.runEscForMethod} in standard format {@code [projectId, uri, methodRef]}:
+     * server parses {@code args[0]=projectId, args[1]=uri, args[2]=methodRef}.
      */
     @Test
     public void testRunEscForMethod_StandardFormat() throws Exception {
@@ -190,8 +188,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         String methodRef = extractMethodRef(lenses, ".m(");
         assertNotNull("Expected methodRef", methodRef);
 
-        // Standard format: 3 args, first arg is empty projectId (not a file:// URI).
-        // isCodeLensFormat() returns false for 3-arg lists.
+        // Standard format: 3 args, first arg is empty projectId.
         String argsJson = "[\"\",\"" + jsonEscape(uri) + "\",\"" + jsonEscape(methodRef) + "\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
@@ -234,7 +231,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         nextDiagsFor("AtLineFallbackFail", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         // Line 2 (0-based) is inside "fail" — pass @2 so the server resolves the method.
-        String argsJson = "[\"" + uri + "\",\"@2\"]";
+        String argsJson = "[\"\",\"" + uri + "\",\"@2\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");
@@ -266,7 +263,7 @@ public class PerMethodEscStatusTest extends ProtocolTestBase {
         didOpen(uri, source);
         nextDiagsFor("AtLineFallbackPass", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        String argsJson = "[\"" + uri + "\",\"@2\"]";
+        String argsJson = "[\"\",\"" + uri + "\",\"@2\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");

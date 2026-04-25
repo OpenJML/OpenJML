@@ -65,7 +65,7 @@ public class EscSessionGenTest extends ProtocolTestBase {
     }
 
     private void sendEscForMethod(String uri, String methodRef) throws Exception {
-        String argsJson = "[\"" + jsonEscape(uri) + "\",\"" + jsonEscape(methodRef) + "\"]";
+        String argsJson = "[\"\",\"" + jsonEscape(uri) + "\",\"" + jsonEscape(methodRef) + "\"]";
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
                 + "\",\"arguments\":" + argsJson + "}");

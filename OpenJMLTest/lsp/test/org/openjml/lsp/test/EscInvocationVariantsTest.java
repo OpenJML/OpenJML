@@ -370,10 +370,9 @@ public class EscInvocationVariantsTest extends ProtocolTestBase {
 
         didOpenAndDrainCheck(uri, source);
 
-        // Send runEscForMethod in code-lens format: [uri, methodName].
         client.sendRequest("workspace/executeCommand",
                 "{\"command\":\"" + OpenJMLCommands.RUN_ESC_FOR_METHOD
-                + "\",\"arguments\":[\"" + jsonEscape(uri) + "\",\"failA\"]}");
+                + "\",\"arguments\":[\"\",\"" + jsonEscape(uri) + "\",\"failA\"]}");
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
         // Wait for a publishDiagnostics with at least one ESC error.
