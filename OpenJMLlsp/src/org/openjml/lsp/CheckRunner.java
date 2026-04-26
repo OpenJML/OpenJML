@@ -81,7 +81,7 @@ public class CheckRunner {
 
     static void log(String msg) {
         java.util.function.Consumer<String> cb = logCallback;
-        if (cb != null) cb.accept(msg);
+        if (cb != null) cb.accept(ts() + msg);
     }
 
     /**
@@ -299,7 +299,7 @@ public class CheckRunner {
                         methodDecl.sym != null && methodDecl.sym.enclClass() != null
                         ? methodDecl.sym.enclClass().sourcefile : methodDecl.sourcefile;
                 String fname = src != null ? fileName(src.getName()) : "unknown";
-                log(ts() + " --esc " + fname + " " + key + ": " + kindLabel(kind));
+                log(" --esc " + fname + " " + key + ": " + kindLabel(kind));
             }
             if (onMethodCompleted != null) onMethodCompleted.onResult(methodDecl, kind, methodDiags);
         }
@@ -657,16 +657,16 @@ public class CheckRunner {
         args.add("--dirs");
         args.addAll(paths);
         logInvocation("runEscDir", args);
-        log(ts() + " --esc --dirs " + paths + invocationSuffix(args));
+        log(" --esc --dirs " + paths + invocationSuffix(args));
         int rc = api.execute(args.toArray(new String[0]));
         api.removeASTListener(astListener);
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri = listener.toLspDiagnosticsByFile();
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
         int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
         if (rc == 5)
-            log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
+            log(" --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
         else
-            log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+            log(" --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(diagsByUri, rc, proofResults, prc.getDiagsByMethod());
     }
@@ -791,7 +791,7 @@ public class CheckRunner {
         List<String> args = buildArgs(settings, "--esc");
         args.addAll(fileList);
         logInvocation("runEscDirWithContext", args);
-        log(ts() + " --esc " + fileList.size() + " file(s)" + invocationSuffix(args));
+        log(" --esc " + fileList.size() + " file(s)" + invocationSuffix(args));
         int rc = api.execute(args.toArray(new String[0]), mockFiles);
         api.removeASTListener(escAstListener);
         Map<String, List<org.eclipse.lsp4j.Diagnostic>> diagsByUri =
@@ -799,9 +799,9 @@ public class CheckRunner {
         Map<String, IProverResult.Kind> proofResults = prc.getResults();
         int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
         if (rc == 5)
-            log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
+            log(" --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
         else
-            log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+            log(" --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(diagsByUri, rc, proofResults, prc.getDiagsByMethod());
     }
@@ -927,9 +927,9 @@ public class CheckRunner {
             Map<String, IProverResult.Kind> proofResults = prc.getResults();
             int totalDiags = diagsByUri.values().stream().mapToInt(List::size).sum();
             if (rc == 5)
-            log(ts() + " --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
+            log(" --esc cancelled: " + cancelSummary(proofResults) + ", " + totalDiags + " diagnostic(s)");
         else
-            log(ts() + " --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
+            log(" --esc complete: " + proofResults.size() + " method(s), " + totalDiags + " diagnostic(s)");
             for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
             return new DirCheckResult(diagsByUri, rc, proofResults, prc.getDiagsByMethod());
         } catch (IOException e) {
@@ -1759,8 +1759,8 @@ public class CheckRunner {
 
             String fname = fileName(uri);
             String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
-            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname + invocationSuffix(args));
-            else log(ts() + " --esc " + fname + methodDesc + invocationSuffix(args));
+            if ("--check".equals(modeFlag)) log(" --check " + fname + invocationSuffix(args));
+            else log(" --esc " + fname + methodDesc + invocationSuffix(args));
 
             final Map<String, String> compiledPathToRealUri = new java.util.concurrent.ConcurrentHashMap<>();
             compiledPathToRealUri.put(primaryArg, uri);
@@ -1831,11 +1831,11 @@ public class CheckRunner {
                 String companionNote = companionFiles > 0
                         ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
                         : "";
-                log(ts() + " --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
+                log(" --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
             } else if (rc == 5) {
-                log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
+                log(" --esc " + fname + " cancelled: " + cancelSummary(proofResults));
             } else {
-                log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + primaryDiags.size() + " diagnostic(s)");
+                log(" --esc " + fname + " complete: " + proofResults.size() + " method(s), " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
                     listener.toForeignMessages(primaryArg), allDiags,
@@ -1879,8 +1879,8 @@ public class CheckRunner {
 
             String fname = fileName(uri);
             String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
-            if ("--check".equals(modeFlag)) log(ts() + " --check " + fname + invocationSuffix(args));
-            else log(ts() + " --esc " + fname + methodDesc + invocationSuffix(args));
+            if ("--check".equals(modeFlag)) log(" --check " + fname + invocationSuffix(args));
+            else log(" --esc " + fname + methodDesc + invocationSuffix(args));
 
             // compiledPathToRealUri is populated by the AST listener — only files
             // that were actually attributed get an entry.  Start with the target.
@@ -1966,11 +1966,11 @@ public class CheckRunner {
                 String companionNote = companionFiles > 0
                         ? " (+" + companionTotal + " diagnostic(s) in " + companionFiles + " companion file(s))"
                         : "";
-                log(ts() + " --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
+                log(" --check " + fname + ": " + primaryDiags.size() + " diagnostic(s)" + companionNote);
             } else if (rc == 5) {
-                log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
+                log(" --esc " + fname + " cancelled: " + cancelSummary(proofResults));
             } else {
-                log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + primaryDiags.size() + " diagnostic(s)");
+                log(" --esc " + fname + " complete: " + proofResults.size() + " method(s), " + primaryDiags.size() + " diagnostic(s)");
             }
             return new CheckResult(primaryDiags, rc, proofResults,
                     listener.toForeignMessages(primaryArg), allDiags,
@@ -2057,8 +2057,8 @@ public class CheckRunner {
 
         String fname = fileName(uri);
         String methodDesc = (methodName != null && !methodName.isEmpty()) ? " [" + methodName + "]" : "";
-        if ("--check".equals(modeFlag)) log(ts() + " --check " + fname + invocationSuffix(args));
-        else log(ts() + " --esc " + fname + methodDesc + invocationSuffix(args));
+        if ("--check".equals(modeFlag)) log(" --check " + fname + invocationSuffix(args));
+        else log(" --esc " + fname + methodDesc + invocationSuffix(args));
 
         // Capture the primary file's AST locally; store with IAPI on successful --check.
         final String fileUriStr = new java.io.File(filePath).toURI().toString();
@@ -2111,11 +2111,11 @@ public class CheckRunner {
                 prc != null ? prc.getResults() : Map.of();
         List<org.eclipse.lsp4j.Diagnostic> diags = listener.toLspDiagnostics(filePath, uri);
         if ("--check".equals(modeFlag))
-            log(ts() + " --check " + fname + ": " + diags.size() + " diagnostic(s)");
+            log(" --check " + fname + ": " + diags.size() + " diagnostic(s)");
         else if (rc == 5)
-            log(ts() + " --esc " + fname + " cancelled: " + cancelSummary(proofResults));
+            log(" --esc " + fname + " cancelled: " + cancelSummary(proofResults));
         else
-            log(ts() + " --esc " + fname + " complete: " + proofResults.size() + " method(s), " + diags.size() + " diagnostic(s)");
+            log(" --esc " + fname + " complete: " + proofResults.size() + " method(s), " + diags.size() + " diagnostic(s)");
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new CheckResult(diags, rc,
                 proofResults, listener.toForeignMessages(filePath),
@@ -2287,7 +2287,7 @@ public class CheckRunner {
                 ? method.sym.owner.toString() + " " + method.sym.toString()
                 : method.name.toString();
         ServerLog.serverLog("[CheckRunner.doEscOneMethod] doESC on " + method.name + " in " + uri);
-        log(ts() + " --esc " + msig + " starting");
+        log(" --esc " + msig + " starting");
         entry.diagListener().startCapture();
         IProverResult result;
         entry.escLock().lock();
@@ -2305,7 +2305,7 @@ public class CheckRunner {
         int exitCode = (kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT) ? 6 : 0;
         ServerLog.serverLog("[CheckRunner.doEscOneMethod] " + method.name
                 + " -> " + kind + ", exitCode=" + exitCode);
-        log(ts() + " --esc " + msig + ": " + kindLabel(kind));
+        log(" --esc " + msig + ": " + kindLabel(kind));
         return new SingleEscResult(method.name.toString(), kind, lspDiags, exitCode);
     }
 

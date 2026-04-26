@@ -1001,34 +1001,6 @@ public abstract class LspCommandHandler extends AbstractHandler {
             String uri = fileUri.toString();
             Console.log(lspCommand + " -> " + uri);
 
-            // Determine cursor line (0-based) and send "@<line>" to the server.
-            // The server resolves the innermost method from its AST, correctly handling
-            // nested classes without requiring code lenses to be cached first.
-            //
-            // ITextSelection.getStartLine() returns -1 for an empty selection (cursor
-            // click without drag).  Use the StyledText caret offset instead — it is
-            // always the true insertion-point position regardless of selection state.
-            int cursorLine = -1;
-            org.eclipse.jface.text.source.ISourceViewer viewer =
-                    editor.getAdapter(org.eclipse.jface.text.source.ISourceViewer.class);
-            if (viewer != null) {
-                org.eclipse.swt.custom.StyledText widget = viewer.getTextWidget();
-                if (widget != null && !widget.isDisposed()) {
-                    int widgetOffset = widget.getCaretOffset();
-                    int docOffset = viewer.widgetOffset2ModelOffset(widgetOffset);
-                    org.eclipse.jface.text.IDocument doc = viewer.getDocument();
-                    if (doc != null && docOffset >= 0) {
-                        try { cursorLine = doc.getLineOfOffset(docOffset); }
-                        catch (org.eclipse.jface.text.BadLocationException ignored) {}
-                    }
-                }
-            }
-            if (cursorLine < 0) {
-                MessageDialog.openWarning(Display.getDefault().getActiveShell(), "OpenJML",
-                        "Cannot determine cursor position — place the cursor inside a method and try again.");
-                return null;
-            }
-
             OpenJMLLanguageClient lc = OpenJMLCodeMiningProvider.languageClient;
             org.eclipse.lsp4j.services.LanguageServer ls = lc != null ? lc.server() : null;
             if (ls == null) {
@@ -1037,10 +1009,46 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 return null;
             }
 
-            String projectId = file.getProject().getName();
-            List<Object> args = List.of(projectId, uri, "@" + cursorLine);
-            ls.getWorkspaceService().executeCommand(
-                    new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args));
+            final org.eclipse.lsp4j.services.LanguageServer fLs = ls;
+            final String projectId = file.getProject().getName();
+            // IMPORTANT: read the cursor position inside asyncExec, not here.
+            //
+            // Problem: after the user switches to an editor by clicking its tab, the
+            // editor pane gets focus but the StyledText widget inside it does not yet
+            // have SWT keyboard/caret focus.  When the user then clicks inside the text
+            // to position the cursor, SWT queues the caret-move event but has not
+            // delivered it yet by the time this command handler runs synchronously on
+            // the UI thread.  Reading the selection here returns the stale position from
+            // the previous visit to this file, even though the cursor appears visually
+            // correct on screen.
+            //
+            // Fix: asyncExec posts the selection read to the END of the SWT event queue.
+            // By the time that runnable executes, the queued caret-move event has already
+            // been processed and the selection provider reflects the correct position.
+            //
+            // Note: ITextEditor is used (not ISourceViewer) because it is a standard
+            // adapter supported by all text editors including LSP4E's generic editor.
+            // ITextSelection.getOffset() is used (not getStartLine()) because getStartLine()
+            // returns -1 for an empty selection (cursor click without drag).
+            Display.getDefault().asyncExec(() -> {
+                org.eclipse.ui.texteditor.ITextEditor te =
+                        editor.getAdapter(org.eclipse.ui.texteditor.ITextEditor.class);
+                if (te == null) return;
+                org.eclipse.jface.viewers.ISelection raw =
+                        te.getSelectionProvider().getSelection();
+                if (!(raw instanceof org.eclipse.jface.text.ITextSelection ts)) return;
+                int offset = ts.getOffset();
+                if (offset < 0) return;
+                org.eclipse.jface.text.IDocument doc =
+                        te.getDocumentProvider().getDocument(editor.getEditorInput());
+                if (doc == null) return;
+                int cursorLine;
+                try { cursorLine = doc.getLineOfOffset(offset); }
+                catch (org.eclipse.jface.text.BadLocationException ignored) { return; }
+                List<Object> args = List.of(projectId, uri, "@" + cursorLine);
+                fLs.getWorkspaceService().executeCommand(
+                        new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args));
+            });
             return null;
         }
 
