@@ -1645,15 +1645,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * inherited.  {@code toolOptions} is global-only and is inherited unchanged.  The {@code "__workspace__"} project
      * has no overrides and therefore inherits everything from global settings.
      */
-    void updateProjectSettings(List<OpenJMLSettings.ProjectConfig> configs) {
+    public void updateProjectSettings(List<OpenJMLSettings.ProjectConfig> configs) {
         projectSettings.clear();
         if (configs == null) return;
         for (OpenJMLSettings.ProjectConfig cfg : configs) {
             if (cfg.id == null) continue;
             OpenJMLSettings s = new OpenJMLSettings(globalSettings);
-            s.sourcePath              = cfg.sourcePath              != null ? cfg.sourcePath              : "";
-            s.classPath               = cfg.classPath               != null ? cfg.classPath               : "";
-            s.specsPath               = cfg.specsPath  != null ? cfg.specsPath  : globalSettings.specsPath;
+            s.sourcePath = OpenJMLSettings.expandEnvVarsInPath(cfg.sourcePath != null ? cfg.sourcePath : "");
+            s.classPath  = OpenJMLSettings.expandEnvVarsInPath(cfg.classPath  != null ? cfg.classPath  : "");
+            s.specsPath  = OpenJMLSettings.expandEnvVarsInPath(cfg.specsPath  != null ? cfg.specsPath  : globalSettings.specsPath);
             s.racOutputDir            = cfg.outputDir  != null ? cfg.outputDir  : globalSettings.racOutputDir;
             // Store rootPaths so settingsForUri can match file URIs to this project.
             if (cfg.rootPaths != null && !cfg.rootPaths.isEmpty())
@@ -1666,6 +1666,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Returns {@code true} if {@code projectId} is in the current project registry. */
     boolean isKnownProject(String projectId) {
         return projectSettings.containsKey(projectId);
+    }
+
+    /** Returns the stored settings for {@code projectId}, or {@code null} if not found. */
+    public OpenJMLSettings getProjectSettings(String projectId) {
+        return projectSettings.get(projectId);
     }
 
 
@@ -1922,9 +1927,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         // If resolution still failed, refuse to pass "@N" as a raw --method name to OpenJML.
         if (target == null && methodName != null && methodName.startsWith("@")) {
+            int displayLine = -1;
+            try { displayLine = Integer.parseInt(methodName.substring(1)) + 1; }
+            catch (NumberFormatException ignored) {}
+            String lineInfo = displayLine >= 0 ? " at line " + displayLine : "";
             sendActionMessage(2,
-                    "OpenJML: cannot locate method at cursor — place the cursor inside a method body.",
-                    List.of());
+                    "OpenJML: no method found" + lineInfo + " — place the cursor inside a method body.",
+                    List.of(dismiss()));
             return;
         }
 

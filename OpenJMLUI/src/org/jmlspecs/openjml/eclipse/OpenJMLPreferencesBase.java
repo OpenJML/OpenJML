@@ -215,26 +215,6 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
 
         addSpace(parent);
 
-        // ── Paths ───────────────────────────────────────────────────────────
-        addLabel(parent, "Paths", SWT.SEPARATOR | SWT.HORIZONTAL);
-
-        // propertiesFile preference hidden — use toolOptions instead.
-        // addEditor(new StringFieldEditor(OpenJMLOptions.propertiesFileKey,
-        //         "openjml.properties file (blank = auto-discover):",
-        //         parent));
-        addEditor(new StringFieldEditor(OpenJMLOptions.specsPathKey,
-                "Specs path (blank = default from launcher):",
-                parent));
-
-        addEditor(new StringFieldEditor(OpenJMLOptions.sourcePathKey,
-                "Source path for -sourcepath (blank = single-file):",
-                parent));
-        addEditor(new StringFieldEditor(OpenJMLOptions.classPathKey,
-                "Classpath for -classpath (blank = none):",
-                parent));
-
-        addSpace(parent);
-
         // ── ESC engine ──────────────────────────────────────────────────────
         addLabel(parent, "ESC Engine", SWT.SEPARATOR | SWT.HORIZONTAL);
 
@@ -454,6 +434,107 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 parent));
 
         finalizeTab(parent);
+    }
+
+    // -----------------------------------------------------------------------
+    // Tab 3 — Project Options
+    // -----------------------------------------------------------------------
+
+    /**
+     * Populates a composite with Tab 3 — Project Options (paths per project).
+     *
+     * <p>The effective classpath sent to OpenJML is assembled in this order:
+     * <ol>
+     *   <li>The user-supplied classpath from this field (first on the path).</li>
+     *   <li>JDT project output directories (compiled .class files).</li>
+     *   <li>Library JARs on the project's JDT classpath.</li>
+     *   <li>Output directories and library JARs from dependent projects (recursive).</li>
+     * </ol>
+     * JRE system library JARs are excluded because OpenJML ships its own bundled JDK.
+     * If the Eclipse project JRE version differs from OpenJML's bundled JDK, API or
+     * class-version conflicts may occur; OpenJML's bundled JDK version takes precedence.
+     */
+    protected void createProjectOptionFields(Composite parent) {
+
+        // Tab-wide notes — added before any FieldEditor so they appear first in the grid.
+        // FieldEditor constructors reset parent.setLayout() but do NOT clear GridData on
+        // already-created widgets; finalizeTab() sets the final 2-column GridLayout and
+        // the horizontalSpan=2 GridData on these labels is honored correctly at that point.
+        Label globalNote = makeInfoLabel(parent,
+                "These additions to the various paths are global: they apply to all projects. "
+                + "However, the effective paths sent to OpenJML are project dependent, as described below. "
+                + "OpenJML operations are all with respect to a parent Eclipse project.");
+        globalNote.setLayoutData(infoSpan2());
+
+        Label envNote = makeInfoLabel(parent,
+                "Text fields on this tab may reference environment variables using $VARNAME syntax "
+                + "(e.g. $HOME, $MY_SPECS).  The server substitutes them before passing paths to OpenJML.");
+        envNote.setLayoutData(infoSpan2());
+
+        addSpace(parent);
+
+        addLabel(parent, "Classpath", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        Label cpNote = makeInfoLabel(parent,
+                "The effective classpath sent to OpenJML is assembled in this order:\n"
+                + "  \u2022 The extra entries field below\n"
+                + "  \u2022 JDT project output directories (compiled .class files)\n"
+                + "  \u2022 Library JARs on the project\u2019s JDT classpath\n"
+                + "  \u2022 Output directories and library JARs from dependent projects (recursive)\n"
+                + "JRE system library JARs are excluded because OpenJML ships its own bundled JDK.\n"
+                + "Limitation: if the Eclipse project JRE version differs from OpenJML\u2019s\n"
+                + "bundled JDK, class-version or API conflicts may occur.");
+        cpNote.setLayoutData(infoSpan2());
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.classPathKey,
+                "Extra classpath entries (blank = none):",
+                parent));
+
+        addSpace(parent);
+
+        addLabel(parent, "Source Path", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        Label srcNote = makeInfoLabel(parent,
+                "The sourcepath supplied to OpenJML consists of:\n"
+                + "  \u2022 the text field below, followed by\n"
+                + "  \u2022 the source folders of the parent Eclipse project,\n"
+                + "  \u2022 recursively for the project\u2019s dependencies.");
+        srcNote.setLayoutData(infoSpan2());
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.sourcePathKey,
+                "Additions to -sourcepath:",
+                parent));
+
+        addSpace(parent);
+
+        addLabel(parent, "Specs Path", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        Label specsNote = makeInfoLabel(parent,
+                "The specspath supplied to OpenJML is\n"
+                + "  \u2022 the text field below, followed by\n"
+                + "  \u2022 the effective sourcepath as described above.\n"
+                + "The built-in system library specifications are always appended by OpenJML implicitly.\n"
+                + "If the text field below is empty, no specspath is communicated to OpenJML,\n"
+                + "which then uses its documented default.");
+        specsNote.setLayoutData(infoSpan2());
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.specsPathKey,
+                "Specs path additions:",
+                parent));
+
+        finalizeTab(parent);
+    }
+
+    private static Label makeInfoLabel(Composite parent, String text) {
+        Label lbl = new Label(parent, SWT.WRAP);
+        lbl.setText(text);
+        return lbl;
+    }
+
+    private static GridData infoSpan2() {
+        GridData gd = new GridData(SWT.FILL, SWT.TOP, true, false);
+        gd.horizontalSpan = 2;
+        return gd;
     }
 
     // -----------------------------------------------------------------------

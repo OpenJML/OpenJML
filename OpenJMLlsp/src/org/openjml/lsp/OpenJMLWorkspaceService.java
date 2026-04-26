@@ -116,10 +116,10 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     private void applyUpdate(OpenJMLSettings src) {
         if (src.toolOptions     != null) globalSettings.toolOptions     = src.toolOptions;
-        if (src.specsPath       != null) globalSettings.specsPath       = src.specsPath;
+        if (src.specsPath  != null) globalSettings.specsPath  = OpenJMLSettings.expandEnvVarsInPath(src.specsPath);
 
-        if (src.sourcePath      != null) globalSettings.sourcePath      = src.sourcePath;
-        if (src.classPath       != null) globalSettings.classPath       = src.classPath;
+        if (src.sourcePath != null) globalSettings.sourcePath = OpenJMLSettings.expandEnvVarsInPath(src.sourcePath);
+        if (src.classPath  != null) globalSettings.classPath  = OpenJMLSettings.expandEnvVarsInPath(src.classPath);
         if (src.checkTriggerOn         != null) globalSettings.checkTriggerOn         = src.checkTriggerOn;
         if (src.escTriggerOn           != null) globalSettings.escTriggerOn           = src.escTriggerOn;
         if (src.syntaxColoringStrategy != null) globalSettings.syntaxColoringStrategy = src.syntaxColoringStrategy;

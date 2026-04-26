@@ -24,6 +24,10 @@
            id="org.jmlspecs.openjml.eclipse.SyntaxColorPage"
            category="org.jmlspecs.openjml.eclipse.SettingsPage"
            name="Syntax Colors"/>
+     <page class="org.jmlspecs.openjml.eclipse.OpenJMLProjectPage"
+           id="org.jmlspecs.openjml.eclipse.ProjectOptionsPage"
+           category="org.jmlspecs.openjml.eclipse.SettingsPage"
+           name="Project Options"/>
      <!-- Legacy preference sub-pages moved to oldsrc; comment back in when resurrected -->
      <!--
      <page class="org.jmlspecs.openjml.eclipse.PreferencesPage"

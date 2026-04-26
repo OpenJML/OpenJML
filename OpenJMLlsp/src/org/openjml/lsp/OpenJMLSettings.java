@@ -83,8 +83,9 @@ public class OpenJMLSettings {
         public String sourcePath;
 
         /**
-         * Classpath: transitive dependency output directories plus any
-         * user-configured classpath preference.
+         * Classpath: JAR libraries (Maven dependencies, external JARs) plus
+         * transitive dependency output directories plus any user-configured
+         * classpath preference.
          */
         public String classPath;
 
@@ -170,6 +171,23 @@ public class OpenJMLSettings {
      * Used only by single-project clients; ignored when {@link #projects} is non-empty.
      */
     public volatile String classPath;
+
+    /**
+     * Joined workspace folder paths sent by the client (path-separator-delimited).
+     *
+     * <p>This field acts as a protocol signal:
+     * <ul>
+     *   <li>When <em>empty or absent</em> — the client has already assembled
+     *       {@link #sourcePath} and {@link #classPath} from its project model
+     *       (e.g. Eclipse/JDT, VS Code + Red Hat Java).  The server uses those
+     *       values verbatim.</li>
+     *   <li>When <em>non-empty</em> — the client is a generic editor that cannot
+     *       inspect the Java project structure.  The server treats the workspace
+     *       folder paths as the {@link #sourcePath} (when none was explicitly
+     *       configured) and as the effective file-watching scope.</li>
+     * </ul>
+     */
+    public volatile String workspaceFolderPaths;
 
     /**
      * When {@code true} (default), the outline ({@code textDocument/documentSymbol})
@@ -401,6 +419,47 @@ public class OpenJMLSettings {
             }
         }
         ServerLog.serverLog(sb.toString());
+    }
+
+    /**
+    /**
+     * Expands {@code $VARNAME} tokens in {@code s} treating it as an
+     * OS path-separator-delimited list (e.g. a classpath or specspath).
+     *
+     * <p>Each component is expanded independently.  Known variables are
+     * substituted with their value from the process environment.  Unknown
+     * variables are replaced with the empty string and a warning is written to
+     * the server log.  Components that are empty or blank after expansion are
+     * dropped, so a standalone {@code $UNKNOWN} entry does not leave a spurious
+     * {@code ::} gap.  When {@code $UNKNOWN} is embedded inside a larger
+     * component (e.g. {@code /prefix/$UNKNOWN/suffix}), the component is kept
+     * with the token replaced by an empty string.
+     *
+     * <p>Returns {@code s} unchanged when it is null, blank, or contains no
+     * {@code $} character (fast path — no work done in the common case).
+     */
+    public static String expandEnvVarsInPath(String s) {
+        if (s == null || !s.contains("$")) return s;
+        String sep = java.io.File.pathSeparator;
+        java.util.regex.Pattern VAR = java.util.regex.Pattern.compile("\\$([A-Za-z_][A-Za-z0-9_]*)");
+        String[] parts = s.split(java.util.regex.Pattern.quote(sep), -1);
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (!part.contains("$")) {
+                if (!part.isBlank()) { if (sb.length() > 0) sb.append(sep); sb.append(part); }
+                continue;
+            }
+            String expanded = VAR.matcher(part).replaceAll(mr -> {
+                String name = mr.group(1);
+                String v = System.getenv(name);
+                if (v != null) return java.util.regex.Matcher.quoteReplacement(v);
+                CheckRunner.log("[settings] Unknown environment variable $" + name
+                        + " in path \"" + s + "\" — omitted.");
+                return "";
+            });
+            if (!expanded.isBlank()) { if (sb.length() > 0) sb.append(sep); sb.append(expanded); }
+        }
+        return sb.toString();
     }
 
     /**

@@ -14,16 +14,18 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 /**
- * Main OpenJML preferences page — shows three tabs:
+ * Main OpenJML preferences page — shows four tabs:
  * <ol>
  *   <li>"Plugin and LSP Settings"</li>
  *   <li>"Syntax Colors"</li>
  *   <li>"OpenJML Tool Options"</li>
+ *   <li>"Project Options"</li>
  * </ol>
  *
  * The same content is also accessible as individual sub-pages in the
  * preferences tree (see {@link OpenJMLPluginPage}, {@link OpenJMLSyntaxColorPage},
- * and {@link OpenJMLToolPage}), which causes the tree node to show a twistie.
+ * {@link OpenJMLToolPage}, and {@link OpenJMLProjectPage}), which causes the
+ * tree node to show a twistie.
  *
  * <p>Field creation and lifecycle management live in
  * {@link OpenJMLPreferencesBase}.
@@ -33,7 +35,7 @@ public class OpenJMLPreferences extends OpenJMLPreferencesBase {
     /**
      * Returns the zero-based index of the tab to show initially.
      * Subclasses ({@link OpenJMLPluginPage}, {@link OpenJMLSyntaxColorPage},
-     * {@link OpenJMLToolPage}) override this to pre-select their tab.
+     * {@link OpenJMLToolPage}, {@link OpenJMLProjectPage}) override this to pre-select their tab.
      */
     protected int getInitialTab() { return 0; }
 
@@ -52,11 +54,12 @@ public class OpenJMLPreferences extends OpenJMLPreferencesBase {
         createPluginAndLspFields(addTab(tabFolder, "Plugin and LSP Settings"));
         createSyntaxColorFields(addTab(tabFolder, "Syntax Colors"));
         createToolOptionFields(addTab(tabFolder, "OpenJML Tool Options"));
+        createProjectOptionFields(addTab(tabFolder, "Project Options"));
 
         tabFolder.setSelection(getInitialTab());
 
         Label hint = new Label(page, SWT.NONE);
-        hint.setText("\"Restore Defaults\" and \"Apply\" act on all three tabs.");
+        hint.setText("\"Restore Defaults\" and \"Apply\" act on all four tabs.");
         hint.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, true, false));
 
         return page;

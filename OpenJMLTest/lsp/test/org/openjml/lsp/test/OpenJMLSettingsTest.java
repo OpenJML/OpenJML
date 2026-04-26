@@ -1,5 +1,6 @@
 package org.openjml.lsp.test;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLSettings;
 
@@ -199,5 +200,119 @@ public class OpenJMLSettingsTest {
                 orig.isCheckOnEdit());
         assertFalse("copy.isCheckOnEdit() must be false after mutation",
                 copy.isCheckOnEdit());
+    }
+
+    // -----------------------------------------------------------------------
+    // expandEnvVarsInPath — path-separator-aware variant
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testExpandEnvVarsInPath_null() {
+        assertNull(OpenJMLSettings.expandEnvVarsInPath(null));
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_blank() {
+        assertEquals("   ", OpenJMLSettings.expandEnvVarsInPath("   "));
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_noVars() {
+        String sep = java.io.File.pathSeparator;
+        assertEquals("/a" + sep + "/b", OpenJMLSettings.expandEnvVarsInPath("/a" + sep + "/b"));
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_unknownStandaloneEntryRemoved() {
+        // $UNKNOWN is the whole entry — it must be dropped, leaving no empty entry.
+        String sep = java.io.File.pathSeparator;
+        String input    = "/a" + sep + "$OPENJML_NONEXISTENT_VAR_XYZ" + sep + "/b";
+        String expected = "/a" + sep + "/b";
+        assertEquals("Standalone unknown-var entry must be removed",
+                expected, OpenJMLSettings.expandEnvVarsInPath(input));
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_unknownEmbeddedKept() {
+        // $UNKNOWN embedded inside a component — component is kept (with empty string in place).
+        assertEquals("/prefix//suffix",
+                OpenJMLSettings.expandEnvVarsInPath("/prefix/$OPENJML_NONEXISTENT_VAR_XYZ/suffix"));
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_knownVarExpanded() {
+        String home = System.getenv("HOME");
+        Assume.assumeNotNull(home);
+        assertEquals(home + "/specs", OpenJMLSettings.expandEnvVarsInPath("$HOME/specs"));
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_noDuplicateSeparatorsForUnknown() {
+        // Verify no '::' (or ';;' on Windows) survives after removing unknown standalone entry.
+        String sep = java.io.File.pathSeparator;
+        String result = OpenJMLSettings.expandEnvVarsInPath(
+                "/a" + sep + "$OPENJML_NONEXISTENT_VAR_XYZ" + sep + "/b");
+        assertFalse("Result must not contain consecutive separators",
+                result.contains(sep + sep));
+    }
+
+    // -----------------------------------------------------------------------
+    // expandEnvVarsInPath — single-component (no separator) cases
+    // -----------------------------------------------------------------------
+
+    @Test
+    public void testExpandEnvVars_unknownVarOmitted() {
+        assertEquals("", OpenJMLSettings.expandEnvVarsInPath("$OPENJML_NONEXISTENT_VAR_XYZ"));
+    }
+
+    @Test
+    public void testExpandEnvVars_unknownVarOmittedMidPath() {
+        assertEquals("/prefix//suffix",
+                OpenJMLSettings.expandEnvVarsInPath("/prefix/$OPENJML_NONEXISTENT_VAR_XYZ/suffix"));
+    }
+
+    @Test
+    public void testExpandEnvVars_unknownVarLogsWarning() {
+        List<String> logs = new java.util.ArrayList<>();
+        org.openjml.lsp.CheckRunner.setLogCallback(logs::add);
+        try {
+            OpenJMLSettings.expandEnvVarsInPath("$OPENJML_NONEXISTENT_VAR_XYZ");
+        } finally {
+            org.openjml.lsp.CheckRunner.setLogCallback(null);
+        }
+        assertTrue("Expected a log warning for unknown env var",
+                logs.stream().anyMatch(l -> l.contains("OPENJML_NONEXISTENT_VAR_XYZ")));
+    }
+
+    @Test
+    public void testExpandEnvVars_knownVar() {
+        String path = System.getenv("PATH");
+        Assume.assumeNotNull(path);
+        assertEquals(path, OpenJMLSettings.expandEnvVarsInPath("$PATH"));
+    }
+
+    @Test
+    public void testExpandEnvVars_knownVarEmbedded() {
+        String path = System.getenv("PATH");
+        Assume.assumeNotNull(path);
+        assertEquals("/prefix:" + path + "/suffix",
+                OpenJMLSettings.expandEnvVarsInPath("/prefix:$PATH/suffix"));
+    }
+
+    @Test
+    public void testExpandEnvVars_multipleKnownVars() {
+        String home = System.getenv("HOME");
+        String path = System.getenv("PATH");
+        Assume.assumeNotNull(home, path);
+        assertEquals(home + ":" + path, OpenJMLSettings.expandEnvVarsInPath("$HOME:$PATH"));
+    }
+
+    @Test
+    public void testExpandEnvVars_knownAndUnknownVar() {
+        String home = System.getenv("HOME");
+        Assume.assumeNotNull(home);
+        // Unknown standalone entry is dropped cleanly — no trailing separator.
+        assertEquals(home,
+                OpenJMLSettings.expandEnvVarsInPath("$HOME:$OPENJML_NONEXISTENT_VAR_XYZ"));
     }
 }

@@ -631,8 +631,9 @@ public class OpenJMLOptions {
      *   <li>{@code id} — Eclipse {@code IProject.getName()}, the server's registry key</li>
      *   <li>{@code sourcePath} — this project's own source folders + transitive dep sources,
      *       path-separator-separated; passed as {@code -sourcepath}</li>
-     *   <li>{@code classPath} — transitive dep output dirs + user classpath pref,
-     *       path-separator-separated; passed as {@code -classpath}</li>
+     *   <li>{@code classPath} — JAR libraries (Maven deps, external JARs) + transitive
+     *       dep output dirs + user classpath pref, path-separator-separated;
+     *       passed as {@code -classpath}</li>
      *   <li>{@code specsPath} — global specs path preference</li>
      *   <li>{@code outputDir} — JDT output folder for RAC {@code -d}</li>
      *   <li>{@code rootPaths} — this project's own source folders only (not deps),
@@ -670,16 +671,18 @@ public class OpenJMLOptions {
             // --- all source folders (own + dep) and dep output dirs ---
             var allSrcParts = new java.util.ArrayList<String>();
             var cpParts     = new java.util.ArrayList<String>();
+
+            // User classpath goes first (highest priority on the path).
+            // Raw string is passed; the server expands $VAR tokens uniformly.
+            String prefCp = value(classPathKey);
+            if (prefCp != null && !prefCp.isBlank()) cpParts.add(prefCp);
+
             try {
-                collectJdtPaths(jp, allSrcParts, cpParts, new java.util.HashSet<>());
+                collectJdtPaths(jp, allSrcParts, cpParts, new java.util.HashSet<>(), jreHomeFor(jp));
             } catch (Exception e) {
                 Console.log("buildProjectsList: collectJdtPaths failed for "
                         + project.getName() + ": " + e);
             }
-
-            // Append user-configured classpath preference.
-            String prefCp = value(classPathKey);
-            if (prefCp != null && !prefCp.isBlank()) cpParts.add(prefCp);
 
             // --- outputDir (for RAC -d) ---
             String outputDir = null;
@@ -709,14 +712,56 @@ public class OpenJMLOptions {
     }
 
     /**
+     * Returns the OS path prefix of the JVM install used by the given project,
+     * or {@code null} if it cannot be determined.  Used to exclude JRE system
+     * library JARs from the classpath sent to OpenJML, which ships its own JDK.
+     *
+     * <p><b>Limitation:</b> if the Eclipse project targets a different Java version
+     * than OpenJML's bundled JDK, there may be class-version or API conflicts.
+     * The OpenJML JDK version takes precedence at runtime.
+     */
+    static String jreHomeFor(org.eclipse.jdt.core.IJavaProject jp) {
+        // Use getVMInstall(IPath) via the JRE container entry — avoids the
+        // getVMInstall(IJavaProject) overload which is not available in all Eclipse versions.
+        try {
+            for (org.eclipse.jdt.core.IClasspathEntry e : jp.getRawClasspath()) {
+                if (e.getEntryKind() == org.eclipse.jdt.core.IClasspathEntry.CPE_CONTAINER) {
+                    org.eclipse.core.runtime.IPath p = e.getPath();
+                    if (p.segmentCount() > 0 && org.eclipse.jdt.launching.JavaRuntime.JRE_CONTAINER
+                            .equals(p.segment(0))) {
+                        org.eclipse.jdt.launching.IVMInstall vm =
+                                org.eclipse.jdt.launching.JavaRuntime.getVMInstall(p);
+                        if (vm != null && vm.getInstallLocation() != null)
+                            return vm.getInstallLocation().getAbsolutePath();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        // Fall back to the workspace default JVM.
+        try {
+            org.eclipse.jdt.launching.IVMInstall vm =
+                    org.eclipse.jdt.launching.JavaRuntime.getDefaultVMInstall();
+            if (vm != null && vm.getInstallLocation() != null)
+                return vm.getInstallLocation().getAbsolutePath();
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    /**
      * Recursively collects source folders into {@code srcParts} and dependency
-     * output directories into {@code cpParts} for {@code jp}.
+     * output directories and JAR files into {@code cpParts} for {@code jp}.
+     *
+     * <p>JRE system library JARs are excluded because OpenJML ships its own
+     * bundled JDK and must not have a conflicting JRE on its classpath.
+     * {@code jreHome} is the install-location prefix used to detect JRE JARs;
+     * {@code null} disables the filter (no JARs are excluded).
      */
     static void collectJdtPaths(
             org.eclipse.jdt.core.IJavaProject jp,
             java.util.List<String> srcParts,
             java.util.List<String> cpParts,
-            java.util.Set<String> visited) throws Exception {
+            java.util.Set<String> visited,
+            String jreHome) throws Exception {
 
         if (!visited.add(jp.getProject().getName())) return;
 
@@ -732,25 +777,40 @@ public class OpenJMLOptions {
             if (loc != null) srcParts.add(loc.toOSString());
         }
 
-        // Walk required projects for output dirs (classpath) and recurse for sources.
+        // Walk the resolved classpath: collect JAR libraries and recurse into projects.
+        // getResolvedClasspath(true) has already expanded containers (JRE, Maven, etc.)
+        // so every CPE_LIBRARY entry is a concrete path.
         for (org.eclipse.jdt.core.IClasspathEntry entry
                 : jp.getResolvedClasspath(/* ignoreUnresolvedEntry= */ true)) {
-            if (entry.getEntryKind() != org.eclipse.jdt.core.IClasspathEntry.CPE_PROJECT)
-                continue;
-            String depName = entry.getPath().lastSegment();
-            org.eclipse.core.resources.IProject depProject = root.getProject(depName);
-            org.eclipse.jdt.core.IJavaProject depJp =
-                    org.eclipse.jdt.core.JavaCore.create(depProject);
-            if (depJp == null || !depJp.exists()) continue;
 
-            // Dependency output location → classpath.
-            org.eclipse.core.runtime.IPath outputPath = depJp.getOutputLocation();
-            org.eclipse.core.resources.IFolder outputFolder = root.getFolder(outputPath);
-            org.eclipse.core.runtime.IPath outputLoc = outputFolder.getLocation();
-            if (outputLoc != null) cpParts.add(outputLoc.toOSString());
+            if (entry.getEntryKind() == org.eclipse.jdt.core.IClasspathEntry.CPE_LIBRARY) {
+                org.eclipse.core.runtime.IPath p = entry.getPath();
+                if (!p.isAbsolute()) {
+                    // Workspace-relative path (JAR inside the workspace).
+                    org.eclipse.core.resources.IResource r = root.findMember(p);
+                    if (r != null) p = r.getLocation();
+                }
+                if (p == null) continue;
+                // Skip JRE system library JARs — OpenJML uses its own bundled JDK.
+                if (jreHome != null && p.toOSString().startsWith(jreHome)) continue;
+                cpParts.add(p.toOSString());
 
-            // Recurse so transitive dependency sources are included.
-            collectJdtPaths(depJp, srcParts, cpParts, visited);
+            } else if (entry.getEntryKind() == org.eclipse.jdt.core.IClasspathEntry.CPE_PROJECT) {
+                String depName = entry.getPath().lastSegment();
+                org.eclipse.core.resources.IProject depProject = root.getProject(depName);
+                org.eclipse.jdt.core.IJavaProject depJp =
+                        org.eclipse.jdt.core.JavaCore.create(depProject);
+                if (depJp == null || !depJp.exists()) continue;
+
+                // Dependency output location → classpath.
+                org.eclipse.core.runtime.IPath outputPath = depJp.getOutputLocation();
+                org.eclipse.core.resources.IFolder outputFolder = root.getFolder(outputPath);
+                org.eclipse.core.runtime.IPath outputLoc = outputFolder.getLocation();
+                if (outputLoc != null) cpParts.add(outputLoc.toOSString());
+
+                // Recurse so transitive dependency sources and JARs are included.
+                collectJdtPaths(depJp, srcParts, cpParts, visited, jreHome);
+            }
         }
     }
 }

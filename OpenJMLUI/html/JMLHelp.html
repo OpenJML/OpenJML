@@ -160,7 +160,8 @@ OpenJML actions to apply to them (a menu command will add this Nature).
 
 <H2><A NAME="OpenJMLActions">OpenJML Actions</A></H2>
 
-The plug-in offers buttons and menu items to accomplish some OpenJML actions.
+The plug-in offers buttons and menu items to accomplish some OpenJML actions. Note that the class-, source-, and specs- patahs used by
+OpenJML actions are decribed in the Preferences section.
 
 <H3><A NAME="Selection">Selection</A></H3>
 
@@ -363,12 +364,26 @@ The content type is also associated with the "Generic Code Editor". This editor 
 
 <H3><A NAME="Preferences">OpenJML Preferences</A></H3>
 
-The plug-in implements a standard Eclipse Preferences (or Settings) page, with three tabs: 
-Plug-in and LSP Settings; Syntax Colors; and OpenJML Tool Options.
+The plug-in implements a standard Eclipse Preferences (or Settings) page, with four tabs: 
+Plug-in and LSP Settings, Syntax Colors, OpenJML Tool Options. and Project Options.
 The options control aspects
 of the plug-in itself and the LSP server, the color preferences for syntax coloring, and the underlying OpenJML tool, respectively.  
 The OpenJML Tool Options correspond to the command-line options of the command-line `openjml` tool; all the non-default OpenJML tool options are
 sent to OpenJML whenever an OpenJML action is requested.
+
+<B>Paths</B>
+<P>
+The Project Options tab holds options that are specific to an individual Eclipse Project. Currently this page holds only 
+user additions to the classpath, sourcepath, and specspath. The classpath and sourcepath are generally controlled by Eclipse and
+user additions to them would likely be part of the Eclipse build path. Thus there is little need to adjust those paths with user additions
+on this Preferences page.
+</P><P>
+Similarly, the OpenJML specifications path is typically (and by default) the same as the source path. If specific specification-only folders
+need to be part of the specs path, they can be added here. However, at present, these user-additions to the paths apply the same to all projects.
+</P><P>
+    User additions to paths must be well-formed, with entries separated by path-separator characters. The text may contain references to 
+    environment variables (beginning with a '$' character); the server performs the substitutions before passing the result on to OpenJML itself.
+</P>
 
 <H3><A NAME="HelpPage">A Help page</A></H3>
 
@@ -399,6 +414,7 @@ settings.</LI>
 <LI>JML syntax coloring overwrites Java (JDT) syntax coloring. Syntax coloring may not be enabled immediately in a file editor.</LI>
 <LI>There is currently no good way to review the results of ESC proof attempts; it would also be good to show traces and counterexample information.</LI>
 <LI>There should be a way to see the full (inherited) specifications for a method.</LI>
+<LI>User-additions to class-, source- and specs- paths are global, applying to all Eclipse projects.</LI>
 <LI><B>Non-disjoint projects are not supported.</B>  If two Eclipse projects share source files
     (i.e., their root paths overlap), the plug-in cannot reliably associate a file with the correct
     project.  Symptoms include diagnostics being cleared for the wrong project, ESC tasks being

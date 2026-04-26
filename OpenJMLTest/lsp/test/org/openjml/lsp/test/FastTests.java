@@ -22,6 +22,7 @@ import org.junit.runners.Suite;
     SignatureHelpTest.class,
     JmlCompletionProviderTest.class,
     OpenJMLSettingsTest.class,
+    EnvVarSubstitutionTest.class,
     DiagnosticConverterTest.class,
     CodeLensTest.class,
     CheckRunnerDirTest.class,
