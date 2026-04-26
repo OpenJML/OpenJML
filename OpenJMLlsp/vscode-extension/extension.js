@@ -533,8 +533,8 @@ function getSettings() {
 
         sourcePath:              cfg.get('sourcePath',              ''),
         classPath:               cfg.get('classPath',               ''),
-        racOutputDir:            cfg.get('racOutputDir', '').trim() ||
-                                 vscode.workspace.getConfiguration('java').get('project.outputPath', 'bin'),
+        javaOutputDir:           vscode.workspace.getConfiguration('java').get('project.outputPath', ''),
+        racOutputDir:            cfg.get('racOutputDir', '').trim(),
         syntaxColoringScope:     cfg.get('syntaxColoringScope',     'preserve Java coloring'),
         syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'ast'),
         escEngine:               cfg.get('escEngine',               'fresh'),
@@ -1016,11 +1016,8 @@ async function activate(context) {
     context.subscriptions.push(
         vscode.workspace.onDidChangeWorkspaceFolders(() => {
             if (!client) return;
-            const sep = process.platform === 'win32' ? ';' : ':';
-            const folders = vscode.workspace.workspaceFolders || [];
-            const paths = folders.map(f => f.uri.fsPath).join(sep);
             client.sendNotification('workspace/didChangeConfiguration', {
-                settings: { openjml: { workspaceFolderPaths: paths } }
+                settings: { openjml: getSettings() }
             });
         })
     );

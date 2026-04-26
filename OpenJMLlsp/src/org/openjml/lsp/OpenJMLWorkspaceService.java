@@ -120,6 +120,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
         if (src.sourcePath != null) globalSettings.sourcePath = OpenJMLSettings.expandEnvVarsInPath(src.sourcePath);
         if (src.classPath  != null) globalSettings.classPath  = OpenJMLSettings.expandEnvVarsInPath(src.classPath);
+        if (src.javaOutputDir != null) globalSettings.javaOutputDir = src.javaOutputDir;
+        if (src.workspaceFolderPaths != null) globalSettings.workspaceFolderPaths = src.workspaceFolderPaths;
         if (src.checkTriggerOn         != null) globalSettings.checkTriggerOn         = src.checkTriggerOn;
         if (src.escTriggerOn           != null) globalSettings.escTriggerOn           = src.escTriggerOn;
         if (src.syntaxColoringStrategy != null) globalSettings.syntaxColoringStrategy = src.syntaxColoringStrategy;
@@ -142,6 +144,33 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
             globalSettings.projects = src.projects;
             if (projectConfigUpdater != null) projectConfigUpdater.accept(src.projects);
             if (watcherReregistrar != null) watcherReregistrar.run();
+        }
+
+        // Generic mode: if workspaceFolderPaths is non-empty, assemble paths from components.
+        // The individual src.* fields carry raw user additions (empty when none configured).
+        String wfp = globalSettings.workspaceFolderPaths;
+        if (wfp != null && !wfp.isBlank()) {
+            String sep = java.io.File.pathSeparator;
+            // sourcePath = user additions + workspace folder roots
+            String userSrc = (src.sourcePath != null)
+                    ? OpenJMLSettings.expandEnvVarsInPath(src.sourcePath) : "";
+            globalSettings.sourcePath = userSrc.isBlank() ? wfp : userSrc + sep + wfp;
+            // classPath = user additions + javaOutputDir + racOutputDir (if different)
+            String userCp = (src.classPath != null)
+                    ? OpenJMLSettings.expandEnvVarsInPath(src.classPath) : "";
+            String javaOut = globalSettings.javaOutputDir != null ? globalSettings.javaOutputDir : "";
+            String racOut  = (globalSettings.racOutputDir != null && !globalSettings.racOutputDir.isBlank())
+                    ? globalSettings.racOutputDir : javaOut;
+            var cpParts = new java.util.ArrayList<String>();
+            if (!userCp.isBlank()) cpParts.add(userCp);
+            if (!javaOut.isBlank()) cpParts.add(javaOut);
+            if (!racOut.isBlank() && !racOut.equals(javaOut)) cpParts.add(racOut);
+            globalSettings.classPath = String.join(sep, cpParts);
+            // specsPath = if user specsPath non-empty: prepend to assembled sourcePath; else null
+            String userSpec = (src.specsPath != null)
+                    ? OpenJMLSettings.expandEnvVarsInPath(src.specsPath) : "";
+            globalSettings.specsPath = userSpec.isBlank() ? null
+                    : userSpec + sep + globalSettings.sourcePath;
         }
     }
 

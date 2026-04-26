@@ -69,8 +69,10 @@ public class EnvVarSubstitutionTest {
 
         OpenJMLSettings stored = svc.getProjectSettings("proj");
         assertNotNull("Project settings must be stored after updateProjectSettings", stored);
-        assertEquals("specsPath must have $HOME expanded to the actual home directory",
-                home + "/myspecs", stored.specsPath);
+        String sep = java.io.File.pathSeparator;
+        // Server appends sourcePath to specsPath so OpenJML can find cross-file refs.
+        assertEquals("specsPath must be expanded specsPath + sourcePath",
+                home + "/myspecs" + sep + "/src", stored.specsPath);
         assertFalse("Stored specsPath must not contain the literal token $HOME",
                 stored.specsPath.contains("$HOME"));
     }
@@ -126,7 +128,9 @@ public class EnvVarSubstitutionTest {
         OpenJMLSettings stored = svc.getProjectSettings("proj");
         assertNotNull(stored);
         // Expanded to a real path — system must not crash on storing it.
-        assertEquals(home + "/nonexistent_jml_specs_xyzzy_abc", stored.specsPath);
+        // Server appends sourcePath to specsPath.
+        String sep = java.io.File.pathSeparator;
+        assertEquals(home + "/nonexistent_jml_specs_xyzzy_abc" + sep + "/src", stored.specsPath);
     }
 
     @Test

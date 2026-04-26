@@ -96,10 +96,16 @@ public class OpenJMLSettings {
         public String specsPath;
 
         /**
-         * Output directory for RAC-compiled {@code .class} files
-         * ({@code -d}).  Set to the Eclipse project's JDT output folder.
+         * OpenJML RAC output directory ({@code -d}). If empty, the server defaults to {@link #javaOutputDir}.
          */
-        public String outputDir;
+        public String racOutputDir;
+
+        /**
+         * The IDE's Java compiler output directory. Goes on the classpath so OpenJML
+         * can see already-compiled classes. Also used as the default {@code -d} when
+         * {@link #racOutputDir} is empty.
+         */
+        public String javaOutputDir;
 
         /**
          * This project's own source folders only (not dependency sources).
@@ -173,19 +179,27 @@ public class OpenJMLSettings {
     public volatile String classPath;
 
     /**
+     * The IDE's Java compiler output directory (e.g. {@code java.project.outputPath}
+     * in VS Code). Used in generic mode to build the classpath and as the default
+     * RAC {@code -d} when {@link #racOutputDir} is empty.
+     */
+    public volatile String javaOutputDir;
+
+    /**
      * Joined workspace folder paths sent by the client (path-separator-delimited).
      *
-     * <p>This field acts as a protocol signal:
+     * <p>Acts as a mode selector:
      * <ul>
-     *   <li>When <em>empty or absent</em> — the client has already assembled
-     *       {@link #sourcePath} and {@link #classPath} from its project model
-     *       (e.g. Eclipse/JDT, VS Code + Red Hat Java).  The server uses those
-     *       values verbatim.</li>
-     *   <li>When <em>non-empty</em> — the client is a generic editor that cannot
-     *       inspect the Java project structure.  The server treats the workspace
-     *       folder paths as the {@link #sourcePath} (when none was explicitly
-     *       configured) and as the effective file-watching scope.</li>
+     *   <li><b>Non-empty</b> — generic client (e.g. VS Code without Java extension
+     *       project model). The server assembles {@code sourcePath}, {@code classPath},
+     *       and {@code specsPath} from this value together with the individual
+     *       preference fields and {@link #javaOutputDir}/{@link #racOutputDir}.</li>
+     *   <li><b>Empty or absent</b> — non-generic client (e.g. Eclipse/JDT). The
+     *       client has already assembled the paths; the server uses them verbatim
+     *       (after environment-variable expansion).</li>
      * </ul>
+     * In generic mode this field also serves as the file-watching scope (equivalent
+     * to {@code rootPaths}).
      */
     public volatile String workspaceFolderPaths;
 
@@ -401,6 +415,7 @@ public class OpenJMLSettings {
         sb.append("  sourcePath=").append(sourcePath).append('\n');
         sb.append("  classPath=").append(classPath).append('\n');
         sb.append("  racOutputDir=").append(racOutputDir).append('\n');
+        sb.append("  javaOutputDir=").append(javaOutputDir).append('\n');
         sb.append("  toolOptions=").append(toolOptions).append('\n');
         if (projectSettings == null || projectSettings.isEmpty()) {
             sb.append("  projects: (none)\n");
@@ -416,15 +431,22 @@ public class OpenJMLSettings {
                 sb.append("      classPath=").append(ps.classPath).append('\n');
                 sb.append("      specsPath=").append(ps.specsPath).append('\n');
                 sb.append("      racOutputDir=").append(ps.racOutputDir).append('\n');
+                sb.append("      javaOutputDir=").append(ps.javaOutputDir).append('\n');
             }
         }
         ServerLog.serverLog(sb.toString());
     }
 
     /**
-    /**
-     * Expands {@code $VARNAME} tokens in {@code s} treating it as an
+     * Expands environment-variable tokens in {@code s} treating it as an
      * OS path-separator-delimited list (e.g. a classpath or specspath).
+     *
+     * <p>Three token forms are recognised:
+     * <ul>
+     *   <li>{@code $VARNAME}</li>
+     *   <li>{@code ${VARNAME}}</li>
+     *   <li>{@code $(VARNAME)}</li>
+     * </ul>
      *
      * <p>Each component is expanded independently.  Known variables are
      * substituted with their value from the process environment.  Unknown
@@ -435,13 +457,17 @@ public class OpenJMLSettings {
      * component (e.g. {@code /prefix/$UNKNOWN/suffix}), the component is kept
      * with the token replaced by an empty string.
      *
-     * <p>Returns {@code s} unchanged when it is null, blank, or contains no
-     * {@code $} character (fast path — no work done in the common case).
+     * <p>Returns {@code s} unchanged when it is null or contains no {@code $}
+     * character (fast path — no work done in the common case).
      */
     public static String expandEnvVarsInPath(String s) {
         if (s == null || !s.contains("$")) return s;
         String sep = java.io.File.pathSeparator;
-        java.util.regex.Pattern VAR = java.util.regex.Pattern.compile("\\$([A-Za-z_][A-Za-z0-9_]*)");
+        // Matches $VARNAME, ${VARNAME}, $(VARNAME) — group 1 is the variable name.
+        java.util.regex.Pattern VAR = java.util.regex.Pattern.compile(
+                "\\$\\{([A-Za-z_][A-Za-z0-9_]*)\\}" +
+                "|\\$\\(([A-Za-z_][A-Za-z0-9_]*)\\)" +
+                "|\\$([A-Za-z_][A-Za-z0-9_]*)");
         String[] parts = s.split(java.util.regex.Pattern.quote(sep), -1);
         StringBuilder sb = new StringBuilder();
         for (String part : parts) {
@@ -450,7 +476,9 @@ public class OpenJMLSettings {
                 continue;
             }
             String expanded = VAR.matcher(part).replaceAll(mr -> {
-                String name = mr.group(1);
+                // One of groups 1, 2, or 3 will be non-null depending on which form matched.
+                String name = mr.group(1) != null ? mr.group(1)
+                            : mr.group(2) != null ? mr.group(2) : mr.group(3);
                 String v = System.getenv(name);
                 if (v != null) return java.util.regex.Matcher.quoteReplacement(v);
                 CheckRunner.log("[settings] Unknown environment variable $" + name
@@ -489,6 +517,8 @@ public class OpenJMLSettings {
         this.escThreads              = src.escThreads;
         this.escPool                 = src.escPool;   // share the pool
         this.racOutputDir            = src.racOutputDir;
+        this.javaOutputDir           = src.javaOutputDir;
+        this.workspaceFolderPaths    = src.workspaceFolderPaths;
         this.incrementalSync         = src.incrementalSync;
         this.javaMode                = src.javaMode;
         this.client                  = src.client;

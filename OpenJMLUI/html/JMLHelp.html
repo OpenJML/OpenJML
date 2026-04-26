@@ -373,17 +373,34 @@ sent to OpenJML whenever an OpenJML action is requested.
 
 <B>Paths</B>
 <P>
-The Project Options tab holds options that are specific to an individual Eclipse Project. Currently this page holds only 
-user additions to the classpath, sourcepath, and specspath. The classpath and sourcepath are generally controlled by Eclipse and
-user additions to them would likely be part of the Eclipse build path. Thus there is little need to adjust those paths with user additions
-on this Preferences page.
-</P><P>
-Similarly, the OpenJML specifications path is typically (and by default) the same as the source path. If specific specification-only folders
-need to be part of the specs path, they can be added here. However, at present, these user-additions to the paths apply the same to all projects.
-</P><P>
-    User additions to paths must be well-formed, with entries separated by path-separator characters. The text may contain references to 
-    environment variables (beginning with a '$' character); the server performs the substitutions before passing the result on to OpenJML itself.
+The Project Options tab holds path settings that influence what is communicated to OpenJML. These fields act as user
+<em>additions</em> prepended to the paths that Eclipse assembles from its own project model:
 </P>
+<UL>
+<LI><B>Classpath</B> — prepended before the Eclipse-derived classpath (JARs, dependency output directories).
+    The Eclipse RAC output directory preference, if set, also goes on the classpath immediately after this addition.</LI>
+<LI><B>Source path</B> — prepended before the source folders Eclipse collects from the project and its transitive dependencies.</LI>
+<LI><B>Specs path</B> — if empty, OpenJML uses its default (source path plus built-in system library specifications).
+    If non-empty, this value is prepended to the full source path and the result is passed to OpenJML as
+    <code>--specs-path</code>.</LI>
+</UL>
+<P>
+All three paths are project-specific. Path entries must be separated by the OS path-separator character (colon on macOS/Linux,
+semicolon on Windows). Path values may contain environment-variable references of the form <code>$VARNAME</code>,
+<code>${VARNAME}</code>, or <code>$(VARNAME)</code>; the server substitutes the variable's value from the execution
+environment before passing the result to OpenJML.
+</P>
+<P>
+Two output directory settings govern where compiled <code>.class</code> files are written and found:
+</P>
+<UL>
+<LI><B>Java output directory</B> — the Eclipse JDT output folder (set by Eclipse, not user-configurable here).
+    It goes on the classpath so OpenJML can see already-compiled classes.</LI>
+<LI><B>RAC output directory</B> (<code>openjml.racOutputDir</code>) — where <code>--rac</code> writes its
+    instrumented <code>.class</code> files (the <code>-d</code> argument to OpenJML).
+    If empty, the Java output directory is used. This value also goes on the classpath so previously RAC-compiled
+    classes remain visible on subsequent runs.</LI>
+</UL>
 
 <H3><A NAME="HelpPage">A Help page</A></H3>
 
@@ -407,14 +424,15 @@ settings.</LI>
     Additional detailed log information from the server is written in a file in ~/.openjml/logs.</LI>
 <LI>The Eclipse framework operates on projects one-by-one, because they may have different class, source, and destination paths;
     however, the OpenJML tool options (on the settings/preference page) are not project specific --- they apply uniformly to all projects.</LI>
-<LI>RAC must be triggered manually; the destination for RAC-generated .class files is fixed to be the same as for the Eclipse-generated .class files</LI>
+<LI>RAC must be triggered manually. The destination for RAC-generated <code>.class</code> files is controlled by the
+    <code>openjml.racOutputDir</code> preference; if not set it defaults to the Eclipse Java output directory.</LI>
 <LI>The OpenJML Find References, Find Declaration, and Rename operations are separate from the similar Java commands,
     which can cause user confusion.</LI>
 <LI>The JML decorations on projects must be enabled in Eclipse settings: General &gt;&gt; Appearance &gt;&gt; Label Decorations.</LI>
 <LI>JML syntax coloring overwrites Java (JDT) syntax coloring. Syntax coloring may not be enabled immediately in a file editor.</LI>
 <LI>There is currently no good way to review the results of ESC proof attempts; it would also be good to show traces and counterexample information.</LI>
 <LI>There should be a way to see the full (inherited) specifications for a method.</LI>
-<LI>User-additions to class-, source- and specs- paths are global, applying to all Eclipse projects.</LI>
+<LI>User additions to class-, source-, and specs-paths on the Project Options preference page are global values prepended to every project's assembled path. They are not yet configurable per-project.</LI>
 <LI><B>Non-disjoint projects are not supported.</B>  If two Eclipse projects share source files
     (i.e., their root paths overlap), the plug-in cannot reliably associate a file with the correct
     project.  Symptoms include diagnostics being cleared for the wrong project, ESC tasks being

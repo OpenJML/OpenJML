@@ -247,6 +247,36 @@ public class OpenJMLSettingsTest {
     }
 
     @Test
+    public void testExpandEnvVarsInPath_braceForm() {
+        String home = System.getenv("HOME");
+        Assume.assumeNotNull(home);
+        assertEquals(home + "/specs", OpenJMLSettings.expandEnvVarsInPath("${HOME}/specs"));
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_parenForm() {
+        String home = System.getenv("HOME");
+        Assume.assumeNotNull(home);
+        assertEquals(home + "/specs", OpenJMLSettings.expandEnvVarsInPath("$(HOME)/specs"));
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_unknownBraceFormRemoved() {
+        String sep = java.io.File.pathSeparator;
+        String result = OpenJMLSettings.expandEnvVarsInPath(
+                "/a" + sep + "${OPENJML_NONEXISTENT_VAR_XYZ}" + sep + "/b");
+        assertEquals("/a" + sep + "/b", result);
+    }
+
+    @Test
+    public void testExpandEnvVarsInPath_unknownParenFormRemoved() {
+        String sep = java.io.File.pathSeparator;
+        String result = OpenJMLSettings.expandEnvVarsInPath(
+                "/a" + sep + "$(OPENJML_NONEXISTENT_VAR_XYZ)" + sep + "/b");
+        assertEquals("/a" + sep + "/b", result);
+    }
+
+    @Test
     public void testExpandEnvVarsInPath_noDuplicateSeparatorsForUnknown() {
         // Verify no '::' (or ';;' on Windows) survives after removing unknown standalone entry.
         String sep = java.io.File.pathSeparator;

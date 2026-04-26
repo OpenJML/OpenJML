@@ -1360,8 +1360,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleRacForPaths(List<String> paths, String projectId, String outputDir) {
         if (paths == null || paths.isEmpty()) return;
         OpenJMLSettings base = settingsForProject(projectId);
-        // In the new Eclipse format, outputDir is null (already in base.racOutputDir via ProjectConfig).
-        // In the old VS Code format, outputDir is passed explicitly and must override.
+        // In the Eclipse format, racOutputDir is null (already in base.racOutputDir via ProjectConfig).
+        // When racOutputDir is passed explicitly (e.g. legacy commands), it must override.
         OpenJMLSettings s;
         if (outputDir != null && !outputDir.isEmpty()) {
             s = new OpenJMLSettings(base);
@@ -1641,9 +1641,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * synthesizing the {@code "__workspace__"} project for single-project clients.
      *
      * <p>For each project, per-project fields (sourcePath, classPath, specsPath,
-     * outputDir) override the global settings when non-null; all other fields are
-     * inherited.  {@code toolOptions} is global-only and is inherited unchanged.  The {@code "__workspace__"} project
-     * has no overrides and therefore inherits everything from global settings.
+     * racOutputDir/javaOutputDir) override the global settings when non-null; all other
+     * fields are inherited.  {@code toolOptions} is global-only and is inherited unchanged.
+     * The {@code "__workspace__"} project has no overrides and therefore inherits everything
+     * from global settings.
      */
     public void updateProjectSettings(List<OpenJMLSettings.ProjectConfig> configs) {
         projectSettings.clear();
@@ -1653,8 +1654,19 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             OpenJMLSettings s = new OpenJMLSettings(globalSettings);
             s.sourcePath = OpenJMLSettings.expandEnvVarsInPath(cfg.sourcePath != null ? cfg.sourcePath : "");
             s.classPath  = OpenJMLSettings.expandEnvVarsInPath(cfg.classPath  != null ? cfg.classPath  : "");
-            s.specsPath  = OpenJMLSettings.expandEnvVarsInPath(cfg.specsPath  != null ? cfg.specsPath  : globalSettings.specsPath);
-            s.racOutputDir            = cfg.outputDir  != null ? cfg.outputDir  : globalSettings.racOutputDir;
+            s.javaOutputDir = cfg.javaOutputDir != null ? cfg.javaOutputDir : "";
+            // Compute effective racOutputDir with javaOutputDir as fallback.
+            String rawRac = cfg.racOutputDir != null ? cfg.racOutputDir
+                    : (globalSettings.racOutputDir != null ? globalSettings.racOutputDir : "");
+            s.racOutputDir = rawRac.isBlank() ? s.javaOutputDir : rawRac;
+            // specsPath: if non-empty, append sourcePath so OpenJML can find cross-file refs.
+            String rawSpecs = cfg.specsPath != null ? cfg.specsPath : globalSettings.specsPath;
+            String expandedSpecs = OpenJMLSettings.expandEnvVarsInPath(rawSpecs);
+            if (expandedSpecs != null && !expandedSpecs.isBlank()) {
+                s.specsPath = expandedSpecs + java.io.File.pathSeparator + s.sourcePath;
+            } else {
+                s.specsPath = null;
+            }
             // Store rootPaths so settingsForUri can match file URIs to this project.
             if (cfg.rootPaths != null && !cfg.rootPaths.isEmpty())
                 s.rootPaths = cfg.rootPaths;

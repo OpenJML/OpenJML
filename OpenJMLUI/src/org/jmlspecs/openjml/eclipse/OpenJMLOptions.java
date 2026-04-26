@@ -543,7 +543,7 @@ public class OpenJMLOptions {
      * ({@link #USE_PROPERTIES_FILE}{@code = false}).
      *
      * <p>Per-project paths (sourcePath, classPath, specsPath, propertiesFile,
-     * rootPaths, outputDir) are now sent inside the {@code projects} list
+     * rootPaths, javaOutputDir, racOutputDir) are now sent inside the {@code projects} list
      * rather than as global top-level fields.  Commands from the Eclipse plugin
      * carry only a {@code projectId}; the server looks up the settings.
      */
@@ -632,10 +632,13 @@ public class OpenJMLOptions {
      *   <li>{@code sourcePath} — this project's own source folders + transitive dep sources,
      *       path-separator-separated; passed as {@code -sourcepath}</li>
      *   <li>{@code classPath} — JAR libraries (Maven deps, external JARs) + transitive
-     *       dep output dirs + user classpath pref, path-separator-separated;
-     *       passed as {@code -classpath}</li>
+     *       dep output dirs + user classpath pref + racOutputDir pref,
+     *       path-separator-separated; passed as {@code -classpath}</li>
      *   <li>{@code specsPath} — global specs path preference</li>
-     *   <li>{@code outputDir} — JDT output folder for RAC {@code -d}</li>
+     *   <li>{@code javaOutputDir} — JDT output folder; goes on classpath and serves as
+     *       default RAC {@code -d} when {@code racOutputDir} is empty</li>
+     *   <li>{@code racOutputDir} — user {@code openjml.racOutputDir} preference for RAC
+     *       {@code -d}; absent when empty (server falls back to {@code javaOutputDir})</li>
      *   <li>{@code rootPaths} — this project's own source folders only (not deps),
      *       as a {@code List<String>}; used by the server for URI→project lookup</li>
      * </ul>
@@ -672,10 +675,19 @@ public class OpenJMLOptions {
             var allSrcParts = new java.util.ArrayList<String>();
             var cpParts     = new java.util.ArrayList<String>();
 
+            // User sourcepath additions go first.
+            String prefSrc = value(sourcePathKey);
+            if (prefSrc != null && !prefSrc.isBlank()) allSrcParts.add(prefSrc);
+
             // User classpath goes first (highest priority on the path).
             // Raw string is passed; the server expands $VAR tokens uniformly.
             String prefCp = value(classPathKey);
             if (prefCp != null && !prefCp.isBlank()) cpParts.add(prefCp);
+
+            // User racOutputDir also goes on the classpath so already-RAC-compiled classes
+            // are visible to subsequent compilations.
+            String prefRacOut = value(racOutputDirKey);
+            if (prefRacOut != null && !prefRacOut.isBlank()) cpParts.add(prefRacOut);
 
             try {
                 collectJdtPaths(jp, allSrcParts, cpParts, new java.util.HashSet<>(), jreHomeFor(jp));
@@ -700,7 +712,9 @@ public class OpenJMLOptions {
             if (globalSpecsPath != null && !globalSpecsPath.isBlank())
                 cfg.put("specsPath", globalSpecsPath);
             if (outputDir != null)
-                cfg.put("outputDir", outputDir);
+                cfg.put("javaOutputDir", outputDir);
+            String racOutPref = value(racOutputDirKey);
+            if (racOutPref != null && !racOutPref.isBlank()) cfg.put("racOutputDir", racOutPref);
             cfg.put("rootPaths", ownSrcFolders.isEmpty()
                     ? (project.getLocation() != null
                             ? java.util.List.of(project.getLocation().toOSString())
