@@ -679,36 +679,15 @@ async function activate(context) {
 
         if (typeof uri !== 'string' || typeof methodName !== 'string') {
             // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
+            // Send the cursor line as "@<line>" and let the server resolve the innermost method
+            // from its AST, correctly handling nested classes without relying on code lenses.
             const editor = vscode.window.activeTextEditor;
             if (!editor || !isJmlLike(editor.document.languageId)) {
                 vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC on a method.');
                 return;
             }
-            const cursorLine = editor.selection.active.line;
-
-            // Ask VS Code for the code lenses on this document (includes our server's lenses).
-            // Filter to per-method ESC lenses (non-empty methodName argument) and find the
-            // last one whose start line is at or before the cursor.  This gives the correct
-            // AST-derived FQN for all class types including secondary, nested, and local classes.
-            let matchedLens = null;
-            try {
-                const allLenses = await vscode.commands.executeCommand(
-                    'vscode.executeCodeLensProvider', editor.document.uri, CODE_LENS_REQUEST_LIMIT);
-                const methodLenses = (allLenses || [])
-                    .filter(l => l.command?.command === 'openjml.runEscForMethod'
-                              && l.command.arguments?.[1])  // non-empty = per-method, not whole-file
-                    .sort((a, b) => a.range.start.line - b.range.start.line);
-                for (const l of methodLenses) {
-                    if (l.range.start.line <= cursorLine) matchedLens = l;
-                    else break;
-                }
-            } catch (_) { /* code lens provider unavailable — fall through to warning */ }
-
-            if (!matchedLens) {
-                vscode.window.showWarningMessage('OpenJML: cursor is not inside a recognizable method (no code lens found — try triggering a type-check first).');
-                return;
-            }
-            [uri, methodName] = matchedLens.command.arguments;
+            uri        = editor.document.uri.toString();
+            methodName = '@' + editor.selection.active.line;
         }
 
         // Warn if the file has unsaved changes (same behaviour as Run ESC).

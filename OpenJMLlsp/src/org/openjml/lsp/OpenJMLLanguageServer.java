@@ -127,10 +127,10 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         registry.on(OpenJMLCommands.SYMBOLS_FOR_PROJECT,  args -> textDocumentService.symbolsForProject(str(args, 1) != null ? str(args, 1) : "", str(args, 0)));
         // CANCEL_ESC: args[0]=projectId, args[1]=target (optional)
         registry.on(OpenJMLCommands.CANCEL_ESC,           args -> { textDocumentService.cancelEsc(str(args, 0), str(args, 1)); return null; });
-        // ABORT_METHOD_PROOF: args[0]=projectId, args[1]=rawName (optional)
-        registry.on(OpenJMLCommands.ABORT_METHOD_PROOF,   args -> { textDocumentService.abortMethodProof(str(args, 1)); return null; });
+        // ABORT_METHOD_PROOF: args[0]=projectId, args[1]=uri, args[2]=rawName (optional)
+        registry.on(OpenJMLCommands.ABORT_METHOD_PROOF,   args -> { textDocumentService.abortMethodProof(str(args, 1), str(args, 2)); return null; });
         // GET_RUNNING_ESC_TASKS: args[0]=projectId; server filters tasks to that project
-        registry.on(OpenJMLCommands.GET_RUNNING_ESC_TASKS, args -> textDocumentService.getRunningEscUris(str(args, 0)));
+        registry.on(OpenJMLCommands.GET_RUNNING_ESC_TASKS, args -> textDocumentService.getRunningEscUris());
 
         this.workspaceService = new OpenJMLWorkspaceService(globalSettings, registry,
                 textDocumentService::symbols,

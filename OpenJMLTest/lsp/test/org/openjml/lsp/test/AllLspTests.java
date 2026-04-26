@@ -71,6 +71,7 @@ import org.junit.runners.Suite;
     EscSessionGenTest.class,
     SymbolsForProjectTest.class,
     EscPerMethodMarkerTest.class,
+    EscAtLineTest.class,
     EscInvocationVariantsTest.class,
     ClearAndReescTest.class,
     DidCloseTest.class,

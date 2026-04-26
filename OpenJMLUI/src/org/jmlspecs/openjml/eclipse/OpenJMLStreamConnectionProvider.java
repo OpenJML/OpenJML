@@ -395,8 +395,6 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         else                        Console.log(text);
 
         // Show a dialog only when there are action items.
-        Console.log("[OpenJML] actionMessage: type=" + type + " actions=" + actions.size()
-                + " params.class=" + (rawParams == null ? "null" : rawParams.getClass().getName()));
         if (actions == null || actions.isEmpty()) return;
 
         Display display = Display.getDefault();

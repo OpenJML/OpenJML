@@ -52,7 +52,11 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either3;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
+import org.jmlspecs.openjml.JmlTree.JmlMethodDecl;
+import org.jmlspecs.openjml.Utils;
+import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.openjml.IAPI;
+import com.sun.tools.javac.tree.JCTree.JCMethodDecl;
 import org.openjml.IProverResult;
 
 import java.util.ArrayList;
@@ -216,10 +220,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final ConcurrentHashMap<String, ProofResult> proofResults = new ConcurrentHashMap<>();
 
     /** Tracks an in-progress ESC task: its session gen, the Future, and the IAPI (set after start). */
-    record RunningSession(long sessionGen, Future<?> future, java.util.concurrent.atomic.AtomicReference<IAPI> api, boolean visible) {
-        RunningSession(long sessionGen, Future<?> future, java.util.concurrent.atomic.AtomicReference<IAPI> api) {
-            this(sessionGen, future, api, true);
-        }
+    record RunningSession(long sessionGen, Future<?> future, java.util.concurrent.atomic.AtomicReference<IAPI> api, boolean visible, String projectId) {
     }
     /** Running ESC sessions keyed by uri (file runs) or uri+"#"+rawMethodName (per-method runs) or "batch:"+n (batch runs). */
     private final ConcurrentHashMap<String, RunningSession> runningSessions = new ConcurrentHashMap<>();
@@ -489,8 +490,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             boolean checking = s.result() == EscResult.CHECKING;
             String cmd  = checking ? OpenJMLCommands.ABORT_METHOD_PROOF
                                    : OpenJMLCommands.RUN_ESC_FOR_METHOD;
-            List<Object> args = checking ? List.<Object>of(proj, methodRef)
-                                         : List.<Object>of(proj, uri, methodRef);
+            List<Object> args = List.<Object>of(proj, uri, methodRef);
             lenses.add(new CodeLens(range, new Command(s.label(), cmd, args), null));
         }
         return CompletableFuture.completedFuture(lenses);
@@ -1163,7 +1163,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         java.util.Set<String> batchUriKeys =
                 java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
-        submitEscJob(batchKey, s.escPool, (myBatchGen, hook, futureRef) -> {
+        submitEscJob(batchKey, s.escPool, projectId, (myBatchGen, hook, futureRef) -> {
             // Wrap hook so the batch IAPI is accessible from the RUNNING callback.
             var batchApiRef = new java.util.concurrent.atomic.AtomicReference<IAPI>();
             java.util.function.Consumer<IAPI> batchHook =
@@ -1180,7 +1180,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                             runningSessions.put(uri, new RunningSession(myBatchGen,
                                     futureRef.get(),
                                     new java.util.concurrent.atomic.AtomicReference<>(batchApi),
-                                    false /* batch sub-entry — not shown in Cancel ESC list */));
+                                    false /* batch sub-entry — not shown in Cancel ESC list */,
+                                    projectId));
                             batchUriKeys.add(uri);
                         }
                         markMethodCheckingByName(uri, methodName, myBatchGen, projectId);
@@ -1876,7 +1877,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }).whenComplete((v, t) -> runningSessions.remove(uri));
 
         runningSessions.put(uri, new RunningSession(myGen, cf,
-                new java.util.concurrent.atomic.AtomicReference<>()));
+                new java.util.concurrent.atomic.AtomicReference<>(), true, projectId));
     }
 
     /**
@@ -1913,6 +1914,21 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
         String content = lastContent.get(uri);
         JavaSourceScanner.MethodInfo target = findMethod(uri, content, methodName);
+
+        // "@line" resolution requires a cached AST.  If the cache is not yet populated
+        // (e.g. the file was just opened and the initial check has not finished), run a
+        // quick --check now to build the AST, then retry the resolution.
+        if (target == null && methodName != null && methodName.startsWith("@") && content != null) {
+            CheckRunner.check(uri, content, s);
+            target = findMethod(uri, content, methodName);
+        }
+        // If resolution still failed, refuse to pass "@N" as a raw --method name to OpenJML.
+        if (target == null && methodName != null && methodName.startsWith("@")) {
+            sendActionMessage(2,
+                    "OpenJML: cannot locate method at cursor — place the cursor inside a method body.",
+                    List.of());
+            return;
+        }
 
         // rawName() carries "owner.FQN.methodName(sig)" for AST-derived MethodInfo entries,
         // which OpenJML's --method flag accepts.  For regex-derived entries (before the first
@@ -1964,13 +1980,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
                 ? JavaSourceScanner.findMethodsFromAst(astEntry.ast())
                 : List.of();
-        // "@line" format: client does not have a FQN; find method containing that line.
+        // "@line" format: client passes 0-based cursor line; walk the AST directly to find
+        // the innermost method (smallest span) whose declaration contains that line.
         if (nameOrRef.startsWith("@")) {
+            if (astEntry == null) return null;
             try {
                 int line = Integer.parseInt(nameOrRef.substring(1));
-                for (JavaSourceScanner.MethodInfo m : methods) {
-                    if (m.contains(line)) return m;
-                }
+                MethodAtLineScanner scanner = new MethodAtLineScanner(astEntry.ast(), line);
+                scanner.scanForMethod(astEntry.ast());
+                return scanner.best;
             } catch (NumberFormatException ignored) {}
             return null;
         }
@@ -2008,7 +2026,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         final String scopeKey = target != null ? methodKey(uri, target) : uri;
         if (target != null) refreshCodeLenses();
 
-        submitEscJob(scopeKey, pool, (myGen, hook, futureRef) -> {
+        submitEscJob(scopeKey, pool, projectId, (myGen, hook, futureRef) -> {
             if (target != null) {
                 storeProofResult(scopeKey, myGen, MethodStatus.CHECKING, projectId);
                 refreshCodeLenses();
@@ -2393,7 +2411,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * {@link CheckRunner} can hand back the live {@link IAPI} once it is created.
      * {@link #debugContent} is called at the start and end of the task.
      */
-    private void submitEscJob(String key, ExecutorService pool, EscJobBody body) {
+    private void submitEscJob(String key, ExecutorService pool, String projectId, EscJobBody body) {
         RunningSession prev = runningSessions.remove(key);
         if (prev != null) {
             prev.future().cancel(false);
@@ -2404,8 +2422,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         var apiRef    = new java.util.concurrent.atomic.AtomicReference<IAPI>();
         Future<?> f = pool.submit(() -> {
             long myGen = sessionCounter.incrementAndGet();
-            runningSessions.put(key, new RunningSession(myGen, futureRef.get(), apiRef));
-            //debugContent("start ESC key=" + key);
+            runningSessions.put(key, new RunningSession(myGen, futureRef.get(), apiRef, true, projectId));
             java.util.function.Consumer<IAPI> hook = api -> {
                 apiRef.set(api);
                 RunningSession rs = runningSessions.get(key);
@@ -2415,11 +2432,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 body.run(myGen, hook, futureRef);
             } finally {
                 runningSessions.remove(key);
-                //debugContent("end ESC key=" + key);
             }
         });
         futureRef.set(f);
-        runningSessions.putIfAbsent(key, new RunningSession(-1L, f, apiRef));
+        runningSessions.putIfAbsent(key, new RunningSession(-1L, f, apiRef, true, projectId));
     }
 
 
@@ -3155,8 +3171,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * <p>When {@code rawName} is {@code null} or empty, all currently-active proofs
      * are aborted (same effect as a broad "skip current" across all parallel runs).
      */
-    void abortMethodProof(String rawName) {
-        if (rawName != null && !rawName.isEmpty()) {
+    void abortMethodProof(String uri, String rawName) {
+        if (uri != null && !uri.isEmpty() && rawName != null && !rawName.isEmpty()) {
+            // Construct "uri#rawName" so abortMethodProofForKey can find either a
+            // per-method session (split-by-method) or fall back to the file-level
+            // session registered during the RUNNING event (file-level ESC).
+            abortMethodProofForKey(uri + "#" + rawName);
+        } else if (rawName != null && !rawName.isEmpty()) {
+            // No URI supplied — search all sessions for a key ending with "#rawName".
             String suffix = "#" + rawName;
             new ArrayList<>(runningSessions.keySet()).stream()
                     .filter(k -> k.endsWith(suffix))
@@ -3226,11 +3248,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /** Returns true if {@code key} (a URI or "uri#method") belongs to {@code projectId},
-     *  or if {@code projectId} is null (match all; used when project is unknown). */
+     *  or if {@code projectId} is null (match all; used when project is unknown).
+     *  A URI not covered by any configured project root returns null from
+     *  {@link #projectIdForUri}, which is treated as "unknown project — match all"
+     *  so that sessions whose project cannot be determined are always visible. */
     private boolean matchesProject(String key, String projectId) {
         if (projectId == null) return true;
         String uri = key.contains("#") ? key.substring(0, key.indexOf('#')) : key;
-        return projectId.equals(projectIdForUri(uri));
+        String uriPid = projectIdForUri(uri);
+        return uriPid == null || projectId.equals(uriPid);
     }
 
     private void abortEscForKey(String key) {
@@ -3258,10 +3284,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * Whole-file runs are identified by bare URI; per-method runs use
      * {@code "uri#methodName"} format.
      */
-    List<String> getRunningEscUris(String projectId) {
+    List<String> getRunningEscUris() {
         return runningSessions.entrySet().stream()
                 .filter(e -> e.getValue().visible())
-                .filter(e -> matchesProject(e.getKey(), projectId))
+                .map(Map.Entry::getKey)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    List<String> getRunningEscUrisForProject(String projectId) {
+        return runningSessions.entrySet().stream()
+                .filter(e -> e.getValue().visible())
+                .filter(e -> projectId == null || projectId.equals(e.getValue().projectId()))
                 .map(Map.Entry::getKey)
                 .collect(java.util.stream.Collectors.toList());
     }
@@ -3547,5 +3580,73 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void shutdown() {
         scheduler.shutdownNow();
         executor.shutdownNow();
+    }
+
+    /**
+     * AST walker that finds the innermost method whose declaration span contains a given
+     * 0-based target line.
+     *
+     * <p>Strategy: recurse only into methods that contain the line.  After the recursive
+     * call returns (meaning no nested method claimed the match), the current method is
+     * the innermost one — record it and throw {@link Found} to stop the entire scan.
+     * If a nested method matches, its {@link Found} propagates through the enclosing
+     * method's {@code super} call, so the enclosing method never claims the match.
+     */
+    private static final class MethodAtLineScanner extends JmlTreeScanner {
+        private final JmlCompilationUnit cu;
+        private final int targetLine;
+        JavaSourceScanner.MethodInfo best = null;
+
+        private static final class Found extends RuntimeException {
+            Found() { super(null, null, true, false); }
+        }
+
+        MethodAtLineScanner(JmlCompilationUnit cu, int targetLine) {
+            super(null);
+            this.cu = cu;
+            this.targetLine = targetLine;
+        }
+
+        void scanForMethod(JmlCompilationUnit ast) {
+            try { scan(ast); } catch (Found ignored) {}
+        }
+
+        @Override
+        public void visitMethodDef(JCMethodDecl tree) {
+            if (tree.pos < 0 || tree.sym == null) return;
+            String rawName = tree.name != null ? tree.name.toString() : "";
+            if (rawName.isEmpty() || (rawName.startsWith("<") && !"<init>".equals(rawName))) return;
+
+            int startLine = Math.max(0, (int) cu.lineMap.getLineNumber(tree.pos) - 1);
+            int endOffset = cu.endPositions != null ? tree.getEndPosition(cu.endPositions) : -1;
+            int endLine   = (endOffset > tree.pos)
+                    ? Math.max(startLine, (int) cu.lineMap.getLineNumber(endOffset) - 1)
+                    : startLine;
+
+            ServerLog.serverLog("[MethodAtLineScanner] target=" + targetLine
+                    + " method=" + rawName + " start=" + startLine + " end=" + endLine
+                    + (targetLine >= startLine && targetLine <= endLine ? " IN-RANGE" : " skip"));
+
+            if (targetLine < startLine || targetLine > endLine) return;
+
+            super.visitMethodDef(tree);  // recurse — if a nested method matches it throws Found
+
+            // No nested method claimed the match — this is the innermost one.
+            String ownerSimple = tree.sym.owner != null
+                    ? tree.sym.owner.getSimpleName().toString() : "";
+            String name = "<init>".equals(rawName)
+                    ? (ownerSimple.isEmpty() ? "<init>" : ownerSimple) : rawName;
+            String fqnKey = Utils.uniqueSymbolName(tree.sym);
+            int bodyStart = (tree.body != null && tree.body.pos > tree.pos)
+                    ? Math.max(startLine, (int) cu.lineMap.getLineNumber(tree.body.pos) - 1)
+                    : endLine;
+            String cuUri = cu.sourcefile != null
+                    ? cu.sourcefile.toUri().normalize().toString() : "";
+            String sourceUri = (tree instanceof JmlMethodDecl jm && jm.sourcefile != null)
+                    ? jm.sourcefile.toUri().normalize().toString() : cuUri;
+            best = new JavaSourceScanner.MethodInfo(
+                    name, fqnKey, startLine, startLine, bodyStart, endLine, sourceUri);
+            throw new Found();
+        }
     }
 }

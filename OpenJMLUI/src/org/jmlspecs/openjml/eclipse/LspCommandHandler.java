@@ -1001,14 +1001,34 @@ public abstract class LspCommandHandler extends AbstractHandler {
             String uri = fileUri.toString();
             Console.log(lspCommand + " -> " + uri);
 
-            // Determine cursor line (0-based).
+            // Determine cursor line (0-based) and send "@<line>" to the server.
+            // The server resolves the innermost method from its AST, correctly handling
+            // nested classes without requiring code lenses to be cached first.
+            //
+            // ITextSelection.getStartLine() returns -1 for an empty selection (cursor
+            // click without drag).  Use the StyledText caret offset instead — it is
+            // always the true insertion-point position regardless of selection state.
             int cursorLine = -1;
-            var sel = HandlerUtil.getCurrentSelection(event);
-            if (sel instanceof org.eclipse.jface.text.ITextSelection ts) cursorLine = ts.getStartLine();
-            final int cursorLineFinal = cursorLine;
+            org.eclipse.jface.text.source.ISourceViewer viewer =
+                    editor.getAdapter(org.eclipse.jface.text.source.ISourceViewer.class);
+            if (viewer != null) {
+                org.eclipse.swt.custom.StyledText widget = viewer.getTextWidget();
+                if (widget != null && !widget.isDisposed()) {
+                    int widgetOffset = widget.getCaretOffset();
+                    int docOffset = viewer.widgetOffset2ModelOffset(widgetOffset);
+                    org.eclipse.jface.text.IDocument doc = viewer.getDocument();
+                    if (doc != null && docOffset >= 0) {
+                        try { cursorLine = doc.getLineOfOffset(docOffset); }
+                        catch (org.eclipse.jface.text.BadLocationException ignored) {}
+                    }
+                }
+            }
+            if (cursorLine < 0) {
+                MessageDialog.openWarning(Display.getDefault().getActiveShell(), "OpenJML",
+                        "Cannot determine cursor position — place the cursor inside a method and try again.");
+                return null;
+            }
 
-            // Prefer the FQN from server-provided code lenses (more precise); fall back to
-            // "@line" so the server can locate the method from the AST when no lens is cached.
             OpenJMLLanguageClient lc = OpenJMLCodeMiningProvider.languageClient;
             org.eclipse.lsp4j.services.LanguageServer ls = lc != null ? lc.server() : null;
             if (ls == null) {
@@ -1016,56 +1036,11 @@ public abstract class LspCommandHandler extends AbstractHandler {
                         "OpenJML", "OpenJML language server is not connected.");
                 return null;
             }
-            org.eclipse.lsp4j.CodeLensParams clParams = new org.eclipse.lsp4j.CodeLensParams(
-                    new org.eclipse.lsp4j.TextDocumentIdentifier(uri));
-            ls.getTextDocumentService().codeLens(clParams).thenAccept(lenses -> {
-                org.eclipse.lsp4j.CodeLens matched = null;
-                if (lenses != null) {
-                    // Accept both command types: RUN_ESC_FOR_METHOD (args=[uri,fqn])
-                    // and ABORT_METHOD_PROOF (args=[fqn]) — the latter appears when
-                    // a method is currently CHECKING.  In either case we extract the
-                    // FQN and send CMD_RUN_ESC_FOR_METHOD (keyboard shortcut always runs).
-                    List<org.eclipse.lsp4j.CodeLens> sorted = lenses.stream()
-                            .map(l -> (org.eclipse.lsp4j.CodeLens) l)
-                            .filter(l -> l.getCommand() != null
-                                    && l.getCommand().getArguments() != null
-                                    && (OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD.equals(l.getCommand().getCommand())
-                                            ? l.getCommand().getArguments().size() >= 3
-                                                    && !String.valueOf(l.getCommand().getArguments().get(2)).isEmpty()
-                                            : OpenJMLConstants.CMD_ABORT_METHOD_PROOF.equals(l.getCommand().getCommand())
-                                                    && l.getCommand().getArguments().size() >= 2
-                                                    && !String.valueOf(l.getCommand().getArguments().get(1)).isEmpty()))
-                            .sorted((a, b) -> Integer.compare(
-                                    a.getRange().getStart().getLine(),
-                                    b.getRange().getStart().getLine()))
-                            .toList();
-                    for (org.eclipse.lsp4j.CodeLens l : sorted) {
-                        if (cursorLineFinal < 0 || l.getRange().getStart().getLine() <= cursorLineFinal)
-                            matched = l;
-                        else break;
-                    }
-                }
-                List<Object> args;
-                if (matched != null) {
-                    // Normalize to [uri, fqn] regardless of which command the lens carries.
-                    List<?> lensArgs = matched.getCommand().getArguments();
-                    boolean isAbort = OpenJMLConstants.CMD_ABORT_METHOD_PROOF
-                            .equals(matched.getCommand().getCommand());
-                    args = isAbort
-                            ? List.of(lensArgs.get(0), uri, lensArgs.get(1))  // [proj, rawName] → [proj, uri, rawName]
-                            : new ArrayList<>(lensArgs);                       // already [proj, uri, fqn]
-                } else if (cursorLineFinal >= 0) {
-                    // Fall back to "@line" — server resolves method from AST
-                    args = List.of(uri, "@" + cursorLineFinal);
-                } else {
-                    Display.getDefault().asyncExec(() -> MessageDialog.openWarning(
-                            Display.getDefault().getActiveShell(), "OpenJML",
-                            "Cannot determine method — place the cursor inside a method and try again."));
-                    return;
-                }
-                ls.getWorkspaceService().executeCommand(
-                        new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args));
-            });
+
+            String projectId = file.getProject().getName();
+            List<Object> args = List.of(projectId, uri, "@" + cursorLine);
+            ls.getWorkspaceService().executeCommand(
+                    new ExecuteCommandParams(OpenJMLConstants.CMD_RUN_ESC_FOR_METHOD, args));
             return null;
         }
 

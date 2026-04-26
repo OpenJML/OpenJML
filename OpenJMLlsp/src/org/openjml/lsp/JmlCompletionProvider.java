@@ -83,6 +83,7 @@ public class JmlCompletionProvider {
             Range replaceRange = wordBeforeCursorRange(content, pos);
             List<CompletionItem> items = new ArrayList<>(ALL_BACKSLASH_ITEMS.size());
             for (CompletionItem tmpl : ALL_BACKSLASH_ITEMS) {
+                if (!tmpl.getLabel().startsWith(prefix)) continue;
                 CompletionItem item = new CompletionItem(tmpl.getLabel());
                 item.setKind(tmpl.getKind());
                 item.setTextEdit(Either.forLeft(new TextEdit(replaceRange, tmpl.getLabel())));
@@ -93,7 +94,11 @@ public class JmlCompletionProvider {
         // Keyword completions make no sense inside a method argument list.
         // Suppress them when the token before the prefix (ignoring whitespace) is '(' or ','.
         if (isArgumentPosition(content, pos, prefix)) return List.of();
-        return ALL_KEYWORD_ITEMS;
+        List<CompletionItem> items = new ArrayList<>(ALL_KEYWORD_ITEMS.size());
+        for (CompletionItem tmpl : ALL_KEYWORD_ITEMS) {
+            if (tmpl.getLabel().startsWith(prefix)) items.add(tmpl);
+        }
+        return items;
     }
 
     /**

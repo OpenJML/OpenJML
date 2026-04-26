@@ -112,6 +112,7 @@ TEST_CLASSES := \
   EscSessionGenTest \
   SymbolsForProjectTest \
   EscPerMethodMarkerTest \
+  EscAtLineTest \
   EscInvocationVariantsTest \
   ClearAndReescTest \
   DidCloseTest
