@@ -220,9 +220,14 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         inlayHintsOpts.setResolveProvider(false);
         caps.setInlayHintProvider(Either.forRight(inlayHintsOpts));
 
-        // Advertise all registered workspace/executeCommand names so that clients
-        // can validate their command-name constants against this list at startup.
-        caps.setExecuteCommandProvider(new ExecuteCommandOptions(registry.commandNames()));
+        // VS Code registers all user-facing commands itself via vscode.commands.registerCommand.
+        // Advertising them here would cause vscode-languageclient's ExecuteCommandFeature to
+        // try to register them again, producing "command already exists" errors.
+        // For all other clients (Eclipse, generic) advertise the full list so they can
+        // validate command names and route workspace/executeCommand requests.
+        List<String> advertisedCmds = "vscode-java".equals(globalSettings.client)
+                ? List.of() : registry.commandNames();
+        caps.setExecuteCommandProvider(new ExecuteCommandOptions(advertisedCmds));
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }
