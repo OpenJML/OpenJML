@@ -1660,9 +1660,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 s.rootPaths = cfg.rootPaths;
             projectSettings.put(cfg.id, s);
         }
-        ServerLog.serverLog("[OpenJML] project registry updated: "
-                + projectSettings.keySet().stream().map(OpenJMLTextDocumentService::displayProject)
-                        .collect(java.util.stream.Collectors.joining(", ", "[", "]")));
+        globalSettings.logConfiguration(projectSettings);
     }
 
     /** Returns {@code true} if {@code projectId} is in the current project registry. */

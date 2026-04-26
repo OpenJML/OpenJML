@@ -358,6 +358,52 @@ public class OpenJMLSettings {
     public boolean isJmlOnly() { return "jml-only".equals(effectiveJavaMode()); }
 
     /**
+     * Logs the current global settings and per-project registry to the server log.
+     * Called after initialization and after each configuration change so the log
+     * contains a clear snapshot of what the server is operating with.
+     *
+     * @param projectSettings the per-project registry built by
+     *        {@code OpenJMLTextDocumentService.updateProjectSettings}
+     */
+    public void logConfiguration(java.util.Map<String, OpenJMLSettings> projectSettings) {
+        StringBuilder sb = new StringBuilder("[configuration]\n");
+        sb.append("  client=").append(client).append('\n');
+        sb.append("  javaMode=").append(effectiveJavaMode())
+          .append(" (raw=").append(javaMode).append(")\n");
+        sb.append("  checkTriggerOn=").append(checkTriggerOn).append('\n');
+        sb.append("  escTriggerOn=").append(escTriggerOn).append('\n');
+        sb.append("  escEngine=").append(escEngine)
+          .append("  escThreads=").append(escThreads).append('\n');
+        sb.append("  syntaxColoringScope=").append(syntaxColoringScope).append('\n');
+        sb.append("  syntaxColoringStrategy=").append(syntaxColoringStrategy).append('\n');
+        sb.append("  useIntegratedOutline=").append(useIntegratedOutline).append('\n');
+        sb.append("  incrementalSync=").append(incrementalSync).append('\n');
+        sb.append("  supportsActionMessages=").append(supportsActionMessages).append('\n');
+        sb.append("  specsPath=").append(specsPath).append('\n');
+        sb.append("  sourcePath=").append(sourcePath).append('\n');
+        sb.append("  classPath=").append(classPath).append('\n');
+        sb.append("  racOutputDir=").append(racOutputDir).append('\n');
+        sb.append("  toolOptions=").append(toolOptions).append('\n');
+        if (projectSettings == null || projectSettings.isEmpty()) {
+            sb.append("  projects: (none)\n");
+        } else {
+            sb.append("  projects (").append(projectSettings.size()).append("):\n");
+            for (java.util.Map.Entry<String, OpenJMLSettings> e :
+                    new java.util.TreeMap<>(projectSettings).entrySet()) {
+                String id = e.getKey().isEmpty() ? "(workspace)" : e.getKey();
+                OpenJMLSettings ps = e.getValue();
+                sb.append("    [").append(id).append("]\n");
+                sb.append("      rootPaths=").append(ps.rootPaths).append('\n');
+                sb.append("      sourcePath=").append(ps.sourcePath).append('\n');
+                sb.append("      classPath=").append(ps.classPath).append('\n');
+                sb.append("      specsPath=").append(ps.specsPath).append('\n');
+                sb.append("      racOutputDir=").append(ps.racOutputDir).append('\n');
+            }
+        }
+        ServerLog.serverLog(sb.toString());
+    }
+
+    /**
      * No-arg constructor.  Used by Gson deserialization (initializationOptions /
      * didChangeConfiguration) and by test code that creates default settings.
      */
