@@ -1,0 +1,15 @@
+{
+  "name": "openjml-vscode-tests",
+  "version": "0.0.1",
+  "description": "VS Code UI tests for the OpenJML extension using vscode-extension-tester",
+  "private": true,
+  "scripts": {
+    "test": "node runner.js"
+  },
+  "devDependencies": {
+    "vscode-extension-tester": "^8.23.0"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
