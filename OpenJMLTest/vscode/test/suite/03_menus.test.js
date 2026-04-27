@@ -73,24 +73,32 @@ describe('Menu Contributions', function () {
         editor = await new EditorView().openEditor('Sample.java');
     });
 
-    after(async function () { await suiteTeardown(); });
+    after(async function () { this.timeout(30_000); await suiteTeardown(); });
 
     // ── A. Presence ───────────────────────────────────────────────────────────
 
     it('editor context menu contains all OpenJML commands', async function () {
+        const driver = VSBrowser.instance.driver;
         await editor.click();
-        await VSBrowser.instance.driver.sleep(500);
+        await driver.sleep(500);
 
         let labels = [];
-        for (let attempt = 0; attempt < 4; attempt++) {
+        for (let attempt = 0; attempt < 5; attempt++) {
             try {
                 const menu = await editor.openContextMenu();
-                await VSBrowser.instance.driver.sleep(800);
+                await driver.sleep(800);
                 labels = await collectMenuLabels(menu);
                 try { await menu.close(); } catch (_) {}
+                // If we got the minimap context menu the first item is "Minimap" —
+                // dismiss and retry.
+                if (labels.some(l => l === 'Minimap')) {
+                    labels = [];
+                    await driver.sleep(500);
+                    continue;
+                }
                 if (labels.length > 0) break;
             } catch (_) {
-                await VSBrowser.instance.driver.sleep(1_000);
+                await driver.sleep(1_000);
             }
         }
 
@@ -124,6 +132,7 @@ describe('Menu Contributions', function () {
             await driver.sleep(500);
         }
         try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(800);
 
         const missing = EXPLORER_CONTEXT_COMMANDS.filter(
             cmd => !labels.some(l => l.includes(cmd))
@@ -139,7 +148,10 @@ describe('Menu Contributions', function () {
 
     it('"Check JML" can be invoked from the editor context menu', async function () {
         const driver = VSBrowser.instance.driver;
-        await editor.click();
+        // Dismiss any stale context-menu overlay left by the previous test.
+        try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(500);
+        try { await editor.click(); } catch (_) { await driver.sleep(500); }
         let clicked = false;
         for (let attempt = 0; attempt < 3 && !clicked; attempt++) {
             try {
@@ -166,12 +178,18 @@ describe('Menu Contributions', function () {
     });
 
     it('"Clear Markers" can be invoked without error', async function () {
-        // Clear Markers is client-side only; it should always succeed.
+        const driver = VSBrowser.instance.driver;
+        // Dismiss any stale context-menu overlay before opening the command palette.
+        try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(500);
         const ok = await runCommand('OpenJML: Clear Markers');
         assert.ok(ok, '"Clear Markers" command failed');
     });
 
     it('"Cancel ESC" can be invoked without error', async function () {
+        const driver = VSBrowser.instance.driver;
+        try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(300);
         const ok = await runCommand('OpenJML: Cancel ESC');
         assert.ok(ok, '"Cancel ESC" command failed');
     });

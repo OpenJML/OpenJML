@@ -14,7 +14,7 @@ const assert  = require('assert');
 const path    = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { Key } = require('selenium-webdriver');
-const { suiteTeardown, waitForOutput, noteSkip,
+const { suiteTeardown, waitForOutput, waitForServer, noteSkip,
         getExplorerSection, findExplorerItem, invokeContextMenuItem }
     = require('./helpers');
 
@@ -30,9 +30,11 @@ describe('ESC via Explorer context menu', function () {
         await VSBrowser.instance.waitForWorkbench(20_000);
         await VSBrowser.instance.openResources(SAMPLE_JAVA);
         await VSBrowser.instance.driver.sleep(3_000);
+        const ready = await waitForServer(60_000);
+        assert.ok(ready, 'OpenJML LSP server did not start — cannot test Explorer ESC commands');
     });
 
-    after(async function () { await suiteTeardown(true); });
+    after(async function () { this.timeout(60_000); await suiteTeardown(true); });
 
     // ── Test A: single-file context menu ──────────────────────────────────────
     it('Context menu on single Explorer file runs only that file', async function () {

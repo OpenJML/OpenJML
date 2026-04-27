@@ -2,18 +2,18 @@
 /**
  * Suite 01: Extension Activation
  *
- * Verifies that the OpenJML extension loads without crashing and registers
- * its output channel.  No OpenJML server response is required — these tests
- * cover client-side activation only.
+ * Verifies that the OpenJML extension loads without crashing, registers
+ * its output channel, and starts the LSP server within 2 minutes.
  */
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, BottomBarPanel, Workbench } = require('vscode-extension-tester');
-const { suiteTeardown, runCommand } = require('./helpers');
+const { suiteTeardown, runCommand, waitForServer } = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 
 describe('Extension Activation', function () {
+    // Default timeout for non-server tests; the server startup test sets its own.
     this.timeout(60_000);
 
     before(async function () {
@@ -65,5 +65,17 @@ describe('Extension Activation', function () {
         );
     });
 
-    after(async function () { await suiteTeardown(); });
+    it('LSP server starts within 2 minutes', async function () {
+        // The server logs "server started" once the LanguageClient handshake
+        // completes.  This test FAILS if the server does not start — all
+        // subsequent server-dependent tests depend on this.
+        // In normal use startup takes under 60 seconds.
+        this.timeout(150_000);
+        const ready = await waitForServer(120_000);
+        assert.ok(ready,
+            'OpenJML LSP server did not log "server started" within 2 minutes. ' +
+            'Check openjml.serverPath setting and that the server binary is executable.');
+    });
+
+    after(async function () { this.timeout(30_000); await suiteTeardown(); });
 });

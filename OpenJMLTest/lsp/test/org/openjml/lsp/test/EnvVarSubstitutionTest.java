@@ -5,6 +5,7 @@ import org.junit.Assume;
 import org.junit.Test;
 import org.openjml.lsp.CheckRunner;
 import org.openjml.lsp.OpenJMLSettings;
+import org.openjml.lsp.ProjectConfig;
 import org.openjml.lsp.OpenJMLTextDocumentService;
 
 import java.util.ArrayList;
@@ -42,11 +43,11 @@ public class EnvVarSubstitutionTest {
         return new OpenJMLTextDocumentService(new OpenJMLSettings(), "openjml.runEsc");
     }
 
-    private static OpenJMLSettings.ProjectConfig config(String id,
+    private static ProjectConfig config(String id,
                                                          String specsPath,
                                                          String sourcePath,
                                                          String classPath) {
-        OpenJMLSettings.ProjectConfig cfg = new OpenJMLSettings.ProjectConfig();
+        ProjectConfig cfg = new ProjectConfig();
         cfg.id         = id;
         cfg.specsPath  = specsPath;
         cfg.sourcePath = sourcePath;

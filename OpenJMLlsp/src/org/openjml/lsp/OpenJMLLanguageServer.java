@@ -20,6 +20,8 @@ import org.eclipse.lsp4j.InitializeResult;
 import org.eclipse.lsp4j.InitializedParams;
 import org.eclipse.lsp4j.ServerCapabilities;
 import org.eclipse.lsp4j.TextDocumentSyncKind;
+import org.eclipse.lsp4j.WorkspaceServerCapabilities;
+import org.eclipse.lsp4j.WorkspaceFoldersOptions;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.LanguageClientAware;
@@ -167,7 +169,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 try { folderPaths.add(java.nio.file.Path.of(java.net.URI.create(rootUri)).toString()); }
                 catch (Exception ignored) {}
             }
-            OpenJMLSettings.ProjectConfig wp = new OpenJMLSettings.ProjectConfig();
+            ProjectConfig wp = new ProjectConfig();
             wp.id        = OpenJMLSettings.WORKSPACE_PROJECT_ID;
             wp.rootPaths = folderPaths.isEmpty() ? null : folderPaths;
             globalSettings.projects = new java.util.ArrayList<>(List.of(wp));
@@ -178,7 +180,8 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         textDocumentService.updateProjectSettings(globalSettings.projects);
 
         // Propagate capability flags — must be read after applyRaw() has populated settings.
-        textDocumentService.setClientSupportsActionMessages(globalSettings.supportsActionMessages);
+        textDocumentService.setClientSupportsActionMessages(
+                Boolean.TRUE.equals(globalSettings.clientSettings.supportsActionMessages));
         var cc = params.getCapabilities();
         var ws = cc != null ? cc.getWorkspace() : null;
         var stCap = ws != null ? ws.getSemanticTokens() : null;
@@ -186,7 +189,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
                 stCap != null && Boolean.TRUE.equals(stCap.getRefreshSupport()));
 
         var caps = new ServerCapabilities();
-        caps.setTextDocumentSync(globalSettings.incrementalSync
+        caps.setTextDocumentSync(Boolean.TRUE.equals(globalSettings.clientSettings.incrementalSync)
                 ? TextDocumentSyncKind.Incremental
                 : TextDocumentSyncKind.Full);
         caps.setCodeLensProvider(new CodeLensOptions(false));
@@ -225,9 +228,18 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         // try to register them again, producing "command already exists" errors.
         // For all other clients (Eclipse, generic) advertise the full list so they can
         // validate command names and route workspace/executeCommand requests.
-        List<String> advertisedCmds = "vscode-java".equals(globalSettings.client)
+        List<String> advertisedCmds = "vscode-java".equals(globalSettings.clientSettings.client)
                 ? List.of() : registry.commandNames();
         caps.setExecuteCommandProvider(new ExecuteCommandOptions(advertisedCmds));
+
+        // Advertise workspace folder support so VS Code's LanguageClient automatically
+        // sends workspace/didChangeWorkspaceFolders when folders are added or removed.
+        var wfOpts = new WorkspaceFoldersOptions();
+        wfOpts.setSupported(true);
+        wfOpts.setChangeNotifications(true);
+        var workspaceCaps = new WorkspaceServerCapabilities();
+        workspaceCaps.setWorkspaceFolders(wfOpts);
+        caps.setWorkspace(workspaceCaps);
 
         return CompletableFuture.completedFuture(new InitializeResult(caps));
     }

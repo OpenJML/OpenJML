@@ -52,7 +52,7 @@ public class ToolOptionsTest extends LspTestBase {
 
         // With --keys MYKEY directly in toolOptions: annotation active, ESC finds violation.
         OpenJMLSettings settings = new OpenJMLSettings();
-        settings.toolOptions = List.of("--keys", "MYKEY");
+        settings.clientSettings.toolOptions = List.of("--keys", "MYKEY");
         List<Diagnostic> keyDiags =
                 CheckRunner.runEsc("file:///OptionalKeyDirect.java", source, settings).diagnostics();
         assertFalse("Expected ESC postcondition diagnostic when --keys MYKEY is in toolOptions",
@@ -88,7 +88,7 @@ public class ToolOptionsTest extends LspTestBase {
 
         // With --require-white-space directly in toolOptions: comment ignored, no diagnostics.
         OpenJMLSettings settings = new OpenJMLSettings();
-        settings.toolOptions = List.of("--require-white-space");
+        settings.clientSettings.toolOptions = List.of("--require-white-space");
         List<Diagnostic> noSpecDiags =
                 CheckRunner.runEsc("file:///RequireWsDirect.java", source, settings).diagnostics();
         assertTrue("Expected no ESC diagnostics when //@ensures is suppressed "
@@ -128,7 +128,7 @@ public class ToolOptionsTest extends LspTestBase {
 
         // With --require-white-space: //@ensures is ignored; --check also succeeds.
         OpenJMLSettings settings = new OpenJMLSettings();
-        settings.toolOptions = List.of("--require-white-space");
+        settings.clientSettings.toolOptions = List.of("--require-white-space");
         CheckRunner.CheckResult optResult =
                 CheckRunner.check("file:///ToolOptCheck.java", source, settings);
         assertFalse("--check with toolOptions should not be a command-line error",
@@ -167,7 +167,7 @@ public class ToolOptionsTest extends LspTestBase {
 
         // With both options active: infeasible precondition is detected.
         OpenJMLSettings settings = new OpenJMLSettings();
-        settings.toolOptions = List.of("--keys", "MYKEY", "--check-feasibility", "basic");
+        settings.clientSettings.toolOptions = List.of("--keys", "MYKEY", "--check-feasibility", "basic");
         List<Diagnostic> diags =
                 CheckRunner.runEsc("file:///MultiOpts.java", source, settings).diagnostics();
         assertFalse("Expected ESC diagnostic with --keys MYKEY and --check-feasibility basic",

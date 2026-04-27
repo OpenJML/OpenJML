@@ -2,6 +2,7 @@ package org.openjml.lsp.test;
 
 import org.junit.Assume;
 import org.junit.Test;
+import org.openjml.lsp.ClientSettings;
 import org.openjml.lsp.OpenJMLSettings;
 
 import java.util.List;
@@ -14,6 +15,10 @@ import static org.junit.Assert.*;
  *
  * <p>These methods drive the server's trigger/colorize/engine decisions;
  * they are pure string comparisons with no external dependencies.
+ *
+ * <p>Fields removed from {@link OpenJMLSettings} (e.g. {@code checkTriggerOn},
+ * {@code toolOptions}) now live in {@link ClientSettings} and are accessed
+ * via {@code settings.clientSettings.*}.
  */
 public class OpenJMLSettingsTest {
 
@@ -29,28 +34,28 @@ public class OpenJMLSettingsTest {
     @Test
     public void testCheckOnEditSaveIsFalse() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.checkTriggerOn = "save";
+        s.clientSettings.checkTriggerOn = "save";
         assertFalse(s.isCheckOnEdit());
     }
 
     @Test
     public void testCheckOnEditCaseInsensitive() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.checkTriggerOn = "SAVE";
+        s.clientSettings.checkTriggerOn = "SAVE";
         assertFalse(s.isCheckOnEdit());
     }
 
     @Test
     public void testCheckOnEditManualIsFalse() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.checkTriggerOn = "manual";
+        s.clientSettings.checkTriggerOn = "manual";
         assertFalse(s.isCheckOnEdit());
     }
 
     @Test
     public void testCheckOnSave() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.checkTriggerOn = "save";
+        s.clientSettings.checkTriggerOn = "save";
         assertTrue(s.isCheckOnSave());
         assertFalse(s.isCheckOnEdit());
         assertFalse(s.isCheckManual());
@@ -59,7 +64,7 @@ public class OpenJMLSettingsTest {
     @Test
     public void testCheckManual() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.checkTriggerOn = "manual";
+        s.clientSettings.checkTriggerOn = "manual";
         assertTrue(s.isCheckManual());
         assertFalse(s.isCheckOnEdit());
         assertFalse(s.isCheckOnSave());
@@ -68,7 +73,7 @@ public class OpenJMLSettingsTest {
     @Test
     public void testCheckManualCaseInsensitive() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.checkTriggerOn = "MANUAL";
+        s.clientSettings.checkTriggerOn = "MANUAL";
         assertTrue(s.isCheckManual());
     }
 
@@ -86,7 +91,7 @@ public class OpenJMLSettingsTest {
     @Test
     public void testEscOnSave() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.escTriggerOn = "save";
+        s.clientSettings.escTriggerOn = "save";
         assertTrue(s.isEscOnSave());
         assertFalse(s.isEscManual());
     }
@@ -94,9 +99,9 @@ public class OpenJMLSettingsTest {
     @Test
     public void testEscTriggerCaseInsensitive() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.escTriggerOn = "Save";
+        s.clientSettings.escTriggerOn = "Save";
         assertTrue(s.isEscOnSave());
-        s.escTriggerOn = "MANUAL";
+        s.clientSettings.escTriggerOn = "MANUAL";
         assertTrue(s.isEscManual());
     }
 
@@ -113,14 +118,14 @@ public class OpenJMLSettingsTest {
     @Test
     public void testRegexColoringWhenRegex() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.syntaxColoringStrategy = "regex";
+        s.clientSettings.syntaxColoringStrategy = "regex";
         assertTrue(s.isRegexColoring());
     }
 
     @Test
     public void testRegexColoringCaseInsensitive() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.syntaxColoringStrategy = "REGEX";
+        s.clientSettings.syntaxColoringStrategy = "REGEX";
         assertTrue(s.isRegexColoring());
     }
 
@@ -137,69 +142,63 @@ public class OpenJMLSettingsTest {
     @Test
     public void testEscApiModeWhenConcurrent() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.escEngine = "concurrent";
+        s.clientSettings.escEngine = "concurrent";
         assertTrue(s.isEscApiMode());
     }
 
     @Test
     public void testEscApiModeCaseInsensitive() {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.escEngine = "CONCURRENT";
+        s.clientSettings.escEngine = "CONCURRENT";
         assertTrue(s.isEscApiMode());
     }
 
     // -----------------------------------------------------------------------
-    // Copy constructor — fields are copied; mutation is independent
+    // Copy constructor — assembled path fields are independent; clientSettings is shared
     // -----------------------------------------------------------------------
 
     @Test
-    public void testCopyConstructorCopiesFields() {
+    public void testCopyConstructorCopiesAssembledPaths() {
         OpenJMLSettings orig = new OpenJMLSettings();
-        orig.checkTriggerOn         = "save";
-        orig.escTriggerOn           = "save";
-        orig.syntaxColoringStrategy = "regex";
-        orig.escEngine              = "concurrent";
-        orig.specsPath              = "/path/to/specs";
+        orig.specsPath  = "/path/to/specs";
+        orig.sourcePath = "/path/to/src";
+        orig.classPath  = "/path/to/classes";
 
         OpenJMLSettings copy = new OpenJMLSettings(orig);
 
-        assertEquals(orig.checkTriggerOn,         copy.checkTriggerOn);
-        assertEquals(orig.escTriggerOn,           copy.escTriggerOn);
-        assertEquals(orig.syntaxColoringStrategy, copy.syntaxColoringStrategy);
-        assertEquals(orig.escEngine,              copy.escEngine);
-        assertEquals(orig.specsPath,              copy.specsPath);
+        assertEquals(orig.specsPath,  copy.specsPath);
+        assertEquals(orig.sourcePath, copy.sourcePath);
+        assertEquals(orig.classPath,  copy.classPath);
+    }
+
+    @Test
+    public void testCopyConstructorAssembledPathsAreIndependent() {
+        OpenJMLSettings orig = new OpenJMLSettings();
+        orig.specsPath = "/original/specs";
+
+        OpenJMLSettings copy = new OpenJMLSettings(orig);
+        copy.specsPath = "/copy/specs";
+
+        assertEquals("orig.specsPath must not change when copy is mutated",
+                "/original/specs", orig.specsPath);
+        assertEquals("/copy/specs", copy.specsPath);
+    }
+
+    @Test
+    public void testCopyConstructorSharesClientSettings() {
+        OpenJMLSettings orig = new OpenJMLSettings();
+        OpenJMLSettings copy = new OpenJMLSettings(orig);
+
+        assertSame("Copy constructor must share clientSettings reference",
+                orig.clientSettings, copy.clientSettings);
     }
 
     @Test
     public void testCopyConstructorCopiesToolOptions() {
         OpenJMLSettings orig = new OpenJMLSettings();
-        orig.toolOptions = List.of("--keys", "MYKEY");
+        orig.clientSettings.toolOptions = List.of("--keys", "MYKEY");
         OpenJMLSettings copy = new OpenJMLSettings(orig);
-        assertEquals(orig.toolOptions, copy.toolOptions);
-    }
-
-    @Test
-    public void testCopyConstructorToolOptionsIsIndependent() {
-        OpenJMLSettings orig = new OpenJMLSettings();
-        orig.toolOptions = List.of("--keys", "A");
-        OpenJMLSettings copy = new OpenJMLSettings(orig);
-        copy.toolOptions = List.of("--keys", "B");
-        assertEquals("orig.toolOptions must not change when copy is mutated",
-                List.of("--keys", "A"), orig.toolOptions);
-    }
-
-    @Test
-    public void testCopyConstructorIsIndependent() {
-        OpenJMLSettings orig = new OpenJMLSettings();
-        orig.checkTriggerOn = "edit";
-        OpenJMLSettings copy = new OpenJMLSettings(orig);
-
-        copy.checkTriggerOn = "save";
-        // Mutation of copy must not affect original
-        assertTrue("orig.isCheckOnEdit() must remain true after mutating copy",
-                orig.isCheckOnEdit());
-        assertFalse("copy.isCheckOnEdit() must be false after mutation",
-                copy.isCheckOnEdit());
+        assertEquals(orig.clientSettings.toolOptions, copy.clientSettings.toolOptions);
     }
 
     // -----------------------------------------------------------------------

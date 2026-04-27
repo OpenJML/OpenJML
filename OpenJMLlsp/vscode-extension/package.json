@@ -18,7 +18,9 @@
   ],
   "activationEvents": [
     "onLanguage:java",
-    "onLanguage:jml"
+    "onLanguage:jml",
+    "workspaceContains:**/*.java",
+    "workspaceContains:**/*.jml"
   ],
   "main": "./extension.js",
   "contributes": {

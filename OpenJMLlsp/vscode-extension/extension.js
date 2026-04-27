@@ -8,7 +8,7 @@
  *
  *   --check (JML type-check): triggered on edit, save, or manually
  *           (openjml.checkTriggerOn).  The command "OpenJML: Check JML" triggers
- *           an explicit check in manual mode.
+ *        :q   an explicit check in manual mode.
  *   --esc   (extended static check): triggered on save or manually
  *           (openjml.escTriggerOn).  The command "OpenJML: Run ESC" sends an
  *           explicit workspace/executeCommand to the server.
@@ -16,9 +16,9 @@
  * Settings are in VS Code's settings.json under the "openjml" key.
  */
 
-const cp     = require('child_process');
-const fs     = require('fs');
-const path   = require('path');
+const cp = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const vscode = require('vscode');
 const { LanguageClient, TransportKind, RevealOutputChannelOn, State } = require('vscode-languageclient/node');
 
@@ -38,28 +38,28 @@ const COMPANION_SEARCH_LIMIT = 10;
 
 /** LSP MessageType values (https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#messageType). */
 const LSP_MSG_ERROR = 1;
-const LSP_MSG_INFO  = 3;
+const LSP_MSG_INFO = 3;
 
 /** LSP method names used in sendRequest / onNotification calls. */
-const LSP_EXECUTE_COMMAND         = 'workspace/executeCommand';
+const LSP_EXECUTE_COMMAND = 'workspace/executeCommand';
 const LSP_SEMANTIC_TOKENS_REFRESH = 'workspace/semanticTokens/refresh';
-const LSP_ACTION_MESSAGE          = '$/openjml/actionMessage';
+const LSP_ACTION_MESSAGE = '$/openjml/actionMessage';
 
 /** OpenJML server command names sent as workspace/executeCommand arguments. */
-const CMD_RUN_ESC              = 'openjml.runEsc';
-const CMD_RUN_ESC_FOR_METHOD   = 'openjml.runEscForMethod';
-const CMD_RUN_ESC_SPLIT_FILE   = 'openjml.runEscSplitByFile';
+const CMD_RUN_ESC = 'openjml.runEsc';
+const CMD_RUN_ESC_FOR_METHOD = 'openjml.runEscForMethod';
+const CMD_RUN_ESC_SPLIT_FILE = 'openjml.runEscSplitByFile';
 const CMD_RUN_ESC_SPLIT_METHOD = 'openjml.runEscSplitByMethod';
-const CMD_CHECK_JML            = 'openjml.checkJML';
-const CMD_RUN_RAC              = 'openjml.runRac';
-const CMD_INDEX_PROJECT        = 'openjml.indexProject';
-const CMD_CLEAR_AND_REINDEX    = 'openjml.clearAndReindex';
-const CMD_CLEAR_MARKERS        = 'openjml.clearMarkers';
-const CMD_CANCEL_ESC           = 'openjml.cancelEsc';
-const CMD_ABORT_METHOD_PROOF   = 'openjml.abortMethodProof';
-const CMD_GET_RUNNING_ESC      = 'openjml.getRunningEscTasks';
-const CMD_GET_SEMANTIC_TOKENS  = 'openjml.getSemanticTokens';
-const CMD_FOCUS_FILE           = 'openjml.focusFile';
+const CMD_CHECK_JML = 'openjml.checkJML';
+const CMD_RUN_RAC = 'openjml.runRac';
+const CMD_INDEX_PROJECT = 'openjml.indexProject';
+const CMD_CLEAR_AND_REINDEX = 'openjml.clearAndReindex';
+const CMD_CLEAR_MARKERS = 'openjml.clearMarkers';
+const CMD_CANCEL_ESC = 'openjml.cancelEsc';
+const CMD_ABORT_METHOD_PROOF = 'openjml.abortMethodProof';
+const CMD_GET_RUNNING_ESC = 'openjml.getRunningEscTasks';
+const CMD_GET_SEMANTIC_TOKENS = 'openjml.getSemanticTokens';
+const CMD_FOCUS_FILE = 'openjml.focusFile';
 
 // ────────────────────────────────────────────────────────────────────────────
 
@@ -104,7 +104,7 @@ async function pollEscTasks() {
     if (!client) { stopEscPolling(); return; }
     try {
         const uris = await client.sendRequest(LSP_EXECUTE_COMMAND, {
-            command:   CMD_GET_RUNNING_ESC,
+            command: CMD_GET_RUNNING_ESC,
             arguments: [],
         });
         const n = Array.isArray(uris) ? uris.length : 0;
@@ -148,7 +148,7 @@ function findOnPath(name) {
     const cmd = process.platform === 'win32' ? `where ${name}` : `which ${name}`;
     try {
         return cp.execSync(cmd, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
-                 .trim().split('\n')[0].trim() || null;
+            .trim().split('\n')[0].trim() || null;
     } catch (_) {
         return null;
     }
@@ -257,7 +257,7 @@ async function startClient() {
     outputChannel.appendLine(ts() + ' server script: ' + serverScript);
 
     const serverOptions = {
-        command:   serverScript,
+        command: serverScript,
         transport: TransportKind.stdio,
     };
 
@@ -368,8 +368,8 @@ async function startClient() {
             // Build button list and show VS Code message dialog.
             const titles = actions.map(a => a.title || 'OK');
             const show = params.type === LSP_MSG_ERROR ? vscode.window.showErrorMessage
-                       : params.type === LSP_MSG_INFO  ? vscode.window.showInformationMessage
-                       : vscode.window.showWarningMessage;
+                : params.type === LSP_MSG_INFO ? vscode.window.showInformationMessage
+                    : vscode.window.showWarningMessage;
             show(params.message, ...titles).then(chosen => {
                 const action = actions.find(a => a.title === chosen);
                 if (!action || action.kind !== 'openPreferences') return;
@@ -446,7 +446,7 @@ async function resolveCompanionJavaUri(jmlDoc) {
     try {
         await vscode.workspace.fs.stat(simpleUri);
         return simpleUri;
-    } catch (_) {}
+    } catch (_) { }
 
     // 2. Parse package and class name from the spec content
     const lines = jmlDoc.getText().split('\n');
@@ -489,7 +489,7 @@ async function resolveCompanionJavaUri(jmlDoc) {
 async function checkDirtyAndProceed(document) {
     if (!document.isDirty) return true;
     const action = vscode.workspace.getConfiguration('openjml')
-                                   .get('dirtyFileAction', 'ask');
+        .get('dirtyFileAction', 'ask');
     if (action === 'save') {
         await document.save();
         return true;
@@ -552,7 +552,7 @@ async function getRacOutputDir(roots, sep, hasWorkspaceFolders) {
                 'java.project.getSettings', uri.toString(), ['java.project.outputPath']);
             const out = (result?.['java.project.outputPath'] || '').trim();
             if (out) return out;
-        } catch (_) {}
+        } catch (_) { }
     }
     const javaOut = (vscode.workspace.getConfiguration('java', uri).get('project.outputPath', '') || '').trim();
     if (javaOut) return resolveOutputDir(javaOut, '', roots, sep);
@@ -563,31 +563,26 @@ async function getSettings() {
     const cfg = vscode.workspace.getConfiguration('openjml');
     const sep = process.platform === 'win32' ? ';' : ':';
     const folders = vscode.workspace.workspaceFolders || [];
-    // When no workspace folders are open, fall back to the active document's directory.
-    const activeFile = vscode.window.activeTextEditor?.document?.uri?.fsPath;
-    const fallbackDir = (folders.length === 0 && activeFile) ? path.dirname(activeFile) : null;
-    const roots = folders.length > 0
-        ? folders.map(f => f.uri.fsPath)
-        : (fallbackDir ? [fallbackDir] : []);
+    const roots = folders.map(f => f.uri.fsPath);
     const workspaceFolderPaths = roots.join(sep);
     return {
-        checkTriggerOn:          cfg.get('checkTriggerOn',          'edit'),
-        escTriggerOn:            cfg.get('escTriggerOn',            'manual'),
-        toolOptions:             cfg.get('toolOptions',             []),
-        specsPath:               cfg.get('specsPath',               ''),
+        checkTriggerOn: cfg.get('checkTriggerOn', 'edit'),
+        escTriggerOn: cfg.get('escTriggerOn', 'manual'),
+        toolOptions: cfg.get('toolOptions', []),
+        specsPath: cfg.get('specsPath', ''),
 
-        sourcePath:              cfg.get('sourcePath',              ''),
-        classPath:               cfg.get('classPath',               ''),
-        javaOutputDir:           resolveJavaOutputDir(roots, sep),
-        racOutputDir:            await getRacOutputDir(roots, sep, folders.length === 0),
-        syntaxColoringScope:     cfg.get('syntaxColoringScope',     'preserve Java coloring'),
-        syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'ast'),
-        escEngine:               cfg.get('escEngine',               'fresh'),
-        escThreads:              cfg.get('escThreads',              5),
-        useIntegratedOutline:    cfg.get('useIntegratedOutline',    true),
-        javaMode:                cfg.get('javaMode',               'jml-only'),
-        client:                  'vscode-java',
-        workspaceFolderPaths:    workspaceFolderPaths,
+        sourcePath: cfg.get('sourcePath', ''),
+        classPath: cfg.get('classPath', ''),
+        javaOutputDir: resolveJavaOutputDir(roots, sep),
+        racOutputDir: await getRacOutputDir(roots, sep, folders.length === 0),
+        syntaxColoringScope: cfg.get('syntaxColoringScope', 'preserve Java coloring'),
+        syntaxColoringStrategy: cfg.get('syntaxColoringStrategy', 'ast'),
+        escEngine: cfg.get('escEngine', 'fresh'),
+        escThreads: cfg.get('escThreads', 5),
+        useIntegratedOutline: cfg.get('useIntegratedOutline', true),
+        javaMode: cfg.get('javaMode', 'jml-only'),
+        client: 'vscode-java',
+        workspaceFolderPaths: workspaceFolderPaths,
     };
 }
 
@@ -613,21 +608,21 @@ function currentSelection(cmdName, explorerUri, explorerSelection) {
         outputChannel.appendLine(ts() + ' [' + cmdName + ' raw] uri='
             + (explorerUri ? explorerUri.toString() : 'undefined')
             + ' sel=' + (explorerSelection === undefined ? 'undefined'
-                       : explorerSelection === null      ? 'null'
-                       : JSON.stringify(explorerSelection.map ? explorerSelection.map(u => u.toString()) : explorerSelection)));
+                : explorerSelection === null ? 'null'
+                    : JSON.stringify(explorerSelection.map ? explorerSelection.map(u => u.toString()) : explorerSelection)));
     }
     let paths = null;
     let source;
     if (explorerSelection && explorerSelection.length > 0) {
-        paths  = explorerSelection.map(u => u.fsPath || u.toString());
+        paths = explorerSelection.map(u => u.fsPath || u.toString());
         source = 'explorerSelection';
     } else if (explorerUri) {
-        paths  = [explorerUri.fsPath || explorerUri.toString()];
+        paths = [explorerUri.fsPath || explorerUri.toString()];
         source = 'explorerUri';
     } else {
         const editor = vscode.window.activeTextEditor;
         if (editor && isJmlLike(editor.document.languageId)) {
-            paths  = [editor.document.uri.fsPath];
+            paths = [editor.document.uri.fsPath];
             source = 'activeEditor';
         }
     }
@@ -681,38 +676,38 @@ async function activate(context) {
     // vscode-languageclient's ExecuteCommandFeature would auto-register the command and
     // invoke it with no arguments, so the URI would never reach the server.
     const escCmd = vscode.commands.registerCommand('openjml.runEsc',
-            async (explorerUri, explorerSelection) => {
-        if (!client) { requireServer(); return; }
-        const paths = currentSelection('runEsc', explorerUri, explorerSelection);
-        if (!paths) return;
-        try {
-            await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_RUN_ESC,
-                arguments: [...projectId(), ...paths],
-            });
-            startEscPolling();
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
-        }
-    });
+        async (explorerUri, explorerSelection) => {
+            if (!client) { requireServer(); return; }
+            const paths = currentSelection('runEsc', explorerUri, explorerSelection);
+            if (!paths) return;
+            try {
+                await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command: CMD_RUN_ESC,
+                    arguments: [...projectId(), ...paths],
+                });
+                startEscPolling();
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+            }
+        });
     context.subscriptions.push(escCmd);
 
     // "Check JML" — explicitly triggers the JML type-check (--check) on the
     // active file or a file/folder selected in the Explorer.
     const checkJmlCmd = vscode.commands.registerCommand('openjml.checkJml',
-            async (explorerUri, explorerSelection) => {
-        if (!client) { requireServer(); return; }
-        const paths = currentSelection('checkJml', explorerUri, explorerSelection);
-        if (!paths) return;
-        try {
-            await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_CHECK_JML,
-                arguments: [...projectId(), ...paths],
-            });
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML check failed: ' + err);
-        }
-    });
+        async (explorerUri, explorerSelection) => {
+            if (!client) { requireServer(); return; }
+            const paths = currentSelection('checkJml', explorerUri, explorerSelection);
+            if (!paths) return;
+            try {
+                await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command: CMD_CHECK_JML,
+                    arguments: [...projectId(), ...paths],
+                });
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML check failed: ' + err);
+            }
+        });
     context.subscriptions.push(checkJmlCmd);
 
     // Register "Run ESC for Method" — runs ESC restricted to a single method.
@@ -721,74 +716,74 @@ async function activate(context) {
     // is obtained from the server-provided code lenses (which use Utils.uniqueSymbolName and
     // therefore correctly identify methods in secondary, nested, local, and anonymous classes).
     const runEscForMethodCmd = vscode.commands.registerCommand(
-            'openjml.runEscForMethod', async (uri, methodName) => {
-        if (!client) { requireServer(); return; }
+        'openjml.runEscForMethod', async (uri, methodName) => {
+            if (!client) { requireServer(); return; }
 
-        if (typeof uri !== 'string' || typeof methodName !== 'string') {
-            // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
-            // Send the cursor line as "@<line>" and let the server resolve the innermost method
-            // from its AST, correctly handling nested classes without relying on code lenses.
-            const editor = vscode.window.activeTextEditor;
-            if (!editor || !isJmlLike(editor.document.languageId)) {
-                vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC on a method.');
-                return;
+            if (typeof uri !== 'string' || typeof methodName !== 'string') {
+                // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
+                // Send the cursor line as "@<line>" and let the server resolve the innermost method
+                // from its AST, correctly handling nested classes without relying on code lenses.
+                const editor = vscode.window.activeTextEditor;
+                if (!editor || !isJmlLike(editor.document.languageId)) {
+                    vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC on a method.');
+                    return;
+                }
+                uri = editor.document.uri.toString();
+                methodName = '@' + editor.selection.active.line;
             }
-            uri        = editor.document.uri.toString();
-            methodName = '@' + editor.selection.active.line;
-        }
 
-        // Warn if the file has unsaved changes (same behaviour as Run ESC).
-        const doc = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri);
-        if (doc && !await checkDirtyAndProceed(doc)) return;
+            // Warn if the file has unsaved changes (same behaviour as Run ESC).
+            const doc = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri);
+            if (doc && !await checkDirtyAndProceed(doc)) return;
 
-        try {
-            await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_RUN_ESC_FOR_METHOD,
-                arguments: [...projectId(), uri, methodName],
-            });
-            startEscPolling();
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
-        }
-    });
+            try {
+                await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command: CMD_RUN_ESC_FOR_METHOD,
+                    arguments: [...projectId(), uri, methodName],
+                });
+                startEscPolling();
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML ESC failed: ' + err);
+            }
+        });
     context.subscriptions.push(runEscForMethodCmd);
 
     // "Run ESC Split by File" — verifies each file in the target set independently,
     // so a failure in one file does not block the others.
     const runEscSplitByFileCmd = vscode.commands.registerCommand('openjml.runEscSplitByFile',
-            async (explorerUri, explorerSelection) => {
-        if (!client) { requireServer(); return; }
-        const paths = currentSelection('runEscSplitByFile', explorerUri, explorerSelection);
-        if (!paths) return;
-        try {
-            await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_RUN_ESC_SPLIT_FILE,
-                arguments: [...projectId(), ...paths],
-            });
-            startEscPolling();
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML ESC split-by-file failed: ' + err);
-        }
-    });
+        async (explorerUri, explorerSelection) => {
+            if (!client) { requireServer(); return; }
+            const paths = currentSelection('runEscSplitByFile', explorerUri, explorerSelection);
+            if (!paths) return;
+            try {
+                await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command: CMD_RUN_ESC_SPLIT_FILE,
+                    arguments: [...projectId(), ...paths],
+                });
+                startEscPolling();
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML ESC split-by-file failed: ' + err);
+            }
+        });
     context.subscriptions.push(runEscSplitByFileCmd);
 
     // "Run ESC Split by Method" — verifies each method independently, running them
     // concurrently; faster than whole-file ESC when many methods are present.
     const runEscSplitByMethodCmd = vscode.commands.registerCommand('openjml.runEscSplitByMethod',
-            async (explorerUri, explorerSelection) => {
-        if (!client) { requireServer(); return; }
-        const paths = currentSelection('runEscSplitByMethod', explorerUri, explorerSelection);
-        if (!paths) return;
-        try {
-            await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_RUN_ESC_SPLIT_METHOD,
-                arguments: [...projectId(), ...paths],
-            });
-            startEscPolling();
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML ESC split-by-method failed: ' + err);
-        }
-    });
+        async (explorerUri, explorerSelection) => {
+            if (!client) { requireServer(); return; }
+            const paths = currentSelection('runEscSplitByMethod', explorerUri, explorerSelection);
+            if (!paths) return;
+            try {
+                await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command: CMD_RUN_ESC_SPLIT_METHOD,
+                    arguments: [...projectId(), ...paths],
+                });
+                startEscPolling();
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML ESC split-by-method failed: ' + err);
+            }
+        });
     context.subscriptions.push(runEscSplitByMethodCmd);
 
     // "Save and Run ESC" — saves the active file first, then runs ESC.
@@ -821,7 +816,7 @@ async function activate(context) {
         const fsPath = targetUri.fsPath;
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_RUN_ESC,
+                command: CMD_RUN_ESC,
                 arguments: [...projectId(), fsPath],
             });
             startEscPolling();
@@ -834,20 +829,20 @@ async function activate(context) {
     // "Compile RAC" — compiles the focused Java file with --rac, producing class files
     // with embedded assertion checks.  Output directory is controlled by openjml.racOutputDir.
     const racCmd = vscode.commands.registerCommand('openjml.runRac',
-            async (explorerUri, explorerSelection) => {
-        if (!client) { requireServer(); return; }
-        const paths = currentSelection('runRac', explorerUri, explorerSelection);
-        if (!paths) return;
-        const outputDir = (await getSettings()).racOutputDir || '';
-        try {
-            await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_RUN_RAC,
-                arguments: [...projectId(), outputDir, ...paths],
-            });
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML RAC compile failed: ' + err);
-        }
-    });
+        async (explorerUri, explorerSelection) => {
+            if (!client) { requireServer(); return; }
+            const paths = currentSelection('runRac', explorerUri, explorerSelection);
+            if (!paths) return;
+            const outputDir = (await getSettings()).racOutputDir || '';
+            try {
+                await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command: CMD_RUN_RAC,
+                    arguments: [...projectId(), outputDir, ...paths],
+                });
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML RAC compile failed: ' + err);
+            }
+        });
     context.subscriptions.push(racCmd);
 
     // "Run ESC on Project" — runs ESC on all workspace folders.
@@ -863,7 +858,7 @@ async function activate(context) {
         const paths = folders.map(f => f.uri.fsPath);
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_RUN_ESC,
+                command: CMD_RUN_ESC,
                 arguments: [...projectId(), ...paths],
             });
             startEscPolling();
@@ -891,7 +886,7 @@ async function activate(context) {
         }
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_CLEAR_AND_REINDEX,
+                command: CMD_CLEAR_AND_REINDEX,
                 arguments: [],
             });
         } catch (err) {
@@ -903,32 +898,32 @@ async function activate(context) {
     // "Index Project" — pre-indexes the workspace for faster symbol lookup,
     // without clearing existing check/ESC results.
     const indexProjectCmd = vscode.commands.registerCommand('openjml.indexProject',
-            async (explorerUri, explorerSelection) => {
-        if (!client) { requireServer(); return; }
-        const folders = vscode.workspace.workspaceFolders;
-        const paths = explorerUri
-            ? currentSelection('indexProject', explorerUri, explorerSelection)
-            : (folders ? folders.map(f => f.uri.fsPath) : null);
-        if (!paths) {
-            vscode.window.showWarningMessage('OpenJML: no folder to index.');
-            return;
-        }
-        try {
-            await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_INDEX_PROJECT,
-                arguments: [...projectId(), ...paths],
-            });
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML index project failed: ' + err);
-        }
-    });
+        async (explorerUri, explorerSelection) => {
+            if (!client) { requireServer(); return; }
+            const folders = vscode.workspace.workspaceFolders;
+            const paths = explorerUri
+                ? currentSelection('indexProject', explorerUri, explorerSelection)
+                : (folders ? folders.map(f => f.uri.fsPath) : null);
+            if (!paths) {
+                vscode.window.showWarningMessage('OpenJML: no folder to index.');
+                return;
+            }
+            try {
+                await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command: CMD_INDEX_PROJECT,
+                    arguments: [...projectId(), ...paths],
+                });
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML index project failed: ' + err);
+            }
+        });
     context.subscriptions.push(indexProjectCmd);
 
     const clearMarkersCmd = vscode.commands.registerCommand('openjml.clearMarkers', async () => {
         if (!client) { requireServer(); return; }
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_CLEAR_MARKERS,
+                command: CMD_CLEAR_MARKERS,
                 arguments: [],
             });
         } catch (err) {
@@ -940,19 +935,19 @@ async function activate(context) {
     // "Clear Markers for Selection" — clears markers only for the selected file(s)
     // or folder(s) in the Explorer, rather than all markers in the workspace.
     const clearMarkersSelectedCmd = vscode.commands.registerCommand('openjml.clearMarkersSelected',
-            async (explorerUri, explorerSelection) => {
-        if (!client) { requireServer(); return; }
-        const paths = currentSelection('clearMarkersSelected', explorerUri, explorerSelection);
-        if (!paths) return;
-        try {
-            await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_CLEAR_MARKERS,
-                arguments: [...paths],
-            });
-        } catch (err) {
-            vscode.window.showErrorMessage('OpenJML clear markers failed: ' + err);
-        }
-    });
+        async (explorerUri, explorerSelection) => {
+            if (!client) { requireServer(); return; }
+            const paths = currentSelection('clearMarkersSelected', explorerUri, explorerSelection);
+            if (!paths) return;
+            try {
+                await client.sendRequest(LSP_EXECUTE_COMMAND, {
+                    command: CMD_CLEAR_MARKERS,
+                    arguments: [...paths],
+                });
+            } catch (err) {
+                vscode.window.showErrorMessage('OpenJML clear markers failed: ' + err);
+            }
+        });
     context.subscriptions.push(clearMarkersSelectedCmd);
 
     // Cancel all running ESC tasks.
@@ -962,7 +957,7 @@ async function activate(context) {
         if (!client) { requireServer(); return; }
         try {
             const uris = await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_GET_RUNNING_ESC,
+                command: CMD_GET_RUNNING_ESC,
                 arguments: [''],
             }) || [];
 
@@ -972,7 +967,7 @@ async function activate(context) {
             }
 
             const names = uris.map(u => u.replace(/.*\//, ''));
-            const list  = names.map(n => `  \u2022 ${n}`).join('\n');
+            const list = names.map(n => `  \u2022 ${n}`).join('\n');
             const choice = await vscode.window.showWarningMessage(
                 `Cancel ESC verification of:\n${list}`,
                 { modal: true },
@@ -981,7 +976,7 @@ async function activate(context) {
             if (choice !== 'Cancel ESC') return;
 
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_CANCEL_ESC,
+                command: CMD_CANCEL_ESC,
                 arguments: [''],
             });
         } catch (err) {
@@ -1000,7 +995,7 @@ async function activate(context) {
         if (!client) { requireServer(); return; }
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                command:   CMD_ABORT_METHOD_PROOF,
+                command: CMD_ABORT_METHOD_PROOF,
                 arguments: rawName ? ['', rawName] : [''],
             });
         } catch (err) {
@@ -1016,7 +1011,7 @@ async function activate(context) {
     try {
         const JAVA_FORMAT_KEY = 'javaFormatWarningHandled';
         if (!context.workspaceState.get(JAVA_FORMAT_KEY)
-                && vscode.workspace.getConfiguration('java').get('format.enabled', true)) {
+            && vscode.workspace.getConfiguration('java').get('format.enabled', true)) {
             const choice = await vscode.window.showWarningMessage(
                 'OpenJML: java.format.enabled is on. It may change //@ to // @, ' +
                 'silently disabling JML annotations.',
@@ -1027,7 +1022,7 @@ async function activate(context) {
                 try {
                     await vscode.workspace.getConfiguration('java')
                         .update('format.enabled', false,
-                                vscode.ConfigurationTarget.Workspace);
+                            vscode.ConfigurationTarget.Workspace);
                     vscode.window.showInformationMessage(
                         'OpenJML: Disabled java.format.enabled in workspace settings. ' +
                         'You can still format manually with Shift+Alt+F.');
@@ -1060,12 +1055,20 @@ async function activate(context) {
     // When workspace folders are added or removed, notify the server so it can
     // update its workspaceFolderPaths and re-register file watchers accordingly.
     // Workspace folders are not part of openjml.* config, so we send manually.
+    // The server also receives workspace/didChangeWorkspaceFolders automatically
+    // (because it advertises WorkspaceFoldersOptions in its ServerCapabilities),
+    // but that only updates project rootPaths — sending workspace/didChangeConfiguration
+    // here ensures sourcePath and classPath are also recomputed from the new roots.
     context.subscriptions.push(
         vscode.workspace.onDidChangeWorkspaceFolders(async () => {
-            if (!client) return;
-            client.sendNotification('workspace/didChangeConfiguration', {
-                settings: { openjml: await getSettings() }
-            });
+            if (!client || client.state !== State.Running) return;
+            try {
+                await client.sendNotification('workspace/didChangeConfiguration', {
+                    settings: { openjml: await getSettings() }
+                });
+            } catch (err) {
+                if (outputChannel) outputChannel.appendLine(ts() + ' workspace folder change notification failed: ' + err);
+            }
         })
     );
 
@@ -1126,7 +1129,7 @@ async function activate(context) {
                 if (!client) return new vscode.SemanticTokens(new Uint32Array([]));
                 try {
                     const data = await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                        command:   CMD_GET_SEMANTIC_TOKENS,
+                        command: CMD_GET_SEMANTIC_TOKENS,
                         arguments: ['', document.uri.toString()],
                     });
                     if (!Array.isArray(data) || data.length === 0)
@@ -1155,9 +1158,9 @@ async function activate(context) {
                 focusDebounceTimer = null;
                 if (!client) return;
                 client.sendRequest(LSP_EXECUTE_COMMAND, {
-                    command:   CMD_FOCUS_FILE,
+                    command: CMD_FOCUS_FILE,
                     arguments: ['', uri],
-                }).catch(() => {});  // ignore errors (server may not be ready)
+                }).catch(() => { });  // ignore errors (server may not be ready)
             }, FOCUS_DEBOUNCE_MS);
         })
     );

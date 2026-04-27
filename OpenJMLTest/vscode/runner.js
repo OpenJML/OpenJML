@@ -60,9 +60,14 @@ async function main() {
 
     // Run tests — the extension was installed into ExTester's extensions folder
     // by installVsix above, so VS Code finds it without EXTENSION_DEV_PATH.
+    // Disable third-party extensions that crash the test VS Code instance.
     const result = await tester.runTests(TEST_GLOB, {
-        resources: [RESOURCES_DIR],
-        settings:  SETTINGS_OUT,
+        resources:  [RESOURCES_DIR],
+        settings:   SETTINGS_OUT,
+        config:     path.join(SCRIPT_DIR, '.mocharc.yml'),
+        vscodeLaunchArgs: [
+            '--disable-extension', 'visualstudioexptteam.intellicode-api-usage-examples',
+        ],
     });
     process.exit(result);
 }

@@ -146,23 +146,23 @@ public class InlayHintsVarTypesTest extends LspTestBase {
         OpenJMLSettings s = new OpenJMLSettings();
         assertFalse("Default javaMode must not be jml-only", s.isJmlOnly());
 
-        s.javaMode = "jml-only";
+        s.clientSettings.javaMode = "jml-only";
         assertTrue("Setting javaMode=jml-only must make isJmlOnly() true", s.isJmlOnly());
 
         // Reset and test client-based inference.
-        s.javaMode = null;
-        s.client = "eclipse-jdt";
+        s.clientSettings.javaMode = null;
+        s.clientSettings.client = "eclipse-jdt";
         assertTrue("eclipse-jdt client must imply jml-only", s.isJmlOnly());
 
-        s.client = "vscode-java";
+        s.clientSettings.client = "vscode-java";
         assertTrue("vscode-java client must imply jml-only", s.isJmlOnly());
 
-        s.client = "generic";
+        s.clientSettings.client = "generic";
         assertFalse("generic client with no javaMode must be full", s.isJmlOnly());
 
         // Explicit override: even with a known client, "full" wins.
-        s.javaMode = "full";
-        s.client = "eclipse-jdt";
+        s.clientSettings.javaMode = "full";
+        s.clientSettings.client = "eclipse-jdt";
         assertFalse("Explicit javaMode=full must override client default", s.isJmlOnly());
     }
 

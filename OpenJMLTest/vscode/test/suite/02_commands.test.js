@@ -6,8 +6,11 @@
  * in the command palette.  No server required.
  */
 const assert = require('assert');
-const { VSBrowser, Workbench } = require('vscode-extension-tester');
+const path   = require('path');
+const { VSBrowser, Workbench, EditorView } = require('vscode-extension-tester');
 const { suiteTeardown } = require('./helpers');
+
+const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 
 // All commands that must appear in the palette (category + title form).
 const EXPECTED_COMMANDS = [
@@ -32,6 +35,13 @@ describe('Command Registration', function () {
 
     before(async function () {
         await VSBrowser.instance.waitForWorkbench(15_000);
+        // Open a Java file so resourceLangId-gated commands appear in the palette.
+        await VSBrowser.instance.openResources(SAMPLE_JAVA);
+        await VSBrowser.instance.driver.sleep(2_000);
+        for (let attempt = 0; attempt < 5; attempt++) {
+            try { await new EditorView().openEditor('Sample.java'); break; }
+            catch (_) { await VSBrowser.instance.driver.sleep(1_000); }
+        }
     });
 
     it('all OpenJML commands appear in the command palette', async function () {
@@ -49,7 +59,7 @@ describe('Command Registration', function () {
                 const picks = await input.getQuickPicks();
                 labels = await Promise.all(picks.map(p => p.getLabel()));
             } catch (_) { /* stale element — retry */ }
-            await input.cancel();
+            try { await input.cancel(); } catch (_) {}
             if (labels.some(l => l.includes('OpenJML'))) break;
             await VSBrowser.instance.driver.sleep(1_000);
         }
@@ -63,5 +73,5 @@ describe('Command Registration', function () {
         );
     });
 
-    after(async function () { await suiteTeardown(); });
+    after(async function () { this.timeout(30_000); await suiteTeardown(); });
 });

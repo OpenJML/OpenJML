@@ -2,8 +2,8 @@
 /**
  * Suite 10: Code Folding
  *
- * Verifies that multi-line JML block comments (/*@ ... @*‌/) can be folded.
- * Uses JmlFold.java which has two long /*@ @*/ blocks.
+ * Verifies that multi-line JML block comments (/*@ ... @* /) can be folded.
+ * Uses JmlFold.java which has two long /*@ @* / blocks.
  *
  * NOTE (missing feature): Folding of JML blocks requires either a grammar
  * indentation rule or an LSP textDocument/foldingRange response.  Neither is
@@ -42,7 +42,7 @@ describe('Code Folding', function () {
         await VSBrowser.instance.driver.sleep(3_000);
     });
 
-    after(async function () { await suiteTeardown(true); });
+    after(async function () { this.timeout(60_000); await suiteTeardown(true); });
 
     it('fold controls appear in the gutter for multi-line JML blocks', async function () {
         const driver = VSBrowser.instance.driver;
@@ -84,19 +84,14 @@ describe('Code Folding', function () {
     });
 
     it('unfolding restores the JML block lines', async function () {
-        const driver = VSBrowser.instance.driver;
-        const unfoldKey = process.platform === 'darwin' ? Key.COMMAND : Key.CONTROL;
-        try {
-            await driver.actions()
-                .keyDown(unfoldKey).keyDown(Key.SHIFT).sendKeys(']')
-                .keyUp(Key.SHIFT).keyUp(unfoldKey)
-                .perform();
-            await driver.sleep(1_000);
-        } catch (_) {
-            noteSkip(this, 'could not send Unfold All keyboard shortcut');
-        }
+        // Use the command palette instead of a keyboard shortcut to avoid
+        // cross-platform key binding differences (Cmd+Shift+] on Mac switches
+        // editor tabs rather than unfolding).
+        const ok = await require('./helpers').runCommand('editor.unfoldAll');
+        if (!ok) noteSkip(this, 'editor.unfoldAll command unavailable');
+        await VSBrowser.instance.driver.sleep(1_000);
 
-        const collapsedAfter = await driver.findElements(
+        const collapsedAfter = await VSBrowser.instance.driver.findElements(
             { css: '.monaco-editor .cldr.codicon-folding-collapsed' }).catch(() => []);
         assert.ok(collapsedAfter.length === 0,
             'Expected no collapsed fold controls after Unfold All');

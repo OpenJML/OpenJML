@@ -955,6 +955,13 @@ public class CheckRunner {
         var out = new PrintWriter(System.err, true);
         var api = IAPI.make(out, listener);
 
+        ServerLog.serverLog("[runRacPaths] settings: sourcePath=" + settings.sourcePath
+                + " classPath=" + settings.classPath
+                + " specsPath=" + settings.specsPath
+                + " racOutputDir=" + settings.racOutputDir
+                + " javaOutputDir=" + settings.javaOutputDir
+                + " rootPaths=" + settings.rootPaths
+                + " workspaceFolderPaths=" + settings.clientSettings.workspaceFolderPaths);
         List<String> args = buildArgs(settings, "--rac");
 
         // Resolve and create the RAC output directory.
@@ -965,8 +972,18 @@ public class CheckRunner {
         if (raw.isAbsolute()) {
             outputPath = raw;
         } else {
+            // Prefer a workspace root; fall back to the first workspaceFolderPath;
+            // only use "." as a last resort (which gives a relative -d path).
             List<String> effectiveRoots = settings.effectiveRoots();
-            String wsRoot = effectiveRoots.isEmpty() ? "." : effectiveRoots.get(0);
+            String wsRoot;
+            if (!effectiveRoots.isEmpty()) {
+                wsRoot = effectiveRoots.get(0);
+            } else if (settings.clientSettings.workspaceFolderPaths != null
+                    && !settings.clientSettings.workspaceFolderPaths.isBlank()) {
+                wsRoot = settings.clientSettings.workspaceFolderPaths.split("[;:]")[0];
+            } else {
+                wsRoot = ".";
+            }
             outputPath = java.nio.file.Paths.get(wsRoot).resolve(raw);
         }
         try { java.nio.file.Files.createDirectories(outputPath); }
@@ -2360,11 +2377,11 @@ public class CheckRunner {
         List<String> args = new ArrayList<>();
 
         // Project-independent tool options (--properties, warning flags, etc.) first.
-        if (settings.toolOptions != null && !settings.toolOptions.isEmpty())
-            args.addAll(settings.toolOptions);
+        if (settings.clientSettings.toolOptions != null && !settings.clientSettings.toolOptions.isEmpty())
+            args.addAll(settings.clientSettings.toolOptions);
 
         args.add(modeFlag);
-        if (settings.specsPath != null && !settings.specsPath.isEmpty()) {
+        if (settings.specsPath != null && !settings.specsPath.isBlank()) {
             args.add("--specs-path");
             args.add(settings.specsPath);
         }
@@ -2432,7 +2449,7 @@ public class CheckRunner {
      * take priority over on-disk versions, matching the sourcepath logic.
      */
     static String buildEffectiveSpecsPath(Path prefixDir, OpenJMLSettings settings) {
-        if (settings.specsPath == null || settings.specsPath.isEmpty()) return "";
+        if (settings.specsPath == null || settings.specsPath.isBlank()) return "";
         List<String> parts = new ArrayList<>();
         if (prefixDir != null) parts.add(prefixDir.toString());
         // Do NOT add rootPaths here — project roots are not spec roots.

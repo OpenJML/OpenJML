@@ -65,6 +65,10 @@ const SERVER_ONLY = new Set([
     // to filter symbols to one project by ID (IProject.getName()).  There is no
     // equivalent concept in the single-workspace VS Code client.
     'openjml.symbolsForProject',
+    // clearMarkersForUris is called programmatically by the Eclipse plugin to
+    // clear markers for specific URIs (arguments: [projectId, uri1, uri2, ...]).
+    // The VS Code extension uses openjml.clearMarkers for user-facing clear.
+    'openjml.clearMarkersForUris',
 ]);
 
 // ---------------------------------------------------------------------------

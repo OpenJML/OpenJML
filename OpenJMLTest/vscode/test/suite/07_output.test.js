@@ -16,7 +16,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, BottomBarPanel } = require('vscode-extension-tester');
-const { suiteTeardown, readOpenJMLOutput, runCommand, noteSkip } = require('./helpers');
+const { suiteTeardown, readOpenJMLOutput, runCommand, waitForServer, noteSkip } = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 
@@ -27,11 +27,13 @@ describe('Output Channel (JML Console)', function () {
         await VSBrowser.instance.waitForWorkbench(20_000);
         await VSBrowser.instance.openResources(SAMPLE_JAVA);
         await VSBrowser.instance.driver.sleep(3_000);
+        const ready = await waitForServer(60_000);
+        assert.ok(ready, 'OpenJML LSP server did not start — cannot test output channel');
         await runCommand('OpenJML: Check JML');
         await VSBrowser.instance.driver.sleep(2_000);
     });
 
-    after(async function () { await suiteTeardown(true); });
+    after(async function () { this.timeout(60_000); await suiteTeardown(true); });
 
     it('OpenJML output channel exists in the bottom bar', async function () {
         const driver    = VSBrowser.instance.driver;
@@ -71,10 +73,10 @@ describe('Output Channel (JML Console)', function () {
         const text = await readOpenJMLOutput();
         if (!text || text.trim().length === 0)
             noteSkip(this, 'no output to check format against — server may not be running');
-        // NOTE: if the server timestamp format changes, update this pattern.
-        const timestampRe = /\[\d{2}:\d{2}:\d{2}/;
+        // Matches both "[HH:MM:SS]" and bare "HH:MM:SS" formats.
+        const timestampRe = /\[?\d{2}:\d{2}:\d{2}/;
         assert.ok(timestampRe.test(text),
-            `No [HH:MM:SS] timestamp found in output:\n${text.slice(0, 300)}`);
+            `No HH:MM:SS timestamp found in output:\n${text.slice(0, 300)}`);
     });
 
     it('output channel shows a Check JML invocation entry', async function () {

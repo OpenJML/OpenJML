@@ -39,7 +39,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     private final BiConsumer<String, FileChangeType> jmlFileChangeHandler;
     private final BiConsumer<String, FileChangeType> javaFileChangeHandler;
     private final Runnable watcherReregistrar;
-    private final Consumer<List<OpenJMLSettings.ProjectConfig>> projectConfigUpdater;
+    private final Consumer<List<ProjectConfig>> projectConfigUpdater;
 
     /**
      * @param globalSettings        shared settings object (mutated by didChangeConfiguration)
@@ -59,7 +59,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
                                    BiConsumer<String, FileChangeType> jmlFileChangeHandler,
                                    BiConsumer<String, FileChangeType> javaFileChangeHandler,
                                    Runnable watcherReregistrar,
-                                   Consumer<List<OpenJMLSettings.ProjectConfig>> projectConfigUpdater) {
+                                   Consumer<List<ProjectConfig>> projectConfigUpdater) {
         this.globalSettings         = globalSettings;
         this.commands               = commands;
         this.symbolsRequester       = symbolsRequester;
@@ -71,6 +71,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     @Override
     public void didChangeConfiguration(DidChangeConfigurationParams params) {
+        ServerLog.serverLog("[OpenJML] didChangeConfiguration received");
         Object raw = params.getSettings();
         if (raw == null) return;
         JsonElement element = toJsonElement(raw);
@@ -81,10 +82,14 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         // Manual/test clients wrap them under an "openjml" key.  Handle both.
         JsonElement nested = obj.get("openjml");
         try {
-            OpenJMLSettings src = (nested != null && nested.isJsonObject())
-                    ? GSON.fromJson(nested, OpenJMLSettings.class)
-                    : GSON.fromJson(obj,    OpenJMLSettings.class);
+            ClientSettings src = (nested != null && nested.isJsonObject())
+                    ? GSON.fromJson(nested, ClientSettings.class)
+                    : GSON.fromJson(obj,    ClientSettings.class);
             applyUpdate(src);
+            // Log updated configuration.  Eclipse sends src.projects (non-null), which
+            // already triggers logConfiguration via updateProjectSettings → skip here to
+            // avoid a redundant "projects: (none)" entry.  VS Code sends src.projects=null.
+            if (src.projects == null) globalSettings.logConfiguration(null);
         } catch (Exception e) {
             ServerLog.serverLog("[OpenJML] Failed to parse settings: " + e);
         }
@@ -92,6 +97,8 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     @Override
     public CompletableFuture<Object> executeCommand(ExecuteCommandParams params) {
+        ServerLog.serverLog("[workspace/executeCommand] command=" + params.getCommand()
+                + " args=" + params.getArguments());
         Object result = commands.dispatch(params.getCommand(), params.getArguments());
         return CompletableFuture.completedFuture(result);
     }
@@ -104,7 +111,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         JsonElement element = toJsonElement(raw);
         if (!element.isJsonObject()) return;
         try {
-            applyUpdate(GSON.fromJson(element, OpenJMLSettings.class));
+            applyUpdate(GSON.fromJson(element, ClientSettings.class));
         } catch (Exception e) {
             ServerLog.serverLog("[OpenJML] Failed to parse settings: " + e);
         }
@@ -114,31 +121,47 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         return (raw instanceof JsonElement) ? (JsonElement) raw : GSON.toJsonTree(raw);
     }
 
-    private void applyUpdate(OpenJMLSettings src) {
-        if (src.toolOptions     != null) globalSettings.toolOptions     = src.toolOptions;
-        if (src.specsPath  != null) globalSettings.specsPath  = OpenJMLSettings.expandEnvVarsInPath(src.specsPath);
+    private void applyUpdate(ClientSettings src) {
+        // Merge non-null fields from src into the accumulated clientSettings.
+        ClientSettings cs = globalSettings.clientSettings;  // never null (initialized to defaults)
+        if (src.toolOptions            != null) cs.toolOptions            = src.toolOptions;
+        if (src.sourcePath             != null) cs.sourcePath             = src.sourcePath;
+        if (src.classPath              != null) cs.classPath              = src.classPath;
+        if (src.specsPath              != null) cs.specsPath              = src.specsPath;
+        if (src.javaOutputDir          != null) cs.javaOutputDir          = src.javaOutputDir;
+        if (src.racOutputDir           != null) cs.racOutputDir           = src.racOutputDir;
+        if (src.workspaceFolderPaths   != null) cs.workspaceFolderPaths   = src.workspaceFolderPaths;
+        if (src.checkTriggerOn         != null) cs.checkTriggerOn         = src.checkTriggerOn;
+        if (src.escTriggerOn           != null) cs.escTriggerOn           = src.escTriggerOn;
+        if (src.syntaxColoringStrategy != null) cs.syntaxColoringStrategy = src.syntaxColoringStrategy;
+        if (src.syntaxColoringScope    != null) cs.syntaxColoringScope    = src.syntaxColoringScope;
+        if (src.escEngine              != null) cs.escEngine              = src.escEngine;
+        if (src.escThreads             != null) cs.escThreads             = src.escThreads;
+        if (src.useIntegratedOutline   != null) cs.useIntegratedOutline   = src.useIntegratedOutline;
+        if (src.incrementalSync        != null) cs.incrementalSync        = src.incrementalSync;
+        if (src.javaMode               != null) cs.javaMode               = src.javaMode;
+        if (src.client                 != null) cs.client                 = src.client;
+        if (src.supportsActionMessages != null) cs.supportsActionMessages = src.supportsActionMessages;
+        if (src.projects               != null) cs.projects               = src.projects;
 
-        if (src.sourcePath != null) globalSettings.sourcePath = OpenJMLSettings.expandEnvVarsInPath(src.sourcePath);
-        if (src.classPath  != null) globalSettings.classPath  = OpenJMLSettings.expandEnvVarsInPath(src.classPath);
+        // Per-project path overrides (javaOutputDir/racOutputDir kept on globalSettings
+        // because per-project copies carry per-project values from ProjectConfig).
         if (src.javaOutputDir != null) globalSettings.javaOutputDir = src.javaOutputDir;
-        if (src.workspaceFolderPaths != null) globalSettings.workspaceFolderPaths = src.workspaceFolderPaths;
-        if (src.checkTriggerOn         != null) globalSettings.checkTriggerOn         = src.checkTriggerOn;
-        if (src.escTriggerOn           != null) globalSettings.escTriggerOn           = src.escTriggerOn;
-        if (src.syntaxColoringStrategy != null) globalSettings.syntaxColoringStrategy = src.syntaxColoringStrategy;
-        if (src.syntaxColoringScope    != null) globalSettings.syntaxColoringScope    = src.syntaxColoringScope;
-        if (src.escEngine              != null) globalSettings.escEngine              = src.escEngine;
-        if (src.racOutputDir         != null) globalSettings.racOutputDir         = src.racOutputDir;
-        if (src.useIntegratedOutline != null) globalSettings.useIntegratedOutline = src.useIntegratedOutline;
-        if (src.javaMode != null) globalSettings.javaMode = src.javaMode;
-        if (src.client  != null) globalSettings.client   = src.client;
-        // Boolean primitive: always propagate — clients that declare support always send true.
-        if (src.supportsActionMessages) globalSettings.supportsActionMessages = true;
-        if (src.escThreads > 0 && src.escThreads != globalSettings.escThreads) {
-            globalSettings.escThreads = src.escThreads;
-            var old = globalSettings.escPool;
-            globalSettings.escPool = java.util.concurrent.Executors.newFixedThreadPool(src.escThreads);
-            old.shutdown();
+        if (src.racOutputDir  != null) globalSettings.racOutputDir  = src.racOutputDir;
+
+        // Resize the ESC thread pool when the thread count changes.
+        // Resize in-place: no threads are interrupted; reducing the limit just
+        // prevents new threads from starting until the active count falls below it.
+        int newPoolSize = (cs.escThreads != null && cs.escThreads > 0)
+                ? cs.escThreads : ClientSettings.DEFAULT_ESC_THREADS;
+        if (globalSettings.escPool instanceof java.util.concurrent.ThreadPoolExecutor tpe
+                && newPoolSize != tpe.getCorePoolSize()) {
+            if (newPoolSize > tpe.getMaximumPoolSize()) {
+                tpe.setMaximumPoolSize(newPoolSize);
+            }
+            tpe.setCorePoolSize(newPoolSize);
         }
+
         // Per-project configs: update the project registry and re-register file watchers.
         if (src.projects != null) {
             globalSettings.projects = src.projects;
@@ -146,18 +169,20 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
             if (watcherReregistrar != null) watcherReregistrar.run();
         }
 
-        // Generic mode: if workspaceFolderPaths is non-empty, assemble paths from components.
-        // The individual src.* fields carry raw user additions (empty when none configured).
-        String wfp = globalSettings.workspaceFolderPaths;
-        if (wfp != null && !wfp.isBlank()) {
-            String sep = java.io.File.pathSeparator;
+        // Assemble effective paths.
+        // workspaceFolderPaths non-null → VS Code/generic (assemble from components).
+        // workspaceFolderPaths null     → Eclipse (paths already pre-assembled in cs).
+        String sep = java.io.File.pathSeparator;
+        String wfp = cs.workspaceFolderPaths;
+        if (wfp != null) {
             // sourcePath = user additions + workspace folder roots
-            String userSrc = (src.sourcePath != null)
-                    ? OpenJMLSettings.expandEnvVarsInPath(src.sourcePath) : "";
-            globalSettings.sourcePath = userSrc.isBlank() ? wfp : userSrc + sep + wfp;
+            String userSrc = expandEnvVarsInPath(cs.sourcePath != null ? cs.sourcePath : "");
+            var srcParts = new java.util.ArrayList<String>();
+            if (!userSrc.isBlank()) srcParts.add(userSrc);
+            if (!wfp.isBlank()) srcParts.add(wfp);
+            globalSettings.sourcePath = String.join(sep, srcParts);
             // classPath = user additions + javaOutputDir + racOutputDir (if different)
-            String userCp = (src.classPath != null)
-                    ? OpenJMLSettings.expandEnvVarsInPath(src.classPath) : "";
+            String userCp  = expandEnvVarsInPath(cs.classPath != null ? cs.classPath : "");
             String javaOut = globalSettings.javaOutputDir != null ? globalSettings.javaOutputDir : "";
             String racOut  = (globalSettings.racOutputDir != null && !globalSettings.racOutputDir.isBlank())
                     ? globalSettings.racOutputDir : javaOut;
@@ -166,12 +191,25 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
             if (!javaOut.isBlank()) cpParts.add(javaOut);
             if (!racOut.isBlank() && !racOut.equals(javaOut)) cpParts.add(racOut);
             globalSettings.classPath = String.join(sep, cpParts);
-            // specsPath = if user specsPath non-empty: prepend to assembled sourcePath; else null
-            String userSpec = (src.specsPath != null)
-                    ? OpenJMLSettings.expandEnvVarsInPath(src.specsPath) : "";
-            globalSettings.specsPath = userSpec.isBlank() ? null
-                    : userSpec + sep + globalSettings.sourcePath;
+            // specsPath = user specsPath prepended to assembled sourcePath (if non-empty)
+            String userSpec = expandEnvVarsInPath(cs.specsPath != null ? cs.specsPath : "");
+            if (!userSpec.isBlank()) {
+                String sp = globalSettings.sourcePath;
+                globalSettings.specsPath = sp.isBlank() ? userSpec : userSpec + sep + sp;
+            }
+        } else {
+            // Eclipse: paths are pre-assembled; just expand env vars.
+            if (src.sourcePath != null)
+                globalSettings.sourcePath = expandEnvVarsInPath(src.sourcePath);
+            if (src.classPath  != null)
+                globalSettings.classPath  = expandEnvVarsInPath(src.classPath);
+            if (src.specsPath  != null)
+                globalSettings.specsPath  = expandEnvVarsInPath(src.specsPath);
         }
+    }
+
+    private static String expandEnvVarsInPath(String s) {
+        return OpenJMLSettings.expandEnvVarsInPath(s);
     }
 
     /**
@@ -187,12 +225,13 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     @Override
     public void didChangeWorkspaceFolders(
             org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams params) {
+        ServerLog.serverLog("[workspace/didChangeWorkspaceFolders]");
         if (params == null || params.getEvent() == null) return;
 
         // Find the synthesized __workspace__ project.
-        OpenJMLSettings.ProjectConfig wp = null;
+        ProjectConfig wp = null;
         if (globalSettings.projects != null) {
-            for (OpenJMLSettings.ProjectConfig p : globalSettings.projects) {
+            for (ProjectConfig p : globalSettings.projects) {
                 if (OpenJMLSettings.WORKSPACE_PROJECT_ID.equals(p.id)) { wp = p; break; }
             }
         }
@@ -246,6 +285,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
 
     @Override
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
+        ServerLog.serverLog("[workspace/didChangeWatchedFiles]");
         for (FileEvent event : params.getChanges()) {
             String uri  = event.getUri();
             FileChangeType type = event.getType();

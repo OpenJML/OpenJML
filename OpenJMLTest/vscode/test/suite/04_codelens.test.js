@@ -11,7 +11,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
-const { suiteTeardown, runCommand, readOpenJMLOutput, noteSkip } = require('./helpers');
+const { suiteTeardown, runCommand, readOpenJMLOutput, noteSkip, waitForServer } = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 const POLL_MS     = 2_000;
@@ -40,9 +40,11 @@ describe('Code Lenses', function () {
         await VSBrowser.instance.openResources(SAMPLE_JAVA);
         await VSBrowser.instance.driver.sleep(2_000);
         editor = await new EditorView().openEditor('Sample.java');
+        const ready = await waitForServer(60_000);
+        assert.ok(ready, 'OpenJML LSP server did not start — cannot test code lenses');
     });
 
-    after(async function () { await suiteTeardown(true); });
+    after(async function () { this.timeout(60_000); await suiteTeardown(true); });
 
     it('code lenses appear for each method after Check JML', async function () {
         const ok = await runCommand('OpenJML: Check JML');

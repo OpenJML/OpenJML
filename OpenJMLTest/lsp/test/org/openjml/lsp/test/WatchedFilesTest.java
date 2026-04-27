@@ -5,6 +5,7 @@ import org.eclipse.lsp4j.FileChangeType;
 import org.eclipse.lsp4j.FileEvent;
 import org.junit.Test;
 import org.openjml.lsp.OpenJMLSettings;
+import org.openjml.lsp.ProjectConfig;
 import org.openjml.lsp.OpenJMLWorkspaceService;
 
 import java.io.File;
@@ -62,8 +63,8 @@ public class WatchedFilesTest extends LspTestBase {
     }
 
     /** Create a synthesized default project with the given root paths. */
-    private static OpenJMLSettings.ProjectConfig workspaceProject(String... paths) {
-        OpenJMLSettings.ProjectConfig cfg = new OpenJMLSettings.ProjectConfig();
+    private static ProjectConfig workspaceProject(String... paths) {
+        ProjectConfig cfg = new ProjectConfig();
         cfg.id = DEFAULT_PROJECT;
         cfg.rootPaths = new ArrayList<>(List.of(paths));
         return cfg;
@@ -99,7 +100,7 @@ public class WatchedFilesTest extends LspTestBase {
     @Test
     public void effectiveRootsSkipsBlankPaths() {
         OpenJMLSettings s = new OpenJMLSettings();
-        OpenJMLSettings.ProjectConfig cfg = new OpenJMLSettings.ProjectConfig();
+        ProjectConfig cfg = new ProjectConfig();
         cfg.id = DEFAULT_PROJECT;
         cfg.rootPaths = List.of("/a", "   ", "/b");
         s.projects = List.of(cfg);

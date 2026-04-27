@@ -12,7 +12,7 @@ const assert  = require('assert');
 const path    = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { Key } = require('selenium-webdriver');
-const { suiteTeardown, readOutputSafe, noteSkip,
+const { suiteTeardown, readOutputSafe, waitForServer, noteSkip,
         getExplorerSection, findExplorerItem, invokeContextMenuItem }
     = require('./helpers');
 
@@ -28,9 +28,11 @@ describe('ESC Split by File via Explorer multi-select', function () {
         await VSBrowser.instance.openResources(
             path.resolve(__dirname, '../../resources/Sample.java'));
         await VSBrowser.instance.driver.sleep(3_000);
+        const ready = await waitForServer(60_000);
+        assert.ok(ready, 'OpenJML LSP server did not start — cannot test Split-by-File ESC');
     });
 
-    after(async function () { await suiteTeardown(true); });
+    after(async function () { this.timeout(60_000); await suiteTeardown(true); });
 
     it('Split-by-file on two Explorer-selected files runs both files in parallel', async function () {
         const driver = VSBrowser.instance.driver;

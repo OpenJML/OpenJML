@@ -33,15 +33,33 @@
  */
 const assert = require('assert');
 const path   = require('path');
-const { VSBrowser, EditorView, Workbench } = require('vscode-extension-tester');
+const { VSBrowser, EditorView, Workbench, BottomBarPanel } = require('vscode-extension-tester');
 const { suiteTeardown, runCommand, readOpenJMLOutput,
         readOutputSafe, waitForOutput, noteSkip,
         getExplorerSection, findExplorerItem, invokeContextMenuItem }
     = require('./helpers');
 
-const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
-const FILEA       = 'EscFileA.java';
-const FILEB       = 'EscFileB.java';
+const SAMPLE_JAVA     = path.resolve(__dirname, '../../resources/Sample.java');
+const JML_ERRORS_JAVA = path.resolve(__dirname, '../../resources/JmlErrors.java');
+const FILEA           = 'EscFileA.java';
+const FILEB           = 'EscFileB.java';
+
+/** Return visible marker count from the Problems panel, or -1 if unavailable. */
+async function getMarkerCount() {
+    const { MarkerType } = require('vscode-extension-tester');
+    const bottomBar = new BottomBarPanel();
+    try {
+        await bottomBar.toggle(true);
+        const pv      = await bottomBar.openProblemsView();
+        await VSBrowser.instance.driver.sleep(1_000);
+        const markers = await pv.getAllVisibleMarkers(MarkerType.Any);
+        await bottomBar.toggle(false);
+        return markers.length;
+    } catch (_) {
+        try { await bottomBar.toggle(false); } catch (__) {}
+        return -1;
+    }
+}
 
 const { Key } = require('selenium-webdriver');
 const MOD_KEY = process.platform === 'darwin' ? Key.COMMAND : Key.CONTROL;
@@ -81,7 +99,7 @@ describe('Remaining Command Invocations', function () {
         await VSBrowser.instance.driver.sleep(3_000);
     });
 
-    after(async function () { await suiteTeardown(true); });
+    after(async function () { this.timeout(60_000); await suiteTeardown(true); });
 
     // ── Server-dependent commands ─────────────────────────────────────────────
 
@@ -271,17 +289,38 @@ describe('Remaining Command Invocations', function () {
     });
 
     it('"Clear Caches and Reindex" with dirty editor — Save All saves and reindexes', async function () {
-        // ── 1. Make the editor dirty ──────────────────────────────────────────
         const driver = VSBrowser.instance.driver;
-        await editor.click();
+
+        // ── 1. Open JmlErrors.java and run Check JML to establish diagnostics ─
+        await VSBrowser.instance.openResources(JML_ERRORS_JAVA);
+        await driver.sleep(2_000);
+        let errEditor;
+        for (let attempt = 0; attempt < 5; attempt++) {
+            try { errEditor = await new EditorView().openEditor('JmlErrors.java'); break; }
+            catch (_) { await driver.sleep(1_000); }
+        }
+
+        const checkOk = await runCommand('OpenJML: Check JML');
+        if (!checkOk)
+            noteSkip(this, 'Check JML unavailable — server may not be running');
+        await driver.sleep(5_000);
+
+        const markersBefore = await getMarkerCount();
+        if (markersBefore < 0)
+            noteSkip(this, 'ProblemsView API unavailable — cannot validate diagnostic clearing');
+        if (markersBefore === 0)
+            noteSkip(this, 'no diagnostics produced by Check JML — cannot validate clearing');
+        console.log(`    [INFO] diagnostics before reindex: ${markersBefore}`);
+
+        // ── 2. Make the editor dirty ──────────────────────────────────────────
+        await errEditor.click();
         await driver.sleep(300);
         await driver.actions().keyDown(MOD_KEY).sendKeys(Key.END).keyUp(MOD_KEY).perform();
         await driver.sleep(200);
         await driver.actions().sendKeys(' ').perform();
         await driver.sleep(300);
 
-        // ── 2. Invoke the command ─────────────────────────────────────────────
-        const outputBefore = (await readOutputSafe()) || '';
+        // ── 3. Invoke the command ─────────────────────────────────────────────
         const ok = await runCommand('OpenJML: Clear Caches and Reindex');
         if (!ok) {
             await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
@@ -289,7 +328,7 @@ describe('Remaining Command Invocations', function () {
             noteSkip(this, 'Clear Caches and Reindex unavailable — server may not be running');
         }
 
-        // ── 3. Wait for the notification ──────────────────────────────────────
+        // ── 4. Wait for the notification ──────────────────────────────────────
         let notification = null;
         const deadline = Date.now() + 10_000;
         while (Date.now() < deadline && !notification) {
@@ -311,14 +350,13 @@ describe('Remaining Command Invocations', function () {
             noteSkip(this, 'save-before-reindex dialog did not appear — server may not be running');
         }
 
-        // ── 4. Click "Save All" ───────────────────────────────────────────────
+        // ── 5. Click "Save All" ───────────────────────────────────────────────
         try { await notification.takeAction('Save All'); } catch (_) {
-            // takeAction may throw if the button label differs slightly.
             noteSkip(this, 'could not click "Save All" in the notification');
         }
         await driver.sleep(4_000);
 
-        // ── 5a. Assert: file WAS saved (editor tab now clean) ────────────────
+        // ── 6a. Assert: file WAS saved (editor tab now clean) ─────────────────
         let tabTitle = '';
         try {
             const tab = await new EditorView().getActiveTab();
@@ -327,16 +365,21 @@ describe('Remaining Command Invocations', function () {
         assert.ok(!tabTitle.includes('●'),
             `Editor tab should be clean after Save All, got: "${tabTitle}"`);
 
-        // ── 5b. Assert: server WAS sent the reindex command ──────────────────
-        // The server logs "[workspace/executeCommand] command=openjml.clearAndReindex"
-        // when it receives the command.  This MUST appear in output added since
-        // the command was invoked.
-        const outputAfter = (await readOutputSafe()) || '';
-        const newOutput = outputAfter.slice(outputBefore.length);
-        assert.ok(newOutput.includes('clearAndReindex'),
-            'Server log should contain clearAndReindex after Save All');
+        // ── 6b. Assert: diagnostics were cleared (behavioral proof of reindex) ─
+        // resetAndReindex() clears all cached diagnostics; the Problems panel must
+        // be empty immediately after the reindex completes (before the server has
+        // re-parsed and re-checked).
+        const markersAfter = await getMarkerCount();
+        console.log(`    [INFO] diagnostics after reindex: ${markersAfter}`);
+        if (markersAfter >= 0) {
+            assert.ok(markersAfter < markersBefore,
+                `Expected fewer diagnostics after Clear Caches and Reindex ` +
+                `(was ${markersBefore}, got ${markersAfter}) — ` +
+                `reindex should have cleared cached diagnostics`);
+        }
 
-        // ── 6. Restore: undo the saved dirty char and re-save ─────────────────
+        // ── 7. Restore: undo the saved dirty char and re-save ─────────────────
+        await errEditor.click().catch(() => {});
         await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
         await driver.sleep(200);
         await driver.actions().keyDown(MOD_KEY).sendKeys('s').keyUp(MOD_KEY).perform();

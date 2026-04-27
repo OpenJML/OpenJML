@@ -382,7 +382,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (params.getContentChanges().isEmpty()) return;
         String uri     = params.getTextDocument().getUri();
         ServerLog.serverLog("[didChange] uri=" + uri);
-        String content = globalSettings.incrementalSync
+        String content = Boolean.TRUE.equals(globalSettings.clientSettings.incrementalSync)
                 ? IncrementalSyncApplier.apply(lastContent.get(uri),
                                                params.getContentChanges())
                 : params.getContentChanges().get(0).getText();
@@ -424,6 +424,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/didSave] uri=" + uri);
         dirtyUris.remove(uri);
         cancelPending(uri);
 
@@ -440,6 +441,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/didClose] uri=" + uri);
         dirtyUris.remove(uri);    // unsaved changes are gone when the editor closes
         lastContent.remove(uri);  // in-memory editor buffer is gone; reads fall back to disk
         // Retain all pending/running checks, proof results, AST cache, and diagnostics.
@@ -453,6 +455,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<List<? extends CodeLens>> codeLens(CodeLensParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/codeLens] uri=" + uri);
         // .jml spec files: show lenses for model methods declared in this file.
         if (uri.endsWith(".jml")) return codeLensForJml(uri);
 
@@ -549,6 +552,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(
             CompletionParams params) {
         String uri     = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/completion] uri=" + uri);
         String content = lastContent.get(uri);
         if (content == null) return CompletableFuture.completedFuture(Either.forLeft(List.of()));
         List<CompletionItem> items =
@@ -558,7 +562,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private List<Either<SymbolInformation, DocumentSymbol>> buildSymbolResult(
             ASTCache.Entry entry, String content) {
-        boolean jmlOnly = !Boolean.TRUE.equals(globalSettings.useIntegratedOutline);
+        boolean jmlOnly = !Boolean.TRUE.equals(globalSettings.clientSettings.useIntegratedOutline);
         List<DocumentSymbol> symbols = DocumentSymbolProvider.fromAst(entry.ast(), content, jmlOnly);
         List<Either<SymbolInformation, DocumentSymbol>> result = new ArrayList<>(symbols.size());
         for (DocumentSymbol ds : symbols) result.add(Either.forRight(ds));
@@ -569,6 +573,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(
             DocumentSymbolParams params) {
         String uri     = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/documentSymbol] uri=" + uri);
         String content = lastContent.get(uri);
         if (content == null) {
             return CompletableFuture.completedFuture(List.of());
@@ -599,6 +604,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<List<FoldingRange>> foldingRange(FoldingRangeRequestParams params) {
         String uri     = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/foldingRange] uri=" + uri);
         String content = lastContent.get(uri);
         if (content == null) {
             // Not yet in memory (request arrived before didOpen) — read from disk.
@@ -616,6 +622,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/hover] uri=" + uri);
         String content = lastContent.get(uri);
         if (content == null) return CompletableFuture.completedFuture(null);
 
@@ -670,6 +677,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
         String uri     = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/signatureHelp] uri=" + uri);
         String content = lastContent.get(uri);
         return CompletableFuture.completedFuture(
                 SignatureHelpProvider.compute(params, content, CheckRunner.getASTCache()));
@@ -680,6 +688,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<List<InlayHint>> inlayHint(InlayHintParams params) {
         String uri     = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/inlayHint] uri=" + uri);
         String content = lastContent.get(uri);
         if (content == null) return CompletableFuture.completedFuture(List.of());
         return CompletableFuture.completedFuture(
@@ -700,6 +709,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>>
             definition(DefinitionParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/definition] uri=" + uri);
         String source = lastContent.get(uri);
         if (source == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
@@ -774,6 +784,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/references] uri=" + uri);
         if (lastContent.get(uri) == null)
             return CompletableFuture.completedFuture(List.of());
 
@@ -811,6 +822,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<List<? extends DocumentHighlight>> documentHighlight(
             DocumentHighlightParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/documentHighlight] uri=" + uri);
         String source = lastContent.get(uri);
         if (source == null) return CompletableFuture.completedFuture(List.of());
 
@@ -843,6 +855,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>>
             declaration(DeclarationParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/declaration] uri=" + uri);
         String source = lastContent.get(uri);
         if (source == null)
             return CompletableFuture.completedFuture(Either.forLeft(List.of()));
@@ -903,6 +916,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public CompletableFuture<Either3<Range, PrepareRenameResult, PrepareRenameDefaultBehavior>>
             prepareRename(PrepareRenameParams params) {
         String uri    = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/prepareRename] uri=" + uri);
         String source = lastContent.get(uri);
         if (source != null) {
             int offset = DefinitionFinder.lineColToOffset(
@@ -960,6 +974,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<WorkspaceEdit> rename(RenameParams params) {
         String uri = params.getTextDocument().getUri();
+        ServerLog.serverLog("[textDocument/rename] uri=" + uri);
         if (lastContent.get(uri) == null)
             return CompletableFuture.completedFuture(null);
 
@@ -1272,11 +1287,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     void scheduleEscSplitByFile(List<String> paths, String projectId) {
         if (paths == null || paths.isEmpty()) return;
+        ServerLog.serverLog("[scheduleEscSplitByFile] paths received: " + paths);
         OpenJMLSettings s = settingsForProject(projectId);
+        List<java.nio.file.Path> javaFiles = collectJavaFiles(paths);
+        ServerLog.serverLog("[scheduleEscSplitByFile] java files found: " + javaFiles);
         // Expand paths to individual .java files and queue each as its own ESC job.
         // scheduleEscForPaths immediately submits to escPool via submitEscJob, so all
         // files are queued before any begin running, and each gets incremental updates.
-        for (java.nio.file.Path javaFile : collectJavaFiles(paths)) {
+        for (java.nio.file.Path javaFile : javaFiles) {
             scheduleEscForPaths(List.of(javaFile.toString()), s, projectId);
         }
     }
@@ -1462,6 +1480,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     @Override
     public CompletableFuture<org.eclipse.lsp4j.SemanticTokens> semanticTokensFull(
             org.eclipse.lsp4j.SemanticTokensParams params) {
+        ServerLog.serverLog("[textDocument/semanticTokens/full]");
         return CompletableFuture.supplyAsync(() -> {
             String uri = params.getTextDocument().getUri();
             List<Integer> data = getSemanticTokens(uri);
@@ -1646,10 +1665,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * The {@code "__workspace__"} project has no overrides and therefore inherits everything
      * from global settings.
      */
-    public void updateProjectSettings(List<OpenJMLSettings.ProjectConfig> configs) {
+    public void updateProjectSettings(List<ProjectConfig> configs) {
         projectSettings.clear();
         if (configs == null) return;
-        for (OpenJMLSettings.ProjectConfig cfg : configs) {
+        for (ProjectConfig cfg : configs) {
             if (cfg.id == null) continue;
             OpenJMLSettings s = new OpenJMLSettings(globalSettings);
             s.sourcePath = OpenJMLSettings.expandEnvVarsInPath(cfg.sourcePath != null ? cfg.sourcePath : "");
@@ -1943,8 +1962,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             try { displayLine = Integer.parseInt(methodName.substring(1)) + 1; }
             catch (NumberFormatException ignored) {}
             String lineInfo = displayLine >= 0 ? " at line " + displayLine : "";
+            String fileName = uri.contains("/") ? uri.substring(uri.lastIndexOf('/') + 1) : uri;
             sendActionMessage(2,
-                    "OpenJML: no method found" + lineInfo + " — place the cursor inside a method body.",
+                    "OpenJML: no method found" + lineInfo + " in " + fileName + " — place the cursor inside a method body.",
                     List.of(dismiss()));
             return;
         }
@@ -2496,7 +2516,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private void initProjectNavState() {
         if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
-            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
+            for (ProjectConfig cfg : globalSettings.projects) {
                 projectNavDirty.computeIfAbsent(cfg.id, k -> new AtomicBoolean(true));
                 projectNavLocks.computeIfAbsent(cfg.id, k -> new Object());
             }
@@ -2514,7 +2534,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     private List<String> rootsForProject(String projectId) {
         if (globalSettings.projects != null) {
-            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects) {
+            for (ProjectConfig cfg : globalSettings.projects) {
                 if (projectId != null && projectId.equals(cfg.id))
                     return cfg.rootPaths != null ? cfg.rootPaths : List.of();
             }
@@ -2550,7 +2570,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (projectId == null) {
             // Update every project.
             if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
-                for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects)
+                for (ProjectConfig cfg : globalSettings.projects)
                     requestNavUpdate(cfg.id);
             } else {
                 requestNavUpdate(OpenJMLSettings.WORKSPACE_PROJECT_ID);
@@ -3334,11 +3354,11 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         StringBuilder sb = new StringBuilder("[debugContent] ").append(label).append('\n');
 
         // globalSettings summary
-        sb.append("  globalSettings: check=").append(globalSettings.checkTriggerOn)
-          .append(" esc=").append(globalSettings.escTriggerOn)
-          .append(" engine=").append(globalSettings.escEngine)
+        sb.append("  globalSettings: check=").append(globalSettings.clientSettings.checkTriggerOn)
+          .append(" esc=").append(globalSettings.clientSettings.escTriggerOn)
+          .append(" engine=").append(globalSettings.clientSettings.escEngine)
           .append(" javaMode=").append(globalSettings.effectiveJavaMode())
-          .append(" incrementalSync=").append(globalSettings.incrementalSync).append('\n');
+          .append(" incrementalSync=").append(globalSettings.clientSettings.incrementalSync).append('\n');
 
         // lastContent (open editors)
         sb.append("  lastContent (").append(lastContent.size()).append(" open file(s)):\n");
@@ -3557,7 +3577,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void scheduleWorkspaceReindex() {
         initProjectNavState();
         if (globalSettings.projects != null && !globalSettings.projects.isEmpty()) {
-            for (OpenJMLSettings.ProjectConfig cfg : globalSettings.projects)
+            for (ProjectConfig cfg : globalSettings.projects)
                 executor.submit(() -> requestNavUpdate(cfg.id));
         } else {
             executor.submit(() -> requestNavUpdate(OpenJMLSettings.WORKSPACE_PROJECT_ID));

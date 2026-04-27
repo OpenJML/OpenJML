@@ -191,37 +191,82 @@ async function runCommand(name) {
 async function suiteTeardown(reindex = false) {
     const driver = VSBrowser.instance.driver;
 
+    // Wrap any promise with a hard timeout so a hung Selenium call doesn't
+    // stall the whole suite teardown (and trigger a Mocha hook timeout).
+    const withTimeout = (p, ms) =>
+        Promise.race([p, new Promise(r => setTimeout(r, ms))]).catch(() => {});
+
     // 1. Close all editor tabs.
-    try { await new EditorView().closeAllEditors(); } catch (_) {}
-    await driver.sleep(500);
+    await withTimeout(new EditorView().closeAllEditors(), 5_000);
+    await driver.sleep(300);
 
     // 2. Clear the OpenJML output channel.
     try {
         const bottomBar  = new BottomBarPanel();
-        await bottomBar.toggle(true);
-        await driver.sleep(500);
-        const outputView = await bottomBar.openOutputView();
+        await withTimeout(bottomBar.toggle(true), 3_000);
+        await driver.sleep(300);
+        const outputView = await withTimeout(bottomBar.openOutputView(), 3_000);
 
-        let channels = [];
-        for (let attempt = 0; attempt < 4; attempt++) {
-            try { channels = await outputView.getChannelNames(); break; }
-            catch (_) { await driver.sleep(500); }
+        if (outputView) {
+            let channels = [];
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try { channels = await withTimeout(outputView.getChannelNames(), 2_000) || []; break; }
+                catch (_) { await driver.sleep(300); }
+            }
+            const ch = channels.find(c => c.includes('OpenJML'));
+            if (ch) {
+                await withTimeout(outputView.selectChannel(ch), 2_000);
+                await driver.sleep(200);
+                await withTimeout(runCommand('workbench.output.action.clearOutput'), 2_000);
+                await driver.sleep(200);
+            }
         }
-        const ch = channels.find(c => c.includes('OpenJML'));
-        if (ch) {
-            await outputView.selectChannel(ch);
-            await driver.sleep(300);
-            await runCommand('workbench.output.action.clearOutput');
-            await driver.sleep(300);
-        }
-        await bottomBar.toggle(false);
+        await withTimeout(bottomBar.toggle(false), 3_000);
     } catch (_) {}
 
     // 3. Optionally reset server-side diagnostics and caches.
     if (reindex) {
-        await runCommand('openjml.clearAndReindex');
-        await driver.sleep(1_000);
+        await withTimeout(runCommand('openjml.clearAndReindex'), 5_000);
+        await driver.sleep(500);
     }
+}
+
+// ── Server readiness ──────────────────────────────────────────────────────────
+
+// Cached across all suites in the same test run (same Node.js process).
+// Set to true once "server started" is seen; subsequent calls return immediately.
+let _serverReady = false;
+
+/**
+ * Wait until the OpenJML LSP server has started, detected by the appearance of
+ * "server started" in the output channel.  Returns true when ready, false on
+ * timeout.
+ *
+ * Result is cached: once the server is confirmed running, all subsequent calls
+ * return true immediately even if the output channel has since been cleared.
+ *
+ * In normal use the server starts within 60 seconds.  Suite 01 uses a
+ * 2-minute timeout; later suites rely on the cached flag and use 60 s as a
+ * safety net in case the module cache is somehow reset.
+ *
+ * @param {number} [timeoutMs=120_000]
+ * @returns {Promise<boolean>}
+ */
+async function waitForServer(timeoutMs = 120_000) {
+    if (_serverReady) return true;
+
+    const driver   = VSBrowser.instance.driver;
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+        const text = await readOutputSafe();
+        if (text && text.includes('server started')) {
+            _serverReady = true;
+            return true;
+        }
+        await driver.sleep(3_000);
+    }
+    return false;
 }
 
 // ── Skip helpers ──────────────────────────────────────────────────────────────
@@ -249,6 +294,7 @@ module.exports = {
     readOutputSafe,
     waitForOutput,
     hasOpenJMLChannel,
+    waitForServer,
     getExplorerSection,
     findExplorerItem,
     invokeContextMenuItem,

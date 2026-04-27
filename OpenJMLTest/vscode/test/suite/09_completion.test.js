@@ -49,7 +49,7 @@ describe('Code Completion', function () {
         await VSBrowser.instance.driver.sleep(3_000);
     });
 
-    after(async function () { await suiteTeardown(true); });
+    after(async function () { this.timeout(60_000); await suiteTeardown(true); });
 
     it('content assist API is available in a Java editor', async function () {
         try {

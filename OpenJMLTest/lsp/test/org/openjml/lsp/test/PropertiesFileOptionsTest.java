@@ -61,7 +61,7 @@ public class PropertiesFileOptionsTest extends LspTestBase {
     /** Creates a fresh {@link OpenJMLSettings} with toolOptions pointing at a properties file. */
     private OpenJMLSettings settingsWithPropertiesFile(String path) {
         OpenJMLSettings s = new OpenJMLSettings();
-        s.toolOptions = List.of("--properties", path);
+        s.clientSettings.toolOptions = List.of("--properties", path);
         return s;
     }
 
@@ -234,7 +234,7 @@ public class PropertiesFileOptionsTest extends LspTestBase {
                 "org.openjml.option.check-feasibility=none\n");
 
         OpenJMLSettings settings = new OpenJMLSettings();
-        settings.toolOptions = List.of("--properties", firstPath, "--properties", secondPath);
+        settings.clientSettings.toolOptions = List.of("--properties", firstPath, "--properties", secondPath);
 
         List<Diagnostic> diags =
                 CheckRunner.runEsc("file:///OverrideTest.java", source, settings).diagnostics();
