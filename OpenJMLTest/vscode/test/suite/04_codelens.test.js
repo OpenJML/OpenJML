@@ -11,6 +11,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, BottomBarPanel, Workbench } = require('vscode-extension-tester');
+const { suiteTeardown, runCommand, readOpenJMLOutput } = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 const POLL_MS     = 2_000;
@@ -44,13 +45,8 @@ describe('Code Lenses', function () {
     });
 
     it('code lenses appear for each method after Check JML', async function () {
-        // Trigger a --check to build the AST needed for code lenses.
-        const workbench = new Workbench();
-        try {
-            await workbench.executeCommand('OpenJML: Check JML');
-        } catch (e) {
-            this.skip(); // server not configured — skip entire suite
-        }
+        const ok = await runCommand('OpenJML: Check JML');
+        if (!ok) { this.skip(); return; }
 
         const lenses = await pollUntilNonEmpty(
             () => editor.getCodeLenses(), LENS_WAIT_S * 1_000
@@ -120,24 +116,12 @@ describe('Code Lenses', function () {
     });
 
     it('OpenJML output channel shows ESC activity', async function () {
-        // Brief pause to let any in-flight ESC task produce output.
         await VSBrowser.instance.driver.sleep(3_000);
-
-        const bottomBar  = new BottomBarPanel();
-        await bottomBar.toggle(true);
-        const outputView = await bottomBar.openOutputView();
-        const channels   = await outputView.getChannelNames();
-
-        if (!channels.some(c => c.includes('OpenJML'))) {
-            this.skip(); return; // server never started
-        }
-        await outputView.selectChannel(channels.find(c => c.includes('OpenJML')));
-        const text = await outputView.getText();
-        await bottomBar.toggle(false);
-
-        // The output channel should contain at least the extension startup message
-        // or an ESC invocation log line.
+        const text = await readOpenJMLOutput();
+        if (text === null) { this.skip(); return; }
         assert.ok(text.length > 0,
             'OpenJML output channel is empty — expected at least startup messages');
     });
+
+    after(async function () { await suiteTeardown(true); });
 });

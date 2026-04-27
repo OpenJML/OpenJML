@@ -9,6 +9,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, BottomBarPanel, Workbench } = require('vscode-extension-tester');
+const { suiteTeardown, runCommand } = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 
@@ -39,12 +40,7 @@ describe('Extension Activation', function () {
 
     it('OpenJML output channel is created', async function () {
         // Trigger any command so the extension initialises its output channel.
-        const workbench = new Workbench();
-        try {
-            await workbench.executeCommand('OpenJML: Check JML');
-        } catch (_) {
-            // Command may be unavailable if server not running — that's fine here.
-        }
+        await runCommand('OpenJML: Check JML');
         await VSBrowser.instance.driver.sleep(2_000);
 
         const bottomBar  = new BottomBarPanel();
@@ -68,4 +64,6 @@ describe('Extension Activation', function () {
             `OpenJML channel not found. Available channels: ${channels.join(', ')}`
         );
     });
+
+    after(async function () { await suiteTeardown(); });
 });

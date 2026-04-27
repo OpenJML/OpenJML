@@ -7,6 +7,7 @@
  */
 const assert = require('assert');
 const { VSBrowser, Workbench } = require('vscode-extension-tester');
+const { suiteTeardown } = require('./helpers');
 
 // All commands that must appear in the palette (category + title form).
 const EXPECTED_COMMANDS = [
@@ -61,4 +62,6 @@ describe('Command Registration', function () {
             `Missing from palette: ${missing.join(', ')}\nFound: ${labels.join(', ')}`
         );
     });
+
+    after(async function () { await suiteTeardown(); });
 });
