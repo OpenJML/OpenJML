@@ -8,25 +8,20 @@
  * Test B – Multi-select: right-clicking while two files are selected ESCs
  *           both files.  Both must appear in the output.
  *
- * VS Code passes (explorerUri, explorerSelection) to the command handler.
- * For a single-file right-click, explorerSelection contains only that file.
- * For a multi-select right-click, explorerSelection contains all selected files.
- *
- * Skips gracefully when the OpenJML server is unavailable.
+ * Skips with a logged reason when the server is unavailable.
  */
 const assert  = require('assert');
 const path    = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { Key } = require('selenium-webdriver');
-const { suiteTeardown, waitForOutput,
+const { suiteTeardown, waitForOutput, noteSkip,
         getExplorerSection, findExplorerItem, invokeContextMenuItem }
     = require('./helpers');
 
 const FILEA       = 'EscFileA.java';
 const FILEB       = 'EscFileB.java';
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
-
-const CTL_KEY = process.platform === 'darwin' ? Key.COMMAND : Key.CONTROL;
+const CTL_KEY     = process.platform === 'darwin' ? Key.COMMAND : Key.CONTROL;
 
 describe('ESC via Explorer context menu', function () {
     this.timeout(180_000);
@@ -51,33 +46,27 @@ describe('ESC via Explorer context menu', function () {
             try { await new EditorView().openEditor(FILEA); opened = true; }
             catch (_) { await driver.sleep(1_000); }
         }
-        if (!opened) { console.log('    [SKIP] Could not open ' + FILEA); this.skip(); return; }
+        if (!opened) noteSkip(this, 'could not open ' + FILEA + ' in editor');
 
         const section = await getExplorerSection();
-        if (!section) { console.log('    [SKIP] Explorer sidebar unavailable'); this.skip(); return; }
+        if (!section) noteSkip(this, 'Explorer sidebar unavailable');
 
         const itemA = await findExplorerItem(section, FILEA);
-        if (!itemA) { console.log('    [SKIP] ' + FILEA + ' not visible in Explorer'); this.skip(); return; }
+        if (!itemA) noteSkip(this, FILEA + ' not visible in Explorer');
 
         await itemA.select();
         await driver.sleep(300);
 
         const clicked = await invokeContextMenuItem(itemA, 'Run ESC', ['Split', 'Method', 'Save']);
-        if (!clicked) {
-            console.log('    [SKIP] "Run ESC" not found in context menu — server may not be running');
-            this.skip(); return;
-        }
+        if (!clicked)
+            noteSkip(this, '"Run ESC" not in Explorer context menu — server may not be running');
 
-        const deadline = Date.now() + 30_000;
-        const outputText = await waitForOutput([FILEA], deadline);
-
-        if (!outputText.includes(FILEA)) {
-            console.log('    [SKIP] Output did not mention ' + FILEA + ' — server may not be running');
-            this.skip(); return;
-        }
+        const outputText = await waitForOutput([FILEA], Date.now() + 30_000);
+        if (!outputText.includes(FILEA))
+            noteSkip(this, 'output did not mention ' + FILEA + ' — server may not be running');
 
         assert.ok(outputText.includes(FILEA),  'Expected ' + FILEA + ' in output');
-        assert.ok(!outputText.includes(FILEB), 'Expected ' + FILEB + ' NOT in output');
+        assert.ok(!outputText.includes(FILEB), 'Expected ' + FILEB + ' NOT in output for single-select');
     });
 
     // ── Test B: multi-select context menu ─────────────────────────────────────
@@ -93,14 +82,12 @@ describe('ESC via Explorer context menu', function () {
         }
 
         const section = await getExplorerSection();
-        if (!section) { console.log('    [SKIP] Explorer sidebar unavailable'); this.skip(); return; }
+        if (!section) noteSkip(this, 'Explorer sidebar unavailable');
 
         const itemA = await findExplorerItem(section, FILEA);
         const itemB = await findExplorerItem(section, FILEB);
-        if (!itemA || !itemB) {
-            console.log('    [SKIP] Test files not visible in Explorer');
-            this.skip(); return;
-        }
+        if (!itemA || !itemB)
+            noteSkip(this, 'test files not visible in Explorer');
 
         await itemA.select();
         await driver.sleep(300);
@@ -110,18 +97,12 @@ describe('ESC via Explorer context menu', function () {
         await driver.sleep(500);
 
         const clicked = await invokeContextMenuItem(itemB, 'Run ESC', ['Split', 'Method', 'Save']);
-        if (!clicked) {
-            console.log('    [SKIP] "Run ESC" not found in context menu — server may not be running');
-            this.skip(); return;
-        }
+        if (!clicked)
+            noteSkip(this, '"Run ESC" not in Explorer context menu — server may not be running');
 
-        const deadline = Date.now() + 30_000;
-        const outputText = await waitForOutput([FILEA, FILEB], deadline);
-
-        if (!outputText.includes(FILEA) || !outputText.includes(FILEB)) {
-            console.log('    [SKIP] Output did not mention both files — server may not be running');
-            this.skip(); return;
-        }
+        const outputText = await waitForOutput([FILEA, FILEB], Date.now() + 30_000);
+        if (!outputText.includes(FILEA) || !outputText.includes(FILEB))
+            noteSkip(this, 'output did not mention both files — server may not be running');
 
         assert.ok(outputText.includes(FILEA), 'Expected ' + FILEA + ' in output');
         assert.ok(outputText.includes(FILEB), 'Expected ' + FILEB + ' in output');

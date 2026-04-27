@@ -224,6 +224,26 @@ async function suiteTeardown(reindex = false) {
     }
 }
 
+// ── Skip helpers ──────────────────────────────────────────────────────────────
+
+/**
+ * Log a SKIP reason and immediately skip the current Mocha test.
+ *
+ * Because Mocha's this.skip() throws a Pending error, execution stops at the
+ * throw — no 'return' statement is needed after calling noteSkip().
+ *
+ * Usage:
+ *   if (!serverRunning) noteSkip(this, 'server not running');
+ *   // code here is unreachable when skipping
+ *
+ * @param {Mocha.Context} ctx   The test context — pass `this` from the test.
+ * @param {string}        reason  Human-readable reason shown in the test log.
+ */
+function noteSkip(ctx, reason) {
+    console.log('    [SKIP] ' + reason);
+    ctx.skip();
+}
+
 module.exports = {
     readOpenJMLOutput,
     readOutputSafe,
@@ -234,4 +254,5 @@ module.exports = {
     invokeContextMenuItem,
     runCommand,
     suiteTeardown,
+    noteSkip,
 };

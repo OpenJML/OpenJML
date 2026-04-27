@@ -2,18 +2,17 @@
 /**
  * Suite 06: ESC Split by File via Explorer multi-select
  *
- * Multi-selects two Java files in the Explorer and invokes
- * "Run ESC Split by File" from the context menu.  Both files must appear in
- * the output, and both should start proving before either finishes (parallelism
- * check — soft, since timing is nondeterministic).
+ * Multi-selects two Java files and invokes "Run ESC Split by File" from the
+ * Explorer context menu.  Both files must appear in the output, and both
+ * should start proving before either finishes (soft parallelism check).
  *
- * Skips gracefully when the OpenJML server is unavailable.
+ * Skips with a logged reason when the server is unavailable.
  */
 const assert  = require('assert');
 const path    = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { Key } = require('selenium-webdriver');
-const { suiteTeardown, readOutputSafe,
+const { suiteTeardown, readOutputSafe, noteSkip,
         getExplorerSection, findExplorerItem, invokeContextMenuItem }
     = require('./helpers');
 
@@ -45,14 +44,12 @@ describe('ESC Split by File via Explorer multi-select', function () {
         }
 
         const section = await getExplorerSection();
-        if (!section) { console.log('    [SKIP] Explorer sidebar unavailable'); this.skip(); return; }
+        if (!section) noteSkip(this, 'Explorer sidebar unavailable');
 
         const itemA = await findExplorerItem(section, FILEA);
         const itemB = await findExplorerItem(section, FILEB);
-        if (!itemA || !itemB) {
-            console.log('    [SKIP] Test files not visible in Explorer');
-            this.skip(); return;
-        }
+        if (!itemA || !itemB)
+            noteSkip(this, 'test files not visible in Explorer');
 
         await itemA.select();
         await driver.sleep(300);
@@ -62,17 +59,15 @@ describe('ESC Split by File via Explorer multi-select', function () {
         await driver.sleep(500);
 
         const clicked = await invokeContextMenuItem(itemB, 'Split by File');
-        if (!clicked) {
-            console.log('    [SKIP] "Run ESC Split by File" not in context menu — server may not be running');
-            this.skip(); return;
-        }
+        if (!clicked)
+            noteSkip(this, '"Run ESC Split by File" not in context menu — server may not be running');
 
         // Poll until output stabilises (no growth for 2 consecutive polls).
-        const deadline    = Date.now() + 60_000;
+        const deadline       = Date.now() + 60_000;
         let bothStartedEarly = false;
-        let prevLength    = 0;
-        let stableCount   = 0;
-        let finalOutput   = '';
+        let prevLength       = 0;
+        let stableCount      = 0;
+        let finalOutput      = '';
 
         while (Date.now() < deadline) {
             await driver.sleep(3_000);
@@ -91,15 +86,13 @@ describe('ESC Split by File via Explorer multi-select', function () {
             }
         }
 
-        if (!finalOutput.includes(FILEA) || !finalOutput.includes(FILEB)) {
-            console.log('    [SKIP] Output did not mention both files — server may not be running');
-            this.skip(); return;
-        }
+        if (!finalOutput.includes(FILEA) || !finalOutput.includes(FILEB))
+            noteSkip(this, 'output did not mention both files — server may not be running');
 
         assert.ok(finalOutput.includes(FILEA), `Expected ${FILEA} in output`);
         assert.ok(finalOutput.includes(FILEB), `Expected ${FILEB} in output`);
 
         if (!bothStartedEarly)
-            console.log('    [NOTE] Could not confirm overlapping start — files may have run sequentially or too fast');
+            console.log('    [NOTE] could not confirm overlapping start — files may have run sequentially or too fast');
     });
 });

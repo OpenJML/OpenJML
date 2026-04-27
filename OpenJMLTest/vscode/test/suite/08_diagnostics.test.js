@@ -3,71 +3,54 @@
  * Suite 08: Diagnostics (Markers)
  *
  * Opens JmlErrors.java, which contains:
- *   - bad():    postcondition \result < 0 that is never satisfied (ESC error)
+ *   - bad():     postcondition \result < 0 never satisfied (ESC failure)
  *   - badNull(): requires x == null on a primitive int (type/check error)
- *   - good():   valid spec (no error expected)
+ *   - good():    valid spec (no error expected)
  *
  * Tests:
- *   A. Check JML produces at least one diagnostic on JmlErrors.java.
- *   B. The diagnostic for badNull() has the expected severity (Error).
- *   C. "Clear Markers" removes all diagnostics from the file.
+ *   A. Check JML produces at least one diagnostic.
+ *   B. At least one diagnostic has Error severity.
+ *   C. "Clear Markers" removes diagnostics.
  *   D. ESC on bad() reports a verification failure.
  *
- * Diagnostics are read via the Problems panel (bottom bar).
+ * Skips with a logged reason when the server is unavailable or when
+ * the ProblemsView API is not available in this vscode-extension-tester version.
  *
- * NOTE (potential bug): vscode-extension-tester's ProblemsView API relies on
- * VS Code's Problems panel.  If the extension publishes diagnostics correctly
- * via textDocument/publishDiagnostics but the Problems panel is slow to update,
- * polling may be needed.  The helpers here poll up to DIAG_WAIT_S seconds.
- *
- * NOTE: If badNull() does not produce a diagnostic, the spec comment may need
- * to be adjusted to match what OpenJML actually flags as a type error.
+ * NOTE: If badNull() does not produce a diagnostic, adjust the spec in
+ * JmlErrors.java to match what OpenJML flags as a type error.
  */
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, BottomBarPanel } = require('vscode-extension-tester');
-const { suiteTeardown, runCommand } = require('./helpers');
+const { suiteTeardown, runCommand, noteSkip } = require('./helpers');
 
 const JML_ERRORS_JAVA = path.resolve(__dirname, '../../resources/JmlErrors.java');
-const DIAG_WAIT_S     = 30;
+const DIAG_WAIT_MS    = 30_000;
 
 /**
- * Poll the Problems panel until at least minCount entries appear for a file
- * whose name includes fileNameFragment, or until the deadline passes.
- * Returns the array of marker entries (possibly empty).
- *
- * NOTE: ProblemsView is not available in all vscode-extension-tester versions.
- * If it throws, we fall back to counting squiggles in the editor (not implemented
- * here) — in that case the test skips with a note.
+ * Poll the Problems panel until at least minCount markers appear, or timeout.
+ * Returns the marker array (possibly empty).
+ * Skips with a note if ProblemsView is not available.
  */
-async function waitForDiagnostics(fileNameFragment, minCount, timeoutMs) {
+async function waitForDiagnostics(ctx, minCount, timeoutMs) {
     const driver    = VSBrowser.instance.driver;
     const deadline  = Date.now() + timeoutMs;
     const bottomBar = new BottomBarPanel();
+    const { MarkerType } = require('vscode-extension-tester');
 
     while (Date.now() < deadline) {
         try {
             await bottomBar.toggle(true);
-            const problemsView = await bottomBar.openProblemsView();
+            const pv      = await bottomBar.openProblemsView();
             await driver.sleep(1_000);
-
-            // getAllVisibleMarkers() returns all markers currently shown.
-            const markers = await problemsView.getAllVisibleMarkers(
-                require('vscode-extension-tester').MarkerType.Any);
-            const relevant = markers.filter(m => {
-                try {
-                    // Each marker has a getFileName() method.
-                    return m.getText && m.getText().then
-                        ? true  // async — skip filter, include all
-                        : false;
-                } catch (_) { return true; }
-            });
-            if (relevant.length >= minCount) {
-                await bottomBar.toggle(false);
-                return relevant;
-            }
-        } catch (_) {}
-        try { await bottomBar.toggle(false); } catch (__) {}
+            const markers = await pv.getAllVisibleMarkers(MarkerType.Any);
+            await bottomBar.toggle(false);
+            if (markers.length >= minCount) return markers;
+        } catch (e) {
+            try { await bottomBar.toggle(false); } catch (_) {}
+            if (/ProblemsView|openProblemsView/.test(String(e)))
+                noteSkip(ctx, 'ProblemsView API unavailable in this vscode-extension-tester version');
+        }
         await driver.sleep(2_000);
     }
     try { await bottomBar.toggle(false); } catch (_) {}
@@ -77,105 +60,78 @@ async function waitForDiagnostics(fileNameFragment, minCount, timeoutMs) {
 describe('Diagnostics (Markers)', function () {
     this.timeout(120_000);
 
-    let editor;
-
     before(async function () {
         await VSBrowser.instance.waitForWorkbench(20_000);
         await VSBrowser.instance.openResources(JML_ERRORS_JAVA);
         await VSBrowser.instance.driver.sleep(2_000);
-        editor = await new EditorView().openEditor('JmlErrors.java');
+        await new EditorView().openEditor('JmlErrors.java');
     });
 
     after(async function () { await suiteTeardown(true); });
 
     it('Check JML produces at least one diagnostic on JmlErrors.java', async function () {
         const ok = await runCommand('OpenJML: Check JML');
-        if (!ok) { console.log('    [SKIP] Check JML command unavailable'); this.skip(); return; }
-
+        if (!ok) noteSkip(this, 'Check JML command unavailable — server may not be running');
         await VSBrowser.instance.driver.sleep(3_000);
-
-        const markers = await waitForDiagnostics('JmlErrors', 1, DIAG_WAIT_S * 1_000);
-        if (markers.length === 0) {
-            console.log('    [SKIP] No diagnostics appeared — server may not be running');
-            this.skip(); return;
-        }
+        const markers = await waitForDiagnostics(this, 1, DIAG_WAIT_MS);
+        if (markers.length === 0)
+            noteSkip(this, 'no diagnostics appeared — server may not be running');
         assert.ok(markers.length >= 1,
             `Expected at least 1 diagnostic, got ${markers.length}`);
     });
 
-    it('diagnostic for badNull() has Error severity', async function () {
-        // Relies on the previous test having run Check JML.
+    it('at least one diagnostic has Error severity', async function () {
+        const { MarkerType } = require('vscode-extension-tester');
         const driver    = VSBrowser.instance.driver;
         const bottomBar = new BottomBarPanel();
         let errorMarkers = [];
         try {
             await bottomBar.toggle(true);
-            const problemsView = await bottomBar.openProblemsView();
+            const pv = await bottomBar.openProblemsView();
             await driver.sleep(1_000);
-            errorMarkers = await problemsView.getAllVisibleMarkers(
-                require('vscode-extension-tester').MarkerType.Error);
+            errorMarkers = await pv.getAllVisibleMarkers(MarkerType.Error);
             await bottomBar.toggle(false);
-        } catch (_) {
-            try { await bottomBar.toggle(false); } catch (__) {}
-            console.log('    [SKIP] ProblemsView unavailable');
-            this.skip(); return;
+        } catch (e) {
+            try { await bottomBar.toggle(false); } catch (_) {}
+            noteSkip(this, 'ProblemsView unavailable — ' + String(e).slice(0, 80));
         }
-
-        if (errorMarkers.length === 0) {
-            console.log('    [SKIP] No error-level markers — server may not be running or spec may not produce type errors');
-            this.skip(); return;
-        }
-        // At least one error marker should exist.
+        if (errorMarkers.length === 0)
+            noteSkip(this, 'no error-level markers — server may not be running or spec may not produce type errors');
         assert.ok(errorMarkers.length >= 1,
             `Expected at least 1 error-severity diagnostic, got ${errorMarkers.length}`);
     });
 
-    it('"Clear Markers" removes diagnostics from the editor', async function () {
-        // Ensure there are markers first (from previous tests).
+    it('"Clear Markers" removes OpenJML diagnostics', async function () {
         const ok = await runCommand('OpenJML: Clear Markers');
         assert.ok(ok, '"Clear Markers" command should succeed');
-
         await VSBrowser.instance.driver.sleep(2_000);
 
+        const { MarkerType } = require('vscode-extension-tester');
         const driver    = VSBrowser.instance.driver;
         const bottomBar = new BottomBarPanel();
         let markersAfter = [];
         try {
             await bottomBar.toggle(true);
-            const problemsView = await bottomBar.openProblemsView();
+            const pv = await bottomBar.openProblemsView();
             await driver.sleep(1_000);
-            markersAfter = await problemsView.getAllVisibleMarkers(
-                require('vscode-extension-tester').MarkerType.Any);
+            markersAfter = await pv.getAllVisibleMarkers(MarkerType.Any);
             await bottomBar.toggle(false);
-        } catch (_) {
-            try { await bottomBar.toggle(false); } catch (__) {}
-            console.log('    [SKIP] ProblemsView unavailable for post-clear check');
-            this.skip(); return;
+        } catch (e) {
+            try { await bottomBar.toggle(false); } catch (_) {}
+            noteSkip(this, 'ProblemsView unavailable for post-clear check');
         }
-
-        // After clearing, no OpenJML markers should remain.
-        // NOTE: other extensions may still contribute markers; we can only check
-        // that the count dropped, not that it is exactly zero.
-        // This test is inherently a soft check.
-        assert.ok(markersAfter.length === 0 || true,
-            'Markers may or may not be zero depending on other extensions');
-        console.log(`    [INFO] Markers after Clear Markers: ${markersAfter.length}`);
+        // NOTE: other extensions may still contribute markers; log the count.
+        console.log(`    [INFO] markers after Clear Markers: ${markersAfter.length}`);
     });
 
     it('ESC on bad() reports a verification failure', async function () {
-        // NOTE: This test requires the server to run ESC, not just --check.
-        // bad() has ensures \result < 0 but returns x > 0 — ESC should report
-        // a postcondition violation.
+        // bad() has ensures \result < 0 but returns x > 0 — ESC must fail.
         const ok = await runCommand('OpenJML: Run ESC');
-        if (!ok) { console.log('    [SKIP] Run ESC command unavailable'); this.skip(); return; }
-
+        if (!ok) noteSkip(this, 'Run ESC command unavailable — server may not be running');
         await VSBrowser.instance.driver.sleep(5_000);
-
-        const markers = await waitForDiagnostics('JmlErrors', 1, DIAG_WAIT_S * 1_000);
-        if (markers.length === 0) {
-            console.log('    [SKIP] No ESC diagnostics — server may not be running');
-            this.skip(); return;
-        }
+        const markers = await waitForDiagnostics(this, 1, DIAG_WAIT_MS);
+        if (markers.length === 0)
+            noteSkip(this, 'no ESC diagnostics — server may not be running');
         assert.ok(markers.length >= 1,
             'Expected at least one verification failure marker from ESC on bad()');
     });
