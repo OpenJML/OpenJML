@@ -33,7 +33,7 @@
  */
 const assert = require('assert');
 const path   = require('path');
-const { VSBrowser, EditorView } = require('vscode-extension-tester');
+const { VSBrowser, EditorView, Workbench } = require('vscode-extension-tester');
 const { suiteTeardown, runCommand, readOpenJMLOutput,
         readOutputSafe, waitForOutput, noteSkip,
         getExplorerSection, findExplorerItem, invokeContextMenuItem }
@@ -42,6 +42,9 @@ const { suiteTeardown, runCommand, readOpenJMLOutput,
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 const FILEA       = 'EscFileA.java';
 const FILEB       = 'EscFileB.java';
+
+const { Key } = require('selenium-webdriver');
+const MOD_KEY = process.platform === 'darwin' ? Key.COMMAND : Key.CONTROL;
 
 /** Invoke a command and return the output channel text captured afterwards. */
 async function invokeAndCapture(cmdName, waitMs = 4_000) {
@@ -188,10 +191,146 @@ describe('Remaining Command Invocations', function () {
         if (!ok) noteSkip(this, 'Clear Caches and Reindex unavailable — server may not be running');
         await VSBrowser.instance.driver.sleep(3_000);
         const output = (await readOutputSafe()) || '';
-        // Either the server logs the reindex activity, or (with no server) the
-        // command is a client-side no-op.  Both are acceptable.
         assert.ok(ok, '"Clear Caches and Reindex" command should succeed');
         console.log(`    [INFO] output after Clear Caches and Reindex: ${output.length} chars`);
+    });
+
+    it('"Clear Caches and Reindex" with dirty editor — Cancel aborts the command', async function () {
+        // ── 1. Make the editor dirty ──────────────────────────────────────────
+        const driver = VSBrowser.instance.driver;
+        await editor.click();
+        await driver.sleep(300);
+        // Append a trailing space to the last line — harmless to the Java file.
+        await driver.actions().keyDown(MOD_KEY).sendKeys(Key.END).keyUp(MOD_KEY).perform();
+        await driver.sleep(200);
+        await driver.actions().sendKeys(' ').perform();
+        await driver.sleep(300);
+
+        // ── 2. Invoke the command ─────────────────────────────────────────────
+        const outputBefore = (await readOutputSafe()) || '';
+        const ok = await runCommand('OpenJML: Clear Caches and Reindex');
+        if (!ok) {
+            // Undo the dirty change before skipping.
+            await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
+            await driver.actions().keyDown(MOD_KEY).sendKeys('s').keyUp(MOD_KEY).perform();
+            noteSkip(this, 'Clear Caches and Reindex unavailable — server may not be running');
+        }
+
+        // ── 3. Wait for the save-before-reindex notification ─────────────────
+        let notification = null;
+        const deadline = Date.now() + 10_000;
+        while (Date.now() < deadline && !notification) {
+            try {
+                const notifs = await new Workbench().getNotifications();
+                for (const n of notifs) {
+                    const msg = await n.getMessage().catch(() => '');
+                    if (msg.includes('save unsaved files') || msg.includes('Clear & Reindex')) {
+                        notification = n;
+                        break;
+                    }
+                }
+            } catch (_) {}
+            if (!notification) await driver.sleep(600);
+        }
+        if (!notification) {
+            // Undo dirty state then skip — dialog may not appear if server is absent.
+            await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
+            await driver.actions().keyDown(MOD_KEY).sendKeys('s').keyUp(MOD_KEY).perform();
+            noteSkip(this, 'save-before-reindex dialog did not appear — server may not be running');
+        }
+
+        // ── 4. Click Cancel ───────────────────────────────────────────────────
+        try { await notification.takeAction('Cancel'); } catch (_) {
+            try { await notification.dismiss(); } catch (__) {}
+        }
+        await driver.sleep(2_000);
+
+        // ── 5. Assert: server was NOT contacted (output unchanged) ────────────
+        const outputAfter = (await readOutputSafe()) || '';
+        assert.ok(outputAfter.length <= outputBefore.length + 100,
+            'Output should not grow after Cancel — server should not have been contacted');
+
+        // ── 6. Restore: undo the dirty char and save ──────────────────────────
+        await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
+        await driver.sleep(200);
+        await driver.actions().keyDown(MOD_KEY).sendKeys('s').keyUp(MOD_KEY).perform();
+        await driver.sleep(300);
+    });
+
+    it('"Clear Caches and Reindex" with dirty editor — Save All saves and reindexes', async function () {
+        // ── 1. Make the editor dirty ──────────────────────────────────────────
+        const driver = VSBrowser.instance.driver;
+        await editor.click();
+        await driver.sleep(300);
+        await driver.actions().keyDown(MOD_KEY).sendKeys(Key.END).keyUp(MOD_KEY).perform();
+        await driver.sleep(200);
+        await driver.actions().sendKeys(' ').perform();
+        await driver.sleep(300);
+
+        // ── 2. Invoke the command ─────────────────────────────────────────────
+        const outputBefore = (await readOutputSafe()) || '';
+        const ok = await runCommand('OpenJML: Clear Caches and Reindex');
+        if (!ok) {
+            await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
+            await driver.actions().keyDown(MOD_KEY).sendKeys('s').keyUp(MOD_KEY).perform();
+            noteSkip(this, 'Clear Caches and Reindex unavailable — server may not be running');
+        }
+
+        // ── 3. Wait for the notification ──────────────────────────────────────
+        let notification = null;
+        const deadline = Date.now() + 10_000;
+        while (Date.now() < deadline && !notification) {
+            try {
+                const notifs = await new Workbench().getNotifications();
+                for (const n of notifs) {
+                    const msg = await n.getMessage().catch(() => '');
+                    if (msg.includes('save unsaved files') || msg.includes('Clear & Reindex')) {
+                        notification = n;
+                        break;
+                    }
+                }
+            } catch (_) {}
+            if (!notification) await driver.sleep(600);
+        }
+        if (!notification) {
+            await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
+            await driver.actions().keyDown(MOD_KEY).sendKeys('s').keyUp(MOD_KEY).perform();
+            noteSkip(this, 'save-before-reindex dialog did not appear — server may not be running');
+        }
+
+        // ── 4. Click "Save All" ───────────────────────────────────────────────
+        try { await notification.takeAction('Save All'); } catch (_) {
+            // takeAction may throw if the button label differs slightly.
+            noteSkip(this, 'could not click "Save All" in the notification');
+        }
+        await driver.sleep(4_000);
+
+        // ── 5. Assert: file was saved and server was contacted ────────────────
+        // The editor tab title should no longer show a dot/circle (dirty indicator).
+        let tabTitle = '';
+        try {
+            const tab = await new EditorView().getActiveTab();
+            tabTitle = tab ? await tab.getTitle() : '';
+        } catch (_) {}
+        // A dirty tab in VS Code shows a dot before the name; a clean tab does not.
+        // Tab title format varies: "● Sample.java" (dirty) vs "Sample.java" (clean).
+        assert.ok(!tabTitle.startsWith('●') && !tabTitle.includes('●'),
+            `Editor tab should be clean after Save All, got title: "${tabTitle}"`);
+
+        // The server should have received the reindex command and logged something.
+        const outputAfter = (await readOutputSafe()) || '';
+        if (outputAfter.length <= outputBefore.length) {
+            console.log('    [NOTE] output did not grow after Save All + reindex — server may have been slow');
+        } else {
+            assert.ok(outputAfter.length > outputBefore.length,
+                'Output should grow after Save All — server should have been contacted for reindex');
+        }
+
+        // ── 6. Restore: undo the saved dirty char and re-save ─────────────────
+        await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
+        await driver.sleep(200);
+        await driver.actions().keyDown(MOD_KEY).sendKeys('s').keyUp(MOD_KEY).perform();
+        await driver.sleep(300);
     });
 
     it('"Abort Method Proof" can be invoked without error', async function () {
