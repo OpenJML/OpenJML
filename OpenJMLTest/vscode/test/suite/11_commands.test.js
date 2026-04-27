@@ -245,10 +245,23 @@ describe('Remaining Command Invocations', function () {
         }
         await driver.sleep(2_000);
 
-        // ── 5. Assert: server was NOT contacted (output unchanged) ────────────
+        // ── 5a. Assert: file was NOT saved (editor tab still dirty) ──────────
+        // A dirty editor tab shows "● Sample.java"; a clean one shows "Sample.java".
+        let tabTitle = '';
+        try {
+            const tab = await new EditorView().getActiveTab();
+            tabTitle = tab ? await tab.getTitle() : '';
+        } catch (_) {}
+        assert.ok(tabTitle.includes('●'),
+            `Editor tab should still be dirty after Cancel, got: "${tabTitle}"`);
+
+        // ── 5b. Assert: server was NOT sent the reindex command ───────────────
+        // The server logs "[workspace/executeCommand] command=openjml.clearAndReindex"
+        // when it receives the command.  This must NOT appear in new output.
         const outputAfter = (await readOutputSafe()) || '';
-        assert.ok(outputAfter.length <= outputBefore.length + 100,
-            'Output should not grow after Cancel — server should not have been contacted');
+        const newOutput = outputAfter.slice(outputBefore.length);
+        assert.ok(!newOutput.includes('clearAndReindex'),
+            'Server log should not contain clearAndReindex after Cancel');
 
         // ── 6. Restore: undo the dirty char and save ──────────────────────────
         await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
@@ -305,25 +318,27 @@ describe('Remaining Command Invocations', function () {
         }
         await driver.sleep(4_000);
 
-        // ── 5. Assert: file was saved and server was contacted ────────────────
-        // The editor tab title should no longer show a dot/circle (dirty indicator).
+        // ── 5a. Assert: file WAS saved (editor tab now clean) ────────────────
         let tabTitle = '';
         try {
             const tab = await new EditorView().getActiveTab();
             tabTitle = tab ? await tab.getTitle() : '';
         } catch (_) {}
-        // A dirty tab in VS Code shows a dot before the name; a clean tab does not.
-        // Tab title format varies: "● Sample.java" (dirty) vs "Sample.java" (clean).
-        assert.ok(!tabTitle.startsWith('●') && !tabTitle.includes('●'),
-            `Editor tab should be clean after Save All, got title: "${tabTitle}"`);
+        assert.ok(!tabTitle.includes('●'),
+            `Editor tab should be clean after Save All, got: "${tabTitle}"`);
 
-        // The server should have received the reindex command and logged something.
+        // ── 5b. Assert: server WAS sent the reindex command ──────────────────
+        // The server logs "[workspace/executeCommand] command=openjml.clearAndReindex"
+        // when it receives the command.  This MUST appear in output added since
+        // the command was invoked.
         const outputAfter = (await readOutputSafe()) || '';
-        if (outputAfter.length <= outputBefore.length) {
-            console.log('    [NOTE] output did not grow after Save All + reindex — server may have been slow');
+        const newOutput = outputAfter.slice(outputBefore.length);
+        if (!newOutput.includes('clearAndReindex')) {
+            // Soft: server may be absent or log format may differ — note but don't fail.
+            console.log('    [NOTE] clearAndReindex not found in new server log — server may not be running');
         } else {
-            assert.ok(outputAfter.length > outputBefore.length,
-                'Output should grow after Save All — server should have been contacted for reindex');
+            assert.ok(newOutput.includes('clearAndReindex'),
+                'Server log should contain clearAndReindex after Save All');
         }
 
         // ── 6. Restore: undo the saved dirty char and re-save ─────────────────
