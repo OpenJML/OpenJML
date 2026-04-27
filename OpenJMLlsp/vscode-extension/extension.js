@@ -265,7 +265,7 @@ async function startClient() {
         documentSelector: [{ scheme: 'file', language: 'java' }, { scheme: 'file', language: 'jml' }],
         outputChannel,          // reuse our named channel; suppresses the auto-created one
         revealOutputChannelOn: RevealOutputChannelOn.Warn,
-        initializationOptions: { ...getSettings(), supportsActionMessages: true },
+        initializationOptions: { ...await getSettings(), supportsActionMessages: true },
         synchronize: {
             configurationSection: 'openjml',
         },
@@ -520,11 +520,56 @@ async function checkDirtyAndProceed(document) {
     return true;
 }
 
-function getSettings() {
+function resolveOutputDir(raw, defaultRelative, roots, sep) {
+    const trimmed = (raw || '').trim() || defaultRelative;
+    if (!trimmed) return '';
+    if (path.isAbsolute(trimmed)) return trimmed;
+    if (roots.length === 0) return '';
+    return roots.map(r => path.join(r, trimmed)).join(sep);
+}
+
+function resolveJavaOutputDir(roots, sep) {
+    const uri = vscode.window.activeTextEditor?.document?.uri;
+    const javaOut = vscode.workspace.getConfiguration('java', uri).get('project.outputPath', '');
+    return resolveOutputDir(javaOut, '', roots, sep);
+}
+
+/**
+ * Resolve the RAC output directory with the following priority:
+ *   1. openjml.racOutputDir (user-configured), if non-blank — resolved against roots
+ *   2. When no workspace folders are open: java.project.getSettings command (jdt.ls API)
+ *      which returns the absolute output path for the invisible temp project
+ *   3. java.project.outputPath scoped to the active document, resolved against roots
+ *   4. Default: roots[0]/bin, or '' if no roots are known
+ */
+async function getRacOutputDir(roots, sep, hasWorkspaceFolders) {
+    const userRac = (vscode.workspace.getConfiguration('openjml').get('racOutputDir', '') || '').trim();
+    if (userRac) return resolveOutputDir(userRac, '', roots, sep);
+    const uri = vscode.window.activeTextEditor?.document?.uri;
+    if (!hasWorkspaceFolders && uri) {
+        try {
+            const result = await vscode.commands.executeCommand(
+                'java.project.getSettings', uri.toString(), ['java.project.outputPath']);
+            const out = (result?.['java.project.outputPath'] || '').trim();
+            if (out) return out;
+        } catch (_) {}
+    }
+    const javaOut = (vscode.workspace.getConfiguration('java', uri).get('project.outputPath', '') || '').trim();
+    if (javaOut) return resolveOutputDir(javaOut, '', roots, sep);
+    return roots.length > 0 ? path.join(roots[0], 'bin') : '';
+}
+
+async function getSettings() {
     const cfg = vscode.workspace.getConfiguration('openjml');
     const sep = process.platform === 'win32' ? ';' : ':';
     const folders = vscode.workspace.workspaceFolders || [];
-    const workspaceFolderPaths = folders.map(f => f.uri.fsPath).join(sep);
+    // When no workspace folders are open, fall back to the active document's directory.
+    const activeFile = vscode.window.activeTextEditor?.document?.uri?.fsPath;
+    const fallbackDir = (folders.length === 0 && activeFile) ? path.dirname(activeFile) : null;
+    const roots = folders.length > 0
+        ? folders.map(f => f.uri.fsPath)
+        : (fallbackDir ? [fallbackDir] : []);
+    const workspaceFolderPaths = roots.join(sep);
     return {
         checkTriggerOn:          cfg.get('checkTriggerOn',          'edit'),
         escTriggerOn:            cfg.get('escTriggerOn',            'manual'),
@@ -533,8 +578,8 @@ function getSettings() {
 
         sourcePath:              cfg.get('sourcePath',              ''),
         classPath:               cfg.get('classPath',               ''),
-        javaOutputDir:           vscode.workspace.getConfiguration('java').get('project.outputPath', ''),
-        racOutputDir:            cfg.get('racOutputDir', '').trim(),
+        javaOutputDir:           resolveJavaOutputDir(roots, sep),
+        racOutputDir:            await getRacOutputDir(roots, sep, folders.length === 0),
         syntaxColoringScope:     cfg.get('syntaxColoringScope',     'preserve Java coloring'),
         syntaxColoringStrategy:  cfg.get('syntaxColoringStrategy',  'ast'),
         escEngine:               cfg.get('escEngine',               'fresh'),
@@ -560,22 +605,40 @@ function ts() {
  * When invoked from the editor title/context menu or command palette, both are
  * undefined and we fall back to the active editor's file.
  *
+ * Logs the resolved selection to the output channel for diagnostics.
  * Returns an array of fsPath strings, or null if no target can be determined.
  */
-function resolveTargetPaths(explorerUri, explorerSelection) {
+function currentSelection(cmdName, explorerUri, explorerSelection) {
+    if (outputChannel) {
+        outputChannel.appendLine(ts() + ' [' + cmdName + ' raw] uri='
+            + (explorerUri ? explorerUri.toString() : 'undefined')
+            + ' sel=' + (explorerSelection === undefined ? 'undefined'
+                       : explorerSelection === null      ? 'null'
+                       : JSON.stringify(explorerSelection.map ? explorerSelection.map(u => u.toString()) : explorerSelection)));
+    }
+    let paths = null;
+    let source;
     if (explorerSelection && explorerSelection.length > 0) {
-        return explorerSelection.map(u => u.fsPath || u.toString());
+        paths  = explorerSelection.map(u => u.fsPath || u.toString());
+        source = 'explorerSelection';
+    } else if (explorerUri) {
+        paths  = [explorerUri.fsPath || explorerUri.toString()];
+        source = 'explorerUri';
+    } else {
+        const editor = vscode.window.activeTextEditor;
+        if (editor && isJmlLike(editor.document.languageId)) {
+            paths  = [editor.document.uri.fsPath];
+            source = 'activeEditor';
+        }
     }
-    if (explorerUri) {
-        return [explorerUri.fsPath || explorerUri.toString()];
+    if (outputChannel) {
+        outputChannel.appendLine(ts() + ' [' + cmdName + '] source=' + (source || 'none')
+            + ' paths=' + (paths ? JSON.stringify(paths) : 'null'));
     }
-    // Fall back to the active editor.
-    const editor = vscode.window.activeTextEditor;
-    if (editor && isJmlLike(editor.document.languageId)) {
-        return [editor.document.uri.fsPath];
+    if (!paths) {
+        vscode.window.showWarningMessage('OpenJML: open a Java or JML file, or select one in the Explorer.');
     }
-    vscode.window.showWarningMessage('OpenJML: open a Java or JML file, or select one in the Explorer.');
-    return null;
+    return paths;
 }
 
 /**
@@ -617,31 +680,15 @@ async function activate(context) {
     // The server does NOT advertise openjml.runEsc in executeCommandProvider; if it did,
     // vscode-languageclient's ExecuteCommandFeature would auto-register the command and
     // invoke it with no arguments, so the URI would never reach the server.
-    const escCmd = vscode.commands.registerCommand('openjml.runEsc', async () => {
+    const escCmd = vscode.commands.registerCommand('openjml.runEsc',
+            async (explorerUri, explorerSelection) => {
         if (!client) { requireServer(); return; }
-        const editor = vscode.window.activeTextEditor;
-        if (!editor || !isJmlLike(editor.document.languageId)) {
-            vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC.');
-            return;
-        }
-
-        let doc = editor.document;
-        if (doc.languageId === 'jml') {
-            const javaUri = await resolveCompanionJavaUri(doc);
-            if (!javaUri) {
-                vscode.window.showWarningMessage('OpenJML: cannot find the companion .java file for this .jml spec.');
-                return;
-            }
-            doc = await vscode.workspace.openTextDocument(javaUri);
-        }
-
-        if (!await checkDirtyAndProceed(doc)) return;
-
-        const fsPath = doc.uri.fsPath;
+        const paths = currentSelection('runEsc', explorerUri, explorerSelection);
+        if (!paths) return;
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command:   CMD_RUN_ESC,
-                arguments: [...projectId(), fsPath],
+                arguments: [...projectId(), ...paths],
             });
             startEscPolling();
         } catch (err) {
@@ -655,7 +702,7 @@ async function activate(context) {
     const checkJmlCmd = vscode.commands.registerCommand('openjml.checkJml',
             async (explorerUri, explorerSelection) => {
         if (!client) { requireServer(); return; }
-        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        const paths = currentSelection('checkJml', explorerUri, explorerSelection);
         if (!paths) return;
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
@@ -711,7 +758,7 @@ async function activate(context) {
     const runEscSplitByFileCmd = vscode.commands.registerCommand('openjml.runEscSplitByFile',
             async (explorerUri, explorerSelection) => {
         if (!client) { requireServer(); return; }
-        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        const paths = currentSelection('runEscSplitByFile', explorerUri, explorerSelection);
         if (!paths) return;
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
@@ -730,7 +777,7 @@ async function activate(context) {
     const runEscSplitByMethodCmd = vscode.commands.registerCommand('openjml.runEscSplitByMethod',
             async (explorerUri, explorerSelection) => {
         if (!client) { requireServer(); return; }
-        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        const paths = currentSelection('runEscSplitByMethod', explorerUri, explorerSelection);
         if (!paths) return;
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
@@ -789,9 +836,9 @@ async function activate(context) {
     const racCmd = vscode.commands.registerCommand('openjml.runRac',
             async (explorerUri, explorerSelection) => {
         if (!client) { requireServer(); return; }
-        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        const paths = currentSelection('runRac', explorerUri, explorerSelection);
         if (!paths) return;
-        const outputDir = getSettings().racOutputDir || '';
+        const outputDir = (await getSettings()).racOutputDir || '';
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command:   CMD_RUN_RAC,
@@ -860,7 +907,7 @@ async function activate(context) {
         if (!client) { requireServer(); return; }
         const folders = vscode.workspace.workspaceFolders;
         const paths = explorerUri
-            ? resolveTargetPaths(explorerUri, explorerSelection)
+            ? currentSelection('indexProject', explorerUri, explorerSelection)
             : (folders ? folders.map(f => f.uri.fsPath) : null);
         if (!paths) {
             vscode.window.showWarningMessage('OpenJML: no folder to index.');
@@ -895,7 +942,7 @@ async function activate(context) {
     const clearMarkersSelectedCmd = vscode.commands.registerCommand('openjml.clearMarkersSelected',
             async (explorerUri, explorerSelection) => {
         if (!client) { requireServer(); return; }
-        const paths = resolveTargetPaths(explorerUri, explorerSelection);
+        const paths = currentSelection('clearMarkersSelected', explorerUri, explorerSelection);
         if (!paths) return;
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
@@ -1014,10 +1061,10 @@ async function activate(context) {
     // update its workspaceFolderPaths and re-register file watchers accordingly.
     // Workspace folders are not part of openjml.* config, so we send manually.
     context.subscriptions.push(
-        vscode.workspace.onDidChangeWorkspaceFolders(() => {
+        vscode.workspace.onDidChangeWorkspaceFolders(async () => {
             if (!client) return;
             client.sendNotification('workspace/didChangeConfiguration', {
-                settings: { openjml: getSettings() }
+                settings: { openjml: await getSettings() }
             });
         })
     );

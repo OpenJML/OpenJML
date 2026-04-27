@@ -137,24 +137,44 @@
           "group": "1_openjml@4"
         },
         {
-          "command": "openjml.runEscDir",
+          "command": "openjml.runEscSplitByFile",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@5"
         },
         {
-          "command": "openjml.runRac",
+          "command": "openjml.runEscSplitByMethod",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@6"
         },
         {
-          "command": "openjml.clearMarkers",
-          "when": "resourceLangId == java || resourceLangId == jml",
+          "command": "openjml.runEscDir",
           "group": "1_openjml@7"
         },
         {
           "command": "openjml.cancelEsc",
-          "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@8"
+        },
+        {
+          "command": "openjml.runRac",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@9"
+        },
+        {
+          "command": "openjml.clearMarkers",
+          "group": "1_openjml@10"
+        },
+        {
+          "command": "openjml.clearMarkersSelected",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@11"
+        },
+        {
+          "command": "openjml.indexProject",
+          "group": "1_openjml@12"
+        },
+        {
+          "command": "openjml.clearAndReindex",
+          "group": "1_openjml@13"
         }
       ],
       "editor/context": [
@@ -194,50 +214,53 @@
           "group": "1_openjml@7"
         },
         {
-          "command": "openjml.runRac",
-          "when": "resourceLangId == java || resourceLangId == jml",
+          "command": "openjml.cancelEsc",
           "group": "1_openjml@8"
         },
         {
-          "command": "openjml.clearMarkers",
+          "command": "openjml.runRac",
           "when": "resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@9"
         },
         {
-          "command": "openjml.cancelEsc",
-          "when": "resourceLangId == java || resourceLangId == jml",
+          "command": "openjml.clearMarkers",
           "group": "1_openjml@10"
+        },
+        {
+          "command": "openjml.clearMarkersSelected",
+          "when": "resourceLangId == java || resourceLangId == jml",
+          "group": "1_openjml@11"
         }
       ],
       "explorer/context": [
         {
           "command": "openjml.checkJml",
-          "when": "explorerResourceIsFolder || resourceLangId == java || resourceLangId == jml",
+          "when": "explorerResourceIsFolder || resourceExtname == .java || resourceExtname == .jml || resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@1"
         },
         {
           "command": "openjml.runEsc",
-          "when": "explorerResourceIsFolder || resourceLangId == java || resourceLangId == jml",
+          "when": "explorerResourceIsFolder || resourceExtname == .java || resourceExtname == .jml || resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@2"
         },
         {
           "command": "openjml.runEscSplitByFile",
-          "when": "explorerResourceIsFolder || resourceLangId == java || resourceLangId == jml",
+          "when": "explorerResourceIsFolder || resourceExtname == .java || resourceExtname == .jml || resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@3"
         },
         {
           "command": "openjml.runEscSplitByMethod",
-          "when": "explorerResourceIsFolder || resourceLangId == java || resourceLangId == jml",
+          "when": "explorerResourceIsFolder || resourceExtname == .java || resourceExtname == .jml || resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@4"
         },
         {
           "command": "openjml.runRac",
-          "when": "resourceLangId == java || resourceLangId == jml",
+          "when": "resourceExtname == .java || resourceExtname == .jml || resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@5"
         },
         {
           "command": "openjml.clearMarkersSelected",
-          "when": "explorerResourceIsFolder || resourceLangId == java || resourceLangId == jml",
+          "when": "explorerResourceIsFolder || resourceExtname == .java || resourceExtname == .jml || resourceLangId == java || resourceLangId == jml",
           "group": "1_openjml@6"
         },
         {
@@ -365,7 +388,7 @@
           ],
           "default": "ask",
           "order": 3,
-          "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, silently\n- `run` — always run ESC on the saved disk file without saving"
+          "markdownDescription": "What to do when ESC is invoked on a file with unsaved changes:\n- `ask` — prompt each time\n- `save` — always save the file first, then run ESC on disk\n- `run` — always run ESC on the current editor content without saving"
         },
         "openjml.toolOptions": {
           "type": "array",
