@@ -333,13 +333,8 @@ describe('Remaining Command Invocations', function () {
         // the command was invoked.
         const outputAfter = (await readOutputSafe()) || '';
         const newOutput = outputAfter.slice(outputBefore.length);
-        if (!newOutput.includes('clearAndReindex')) {
-            // Soft: server may be absent or log format may differ — note but don't fail.
-            console.log('    [NOTE] clearAndReindex not found in new server log — server may not be running');
-        } else {
-            assert.ok(newOutput.includes('clearAndReindex'),
-                'Server log should contain clearAndReindex after Save All');
-        }
+        assert.ok(newOutput.includes('clearAndReindex'),
+            'Server log should contain clearAndReindex after Save All');
 
         // ── 6. Restore: undo the saved dirty char and re-save ─────────────────
         await driver.actions().keyDown(MOD_KEY).sendKeys('z').keyUp(MOD_KEY).perform();
