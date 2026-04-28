@@ -1448,9 +1448,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             // companion .java AST (whose walker emits tokens with positions relative to
             // the .jml source file when it visits JML spec nodes in that file).
             ASTCache.Entry entry = cache.get(uri);
+            if (entry == null) entry = cache.getNav(uri);
             if (entry == null && uri.endsWith(".jml")) {
                 String javaUri = resolveCompanionJavaUri(uri, content);
-                if (javaUri != null) entry = cache.get(javaUri);
+                if (javaUri != null) {
+                    entry = cache.get(javaUri);
+                    if (entry == null) entry = cache.getNav(javaUri);
+                }
             }
             ServerLog.serverLog("[getSemanticTokens] uri=" + uri
                     + " astEntry=" + (entry != null ? "present" : "absent")
@@ -1688,6 +1692,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         for (ProjectConfig cfg : configs) {
             if (cfg.id == null) continue;
             OpenJMLSettings s = new OpenJMLSettings(globalSettings);
+            s.projectId  = cfg.id;
             s.sourcePath = OpenJMLSettings.expandEnvVarsInPath(cfg.sourcePath != null ? cfg.sourcePath : "");
             s.classPath  = OpenJMLSettings.expandEnvVarsInPath(cfg.classPath  != null ? cfg.classPath  : "");
             s.javaOutputDir = cfg.javaOutputDir != null ? cfg.javaOutputDir : "";

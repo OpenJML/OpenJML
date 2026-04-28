@@ -647,8 +647,8 @@ public class CheckRunner {
         api.setProofResultListener(prc);
         IAPI.IASTListener astListener = (ctx, jfo, ast) -> {
             String uri = jfo.toUri().normalize().toString();
-            AST_CACHE.put(uri, ctx, (JmlCompilationUnit) ast);
-            cacheSpecsCu((JmlCompilationUnit) ast, ctx, null, null);
+            AST_CACHE.put(uri, settings.projectId, ctx, (JmlCompilationUnit) ast);
+            cacheSpecsCu((JmlCompilationUnit) ast, ctx, null, null, settings.projectId);
         };
         api.setASTListener(astListener);
         if (onApiReady != null) onApiReady.accept(api);
@@ -782,8 +782,8 @@ public class CheckRunner {
         IAPI.IASTListener escAstListener = (ctx, jfo, ast) -> {
             String jfoUri = jfo.toUri().normalize().toString();
             String realUri = finalAllPathToRealUri.getOrDefault(jfo.getName(), jfoUri);
-            AST_CACHE.put(realUri, ctx, (JmlCompilationUnit) ast);
-            cacheSpecsCu((JmlCompilationUnit) ast, ctx, finalAllPathToRealUri, null);
+            AST_CACHE.put(realUri, settings.projectId, ctx, (JmlCompilationUnit) ast);
+            cacheSpecsCu((JmlCompilationUnit) ast, ctx, finalAllPathToRealUri, null, settings.projectId);
         };
         api.setASTListener(escAstListener);
         if (onApiReady != null) onApiReady.accept(api);
@@ -911,8 +911,8 @@ public class CheckRunner {
                 String realUri = finalAllPathToRealUri.getOrDefault(jfo.getName(), null);
                 if (realUri == null && !jfoUri.startsWith(legacyTempPrefix)) realUri = jfoUri;
                 if (realUri == null) return;
-                AST_CACHE.put(realUri, ctx, (JmlCompilationUnit) ast);
-                cacheSpecsCu((JmlCompilationUnit) ast, ctx, finalAllPathToRealUri, legacyTempPrefix);
+                AST_CACHE.put(realUri, settings.projectId, ctx, (JmlCompilationUnit) ast);
+                cacheSpecsCu((JmlCompilationUnit) ast, ctx, finalAllPathToRealUri, legacyTempPrefix, settings.projectId);
             };
             api.setASTListener(legacyAstListener);
             if (onApiReady != null) onApiReady.accept(api);
@@ -1650,6 +1650,12 @@ public class CheckRunner {
     private static void cacheSpecsCu(JmlCompilationUnit javaAst, Context ctx,
                                      Map<String, String> tempUriToRealUri,
                                      String tempDirPrefix) {
+        cacheSpecsCu(javaAst, ctx, tempUriToRealUri, tempDirPrefix, "");
+    }
+
+    private static void cacheSpecsCu(JmlCompilationUnit javaAst, Context ctx,
+                                     Map<String, String> tempUriToRealUri,
+                                     String tempDirPrefix, String projectId) {
         JmlCompilationUnit specs = javaAst.specsCompilationUnit;
         if (specs == null || specs == javaAst || specs.sourcefile == null) return;
         String specsUri = specs.sourcefile.toUri().toString();
@@ -1662,7 +1668,7 @@ public class CheckRunner {
             }
             // else: real path found via sourcepath — use directly
         }
-        AST_CACHE.put(specsUri, ctx, specs);
+        AST_CACHE.put(specsUri, projectId, ctx, specs);
     }
 
     /**
@@ -1802,8 +1808,8 @@ public class CheckRunner {
                         realUri = jfoUri;
                     }
                     JmlCompilationUnit cu = (JmlCompilationUnit) ast;
-                    AST_CACHE.put(realUri, astCtx, cu);
-                    cacheSpecsCu(cu, astCtx, mockUriToRealUri, null);
+                    AST_CACHE.put(realUri, settings.projectId, astCtx, cu);
+                    cacheSpecsCu(cu, astCtx, mockUriToRealUri, null, settings.projectId);
                     try {
                         Path p = java.nio.file.Paths.get(java.net.URI.create(jfoUri));
                         compiledPathToRealUri.put(p.toString(), realUri);
@@ -1822,17 +1828,17 @@ public class CheckRunner {
             if (capturedAst[0] != null) {
                 if ("--check".equals(modeFlag)) {
                     if (rc == 0) {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                        AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0],
                                       api, listener, primaryArg);
                     } else {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                        AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0]);
                     }
-                    cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null);
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null, settings.projectId);
                 } else if ("--esc".equals(modeFlag)) {
-                    ASTCache.Entry existing = AST_CACHE.get(uri);
+                    ASTCache.Entry existing = AST_CACHE.get(uri, settings.projectId);
                     if (existing == null || !existing.supportsDoEsc()) {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
-                        cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null);
+                        AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0]);
+                        cacheSpecsCu(capturedAst[0], capturedCtx[0], mockUriToRealUri, null, settings.projectId);
                     }
                 }
             }
@@ -1932,8 +1938,8 @@ public class CheckRunner {
                     }
                     if (realUri != null) {
                         JmlCompilationUnit cu = (JmlCompilationUnit) ast;
-                        AST_CACHE.put(realUri, astCtx, cu);
-                        cacheSpecsCu(cu, astCtx, tempUriToRealUri, tempDirPrefix);
+                        AST_CACHE.put(realUri, settings.projectId, astCtx, cu);
+                        cacheSpecsCu(cu, astCtx, tempUriToRealUri, tempDirPrefix, settings.projectId);
                         // Record that this file was compiled so we can extract its diags.
                         try {
                             Path p = java.nio.file.Paths.get(java.net.URI.create(jfoUri));
@@ -1954,17 +1960,17 @@ public class CheckRunner {
             if (capturedAst[0] != null) {
                 if ("--check".equals(modeFlag)) {
                     if (rc == 0) {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                        AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0],
                                       api, listener, primaryArg);
                     } else {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                        AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0]);
                     }
-                    cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix);
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix, settings.projectId);
                 } else if ("--esc".equals(modeFlag)) {
-                    ASTCache.Entry existing = AST_CACHE.get(uri);
+                    ASTCache.Entry existing = AST_CACHE.get(uri, settings.projectId);
                     if (existing == null || !existing.supportsDoEsc()) {
-                        AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
-                        cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix);
+                        AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0]);
+                        cacheSpecsCu(capturedAst[0], capturedCtx[0], tempUriToRealUri, tempDirPrefix, settings.projectId);
                     }
                 }
             }
@@ -2092,8 +2098,8 @@ public class CheckRunner {
             } else {
                 // Additional files pulled in via -sourcepath: store basic entry.
                 JmlCompilationUnit cu = (JmlCompilationUnit) ast;
-                AST_CACHE.put(jfoUri, ctx, cu);
-                cacheSpecsCu(cu, ctx, null, null);
+                AST_CACHE.put(jfoUri, settings.projectId, ctx, cu);
+                cacheSpecsCu(cu, ctx, null, null, settings.projectId);
             }
         };
         api.setASTListener(astListener);
@@ -2109,17 +2115,17 @@ public class CheckRunner {
         if (capturedAst[0] != null) {
             if ("--check".equals(modeFlag)) {
                 if (rc == 0) {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0],
+                    AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0],
                                   api, listener, filePath);
                 } else {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
+                    AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0]);
                 }
-                cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null);
+                cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, settings.projectId);
             } else if ("--esc".equals(modeFlag)) {
-                ASTCache.Entry existing = AST_CACHE.get(uri);
+                ASTCache.Entry existing = AST_CACHE.get(uri, settings.projectId);
                 if (existing == null || !existing.supportsDoEsc()) {
-                    AST_CACHE.put(uri, capturedCtx[0], capturedAst[0]);
-                    cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null);
+                    AST_CACHE.put(uri, settings.projectId, capturedCtx[0], capturedAst[0]);
+                    cacheSpecsCu(capturedAst[0], capturedCtx[0], null, null, settings.projectId);
                 }
             }
         }
@@ -2162,7 +2168,7 @@ public class CheckRunner {
      */
     public static CheckResult runDoEscMethod(String uri, String methodName,
                                               OpenJMLSettings settings) {
-        ASTCache.Entry entry = AST_CACHE.get(uri);
+        ASTCache.Entry entry = AST_CACHE.get(uri, settings.projectId);
         if (entry == null || !entry.supportsDoEsc()) {
             ServerLog.serverLog("[CheckRunner.runDoEscMethod] no cached IAPI for " + uri
                     + " — falling back to fresh engine");
@@ -2215,7 +2221,7 @@ public class CheckRunner {
     public static CompletableFuture<CheckResult> runDoEscFileAsync(
             String uri, OpenJMLSettings settings,
             Consumer<MethodEscResult> onMethodComplete) {
-        ASTCache.Entry entry = AST_CACHE.get(uri);
+        ASTCache.Entry entry = AST_CACHE.get(uri, settings.projectId);
         if (entry == null || !entry.supportsDoEsc()) {
             ServerLog.serverLog("[CheckRunner.runDoEscFileAsync] no cached IAPI for " + uri
                     + " — falling back to fresh engine");

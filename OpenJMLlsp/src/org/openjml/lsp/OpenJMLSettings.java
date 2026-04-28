@@ -45,6 +45,13 @@ public class OpenJMLSettings {
     public volatile List<ProjectConfig> projects;
 
     /**
+     * This instance's own project ID.  Set on <em>per-project</em> copies built
+     * by {@link OpenJMLTextDocumentService#updateProjectSettings}; {@code ""}
+     * (the {@link #WORKSPACE_PROJECT_ID} sentinel) on {@code globalSettings}.
+     */
+    public volatile String projectId = WORKSPACE_PROJECT_ID;
+
+    /**
      * This instance's own source-folder roots.  Set on <em>per-project</em>
      * copies built by {@link OpenJMLTextDocumentService#updateProjectSettings};
      * never set on {@code globalSettings}.
@@ -114,6 +121,7 @@ public class OpenJMLSettings {
      * read-only tool invocations).
      */
     public OpenJMLSettings(OpenJMLSettings src) {
+        this.projectId      = src.projectId;
         this.specsPath      = src.specsPath;
         this.sourcePath     = src.sourcePath;
         this.classPath      = src.classPath;

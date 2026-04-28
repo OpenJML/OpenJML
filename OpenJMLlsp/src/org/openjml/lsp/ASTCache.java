@@ -168,16 +168,42 @@ public class ASTCache {
     // Live tier — user-triggered --check / --esc runs
     // -----------------------------------------------------------------------
 
-    /** URI → latest attributed AST from a user-triggered check. */
-    private final Map<String, Entry> liveCache = new ConcurrentHashMap<>();
+    /**
+     * Per-project container for live-tier AST cache and declaration index.
+     *
+     * <p>All entries in one {@code LiveSection} were produced by user-triggered
+     * {@code --check} or {@code --esc} runs on files belonging to the same
+     * project.  Partitioning prevents symbol-identity pollution across projects
+     * that happen to have files with identical URIs (e.g. two projects sharing
+     * a dependency jar).
+     *
+     * <p>The key in {@link ASTCache#liveSections} is the project ID, or
+     * {@code ""} ({@link OpenJMLSettings#WORKSPACE_PROJECT_ID}) for generic
+     * LSP clients (VS Code) that do not supply an explicit project ID.
+     */
+    private static class LiveSection {
+        /** URI → latest attributed AST from a user-triggered check. */
+        final Map<String, Entry> liveCache = new ConcurrentHashMap<>();
+        /**
+         * Symbol → declaration location from user-triggered checks.
+         * Uses object identity (Symbol does not override equals/hashCode).
+         */
+        final Map<Symbol, SymbolLocation> declarationIndex = new ConcurrentHashMap<>();
+    }
 
     /**
-     * Cross-file Symbol → declaration location from user-triggered checks.
-     * Uses object identity (Symbol does not override equals/hashCode), which is
-     * correct: within one IAPI invocation, declaration and use-site nodes share
-     * the same Symbol instances.
+     * Project ID → its {@link LiveSection}.
+     *
+     * <p>The key is the project ID ({@code ""} for workspace-level / VS Code).
+     * A section is created on the first {@link #put} for a given project.
      */
-    private final Map<Symbol, SymbolLocation> liveDeclarationIndex = new ConcurrentHashMap<>();
+    private final Map<String, LiveSection> liveSections = new ConcurrentHashMap<>();
+
+    /** Return (or create) the live section for {@code projectId}. */
+    private LiveSection liveSection(String projectId) {
+        String key = (projectId != null && !projectId.isEmpty()) ? projectId : "";
+        return liveSections.computeIfAbsent(key, k -> new LiveSection());
+    }
 
     // -----------------------------------------------------------------------
     // Nav-tier writes
@@ -240,14 +266,35 @@ public class ASTCache {
 
     /**
      * Return the nav-tier entry for {@code uri}, searching all sections and
-     * falling back to the live cache if absent.
+     * falling back to all live sections if absent.
      */
     public Entry getNav(String uri) {
+        return getNav(uri, null);
+    }
+
+    /**
+     * Return the nav-tier entry for {@code uri}.
+     *
+     * <p>Search order:
+     * <ol>
+     *   <li>The named project's nav section (if {@code projectId} is non-empty).</li>
+     *   <li>All other nav sections.</li>
+     *   <li>All live sections via {@link #get(String, String)}.</li>
+     * </ol>
+     */
+    public Entry getNav(String uri, String projectId) {
+        if (projectId != null && !projectId.isEmpty()) {
+            NavSection own = navSections.get(projectId);
+            if (own != null) {
+                Entry e = own.navCache.get(uri);
+                if (e != null) return e;
+            }
+        }
         for (NavSection s : navSections.values()) {
             Entry e = s.navCache.get(uri);
             if (e != null) return e;
         }
-        return liveCache.get(uri);
+        return get(uri, projectId);
     }
 
     /**
@@ -259,7 +306,7 @@ public class ASTCache {
         if (!navSections.isEmpty()) {
             navSections.values().forEach(s -> s.navCache.forEach(action));
         } else {
-            liveCache.forEach(action);
+            liveSections.values().forEach(s -> s.liveCache.forEach(action));
         }
     }
 
@@ -273,7 +320,7 @@ public class ASTCache {
         if (!navSections.isEmpty()) {
             return navSections.values().stream().anyMatch(s -> s.navCache.containsKey(uri));
         }
-        return liveCache.containsKey(uri);
+        return liveSections.values().stream().anyMatch(s -> s.liveCache.containsKey(uri));
     }
 
     // -----------------------------------------------------------------------
@@ -283,24 +330,34 @@ public class ASTCache {
     /**
      * Store (or overwrite) the AST for {@code uri} in the <em>live</em> tier,
      * without a stored IAPI (init-tier, failed check, or workspace-index).
+     * Uses the workspace-level section (projectId = "").
      */
     public void put(String uri, Context ctx, JmlCompilationUnit ast) {
-        storeInLive(uri, Entry.basic(ast, ctx));
+        storeInLive("", uri, Entry.basic(ast, ctx));
     }
 
     /**
-     * Store (or overwrite) the AST for {@code uri} in the <em>live</em> tier,
-     * including the IAPI instance for in-process doESC (successful check only).
+     * Store (or overwrite) the AST for {@code uri} in the <em>live</em> tier
+     * under the given {@code projectId}, without a stored IAPI.
      */
-    public void put(String uri, Context ctx, JmlCompilationUnit ast,
-                    IAPI api, LspDiagnosticListener listener, String sourcePath) {
-        storeInLive(uri, Entry.withApi(ast, ctx, api, listener, sourcePath));
+    public void put(String uri, String projectId, Context ctx, JmlCompilationUnit ast) {
+        storeInLive(projectId, uri, Entry.basic(ast, ctx));
     }
 
-    private void storeInLive(String uri, Entry entry) {
-        removeLiveDeclarationsForUri(uri);
-        liveCache.put(uri, entry);
-        new DeclarationIndexer(liveDeclarationIndex, uri).scan(entry.ast());
+    /**
+     * Store (or overwrite) the AST for {@code uri} in the <em>live</em> tier
+     * under the given {@code projectId}, including the IAPI for in-process doESC.
+     */
+    public void put(String uri, String projectId, Context ctx, JmlCompilationUnit ast,
+                    IAPI api, LspDiagnosticListener listener, String sourcePath) {
+        storeInLive(projectId, uri, Entry.withApi(ast, ctx, api, listener, sourcePath));
+    }
+
+    private void storeInLive(String projectId, String uri, Entry entry) {
+        LiveSection section = liveSection(projectId);
+        section.declarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
+        section.liveCache.put(uri, entry);
+        new DeclarationIndexer(section.declarationIndex, uri).scan(entry.ast());
     }
 
     // -----------------------------------------------------------------------
@@ -309,10 +366,30 @@ public class ASTCache {
 
     /**
      * Return the cached entry for {@code uri} from the live tier,
-     * or {@code null} if absent.
+     * searching all project sections.  Returns {@code null} if absent.
      */
     public Entry get(String uri) {
-        return liveCache.get(uri);
+        for (LiveSection s : liveSections.values()) {
+            Entry e = s.liveCache.get(uri);
+            if (e != null) return e;
+        }
+        return null;
+    }
+
+    /**
+     * Return the cached live-tier entry for {@code uri}, checking
+     * {@code projectId}'s own section first, then all other sections.
+     * Returns {@code null} if absent.
+     */
+    public Entry get(String uri, String projectId) {
+        if (projectId != null && !projectId.isEmpty()) {
+            LiveSection own = liveSections.get(projectId);
+            if (own != null) {
+                Entry e = own.liveCache.get(uri);
+                if (e != null) return e;
+            }
+        }
+        return get(uri);
     }
 
     /**
@@ -375,7 +452,11 @@ public class ASTCache {
             SymbolLocation loc = s.declarationIndex.get(sym);
             if (loc != null) return loc;
         }
-        SymbolLocation live = liveDeclarationIndex.get(sym);
+        SymbolLocation live = null;
+        for (LiveSection ls : liveSections.values()) {
+            live = ls.declarationIndex.get(sym);
+            if (live != null) break;
+        }
         if (live != null) return live;
 
         // Identity lookup failed: the cursor symbol comes from a different IAPI
@@ -419,8 +500,10 @@ public class ASTCache {
             s.navCache.remove(uri);
             s.declarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
         });
-        liveCache.remove(uri);
-        removeLiveDeclarationsForUri(uri);
+        liveSections.values().forEach(s -> {
+            s.liveCache.remove(uri);
+            s.declarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
+        });
     }
 
     /**
@@ -429,8 +512,7 @@ public class ASTCache {
      */
     public void clear() {
         navSections.clear();
-        liveCache.clear();
-        liveDeclarationIndex.clear();
+        liveSections.clear();
     }
 
     // -----------------------------------------------------------------------
@@ -438,12 +520,12 @@ public class ASTCache {
     // -----------------------------------------------------------------------
 
     /**
-     * Iterate over live-tier entries (URI → Entry).
+     * Iterate over live-tier entries (URI → Entry) across all project sections.
      * Used for operations that require a shared IAPI context (go-to-definition,
      * cross-file references).
      */
     public void forEach(java.util.function.BiConsumer<String, Entry> action) {
-        liveCache.forEach(action);
+        liveSections.values().forEach(s -> s.liveCache.forEach(action));
     }
 
     /** Returns the set of project IDs currently held in nav sections (for diagnostics). */
@@ -455,8 +537,10 @@ public class ASTCache {
         navSections.forEach((pid, section) -> action.accept(pid, section.navCache.keySet()));
     }
 
-    /** Returns the number of entries in the live declaration index (for diagnostics). */
-    public int liveDeclarationCount() { return liveDeclarationIndex.size(); }
+    /** Returns the total number of entries across all live declaration indexes (for diagnostics). */
+    public int liveDeclarationCount() {
+        return liveSections.values().stream().mapToInt(s -> s.declarationIndex.size()).sum();
+    }
 
     /**
      * Iterate over all indexed declarations from all nav sections and the live tier.
@@ -505,11 +589,12 @@ public class ASTCache {
 
         // Live index covers files checked individually since the last project-wide check.
         // Skip URIs already in a nav section; apply the project filter to URIs.
-        liveDeclarationIndex.forEach((sym, loc) -> {
-            if (navCoveredUris.contains(loc.uri())) return;
-            if (projectRoot != null && !uriUnderRoot(loc.uri(), projectRoot)) return;
-            action.accept(sym, loc);
-        });
+        liveSections.values().forEach(ls ->
+            ls.declarationIndex.forEach((sym, loc) -> {
+                if (navCoveredUris.contains(loc.uri())) return;
+                if (projectRoot != null && !uriUnderRoot(loc.uri(), projectRoot)) return;
+                action.accept(sym, loc);
+            }));
     }
 
     /**
@@ -537,20 +622,17 @@ public class ASTCache {
         }
         // Live-tier: include entries under any of this project's source roots.
         List<String> roots = section != null ? section.rootPaths : List.of();
-        liveDeclarationIndex.forEach((sym, loc) -> {
-            if (navCoveredUris.contains(loc.uri())) return;
-            if (roots.stream().noneMatch(r -> uriUnderRoot(loc.uri(), r))) return;
-            action.accept(sym, loc);
-        });
+        liveSections.values().forEach(ls ->
+            ls.declarationIndex.forEach((sym, loc) -> {
+                if (navCoveredUris.contains(loc.uri())) return;
+                if (roots.stream().noneMatch(r -> uriUnderRoot(loc.uri(), r))) return;
+                action.accept(sym, loc);
+            }));
     }
 
     // -----------------------------------------------------------------------
     // Private helpers
     // -----------------------------------------------------------------------
-
-    private void removeLiveDeclarationsForUri(String uri) {
-        liveDeclarationIndex.entrySet().removeIf(e -> uri.equals(e.getValue().uri()));
-    }
 
     /**
      * Returns {@code true} if the file-system path extracted from {@code uri}
