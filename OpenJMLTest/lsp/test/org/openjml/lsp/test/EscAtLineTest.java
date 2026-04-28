@@ -206,9 +206,10 @@ public class EscAtLineTest extends ProtocolTestBase {
 
         int assertLine = lineOf("assert 4==0");
         int errorLine  = escAtLineAndGetErrorLine(uri, assertLine);
-        // OpenJML bug: the diagnostic for a JML assert inside a local-class method is
-        // reported one line early (at the method declaration) instead of at the assert
-        // statement itself.  Accommodate by expecting assertLine - 1.
+        // OpenJML limitation: when running --esc --method on a local-class method, OpenJML
+        // emits a WARNING at the method declaration line stating it cannot check embedded
+        // methods in isolation.  That warning is the first diagnostic returned, one line
+        // before the actual assert statement.  Accommodate by expecting assertLine - 1.
         assertEquals("@line in localMethod body must ESC localMethod (not enclosing withLocal)",
                 assertLine - 1, errorLine);
     }
@@ -223,9 +224,9 @@ public class EscAtLineTest extends ProtocolTestBase {
 
         int assertLine = lineOf("assert 5==0");
         int errorLine  = escAtLineAndGetErrorLine(uri, assertLine);
-        // OpenJML bug: the diagnostic for a JML assert inside an anonymous-class method
-        // is reported one line early (at the method declaration) instead of at the assert
-        // statement itself.  Accommodate by expecting assertLine - 1.
+        // OpenJML limitation: same as localMethod — OpenJML emits a WARNING at the
+        // anonymous-class method declaration line when it cannot check embedded methods
+        // in isolation via --method.  That warning is the first diagnostic returned.
         assertEquals("@line in anonymous run() body must ESC run() (not enclosing context)",
                 assertLine - 1, errorLine);
     }
