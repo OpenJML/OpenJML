@@ -625,6 +625,11 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void gitbug953() {
+        helpCompileOnly();
+    }
+    
+    @Test
     public void textRac() {
         helpCompileRun("BL");
     }
