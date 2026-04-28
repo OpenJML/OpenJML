@@ -1015,7 +1015,9 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
     }
     
     public JCTree visitLambdaExpression(LambdaExpressionTree node, Void p) {
-        return super.visitLambdaExpression(node,p).setType(((JCTree)node).type);
+        JCTree t = super.visitLambdaExpression(node,p).setType(((JCTree)node).type);
+        if (t instanceof JCLambda lt) lt.target = ((JCLambda)node).target;
+        return t;
     }
     
     public JCTree visitArrayAccess(ArrayAccessTree node, Void p) {
