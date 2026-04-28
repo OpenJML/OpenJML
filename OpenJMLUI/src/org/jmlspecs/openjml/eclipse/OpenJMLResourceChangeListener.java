@@ -36,6 +36,8 @@ import org.eclipse.ui.PlatformUI;
  *
  * <p>Watched change types:
  * <ul>
+ *   <li>Project open/close ({@link IResourceDelta#OPEN}) — sends updated settings to the
+ *       server silently; the project list changes so the server must be informed.</li>
  *   <li>{@code .classpath} files modified in JML-natured projects.</li>
  *   <li>Project descriptions changed ({@link IResourceDelta#DESCRIPTION}) — covers
  *       project dependency changes, nature add/remove, and similar structural edits.</li>
@@ -156,16 +158,17 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                 public boolean visit(IResourceDelta d) throws CoreException {
                     IResource resource = d.getResource();
 
-                    // Project level: detect description changes (dependencies, natures).
-                    // Ignore events that carry OPEN — those are workspace-restore /
-                    // project-open events, not real config edits.  Returning false
-                    // also prevents descending into the project's children (e.g.
-                    // .classpath) so those file-level checks are not triggered either.
+                    // Project level: detect description changes (dependencies, natures)
+                    // and project open/close.
                     if (resource.getType() == IResource.PROJECT) {
                         IProject project = (IProject) resource;
-                        boolean isOpen = (d.getFlags() & IResourceDelta.OPEN) != 0;
-                        if (isOpen) {
-                            return false;  // workspace restore — skip children
+                        boolean openChanged = (d.getFlags() & IResourceDelta.OPEN) != 0;
+                        if (openChanged) {
+                            // Project was opened or closed (also fires during workspace
+                            // restore, but sending updated settings then is harmless).
+                            // Send settings silently — no dialog; the user initiated this.
+                            Display.getDefault().asyncExec(LspPartListener::sendSettingsToServer);
+                            return false;  // skip children for this event
                         }
                         if (project.isOpen() && JmlNature.hasNature(project)) {
                             boolean descChanged = (d.getFlags() & IResourceDelta.DESCRIPTION) != 0;

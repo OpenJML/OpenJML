@@ -479,7 +479,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (!m.sourceUri().isEmpty() && !m.sourceUri().equals(uri)) continue;
             ProofResult pr = proofResults.get(methodKey(uri, m));
             MethodStatus s = (pr != null) ? pr.status() : MethodStatus.UNKNOWN;
-            String proj = (pr != null && pr.projectId() != null) ? pr.projectId() : "";
+            // Use the project ID from the last proof result if available; otherwise derive
+            // it from the URI so that code lenses created before the first ESC run still
+            // carry the correct project ID (Eclipse registers projects by name, not "").
+            String proj = (pr != null && pr.projectId() != null && !pr.projectId().isEmpty())
+                    ? pr.projectId()
+                    : (projectIdForUri(uri) != null ? projectIdForUri(uri) : "");
             var range = new Range(new Position(m.startLine(), 0),
                                   new Position(m.startLine(), 0));
             // Method reference is the unique per-project FQN (rawName from
@@ -538,9 +543,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             // An empty method reference triggers whole-file ESC; model methods are proved
             // together with the Java implementation and do not support split-by-method
             // targeting across files.
+            String jmlProj = (pr != null && pr.projectId() != null && !pr.projectId().isEmpty())
+                    ? pr.projectId()
+                    : (projectIdForUri(javaUri) != null ? projectIdForUri(javaUri) : "");
             lenses.add(new CodeLens(range,
                     new Command(s.label(), OpenJMLCommands.RUN_ESC_FOR_METHOD,
-                                List.<Object>of(javaUri, "")),
+                                List.<Object>of(jmlProj, javaUri, "")),
                     null));
         }
         return CompletableFuture.completedFuture(lenses);
@@ -1729,7 +1737,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     /**
      * Returns the settings for the given project ID, or global settings if the ID is
-     * null/blank.  Logs an error if the ID is non-blank but not found in the registry
+     * null.  Logs an error if the ID is non-null but not found in the registry
      * (indicates the client submitted an unrecognized project name).
      */
     OpenJMLSettings settingsForProject(String projectId) {

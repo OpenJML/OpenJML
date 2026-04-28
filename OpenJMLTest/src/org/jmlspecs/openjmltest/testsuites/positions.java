@@ -3,9 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import java.util.Arrays;
 import org.openjml.MockJavaFileObject;
 
-import org.jmlspecs.openjml.JmlTree.JmlBinary;
-import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
-import org.jmlspecs.openjml.JmlTree.JmlStoreRefArrayRange;
+import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 import org.jmlspecs.openjmltest.JmlTestSuite;
 
@@ -214,6 +212,7 @@ public class positions extends JmlTestSuite {
         { new Test(true,"public class A { //@ assignable #a#[ *]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. 4]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. ]#;\n void m(){}}", JCArrayAccess.class, 0)},
+        { new Test(true,"public class A {  void m(){ class Z { void q() { //@ ghost int s = 0; \n  //@ ##assert true#; \n}}}}", JmlStatementExpr.class, 0)},
         { new Test(false,"2 + (##~ 1#) +", JCUnary.class, 1, "/TEST.java:1: error: reached end of file while parsing\n"
                 + "2 + (~ 1) +\n"
                 + "           ^")},

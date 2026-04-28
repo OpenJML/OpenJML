@@ -87,6 +87,30 @@ let intentionalStop = false;
  */
 let crashDialogShowing = false;
 
+/**
+ * Text decoration types for JML token colouring in .java files.
+ *
+ * VS Code's Red Hat Java extension registers its semantic token provider
+ * asynchronously (after JDT LS connects) and ends up last, so its
+ * {@code comment} tokens for {@code //@ ...} lines override our
+ * {@code keyword} / {@code modifier} tokens for JML content inside them.
+ *
+ * Text decorations are applied on top of semantic tokens and always win,
+ * so we apply them for .java files only (JML files work fine with semantic
+ * tokens alone).
+ *
+ * Recreated when the active colour theme changes (colours are theme-specific).
+ *
+ * Keys are LSP semantic token type indices (matching SemanticTokensProvider.TOKEN_TYPES).
+ */
+let jmlDecTypes = null;
+
+/** Last-used ColorThemeKind when {@link jmlDecTypes} was created. */
+let jmlDecThemeKind = null;
+
+/** Cache of the last fetched semantic token data (flat int array) per document URI. */
+const jmlTokenCache = new Map();
+
 /** The VS Code ExtensionContext — set once in activate(). */
 let extensionContext;
 
@@ -587,6 +611,75 @@ function ts() {
     return new Date().toTimeString().slice(0, 8);
 }
 
+// ── JML text decorations (for .java files) ──────────────────────────────────
+
+/**
+ * Return (or create) the map of LSP token-type index → TextEditorDecorationType
+ * for the current colour theme.  Recreated automatically when the theme changes.
+ *
+ * Colours mirror the VS Code Dark+ / Light+ defaults for the corresponding
+ * token types so that JML content inside {@code //@ ...} lines matches the
+ * surrounding Java syntax highlighting as closely as possible.
+ *
+ * Covered token type indices (must match SemanticTokensProvider.TOKEN_TYPES):
+ *   6  type       — primitives + JML built-in types (boolean, \TYPE, …)
+ *  11  method     — method names referenced inside JML expressions (#AA3731 bold)
+ *  12  function   — backslash tokens (\result, \old, \forall, …) (#AA3731 bold)
+ *  14  keyword    — JML clause keywords (requires, ensures, invariant, …)
+ *  15  modifier   — JML modifiers (pure, nullable, non_null, …)
+ */
+function getJmlDecTypes() {
+    const kind = vscode.window.activeColorTheme.kind;
+    if (jmlDecTypes && jmlDecThemeKind === kind) return jmlDecTypes;
+    if (jmlDecTypes) Object.values(jmlDecTypes).forEach(dt => dt.dispose());
+    jmlDecThemeKind = kind;
+    const dark = kind !== vscode.ColorThemeKind.Light;
+    jmlDecTypes = {
+        6:  vscode.window.createTextEditorDecorationType({ color: dark ? '#4EC9B0' : '#267F99' }),
+        11: vscode.window.createTextEditorDecorationType({ color: '#AA3731', fontWeight: 'bold' }),
+        12: vscode.window.createTextEditorDecorationType({ color: '#AA3731', fontWeight: 'bold' }),
+        14: vscode.window.createTextEditorDecorationType({ color: dark ? '#569CD6' : '#0000FF' }),
+        15: vscode.window.createTextEditorDecorationType({ color: dark ? '#4EC9B0' : '#267F99' }),
+    };
+    return jmlDecTypes;
+}
+
+/**
+ * Decode the flat LSP semantic-token integer array into a map of
+ * token-type-index → array of DecorationOptions (each with a Range).
+ */
+function decodeJmlTokenRanges(data) {
+    const result = {};
+    let line = 0, char = 0;
+    for (let i = 0; i + 4 < data.length; i += 5) {
+        line += data[i];
+        char  = data[i] === 0 ? char + data[i + 1] : data[i + 1];
+        const len  = data[i + 2];
+        const type = data[i + 3];
+        const start = new vscode.Position(line, char);
+        const end   = new vscode.Position(line, char + len);
+        if (!result[type]) result[type] = [];
+        result[type].push({ range: new vscode.Range(start, end) });
+    }
+    return result;
+}
+
+/**
+ * Apply (or clear) JML text decorations to {@code editor}.
+ * Only acts on Java files; .jml files use semantic tokens directly.
+ */
+function applyJmlDecorations(editor, data) {
+    if (!editor || editor.document.languageId !== 'java') return;
+    const decTypes = getJmlDecTypes();
+    const rangesByType = (Array.isArray(data) && data.length > 0)
+        ? decodeJmlTokenRanges(data) : {};
+    for (const [tokenType, dt] of Object.entries(decTypes)) {
+        editor.setDecorations(dt, rangesByType[tokenType] || []);
+    }
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+
 /**
  * Resolve the filesystem paths to operate on, given optional Explorer context arguments.
  *
@@ -713,10 +806,11 @@ async function activate(context) {
     // is obtained from the server-provided code lenses (which use Utils.uniqueSymbolName and
     // therefore correctly identify methods in secondary, nested, local, and anonymous classes).
     const runEscForMethodCmd = vscode.commands.registerCommand(
-        'openjml.runEscForMethod', async (uri, methodName) => {
+        'openjml.runEscForMethod', async (arg0, arg1, arg2) => {
             if (!client) { requireServer(); return; }
 
-            if (typeof uri !== 'string' || typeof methodName !== 'string') {
+            let proj, uri, methodName;
+            if (typeof arg0 !== 'string' || typeof arg1 !== 'string') {
                 // Invoked without proper args (keyboard, menu, command palette) — derive from active editor.
                 // Send the cursor line as "@<line>" and let the server resolve the innermost method
                 // from its AST, correctly handling nested classes without relying on code lenses.
@@ -725,8 +819,19 @@ async function activate(context) {
                     vscode.window.showWarningMessage('OpenJML: open a Java or JML file to run ESC on a method.');
                     return;
                 }
+                proj = projectId()[0];
                 uri = editor.document.uri.toString();
                 methodName = '@' + editor.selection.active.line;
+            } else if (typeof arg2 === 'string') {
+                // 3-arg form from code lens: [projectId, uri, methodName]
+                proj = arg0;
+                uri = arg1;
+                methodName = arg2;
+            } else {
+                // 2-arg form (e.g. .jml file code lens): [uri, methodName]
+                proj = projectId()[0];
+                uri = arg0;
+                methodName = arg1;
             }
 
             // Warn if the file has unsaved changes (same behaviour as Run ESC).
@@ -736,7 +841,7 @@ async function activate(context) {
             try {
                 await client.sendRequest(LSP_EXECUTE_COMMAND, {
                     command: CMD_RUN_ESC_FOR_METHOD,
-                    arguments: [...projectId(), uri, methodName],
+                    arguments: [proj, uri, methodName],
                 });
                 startEscPolling();
             } catch (err) {
@@ -986,14 +1091,25 @@ async function activate(context) {
     // then allows the ESC loop to continue with remaining methods.
     // Unlike Cancel ESC (which stops all proofs), this is a "skip this one" action
     // useful when a single method is taking too long in a split-by-method run.
-    // When invoked from the command palette (no rawName), the server aborts
+    // When invoked from the command palette (no args), the server aborts
     // whatever proof is currently active.
-    const abortProofCmd = vscode.commands.registerCommand('openjml.abortMethodProof', async (rawName) => {
+    // Code-lens form: args [projectId, uri, rawName] — same 3-arg convention as
+    // runEscForMethod.  The handler must unpack all three to avoid the arg-shift bug
+    // where arg0 (projectId) is mistakenly treated as rawName.
+    const abortProofCmd = vscode.commands.registerCommand('openjml.abortMethodProof', async (arg0, arg1, arg2) => {
         if (!client) { requireServer(); return; }
+        let proj, uri, rawName;
+        if (typeof arg0 === 'string' && typeof arg1 === 'string') {
+            // 3-arg code-lens form: [projectId, uri, rawName]
+            proj = arg0; uri = arg1; rawName = arg2 ?? null;
+        } else {
+            // Palette/keyboard — abort the currently active proof.
+            proj = projectId()[0]; uri = null; rawName = null;
+        }
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command: CMD_ABORT_METHOD_PROOF,
-                arguments: rawName ? ['', rawName] : [''],
+                arguments: rawName ? [proj, uri, rawName] : [proj],
             });
         } catch (err) {
             vscode.window.showErrorMessage('OpenJML abort proof failed: ' + err);
@@ -1131,13 +1247,19 @@ async function activate(context) {
                     });
                     const isArr = Array.isArray(data);
                     const count = isArr ? data.length : -1;
-                    if (outputChannel) outputChannel.appendLine(
-                        ts() + ' [semanticTokens] uri=' + document.uri.toString()
-                        + ' isArray=' + isArr + ' ints=' + count
-                        + (isArr && count > 0 ? ' first5=' + JSON.stringify(data.slice(0, 5)) : '')
-                    );
-                    if (!isArr || count === 0)
+                    if (!isArr || count === 0) {
+                        jmlTokenCache.delete(document.uri.toString());
                         return new vscode.SemanticTokens(new Uint32Array([]));
+                    }
+                    // Cache tokens and apply decorations for .java files.
+                    // Decorations override Red Hat Java's semantic-token colouring which
+                    // registers asynchronously and wins the semantic-token provider race.
+                    jmlTokenCache.set(document.uri.toString(), data);
+                    if (document.languageId === 'java') {
+                        const editor = vscode.window.visibleTextEditors
+                            .find(e => e.document.uri.toString() === document.uri.toString());
+                        if (editor) applyJmlDecorations(editor, data);
+                    }
                     return new vscode.SemanticTokens(new Uint32Array(data));
                 } catch (err) {
                     if (outputChannel) outputChannel.appendLine(ts() + ' [semanticTokens] ERROR: ' + err);
@@ -1148,6 +1270,25 @@ async function activate(context) {
         jmlLegend
     );
     context.subscriptions.push(jmlTokensProvider);
+
+    // Recreate decoration types when the colour theme changes so colours stay correct.
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveColorTheme(() => {
+            jmlDecTypes = null; // force recreation on next access
+            for (const editor of vscode.window.visibleTextEditors) {
+                if (editor.document.languageId !== 'java') continue;
+                const cached = jmlTokenCache.get(editor.document.uri.toString());
+                applyJmlDecorations(editor, cached || []);
+            }
+        })
+    );
+
+    // Clean up the token cache when a document is closed.
+    context.subscriptions.push(
+        vscode.workspace.onDidCloseTextDocument(doc => {
+            jmlTokenCache.delete(doc.uri.toString());
+        })
+    );
 
     // When focus returns to an already-open Java file, trigger a --check recheck so
     // that stale diagnostics from fixed dependencies are cleared without requiring

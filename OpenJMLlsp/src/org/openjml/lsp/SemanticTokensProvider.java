@@ -799,6 +799,13 @@ public class SemanticTokensProvider {
         }
 
         @Override
+        public void visitJmlStatementExprList(JmlStatementExprList tree) {
+            // print, show
+            emitAt(tree.pos, TT_KEYWORD);
+            jmlDepth++; super.visitJmlStatementExprList(tree); jmlDepth--;
+        }
+
+        @Override
         public void visitJmlStatement(JmlStatement tree) {
             // set, debug
             emitAt(tree.pos, TT_KEYWORD);
