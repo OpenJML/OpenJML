@@ -389,4 +389,9 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
 
     /** Test-only accessor: returns the live global settings object. */
     public OpenJMLSettings globalSettingsForTest() { return globalSettings; }
+
+    /** Test-only accessor: returns per-project settings for {@code projectId}, or {@code null}. */
+    public OpenJMLSettings projectSettingsForTest(String projectId) {
+        return textDocumentService.getProjectSettings(projectId);
+    }
 }

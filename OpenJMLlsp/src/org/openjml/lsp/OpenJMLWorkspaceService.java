@@ -225,7 +225,6 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
     @Override
     public void didChangeWorkspaceFolders(
             org.eclipse.lsp4j.DidChangeWorkspaceFoldersParams params) {
-        ServerLog.serverLog("[workspace/didChangeWorkspaceFolders]");
         if (params == null || params.getEvent() == null) return;
 
         // Find the synthesized __workspace__ project.
@@ -256,7 +255,12 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         }
 
         wp.rootPaths = roots;
+        // Sync sourcePath from rootPaths so per-project settings reflect new roots.
+        wp.sourcePath = String.join(java.io.File.pathSeparator, roots);
+        globalSettings.sourcePath = wp.sourcePath;
+        if (projectConfigUpdater != null) projectConfigUpdater.accept(globalSettings.projects);
         if (watcherReregistrar != null) watcherReregistrar.run();
+        ServerLog.serverLog("[workspace/didChangeWorkspaceFolders] rootPaths now: " + roots);
     }
 
     private static String uriToOsPath(String uri) {

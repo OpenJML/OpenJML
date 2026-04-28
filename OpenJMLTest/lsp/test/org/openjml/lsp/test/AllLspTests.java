@@ -75,5 +75,6 @@ import org.junit.runners.Suite;
     EscInvocationVariantsTest.class,
     ClearAndReescTest.class,
     DidCloseTest.class,
+    WorkspaceFoldersTest.class,
 })
 public class AllLspTests {}
