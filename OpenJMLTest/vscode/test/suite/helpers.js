@@ -42,7 +42,9 @@ async function readOpenJMLOutput() {
         await outputView.selectChannel(ch);
         let text = '';
         try { text = await outputView.getText(); } catch (_) {}
-        await bottomBar.toggle(false);
+        // Close the panel best-effort; a notification popup may intercept the
+        // click, but we already have the text so don't let that lose it.
+        try { await bottomBar.toggle(false); } catch (_) {}
         return text;
     } catch (_) {
         try { await bottomBar.toggle(false); } catch (__) {}

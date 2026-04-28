@@ -19,6 +19,7 @@ const SCRIPT_DIR    = path.resolve(__dirname);
 const EXTENSION_DIR = path.resolve(SCRIPT_DIR, '../../OpenJMLlsp/vscode-extension');
 const SERVER_PATH   = path.resolve(SCRIPT_DIR, '../../OpenJMLlsp/openjml-lsp');
 const RESOURCES_DIR = path.resolve(SCRIPT_DIR, 'resources');
+const EXTRA_DIR     = path.resolve(SCRIPT_DIR, 'resources/extra');
 const STORAGE_DIR   = path.resolve(SCRIPT_DIR, '.test-resources');
 const SETTINGS_OUT  = path.resolve(STORAGE_DIR, 'test-settings.json');
 
@@ -62,7 +63,7 @@ async function main() {
     // by installVsix above, so VS Code finds it without EXTENSION_DEV_PATH.
     // Disable third-party extensions that crash the test VS Code instance.
     const result = await tester.runTests(TEST_GLOB, {
-        resources:  [RESOURCES_DIR],
+        resources:  [RESOURCES_DIR, EXTRA_DIR],
         settings:   SETTINGS_OUT,
         config:     path.join(SCRIPT_DIR, '.mocharc.yml'),
         vscodeLaunchArgs: [
