@@ -115,7 +115,8 @@ TEST_CLASSES := \
   EscAtLineTest \
   EscInvocationVariantsTest \
   ClearAndReescTest \
-  DidCloseTest
+  DidCloseTest \
+  WorkspaceFoldersTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 

@@ -57,42 +57,43 @@ public class EscAtLineTest extends ProtocolTestBase {
     // terminates quickly.  The distinct integer N doubles as a lineOf() search marker.
     // No block comments inside JML line comments — that would trigger parse errors and
     // prevent AST caching, breaking @line resolution.
-    private static final String SOURCE =
-        "public class AtLineTest {\n"                                       //  0
-        + "    public AtLineTest() {\n"                                     //  1
-        + "        //@ assert 1==0;\n"                                      //  2
-        + "    }\n"                                                         //  3
-        + "\n"                                                              //  4
-        + "    public int topMethod(int x) {\n"                            //  5
-        + "        //@ assert 2==0;\n"                                      //  6
-        + "        return x;\n"                                             //  7
-        + "    }\n"                                                         //  8
-        + "\n"                                                              //  9
-        + "    static class Inner {\n"                                      // 10
-        + "        public int innerMethod(int x) {\n"                      // 11
-        + "            //@ assert 3==0;\n"                                  // 12
-        + "            return x;\n"                                         // 13
-        + "        }\n"                                                     // 14
-        + "    }\n"                                                         // 15
-        + "\n"                                                              // 16
-        + "    public void withLocal() {\n"                                 // 17
-        + "        class Local {\n"                                         // 18
-        + "            public int localMethod(int x) {\n"                  // 19
-        + "                //@ assert 4==0;\n"                              // 20
-        + "                return x;\n"                                     // 21
-        + "            }\n"                                                 // 22
-        + "        }\n"                                                     // 23
-        + "        new Local().localMethod(0);\n"                          // 24
-        + "    }\n"                                                         // 25
-        + "\n"                                                              // 26
-        + "    Runnable anon = new Runnable() {\n"                         // 27
-        + "        public void run() {\n"                                   // 28
-        + "            //@ assert 5==0;\n"                                  // 29
-        + "        }\n"                                                     // 30
-        + "    };\n"                                                        // 31
-        + "\n"                                                              // 32
-        + "    //@ ensures false; pure model public int modelMethod(int x) { return x; }\n" // 33
-        + "}\n";                                                            // 34
+    private static final String SOURCE = """
+            public class AtLineTest {
+                public AtLineTest() {
+                    //@ assert 1==0;
+                }
+
+                public int topMethod(int x) {
+                    //@ assert 2==0;
+                    return x;
+                }
+
+                static class Inner {
+                    public int innerMethod(int x) {
+                        //@ assert 3==0;
+                        return x;
+                    }
+                }
+
+                public void withLocal() {
+                    class Local {
+                        public int localMethod(int x) {
+                            //@ assert 4==0;
+                            return x;
+                        }
+                    }
+                    new Local().localMethod(0);
+                }
+
+                Runnable anon = new Runnable() {
+                    public void run() {
+                        //@ assert 5==0;
+                    }
+                };
+
+                //@ ensures false; pure model public int modelMethod(int x) { return x; }
+            }
+            """;
 
     /** Returns the 0-based line index of the first line containing {@code marker}. */
     private static int lineOf(String marker) {

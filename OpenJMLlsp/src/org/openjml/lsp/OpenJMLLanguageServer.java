@@ -386,4 +386,7 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
     private static List<String> cmdPaths(java.util.List<?> args) {
         return extractPaths(args, 1);
     }
+
+    /** Test-only accessor: returns the live global settings object. */
+    public OpenJMLSettings globalSettingsForTest() { return globalSettings; }
 }
