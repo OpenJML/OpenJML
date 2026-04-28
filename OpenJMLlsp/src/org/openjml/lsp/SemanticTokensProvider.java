@@ -923,6 +923,7 @@ public class SemanticTokensProvider {
                 // specs belong to this file) scan specs for requires/ensures keywords.
                 emitJmlMods(tree.mods);
                 if (scanMode == AST_JML_MODE) scan(((JmlMethodDecl) tree).methodSpecs);
+                scan(tree.body);  // inline JML statements (assume, assert, loop_invariant, ...)
             }
         }
 

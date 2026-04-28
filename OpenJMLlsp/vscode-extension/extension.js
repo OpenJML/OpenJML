@@ -269,6 +269,10 @@ async function startClient() {
         synchronize: {
             configurationSection: 'openjml',
         },
+        // Prevent the LSP client from registering its own semantic token provider.
+        // We register a direct DocumentSemanticTokensProvider that wins over any
+        // competing provider (Red Hat Java, etc.) because it registers first.
+        disabledFeatures: ['textDocument/semanticTokens'],
         middleware: {
             // Override prepareRename so our server's rename provider takes priority
             // over the Red Hat Java extension for both JML comment positions and
@@ -282,13 +286,6 @@ async function startClient() {
                     return { range: wordRange, placeholder: document.getText(wordRange) };
                 }
                 return next(document, position, token);
-            },
-            // Suppress the LSP-channel semantic tokens in VS Code.  We register a
-            // direct DocumentSemanticTokensProvider below so that our JML tokens
-            // merge additively with Red Hat's Java tokens instead of competing with
-            // them via the LSP provider race.
-            provideDocumentSemanticTokens: (_document, _token, _next) => {
-                return new vscode.SemanticTokens(new Uint32Array([]));
             },
             window: {
                 // Route window/logMessage notifications from the server to our
@@ -1132,10 +1129,18 @@ async function activate(context) {
                         command: CMD_GET_SEMANTIC_TOKENS,
                         arguments: ['', document.uri.toString()],
                     });
-                    if (!Array.isArray(data) || data.length === 0)
+                    const isArr = Array.isArray(data);
+                    const count = isArr ? data.length : -1;
+                    if (outputChannel) outputChannel.appendLine(
+                        ts() + ' [semanticTokens] uri=' + document.uri.toString()
+                        + ' isArray=' + isArr + ' ints=' + count
+                        + (isArr && count > 0 ? ' first5=' + JSON.stringify(data.slice(0, 5)) : '')
+                    );
+                    if (!isArr || count === 0)
                         return new vscode.SemanticTokens(new Uint32Array([]));
                     return new vscode.SemanticTokens(new Uint32Array(data));
-                } catch (_) {
+                } catch (err) {
+                    if (outputChannel) outputChannel.appendLine(ts() + ' [semanticTokens] ERROR: ' + err);
                     return new vscode.SemanticTokens(new Uint32Array([]));
                 }
             },

@@ -784,4 +784,67 @@ public class LspProtocolTest extends ProtocolTestBase {
         assertFalse("Expected non-empty diagnostics after re-check", recheckedDiags.isEmpty());
         assertTrue("Expected Error-severity diagnostic after re-check", hasErrorDiagnostic(recheckedDiags));
     }
+
+    // -----------------------------------------------------------------------
+    // textDocument/semanticTokens/full over wire
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code textDocument/semanticTokens/full} returns a non-empty
+     * token list over the full JSON-RPC wire for a document containing JML
+     * annotations.
+     *
+     * <p>The server uses AST-based token generation when an attributed AST is
+     * cached (after a {@code --check} completes), falling back to regex when not.
+     * We wait for {@code publishDiagnostics} to ensure the AST is populated before
+     * requesting tokens.
+     *
+     * <p>The token list is a flat array of 5-integer tuples
+     * {@code [deltaLine, deltaStartChar, length, tokenTypeIndex, tokenModifiers]}.
+     * At minimum one JML keyword token (type index 14) must be present.
+     */
+    @Test
+    public void testSemanticTokensFullOverWireReturnsJmlKeywords() throws Exception {
+        String uri = "file:///SemTokWire.java";
+        String source = "public class SemTokWire {\\n"
+                + "    //@ requires x >= 0;\\n"
+                + "    //@ ensures \\\\result >= 0;\\n"
+                + "    public int id(int x) { return x; }\\n"
+                + "}\\n";
+
+        openDocument(uri, source);
+
+        // Wait for the --check to complete so the AST is cached and AST-based tokens are used.
+        JsonObject diagNotif = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didOpen", diagNotif);
+
+        String stParams = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
+        client.sendRequest("textDocument/semanticTokens/full", stParams);
+
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        assertNotNull("Expected a response to textDocument/semanticTokens/full", response);
+        assertFalse("semanticTokens/full must not return an error",
+                response.has("error") && !response.get("error").isJsonNull());
+        assertTrue("semanticTokens/full response must have a 'result' field",
+                response.has("result"));
+        assertFalse("semanticTokens/full result must not be JSON null",
+                response.get("result").isJsonNull());
+
+        JsonObject result = response.getAsJsonObject("result");
+        assertTrue("semanticTokens/full result must have a 'data' field", result.has("data"));
+        JsonArray data = result.getAsJsonArray("data");
+        assertNotNull("semanticTokens/full data must be a JSON array", data);
+        assertFalse("semanticTokens/full data must not be empty for a file with JML annotations",
+                data.isEmpty());
+        assertEquals("semanticTokens/full data length must be a multiple of 5",
+                0, data.size() % 5);
+
+        // Verify at least one keyword token (type index 14) is present.
+        boolean hasKeyword = false;
+        for (int i = 3; i < data.size(); i += 5) {
+            if (data.get(i).getAsInt() == 14) { hasKeyword = true; break; }
+        }
+        assertTrue("semanticTokens/full must return at least one keyword token (type 14) "
+                + "for a file with JML requires/ensures", hasKeyword);
+    }
 }

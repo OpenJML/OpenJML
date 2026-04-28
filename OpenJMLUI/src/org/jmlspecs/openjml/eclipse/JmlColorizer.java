@@ -76,14 +76,16 @@ public class JmlColorizer implements ITextPresentationListener {
     private final ITextViewer viewer;
     private final IDocument   document;
     private final String      fileUri;
+    private final String      projectId;
 
     /** StyleRanges from the most recent server response.  May contain nulls (filtered on apply). */
     private volatile List<StyleRange> cachedRanges = List.of();
 
-    public JmlColorizer(ITextViewer viewer, IDocument document, String fileUri) {
-        this.viewer   = viewer;
-        this.document = document;
-        this.fileUri  = fileUri;
+    public JmlColorizer(ITextViewer viewer, IDocument document, String fileUri, String projectId) {
+        this.viewer    = viewer;
+        this.document  = document;
+        this.fileUri   = fileUri;
+        this.projectId = projectId != null ? projectId : "";
     }
 
     /**
@@ -145,28 +147,32 @@ public class JmlColorizer implements ITextPresentationListener {
      * to JDT for {@code .java} files).
      */
     public void refreshAsync() {
+        System.err.println("[OpenJML] JmlColorizer.refreshAsync: uri=" + fileUri
+                + " wrapper=" + (LspPartListener.cachedWrapper != null ? "set" : "null"));
         Object wrapper = LspPartListener.cachedWrapper;
         if (wrapper == null) return;
         ITextViewer v = viewer;
         Function<String, IToken> mapper = buildTokenMapper(v);
         var params = new ExecuteCommandParams(
-                OpenJMLConstants.CMD_GET_SEMANTIC_TOKENS, List.of(fileUri));
+                OpenJMLConstants.CMD_GET_SEMANTIC_TOKENS, List.of(projectId, fileUri));
         executeViaWrapper(wrapper, params)
             .thenAccept(raw -> {
+                System.err.println("[OpenJML] JmlColorizer.refreshAsync: response raw="
+                        + (raw == null ? "null" : raw.getClass().getSimpleName()
+                            + (raw instanceof java.util.List<?> l ? " size=" + l.size() : "")));
                 if (raw == null) return;
                 // Decoding reads JFace color registry (SWT-owned) and creates StyleRanges,
                 // so do it on the SWT thread together with ensureColors() and the invalidation.
                 Display.getDefault().asyncExec(() -> {
                     ensureColors();
                     List<StyleRange> ranges = decodeTokenData(raw, mapper);
+                    System.err.println("[OpenJML] JmlColorizer.refreshAsync: decoded "
+                            + ranges.size() + " StyleRanges for " + fileUri);
                     cachedRanges = ranges;
                     viewer.invalidateTextPresentation();
                 });
             })
-            .exceptionally(t -> {
-                Console.errorlog("JmlColorizer.refreshAsync failed", t);
-                return null;
-            });
+            .exceptionally(t -> { Console.errorlog("JmlColorizer.refreshAsync failed", t); return null; });
     }
 
     /**
@@ -187,17 +193,21 @@ public class JmlColorizer implements ITextPresentationListener {
                 } catch (NoSuchMethodException ignored) {}
             }
             if (getServer == null) {
+                System.err.println("[OpenJML] JmlColorizer.executeViaWrapper: getServer method not found on " + wrapper.getClass().getName());
                 return java.util.concurrent.CompletableFuture.completedFuture(null);
             }
             Object sf = getServer.invoke(wrapper);
+            System.err.println("[OpenJML] JmlColorizer.executeViaWrapper: getServer() returned " + (sf == null ? "null" : sf.getClass().getName()));
             LanguageServer server = null;
             if (sf instanceof java.util.concurrent.CompletableFuture<?> cf)
                 server = (LanguageServer) cf.get(5, java.util.concurrent.TimeUnit.SECONDS);
             else if (sf instanceof LanguageServer ls)
                 server = ls;
             if (server == null) {
+                System.err.println("[OpenJML] JmlColorizer.executeViaWrapper: server is null after unwrap");
                 return java.util.concurrent.CompletableFuture.completedFuture(null);
             }
+            System.err.println("[OpenJML] JmlColorizer.executeViaWrapper: sending " + params.getCommand());
             @SuppressWarnings("unchecked")
             var fut = (java.util.concurrent.CompletableFuture<Object>)
                       server.getWorkspaceService().executeCommand(params);
@@ -227,7 +237,17 @@ public class JmlColorizer implements ITextPresentationListener {
     private static final int TM_ABSTRACT    = 32;  // bit 5 → italic
 
     private List<StyleRange> decodeTokenData(Object raw, Function<String, IToken> mapper) {
-        if (!(raw instanceof List<?> list)) return List.of();
+        if (!(raw instanceof List<?> list)) {
+            System.err.println("[OpenJML] JmlColorizer.decodeTokenData: raw is not a List: "
+                    + (raw == null ? "null" : raw.getClass().getName()));
+            return List.of();
+        }
+        System.err.println("[OpenJML] JmlColorizer.decodeTokenData: " + list.size() + " ints = "
+                + (list.size() / 5) + " tokens"
+                + (list.size() >= 5 ? "; first token [dLine=" + toInt(list.get(0))
+                    + " dCol=" + toInt(list.get(1)) + " len=" + toInt(list.get(2))
+                    + " type=" + toInt(list.get(3)) + "(" + (toInt(list.get(3)) < TOKEN_TYPE_NAMES.length ? TOKEN_TYPE_NAMES[toInt(list.get(3))] : "?") + ")"
+                    + " mods=" + toInt(list.get(4)) + "]" : ""));
         List<StyleRange> result = new ArrayList<>();
         int line = 0, col = 0;
         for (int i = 0; i + 4 < list.size(); i += 5) {

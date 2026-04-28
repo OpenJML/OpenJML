@@ -507,13 +507,13 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             final java.util.function.Consumer<Object> orig = original;
             java.util.function.Consumer<Object> wrapped = params -> {
                 if (orig != null) orig.accept(params);
-                // Refresh the colorizer only if the document content changed since the last
-                // refresh (tracked by the per-document listener installed in setupColorizer).
-                // This fires correctly after any check/ESC that follows an edit, but is a
-                // no-op for ESC runs on unchanged source — where tokens cannot have changed.
+                // Always refresh the colorizer after publishDiagnostics so that
+                // AST-based tokens are applied after every --check, including the
+                // initial check on file open (where no edit has been made yet).
                 try {
                     String uri = (String) params.getClass().getMethod("getUri").invoke(params);
-                    if (uri != null && editedSinceRefresh.remove(uri)) {
+                    if (uri != null) {
+                        editedSinceRefresh.remove(uri);  // clear the dirty flag
                         refreshColorizerForUri(uri);
                     }
                 } catch (Exception ignored) {}
@@ -606,7 +606,8 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 if (doc == null) return;
                 String fileUri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(file).toString();
                 JmlColorizer.ensureColors();
-                JmlColorizer colorizer = new JmlColorizer(viewer, doc, fileUri);
+                String projectId = file.getProject() != null ? file.getProject().getName() : "";
+                JmlColorizer colorizer = new JmlColorizer(viewer, doc, fileUri, projectId);
                 ext4.addTextPresentationListener(colorizer);
                 colorizersByPath.put(file.getFullPath(), colorizer);
                 // Mark URI dirty whenever the document content changes so the diagnostics

@@ -16,6 +16,9 @@
     "Programming Languages",
     "Linters"
   ],
+  "extensionDependencies": [
+    "redhat.java"
+  ],
   "activationEvents": [
     "onLanguage:java",
     "onLanguage:jml",

@@ -1435,7 +1435,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      */
     List<Integer> getSemanticTokens(String uri) {
         String content = lastContent.get(uri);
-        if (content == null) return List.of();
+        if (content == null) {
+            ServerLog.serverLog("[getSemanticTokens] no content for uri=" + uri);
+            return List.of();
+        }
         // "regex" strategy: always use regex (instant, works before first --check).
         // "ast" strategy (default): prefer AST-based when an attributed AST is
         // available (no false positives), fall back to regex before first --check.
@@ -1449,6 +1452,10 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 String javaUri = resolveCompanionJavaUri(uri, content);
                 if (javaUri != null) entry = cache.get(javaUri);
             }
+            ServerLog.serverLog("[getSemanticTokens] uri=" + uri
+                    + " astEntry=" + (entry != null ? "present" : "absent")
+                    + " specsCompilationUnit=" + (entry != null && entry.ast().specsCompilationUnit != null
+                        ? (entry.ast().specsCompilationUnit == entry.ast() ? "self" : "other") : "null"));
             if (entry != null) {
                 try {
                     // Guard: if the cached AST was built from a different version of the
@@ -1465,12 +1472,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     } catch (Exception ignored) {}
                     if (!stale) {
                         boolean fullMode = globalSettings.isOverwriteJavaColoring();
-                        return SemanticTokensProvider.computeTokensFromAst(entry, content, fullMode).getData();
+                        List<Integer> data = SemanticTokensProvider.computeTokensFromAst(entry, content, fullMode).getData();
+                        ServerLog.serverLog("[getSemanticTokens] AST path: fullMode=" + fullMode
+                                + " tokens=" + data.size() / 5 + " ints=" + data.size());
+                        return data;
+                    } else {
+                        ServerLog.serverLog("[getSemanticTokens] AST stale — falling back to regex");
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    ServerLog.serverLog("[getSemanticTokens] AST walk threw: " + e + " — falling back to regex");
+                }
             }
         }
-        return SemanticTokensProvider.computeTokens(content).getData();
+        List<Integer> data = SemanticTokensProvider.computeTokens(content).getData();
+        ServerLog.serverLog("[getSemanticTokens] regex path: tokens=" + data.size() / 5
+                + " ints=" + data.size());
+        return data;
     }
 
     /**
@@ -2740,7 +2757,12 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 storeCheckDiags(uri, result.diagnostics());
                 publishMerged(uri);
             }
-            // Do NOT call refreshCodeLenses() here.
+            // Do NOT call refreshCodeLenses() here — that would disturb ESC code-lens
+            // status, which is managed separately by ESC callbacks.  However, notify
+            // the client that semantic tokens have changed so it re-queries using the
+            // newly cached AST (upgrading from the initial regex fallback to AST-based
+            // coloring).
+            refreshSemanticTokens();
         } catch (Throwable t) {
             ServerLog.serverLog("[OpenJML] check failed for " + uri + ": " + t);
         }

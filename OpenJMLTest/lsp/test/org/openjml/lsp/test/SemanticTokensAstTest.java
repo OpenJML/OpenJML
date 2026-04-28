@@ -1485,6 +1485,84 @@ public class SemanticTokensAstTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
+    // Tests: JML statements in method bodies — JML-only mode (fullMode=false)
+    // The body was not scanned for non-JML methods in JML-only mode before the fix.
+    // -----------------------------------------------------------------------
+
+    /**
+     * A JML {@code assert} statement in a method body must produce a keyword token
+     * even in JML-only mode (the VS Code default).
+     */
+    @Test
+    public void testJmlAssertStatement_JmlOnlyMode_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_JmlAssertJmlOnly.java";
+        String source =
+                "public class SemTok_JmlAssertJmlOnly {\n"
+                + "    public int m(int x) {\n"
+                + "        //@ assert x > 0;\n"         // line 2: 'assert' keyword
+                + "        return x;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("JML 'assert' inside method body must produce a keyword token in JML-only mode",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * A JML {@code assume} statement in a method body must produce a keyword token
+     * in JML-only mode.
+     */
+    @Test
+    public void testJmlAssumeStatement_JmlOnlyMode_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_JmlAssumeJmlOnly.java";
+        String source =
+                "public class SemTok_JmlAssumeJmlOnly {\n"
+                + "    public int m(int x) {\n"
+                + "        //@ assume x > 0;\n"         // line 2: 'assume' keyword
+                + "        return x;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("JML 'assume' inside method body must produce a keyword token in JML-only mode",
+                countByType(tokens, KW) >= 1);
+    }
+
+    /**
+     * A {@code loop_invariant} annotation on a loop must produce a keyword token
+     * in JML-only mode.
+     */
+    @Test
+    public void testLoopInvariant_JmlOnlyMode_KeywordToken() throws Exception {
+        String uri = "file:///SemTok_LoopInvJmlOnly.java";
+        String source =
+                "public class SemTok_LoopInvJmlOnly {\n"
+                + "    public void m(int n) {\n"
+                + "        int i = 0;\n"
+                + "        //@ loop_invariant i >= 0;\n" // line 3: 'loop_invariant'
+                + "        while (i < n) i++;\n"
+                + "    }\n"
+                + "}\n";
+        checkContent(uri, source);
+
+        ASTCache.Entry entry = CheckRunner.getASTCache().get(uri);
+        assertNotNull(entry);
+
+        List<Token> tokens = decode(SemanticTokensProvider.computeTokensFromAst(entry, source, false));
+        assertTrue("'loop_invariant' inside method body must produce a keyword token in JML-only mode",
+                countByType(tokens, KW) >= 1);
+    }
+
+    // -----------------------------------------------------------------------
     // Tests: JML primitive types
     // -----------------------------------------------------------------------
 
