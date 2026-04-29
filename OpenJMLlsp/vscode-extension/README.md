@@ -22,6 +22,11 @@ The extension requires an OpenJML installation on the local machine.
 `openjml.serverPath` must point to the OpenJML installation folder or the `openjml-lsp` launcher script from the OpenJML distribution;
 the installer sets this automatically.
 
+**Version requirements:**
+- VS Code 1.75 or later (tested against 1.117+; output-channel `getText()` is unavailable in 1.117+ due to the xterm.js renderer — the extension uses log-file polling instead).
+- The UI test suite (`OpenJMLTest/vscode/`) requires Node.js ≥ 20 (`@vscode/vsce` and ExTester both require Node 16+; Node 20 LTS is the minimum recommended version).
+- `vscode-extension-tester` ≥ 8.23 is required; versions targeting VS Code ≤ 1.110 use `@redhat-developer/locators` which does not support the xterm.js output panel used in 1.117+.
+
 ## Features
 
 - JML type-check diagnostics (squigglies) on edit or save, with auto-recheck on focus changes
@@ -133,10 +138,11 @@ no false positives for Java identifiers named `requires`, `ensures`, etc.
 **`regex`**: always uses regex-based line scanning instead of the AST.  Available as a
 fallback but may incorrectly color Java identifiers that share a name with a JML keyword.
 
-### Customizing colors
+### Color adaptation
 
-To override a token category's color, add a `semanticTokenColorCustomizations` entry to your
-VS Code settings:
+**For `.jml` files**: semantic token colors follow the active color theme automatically.
+To override individual token category colors, add a `semanticTokenColorCustomizations`
+entry to your VS Code settings:
 
 ```json
 "editor.semanticTokenColorCustomizations": {
@@ -150,6 +156,21 @@ VS Code settings:
 
 The names match the token type strings listed in the table above.
 
+**For `.java` files**: the Red Hat Java Language Support extension registers its semantic
+token provider asynchronously and can override OpenJML's tokens for JML content inside
+`//@ …` and `/*@ … */` lines, treating those ranges as plain comments.  To ensure JML
+constructs remain distinctly colored, the extension also applies **text editor decorations**
+for the key JML token types (`keyword`, `modifier`, `function`, `method`, `type`).
+Decorations take unconditional precedence over semantic tokens in VS Code's rendering
+pipeline.
+
+The decoration colors are fixed approximations of the VS Code Dark+/Light+ defaults for
+each token type; they do **not** follow `editor.semanticTokenColorCustomizations` overrides
+and do not adapt to custom color themes that assign non-standard colors to those token
+types.  The VS Code extension API does not expose the active theme's semantic token colors
+(only workbench color registry IDs are accessible via `ThemeColor`), so exact
+theme-adaptive coloring is not achievable with the current API.
+
 ## Settings
 
 | Setting | Default | Description |
@@ -159,9 +180,9 @@ The names match the token type strings listed in the table above.
 | `openjml.escTriggerOn` | `manual` | When to run `--esc`: `manual` (only via command) or `save` (on file save). |
 | `openjml.dirtyFileAction` | `ask` | What to do when ESC is invoked on a file with unsaved changes: `ask` (prompt each time), `save` (always save silently first), or `run` (always run on the editor content). |
 | `openjml.toolOptions` | `[]` | Project-independent OpenJML command-line options prepended to every tool invocation. Use `["--properties", "/path/to/file"]` to pass a properties file — one idiomatic way to supply a sequence of options; alternatively put individual flags directly in this array. Project-dependent settings (source path, class path, specs path) belong in the named settings below. |
-| `openjml.specsPath` | `` | Path to the OpenJML specs directory. Leave empty to use the default from the launcher script. |
-| `openjml.sourcePath` | `` | Source root(s) for cross-file references (`-sourcepath`). Separate multiple roots with `:` (Unix) or `;` (Windows). Leave empty for single-file projects. |
-| `openjml.classPath` | `` | Classpath for pre-compiled dependencies (`-classpath`). Separate multiple entries with `:` (Unix) or `;` (Windows). Leave empty if no external jars are needed. |
+| `openjml.specsPath` | `` | User additions prepended to the OpenJML specspath. If empty, OpenJML uses its default (sourcepath plus built-in system library specifications). If non-empty, this value is prepended to the assembled sourcepath and the result is passed as `--specs-path`. |
+| `openjml.sourcePath` | `` | User additions prepended to the server-assembled sourcepath (which already includes the workspace folder roots). |
+| `openjml.classPath` | `` | User additions prepended to the server-assembled classpath (which already includes the Java output directory). |
 | `openjml.escEngine` | `fresh` | ESC execution engine: `fresh` (default — spawns a fresh OpenJML compilation context for each ESC task) or `concurrent` (share OpenJDK compilation contexts, which shares parsing and typechecking effort). |
 | `openjml.escThreads` | `5` | Maximum number of concurrent ESC tasks. |
 | `openjml.syntaxColoringScope` | `preserve Java coloring` | How OpenJML's semantic tokens interact with Java coloring: `preserve Java coloring` (default) — emit tokens only inside JML annotation context, leaving Java code to the Java language server; `overwrite Java coloring` — emit tokens for all Java and JML constructs, replacing whatever the Java language server produced. |
@@ -169,7 +190,17 @@ The names match the token type strings listed in the table above.
 | `openjml.useIntegratedOutline` | `true` | When `true`, the Outline panel shows all Java and JML symbols together. When `false`, only JML-specific symbols are shown (complementing the Red Hat Java Extension's outline). |
 | `openjml.javaMode` | `jml-only` | Controls which inlay hints are shown. `jml-only` (default) — suppress `var`-type hints for plain Java locals (assumes the Red Hat Java Extension shows those); JML ghost/model `var` hints are always shown. `full` — show `var`-type hints for all locals. |
 | `openjml.client` | `vscode-java` | Client identifier sent to the server. Controls `javaMode` defaults. Leave as `vscode-java` when the Red Hat Java Extension is active. |
-| `openjml.racOutputDir` | `` | Output directory for RAC-compiled class files (`-d`). Relative paths are resolved against the workspace root. Leave empty to use the value of `java.project.outputPath` (default `bin`). |
+| `openjml.racOutputDir` | `` | Output directory for RAC-compiled class files (`-d`). Relative paths are resolved against the workspace root. Leave empty to use the Java output directory (`java.project.outputPath`). |
+
+## Paths
+
+The classpath, sourcepath, and specspath are crucial quantities for OpenJML. The server assembles them automatically from the workspace:
+
+- **classpath** — `openjml.classPath` (user additions) + Java output directory (`java.project.outputPath`) + RAC output directory (if non-empty and different from the Java output directory).
+- **sourcepath** — `openjml.sourcePath` (user additions) + the workspace folder roots.
+- **specspath** — if `openjml.specsPath` is empty, no `--specs-path` is passed and OpenJML uses its default (sourcepath plus built-in system library specifications). If non-empty, the value is prepended to the assembled sourcepath and passed as `--specs-path`.
+
+Path values may contain environment-variable references of the form `$VARNAME`, `${VARNAME}`, or `$(VARNAME)`; the server substitutes the variable's value before passing the result to OpenJML.
 
 ## Co-existing with the Red Hat Java Extension
 

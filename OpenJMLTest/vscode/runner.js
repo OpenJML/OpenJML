@@ -5,6 +5,14 @@
  * Uses the development extension and server rather than a packaged release.
  * Future: swap EXTENSION_DIR and SERVER_PATH for a pristine release installation.
  *
+ * Version requirements:
+ *   - Node.js >= 20  (@vscode/vsce and vscode-extension-tester both require Node 16+;
+ *                     Node 20 LTS is the minimum recommended version)
+ *   - vscode-extension-tester >= 8.23  (earlier versions target VS Code <= 1.110 and use
+ *     @redhat-developer/locators, which does not support the xterm.js output panel
+ *     introduced in VS Code 1.117; getText() on the output channel returns empty in 1.117+)
+ *   - VS Code >= 1.75 (1.117+ tested; output-channel getText() unavailable in 1.117+)
+ *
  * Usage:
  *   node runner.js                   # run all test suites
  *   node runner.js 02_commands       # run only the matching suite(s)
@@ -35,10 +43,22 @@ const TEST_GLOB = `test/suite/${filter}`;
 // check command registration or menu structure).
 function writeSettings() {
     fs.mkdirSync(STORAGE_DIR, { recursive: true });
+    // Set OPENJML_SERVER_PATH so the extension finds the server immediately at
+    // activation, without waiting for VS Code to apply the user settings file.
+    // This avoids a ~4.5-minute delay caused by the "server not found" dialog
+    // blocking until onDidChangeConfiguration fires with the loaded setting.
+    process.env.OPENJML_SERVER_PATH = SERVER_PATH;
+    // Direct the server log to a per-run path so helpers.js can poll it for startup.
+    // Delete any stale copy first so we never read output from a previous run.
+    process.env.OPENJML_LSP_LOG = path.join(STORAGE_DIR, 'server.log');
+    try { fs.unlinkSync(process.env.OPENJML_LSP_LOG); } catch (_) {}
     const settings = {
         'openjml.serverPath':      SERVER_PATH,
         'openjml.checkTriggerOn':  'manual',
         'openjml.escTriggerOn':    'manual',
+        // Suppress the java.format.enabled warning dialog in activate(), which
+        // blocks startClient() for several minutes in a fresh test workspace.
+        'java.format.enabled':     false,
     };
     fs.writeFileSync(SETTINGS_OUT, JSON.stringify(settings, null, 2));
 }

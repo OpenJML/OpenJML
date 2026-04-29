@@ -16,7 +16,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, SideBarView, Workbench } = require('vscode-extension-tester');
-const { suiteTeardown, runCommand, readOutputSafe,
+const { suiteTeardown, runCommand, readOutputSafe, openAndFocusFile,
         getExplorerSection, findExplorerItem, invokeContextMenuItem }
     = require('./helpers');
 
@@ -68,9 +68,7 @@ describe('Menu Contributions', function () {
 
     before(async function () {
         await VSBrowser.instance.waitForWorkbench(20_000);
-        await VSBrowser.instance.openResources(SAMPLE_JAVA);
-        await VSBrowser.instance.driver.sleep(2_000);
-        editor = await new EditorView().openEditor('Sample.java');
+        editor = await openAndFocusFile(SAMPLE_JAVA);
     });
 
     after(async function () { this.timeout(30_000); await suiteTeardown(); });

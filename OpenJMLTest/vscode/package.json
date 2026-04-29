@@ -10,6 +10,6 @@
     "vscode-extension-tester": "^8.23.0"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=20"
   }
 }

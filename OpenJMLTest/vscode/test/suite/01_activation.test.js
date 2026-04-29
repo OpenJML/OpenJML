@@ -66,14 +66,13 @@ describe('Extension Activation', function () {
     });
 
     it('LSP server starts within 2 minutes', async function () {
-        // The server logs "server started" once the LanguageClient handshake
+        // The server writes [configuration] to its log once workspace/initialized
         // completes.  This test FAILS if the server does not start — all
         // subsequent server-dependent tests depend on this.
-        // In normal use startup takes under 60 seconds.
         this.timeout(150_000);
         const ready = await waitForServer(120_000);
         assert.ok(ready,
-            'OpenJML LSP server did not log "server started" within 2 minutes. ' +
+            'OpenJML LSP server did not write [configuration] within 2 minutes. ' +
             'Check openjml.serverPath setting and that the server binary is executable.');
     });
 

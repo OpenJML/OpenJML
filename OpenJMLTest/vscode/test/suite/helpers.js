@@ -15,6 +15,14 @@
 const { VSBrowser, EditorView, SideBarView, BottomBarPanel, Workbench }
     = require('vscode-extension-tester');
 const { Key } = require('selenium-webdriver');
+const fs   = require('fs');
+const path = require('path');
+
+// Path to the server log file.  runner.js sets OPENJML_LSP_LOG and deletes any
+// stale copy before launching VS Code.  The computed fallback covers the case
+// where ExTester spawns the Mocha process without inheriting that env var.
+const SERVER_LOG = process.env.OPENJML_LSP_LOG
+    || path.resolve(__dirname, '../../.test-resources/server.log');
 
 // ── Output channel ────────────────────────────────────────────────────────────
 
@@ -89,6 +97,42 @@ async function waitForOutput(requiredStrings, deadlineMs) {
 async function hasOpenJMLChannel() {
     const text = await readOutputSafe();
     return text !== null;
+}
+
+/**
+ * Open a file resource and retry openEditor() until the tab is visible.
+ * Returns the editor, or throws if it never appears within the retry limit.
+ */
+async function openAndFocusFile(filePath) {
+    const driver    = VSBrowser.instance.driver;
+    const fileName  = require('path').basename(filePath);
+    await VSBrowser.instance.openResources(filePath);
+    for (let attempt = 0; attempt < 8; attempt++) {
+        await driver.sleep(1_000);
+        try {
+            return await new EditorView().openEditor(fileName);
+        } catch (_) {}
+    }
+    throw new Error(`Editor tab '${fileName}' did not appear after openResources`);
+}
+
+/**
+ * Poll the server log file (OPENJML_LSP_LOG) for a required string.
+ * Returns the log content when all strings are found, or the last content
+ * seen when the deadline is reached.
+ *
+ * Use this instead of waitForOutput() for server-side log messages, since
+ * getText() from the VS Code output panel no longer works in VS Code 1.117+.
+ */
+async function waitForServerLog(requiredStrings, deadlineMs) {
+    const driver = VSBrowser.instance.driver;
+    let text = '';
+    while (Date.now() < deadlineMs) {
+        try { text = fs.readFileSync(SERVER_LOG, 'utf8'); } catch (_) {}
+        if (requiredStrings.every(s => text.includes(s))) return text;
+        await driver.sleep(1_000);
+    }
+    return text;
 }
 
 // ── Explorer sidebar ──────────────────────────────────────────────────────────
@@ -241,15 +285,15 @@ let _serverReady = false;
 
 /**
  * Wait until the OpenJML LSP server has started, detected by the appearance of
- * "server started" in the output channel.  Returns true when ready, false on
+ * "[configuration]" in the server log file.  Returns true when ready, false on
  * timeout.
  *
- * Result is cached: once the server is confirmed running, all subsequent calls
- * return true immediately even if the output channel has since been cleared.
+ * The log file path is set via openjml.serverLogFile (written by runner.js) and
+ * passed to the server process as OPENJML_LSP_LOG.  runner.js deletes any stale
+ * log before launching VS Code, so reading this file always reflects the current run.
  *
- * In normal use the server starts within 60 seconds.  Suite 01 uses a
- * 2-minute timeout; later suites rely on the cached flag and use 60 s as a
- * safety net in case the module cache is somehow reset.
+ * Result is cached: once the server is confirmed running, all subsequent calls
+ * return true immediately.
  *
  * @param {number} [timeoutMs=120_000]
  * @returns {Promise<boolean>}
@@ -260,13 +304,21 @@ async function waitForServer(timeoutMs = 120_000) {
     const driver   = VSBrowser.instance.driver;
     const deadline = Date.now() + timeoutMs;
 
+    // Poll the server log file (path from OPENJML_LSP_LOG, set by runner.js) for
+    // the [configuration] marker the server writes after workspace/initialized.
+    // This avoids relying on getText() from the VS Code output panel, which stopped
+    // working in VS Code 1.117 when the renderer switched to xterm.js.
     while (Date.now() < deadline) {
-        const text = await readOutputSafe();
-        if (text && text.includes('server started')) {
-            _serverReady = true;
-            return true;
+        try {
+            const text = fs.readFileSync(SERVER_LOG, 'utf8');
+            if (text.includes('[configuration]')) {
+                _serverReady = true;
+                return true;
+            }
+        } catch (_) {
+            // File not yet created — server hasn't started writing yet.
         }
-        await driver.sleep(3_000);
+        await driver.sleep(2_000);
     }
     return false;
 }
@@ -295,8 +347,10 @@ module.exports = {
     readOpenJMLOutput,
     readOutputSafe,
     waitForOutput,
+    waitForServerLog,
     hasOpenJMLChannel,
     waitForServer,
+    openAndFocusFile,
     getExplorerSection,
     findExplorerItem,
     invokeContextMenuItem,

@@ -17,7 +17,7 @@ const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { Key } = require('selenium-webdriver');
-const { suiteTeardown, runCommand, noteSkip } = require('./helpers');
+const { suiteTeardown, runCommand, noteSkip, openAndFocusFile } = require('./helpers');
 
 const JML_FOLD_JAVA = path.resolve(__dirname, '../../resources/JmlFold.java');
 
@@ -32,12 +32,11 @@ describe('Code Folding', function () {
     this.timeout(90_000);
 
     let editor;
+    let foldControlsAvailable = false;
 
     before(async function () {
         await VSBrowser.instance.waitForWorkbench(20_000);
-        await VSBrowser.instance.openResources(JML_FOLD_JAVA);
-        await VSBrowser.instance.driver.sleep(2_000);
-        editor = await new EditorView().openEditor('JmlFold.java');
+        editor = await openAndFocusFile(JML_FOLD_JAVA);
         await runCommand('OpenJML: Check JML');
         await VSBrowser.instance.driver.sleep(3_000);
     });
@@ -55,11 +54,15 @@ describe('Code Folding', function () {
             // textDocument/foldingRange LSP support.
             noteSkip(this, 'no fold controls found — JML /*@ @*/ block folding is not implemented');
 
+        foldControlsAvailable = true;
         assert.ok(count >= 1,
             `Expected at least 1 fold control for /*@ ... @*/ blocks, found ${count}`);
     });
 
     it('clicking a fold control collapses a JML block', async function () {
+        if (!foldControlsAvailable)
+            noteSkip(this, 'skipping — no fold controls available (test 1 skipped)');
+
         const driver = VSBrowser.instance.driver;
         await editor.click();
         await driver.sleep(500);
@@ -84,6 +87,8 @@ describe('Code Folding', function () {
     });
 
     it('unfolding restores the JML block lines', async function () {
+        if (!foldControlsAvailable)
+            noteSkip(this, 'skipping — no fold controls available (test 1 skipped)');
         // Use the command palette instead of a keyboard shortcut to avoid
         // cross-platform key binding differences (Cmd+Shift+] on Mac switches
         // editor tabs rather than unfolding).

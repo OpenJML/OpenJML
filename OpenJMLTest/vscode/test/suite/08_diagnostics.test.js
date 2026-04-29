@@ -22,7 +22,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, BottomBarPanel } = require('vscode-extension-tester');
-const { suiteTeardown, runCommand, waitForServer, noteSkip,
+const { suiteTeardown, runCommand, waitForServer, noteSkip, openAndFocusFile,
         getExplorerSection, findExplorerItem, invokeContextMenuItem } = require('./helpers');
 
 const JML_ERRORS_JAVA = path.resolve(__dirname, '../../resources/JmlErrors.java');
@@ -84,9 +84,7 @@ describe('Diagnostics (Markers)', function () {
 
     before(async function () {
         await VSBrowser.instance.waitForWorkbench(20_000);
-        await VSBrowser.instance.openResources(JML_ERRORS_JAVA);
-        await VSBrowser.instance.driver.sleep(2_000);
-        await new EditorView().openEditor('JmlErrors.java');
+        await openAndFocusFile(JML_ERRORS_JAVA);
         const ready = await waitForServer(60_000);
         assert.ok(ready, 'OpenJML LSP server did not start — cannot test diagnostics');
     });

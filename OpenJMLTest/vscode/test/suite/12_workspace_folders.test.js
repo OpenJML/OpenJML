@@ -21,7 +21,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, Workbench, InputBox } = require('vscode-extension-tester');
-const { suiteTeardown, readOutputSafe, waitForOutput, waitForServer, noteSkip } = require('./helpers');
+const { suiteTeardown, waitForServerLog, waitForServer, noteSkip } = require('./helpers');
 
 const EXTRA_DIR = path.resolve(__dirname, '../../resources/extra');
 
@@ -36,11 +36,6 @@ describe('Workspace Folder Changes', function () {
 
     it('removing a workspace folder triggers didChangeWorkspaceFolders and server log', async function () {
         const driver = VSBrowser.instance.driver;
-
-        // Clear the output channel so we start with a clean slate.
-        try { await new Workbench().executeCommand('workbench.output.action.clearOutput'); }
-        catch (_) {}
-        await driver.sleep(1_000);
 
         // Execute "Remove Folder from Workspace..." — shows a quickpick with folder names.
         try {
@@ -62,25 +57,23 @@ describe('Workspace Folder Changes', function () {
             return;
         }
 
-        // The extension's onDidChangeWorkspaceFolders listener sends
-        // workspace/didChangeConfiguration to the server.  The server also
-        // receives workspace/didChangeWorkspaceFolders from lsp4j and logs
-        // "[workspace/didChangeWorkspaceFolders] rootPaths now: [...]" to stderr,
-        // which the extension routes to the OpenJML output channel.
-        const outputText = await waitForOutput(
+        // The server logs "[workspace/didChangeWorkspaceFolders] rootPaths now: [...]"
+        // to stderr (captured in the server log file).  Poll the log file directly
+        // since getText() from the VS Code output panel is unreliable in VS Code 1.117+.
+        const logText = await waitForServerLog(
             ['[workspace/didChangeWorkspaceFolders] rootPaths now:'],
             Date.now() + 20_000
         );
 
         assert.ok(
-            outputText.includes('[workspace/didChangeWorkspaceFolders] rootPaths now:'),
+            logText.includes('[workspace/didChangeWorkspaceFolders] rootPaths now:'),
             'Server must log didChangeWorkspaceFolders with new rootPaths.\n'
-            + 'Captured output:\n' + outputText
+            + 'Captured log:\n' + logText
         );
         assert.ok(
-            !outputText.includes(EXTRA_DIR),
+            !logText.includes(EXTRA_DIR),
             'Server rootPaths must not include the removed extra/ folder.\n'
-            + 'Captured output:\n' + outputText
+            + 'Captured log:\n' + logText
         );
     });
 
