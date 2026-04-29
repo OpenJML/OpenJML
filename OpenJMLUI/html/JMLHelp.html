@@ -205,7 +205,7 @@ Performing <I>deductive verification</I> (ESC) on selected items is typically tr
 There is a Preference that allows triggering ESC automatically on a file at file save.
 One can always trigger ESC manually on whatever Java elements are selected by pressing the toolbar icon,
 the menu item under the top-level 'OpenJML' menu, or a context menu item.  A setting allows choosing whether edited files are
-automatically saved, or not, when ESC is invoked. If edited files not saved, the ESC operation acts on the content of the editor. 
+automatically saved, or not, when ESC is invoked. If edited files are not saved, the ESC operation acts on the content of the editor. 
 It is also possible to initiate an ESC verification on a single method.
 </P><P>
 Results of proof attempts on each method are reported in the Console and as code lens information associated with the method definition.
@@ -253,7 +253,7 @@ Both operations are useful when markers are stale or obsolete and will not other
 
 <H3><A NAME="IndexProject">Index Project</A></H3>
 
-This operation manually initiaite typechecking of all files in the selected project (whether open in editors or not), initializing the index of declarations and ASTs.
+This operation manually initiates typechecking of all files in the selected project (whether open in editors or not), initializing the index of declarations and ASTs.
 
 <H3><A NAME="ClearAndReindex">Clear and Reindex</A></H3>
 
@@ -363,24 +363,24 @@ The content type is also associated with the "Generic Code Editor". This editor 
 .jml files because a Java editor would mark as errors those ways in which a .jml file differs from a .java file.
 
 <H3><A NAME="Preferences">OpenJML Preferences</A></H3>
-
+<P>
 The plug-in implements a standard Eclipse Preferences (or Settings) page, with four tabs: 
 Plug-in and LSP Settings, Syntax Colors, OpenJML Tool Options. and Project Options.
 The options control aspects
 of the plug-in itself and the LSP server, the color preferences for syntax coloring, and the underlying OpenJML tool, respectively.  
 The OpenJML Tool Options correspond to the command-line options of the command-line `openjml` tool; all the non-default OpenJML tool options are
 sent to OpenJML whenever an OpenJML action is requested.
-
+</P><P>
 <B>Paths</B>
-<P>
+</P><P>
 The Project Options tab holds path settings that influence what is communicated to OpenJML. These fields act as user
 <em>additions</em> prepended to the paths that Eclipse assembles from its own project model:
 </P>
 <UL>
-<LI><B>Classpath</B> — prepended before the Eclipse-derived classpath (JARs, dependency output directories).
+<LI><B>Classpath</B> -- prepended before the Eclipse-derived classpath (JARs, dependency output directories).
     The Eclipse RAC output directory preference, if set, also goes on the classpath immediately after this addition.</LI>
-<LI><B>Source path</B> — prepended before the source folders Eclipse collects from the project and its transitive dependencies.</LI>
-<LI><B>Specs path</B> — if empty, OpenJML uses its default (source path plus built-in system library specifications).
+<LI><B>Source path</B> -- prepended before the source folders Eclipse collects from the project and its transitive dependencies.</LI>
+<LI><B>Specs path</B> -- if empty, OpenJML uses its default (source path plus built-in system library specifications).
     If non-empty, this value is prepended to the full source path and the result is passed to OpenJML as
     <code>--specs-path</code>.</LI>
 </UL>
@@ -394,9 +394,9 @@ environment before passing the result to OpenJML.
 Two output directory settings govern where compiled <code>.class</code> files are written and found:
 </P>
 <UL>
-<LI><B>Java output directory</B> — the Eclipse JDT output folder (set by Eclipse, not user-configurable here).
+<LI><B>Java output directory</B> -- the Eclipse JDT output folder (set by Eclipse, not user-configurable here).
     It goes on the classpath so OpenJML can see already-compiled classes.</LI>
-<LI><B>RAC output directory</B> (<code>openjml.racOutputDir</code>) — where <code>--rac</code> writes its
+<LI><B>RAC output directory</B> (<code>openjml.racOutputDir</code>) -- where <code>--rac</code> writes its
     instrumented <code>.class</code> files (the <code>-d</code> argument to OpenJML).
     If empty, the Java output directory is used. This value also goes on the classpath so previously RAC-compiled
     classes remain visible on subsequent runs.</LI>
@@ -418,14 +418,14 @@ settings.</LI>
 
 <H2><A NAME="Troubleshooting">Some OpenJML plug-in infelicities and troubleshooting</A></H2>
 <UL>
-<LI>It can take a few secods for the server to be launched once Eclipse with the OpenJML plug-in is started.</LI>
+<LI>It can take several seconds for the server to be launched once Eclipse with the OpenJML plug-in is started.</LI>
 <LI>The Eclipse Console reports a small amount of logging behavior and also, in red, any error messages. 
     It may give hints as to what is wrong if the plug-in does not behave as expected.
     Additional detailed log information from the server is written in a file in ~/.openjml/logs.</LI>
 <LI>The Eclipse framework operates on projects one-by-one, because they may have different class, source, and destination paths;
     however, the OpenJML tool options (on the settings/preference page) are not project specific --- they apply uniformly to all projects.</LI>
-<LI>RAC must be triggered manually. The destination for RAC-generated <code>.class</code> files is controlled by the
-    <code>openjml.racOutputDir</code> preference; if not set it defaults to the Eclipse Java output directory.</LI>
+<LI>RAC must be triggered manually. The destination for RAC-generated <code>.class</code> files is controlled by 
+    a preference; if not set it defaults to the Eclipse Java output directory.</LI>
 <LI>The OpenJML Find References, Find Declaration, and Rename operations are separate from the similar Java commands,
     which can cause user confusion.</LI>
 <LI>The JML decorations on projects must be enabled in Eclipse settings: General &gt;&gt; Appearance &gt;&gt; Label Decorations.</LI>
