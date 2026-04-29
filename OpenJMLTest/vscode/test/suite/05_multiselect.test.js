@@ -11,12 +11,16 @@
  * Skips with a logged reason when the server is unavailable.
  */
 const assert  = require('assert');
+const fs      = require('fs');
 const path    = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { Key } = require('selenium-webdriver');
-const { suiteTeardown, waitForOutput, waitForServer, noteSkip,
+const { suiteTeardown, waitForServerLog, waitForServer, noteSkip,
         getExplorerSection, findExplorerItem, invokeContextMenuItem }
     = require('./helpers');
+
+const SERVER_LOG = process.env.OPENJML_LSP_LOG
+    || path.resolve(__dirname, '../../.test-resources/server.log');
 
 const FILEA       = 'EscFileA.java';
 const FILEB       = 'EscFileB.java';
@@ -59,16 +63,22 @@ describe('ESC via Explorer context menu', function () {
         await itemA.select();
         await driver.sleep(300);
 
+        // Snapshot log length before ESC so the FILEB-absence check only covers new entries.
+        let logLengthBefore = 0;
+        try { logLengthBefore = fs.readFileSync(SERVER_LOG, 'utf8').length; } catch (_) {}
+
         const clicked = await invokeContextMenuItem(itemA, 'Run ESC', ['Split', 'Method', 'Save']);
         if (!clicked)
             noteSkip(this, '"Run ESC" not in Explorer context menu — server may not be running');
 
-        const outputText = await waitForOutput([FILEA], Date.now() + 30_000);
-        if (!outputText.includes(FILEA))
-            noteSkip(this, 'output did not mention ' + FILEA + ' — server may not be running');
+        // Use server log (not output channel) since getText() is broken in VS Code 1.117+.
+        const fullLog = await waitForServerLog([FILEA], Date.now() + 30_000);
+        const newLog  = fullLog.slice(logLengthBefore);
+        if (!newLog.includes(FILEA))
+            noteSkip(this, 'server log did not mention ' + FILEA + ' — ESC may not have run');
 
-        assert.ok(outputText.includes(FILEA),  'Expected ' + FILEA + ' in output');
-        assert.ok(!outputText.includes(FILEB), 'Expected ' + FILEB + ' NOT in output for single-select');
+        assert.ok(newLog.includes(FILEA),  'Expected ' + FILEA + ' in server log');
+        assert.ok(!newLog.includes(FILEB), 'Expected ' + FILEB + ' NOT in server log for single-select');
     });
 
     // ── Test B: multi-select context menu ─────────────────────────────────────
@@ -102,11 +112,12 @@ describe('ESC via Explorer context menu', function () {
         if (!clicked)
             noteSkip(this, '"Run ESC" not in Explorer context menu — server may not be running');
 
-        const outputText = await waitForOutput([FILEA, FILEB], Date.now() + 30_000);
+        // Use server log (not output channel) since getText() is broken in VS Code 1.117+.
+        const outputText = await waitForServerLog([FILEA, FILEB], Date.now() + 30_000);
         if (!outputText.includes(FILEA) || !outputText.includes(FILEB))
-            noteSkip(this, 'output did not mention both files — server may not be running');
+            noteSkip(this, 'server log did not mention both files — ESC may not have run');
 
-        assert.ok(outputText.includes(FILEA), 'Expected ' + FILEA + ' in output');
-        assert.ok(outputText.includes(FILEB), 'Expected ' + FILEB + ' in output');
+        assert.ok(outputText.includes(FILEA), 'Expected ' + FILEA + ' in server log');
+        assert.ok(outputText.includes(FILEB), 'Expected ' + FILEB + ' in server log');
     });
 });

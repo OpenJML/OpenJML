@@ -32,6 +32,18 @@ const SERVER_LOG = process.env.OPENJML_LSP_LOG
  * Leaves the bottom bar closed.
  */
 async function readOpenJMLOutput() {
+    // VS Code 1.118+ changed the bottom panel DOM; BottomBarPanel can hang
+    // indefinitely waiting for elements.  Guard with a hard 8s timeout so
+    // callers always get a result quickly and skip instead of timing out.
+    try {
+        return await Promise.race([
+            _readOpenJMLOutputInner(),
+            new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8_000)),
+        ]);
+    } catch (_) { return null; }
+}
+
+async function _readOpenJMLOutputInner() {
     const driver    = VSBrowser.instance.driver;
     const bottomBar = new BottomBarPanel();
     try {

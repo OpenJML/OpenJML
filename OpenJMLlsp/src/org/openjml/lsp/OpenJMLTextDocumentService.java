@@ -2178,8 +2178,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             String javaUri = resolveCompanionJavaUri(uri, "");
             if (javaUri != null) {
                 CheckRunner.getASTCache().remove(javaUri);
-                if (client != null)
-                    client.publishDiagnostics(new PublishDiagnosticsParams(javaUri, List.of()));
+                publishDiags(javaUri, List.of());
             }
             CheckRunner.getASTCache().remove(uri);
             setNavDirtyForUri(uri);
@@ -2211,8 +2210,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         if (lastContent.containsKey(uri)) return;  // editor handles it
         if (type == FileChangeType.Deleted) {
             CheckRunner.getASTCache().remove(uri);
-            if (client != null)
-                client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+            publishDiags(uri, List.of());
         } else if (type == FileChangeType.Created) {
             setNavDirtyForUri(uri);
         }
@@ -3184,6 +3182,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
 
     private void publishDiags(String uri, List<Diagnostic> diags) {
         if (client == null) return;
+        ServerLog.serverLog("[publishDiagnostics] uri=" + uri + " count=" + diags.size());
         client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
         if (diags.isEmpty()) markedUris.remove(uri);
         else                 markedUris.add(uri);
@@ -3202,11 +3201,6 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         List<Diagnostic> checkList = checkDiags.getOrDefault(uri, List.of());
         List<Diagnostic> escList = new ArrayList<>();
         proofResults.values().forEach(pr -> escList.addAll(pr.byUri().getOrDefault(uri, List.of())));
-        ServerLog.serverLog("[publishMerged] uri=" + uri
-                + " checkDiags=" + checkList.size() + " escDiags=" + escList.size()
-                + " proofResultCount=" + proofResults.size()
-                + " proofResultsWithDiags=" + proofResults.values().stream()
-                        .filter(pr -> !pr.byUri().getOrDefault(uri, List.of()).isEmpty()).count());
         List<Diagnostic> merged = new ArrayList<>();
         merged.addAll(checkList);
         merged.addAll(escList);
@@ -3470,13 +3464,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         List<String> toClean = new ArrayList<>(markedUris);
         markedUris.clear();
         for (String uri : toClean) {
-            if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+            publishDiags(uri, List.of());
         }
         //debugContent("after clearMarkers");
         refreshCodeLenses();
     }
 
     void clearMarkersForUris(List<String> targetUris) {
+        // Normalize: the client sends fsPath (/Users/...) but markedUris stores file:// URIs.
+        List<String> normalized = new java.util.ArrayList<>(targetUris.size());
+        for (String t : targetUris)
+            normalized.add((!t.startsWith("file://") && t.startsWith("/")) ? "file://" + t : t);
+        targetUris = normalized;
         ServerLog.serverLog("[clearMarkersForUris] targets=" + targetUris
                 + " markedUris=" + markedUris);
         // Build normalized folder prefixes (always end with /).
@@ -3501,18 +3500,15 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             checkDiags.remove(uri);
             String uriPrefix = uri + "#";
             proofResults.keySet().removeIf(k -> k.equals(uri) || k.startsWith(uriPrefix));
-            markedUris.remove(uri);
-            if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
+            publishDiags(uri, List.of());
         }
         // Unconditionally publish empty for every target file URI so that orphaned
         // diagnostics (published under this URI but no longer tracked in markedUris)
         // are cleared on the client.  Folder URIs are skipped — diagnostics are
         // per-file and publishing empty for a folder URI is a no-op.
-        if (client != null) {
-            for (String t : targetUris) {
-                if (!toClear.contains(t) && (t.endsWith(".java") || t.endsWith(".jml"))) {
-                    client.publishDiagnostics(new PublishDiagnosticsParams(t, List.of()));
-                }
+        for (String t : targetUris) {
+            if (!toClear.contains(t) && (t.endsWith(".java") || t.endsWith(".jml"))) {
+                publishDiags(t, List.of());
             }
         }
         //debugContent("after clearMarkersForUris");

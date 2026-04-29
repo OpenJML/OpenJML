@@ -145,9 +145,13 @@ describe('Remaining Command Invocations', function () {
     });
 
     it('"Compile RAC" invokes RAC compilation', async function () {
+        this.timeout(300_000);
         // Cancel any in-progress ESC tasks left by the previous test (Run ESC on Project
         // spawns ESC across all files and may still be running when this test starts).
-        await runCommand('OpenJML: Cancel ESC');
+        await Promise.race([
+            runCommand('OpenJML: Cancel ESC'),
+            new Promise(r => setTimeout(r, 15_000)),
+        ]);
         await VSBrowser.instance.driver.sleep(2_000);
 
         // RAC requires a configured output dir; the test accepts either a success
@@ -190,22 +194,36 @@ describe('Remaining Command Invocations', function () {
         await item.select();
         await driver.sleep(300);
 
+        // Snapshot log length before ESC to avoid false pass from prior session entries.
+        let logLenBefore = 0;
+        try { logLenBefore = fs.readFileSync(SERVER_LOG, 'utf8').length; } catch (_) {}
+
         const clicked = await invokeContextMenuItem(item, 'Split by Method');
         if (!clicked)
             noteSkip(this, '"Run ESC Split by Method" not in context menu — server may not be running');
 
-        const output = await waitForOutput([FILEA], Date.now() + 20_000);
-        if (!output.includes(FILEA))
-            noteSkip(this, 'output did not mention ' + FILEA + ' — server may not be running');
+        // Poll new log content only (getText() broken in VS Code 1.117+).
+        const deadline = Date.now() + 20_000;
+        let newLog = '';
+        while (Date.now() < deadline) {
+            await driver.sleep(1_000);
+            try {
+                const full = fs.readFileSync(SERVER_LOG, 'utf8');
+                newLog = full.slice(logLenBefore);
+            } catch (_) {}
+            if (newLog.includes(FILEA)) break;
+        }
+        if (!newLog.includes(FILEA))
+            noteSkip(this, 'server log did not mention ' + FILEA + ' — ESC may not have run');
 
-        assert.ok(output.includes(FILEA),
-            'Expected ' + FILEA + ' in output after Split by Method');
+        assert.ok(newLog.includes(FILEA),
+            'Expected ' + FILEA + ' in server log after Split by Method');
     });
 
     // ── Pure client-side commands (no server required) ────────────────────────
 
     it('"Clear Markers for Selection" succeeds without error', async function () {
-        this.timeout(15_000);
+        this.timeout(30_000);
         // Dismiss any stale context menu left by the previous Explorer test.
         try {
             await VSBrowser.instance.driver.actions()

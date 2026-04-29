@@ -22,7 +22,7 @@ public class JmlErrors {
 
     /*@ requires a >= 0;
       @ ensures \result >= 0;
-      @*/
+      @*/  
     public int good(int a) {
         return a;
     }

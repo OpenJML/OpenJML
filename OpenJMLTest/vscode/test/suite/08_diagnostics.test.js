@@ -186,6 +186,10 @@ describe('Diagnostics (Markers)', function () {
 
     it('ESC on bad() reports a verification failure', async function () {
         // bad() has ensures \result < 0 but returns x > 0 — ESC must fail.
+        // Dismiss any stale context menu left by the previous test.
+        try { await VSBrowser.instance.driver.actions()
+            .sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
+        await VSBrowser.instance.driver.sleep(300);
         const ok = await runCommand('OpenJML: Run ESC');
         if (!ok) noteSkip(this, 'Run ESC command unavailable — server may not be running');
         await VSBrowser.instance.driver.sleep(5_000);

@@ -11,7 +11,8 @@
  *   - vscode-extension-tester >= 8.23  (earlier versions target VS Code <= 1.110 and use
  *     @redhat-developer/locators, which does not support the xterm.js output panel
  *     introduced in VS Code 1.117; getText() on the output channel returns empty in 1.117+)
- *   - VS Code >= 1.75 (1.117+ tested; output-channel getText() unavailable in 1.117+)
+ *   - VS Code 1.118.0 (pinned; update the downloadCode call in this file when re-validating
+ *     against a newer release; output-channel getText() unavailable in 1.117+)
  *
  * Usage:
  *   node runner.js                   # run all test suites
@@ -69,8 +70,10 @@ async function main() {
     const tester = new ExTester(STORAGE_DIR);
 
     // Download VS Code and ChromeDriver (both are cached after the first run).
-    await tester.downloadCode('latest');
-    await tester.downloadChromeDriver('latest');
+    // Version is pinned: 'latest' chases regressions with each VS Code release.
+    // Update the pin when the test suite has been validated against a newer version.
+    await tester.downloadCode('1.118.0');
+    await tester.downloadChromeDriver('1.118.0');
 
     // Package and install the extension.
     // vscode-extension-tester's installVsix() uses vsce to package the extension

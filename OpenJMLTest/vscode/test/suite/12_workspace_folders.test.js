@@ -70,10 +70,14 @@ describe('Workspace Folder Changes', function () {
             'Server must log didChangeWorkspaceFolders with new rootPaths.\n'
             + 'Captured log:\n' + logText
         );
+        // Check only the rootPaths line itself — the full log includes earlier
+        // entries from session startup when extra/ was still a workspace folder.
+        const rootPathsMatch = logText.match(/\[workspace\/didChangeWorkspaceFolders\] rootPaths now: .*/);
+        const rootPathsLine = rootPathsMatch ? rootPathsMatch[0] : '';
         assert.ok(
-            !logText.includes(EXTRA_DIR),
+            !rootPathsLine.includes('extra'),
             'Server rootPaths must not include the removed extra/ folder.\n'
-            + 'Captured log:\n' + logText
+            + 'rootPaths line: ' + rootPathsLine
         );
     });
 

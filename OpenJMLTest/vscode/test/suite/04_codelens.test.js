@@ -36,6 +36,7 @@ describe('Code Lenses', function () {
     let editor;
 
     before(async function () {
+        this.timeout(150_000);
         await VSBrowser.instance.waitForWorkbench(20_000);
         await VSBrowser.instance.openResources(SAMPLE_JAVA);
         await VSBrowser.instance.driver.sleep(2_000);
