@@ -41,8 +41,6 @@ public class GhostModelStatement extends JmlExtension {
         public JmlDeclarationType(String keyword) { super(keyword); }
 
         public JCStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
-            
             int pp = parser.pos();
             int pe = parser.endPos();
             
@@ -60,8 +58,8 @@ public class GhostModelStatement extends JmlExtension {
                 parser.storeEnd(stats.last(), parser.token().endPos);
                 parser.accept(SEMI);
 
-                JCStatement st = toP(stats.first());
-                wrapup(st, clauseType, false, true);
+                JCStatement st = parser.toP(stats.first());
+                wrapup(parser, st, clauseType, false, true);
                 return st;
             } finally {
                 parser.setInJmlDeclaration(saved);

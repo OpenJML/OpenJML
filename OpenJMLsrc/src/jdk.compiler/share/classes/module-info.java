@@ -234,6 +234,18 @@ module jdk.compiler {
 //    exports org.jmlspecs.openjml;
 //    exports org.jmlspecs.openjml.visitors;
     exports org.openjml;
+
+    // Gson is vendored inside jdk.compiler so that OpenJML can use it without
+    // a separate JAR.  Export the public Gson API packages so that downstream
+    // code (including the LSP server and its LSP4J dependency) can use Gson
+    // without --add-exports flags and without a split-package conflict from a
+    // second Gson JAR on the classpath.
+    // The com.google.gson.internal.* packages are intentionally not exported;
+    // they are implementation details consumed only within jdk.compiler itself.
+    exports com.google.gson;
+    exports com.google.gson.annotations;
+    exports com.google.gson.reflect;
+    exports com.google.gson.stream;
 //    exports com.sun.tools.javac.tree;
 //    exports com.sun.tools.javac.util;
 //    exports com.sun.tools.javac.api;

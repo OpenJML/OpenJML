@@ -117,6 +117,7 @@ public class JmlParser extends JavacParser {
      * @param keepDocComments
      *            whether to keep javadoc comments
      */
+    @SuppressWarnings("this-escape")
     protected JmlParser(ParserFactory fac, JmlScanner S, boolean keepDocComments) {
         super(fac, S, keepDocComments, true, true); // true = keepLineMap, keepEndPositions
         if (!(F instanceof JmlTree.Maker)) {
@@ -127,6 +128,7 @@ public class JmlParser extends JavacParser {
         }
         this.S = S;
         this.jmlF = (JmlTree.Maker) F;
+        if (org.jmlspecs.openjml.Utils.debug("scanner")) System.out.println("NEW JmlParser id=" + System.identityHashCode(this) + " scanner-id=" + System.identityHashCode(S) + " context-id=" + System.identityHashCode(S.context) + " thread=" + Thread.currentThread().getName());
     }
     
     public int getStartPos(JCTree tree) {

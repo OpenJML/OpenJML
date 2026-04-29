@@ -3,6 +3,7 @@
 	<name>OpenJMLFeature</name>
 	<comment></comment>
 	<projects>
+		<project>OpenJMLUI</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

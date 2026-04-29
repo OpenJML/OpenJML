@@ -46,24 +46,22 @@ public class SetStatement extends JmlExtension {
         public boolean preOrOldWithLabelAllowed() { return true; }
 
         public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
-            
             int pp = parser.pos();
             int pe = parser.endPos();
-            
+
             var token = parser.token();
             parser.nextToken();
             boolean saved = parser.setInJmlDeclaration(true);
             try {
                 JCStatement t = parser.parseJavaStatement();
-                JmlAbstractStatement st = toP(parser.maker().at(pp).JmlStatement(clauseType, t));
+                JmlAbstractStatement st = parser.toP(parser.maker().at(pp).JmlStatement(clauseType, t));
                 if (t instanceof JmlVariableDecl jmlstat) {
                 	JmlToken jt = new JmlToken(Modifiers.GHOST, pp, pe);
                 	jt.source = Log.instance(parser.context).currentSourceFile();
                 	//jmlstat.mods.add(jt);
                 	JmlTreeUtils.instance(parser.context).addAnnotation(jmlstat.mods, jt, parser);
                 }
-                wrapup(st, clauseType, false, true);
+                wrapup(parser, st, clauseType, false, true);
                 return st;
             } finally {
                 parser.setInJmlDeclaration(saved);

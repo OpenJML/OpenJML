@@ -35,7 +35,6 @@ public class TypeRWClauseExtension extends JmlExtension {
         public 
         JmlTree.JmlTypeClauseConditional parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             int pp = parser.pos();
-            init(parser);
             parser.nextToken(); // skip over readable/writable token; current token should now be the identifier
             Name nn = parser.parseOptionalName();
             Name n;
@@ -44,7 +43,7 @@ public class TypeRWClauseExtension extends JmlExtension {
             int identPos = parser.pos();
             Maker M = parser.maker();
             if (parser.token().kind != TokenKind.IDENTIFIER) {
-                error(parser.pos(), parser.endPos(), "jml.expected", "an identifier");
+                error(parser.context, parser.pos(), parser.endPos(), "jml.expected", "an identifier");
                 n = parser.names.asterisk; // place holder for an error situation
                 id = parser.to(M.at(identPos).Ident(n));
                 e = M.at(identPos).Erroneous();
@@ -52,15 +51,15 @@ public class TypeRWClauseExtension extends JmlExtension {
                 n = parser.ident(); // reads name and advances scanner
                 id = parser.toP(M.at(identPos).Ident(n));
                 if (parser.token().kind != IF) {
-                    error(parser.pos(), parser.endPos(), "jml.expected", "an if token");
+                    error(parser.context, parser.pos(), parser.endPos(), "jml.expected", "an if token");
                     e = M.Erroneous();
                 } else {
                     parser.accept(TokenKind.IF); // check that current token is 'if' and advance scanner
                     e = parser.parseExpression(); // read expression, advancing scanner to token after expression
                 }
             }
-            var t = toP(M.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
-            wrapup(t, clauseType, true, true);
+            var t = parser.toP(M.at(pp).JmlTypeClauseConditional(mods, clauseType, id, e));
+            wrapup(parser, t, clauseType, true, true);
             t.name = nn;
             return t;
         }

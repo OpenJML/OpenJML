@@ -1,0 +1,153 @@
+package org.openjml.ui;
+
+import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.BundleContext;
+
+/**
+ * The activator class controls the plug-in life cycle
+ */
+public class Activator extends AbstractUIPlugin implements org.eclipse.ui.IStartup {
+
+    // The plug-in ID
+    public static final String PLUGIN_ID = "org.openjml.OpenJMLUI"; //$NON-NLS-1$
+
+    // The shared instance
+    private static Activator plugin;
+
+    /** ClassLoader for the org.eclipse.lsp4e bundle — can access its internal classes. */
+    public static volatile ClassLoader lsp4eLoader;
+
+    /** The registered part listener; kept so it can be disposed on stop. */
+    private static volatile org.jmlspecs.openjml.eclipse.LspPartListener partListener;
+
+    /** The registered resource change listener; kept so it can be removed on stop. */
+    private static volatile org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener resourceChangeListener;
+
+    /**
+     * The constructor
+     */
+    public Activator() {
+        plugin = this;
+    }
+
+    /** Called by org.eclipse.ui.startup early in workbench lifecycle. */
+    @Override
+    public void earlyStartup() {
+        // Store the lsp4e bundle's classloader for use by LspPartListener.
+        // LSP4E populates LanguageServersRegistry lazily (on first document open),
+        // so there is nothing to start here — document connection happens in LspPartListener.
+        try {
+            org.osgi.framework.Bundle lsp4eBundle =
+                    org.osgi.framework.FrameworkUtil.getBundle(
+                            org.eclipse.lsp4e.LanguageServers.class);
+            lsp4eLoader = lsp4eBundle.adapt(
+                    org.osgi.framework.wiring.BundleWiring.class).getClassLoader();
+        } catch (Throwable t) {
+            org.jmlspecs.openjml.eclipse.Console.errorlog(
+                    "Plugin startup: failed to acquire lsp4e loader", t);
+        }
+        org.jmlspecs.openjml.eclipse.Console.log("OpenJMLUI plugin started");
+
+        // React to OpenJML preference changes.
+        // - Server path change: stop the old server and reconnect at the new path.
+        // - All other openjml.* changes: forward to the running server via
+        //   workspace/didChangeConfiguration (no restart needed).
+        getPreferenceStore().addPropertyChangeListener(event -> {
+            String prop = event.getProperty();
+            if (org.jmlspecs.openjml.eclipse.OpenJMLOptions.lspServerPathKey.equals(prop)) {
+                org.jmlspecs.openjml.eclipse.LspPartListener.restartServer();
+            } else if (prop.startsWith("openjml.")) {
+                org.jmlspecs.openjml.eclipse.LspPartListener.sendSettingsToServer();
+            }
+        });
+
+        // Register resource change listener to detect classpath/property/dependency
+        // changes in JML-natured projects and offer to re-check accordingly.
+        org.eclipse.core.resources.IWorkspace workspace =
+                org.eclipse.core.resources.ResourcesPlugin.getWorkspace();
+        org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener rcl =
+                new org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener();
+        resourceChangeListener = rcl;
+        // Snapshot current project descriptions BEFORE registering so that spurious
+        // DESCRIPTION events from JDT/Eclipse workspace restore are filtered out.
+        rcl.initialize(workspace.getRoot());
+        workspace.addResourceChangeListener(rcl,
+                        org.eclipse.core.resources.IResourceChangeEvent.POST_CHANGE);
+
+        // Note: if openjml-lsp is not reachable, the looping dialog in
+        // OpenJMLStreamConnectionProvider.start() will handle it when LSP4E
+        // first tries to connect (i.e., when a JML file is opened).
+    }
+
+    @Override
+    public void start(BundleContext context) throws Exception {
+        super.start(context);
+//        org.jmlspecs.openjml.eclipse.OpenJMLOptions.initializeDefaults(getPreferenceStore());
+        // Register part listener to connect documents to the LSP server as files are opened.
+        // Must run on the UI thread after workbench is available.
+        org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
+            try {
+                org.eclipse.ui.IWorkbench wb = org.eclipse.ui.PlatformUI.getWorkbench();
+                org.jmlspecs.openjml.eclipse.LspPartListener listener =
+                        new org.jmlspecs.openjml.eclipse.LspPartListener();
+                partListener = listener;
+                for (org.eclipse.ui.IWorkbenchWindow w : wb.getWorkbenchWindows()) {
+                    org.eclipse.ui.IWorkbenchPage p = w.getActivePage();
+                    if (p != null) {
+                        p.addPartListener(listener);
+                        // Also trigger for editors already open at registration time
+                        for (org.eclipse.ui.IEditorReference ref : p.getEditorReferences()) {
+                            listener.partOpened(ref);
+                        }
+                    }
+                }
+                wb.addWindowListener(new org.eclipse.ui.IWindowListener() {
+                    @Override public void windowOpened(org.eclipse.ui.IWorkbenchWindow w) {
+                        org.eclipse.ui.IWorkbenchPage p = w.getActivePage();
+                        if (p != null) p.addPartListener(listener);
+                    }
+                    @Override public void windowActivated(org.eclipse.ui.IWorkbenchWindow w) {}
+                    @Override public void windowDeactivated(org.eclipse.ui.IWorkbenchWindow w) {}
+                    @Override public void windowClosed(org.eclipse.ui.IWorkbenchWindow w) {}
+                });
+            } catch (Throwable e) {
+                org.jmlspecs.openjml.eclipse.Console.errorlog(
+                        "Failed to register LspPartListener", e);
+            }
+        });
+        // Diagnostic: verify LSP4E language server extension point and our config elements
+        org.eclipse.core.runtime.IExtensionRegistry reg =
+                org.eclipse.core.runtime.Platform.getExtensionRegistry();
+        org.eclipse.core.runtime.IExtensionPoint ep =
+                reg.getExtensionPoint("org.eclipse.lsp4e.languageServer");
+        if (ep == null) {
+            org.jmlspecs.openjml.eclipse.Console.errorlog(
+                    "lsp4e extension point not found — LSP features disabled");
+        }
+    }
+
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener rcl = resourceChangeListener;
+        if (rcl != null) {
+            org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
+                    .removeResourceChangeListener(rcl);
+            rcl.dispose();
+            resourceChangeListener = null;
+        }
+        org.jmlspecs.openjml.eclipse.LspPartListener pl = partListener;
+        if (pl != null) { pl.dispose(); partListener = null; }
+        plugin = null;
+        super.stop(context);
+    }
+
+    /**
+     * Returns the shared instance
+     *
+     * @return the shared instance
+     */
+    public static Activator getDefault() {
+        return plugin;
+    }
+
+}

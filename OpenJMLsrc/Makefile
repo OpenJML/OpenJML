@@ -118,6 +118,10 @@ release: .FORCE
 
 clean-jml:
 	rm -rf release-temp temp-release $(TEMPLIB) jmlruntime.jar $(USERGUIDE)
+	$(MAKE) -C ../OpenJMLTest clean
+	$(MAKE) -C ../OpenJMLlsp clean
+	$(MAKE) -C ../OpenJMLUI clean
+	$(MAKE) -C ../OpenJMLGUITests clean
 
 ## Cleans and makes release
 clean-release:
@@ -171,11 +175,15 @@ post: .FORCE
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
-	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-*
-	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
+	$(MAKE) openjml-ui
 
-#RunOpenJML.class: RunOpenJML.java
-#	./openjml-compile -cp . RunOpenJML.java
+openjml-ui:
+	$(MAKE) -C ../OpenJMLlsp release
+	cp -pR ../OpenJMLlsp/release-stage/. $(TEMP)
+	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
+	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
+	../OpenJMLUI/release.sh --version 0.21.0 --overwrite
+
 
 USERGUIDE=tempUserGuide
 REFMANID=5ceee26404c2854a1590029f
@@ -191,11 +199,11 @@ userguide-examples:
 
 TEMPDOCS=tempDocs
 # Mac-specific path; adjust for other platforms
-DOWNLOADS=$(wildcard ~/Desktop)
+DOWNLOADS=$(HOME)/Desktop
 ## Pulls the JML reference manual and the OpenJML User Guide LaTeX sources from Overleaf and then builds the pdfs locally (not using Overleaf to build)
 ## Requires a local installation of pdflatex
 update-docs:
-	rm -rf "${DOWNLOADS}/OpenJMLUserGuide.pdf" "${DOWNLOADS}/JML_Reference_Manual.pdf" 
+	rm -rf ${DOWNLOADS}/OpenJMLUserGuide.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf
 	$(MAKE) userguide-examples
 	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${REFMANID} ; cd ${REFMANID}; pdflatex JMLReferenceManual.tex --interaction batchmode ; bibtex JMLReferenceManual ; pdflatex JMLReferenceManual.tex --interaction batchmode; pdflatex JMLReferenceManual.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}/JML_Reference_Manual.pdf; )
 	@ ( rm -rf $(TEMPDOCS); mkdir -p ${TEMPDOCS}; cd ${TEMPDOCS}; git clone https://git@git.overleaf.com/${USERGUIDEID} ; cd ${USERGUIDEID} ; pdflatex OpenJMLUserGuide.tex --interaction batchmode; bibtex OpenJMLUserGuide; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; pdflatex OpenJMLUserGuide.tex --interaction batchmode ; mv *.pdf ${DOWNLOADS}; )

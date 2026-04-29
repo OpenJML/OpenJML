@@ -1,0 +1,391 @@
+#!/usr/bin/env python3
+"""
+html-update-toc  —  sync the table of contents in JMLHelp.html and JMLHelp.xml.
+
+Usage:
+    html-update-toc [--check-only] [--html-errors-only]
+
+Options:
+    --check-only       Report differences but do not write any files.
+    --html-errors-only Only run the HTML structural checks; skip TOC update.
+
+Exit codes:
+    0  Nothing changed (or --check-only with no differences).
+    1  Files were updated (or --check-only found differences / errors).
+    2  Script error (bad arguments, file not found, etc.).
+
+How it works
+------------
+The script reads JMLHelp.html and finds every H2 / H3 / H4 heading.
+Headings that carry a  <A NAME="…">  anchor are included in the TOC;
+headings without an anchor are reported as warnings (they are invisible
+to the table of contents and to the Eclipse Help TOC navigator).
+
+From the anchored headings the script builds:
+
+  * A new HTML TOC block to replace the region between
+      <!-- start toc … -->
+    and
+      <!-- end toc -->
+    inside JMLHelp.html.
+
+  * A new JMLHelp.xml that matches the Eclipse Help toc format.
+
+Both files are written only when their content would actually change
+(the script is idempotent).
+
+The script also checks JMLHelp.html for common structural HTML problems
+and prints a report regardless of --check-only.
+"""
+
+import re
+import sys
+from pathlib import Path
+
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+HTML_FILE  = SCRIPT_DIR / "JMLHelp.html"
+XML_FILE   = SCRIPT_DIR / "JMLHelp.xml"
+
+# Prefix used in XML href attributes.
+XML_HREF_PREFIX = "html/JMLHelp.html"
+
+# ---------------------------------------------------------------------------
+# Heading extraction
+# ---------------------------------------------------------------------------
+
+# Pattern for a heading with a NAME anchor.  Handles mixed case:
+#   <H2><A NAME="foo">Label text</A></H2>
+#   <h3><a name="Bar">Label text</a></h3>
+_ANCHORED = re.compile(
+    r'<([Hh]([234]))\b[^>]*>\s*'
+    r'<[Aa]\s+[Nn][Aa][Mm][Ee]\s*=\s*"([^"]+)"[^>]*>'
+    r'([^<]+)'
+    r'</[Aa]>\s*</[Hh][234]>',
+    re.DOTALL,
+)
+
+# Pattern for any H2/H3/H4 heading (to detect those *without* anchors).
+_ANY_HEADING = re.compile(
+    r'<([Hh]([234]))\b[^>]*>(.*?)</[Hh][234]>',
+    re.IGNORECASE | re.DOTALL,
+)
+
+
+def extract_anchored_headings(text):
+    """Return list of (level:int, anchor:str, label:str) for H2/H3/H4
+    headings that carry a NAME anchor."""
+    return [
+        (int(m.group(2)), m.group(3), m.group(4).strip())
+        for m in _ANCHORED.finditer(text)
+    ]
+
+
+def extract_all_headings(text):
+    """Return list of (level:int, anchor:str|None, label:str) for every
+    H2/H3/H4 heading, regardless of whether it has an anchor."""
+    anchored = {anchor for _, anchor, _ in extract_anchored_headings(text)}
+    result = []
+    for m in _ANY_HEADING.finditer(text):
+        level = int(m.group(2))
+        inner = m.group(3)
+        # Extract text (strip tags)
+        label = re.sub(r'<[^>]+>', '', inner).strip()
+        # Find NAME anchor if present
+        am = re.search(r'<[Aa]\s+[Nn][Aa][Mm][Ee]\s*=\s*"([^"]+)"', inner, re.IGNORECASE)
+        anchor = am.group(1) if am else None
+        result.append((level, anchor, label))
+    return result
+
+# ---------------------------------------------------------------------------
+# HTML TOC builder
+# ---------------------------------------------------------------------------
+
+TOC_START_MARKER = '<!-- start toc'
+TOC_END_MARKER   = '<!-- end toc -->'
+
+def build_html_toc(headings):
+    """Build the HTML TOC block (the text that goes *between* the markers).
+
+    headings — list of (level, anchor, label); headings without anchors
+    are silently skipped.
+    """
+    lines = ['    <UL>']
+    in_nested = False
+
+    for level, anchor, label in headings:
+        if anchor is None:
+            continue
+        if level == 2:
+            if in_nested:
+                lines.append('        </UL>')
+                in_nested = False
+            lines.append(f'      <LI CLASS="toc"><A HREF="#{anchor}">{label}</A>')
+        elif level >= 3:
+            if not in_nested:
+                lines.append('        <UL>')
+                in_nested = True
+            lines.append(f'          <LI CLASS="toc"><A HREF="#{anchor}">{label}</A>')
+
+    if in_nested:
+        lines.append('        </UL>')
+    lines.append('    </UL>')
+    return '\n'.join(lines)
+
+# ---------------------------------------------------------------------------
+# XML TOC builder
+# ---------------------------------------------------------------------------
+
+def build_xml(headings):
+    """Build the complete JMLHelp.xml content.
+
+    headings — list of (level, anchor, label); headings without anchors
+    are silently skipped.
+
+    H2 headings that have at least one anchored H3 child are rendered as
+    open/close topic elements; H2 headings with no such children are
+    self-closing.
+    """
+    # Group into [(level2_entry, [level3_children, ...]), ...]
+    # level2_entry and each child is (level, anchor, label).
+    groups = []   # list of (h2, [h3, ...])
+    for level, anchor, label in headings:
+        if anchor is None:
+            continue
+        if level == 2:
+            groups.append(((level, anchor, label), []))
+        elif level >= 3 and groups:
+            groups[-1][1].append((level, anchor, label))
+
+    lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<?NLS TYPE="org.eclipse.help.toc"?>',
+        '',
+        f'<toc label="JML"  topic="{XML_HREF_PREFIX}">',
+    ]
+
+    for (_, anchor, label), children in groups:
+        href = f'{XML_HREF_PREFIX}#{anchor}'
+        if children:
+            lines.append(f'    <topic label="{label}" href="{href}">')
+            for _, ca, cl in children:
+                lines.append(f'        <topic label="{cl}" href="{XML_HREF_PREFIX}#{ca}"/>')
+            lines.append('    </topic>')
+        else:
+            lines.append(f'    <topic label="{label}" href="{href}"/>')
+
+    lines += [
+        '',
+        '</toc>',
+        '',
+    ]
+    return '\n'.join(lines)
+
+# ---------------------------------------------------------------------------
+# HTML structural checks
+# ---------------------------------------------------------------------------
+
+def check_html(text):
+    """Return a list of (line_number, message) strings describing HTML
+    structural issues found in *text*."""
+    issues = []
+    lines  = text.splitlines()
+
+    # --- 1. TOC anchor references that do not exist as NAME anchors in body ---
+    all_anchors = set(re.findall(
+        r'<[Aa]\s+[Nn][Aa][Mm][Ee]\s*=\s*"([^"]+)"', text, re.IGNORECASE))
+
+    toc_start = next((i for i, l in enumerate(lines)
+                      if TOC_START_MARKER in l), None)
+    toc_end   = next((i for i, l in enumerate(lines)
+                      if TOC_END_MARKER in l), None)
+
+    if toc_start is not None and toc_end is not None:
+        toc_block = '\n'.join(lines[toc_start:toc_end + 1])
+        for m in re.finditer(r'href="#([^"]+)"', toc_block):
+            anchor = m.group(1)
+            if anchor not in all_anchors:
+                issues.append((toc_start + 1,
+                    f'TOC link "#{ anchor }" has no matching NAME anchor in body'))
+
+    # --- 2. Headings without NAME anchors ---
+    for i, line in enumerate(lines, 1):
+        m = re.match(r'\s*<([Hh][234])\b', line)
+        if m:
+            # Check if this line (or immediately following) has a NAME anchor
+            # by looking at the full matched heading span
+            pass  # handled below via extract_all_headings
+
+    for level, anchor, label in extract_all_headings(text):
+        if anchor is None:
+            # Find the line number
+            pat = re.compile(
+                r'<[Hh]' + str(level) + r'\b[^>]*>' + re.escape(label),
+                re.IGNORECASE)
+            for i, line in enumerate(lines, 1):
+                if re.search(r'<[Hh]' + str(level) + r'\b', line, re.IGNORECASE):
+                    plain = re.sub(r'<[^>]+>', '', line).strip()
+                    if label.startswith(plain[:20]) or plain.startswith(label[:20]):
+                        issues.append((i,
+                            f'H{level} heading "{label}" has no NAME anchor '
+                            f'(will not appear in TOC or Eclipse Help navigator)'))
+                        break
+
+    # --- 3. Unquoted attribute values ---
+    for i, line in enumerate(lines, 1):
+        # Strip content inside quoted strings so we don't false-positive on
+        # attribute values that happen to contain '=' (e.g. charset=iso-8859-1
+        # inside content="text/html; charset=iso-8859-1").
+        stripped = re.sub(r'"[^"]*"', '""', line)
+        stripped = re.sub(r"'[^']*'", "''", stripped)
+        for m in re.finditer(r'\b(\w+)=([^\s"\'>/][^\s>]*)', stripped):
+            attr, val = m.group(1), m.group(2)
+            issues.append((i,
+                f'Unquoted attribute value: {attr}={val}'))
+
+    # --- 4. Mismatched <li class="toc"> consistency inside TOC block ---
+    if toc_start is not None and toc_end is not None:
+        for i in range(toc_start, toc_end + 1):
+            line = lines[i]
+            if re.search(r'<li\b', line, re.IGNORECASE):
+                if not re.search(r'class="toc"', line, re.IGNORECASE):
+                    issues.append((i + 1,
+                        f'<li> in TOC block missing class="toc": {line.strip()}'))
+
+    # --- 5. Known typos (simple substring checks) ---
+    TYPOS = [
+        (r'David R\. 1Cok',  'Likely typo: "1Cok" should be "Cok"'),
+        (r'\bverwrite\b',    'Likely typo: "verwrite" (missing "o"?)'),
+        ('happend',          'Likely typo: "happend" should be "happen"'),
+        ('hae a ',           'Likely typo: "hae a" should be "have a"'),
+        ('Package Exploer',  'Likely typo: "Exploer" should be "Explorer"'),
+        ('seequence',        'Likely typo: "seequence" should be "sequence"'),
+        ('informatino',      'Likely typo: "informatino" should be "information"'),
+    ]
+    for i, line in enumerate(lines, 1):
+        # Stray apostrophe: a line whose only non-whitespace character is '
+        if line.strip() == "'":
+            issues.append((i, "Stray single-quote character on its own line"))
+        for needle, msg in TYPOS:
+            if re.search(needle, line):
+                issues.append((i, msg))
+
+    return sorted(issues)
+
+# ---------------------------------------------------------------------------
+# File update helpers
+# ---------------------------------------------------------------------------
+
+def replace_toc_block(html_text, new_toc_block):
+    """Replace the content between the start/end TOC markers with
+    *new_toc_block*."""
+    start_pat = re.compile(r'<!-- start toc.*?-->', re.DOTALL)
+    end_marker = TOC_END_MARKER
+
+    m_start = start_pat.search(html_text)
+    m_end   = html_text.find(end_marker)
+    if m_start is None or m_end == -1:
+        raise ValueError('Could not locate TOC markers in HTML file')
+
+    before = html_text[:m_start.end()]
+    after  = html_text[m_end:]
+    return before + '\n' + new_toc_block + '\n' + after
+
+
+def normalise_toc_block(html_text):
+    """Extract the current TOC block from the HTML file."""
+    start_pat = re.compile(r'<!-- start toc.*?-->', re.DOTALL)
+    end_marker = TOC_END_MARKER
+    m_start = start_pat.search(html_text)
+    m_end   = html_text.find(end_marker)
+    if m_start is None or m_end == -1:
+        return None
+    return html_text[m_start.end():m_end].strip()
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+def main(argv):
+    check_only      = '--check-only'      in argv
+    errors_only     = '--html-errors-only' in argv
+    unknown = [a for a in argv[1:] if a not in
+               ('--check-only', '--html-errors-only')]
+    if unknown:
+        print(f'Unknown option(s): {" ".join(unknown)}', file=sys.stderr)
+        print(__doc__, file=sys.stderr)
+        sys.exit(2)
+
+    if not HTML_FILE.exists():
+        print(f'ERROR: {HTML_FILE} not found', file=sys.stderr)
+        sys.exit(2)
+    if not XML_FILE.exists():
+        print(f'ERROR: {XML_FILE} not found', file=sys.stderr)
+        sys.exit(2)
+
+    html_text = HTML_FILE.read_text(encoding='iso-8859-1')
+    xml_text  = XML_FILE.read_text(encoding='utf-8')
+
+    # ── HTML structural checks ──────────────────────────────────────────────
+    issues = check_html(html_text)
+    if issues:
+        print(f'HTML structural issues in {HTML_FILE.name}:')
+        for lineno, msg in issues:
+            print(f'  line {lineno:4d}: {msg}')
+    else:
+        print(f'No HTML structural issues found in {HTML_FILE.name}.')
+
+    if errors_only:
+        sys.exit(1 if issues else 0)
+
+    # ── Extract headings ────────────────────────────────────────────────────
+    all_heads = extract_all_headings(html_text)
+    anchored  = [(lvl, anc, lbl) for lvl, anc, lbl in all_heads if anc]
+
+    if not anchored:
+        print('WARNING: No anchored headings found; TOC will be empty.')
+
+    # ── Build new TOC content ───────────────────────────────────────────────
+    new_html_toc = build_html_toc(anchored)
+    new_xml      = build_xml(anchored)
+
+    # ── Compare and update HTML ─────────────────────────────────────────────
+    current_html_toc = normalise_toc_block(html_text)
+    html_changed = (current_html_toc != new_html_toc.strip())
+
+    if html_changed:
+        print(f'HTML TOC is out of date.')
+        if not check_only:
+            updated_html = replace_toc_block(html_text, new_html_toc)
+            HTML_FILE.write_text(updated_html, encoding='iso-8859-1')
+            print(f'  Updated {HTML_FILE}')
+        else:
+            print('  (--check-only: not writing)')
+    else:
+        print(f'HTML TOC is up to date.')
+
+    # ── Compare and update XML ──────────────────────────────────────────────
+    xml_changed = (xml_text.strip() != new_xml.strip())
+
+    if xml_changed:
+        print(f'JMLHelp.xml is out of date.')
+        if not check_only:
+            XML_FILE.write_text(new_xml, encoding='utf-8')
+            print(f'  Updated {XML_FILE}')
+        else:
+            print('  (--check-only: not writing)')
+    else:
+        print(f'JMLHelp.xml is up to date.')
+
+    # ── Summary ─────────────────────────────────────────────────────────────
+    anything_wrong = issues or html_changed or xml_changed
+    if anything_wrong and check_only:
+        sys.exit(1)
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main(sys.argv)

@@ -185,7 +185,9 @@ public class JmlCompiler extends JavaCompiler {
             // No spec file on specspath. Last resort is to look for a sibling of the source file.
             var path = java.nio.file.Paths.get(filename.toUri().getPath());
             //JmlSpecs.instance(context);
-            specFile = new Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context);
+            specFile = JmlSpecs.withMockOverride(
+                    new Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context),
+                    context);
         }
         if (debugParse) System.out.println("parser:     Found " + specFile);
         return specFile;
@@ -581,9 +583,12 @@ public class JmlCompiler extends JavaCompiler {
             return super.attribute(env);
         } finally {
             if (!env.toplevel.sourcefile.toString().contains(".jml")) {
-                synchronized (org.openjml.API.astListeners) { 
-                    for (var listener: org.openjml.API.astListeners) {
-                        listener.notify(context, env.toplevel.sourcefile, (JmlCompilationUnit)env.toplevel);
+                org.jmlspecs.openjml.Main main = org.jmlspecs.openjml.Main.instance(context);
+                if (main != null) {
+                    synchronized (main.astListeners) {
+                        for (var listener : main.astListeners) {
+                            listener.notify(context, env.toplevel.sourcefile, (JmlCompilationUnit)env.toplevel);
+                        }
                     }
                 }
             }
@@ -632,15 +637,15 @@ public class JmlCompiler extends JavaCompiler {
                 infer(env);
             return noresults;
         } else if (utils.rac) {
-            var results = new java.util.LinkedList<Env<AttrContext>>();
-            for (var env: envs) {
-                var t = env.tree;
-                if (t instanceof JmlTree.JmlSource s && utils.isSpecFile(s.source())) continue;
-                if (!(t instanceof JCTree.JCModuleDecl)) env = rac(env);
-                if (env == null) continue;
-                results.add(env);
-            }
-            return results;
+        	var results = new java.util.LinkedList<Env<AttrContext>>();
+        	for (var env: envs) {
+        		var t = env.tree;
+                if (utils.isSpecFile(((JmlTree.JmlSource)t).source())) continue;
+        		env = rac(env);
+        		if (env == null) continue;
+        		results.add(env);
+        	}
+        	return results;
         } else {
         	return envs;
         }
