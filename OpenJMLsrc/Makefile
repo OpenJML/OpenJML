@@ -182,7 +182,7 @@ openjml-ui:
 	cp -pR ../OpenJMLlsp/release-stage/. $(TEMP)
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
-	../OpenJMLUI/release.sh --version 0.21.0 --overwrite
+	../OpenJMLUI/release.sh --version `cat ../version.txt` --overwrite
 
 
 USERGUIDE=tempUserGuide
@@ -211,11 +211,12 @@ update-docs:
 	cp "${DOWNLOADS}/OpenJMLUserGuide.pdf" "$(RELFILES)"
 	cp "${DOWNLOADS}/JML_Reference_Manual.pdf" ../../openjml.github.io/documentation
 	cp "${DOWNLOADS}/JML_Reference_Manual.pdf" "$(RELFILES)"
+	cp ../OpenJMLUI/html/JMLHelp.html ../../openjml.github.io/documentation
 
 ## Commits and pushes the builds produced by `update-docs` to openjml.github.io
 ## (Does not commit them to the current branch of OpenJMLsrc)
 push-docs:
-	( cd ../../openjml.github.io; git pull; git add documentation/OpenJMLUserGuide.pdf documentation/JML_Reference_Manual.pdf examples/${ZIPNAME} ; git commit -m "Updating docs"; git push )
+	( cd ../../openjml.github.io; git pull; git add documentation/JMLHelp.html documentation/OpenJMLUserGuide.pdf documentation/JML_Reference_Manual.pdf examples/${ZIPNAME} ; git commit -m "Updating docs"; git push )
 
 ## Smoke test of a newly constructed release
 trial: .FORCE
