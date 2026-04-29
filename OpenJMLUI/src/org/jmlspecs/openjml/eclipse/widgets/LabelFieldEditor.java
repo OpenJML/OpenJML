@@ -13,7 +13,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 
 /**
- * A fake field editor that is just a label to be used as a separator; the st.
+ * A {@link FieldEditor} that renders as a plain label or horizontal separator.
+ * Used to add section headings and dividers to preference pages.
  */
 public class LabelFieldEditor extends FieldEditor {
 

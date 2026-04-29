@@ -34,7 +34,6 @@ public class FrameExpressions extends JmlExtension {
         @Override
         public JCExpression parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int p = parser.pos();
             var jt = parser.jmlTokenClauseKind();
             parser.nextToken();
@@ -45,7 +44,7 @@ public class FrameExpressions extends JmlExtension {
             }
             int pp = parser.pos();
             List<JCExpression> args = parser.arguments();
-            JmlMethodInvocation t = toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
+            JmlMethodInvocation t = parser.toP(parser.maker().at(pp).JmlMethodInvocation(jt, args));
             t.startpos = p;
             t.kind = this;
             return parser.primaryTrailers(t, null); // FIXME - was perimarySUffix
@@ -57,7 +56,7 @@ public class FrameExpressions extends JmlExtension {
             ListBuffer<Type> argtypesBuf = new ListBuffer<>();
             attr.attribArgs(KindSelector.VAL, tree.args, localEnv, argtypesBuf);
             if (!attr.postClauses.contains(attr.jmlenv.currentClauseKind)) {
-                log.error(tree.pos, "jml.misplaced.token", tree.kind != null ? tree.kind.keyword() : "?", attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
+                Log.instance(attr.context).error(tree.pos, "jml.misplaced.token", tree.kind != null ? tree.kind.keyword() : "?", attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
             }
             return attr.syms.booleanType;
         }
@@ -77,7 +76,6 @@ public class FrameExpressions extends JmlExtension {
         @Override
         public JCExpression parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int p = parser.pos();
             parser.nextToken();
             if (parser.token().kind != TokenKind.LPAREN) {
@@ -86,9 +84,9 @@ public class FrameExpressions extends JmlExtension {
 //                return parser.syntaxError(p, null, "jml.no.typeargs.allowed", jt.internedName());
             }
             int pp = parser.pos();
-            List<JmlTree.JmlMethodSig> args = parseMethodNameList();
+            List<JmlTree.JmlMethodSig> args = parseMethodNameList(parser);
             // FIXME - not implemented
-            return toP(parser.maker().at(p).Erroneous());
+            return parser.toP(parser.maker().at(p).Erroneous());
         }
         
         @Override
@@ -98,7 +96,7 @@ public class FrameExpressions extends JmlExtension {
 //            ListBuffer<Type> argtypesBuf = new ListBuffer<>();
 //            attr.attribArgs(VAL, tree.args, localEnv, argtypesBuf);
             if (!attr.postClauses.contains(attr.jmlenv.currentClauseKind)) {
-                log.error(tree.pos+1, "jml.misplaced.token", tree.kind.keyword(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
+                Log.instance(attr.context).error(tree.pos+1, "jml.misplaced.token", tree.kind.keyword(), attr.jmlenv.currentClauseKind == null ? "jml declaration" : attr.jmlenv.currentClauseKind.keyword());
             }
             return attr.syms.booleanType;
         }

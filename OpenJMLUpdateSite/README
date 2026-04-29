@@ -1,0 +1,23 @@
+This directory is an Eclipse p2 update site for distributing the OpenJML
+Eclipse plugin. It is published at:
+
+  https://openjml.org/eclipse-update-site
+
+Users install OpenJML into Eclipse via Help > Install New Software, pointing
+at the above URL.
+
+Contents:
+  features/    -- Feature JAR (org.openjml.OpenJMLFeature_<ver>.jar)
+  plugins/     -- Plugin JAR (org.openjml.OpenJMLUI_<ver>.jar)
+  site.xml     -- p2 site manifest
+  category.xml -- p2 category definition
+  artifacts.jar, content.jar -- p2 repository metadata (generated)
+
+The features/ and plugins/ JARs and the metadata JARs are generated artifacts
+(listed in .gitignore). They are committed only when publishing a release,
+and then in openj.github.io, not here in OpenJMLUpdateSite..
+
+Related directories:
+  OpenJMLUI/      -- Plugin source and build scripts
+  OpenJMLFeature/ -- Feature descriptor (feature.xml); see its README for the
+                     full build and publish workflow

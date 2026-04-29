@@ -19,6 +19,7 @@ openjml-test: prep
 	$(MAKE) release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
 	$(MAKE) userguide-tests
 	$(MAKE) json-tests
+	-$(MAKE) -C lsp run-tests
 	-$(MAKE) tutorial-tests
 	-$(MAKE) unittests-par
 
@@ -125,9 +126,13 @@ unittests-par: prep .FORCE
 	@ ${TEST}/unittests/runpar
 
 # Executes the tests of JSON output and input
-json-tests: .FORCE 
+json-tests: .FORCE
 	@ ${TEST}/jsontests/json/run
 	@ ${TEST}/jsontests/json-loc/run
+
+# Compiles and runs the LSP server tests
+lsp-tests: .FORCE
+	$(MAKE) -C ${TEST}/lsp
 
 .FORCE:
 
@@ -148,7 +153,8 @@ cov-test:
 	- COV= time $(MAKE) release-tests
 	- COV= time $(MAKE) tutorial-tests
 	- COV= time $(MAKE) userguide-tests
-	- COV= time ./unittests/runpar 
+	- COV= time ./unittests/runpar
+	- COV= $(MAKE) -C lsp run-tests
 
 # Creates or updates html files based on coverage data
 cov-report:
@@ -160,7 +166,9 @@ cov-report:
             --sourcefiles ./../OpenJMLTest/src/ \
             --classfiles ./../OpenJMLTest/src/ \
             --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/java.base \
-            --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler )
+            --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler \
+            --sourcefiles ./../OpenJMLlsp/src \
+            --classfiles ./../OpenJMLlsp/build/classes )
 
 # Launches a browser on the current coverage data
 cov-show:

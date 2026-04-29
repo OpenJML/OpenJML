@@ -30,7 +30,6 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
         
         public 
         JmlTypeClauseRepresents parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int pp = parser.pos();
             parser.nextToken();
             var n = parser.parseOptionalName();
@@ -43,8 +42,8 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
                 parser.nextToken();
                 e = parser.parseExpression();
             } else if (parser.jmlTokenClauseKind() == org.jmlspecs.openjml.ext.Operators.leftarrowKind) {
-                if (utils.isDeprecationSet() && ! strict) {
-                    utils.warning(WarningCategory.DEPRECATED, Utils.NULL_SOURCE, parser.pos(), "jml.deprecated.left.arrow.in.represents");
+                if (Utils.instance(parser.context).isDeprecationSet() && ! strict) {
+                    Utils.instance(parser.context).warning(WarningCategory.DEPRECATED, Utils.NULL_SOURCE, parser.pos(), "jml.deprecated.left.arrow.in.represents");
                 }
                 suchThat = false;
                 parser.nextToken();
@@ -54,7 +53,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
                 parser.nextToken();
                 e = parser.parseExpression();
             } else {
-                if (id != null) error(parser.pos(), parser.endPos(), "jml.bad.represents.token");
+                if (id != null) error(parser.context, parser.pos(), parser.endPos(), "jml.bad.represents.token");
                 e = null;
                 parser.skipToSemi();
                 suchThat = false;
@@ -66,7 +65,7 @@ public class TypeRepresentsClauseExtension extends JmlExtension {
             if (mods == null) mods = M.Modifiers(0);
             JmlTypeClauseRepresents tcl = parser.to(M.JmlTypeClauseRepresents(
                     mods, id, suchThat, e));
-            wrapup(tcl, clauseType, true, true);
+            wrapup(parser, tcl, clauseType, true, true);
             tcl.name = n;
             return tcl;
             }

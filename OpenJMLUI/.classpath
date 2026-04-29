@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="gson-2.8.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="jpaul-2.5.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="jSMTLIB.jar" sourcepath="/SMT/src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry excluding="org/jmlspecs/unfinished/**" kind="src" path="src-runtime"/>
-	<classpathentry excluding="org/jmlspecs/openjml/jmldoc/" kind="src" path="src-openjml"/>
-	<classpathentry kind="src" path="src-openjdk"/>
-	<classpathentry kind="src" path="src-annotation"/>
-	<classpathentry exported="true" kind="lib" path="bin" sourcepath="bin"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/JMLAnnotations"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="/OpenJML/otherlibs/jpaul-2.5.1.jar"/>
-	<classpathentry kind="lib" path="/OpenJML/otherlibs/gson-2.8.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/OpenJMLlsp"/>
+	<classpathentry kind="lib" path="compile-deps/org.eclipse.core.filebuffers.jar"/>
+	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4j.jar"/>
+	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4j.jsonrpc.jar"/>
+	<classpathentry kind="lib" path="compile-deps/org.eclipse.lsp4e.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

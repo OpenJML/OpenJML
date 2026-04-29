@@ -32,9 +32,8 @@ public class MethodDeclClauseExtension extends JmlExtension  {
         @Override
         public 
         JmlMethodClauseDecl parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             // TODO: Warning if mods is not null or empty
-            if (!utils.hasNone(mods)) utils.warning(mods, "jml.no.mods.allowed");
+            if (!Utils.instance(parser.context).hasNone(mods)) Utils.instance(parser.context).warning(mods, "jml.no.mods.allowed");
             int pp = parser.pos();
             int pe = parser.endPos();
             
@@ -51,7 +50,7 @@ public class MethodDeclClauseExtension extends JmlExtension  {
             parser.setInJmlDeclaration(prev);
             JmlMethodClauseDecl res = parser.to(parser.maker().at(pp)
                     .JmlMethodClauseDecl(keyword, clauseType, decls.toList()));
-            wrapup(res, clauseType, true, true);
+            wrapup(parser, res, clauseType, true, true);
             return res;
         }
         

@@ -1,0 +1,34 @@
+This directory contains the Eclipse plugin (OSGi bundle) that integrates OpenJML
+into the Eclipse IDE using the LSP interface to Eclipse.
+
+The plugin acts as an LSP client, connecting to the OpenJML LSP server
+(openjml-lsp from the OpenJMLlsp directory). It uses LSP4E to manage the
+connection and LSP4J for the LSP protocol. Syntax highlighting is provided
+via TM4E using the TextMate grammars in syntaxes/.
+
+Key source files (src/):
+  org.openjml.ui.Activator                     -- Plugin lifecycle, early startup handler
+  org.jmlspecs.openjml.eclipse/
+    OpenJMLPreferences.java                    -- Eclipse preferences page for OpenJML settings
+    OpenJMLStreamConnectionProvider.java       -- LSP connection provider (launches openjml-lsp)
+    LspPartListener.java                       -- Detects editor opens, connects documents to LSP
+    JmlFoldingManager.java                     -- Code folding for JML annotations
+    JmlNature.java / JmlNatureHandler.java     -- JML project nature
+    LspCommandHandler.java                     -- Handles LSP command requests
+
+Build requirements:
+  ECLIPSE_HOME must point to an Eclipse installation that includes:
+  LSP4E, LSP4J, TM4E, and standard Eclipse platform plugins.
+
+To compile and package:
+  bash build-update-site.sh --compile
+
+To build the full update site artifact (plugin JAR + feature JAR + p2 metadata):
+  bash build-update-site.sh
+
+Output:
+  bin/                               -- Compiled classes
+  org.openjml.OpenJMLUI_<ver>.jar    -- Plugin JAR (copied to OpenJMLUpdateSite/plugins/)
+
+The OpenJMLUpdateSite/ directory holds the p2 update site for distribution.
+The OpenJMLGUITests/ directory holds SWTBot automated tests for this plugin.

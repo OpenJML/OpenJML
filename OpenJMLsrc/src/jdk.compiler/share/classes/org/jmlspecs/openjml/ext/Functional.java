@@ -23,6 +23,7 @@ import com.sun.tools.javac.code.Type.TypeVar;
 import com.sun.tools.javac.comp.AttrContext;
 import com.sun.tools.javac.comp.Env;
 import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.jvm.ClassReader;
 import com.sun.tools.javac.parser.JmlParser;
 import com.sun.tools.javac.tree.JCTree;
@@ -38,7 +39,7 @@ public class Functional extends JmlExtension {
         
         @Override
         public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-            checkNumberArgs(parser, e, (n)->(n>0), "jml.message", "A " + keyword + " expression must have at least one argument");
+            checkNumberArgs(parser.context, e, (n)->(n>0), "jml.message", "A " + keyword + " expression must have at least one argument");
         }
 
         // Returns null if 0 or more than one methods are abstract and not default,
@@ -84,19 +85,19 @@ public class Functional extends JmlExtension {
                     // is a Functional interface; the rest have to agree
                     // with its formal arguments.
                     if (tree.args.size() == 0) {
-                        error(tree, kind.keyword() + " must have at least one argument");
+                        error(attr.context, (DiagnosticPosition)tree, "jml.message", kind.keyword() + " must have at least one argument");
                     }
                     ListBuffer<Type> argtypesBuf = new ListBuffer<>();
                     attr.attribArgs(tree.args, localEnv, argtypesBuf);
                     Type func = argtypesBuf.first();
                     MethodSymbol msym = findFunctional(func);
                     if (msym == null) {
-                        error(tree.args.head, "Argument is not a functional");
+                        error(attr.context, (DiagnosticPosition)tree.args.head, "jml.message", "Argument is not a functional");
                     } else {
                         int nn = msym.params().size() + 1;
                         if (kind == ensuresExprKind) ++nn;
                         if (nn != tree.args.size()) {
-                            error(tree, "jml.message", "Expected " + nn + " arguments, not " + tree.args.size());
+                            error(attr.context, (DiagnosticPosition)tree, "jml.message", "Expected " + nn + " arguments, not " + tree.args.size());
                         }
                         Iterator<Type> iter = argtypesBuf.iterator(); iter.next();
                         Iterator<VarSymbol> viter = msym.params().iterator();
@@ -106,7 +107,7 @@ public class Functional extends JmlExtension {
                             Type t = iter.next();
                             Type returnType = resolve(msym.getReturnType(), func);
                             if (!jmltypes.isSameType(t, returnType)) {
-                                error(tree.args.get(n), "jml.message", "Second argument must match return type: " + t + " vs. " + returnType);
+                                error(attr.context, (DiagnosticPosition)tree.args.get(n), "jml.message", "Second argument must match return type: " + t + " vs. " + returnType);
                             }
                             ++n;
                         }
@@ -115,7 +116,7 @@ public class Functional extends JmlExtension {
                             VarSymbol vs = viter.next();
                             Type paramType = resolve(vs.type, func);
                             if (!jmltypes.isSameType(t, paramType)) {
-                                error(tree.args.get(n), "jml.message", "Argument types do not match: " + t + " vs. " + paramType);
+                                error(attr.context, (DiagnosticPosition)tree.args.get(n), "jml.message", "Argument types do not match: " + t + " vs. " + paramType);
                             }
                             ++n;
                         }

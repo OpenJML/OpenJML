@@ -5,6 +5,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.ELSE;
 import org.jmlspecs.openjml.Extensions;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
 import org.jmlspecs.openjml.JmlTree.JmlChoose;
 import org.jmlspecs.openjml.JmlTreeUtils;
@@ -36,12 +37,11 @@ public class ChooseClause extends JmlExtension {
         @Override
         public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
-                error(mods, "jml.message", "A " + keyword + " statement may not have modifiers");
+                error(parser.context, mods, "jml.message", "A " + keyword + " statement may not have modifiers");
                 return null;
             }
             int pp = parser.pos();
             int pe = parser.endPos();
-            init(parser);
             parser.nextToken(); // skip over choose token
             parser.accept(Tokens.TokenKind.LBRACE);
             ListBuffer<JmlChoose.Item> oritems = new ListBuffer<>();
@@ -49,18 +49,18 @@ public class ChooseClause extends JmlExtension {
             boolean saved = parser.inModelProgram;
             parser.inModelProgram = true;
             try {
-                oritems.append(parseGuardedBlock());
+                oritems.append(parseGuardedBlock(parser));
                 // returns null.
                 while (parser.tokenIsId("or")) {
                     parser.nextToken();
-                    oritems.append(parseGuardedBlock());
+                    oritems.append(parseGuardedBlock(parser));
                 }
                 // FIXME - if there are some literally true guards, there is no point to an else block
                 if (parser.token().kind == ELSE) {
                     var tutils = JmlTreeUtils.instance(parser.context);
                     for (var orb: oritems) {
                         if (tutils.isTrueLit(orb.guard)) {
-                            utils.warning(parser.token().pos, "jml.message", "An else block is dead code if any guard is true");
+                            Utils.instance(parser.context).warning(parser.token().pos, "jml.message", "An else block is dead code if any guard is true");
                         }
                     }
                     parser.nextToken(); // skip else
@@ -70,10 +70,10 @@ public class ChooseClause extends JmlExtension {
             } finally {
                 parser.inModelProgram = saved;
             }
-            return toP(parser.maker().at(pp).JmlChoose(keyword, clauseType, oritems.toList(), elseBlock));
+            return parser.toP(parser.maker().at(pp).JmlChoose(keyword, clauseType, oritems.toList(), elseBlock));
         }
-        
-        JmlChoose.Item parseGuardedBlock() {
+
+        JmlChoose.Item parseGuardedBlock(JmlParser parser) {
             JCTree.JCExpression ex;
             if (parser.token().kind != Tokens.TokenKind.ARROW) {
                 ex = parser.parseExpression();
@@ -101,12 +101,11 @@ public class ChooseClause extends JmlExtension {
         @Override
         public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
-                error(mods, "jml.message", "A " + keyword + " repeat statement may not have modifiers");
+                error(parser.context, mods, "jml.message", "A " + keyword + " repeat statement may not have modifiers");
                 return null;
             }
             int pp = parser.pos();
             int pe = parser.endPos();
-            init(parser);
             parser.nextToken(); // skip over repeat token
             parser.accept(Tokens.TokenKind.LBRACE);
             ListBuffer<JmlChoose.Item> oritems = new ListBuffer<>();
@@ -114,10 +113,10 @@ public class ChooseClause extends JmlExtension {
             boolean saved = parser.inModelProgram;
             parser.inModelProgram = true;
             try {
-                oritems.append(parseRepeatGuardedBlock());
+                oritems.append(parseRepeatGuardedBlock(parser));
                 while (parser.tokenIsId("or")) {
                     parser.nextToken();
-                    oritems.append(parseRepeatGuardedBlock());
+                    oritems.append(parseRepeatGuardedBlock(parser));
                 }
                 if (parser.token().kind == ELSE) {
                     parser.log.error(parser.token().pos, "jml.message", "A repeat statement may not have an else block");
@@ -128,10 +127,10 @@ public class ChooseClause extends JmlExtension {
             } finally {
                 parser.inModelProgram = saved;
             }
-            return toP(parser.maker().at(pp).JmlChoose(keyword, clauseType, oritems.toList(), elseBlock));
+            return parser.toP(parser.maker().at(pp).JmlChoose(keyword, clauseType, oritems.toList(), elseBlock));
         }
-        
-        JmlChoose.Item parseRepeatGuardedBlock() {
+
+        JmlChoose.Item parseRepeatGuardedBlock(JmlParser parser) {
             JCTree.JCExpression ex;
             if (parser.token().kind == Tokens.TokenKind.ARROW) {
                 parser.log.error(parser.token().pos, "jml.message", "In a repeat statement, all blocks must have guards");

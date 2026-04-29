@@ -45,7 +45,7 @@ jobs:
     ## A workflow_dispatch trigger might do the checkout at the main branch.
     ## Note that the current working directory, which is the default directory at the start of a job, is the folder that holds version.txt, OpenJMLsrc, OpenJMLTest etc.
     - name: Checkout repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v4
       with:
         sparse-checkout: 'version.txt'
 
@@ -60,16 +60,19 @@ jobs:
     - name: Check most recent release
       run: |
         export ver=${{ steps.version.outputs.version }}
-        ( curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep "\"name\": \"OpenJML $ver\"" ) && echo "Version $ver already exists" && false
-        echo "No prior release found for version " $ver
+        if curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | grep -q "\"name\": \"OpenJML $ver\""; then
+          echo "Version $ver already exists"
+          exit 1
+        fi
+        echo "No prior release found for version $ver"
 
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
       run: |
         export ver=${{ steps.version.outputs.version }}
         echo Version $ver from branch $BRANCH
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
+        curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
+        export id=$(curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases/tags/$ver" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
         echo Created release $ver with id $id
 
   build:
@@ -83,22 +86,17 @@ jobs:
     steps:
     ## The following step checks out the OpenJML repo, which is needed to get the actions in the next few steps
     - name: Checkout repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v4
       with:
         sparse-checkout: ./.github
         path: ACTIONS
-    - name: data
-      run: |
-        pwd
-        ls -laR
-
     - name: OS setup
       uses: ./ACTIONS/.github/actions/os-setup/
 
     - name: Checkout OpenJML
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
-        branch: $BRANCH
+        branch: ${{ env.BRANCH }}
 
     - name: Build OpenJML
       uses: ./ACTIONS/.github/actions/openjml-build/
@@ -108,7 +106,7 @@ jobs:
     - name: Check current GitHub release number against version.txt
       run: |
         export ver=`cat OpenJML/version.txt`
-        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep --max-count 1 tag_name | sed -e 's/.*: \"//' -e 's/\",//'`
+        export tag=$(curl --silent --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
         echo $ver $tag
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
 
@@ -119,7 +117,7 @@ jobs:
         cp OpenJML/$FOLDER/release-temp/*.zip $f
 
     - name: Upload github artifact
-      uses: pyTooling/upload-artifact@v6
+      uses: actions/upload-artifact@v4
       with:
         name: openjml-release-${{ matrix.os }}-${{ github.run_id }}
         path: '*.zip'
@@ -138,14 +136,14 @@ jobs:
       fail-fast: false
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v4
       with:
         sparse-checkout: ./.github
         path: ACTIONS
     - name: OS setup
       uses: ./ACTIONS/.github/actions/os-setup/
     - name: Download github artifact
-      uses: pyTooling/download-artifact@v6
+      uses: actions/download-artifact@v4
       with:
         name: openjml-release-${{ matrix.os }}-${{ github.run_id }}
     - name: Copy OpenJML build into GitHub release
@@ -162,7 +160,7 @@ jobs:
           pwd
           ls -la
         fi
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
+        export id=$(curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases/tags/$ver" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f"
+        curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f"

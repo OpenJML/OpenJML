@@ -15,6 +15,7 @@ import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.Context;
+import com.sun.tools.javac.util.JCDiagnostic.DiagnosticPosition;
 import com.sun.tools.javac.util.List;
 
 /** This extension allows the field .array to be used on array objects
@@ -53,7 +54,7 @@ public class ArrayFieldExtension extends JmlExtension {
             } else if (atype.isErroneous()) {
                 t = atype;
             } else {
-                error(tree,"jml.message","The .array suffix is permitted only for array expressions: " );
+                error(context, (DiagnosticPosition)tree, "jml.message", "The .array suffix is permitted only for array expressions: ");
                 t = JmlTypes.instance(context).createErrorType(atype);
             }
             return t;

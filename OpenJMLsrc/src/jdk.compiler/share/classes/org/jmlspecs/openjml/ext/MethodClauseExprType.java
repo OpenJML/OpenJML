@@ -30,10 +30,9 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
     public 
     JmlMethodClauseExpr parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
         if (mods != null) {
-            error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
+            error(parser.context, mods, "jml.message", "A " + keyword + " clause may not have modifiers");
             return null;
         }
-        init(parser);
         
         int pp = parser.pos();
         int pe = parser.endPos();
@@ -48,7 +47,7 @@ public class MethodClauseExprType extends IJmlClauseKind.MethodSpecClauseKind {
         }
         JmlMethodClauseExpr cl = parser.maker().at(pp).JmlMethodClauseExpr(keyword, clauseType, e);
         cl.exception = exception;
-        wrapup(cl, clauseType, true, true);
+        wrapup(parser, cl, clauseType, true, true);
         cl.name = n;
         return cl;
     }

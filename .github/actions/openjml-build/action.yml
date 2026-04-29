@@ -8,6 +8,13 @@ inputs:
     description: 'Whether to run the release test'
     type: boolean
     required: true
+  upload:
+    description: 'Whether to upload the built JDK as an artifact for use by test jobs'
+    type: boolean
+    default: 'false'
+  os-label:
+    description: 'Unique OS label for naming the artifact (pass matrix.os to avoid collisions between e.g. ubuntu-22.04 and ubuntu-latest)'
+    default: ${{ runner.os }}
 
 runs:
   using: 'composite'
@@ -18,7 +25,7 @@ runs:
       shell: wsl-bash {0}
       run: |
         cd OpenJML/OpenJMLsrc
-        bash ./configure
+        ./configure
         make release
         cd ..
     - name: Build OpenJML release on non-Windows
@@ -26,18 +33,23 @@ runs:
       shell: bash
       run: |
         cd OpenJML/OpenJMLsrc
-        bash ./configure
+        ./configure
         make release
         cd ..
     - name: Test the build
-      if: ${{ inputs.test == true }}
+      if: inputs.test == 'true'
       shell: bash
       run: |
         make -C OpenJML/OpenJMLsrc release-test
     - name: Archive build artifact
       if: inputs.upload == 'true'
       shell: bash
-      run: tar -czf openjml-build.tar.gz OpenJML/OpenJMLsrc/build/*/jdk OpenJML/OpenJMLsrc/jmlruntime.jar
+      run: |
+        echo "=== Disk space before archive ==="
+        df -h .
+        echo "=== JDK directory size ==="
+        du -sh OpenJML/OpenJMLsrc/build/*/jdk
+        tar -czhf openjml-build.tar.gz OpenJML/OpenJMLsrc/build/*/jdk OpenJML/OpenJMLsrc/jmlruntime.jar
     - name: Diagnose archive (debug)
       if: inputs.upload == 'true'
       shell: bash
@@ -46,10 +58,11 @@ runs:
         ls OpenJML/OpenJMLsrc/build/
         echo "=== Archive size ==="
         ls -lh openjml-build.tar.gz
+        tar -tzf openjml-build.tar.gz > /tmp/archive-contents.txt
         echo "=== First 30 archive entries ==="
-        tar -tzf openjml-build.tar.gz | head -30
+        head -30 /tmp/archive-contents.txt
         echo "=== jvm.cfg in archive? ==="
-        tar -tzf openjml-build.tar.gz | grep jvm.cfg || echo "NOT FOUND"
+        grep jvm.cfg /tmp/archive-contents.txt || echo "NOT FOUND"
     - name: Upload build artifact
       if: inputs.upload == 'true'
       uses: actions/upload-artifact@v4

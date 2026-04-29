@@ -54,10 +54,9 @@ public class AssignableClauseExtension extends JmlExtension {
         @Override
         public JmlMethodClause parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
             if (mods != null) {
-                error(mods, "jml.message", "A " + keyword + " clause may not have modifiers");
+                error(parser.context, mods, "jml.message", "A " + keyword + " clause may not have modifiers");
                 return null;
             }
-            init(parser);
             this.keyword = keyword;
             
             int pp = parser.pos();
@@ -88,7 +87,7 @@ public class AssignableClauseExtension extends JmlExtension {
             }  // FIXME - fix the above; cf loop_writes
             var cl = parser.maker().at(pp).JmlMethodClauseStoreRef(keyword, clauseType, list);
             cl.name = n;
-            wrapup(cl, clauseType, false, false);
+            wrapup(parser, cl, clauseType, false, false);
             return cl;
         }
         

@@ -125,15 +125,11 @@ abstract public class Arithmetic extends JmlExtension {
 
     
     public void checkParse(JmlParser parser, JmlMethodInvocation e) {
-        checkOneArg(parser,e);
+        if (e.args.size() != 1) {
+            Utils.instance(parser.context).error(e, "jml.one.arg", e.kind.keyword());
+        }
     }
     
-    public void checkOneArg(JmlParser parser, JmlMethodInvocation e) {
-    	if (e.args.size() != 1) {
-    		org.jmlspecs.openjml.Utils.instance(context).error(e.pos, parser.getEndPos(e), "jml.one.arg", e.kind.keyword());
-    	}
-    }
-
     public static <T> T instance(Context context, Class<T> key) {
     	T s = context.get(key);
     	if (s == null) {

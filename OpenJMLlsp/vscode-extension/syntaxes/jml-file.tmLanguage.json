@@ -1,0 +1,8 @@
+{
+  "name": "JML",
+  "scopeName": "source.jml",
+  "fileTypes": ["jml"],
+  "patterns": [
+    { "include": "source.java" }
+  ]
+}

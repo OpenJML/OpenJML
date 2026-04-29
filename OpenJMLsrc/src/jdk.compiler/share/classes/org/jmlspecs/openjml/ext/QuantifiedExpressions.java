@@ -12,6 +12,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.JmlTree.JmlQuantifiedExpr;
 import org.jmlspecs.openjml.JmlTree.JmlVariableDecl;
@@ -33,6 +34,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import com.sun.tools.javac.tree.JCTree.LetExpr;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
 public class QuantifiedExpressions extends JmlExtension {
@@ -43,7 +45,6 @@ public class QuantifiedExpressions extends JmlExtension {
         @Override
         public JCExpression parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int pos = parser.pos();
             parser.nextToken();
             mods = parser.modifiersOpt();
@@ -59,18 +60,18 @@ public class QuantifiedExpressions extends JmlExtension {
             ListBuffer<JCVariableDecl> decls = new ListBuffer<JCVariableDecl>();
             int idpos = parser.pos();
             Name id = parser.ident(); // FIXME JML allows dimensions after the ident
-            decls.append(toP(parser.maker().at(idpos).VarDef(mods, id, t, null)));
+            decls.append(parser.toP(parser.maker().at(idpos).VarDef(mods, id, t, null)));
             while (parser.token().kind == COMMA) {
                 parser.nextToken();
                 idpos = parser.pos();
                 id = parser.ident(); // FIXME JML allows dimensions after the ident
-                decls.append(toP(parser.maker().at(idpos).VarDef(mods, id, t, null)));
+                decls.append(parser.toP(parser.maker().at(idpos).VarDef(mods, id, t, null)));
             }
             if (parser.token().kind != SEMI) {
-                error(parser.pos(), parser.endPos(), "jml.expected.semicolon.quantified");
+                error(parser.context, parser.pos(), parser.endPos(), "jml.expected.semicolon.quantified");
                 int p = parser.pos();
                 parser.skipThroughRightParen();
-                return toP(parser.maker().at(p).Erroneous());
+                return parser.toP(parser.maker().at(p).Erroneous());
             }
             parser.nextToken();
             JCExpression range = null;
@@ -92,11 +93,11 @@ public class QuantifiedExpressions extends JmlExtension {
                     pred = range;
                     range = null;
                 } else {
-                    error(parser.pos(), parser.endPos(),
+                    error(parser.context, parser.pos(), parser.endPos(),
                             "jml.expected.semicolon.quantified");
                     int p = parser.pos();
                     parser.skipThroughRightParen();
-                    return toP(parser.maker().at(p).Erroneous());
+                    return parser.toP(parser.maker().at(p).Erroneous());
                 }
             }
             List<JCExpression> triggers = null;
@@ -107,7 +108,7 @@ public class QuantifiedExpressions extends JmlExtension {
                     triggers = parser.parseExpressionList();
                 }
             }
-            JmlQuantifiedExpr q = toP(parser.maker().at(pos).JmlQuantifiedExpr(this, decls.toList(),
+            JmlQuantifiedExpr q = parser.toP(parser.maker().at(pos).JmlQuantifiedExpr(this, decls.toList(),
                     range, pred));
             q.triggers = triggers;
             return parser.primaryTrailers(q, null); // FIXME - was primarySuffix
@@ -122,7 +123,7 @@ public class QuantifiedExpressions extends JmlExtension {
 //            boolean b = ((JmlMemberEnter)attr.memberEnter).setInJml(true);
             for (JCVariableDecl decl: that.decls) {
                 JmlModifiers mods = (JmlModifiers)decl.getModifiers();
-                if (attr.utils.hasOnly(mods,0)!=0) log.error(mods.pos,"jml.no.java.mods.allowed","quantified expression", TreeInfo.flagNames(mods.flags));
+                if (attr.utils.hasOnly(mods,0)!=0) Log.instance(attr.context).error(mods.pos,"jml.no.java.mods.allowed","quantified expression", TreeInfo.flagNames(mods.flags));
                 attr.attribAnnotationTypes(mods.annotations,env);
                 attr.annotationsToModifiers(mods, mods.annotations);
                 attr.allAllowed(mods, attr.typeModifiers, "quantified expression");
@@ -140,7 +141,7 @@ public class QuantifiedExpressions extends JmlExtension {
             
             if (that.triggers != null && that.triggers.size() > 0) {
             	if (that.kind != qforallKind && that.kind != qexistsKind ) {
-                    utils.warning(that.triggers.get(0),"jml.message","Triggers only recognized in \\forall or \\exists quantified expressions");
+                    Utils.instance(attr.context).warning(that.triggers.get(0),"jml.message","Triggers only recognized in \\forall or \\exists quantified expressions");
                     that.triggers = null;
             	} else {
             		for (var t: that.triggers) t.type = attr.attribExpr(t, localEnv, Type.noType);
@@ -168,7 +169,7 @@ public class QuantifiedExpressions extends JmlExtension {
                         valueType = syms.booleanType;
                         resultType = that.decls.head.type;
                         if (that.decls.tail.nonEmpty()) {
-                            error(that.decls.tail.head, "jml.message", "A \\choose quantifier may have only one variable declaration");
+                            error(attr.context, that.decls.tail.head, "jml.message", "A \\choose quantifier may have only one variable declaration");
                         }
                         String tmpname = Strings.genPrefix + "found$" + that.pos;
                         that.founddef = (JmlVariableDecl)M.at(that).VarDef(M.at(that).Modifiers(0),attr.names.fromString(tmpname), 
@@ -181,12 +182,12 @@ public class QuantifiedExpressions extends JmlExtension {
                         // TODO -= check for strictness
                         valueType = Type.noType;
                         resultType = Type.noType;
-                        strictCheck(that,"\\choosex expression");
+                        strictCheck(attr.context, that,"\\choosex expression");
                         if (that.decls.tail.nonEmpty()) {
-                            error(that.decls.tail.head, "jml.message", "A \\choosex quantifier may have only one variable declaration");
+                            error(attr.context, that.decls.tail.head, "jml.message", "A \\choosex quantifier may have only one variable declaration");
                         }
                         if (that.value == null) {
-                            error(that, "jml.message", "A \\choosex xquantifier must have a value expression");
+                            error(attr.context, that, "jml.message", "A \\choosex xquantifier must have a value expression");
                         }
                         String tmpname = Strings.genPrefix + "found$" + that.pos;
                         that.founddef = (JmlVariableDecl)M.at(that).VarDef(M.at(that).Modifiers(0),attr.names.fromString(tmpname), 
@@ -198,7 +199,7 @@ public class QuantifiedExpressions extends JmlExtension {
                     case qnumofID:
                         valueType = syms.booleanType;
                         resultType = JmlPrimitiveTypes.bigintTypeKind.getType(attr.context);
-                        if (utils.rac) resultType = syms.longType; // FIXME - or BigInteger
+                        if (Utils.instance(attr.context).rac) resultType = syms.longType; // FIXME - or BigInteger
                         break;
 
                     case qmaxID:
@@ -219,7 +220,7 @@ public class QuantifiedExpressions extends JmlExtension {
                         break;
 
                     default:
-                        error(that,"jml.unknown.construct", this.keyword(),"JmlAttr.visitJmlQuantifiedExpr");
+                        error(attr.context, that,"jml.unknown.construct", this.keyword(),"JmlAttr.visitJmlQuantifiedExpr");
                         break;
                 }
                 if (that.value != null) {
@@ -228,7 +229,7 @@ public class QuantifiedExpressions extends JmlExtension {
                     attr.check(that.value, that.value.type, KindSelector.VAL, attr.new ResultInfo(KindSelector.VAL, valueType));
                     if (keyword().equals(qsumID) || keyword().equals(qproductID)) {
                         if (!attr.jmltypes.isNumeric(attr.jmltypes.unboxedTypeOrType(resultType))) {
-                            error(that.value,"jml.bad.quantifer.expression", resultType.toString());
+                            error(attr.context, that.value,"jml.bad.quantifer.expression", resultType.toString());
                             resultType = attr.jmltypes.createErrorType(resultType);
                         }
                     }
@@ -283,18 +284,17 @@ public class QuantifiedExpressions extends JmlExtension {
         
         public JCExpression parse(JCModifiers mods, String keyword,
                 IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             ListBuffer<JCTree.JCStatement> vdefs = new ListBuffer<>();
             int pos = parser.pos(); // Position of keyword
             parser.nextToken(); // advance over keyword
-            if (mods != null) { 
-            	log.error(pos,"jml.internal.notsobad","Parse routine for \\let does not expect modifiers to be already parsed");
+            if (mods != null) {
+            	Log.instance(parser.context).error(pos,"jml.internal.notsobad","Parse routine for \\let does not expect modifiers to be already parsed");
             }
             do {
                 mods = parser.modifiersOpt();
-                //utils.setJML(mods);
-                if (utils.hasMod(mods, Modifiers.MODEL, Modifiers.GHOST)) {
-                	utils.error(log.currentSourceFile(),mods.pos,"jml.message","ghost or model modifiers not permitted on an expression-local declaration");
+                //Utils.instance(parser.context).setJML(mods);
+                if (Utils.instance(parser.context).hasMod(mods, Modifiers.MODEL, Modifiers.GHOST)) {
+                	Utils.instance(parser.context).error(Log.instance(parser.context).currentSourceFile(),mods.pos,"jml.message","ghost or model modifiers not permitted on an expression-local declaration");
                 }
                 int declpos = parser.pos(); // beginning of type
                 JCExpression type = parser.parseType(mods.annotations.isEmpty(), mods.annotations);
@@ -305,7 +305,7 @@ public class QuantifiedExpressions extends JmlExtension {
                 int p = parser.pos(); // beginning of name
                 Name name = parser.ident();
                 JCVariableDecl decl = parser.variableDeclaratorRest(p,mods,type,name,true,null,true,false);
-                if (decl.init == null) toP(decl);
+                if (decl.init == null) parser.toP(decl);
                 vdefs.add(decl);
                 if (parser.token().kind != COMMA) break;
                 parser.accept(COMMA);
@@ -313,7 +313,7 @@ public class QuantifiedExpressions extends JmlExtension {
             parser.accept(SEMI);
             JCExpression expr = parser.parseExpression();
             LetExpr r = parser.jmlF.at(pos).JmlLetExpr(vdefs.toList(),expr,true);
-            wrapup(r, clauseType, false, false);
+            wrapup(parser, r, clauseType, false, false);
             return r;
         }
     };

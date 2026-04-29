@@ -1,0 +1,8 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "JML",
+  "scopeName": "source.jml.injection",
+  "injectionSelector": "L:comment.line.double-slash.java, L:comment.block.java",
+  "patterns": [],
+  "repository": {}
+}

@@ -1,0 +1,29 @@
+This folder holds the code for the OpenJML LSP server.
+It has these artifacts:
+- openjml-lsp -- the executable that launches the LSP server
+- build/openjml-lsp.jar -- the compiled server, which links in OpenJMLsrc,
+the openjml tool itself
+
+Typically an LSP-capable IDE will be given the path to openjml-lsp,
+and execute that script to launch the server, which will then
+communicate with the IDE using JSON over a System.in/System.out text
+communication channel. This interaction is managed by some LSP library.
+
+For VSCode, there are these additional artifacts:
+- OpenJMLlsp/bin/vscode-extension and contents, particularly extension.js and openjml-*.vsix, that are
+a VSCode extension making VSCode a LSP client to OpenJML's LSP server
+- OpenJMLsrc/release-files/install-vscode-extension, which is made part of an
+OpenJML release. It is a convenience executable that installs the VSCode extension in an installed
+instance of VSCode.
+
+There is also an extension (a.k.a. Eclipse plugin) that connects the Eclipse IDE to OpenJML.
+The project OpenJMLUI contains the source for that plugin; it also connects to openjml-lsp.
+
+To build this LSP library, make -C OpenJMLlsp release 
+Then, when 'make -C openjmlsrsc' release is run, the LSP material will be picked up and
+included in the OpenJML release.
+Building OpenJMLlsp  presumes that OpenJMLsrc is built; openjml-lsp uses the IAPI/API programmatic interface
+into openjml.
+
+There are tests for the LSP server in OpenJMLTest/lsp.
+Run them using 'make -C OpenJMLlsp run-tests' or 'make -C OpenJMLTest/lsp run-tests'

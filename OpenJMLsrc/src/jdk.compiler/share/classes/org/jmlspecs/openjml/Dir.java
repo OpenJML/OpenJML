@@ -77,7 +77,7 @@ abstract public class Dir {
     public static class FileSystemDir extends Dir {
         /** The java.io.File object for the directory */
         protected File dir;
-        
+
         /** Creates a Dir object for the given directory; the existence of a
          * Dir object does not mean that the underlying directory actually
          * exists
@@ -87,12 +87,12 @@ abstract public class Dir {
             this.name = dirName;
             this.dir = new File(dirName);
         }
-        
+
         public FileSystemDir(File dir) {
             this.name = dir.getName();
             this.dir = dir;
         }
-        
+
         @Override
         public boolean exists() {
             return dir.exists() && dir.isDirectory();

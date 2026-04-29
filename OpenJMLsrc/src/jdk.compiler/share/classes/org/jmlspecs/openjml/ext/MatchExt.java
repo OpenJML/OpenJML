@@ -30,7 +30,6 @@ public class MatchExt extends JmlExtension {
 
         @Override
         public JCExpression parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int p = parser.pos();
             parser.nextToken();
             JCExpression expr = parser.parseExpression();
@@ -42,7 +41,7 @@ public class MatchExt extends JmlExtension {
                 // Must start with an identifier
 //                boolean saved = parser.underscoreOK;
 //                parser.underscoreOK = true;
-                JCExpression id = toP(parser.jmlF.at(parser.token().pos).Ident(parser.ident())); // FIXME -  - is the position OK
+                JCExpression id = parser.toP(parser.jmlF.at(parser.token().pos).Ident(parser.ident())); // FIXME -  - is the position OK
                 JCExpression caseExpression = parser.primaryTrailers(id,null); // FIXME was primaraySuffix
 //                parser.underscoreOK = saved;
                 parser.accept(TokenKind.ARROW);
@@ -52,7 +51,7 @@ public class MatchExt extends JmlExtension {
             }
             parser.accept(TokenKind.RBRACE);
             var cl = parser.jmlF.at(p).JmlMatchExpression(expr,cases.toList());
-            wrapup(cl, clauseType, false, false);
+            wrapup(parser, cl, clauseType, false, false);
             return cl;
             // FIXME - the above needs better error messages and recovery
         }

@@ -8,6 +8,10 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.jdt.ui.text.java.IProblemLocation;
 import org.eclipse.jdt.ui.text.java.IQuickFixProcessor;
 
+/**
+ * Placeholder implementation of {@link IQuickFixProcessor} for JML markers.
+ * Not yet implemented; currently returns {@code null} proposals for all problems.
+ */
 public class QuickFixes implements IQuickFixProcessor {
 
         @Override

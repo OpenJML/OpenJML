@@ -166,10 +166,12 @@ public class JmlScanner extends Scanner {
      */
     // @ requires fac != null && input != null;
     // @ requires inputLength <= input.length;
+    @SuppressWarnings("this-escape")
     protected JmlScanner(JmlScannerFactory fac, char[] input, int inputLength) {
         super(fac, new JmlTokenizer(fac, input, inputLength, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).disableJML()));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
+        if (org.jmlspecs.openjml.Utils.debug("scanner")) System.out.println("NEW JmlScanner id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(jmltokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + Thread.currentThread().getName());
     }
 
     /**
@@ -180,10 +182,12 @@ public class JmlScanner extends Scanner {
      * @param buffer The character buffer to scan
      */
     // @ requires fac != null && buffer != null;
+    @SuppressWarnings("this-escape")
     protected JmlScanner(JmlScannerFactory fac, CharBuffer buffer) {
         super(fac, new JmlTokenizer(fac, buffer, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).disableJML()));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
+        if (org.jmlspecs.openjml.Utils.debug("scanner")) System.out.println("NEW JmlScanner id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(jmltokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + Thread.currentThread().getName());
     }
 
     /**
@@ -207,8 +211,20 @@ public class JmlScanner extends Scanner {
     	JavaTokenizer.scannerDebug = scannerDebug;
     }
     
+    // owning thread: the thread that created this scanner
+    private final Thread owningThread = Thread.currentThread();
+
     public Token advance() {
-    	super.nextToken(); 
+        if (scannerDebug) {
+            Thread cur = Thread.currentThread();
+            if (cur != owningThread) {
+                System.out.println("ADVANCE-FOREIGN scanner-id=" + System.identityHashCode(this) + " context-id=" + System.identityHashCode(context) + " owner=" + owningThread.getName() + " caller=" + cur.getName());
+                new RuntimeException("FOREIGN ADVANCE stack trace").printStackTrace(System.out);
+            } else {
+                System.out.println("ADVANCE scanner-id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(tokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + cur.getName());
+            }
+        }
+    	super.nextToken();
     	if (!savedJml.isEmpty()) {
             jmlForCurrentToken = savedJml.remove(0);
         } else {

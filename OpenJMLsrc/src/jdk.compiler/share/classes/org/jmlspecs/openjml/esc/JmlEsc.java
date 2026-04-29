@@ -73,6 +73,15 @@ public class JmlEsc extends JmlTreeScanner {
         return instance;
     }
 
+    /**
+     * Returns the JmlEsc instance for this context if it has already been created,
+     * or {@code null} if it has not.  Unlike {@link #instance}, this method never
+     * triggers construction and is therefore safe to call from a cancellation thread.
+     */
+    public static JmlEsc getIfCreated(Context context) {
+        return context.get(escKey);
+    }
+
     /** Used to obtain cached symbols, such as basic types */
     /*@non_null*/ Symtab syms;
     
@@ -122,11 +131,19 @@ public class JmlEsc extends JmlTreeScanner {
             // And then we walk the tree to see which items are to be proved
             tree.accept(this);
         } catch (PropagatedException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Main.JmlCanceledException ce) {
+                // Cancellation propagated out of a method proof - set canceled and re-throw.
+                Main.instance(context).canceled = true;
+                count(IProverResult.ERROR);
+                throw ce;
+            }
+            // Class-level conversion error (e.g. assertionAdder.convert produced new errors).
+            // Do NOT set canceled so that subsequent classes can still be checked.
         	utils.progress(1,Utils.PROGRESS,"Operation not performed because of parse or type errors");
-            Main.instance(context).canceled = true;
             count(IProverResult.ERROR);
         } catch (Main.JmlCanceledException e) {
-            // Canceled
+            // Direct cancellation (e.g. canceled flag set before tree.accept(this)).
             Main.instance(context).canceled = true;
             count(IProverResult.ERROR);
             throw e;
@@ -229,11 +246,14 @@ public class JmlEsc extends JmlTreeScanner {
 
         JmlOptions.instance(context).pushOptions(decl.mods);
         try {
+            // Stop immediately if ESC was cancelled between methods.
+            if (Main.instance(context).canceled) throw new Main.JmlCanceledException("");
             doMethod(methodDecl);
         } catch (PropagatedException e) {
-            IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
-            if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult("",IProverResult.CANCELLED,methodDecl.sym));
-            throw e;
+            // Full cancel: propagate so the entire ESC run stops.
+            if (Main.instance(context).canceled) throw e;
+            // Abort-current-only (abortCurrentProof): result already reported by
+            // doMethod's finally block.  Let the loop continue with the next method.
         } finally {
             JmlOptions.instance(context).popOptions();
         }
@@ -255,9 +275,9 @@ public class JmlEsc extends JmlTreeScanner {
         // FIXME - this is all a duplicate from MethodProverSMT
         IProverResult.IFactory factory = new IProverResult.IFactory() {
             @Override
-            public IProverResult makeProverResult(MethodSymbol msym, String prover, IProverResult.Kind kind, java.util.Date start) {
-                ProverResult pr = new ProverResult(prover,kind,msym);
-                pr.methodSymbol = msym;
+            public IProverResult makeProverResult(JmlMethodDecl decl, String prover, IProverResult.Kind kind, java.util.Date start) {
+                ProverResult pr = new ProverResult(prover,kind,decl);
+                pr.methodDecl = decl;
                 if (start != null) {
                     pr.accumulateDuration((pr.timestamp().getTime()-start.getTime())/1000.);
                     pr.setTimestamp(start);
@@ -265,9 +285,9 @@ public class JmlEsc extends JmlTreeScanner {
                 return pr;
             }
         };
-        IProverResult res = factory.makeProverResult(methodDecl.sym,"",IProverResult.SKIPPED,new java.util.Date());
+        IProverResult res = factory.makeProverResult(methodDecl,"",IProverResult.SKIPPED,new java.util.Date());
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
-        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
+        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl, res);
         count(IProverResult.SKIPPED, methodDecl.sym);
         return res;
     }
@@ -283,8 +303,8 @@ public class JmlEsc extends JmlTreeScanner {
         return proverToUse;
     }
     
-    // FIXME _ need synchronization on this field
-    MethodProverSMT currentMethodProver = null;
+    // volatile ensures the cancel-handler thread sees the value written by the ESC thread
+    volatile MethodProverSMT currentMethodProver = null;
 
     public void abort() {
         if (currentMethodProver != null) currentMethodProver.abort();
@@ -320,7 +340,7 @@ public class JmlEsc extends JmlTreeScanner {
         log.resetRecord();
 
         IAPI.IProofResultListener proofResultListener = context.get(IAPI.IProofResultListener.class);
-        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.RUNNING,methodDecl.sym));
+        if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl, new ProverResult(proverToUse,IProverResult.RUNNING,methodDecl));
 
         // The code in this method decides whether to attempt a proof of this method.
         // If so, it sets some parameters and then calls proveMethod
@@ -339,53 +359,60 @@ public class JmlEsc extends JmlTreeScanner {
         
         IProverResult res = null;
         try {
-        	{
-                currentMethodProver = new MethodProverSMT(this);
-                res = currentMethodProver.prove(methodDecl,proverToUse);
-                currentMethodProver = null;
+            try {
+                {
+                    // Check again immediately before starting the prover, closing the race
+                    // window between the visitMethodDef check and currentMethodProver being set.
+                    if (Main.instance(context).canceled) throw new Main.JmlCanceledException("");
+                    currentMethodProver = new MethodProverSMT(this);
+                    res = currentMethodProver.prove(methodDecl,proverToUse);
+                    currentMethodProver = null;
+                }
+                long duration = System.currentTimeMillis() - methodStart;
+                utils.progress(1,Utils.PROGRESS,"Completed proof of " + sig  //$NON-NLS-1$
+                        + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$
+                        + " - "
+                        + (  res.isSat() ? "with warnings"
+                           : res.result() == IProverResult.UNSAT ? "no warnings"
+                                   : res.result().toString())
+                        + ((testingMode || !JmlOption.SHOW_SUMMARY.isSet(context)) ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
+                        );
+                count(res.result(), methodDecl.sym);
+            } catch (PropagatedException e) {
+                // Unwrap so the outer catches can dispatch on the real exception type.
+                // If the cause is a cancellation it goes to catch(JmlCanceledException);
+                // otherwise it goes to catch(Throwable) for error reporting.
+                Throwable cause = e.getCause();
+                if (cause instanceof RuntimeException re) throw re;
+                if (cause instanceof Error err) throw err;
+                throw e;  // cause is checked or null - outer Throwable handler picks this up
             }
-            long duration = System.currentTimeMillis() - methodStart;
-            utils.progress(1,Utils.PROGRESS,"Completed proof of " + sig  //$NON-NLS-1$ 
-                    + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
-                    + " - "
-                    + (  res.isSat() ? "with warnings" 
-                       : res.result() == IProverResult.UNSAT ? "no warnings"
-                               : res.result().toString())
-                    + ((testingMode || !JmlOption.SHOW_SUMMARY.isSet(context)) ? "" : String.format(" [%4.2f secs]", (duration/1000.0)))
-                    );
-            count(res.result(), methodDecl.sym);
-            
-        } catch (Main.JmlCanceledException | PropagatedException e) {
-            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl.sym); // FIXME - I think two ProverResult.CANCELLED are being reported
-           // FIXME - the following will throw an exception because progress checks whether the operation is cancelled
-            utils.progress(1,Utils.PROGRESS,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
-            + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+        } catch (Main.JmlCanceledException e) {
+            res = new ProverResult(proverToUse,ProverResult.CANCELLED,methodDecl);
+            utils.progress(1,Utils.PROGRESS,"Proof CANCELLED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$
+            + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$
             + " - exception"
             );
-            throw (e instanceof Main.JmlCanceledException) ? new PropagatedException(e) : e;
+            throw new PropagatedException(e);
         } catch (Throwable e) {
             JCDiagnostic d;
-            
             if (e instanceof SMTTranslator.JmlBVException) {
             	d = utils.errorDiag(log.currentSource(), methodDecl, "jml.message", "Proof aborted because bit-vector operations are not supported. Use option -escBV=true");
             } else {
-            	//d = utils.errorDiag(log.currentSource(), methodDecl, "jml.internal", "Prover aborted with exception: " + e.toString());
-            	d = utils.errorDiag(log.currentSource(), methodDecl, "jml.internal", "Prover aborted with exception: " + "ZZZZZ");
+            	d = utils.errorDiag(log.currentSource(), methodDecl, "jml.internal", "Prover aborted with exception: " + e.toString());
                 e.printStackTrace(System.out);
             }
             log.report(d);
             count(IProverResult.ERROR);
-
-            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl.sym).setOtherInfo(d);
-            //log.error("jml.internal","Prover aborted with exception: " + e.getMessage());
-            utils.progress(1,Utils.PROGRESS,"Proof ABORTED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$ 
-                    + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$ 
+            res = new ProverResult(proverToUse,ProverResult.ERROR,methodDecl).setOtherInfo(d);
+            utils.progress(1,Utils.PROGRESS,"Proof ABORTED of " + utils.abbrevMethodSig(methodDecl.sym)  //$NON-NLS-1$
+                    + " with prover " + (testingMode ? "!!!!" : proverToUse)  //$NON-NLS-1$
                     + " - exception"
                     );
             // FIXME - add a message? use a factory?
         } finally {
-        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, res);
-        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl.sym, new ProverResult(proverToUse,IProverResult.COMPLETED,methodDecl.sym));
+        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl, res);
+        	if (proofResultListener != null) proofResultListener.reportProofResult(methodDecl, new ProverResult(proverToUse,IProverResult.COMPLETED,methodDecl));
             //System.out.println("END " + utils.abbrevMethodSig(methodDecl.sym));
         }
         return res;
