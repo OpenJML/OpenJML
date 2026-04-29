@@ -8,7 +8,7 @@
  *
  *   --check (JML type-check): triggered on edit, save, or manually
  *           (openjml.checkTriggerOn).  The command "OpenJML: Check JML" triggers
- *        :q   an explicit check in manual mode.
+ *           an explicit check in manual mode.
  *   --esc   (extended static check): triggered on save or manually
  *           (openjml.escTriggerOn).  The command "OpenJML: Run ESC" sends an
  *           explicit workspace/executeCommand to the server.
@@ -54,7 +54,8 @@ const CMD_CHECK_JML = 'openjml.checkJML';
 const CMD_RUN_RAC = 'openjml.runRac';
 const CMD_INDEX_PROJECT = 'openjml.indexProject';
 const CMD_CLEAR_AND_REINDEX = 'openjml.clearAndReindex';
-const CMD_CLEAR_MARKERS = 'openjml.clearMarkers';
+const CMD_CLEAR_MARKERS          = 'openjml.clearMarkers';
+const CMD_CLEAR_MARKERS_FOR_URIS = 'openjml.clearMarkersForUris';
 const CMD_CANCEL_ESC = 'openjml.cancelEsc';
 const CMD_ABORT_METHOD_PROOF = 'openjml.abortMethodProof';
 const CMD_GET_RUNNING_ESC = 'openjml.getRunningEscTasks';
@@ -354,7 +355,7 @@ async function startClient() {
             const clientCmds = [
                 CMD_RUN_ESC, CMD_RUN_ESC_FOR_METHOD, CMD_RUN_ESC_SPLIT_FILE,
                 CMD_RUN_ESC_SPLIT_METHOD, CMD_CHECK_JML, CMD_RUN_RAC,
-                CMD_INDEX_PROJECT, CMD_CLEAR_AND_REINDEX, CMD_CLEAR_MARKERS,
+                CMD_INDEX_PROJECT, CMD_CLEAR_AND_REINDEX, CMD_CLEAR_MARKERS, CMD_CLEAR_MARKERS_FOR_URIS,
                 CMD_CANCEL_ESC, CMD_ABORT_METHOD_PROOF,
                 CMD_GET_RUNNING_ESC, CMD_GET_SEMANTIC_TOKENS, CMD_FOCUS_FILE,
             ];
@@ -635,7 +636,7 @@ function getJmlDecTypes() {
     jmlDecThemeKind = kind;
     const dark = kind !== vscode.ColorThemeKind.Light;
     jmlDecTypes = {
-        6:  vscode.window.createTextEditorDecorationType({ color: dark ? '#4EC9B0' : '#267F99' }),
+        6: vscode.window.createTextEditorDecorationType({ color: dark ? '#4EC9B0' : '#267F99' }),
         11: vscode.window.createTextEditorDecorationType({ color: '#AA3731', fontWeight: 'bold' }),
         12: vscode.window.createTextEditorDecorationType({ color: '#AA3731', fontWeight: 'bold' }),
         14: vscode.window.createTextEditorDecorationType({ color: dark ? '#569CD6' : '#0000FF' }),
@@ -653,11 +654,11 @@ function decodeJmlTokenRanges(data) {
     let line = 0, char = 0;
     for (let i = 0; i + 4 < data.length; i += 5) {
         line += data[i];
-        char  = data[i] === 0 ? char + data[i + 1] : data[i + 1];
-        const len  = data[i + 2];
+        char = data[i] === 0 ? char + data[i + 1] : data[i + 1];
+        const len = data[i + 2];
         const type = data[i + 3];
         const start = new vscode.Position(line, char);
-        const end   = new vscode.Position(line, char + len);
+        const end = new vscode.Position(line, char + len);
         if (!result[type]) result[type] = [];
         result[type].push({ range: new vscode.Range(start, end) });
     }
@@ -986,6 +987,7 @@ async function activate(context) {
             if (choice !== 'Save All') return;
             await vscode.workspace.saveAll(false);
         }
+        client.diagnostics?.clear();
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command: CMD_CLEAR_AND_REINDEX,
@@ -1023,6 +1025,11 @@ async function activate(context) {
 
     const clearMarkersCmd = vscode.commands.registerCommand('openjml.clearMarkers', async () => {
         if (!client) { requireServer(); return; }
+        // Force-clear the LSP client's own DiagnosticCollection first.  This handles
+        // diagnostics that became orphaned (e.g. after a server crash/restart) and
+        // are no longer tracked by the server's markedUris set.  The subsequent
+        // server-side clearMarkers call then clears the server's internal state.
+        client.diagnostics?.clear();
         try {
             await client.sendRequest(LSP_EXECUTE_COMMAND, {
                 command: CMD_CLEAR_MARKERS,
@@ -1043,8 +1050,8 @@ async function activate(context) {
             if (!paths) return;
             try {
                 await client.sendRequest(LSP_EXECUTE_COMMAND, {
-                    command: CMD_CLEAR_MARKERS,
-                    arguments: [...paths],
+                    command: CMD_CLEAR_MARKERS_FOR_URIS,
+                    arguments: [null, ...paths],  // args[0]=projectId (null=all), args[1+]=uris
                 });
             } catch (err) {
                 vscode.window.showErrorMessage('OpenJML clear markers failed: ' + err);

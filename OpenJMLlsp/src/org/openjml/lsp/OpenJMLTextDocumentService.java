@@ -3504,6 +3504,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             markedUris.remove(uri);
             if (client != null) client.publishDiagnostics(new PublishDiagnosticsParams(uri, List.of()));
         }
+        // Unconditionally publish empty for every target file URI so that orphaned
+        // diagnostics (published under this URI but no longer tracked in markedUris)
+        // are cleared on the client.  Folder URIs are skipped — diagnostics are
+        // per-file and publishing empty for a folder URI is a no-op.
+        if (client != null) {
+            for (String t : targetUris) {
+                if (!toClear.contains(t) && (t.endsWith(".java") || t.endsWith(".jml"))) {
+                    client.publishDiagnostics(new PublishDiagnosticsParams(t, List.of()));
+                }
+            }
+        }
         //debugContent("after clearMarkersForUris");
         clientLog("[OpenJML] Cleared selected diagnostics.");
         refreshCodeLenses();

@@ -74,6 +74,7 @@ import org.junit.runners.Suite;
     EscAtLineTest.class,
     EscInvocationVariantsTest.class,
     ClearAndReescTest.class,
+    ClearMarkersTest.class,
     DidCloseTest.class,
     WorkspaceFoldersTest.class,
 })

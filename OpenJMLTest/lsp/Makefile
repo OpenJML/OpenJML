@@ -115,6 +115,7 @@ TEST_CLASSES := \
   EscAtLineTest \
   EscInvocationVariantsTest \
   ClearAndReescTest \
+  ClearMarkersTest \
   DidCloseTest \
   WorkspaceFoldersTest
 
