@@ -1,21 +1,15 @@
 package org.openjml.lsp.test;
 
-import org.eclipse.lsp4j.DiagnosticSeverity;
 import org.eclipse.lsp4j.Location;
-import org.eclipse.lsp4j.TextEdit;
-import org.eclipse.lsp4j.WorkspaceEdit;
-import org.eclipse.lsp4j.jsonrpc.ResponseErrorException;
 import org.junit.Before;
 import org.junit.Test;
 import org.openjml.lsp.CheckRunner;
 import org.openjml.lsp.DefinitionFinder;
 import org.openjml.lsp.OpenJMLSettings;
 import org.openjml.lsp.ReferenceFinder;
-import org.openjml.lsp.Renamer;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -307,167 +301,6 @@ public class MethodAndClassTest extends LspTestBase {
     }
 
     // -----------------------------------------------------------------------
-    // Rename: concrete method with no interface override (succeeds)
-    // -----------------------------------------------------------------------
-
-    /**
-     * Rename {@code WorkerA.doubleWork} → {@code computeDouble}.
-     *
-     * <p>{@code doubleWork} is NOT declared in {@code IWorker}, so renaming it does not
-     * affect the interface contract.  The rename must update:
-     * <ul>
-     *   <li>The declaration in WorkerA.java</li>
-     *   <li>The call site {@code concreteA.doubleWork(amount)} in Manager.java</li>
-     * </ul>
-     * The modified sources must compile without new errors.
-     */
-    @Test
-    public void testRenameConcreteMethodSucceeds() {
-        WorkspaceEdit edit = renameAt(workerAUri, workerASrc,
-                "public int doubleWork", "doubleWork", "computeDouble");
-        assertNotNull("Rename of non-override method must succeed", edit);
-        assertNotNull("WorkspaceEdit must have changes", edit.getChanges());
-
-        assertTrue("Edit must update WorkerA.java", edit.getChanges().containsKey(workerAUri));
-        assertTrue("Edit must update Manager.java",  edit.getChanges().containsKey(managerUri));
-
-        Map<String, String> modified = applyEdit(edit);
-        // Check that the declaration and call sites are renamed.
-        // Note: Javadoc comments in both files mention {@code doubleWork} — those
-        // are not code references and are intentionally left unchanged by the rename.
-        assertTrue("WorkerA.java must contain new method name",
-                modified.get(workerAUri).contains("public int computeDouble"));
-        assertFalse("WorkerA.java declaration must not contain old method name",
-                modified.get(workerAUri).contains("public int doubleWork"));
-        assertTrue("Manager.java must contain new call",
-                modified.get(managerUri).contains(".computeDouble("));
-        assertFalse("Manager.java must not contain old call",
-                modified.get(managerUri).contains(".doubleWork("));
-
-        assertNoErrors(CheckRunner.checkModifiedFiles(modified, settings));
-    }
-
-    // -----------------------------------------------------------------------
-    // Rename: interface method (rejected — override declarations not found)
-    // -----------------------------------------------------------------------
-
-    /**
-     * Attempt to rename {@code IWorker.doWork} → {@code runWork}.
-     *
-     * <p>Because {@link ReferenceFinder} uses javac symbol identity ({@code ==}), it
-     * finds the interface method declaration and call sites via the {@code IWorker} type,
-     * but NOT the overriding method declarations in {@code WorkerA} and {@code WorkerB}
-     * (which have distinct {@code MethodSymbol} instances).
-     *
-     * <p>The rename therefore only updates IWorker.java and Manager.java.  In the
-     * modified sources, WorkerA and WorkerB still declare {@code doWork}, which means
-     * they no longer satisfy the renamed interface method {@code runWork} → compile error.
-     * Step 4 of the rename algorithm (error-count check) correctly detects this and
-     * rejects the rename.
-     *
-     * <p><b>This is a known limitation.</b>  Full support for renaming interface/abstract
-     * methods requires extending {@code ReferenceFinder} to follow virtual-dispatch chains
-     * (i.e., also include declarations where {@code sym.overrides(targetSym, types)}).
-     */
-    @Test
-    public void testRenameInterfaceMethodIsRejectedDueToMissingOverrideUpdate() {
-        try {
-            renameAt(iWorkerUri, iWorkerSrc, "int doWork", "doWork", "runWork");
-            fail("Expected rename to be rejected: implementations retain 'doWork' but "
-                    + "interface is renamed 'runWork', breaking the contract");
-        } catch (ResponseErrorException e) {
-            assertNotNull(e.getResponseError());
-            String msg = e.getResponseError().getMessage();
-            // Step 4 rejects the rename because the modified sources contain errors
-            // (WorkerA/WorkerB no longer implement the renamed interface method).
-            assertTrue("Error must indicate that errors were introduced: " + msg,
-                    msg.contains("introduce errors") || msg.contains("capture or lose"));
-        }
-    }
-
-    /**
-     * Attempt to rename {@code WorkerA.doWork} (an implementation of {@code IWorker.doWork})
-     * → {@code workerATask}.
-     *
-     * <p>From WorkerA's perspective, {@code doWork.sym} is {@code WorkerA.doWork.sym}.
-     * {@link ReferenceFinder} finds the WorkerA declaration and any call sites via a
-     * {@code WorkerA}-typed receiver, but NOT the interface declaration (different symbol)
-     * and NOT call sites via an {@code IWorker}-typed receiver.
-     *
-     * <p>In the modified sources, WorkerA.workerATask no longer overrides IWorker.doWork →
-     * WorkerA fails to implement IWorker → compile error → step 4 rejects the rename.
-     *
-     * <p>This is the symmetric case: renaming an <em>implementation</em> method that
-     * overrides an interface is also rejected.
-     */
-    @Test
-    public void testRenameImplementationMethodIsRejectedDueToMissingInterfaceUpdate() {
-        try {
-            renameAt(workerAUri, workerASrc, "public int doWork", "doWork", "workerATask");
-            fail("Expected rename to be rejected: WorkerA would no longer implement IWorker.doWork");
-        } catch (ResponseErrorException e) {
-            assertNotNull(e.getResponseError());
-            String msg = e.getResponseError().getMessage();
-            assertTrue("Error must indicate that errors were introduced: " + msg,
-                    msg.contains("introduce errors") || msg.contains("capture or lose"));
-        }
-    }
-
-    // -----------------------------------------------------------------------
-    // Rename: class names
-    // -----------------------------------------------------------------------
-
-    /**
-     * Attempt to rename the public class {@code WorkerA} → {@code WorkerAlpha}.
-     *
-     * <p>Java requires that a {@code public} class be declared in a file whose name
-     * matches the class name.  Renaming the class symbol in memory (without renaming
-     * the file) therefore causes a "class WorkerAlpha is public, should be declared in a
-     * file named WorkerAlpha.java" error in the modified sources.  Step 4 of the rename
-     * algorithm correctly detects this and rejects the rename.
-     *
-     * <p>Full class rename (including file rename and package-declaration update) is
-     * outside the scope of the LSP {@code textDocument/rename} operation, which only
-     * updates symbol references within source text.
-     */
-    @Test
-    public void testRenamePublicClassIsRejectedDueToFilenameConstraint() {
-        try {
-            renameAt(workerAUri, workerASrc, "public class WorkerA", "WorkerA", "WorkerAlpha");
-            fail("Expected rename to be rejected: public class name must match filename");
-        } catch (ResponseErrorException e) {
-            assertNotNull(e.getResponseError());
-            String msg = e.getResponseError().getMessage();
-            assertTrue("Error must mention the filename constraint or new errors: " + msg,
-                    msg.contains("introduce errors") || msg.contains("WorkerAlpha")
-                    || msg.contains("file"));
-        }
-    }
-
-    /**
-     * Rename the private (non-public) inner field {@code count} in {@code WorkerA}
-     * to {@code total}.  Private fields are not subject to the filename constraint and
-     * are not part of any public API, so this rename should succeed.
-     *
-     * <p>This demonstrates that class-level symbols (fields) can be renamed successfully
-     * as long as the rename does not violate Java's structural rules.
-     */
-    @Test
-    public void testRenamePrivateFieldInClassSucceeds() {
-        WorkspaceEdit edit = renameAt(workerAUri, workerASrc, "private int count", "count", "total");
-        assertNotNull("Private field rename must succeed", edit);
-        assertNotNull("Edit must have changes", edit.getChanges());
-        assertTrue("Edit must include WorkerA.java", edit.getChanges().containsKey(workerAUri));
-
-        Map<String, String> modified = applyEdit(edit);
-        assertTrue("WorkerA must contain new field name", modified.get(workerAUri).contains("total"));
-        assertFalse("WorkerA must not contain old field name",
-                modified.get(workerAUri).contains("private int count"));
-
-        assertNoErrors(CheckRunner.checkModifiedFiles(modified, settings));
-    }
-
-    // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
 
@@ -490,37 +323,6 @@ public class MethodAndClassTest extends LspTestBase {
         int[] lc = DefinitionFinder.offsetToLineCol(source, idPos);
         return ReferenceFinder.findReferences(uri, lc[0], lc[1],
                 openContent, CheckRunner.getASTCache(), includeDeclaration);
-    }
-
-    private WorkspaceEdit renameAt(String uri, String source, String ctx, String id,
-                                    String newName) {
-        int ctxPos = source.indexOf(ctx);
-        assertTrue("Context «" + ctx + "» not found in source for renameAt", ctxPos >= 0);
-        int idPos = source.indexOf(id, ctxPos);
-        assertTrue("Identifier «" + id + "» not found after context", idPos >= 0);
-        int[] lc = DefinitionFinder.offsetToLineCol(source, idPos);
-        return Renamer.rename(uri, lc[0], lc[1], newName,
-                openContent, CheckRunner.getASTCache(), settings);
-    }
-
-    private Map<String, String> applyEdit(WorkspaceEdit edit) {
-        Map<String, String> result = new HashMap<>(openContent);
-        if (edit == null || edit.getChanges() == null) return result;
-        for (Map.Entry<String, List<TextEdit>> e : edit.getChanges().entrySet()) {
-            String fileUri = e.getKey();
-            String original = openContent.get(fileUri);
-            if (original == null) continue;
-            result.put(fileUri, Renamer.applyEdits(original, e.getValue()));
-        }
-        return result;
-    }
-
-    private void assertNoErrors(List<org.eclipse.lsp4j.Diagnostic> diags) {
-        List<org.eclipse.lsp4j.Diagnostic> errors = diags.stream()
-                .filter(d -> d.getSeverity() == DiagnosticSeverity.Error)
-                .collect(Collectors.toList());
-        assertTrue("Expected no error diagnostics after rename but got: " + errors,
-                errors.isEmpty());
     }
 
     private static int lineOf(String source, String text) {

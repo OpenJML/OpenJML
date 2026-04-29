@@ -58,6 +58,24 @@ public class DiagnosticConverter {
     public static final String SOURCE_ESC = "openjml.esc";
 
     /**
+     * Value stored in {@link org.eclipse.lsp4j.Diagnostic#setData} to mark an
+     * ESC verification failure (proof obligation violation).  Set only on
+     * diagnostics produced from {@code Kind.MANDATORY_WARNING} with source
+     * {@link #SOURCE_ESC}; absent on check-level diagnostics and on ESC
+     * diagnostics that originate from type or annotation errors.
+     *
+     * <p>Used by the diagnostic-merging logic: when a new {@code --check} result
+     * arrives, only diagnostics bearing this tag are kept from the previous ESC
+     * result.
+     */
+    public static final String ESC_VERIFICATION_TAG = "esc-verification";
+
+    /** Returns {@code true} if {@code d} is an ESC verification failure. */
+    public static boolean isEscVerificationFailure(org.eclipse.lsp4j.Diagnostic d) {
+        return ESC_VERIFICATION_TAG.equals(d.getData());
+    }
+
+    /**
      * Builds a line-start-offset table from a source string.
      * {@code result[i]} is the character offset of the first character of line {@code i}
      * (0-indexed).  The table can be passed to {@link #convert} to avoid tab-expansion
@@ -207,10 +225,14 @@ public class DiagnosticConverter {
         lsp.setSeverity(severity);
         lsp.setSource(source);
         lsp.setCode(d.getCode());
+        if (d.getKind() == javax.tools.Diagnostic.Kind.MANDATORY_WARNING
+                && SOURCE_ESC.equals(source)) {
+            lsp.setData(ESC_VERIFICATION_TAG);
+        }
         return lsp;
     }
 
-    private static String baseName(String path) {
+    static String baseName(String path) {
         int i = path.lastIndexOf('/');
         int j = path.lastIndexOf('\\');
         return path.substring(Math.max(i, j) + 1);

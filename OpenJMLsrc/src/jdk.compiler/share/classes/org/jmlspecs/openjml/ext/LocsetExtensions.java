@@ -3,6 +3,7 @@ package org.jmlspecs.openjml.ext;
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlTree.JmlMethodInvocation;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.FunctionLikeExpressions.*;
 
 import com.sun.tools.javac.code.Type;
@@ -27,7 +28,7 @@ public class LocsetExtensions extends JmlExtension {
             for (JCExpression e: ((JmlMethodInvocation)tree).args) {
                 //System.out.println("  UNION ARG " + e + " " + e.type);
                 if (!(attr.jmltypes.isSameType(e.type, locsetType))) {
-                    utils.error(e.pos, "jml.message", "The arguments of \\set_union must have type locset, not " + e.type);
+                    Utils.instance(attr.context).error(e.pos, "jml.message", "The arguments of \\set_union must have type locset, not " + e.type);
                 }
             }
             return locsetType;
@@ -46,7 +47,7 @@ public class LocsetExtensions extends JmlExtension {
             for (JCExpression e: ((JmlMethodInvocation)tree).args) {
                 //System.out.println("  UNION ARG " + e + " " + e.type);
                 if (!(attr.jmltypes.isSameType(e.type, locsetType))) {
-                    utils.error(e.pos, "jml.message", "The arguments of \\set_intersection must have type locset, not " + e.type);
+                    Utils.instance(attr.context).error(e.pos, "jml.message", "The arguments of \\set_intersection must have type locset, not " + e.type);
                 }
             }
             return locsetType;
@@ -63,10 +64,10 @@ public class LocsetExtensions extends JmlExtension {
             Type locsetType = JmlPrimitiveTypes.locsetTypeKind.getType(attr.context);
             for (JCExpression e: t.args) {
                 if (!(attr.jmltypes.isSameType(e.type, locsetType))) {
-                    utils.error(e.pos, "jml.message", "The arguments of \\subset must have type locset, not " + e.type);
+                    Utils.instance(attr.context).error(e.pos, "jml.message", "The arguments of \\subset must have type locset, not " + e.type);
                 }
             }
-            checkNumberArgs(parser, t, n->(n==2), "jml.message", "A \\subset expression must have two arguments, not " + t.args.size());
+            checkNumberArgs(attr.context, t, n->(n==2), "jml.message", "A \\subset expression must have two arguments, not " + t.args.size());
             return attr.syms.booleanType;
         }
     };
@@ -81,10 +82,10 @@ public class LocsetExtensions extends JmlExtension {
             var t = ((JmlMethodInvocation)tree);
             for (JCExpression e: t.args) {
                 if (!(attr.jmltypes.isSameType(e.type, locsetType))) {
-                    utils.error(e.pos, "jml.message", "The arguments of \\disjoint must have type locset, not " + e.type);
+                    Utils.instance(attr.context).error(e.pos, "jml.message", "The arguments of \\disjoint must have type locset, not " + e.type);
                 }
             }
-            checkNumberArgs(parser, t, n->(n==2), "jml.message", "A \\disjoint expression must have two arguments, not " + t.args.size());
+            checkNumberArgs(attr.context, t, n->(n==2), "jml.message", "A \\disjoint expression must have two arguments, not " + t.args.size());
             return attr.syms.booleanType;
         }
     };

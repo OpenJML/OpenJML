@@ -1,6 +1,7 @@
 package org.openjml.lsp;
 
 import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCFieldAccess;
 import com.sun.tools.javac.tree.JCTree.JCIdent;
@@ -9,6 +10,7 @@ import com.sun.tools.javac.tree.JCTree.JCVariableDecl;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import org.jmlspecs.openjml.JmlTree.JmlCompilationUnit;
 import org.jmlspecs.openjml.visitors.JmlTreeScanner;
 
 import java.io.IOException;
@@ -59,14 +61,30 @@ public class ReferenceFinder {
 
         List<Location> results = new ArrayList<>();
 
-        cache.forEach((entryUri, entry) -> {
+        cache.forEachNav((entryUri, entry) -> {
             String src = openContent.get(entryUri);
             if (src == null) {
                 try { src = entry.ast().sourcefile.getCharContent(false).toString(); }
                 catch (IOException e) { return; }
             }
             new RefCollector(sym, entryUri, src, includeDeclaration, results)
-                    .scan(entry.ast());
+                    .scanCU(entry.ast());
+            // Also scan the companion .jml specs CU if present AND it is not already
+            // a separate nav cache entry (which would be iterated independently,
+            // causing double-counting).
+            var specs = entry.ast().specsCompilationUnit;
+            if (specs != null && specs != entry.ast() && specs.sourcefile != null) {
+                String specsUri = specs.sourcefile.toUri().toString();
+                if (!cache.containsNav(specsUri)) {
+                    String specsSrc = openContent.get(specsUri);
+                    if (specsSrc == null) {
+                        try { specsSrc = specs.sourcefile.getCharContent(false).toString(); }
+                        catch (IOException e) { return; }
+                    }
+                    new RefCollector(sym, specsUri, specsSrc, includeDeclaration, results)
+                            .scan(specs);
+                }
+            }
         });
 
         return results;
@@ -90,6 +108,20 @@ public class ReferenceFinder {
             this.source            = source;
             this.includeDeclaration = includeDeclaration;
             this.results           = results;
+        }
+        
+        /**
+         * Scan {@code t}, using {@code AST_JAVA_MODE} when a separate specs
+         * compilation unit is present to avoid double-counting JML clause nodes
+         * that appear in both {@code defs} and {@code typeSpecs.clauses}.
+         */
+        public void scanCU(org.jmlspecs.openjml.JmlTree.JmlCompilationUnit t) {
+            if (t.specsCompilationUnit == t) {
+                scan(t);
+            } else {
+                scanMode = AST_JAVA_MODE;
+                scan(t);
+            }
         }
 
         // --- use sites (JCIdent and JCFieldAccess) ---

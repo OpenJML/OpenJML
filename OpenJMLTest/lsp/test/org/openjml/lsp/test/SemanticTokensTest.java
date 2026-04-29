@@ -86,37 +86,37 @@ public class SemanticTokensTest {
                 "//@ ensures \\result >= 0;\n"
                 + "public int m() { return 1; }\n";
         List<Token> tokens = decode(SemanticTokensProvider.computeTokens(src));
-        // Should see "ensures" (keyword) and "\result" (macro)
+        // Should see "ensures" (keyword) and "\result" (backslash token)
         long kw   = countByType(tokens, SemanticTokensProvider.TT_KEYWORD);
-        long macro = countByType(tokens, SemanticTokensProvider.TT_MACRO);
+        long bs   = countByType(tokens, SemanticTokensProvider.BACKSLASH_TOKEN_TYPE);
         assertEquals("one keyword (ensures)", 1, kw);
-        assertEquals("one macro (\\result)", 1, macro);
+        assertEquals("one backslash token (\\result)", 1, bs);
     }
 
     @Test
     public void testBackslashResult() {
         String src = "//@ ensures \\result >= 0;\n";
         List<Token> tokens = decode(SemanticTokensProvider.computeTokens(src));
-        Token macro = findByType(tokens, SemanticTokensProvider.TT_MACRO);
-        assertNotNull("\\result token must exist", macro);
-        assertEquals("length includes backslash", "\\result".length(), macro.length());
+        Token bsTok = findByType(tokens, SemanticTokensProvider.BACKSLASH_TOKEN_TYPE);
+        assertNotNull("\\result token must exist", bsTok);
+        assertEquals("length includes backslash", "\\result".length(), bsTok.length());
     }
 
     @Test
     public void testBackslashOld() {
         String src = "//@ ensures x == \\old(x);\n";
         List<Token> tokens = decode(SemanticTokensProvider.computeTokens(src));
-        Token macro = findByType(tokens, SemanticTokensProvider.TT_MACRO);
-        assertNotNull("\\old token must exist", macro);
-        assertEquals("\\old".length(), macro.length());
+        Token bsTok = findByType(tokens, SemanticTokensProvider.BACKSLASH_TOKEN_TYPE);
+        assertNotNull("\\old token must exist", bsTok);
+        assertEquals("\\old".length(), bsTok.length());
     }
 
     @Test
     public void testBackslashForall() {
         String src = "//@ invariant (\\forall int i; i >= 0; a[i] >= 0);\n";
         List<Token> tokens = decode(SemanticTokensProvider.computeTokens(src));
-        long macros = countByType(tokens, SemanticTokensProvider.TT_MACRO);
-        assertTrue("\\forall should produce a macro token", macros >= 1);
+        long bs = countByType(tokens, SemanticTokensProvider.BACKSLASH_TOKEN_TYPE);
+        assertTrue("\\forall should produce a backslash token", bs >= 1);
     }
 
     @Test
@@ -125,8 +125,8 @@ public class SemanticTokensTest {
                 "//@ pure\n"
                 + "public int m() { return 0; }\n";
         List<Token> tokens = decode(SemanticTokensProvider.computeTokens(src));
-        assertEquals("pure produces one keyword token", 1, tokens.size());
-        assertEquals(SemanticTokensProvider.TT_KEYWORD, tokens.get(0).type());
+        assertEquals("pure produces one modifier token", 1, tokens.size());
+        assertEquals(SemanticTokensProvider.TT_MODIFIER, tokens.get(0).type());
     }
 
     @Test
@@ -157,10 +157,10 @@ public class SemanticTokensTest {
                 + "    public int m(int x) { return x; }\n"
                 + "}\n";
         List<Token> tokens = decode(SemanticTokensProvider.computeTokens(src));
-        long kw    = countByType(tokens, SemanticTokensProvider.TT_KEYWORD);
-        long macro = countByType(tokens, SemanticTokensProvider.TT_MACRO);
+        long kw = countByType(tokens, SemanticTokensProvider.TT_KEYWORD);
+        long bs = countByType(tokens, SemanticTokensProvider.BACKSLASH_TOKEN_TYPE);
         assertEquals("requires + ensures = 2 keywords", 2, kw);
-        assertEquals("\\result = 1 macro", 1, macro);
+        assertEquals("\\result = 1 backslash token", 1, bs);
     }
 
     @Test
@@ -186,10 +186,10 @@ public class SemanticTokensTest {
                 + "  @*/\n"
                 + "public int m(int x) { return x; }\n";
         List<Token> tokens = decode(SemanticTokensProvider.computeTokens(src));
-        long kw    = countByType(tokens, SemanticTokensProvider.TT_KEYWORD);
-        long macro = countByType(tokens, SemanticTokensProvider.TT_MACRO);
+        long kw = countByType(tokens, SemanticTokensProvider.TT_KEYWORD);
+        long bs = countByType(tokens, SemanticTokensProvider.BACKSLASH_TOKEN_TYPE);
         assertTrue("requires + ensures in block comment", kw >= 2);
-        assertTrue("\\result in block comment", macro >= 1);
+        assertTrue("\\result in block comment", bs >= 1);
     }
 
     @Test
@@ -231,7 +231,7 @@ public class SemanticTokensTest {
         // Two tokens on the same line
         String src = "//@ requires x >= 0 && \\old(x) >= 0;\n";
         List<Token> tokens = decode(SemanticTokensProvider.computeTokens(src));
-        // requires (keyword) + \old (macro) — both on line 0
+        // requires (keyword) + \old (backslash token) — both on line 0
         assertEquals(2, tokens.size());
         assertEquals(0, tokens.get(0).line());
         assertEquals(0, tokens.get(1).line());

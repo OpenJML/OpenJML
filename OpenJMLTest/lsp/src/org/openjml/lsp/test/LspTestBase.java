@@ -4,6 +4,7 @@ import org.eclipse.lsp4j.Diagnostic;
 import org.openjml.lsp.CheckRunner;
 import org.openjml.lsp.OpenJMLSettings;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +21,21 @@ import java.util.Map;
  * end-to-end via the {@code openjml-lsp} launcher script.
  */
 public abstract class LspTestBase {
+
+    /** Project ID used by VS Code and generic LSP clients (the workspace project). */
+    protected static final String DEFAULT_PROJECT = OpenJMLSettings.WORKSPACE_PROJECT_ID;
+
+    /**
+     * Convert a {@link File} to a {@code file://} URI string using the three-slash
+     * form ({@code file:///path}) that the LSP server uses internally.
+     *
+     * <p>Use this in preference to {@link File#toURI()} which may produce a
+     * single-slash form ({@code file:/path}) that fails {@code equals} comparisons
+     * against server-side URI keys.
+     */
+    protected static String fileUri(File f) {
+        return f.toPath().toUri().toString();
+    }
 
     /**
      * Run an OpenJML {@code --check} pass on the given source content and
@@ -103,4 +119,5 @@ public abstract class LspTestBase {
         if (check.exitCode() != 0) return check;
         return CheckRunner.runDoEscMethod(uri, methodName, new OpenJMLSettings());
     }
+
 }

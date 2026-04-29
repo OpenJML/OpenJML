@@ -8,6 +8,7 @@ import javax.tools.JavaFileObject;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
 import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlTree;
 import org.jmlspecs.openjml.JmlTree.JmlMethodSig;
 import org.jmlspecs.openjml.JmlTree.JmlTypeClause;
@@ -32,6 +33,7 @@ import com.sun.tools.javac.tree.JCTree.JCExpression;
 import com.sun.tools.javac.tree.JCTree.JCModifiers;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.ListBuffer;
+import com.sun.tools.javac.util.Log;
 import com.sun.tools.javac.util.Name;
 
 public class TypeExprClauseExtension extends JmlExtension {
@@ -55,17 +57,15 @@ public class TypeExprClauseExtension extends JmlExtension {
         public boolean oldNoLabelAllowed() { return true; }
         public boolean preOrOldWithLabelAllowed() { return false; }
         
-        public 
+        public
         JmlTypeClause parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
-            
             int pp = parser.pos();
             int pe = parser.endPos();
-            
-            
+
+
             if (clauseType == constraintClause) {
-                JmlTree.JmlTypeClauseConstraint tcl = parseConstraint(mods);
-                tcl.sourcefile = log.currentSourceFile();
+                JmlTree.JmlTypeClauseConstraint tcl = parseConstraint(parser, mods);
+                tcl.sourcefile = Log.instance(parser.context).currentSourceFile();
                 return tcl;
             } else {
                 parser.nextToken();
@@ -75,13 +75,13 @@ public class TypeExprClauseExtension extends JmlExtension {
                 if (mods == null) { mods = M.Modifiers(0); }
                 if (mods.getEndPosition(parser.endPosTable()) == -1) parser.storeEnd(mods, pp);
                 JmlTypeClauseExpr tcl = parser.to(M.JmlTypeClauseExpr(mods, keyword, clauseType, e));
-                wrapup(tcl, clauseType, true, true);
+                wrapup(parser, tcl, clauseType, true, true);
                 return tcl;
             }
         }
-        
+
         /** Parses a constraint clause */
-        public JmlTypeClauseConstraint parseConstraint(JCModifiers mods) {
+        public JmlTypeClauseConstraint parseConstraint(JmlParser parser, JCModifiers mods) {
             int pos = parser.pos();
             parser.nextToken();
             Name n = parser.parseOptionalName();
@@ -105,7 +105,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                     notlist = false;
                     // Here we just have an empty list
                 } else {
-                    sigs = parseMethodNameList();
+                    sigs = parseMethodNameList(parser);
                 }
             }
             if (mods == null) mods = parser.jmlF.at(pos).Modifiers(0);
@@ -113,7 +113,7 @@ public class TypeExprClauseExtension extends JmlExtension {
             JmlTypeClauseConstraint tcl = parser.to(parser.jmlF.at(pos).JmlTypeClauseConstraint(
                     mods, e, sigs));
             tcl.notlist = notlist;
-            wrapup(tcl, constraintClause, true, true);
+            wrapup(parser, tcl, constraintClause, true, true);
             return tcl;
         }
 
@@ -121,8 +121,6 @@ public class TypeExprClauseExtension extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
         	JmlTypeClauseExpr clause = (JmlTypeClauseExpr)tree;
             boolean isStatic = clause.modifiers != null && attr.isStatic(clause.modifiers);
-            if (log == null) log = attr.log; // log may be null because a type clause may be synthesized without everr having been parser
-                                    // and so init(parser) may not have been called (e.g. for axioms about Enums)
             JavaFileObject old = attr.log.useSource(clause.sourcefile);
             attr.jmlenv = attr.jmlenv.pushCopy();
             VarSymbol previousSecretContext = attr.currentSecretContext;
@@ -138,7 +136,7 @@ public class TypeExprClauseExtension extends JmlExtension {
                 if (clause.clauseType == invariantClause) {
                 	attr.jmlenv.jmlVisibility = -1;
                 	attr.attribAnnotationTypes(clause.modifiers.annotations,env); // Is this needed?
-                    var a = utils.findModifier(clause.modifiers,Modifiers.SECRET);
+                    var a = Utils.instance(attr.context).findModifier(clause.modifiers,Modifiers.SECRET);
                     attr.jmlenv.jmlVisibility = clause.modifiers.flags & Flags.AccessFlags;
                     if (a != null) {
                         // FIXME
@@ -161,15 +159,15 @@ public class TypeExprClauseExtension extends JmlExtension {
                 attr.checkTypeClauseMods(clause,clause.modifiers,clause.clauseType.keyword() + " clause",clause.clauseType);
                 return null;
             } catch (Exception e) {
-            	utils.note(clause, "jml.message", "Exception occurred in attributing clause: " + clause);
-            	utils.note("    Env: " + env.enclClass.name + " " + (env.enclMethod==null?"<null method>": env.enclMethod.name));
+            	Utils.instance(attr.context).note(clause, "jml.message", "Exception occurred in attributing clause: " + clause);
+            	Utils.instance(attr.context).note("    Env: " + env.enclClass.name + " " + (env.enclMethod==null?"<null method>": env.enclMethod.name));
             	throw e;
             } finally {
                 if (isStatic) attr.removeStatic(localEnv);  // FIXME - move this to finally, but does not screw up the checks on the next line?
                 attr.currentSecretContext = previousSecretContext;
                 attr.jmlresolve.setAllowJML(prevAllowJML);
                 attr.jmlenv = attr.jmlenv.pop();
-                log.useSource(old);
+                attr.log.useSource(old);
             }
         }
     }

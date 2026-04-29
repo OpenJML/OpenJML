@@ -19,9 +19,9 @@ instance of VSCode.
 There is also an extension (a.k.a. Eclipse plugin) that connects the Eclipse IDE to OpenJML.
 The project OpenJMLUI contains the source for that plugin; it also connects to openjml-lsp.
 
-To build this LSP libraryi, make -C OpenJMLlsp release 
+To build this LSP library, make -C OpenJMLlsp release 
 Then, when 'make -C openjmlsrsc' release is run, the LSP material will be picked up and
-included in the OpenJML reelase.
+included in the OpenJML release.
 Building OpenJMLlsp  presumes that OpenJMLsrc is built; openjml-lsp uses the IAPI/API programmatic interface
 into openjml.
 

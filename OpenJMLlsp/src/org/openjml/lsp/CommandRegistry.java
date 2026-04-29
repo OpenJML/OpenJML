@@ -1,5 +1,6 @@
 package org.openjml.lsp;
 
+import com.google.gson.JsonNull;
 import com.google.gson.JsonPrimitive;
 
 import java.util.LinkedHashMap;
@@ -31,25 +32,31 @@ public final class CommandRegistry {
         if (name != null && !name.isEmpty()) map.put(name, handler);
     }
 
-    /** Command with a single URI arg: {@code action.accept(uri)}. */
+    /** Command with a single URI arg: {@code action.accept(uri)}.
+     *  Returns {@link Boolean#TRUE} so that LSP4E's {@code computeFirst} recognizes
+     *  the command as handled (null means "skip"). */
     public void onUri(String name, Consumer<String> action) {
         on(name, args -> {
             String uri = str(args, 0);
             if (uri != null) action.accept(uri);
-            return null;
+            return Boolean.TRUE;
         });
     }
 
-    /** Command with URI + optional second string arg (e.g. method name or output dir). */
+    /** Command with URI + optional second string arg (e.g. method name or output dir).
+     *  Returns {@link Boolean#TRUE} so that LSP4E's {@code computeFirst} recognizes
+     *  the command as handled (null means "skip"). */
     public void onUriStr(String name, BiConsumer<String, String> action) {
         on(name, args -> {
             String uri = str(args, 0);
             if (uri != null) action.accept(uri, str(args, 1));  // second arg may be null
-            return null;
+            return Boolean.TRUE;
         });
     }
 
-    /** Command whose args are all treated as a list of strings (e.g. path list). */
+    /** Command whose args are all treated as a list of strings (e.g. path list).
+     *  Returns {@link Boolean#TRUE} so that LSP4E's {@code computeFirst} recognizes
+     *  the command as handled (null means "skip"). */
     public void onStringList(String name, Consumer<List<String>> action) {
         on(name, args -> {
             if (args != null && !args.isEmpty()) {
@@ -59,13 +66,14 @@ public final class CommandRegistry {
                         .collect(Collectors.toList());
                 if (!paths.isEmpty()) action.accept(paths);
             }
-            return null;
+            return Boolean.TRUE;
         });
     }
 
-    /** No-argument command. */
+    /** No-argument command.  Returns {@link Boolean#TRUE} so that LSP4E's
+     *  {@code computeFirst} recognizes the command as handled (null means "skip"). */
     public void onNoArgs(String name, Runnable action) {
-        on(name, args -> { action.run(); return null; });
+        on(name, args -> { action.run(); return Boolean.TRUE; });
     }
 
     /**
@@ -77,6 +85,15 @@ public final class CommandRegistry {
             String uri = str(args, 0);
             return uri != null ? fn.apply(uri) : null;
         });
+    }
+
+    /**
+     * Returns the names of all registered commands, in registration order.
+     * Used by {@link OpenJMLLanguageServer} to populate {@code executeCommandProvider}
+     * in the LSP {@code initialize} response.
+     */
+    public List<String> commandNames() {
+        return new java.util.ArrayList<>(map.keySet());
     }
 
     /**
@@ -101,6 +118,7 @@ public final class CommandRegistry {
     /** Unwrap a Gson {@link JsonPrimitive} or fall back to {@link String#valueOf}. */
     static String extractString(Object arg) {
         if (arg instanceof JsonPrimitive jp) return jp.getAsString();
+        if (arg instanceof JsonNull) return null;
         if (arg != null) return String.valueOf(arg);
         return null;
     }

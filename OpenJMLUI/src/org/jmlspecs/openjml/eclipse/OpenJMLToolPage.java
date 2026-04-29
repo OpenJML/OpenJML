@@ -9,10 +9,10 @@ package org.jmlspecs.openjml.eclipse;
  *
  * <p>Registered as a child of the main OpenJML page in {@code plugin.xml}
  * (giving the tree node a twistie).  Opens the same tabbed
- * {@link OpenJMLPreferences} page with Tab 2 pre-selected.
+ * {@link OpenJMLPreferences} page with Tab 3 pre-selected.
  */
 public class OpenJMLToolPage extends OpenJMLPreferences {
 
     @Override
-    protected int getInitialTab() { return 1; }
+    protected int getInitialTab() { return 2; }
 }

@@ -40,7 +40,7 @@ public final class JmlKeywords {
         "requires", "old", "ensures", "signals", "signals_only", "assignable",
         "modifies", "accessible", "callable", "measured_by", "captures",
         "diverges", "when", "working_space", "duration",
-        "breaks", "continues", "returns",
+        "breaks", "continues", "returns", 
         // type-member clauses
         "invariant", "initially", "constraint", "represents", "axiom",
         "readable", "writable", "monitors_for",
@@ -60,7 +60,7 @@ public final class JmlKeywords {
         // statement / expression keywords
         "loop_invariant", "maintaining", "decreasing", "decreases",
         "assume", "assert", "set", "debug", "hence_by", "unreachable",
-        "reachable", "in", "maps"
+        "reachable", "in", "maps", "print"
     );
 
     /**
@@ -90,7 +90,9 @@ public final class JmlKeywords {
         // loop / sequence
         "values", "count", "index", 
         // misc
-        "exception", "witness", "empty", "singleton", "same"
+        "exception", "same",
+        // let-expressions
+        "let"
     );
 
     // -----------------------------------------------------------------------

@@ -120,6 +120,20 @@ public final class OpenJMLConstants {
     public static final String CMD_RUN_ESC_FOR_METHOD = "openjml.runEscForMethod";
 
     /**
+     * Split-by-file ESC command sent via {@code workspace/executeCommand}.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.RUN_ESC_SPLIT_BY_FILE}.
+     */
+    public static final String CMD_RUN_ESC_SPLIT_BY_FILE = "openjml.runEscSplitByFile";
+
+    /**
+     * Split-by-method ESC command sent via {@code workspace/executeCommand}.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.RUN_ESC_SPLIT_BY_METHOD}.
+     */
+    public static final String CMD_RUN_ESC_SPLIT_BY_METHOD = "openjml.runEscSplitByMethod";
+
+    /**
      * Multi-target RAC compile command sent via {@code workspace/executeCommand}.
      *
      * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.RUN_RAC}.
@@ -139,6 +153,33 @@ public final class OpenJMLConstants {
      * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.CLEAR_MARKERS}.
      */
     public static final String CMD_CLEAR_MARKERS = "openjml.clearMarkers";
+    public static final String CMD_CLEAR_MARKERS_FOR_URIS = "openjml.clearMarkersForUris";
+
+    /**
+     * Cancel-ESC command sent via {@code workspace/executeCommand}.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.CANCEL_ESC}.
+     */
+    public static final String CMD_CANCEL_ESC = "openjml.cancelEsc";
+
+    /**
+     * Abort-method-proof command sent via {@code workspace/executeCommand}.
+     * Aborts the SMT proof for one specific method without stopping the overall
+     * ESC run.  Argument: the method's fully-qualified rawName
+     * (e.g., {@code "com.example.Foo.add(int,int)"});  omit or pass {@code null}
+     * to abort whichever proof is currently active.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.ABORT_METHOD_PROOF}.
+     */
+    public static final String CMD_ABORT_METHOD_PROOF = "openjml.abortMethodProof";
+
+    /**
+     * Get-running-ESC-tasks query sent via {@code workspace/executeCommand}.
+     * Returns a {@code List<String>} of file URIs currently being verified.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.GET_RUNNING_ESC_TASKS}.
+     */
+    public static final String CMD_GET_RUNNING_ESC_TASKS = "openjml.getRunningEscTasks";
 
     /**
      * Focus-file notification sent via {@code workspace/executeCommand}.
@@ -146,6 +187,24 @@ public final class OpenJMLConstants {
      * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.FOCUS_FILE}.
      */
     public static final String CMD_FOCUS_FILE = "openjml.focusFile";
+
+    /**
+     * Index-project command sent via {@code workspace/executeCommand}.
+     * Triggers a {@code --check} pass on all source directories of the
+     * specified project to populate the declaration index.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.INDEX_PROJECT}.
+     */
+    public static final String CMD_INDEX_PROJECT = "openjml.indexProject";
+
+    /**
+     * Per-project symbol query sent via {@code workspace/executeCommand}.
+     * Arguments: {@code [query, projectRoot]}.  Returns {@code List<SymbolInformation>}
+     * restricted to files under {@code projectRoot}.
+     *
+     * <p><b>OpenJMLlsp sync</b>: {@code OpenJMLCommands.SYMBOLS_FOR_PROJECT}.
+     */
+    public static final String CMD_SYMBOLS_FOR_PROJECT = "openjml.symbolsForProject";
 
     /**
      * Semantic-tokens request sent via {@code workspace/executeCommand}.
@@ -186,6 +245,24 @@ public final class OpenJMLConstants {
     public static final String CMD_UI_RENAME =
             "org.openjml.eclipse.commands.rename";
 
+    /**
+     * Eclipse UI command ID for the OpenJML Find All Declarations action.
+     *
+     * <p><b>plugin.xml sync</b>: {@code <command id="...">} in the
+     * {@code org.eclipse.ui.commands} extension.
+     */
+    public static final String CMD_UI_FIND_ALL_DECLARATIONS =
+            "org.openjml.eclipse.commands.findAllDeclarations";
+
+    /**
+     * Eclipse UI command ID for the OpenJML Index Project action.
+     *
+     * <p><b>plugin.xml sync</b>: {@code <command id="...">} in the
+     * {@code org.eclipse.ui.commands} extension.
+     */
+    public static final String CMD_UI_INDEX_PROJECT =
+            "org.jmlspecs.openjml.commands.indexProject";
+
     // -----------------------------------------------------------------------
     // Decorator ID
     // -----------------------------------------------------------------------
@@ -203,13 +280,19 @@ public final class OpenJMLConstants {
     // System-property keys
     // -----------------------------------------------------------------------
 
+    /** File name of the OpenJML LSP launcher script inside an installation folder. */
+    public static final String LSP_LAUNCHER_SCRIPT = "openjml-lsp";
+
     /**
-     * JVM system property that overrides the path to the {@code openjml-lsp}
-     * executable.  When set, {@code OpenJMLStreamConnectionProvider} uses this
-     * path instead of searching the Eclipse installation directory.
+     * JVM system property that overrides the path to the OpenJML installation.
+     * The value may be either the OpenJML installation folder or the full path
+     * to the {@code openjml-lsp} launcher script.  When set,
+     * {@code OpenJMLStreamConnectionProvider} uses this value instead of
+     * searching the Eclipse installation directory.
      *
      * <p>Typically set by the Makefile when running GUI tests:
-     * {@code -Dopenjml.lsp.server.path=/path/to/openjml-lsp}.
+     * {@code -Dopenjml.lsp.server.path=/path/to/openjml-lsp}
+     * or {@code -Dopenjml.lsp.server.path=/path/to/openjml-install-dir}.
      */
     public static final String LSP_SERVER_PATH_PROPERTY = "openjml.lsp.server.path";
 

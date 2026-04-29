@@ -45,12 +45,11 @@ public class InlinedLoopStatement extends JmlExtension implements IJmlLoop {
 
     public static final IJmlClauseKind inlinedLoopStatement = new IJmlClauseKind.Statement(inlinedloopID) {
         public JmlInlinedLoop parse(JCModifiers mods, String id, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int pp = parser.pos();
             int pe = parser.endPos();
             parser.nextToken();
             JmlInlinedLoop st = parser.maker().at(pp).JmlInlinedLoop(null);
-            wrapup(st, clauseType, true, true);
+            wrapup(parser, st, clauseType, true, true);
             return st;
         }
         

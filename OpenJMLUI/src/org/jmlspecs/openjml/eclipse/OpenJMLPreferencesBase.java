@@ -9,13 +9,22 @@ import java.util.List;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.jface.preference.ColorSelector;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditor;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.jmlspecs.openjml.eclipse.widgets.LabelFieldEditor;
@@ -45,6 +54,10 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
 
     /** Reference to the server-path field editor, saved for validation in {@link #performOk}. */
     private StringFieldEditor serverPathEditor;
+    private StringFieldEditor timeoutEditor;
+
+    /** Syntax-color block; non-null only when the Syntax Colors tab has been created. */
+    private SyntaxColorBlock syntaxColorBlock;
 
     // -----------------------------------------------------------------------
     // IWorkbenchPreferencePage
@@ -66,26 +79,36 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
             String typedPath = serverPathEditor.getStringValue().trim();
             if (!typedPath.isBlank()) {
                 if (!OpenJMLStreamConnectionProvider.isServerAvailable(typedPath)) {
-                    String msg = "Server script not found or not executable:\n\n  " + typedPath;
+                    String script = OpenJMLStreamConnectionProvider.resolveToScript(typedPath);
+                    String msg = "OpenJML launcher not found or not executable:\n\n  " + script;
                     setErrorMessage(msg);
                     setValid(false);
-                    MessageDialog.openError(getShell(), "OpenJML: Invalid Server Path", msg);
+                    MessageDialog.openError(getShell(), "OpenJML: Launcher Not Found", msg);
                     return false;  // keep dialog open
                 }
             } else {
-                // Blank = use the system-property / Eclipse-install default.
-                // Resolve and warn now so the user isn't surprised at startup.
-                String defaultPath = OpenJMLStreamConnectionProvider.findDefaultServerPath();
-                if (!OpenJMLStreamConnectionProvider.isServerAvailable(defaultPath)) {
-                    MessageDialog.openWarning(getShell(), "OpenJML: Default Server Path Not Found",
-                            "No server path is set. The resolved default path is not found"
-                            + " or not executable:\n\n  " + defaultPath
-                            + "\n\nOpenJML will not be functional until a valid path is"
-                            + " configured or the server is installed at that location.");
-                    // Warning only — allow saving the blank (user may fix it later).
+                // Blank = look up "openjml-lsp" on $PATH at startup.
+                // No validation performed here; any failure will surface when the server starts.
+            }
+        }
+        // Validate the timeout field: must be blank or a non-negative integer.
+        if (timeoutEditor != null) {
+            String timeoutVal = timeoutEditor.getStringValue().trim();
+            if (!timeoutVal.isBlank()) {
+                boolean valid = false;
+                try {
+                    valid = Long.parseLong(timeoutVal) >= 0;
+                } catch (NumberFormatException ignored) {}
+                if (!valid) {
+                    String msg = "Proof timeout must be a non-negative integer or blank (for no timeout).";
+                    setErrorMessage(msg);
+                    setValid(false);
+                    MessageDialog.openError(getShell(), "OpenJML: Invalid Timeout", msg);
+                    return false;
                 }
             }
         }
+
         setErrorMessage(null);
         setValid(true);
 
@@ -93,12 +116,14 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         // here for lspServerPathKey changes and calls LspPartListener.restartServer(),
         // which handles stopping the old server (on a background thread) and reconnecting.
         allEditors.forEach(FieldEditor::store);
+        if (syntaxColorBlock != null) syntaxColorBlock.store(getPreferenceStore());
         return true;
     }
 
     @Override
     protected void performDefaults() {
         allEditors.forEach(FieldEditor::loadDefault);
+        if (syntaxColorBlock != null) syntaxColorBlock.loadDefaults();
         super.performDefaults();
     }
 
@@ -156,7 +181,7 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addLabel(parent, "LSP Server", SWT.SEPARATOR | SWT.HORIZONTAL);
 
         serverPathEditor = new StringFieldEditor(OpenJMLOptions.lspServerPathKey,
-                "Server script path (blank = find on PATH or beside Eclipse):",
+                "OpenJML installation folder or launcher script path (blank = find on PATH):",
                 parent);
         addEditor(serverPathEditor);
 
@@ -168,16 +193,16 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.checkTriggerOnKey,
                 "JML type-check trigger:",
                 new String[][] {
-                    { "On edit (instant feedback)", "edit" },
-                    { "On save only",               "save" } },
+                    { "On edit (instant feedback)", "edit"   },
+                    { "On save only",               "save"   },
+                    { "Manual only — slow/problematic codebases", "manual" } },
                 parent));
 
         addEditor(new ComboFieldEditor(OpenJMLOptions.escTriggerOnKey,
                 "ESC (static checking) trigger:",
                 new String[][] {
-                    { "Manual only",          "manual" },
-                    { "On save",              "save"   },
-                    { "On edit (expensive)",  "edit"   } },
+                    { "Manual only", "manual" },
+                    { "On save",     "save"   } },
                 parent));
 
         addEditor(new ComboFieldEditor(OpenJMLOptions.escDirtyFilesBehaviorKey,
@@ -190,36 +215,14 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
 
         addSpace(parent);
 
-        // ── Paths ───────────────────────────────────────────────────────────
-        addLabel(parent, "Paths", SWT.SEPARATOR | SWT.HORIZONTAL);
-
-        addEditor(new StringFieldEditor(OpenJMLOptions.propertiesFileKey,
-                "openjml.properties file (blank = auto-discover):",
-                parent));
-        addEditor(new StringFieldEditor(OpenJMLOptions.specsPathKey,
-                "Specs path (blank = default from launcher):",
-                parent));
-        addEditor(new StringFieldEditor(OpenJMLOptions.solversPathKey,
-                "Solvers path (blank = default from launcher):",
-                parent));
-        addEditor(new StringFieldEditor(OpenJMLOptions.sourcePathKey,
-                "Source path for -sourcepath (blank = single-file):",
-                parent));
-        addEditor(new StringFieldEditor(OpenJMLOptions.classPathKey,
-                "Classpath for -classpath (blank = none):",
-                parent));
-
-        addSpace(parent);
-
         // ── ESC engine ──────────────────────────────────────────────────────
         addLabel(parent, "ESC Engine", SWT.SEPARATOR | SWT.HORIZONTAL);
 
         addEditor(new ComboFieldEditor(OpenJMLOptions.escEngineKey,
                 "ESC engine:",
                 new String[][] {
-                    { "subprocess (separate process, default)", "subprocess" },
-                    { "concurrent (in-process, shared IAPI)",  "concurrent" },
-                    { "fresh (in-process, fresh IAPI per method)", "fresh"  } },
+                    { "fresh (separate process, default)", "fresh" },
+                    { "concurrent (in-process, shared IAPI)",  "concurrent" } },
                 parent));
 
         addEditor(new StringFieldEditor(OpenJMLOptions.escThreadsKey,
@@ -251,6 +254,13 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 new String[][] {
                     { "Regex (instant, always active)",                           "regex" },
                     { "AST (precise, uses attributed tree; falls back to regex)", "ast"   } },
+                parent));
+
+        addEditor(new ComboFieldEditor(OpenJMLOptions.syntaxColoringScopeKey,
+                "JML syntax coloring scope (.java files):",
+                new String[][] {
+                    { "Preserve Java coloring (JML annotations only)", "preserve Java coloring" },
+                    { "Overwrite Java coloring (all Java + JML)",       "overwrite Java coloring" } },
                 parent));
 
         finalizeTab(parent);
@@ -294,8 +304,8 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
         addEditor(new ComboFieldEditor(OpenJMLOptions.codeMathKey,
                 "Arithmetic mode for Java code (--code-math):",
                 new String[][] {
-                    { "safe",   "safe"   },
                     { "java",   "java"   },
+                    { "safe",   "safe"   },
                     { "bigint", "bigint" } },
                 parent));
 
@@ -322,7 +332,11 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 "Require white space after @ in JML comment (--require-white-space)");
 
         addEditor(new StringFieldEditor(OpenJMLOptions.warnKey,
-                "Warning keys to enable/disable, comma-separated (--warn):",
+                "Warning keys to enable, comma-separated (--warn):",
+                parent));
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.noWarnKey,
+                "Warning keys to disable, comma-separated (--no-warn):",
                 parent));
 
         addSpace(parent);
@@ -339,9 +353,10 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                     { "7", "7" }, { "8", "8" }, { "9", "9" } },
                 parent));
 
-        addEditor(new StringFieldEditor(OpenJMLOptions.timeoutKey,
+        timeoutEditor = new StringFieldEditor(OpenJMLOptions.timeoutKey,
                 "Proof timeout in seconds (--timeout; blank = infinite):",
-                parent));
+                parent);
+        addEditor(timeoutEditor);
 
         addEditor(new ComboFieldEditor(OpenJMLOptions.feasibilityKey,
                 "Feasibility checking (--check-feasibility):",
@@ -419,5 +434,327 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                 parent));
 
         finalizeTab(parent);
+    }
+
+    // -----------------------------------------------------------------------
+    // Tab 3 — Project Options
+    // -----------------------------------------------------------------------
+
+    /**
+     * Populates a composite with Tab 3 — Project Options (paths per project).
+     *
+     * <p>The effective classpath sent to OpenJML is assembled in this order:
+     * <ol>
+     *   <li>The user-supplied classpath from this field (first on the path).</li>
+     *   <li>JDT project output directories (compiled .class files).</li>
+     *   <li>Library JARs on the project's JDT classpath.</li>
+     *   <li>Output directories and library JARs from dependent projects (recursive).</li>
+     * </ol>
+     * JRE system library JARs are excluded because OpenJML ships its own bundled JDK.
+     * If the Eclipse project JRE version differs from OpenJML's bundled JDK, API or
+     * class-version conflicts may occur; OpenJML's bundled JDK version takes precedence.
+     */
+    protected void createProjectOptionFields(Composite parent) {
+
+        // Tab-wide notes — added before any FieldEditor so they appear first in the grid.
+        // FieldEditor constructors reset parent.setLayout() but do NOT clear GridData on
+        // already-created widgets; finalizeTab() sets the final 2-column GridLayout and
+        // the horizontalSpan=2 GridData on these labels is honored correctly at that point.
+        Label globalNote = makeInfoLabel(parent,
+                "These additions to the various paths are global: they apply to all projects. "
+                + "However, the effective paths sent to OpenJML are project dependent, as described below. "
+                + "OpenJML operations are all with respect to a parent Eclipse project.");
+        globalNote.setLayoutData(infoSpan2());
+
+        Label envNote = makeInfoLabel(parent,
+                "Text fields on this tab may reference environment variables using $VARNAME syntax "
+                + "(e.g. $HOME, $MY_SPECS).  The server substitutes them before passing paths to OpenJML.");
+        envNote.setLayoutData(infoSpan2());
+
+        addSpace(parent);
+
+        addLabel(parent, "Classpath", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        Label cpNote = makeInfoLabel(parent,
+                "The effective classpath sent to OpenJML is assembled in this order:\n"
+                + "  \u2022 The extra entries field below\n"
+                + "  \u2022 JDT project output directories (compiled .class files)\n"
+                + "  \u2022 Library JARs on the project\u2019s JDT classpath\n"
+                + "  \u2022 Output directories and library JARs from dependent projects (recursive)\n"
+                + "JRE system library JARs are excluded because OpenJML ships its own bundled JDK.\n"
+                + "Limitation: if the Eclipse project JRE version differs from OpenJML\u2019s\n"
+                + "bundled JDK, class-version or API conflicts may occur.");
+        cpNote.setLayoutData(infoSpan2());
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.classPathKey,
+                "Extra classpath entries (blank = none):",
+                parent));
+
+        addSpace(parent);
+
+        addLabel(parent, "Source Path", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        Label srcNote = makeInfoLabel(parent,
+                "The sourcepath supplied to OpenJML consists of:\n"
+                + "  \u2022 the text field below, followed by\n"
+                + "  \u2022 the source folders of the parent Eclipse project,\n"
+                + "  \u2022 recursively for the project\u2019s dependencies.");
+        srcNote.setLayoutData(infoSpan2());
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.sourcePathKey,
+                "Additions to -sourcepath:",
+                parent));
+
+        addSpace(parent);
+
+        addLabel(parent, "Specs Path", SWT.SEPARATOR | SWT.HORIZONTAL);
+
+        Label specsNote = makeInfoLabel(parent,
+                "The specspath supplied to OpenJML is\n"
+                + "  \u2022 the text field below, followed by\n"
+                + "  \u2022 the effective sourcepath as described above.\n"
+                + "The built-in system library specifications are always appended by OpenJML implicitly.\n"
+                + "If the text field below is empty, no specspath is communicated to OpenJML,\n"
+                + "which then uses its documented default.");
+        specsNote.setLayoutData(infoSpan2());
+
+        addEditor(new StringFieldEditor(OpenJMLOptions.specsPathKey,
+                "Specs path additions:",
+                parent));
+
+        finalizeTab(parent);
+    }
+
+    private static Label makeInfoLabel(Composite parent, String text) {
+        Label lbl = new Label(parent, SWT.WRAP);
+        lbl.setText(text);
+        return lbl;
+    }
+
+    private static GridData infoSpan2() {
+        GridData gd = new GridData(SWT.FILL, SWT.TOP, true, false);
+        gd.horizontalSpan = 2;
+        return gd;
+    }
+
+    // -----------------------------------------------------------------------
+    // Tab 2 — Syntax Colors
+    // -----------------------------------------------------------------------
+
+    /**
+     * Populates a composite with Tab 2 — JML Syntax Colors.
+     *
+     * <p>Uses a JDT-style list + panel layout: a scrolling list on the left
+     * shows all 19 active token types; selecting one shows its color and
+     * style options on the right.
+     */
+    protected void createSyntaxColorFields(Composite parent) {
+        syntaxColorBlock = new SyntaxColorBlock(getPreferenceStore());
+        syntaxColorBlock.createControl(parent);
+    }
+
+    // -----------------------------------------------------------------------
+    // SyntaxColorBlock — JDT-style list + color-panel widget
+    // -----------------------------------------------------------------------
+
+    /**
+     * A JDT-style syntax-color control.
+     *
+     * <p>Left side: a {@code org.eclipse.swt.widgets.List} of token-type labels.
+     * Right side: a {@link ColorSelector} button plus Bold / Italic / Underline /
+     * Strikethrough checkboxes.  Changing the list selection updates the right panel.
+     * Changes are held in memory until {@link #store(IPreferenceStore)} is called.
+     */
+    private static final class SyntaxColorBlock {
+
+        private final java.util.List<OpenJMLOptions.TokenColorEntry> entries =
+                OpenJMLOptions.TOKEN_COLORS;
+
+        // In-memory state (parallel to entries list)
+        private final RGB[]     currentColors;
+        private final boolean[] currentBold;
+        private final boolean[] currentItalic;
+        private final boolean[] currentUnder;
+        private final boolean[] currentStrike;
+
+        // Widgets (null until createControl is called)
+        private org.eclipse.swt.widgets.List list;
+        private ColorSelector colorSelector;
+        private Button boldBtn, italicBtn, underlineBtn, strikeBtn;
+        private int selectedIndex = 0;
+
+        /** True once the user changes any value in this instance's UI. */
+        private boolean modified = false;
+
+        SyntaxColorBlock(IPreferenceStore store) {
+            int n = entries.size();
+            currentColors = new RGB[n];
+            currentBold    = new boolean[n];
+            currentItalic  = new boolean[n];
+            currentUnder   = new boolean[n];
+            currentStrike  = new boolean[n];
+            loadFrom(store);
+        }
+
+        private void loadFrom(IPreferenceStore store) {
+            for (int i = 0; i < entries.size(); i++) {
+                OpenJMLOptions.TokenColorEntry e = entries.get(i);
+                currentColors[i] = PreferenceConverter.getColor(store, e.colorKey());
+                currentBold[i]    = store.getBoolean(e.boldKey());
+                currentItalic[i]  = store.getBoolean(e.italicKey());
+                currentUnder[i]   = store.getBoolean(e.underlineKey());
+                currentStrike[i]  = store.getBoolean(e.strikethroughKey());
+            }
+        }
+
+        /**
+         * Saves all current values to the preference store, but only if this
+         * instance was actually modified by the user.  This prevents a stale
+         * page instance (e.g., a sub-page opened but not touched) from
+         * overwriting changes made in a different page instance.
+         */
+        void store(IPreferenceStore store) {
+            if (!modified) return;
+            // Capture any unsaved state from the currently-displayed panel
+            // before writing arrays to the store.
+            saveCurrentPanel();
+            for (int i = 0; i < entries.size(); i++) {
+                OpenJMLOptions.TokenColorEntry e = entries.get(i);
+                PreferenceConverter.setValue(store, e.colorKey(), currentColors[i]);
+                store.setValue(e.boldKey(),          currentBold[i]);
+                store.setValue(e.italicKey(),        currentItalic[i]);
+                store.setValue(e.underlineKey(),     currentUnder[i]);
+                store.setValue(e.strikethroughKey(), currentStrike[i]);
+            }
+            // Refresh active colorizers so changes are visible immediately.
+            LspPartListener.refreshAllColorizers();
+        }
+
+        /** Resets all values to their defaults and updates the UI. */
+        void loadDefaults() {
+            modified = true;
+            for (int i = 0; i < entries.size(); i++) {
+                OpenJMLOptions.TokenColorEntry e = entries.get(i);
+                currentColors[i] = e.defaultRgb();
+                currentBold[i]    = e.bold();
+                currentItalic[i]  = e.italic();
+                currentUnder[i]   = e.underline();
+                currentStrike[i]  = e.strikethrough();
+            }
+            if (list != null && !list.isDisposed()) updatePanel(selectedIndex);
+        }
+
+        void createControl(Composite parent) {
+            // Set the layout directly on parent (consistent with how other tabs call
+            // finalizeTab).  2-column grid: list on left, color panel on right.
+            GridLayout layout = new GridLayout(2, false);
+            layout.marginWidth  = 0;
+            layout.marginHeight = 0;
+            layout.verticalSpacing = 4;
+            parent.setLayout(layout);
+
+            // ── Left: token-type list ───────────────────────────────────────
+            list = new org.eclipse.swt.widgets.List(parent,
+                    SWT.SINGLE | SWT.BORDER);
+            list.add("");                                              // blank line above first entry
+            for (OpenJMLOptions.TokenColorEntry e : entries) list.add(e.label());
+            list.add("");                                              // blank line below last entry
+
+            // Size exactly to show all items (including spacers) with no scrollbars.
+            int itemH = list.getItemHeight();
+            GridData listGd = new GridData(SWT.FILL, SWT.BEGINNING, false, false);
+            listGd.widthHint  = 240;
+            listGd.heightHint = list.getItemCount() * itemH + 4;     // +4 for border
+            list.setLayoutData(listGd);
+
+            // ── Right: color + style panel ──────────────────────────────────
+            Composite panel = new Composite(parent, SWT.NONE);
+            panel.setLayout(new GridLayout(2, false));
+            panel.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, false, false));
+
+            new Label(panel, SWT.NONE).setText("Color:");
+            colorSelector = new ColorSelector(panel);
+            colorSelector.getButton().setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+
+            boldBtn      = addStyleCheck(panel, "Bold");
+            italicBtn    = addStyleCheck(panel, "Italic");
+            underlineBtn = addStyleCheck(panel, "Underline");
+            strikeBtn    = addStyleCheck(panel, "Strikethrough");
+
+            // ── Wire up listeners ───────────────────────────────────────────
+            list.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    int sel = list.getSelectionIndex();
+                    // Index 0 = top spacer; index entries.size()+1 = bottom spacer — ignore both.
+                    if (sel <= 0 || sel > entries.size()) return;
+                    saveCurrentPanel();
+                    selectedIndex = sel - 1;   // offset by 1 for the top blank item
+                    updatePanel(selectedIndex);
+                }
+            });
+
+            colorSelector.addListener(event -> {
+                Object newVal = event.getNewValue();
+                if (newVal instanceof RGB rgb && selectedIndex >= 0 && selectedIndex < entries.size()) {
+                    currentColors[selectedIndex] = rgb;
+                    modified = true;
+                }
+            });
+
+            boldBtn.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    if (selectedIndex >= 0) { currentBold[selectedIndex] = boldBtn.getSelection(); modified = true; }
+                }
+            });
+            italicBtn.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    if (selectedIndex >= 0) { currentItalic[selectedIndex] = italicBtn.getSelection(); modified = true; }
+                }
+            });
+            underlineBtn.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    if (selectedIndex >= 0) { currentUnder[selectedIndex] = underlineBtn.getSelection(); modified = true; }
+                }
+            });
+            strikeBtn.addSelectionListener(new SelectionAdapter() {
+                @Override public void widgetSelected(SelectionEvent e) {
+                    if (selectedIndex >= 0) { currentStrike[selectedIndex] = strikeBtn.getSelection(); modified = true; }
+                }
+            });
+
+            // Select the first real entry (index 1 — index 0 is the top blank spacer).
+            if (!entries.isEmpty()) {
+                list.setSelection(1);
+                updatePanel(0);
+            }
+        }
+
+        private static Button addStyleCheck(Composite parent, String label) {
+            new Label(parent, SWT.NONE).setText("");   // spacer in col 1
+            Button btn = new Button(parent, SWT.CHECK);
+            btn.setText(label);
+            btn.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+            return btn;
+        }
+
+        /** Saves the panel's current widget state back into the in-memory arrays. */
+        private void saveCurrentPanel() {
+            if (selectedIndex < 0 || selectedIndex >= entries.size()) return;
+            currentColors[selectedIndex] = colorSelector.getColorValue();
+            currentBold[selectedIndex]    = boldBtn.getSelection();
+            currentItalic[selectedIndex]  = italicBtn.getSelection();
+            currentUnder[selectedIndex]   = underlineBtn.getSelection();
+            currentStrike[selectedIndex]  = strikeBtn.getSelection();
+        }
+
+        /** Populates the right panel from the in-memory arrays for the given index. */
+        private void updatePanel(int idx) {
+            if (idx < 0 || idx >= entries.size()) return;
+            colorSelector.setColorValue(currentColors[idx]);
+            boldBtn.setSelection(currentBold[idx]);
+            italicBtn.setSelection(currentItalic[idx]);
+            underlineBtn.setSelection(currentUnder[idx]);
+            strikeBtn.setSelection(currentStrike[idx]);
+        }
     }
 }

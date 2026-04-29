@@ -11,33 +11,16 @@ NJAVA    := $(BUILDJDK)/bin/java
 
 ## LSP4J version must match the one in OpenJMLlsp/Makefile
 LSP4J_VERSION := 1.0.0
-GSON_VERSION  := 2.11.0
 
 ## Classpath components
 JUNITDIR  := $(LSPTEST)/../libs
 JUNIT_CP  := $(JUNITDIR)/junit-4.13.2.jar:$(JUNITDIR)/hamcrest-core-1.3.jar:$(JUNITDIR)/junit-jupiter-api-5.5.2.jar:$(JUNITDIR)/apiguardian-api-1.1.0.jar:$(JUNITDIR)/opentest4j-1.3.0.jar
 ## LSP4J jars needed at compile time (for LSP Diagnostic types) and at runtime.
-## Gson is intentionally excluded: jdk.compiler bundles Gson internally, and putting
-## a separate Gson jar on the classpath creates a split-package conflict that the JVM
-## rejects.  The GSON_EXPORTS flags (below) expose jdk.compiler's Gson instead.
+## Gson is intentionally excluded: jdk.compiler bundles and exports Gson, and putting
+## a separate Gson jar on the classpath would create a split-package conflict.
 LSP4J_CP  := $(LSPROOT)/libs/org.eclipse.lsp4j-$(LSP4J_VERSION).jar:$(LSPROOT)/libs/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar
 LSP_JAR   := $(LSPROOT)/build/openjml-lsp.jar
 LSP_SRCS  := $(shell find $(LSPROOT)/src -name '*.java')
-
-## jdk.compiler bundles Gson internally but does not export its packages.
-## Export all Gson packages so that LSP4J (and our RawLspClient / WorkspaceService)
-## can access jdk.compiler's Gson at both compile and run time.
-## This mirrors the approach in OpenJMLlsp/openjml-lsp.
-GSON_EXPORTS := \
-  --add-exports=jdk.compiler/com.google.gson=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.annotations=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal.bind=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal.bind.util=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal.reflect=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.internal.sql=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.reflect=ALL-UNNAMED \
-  --add-exports=jdk.compiler/com.google.gson.stream=ALL-UNNAMED
 
 ## Build output
 CLASSES    := $(LSPTEST)/build/classes
@@ -67,42 +50,88 @@ INFRA_SRCS := $(shell find $(LSPTEST)/src  -name '*.java')
 TEST_SRCS  := $(shell find $(LSPTEST)/test -name '*.java')
 
 ## All test classes — each runs in its own JVM process.
-## ESC-heavy classes (DoEscTest, EscStatusTest, MultiFileEscTest, DiagnosticsTest)
-## each run alone so that running with -j5 never starts more than 5 ESC processes.
 ## Ordered longest-first so -j5 keeps the pool busy and finishes sooner.
-## Timings (approximate, single run): RenameTest[1-3] ~41s each, DefinitionFinderTest 37s,
-## DoEscTest 31s, ReferenceFinderTest 28s, DiagnosticsTest 26s, DocumentSymbolTest 24s,
-## EscStatusTest 17s, MultiFileEscTest 15s, CommandDispatchTest ~60s (ESC×3 + RAC),
-## FastTests (FoldingRange+LspProtocol+SemanticTokens+CheckRunnerDirTest) ~10s.
+## Approximate sequential timings: PropertiesFileOptionsTest 121s, FastTests 108s,
+## RenameTest1 75s, RenameTest2 71s, ReferenceFinderJmlTest 54s, DoEscTest 53s,
+## DiagnosticsTest 49s, EscStatusTest 44s, MethodAndClassTest 40s,
+## DefinitionFinderJmlTest 34s,
+## CommandDispatchTest 31s, DocumentSymbolTest 31s,
+## RenameJmlTest 24s, RenameTest3 24s,
+## RenameTest4 23s, RacTest 23s, RenameJmlTest2 22s,
+## MultiFileEscTest 19s, DocumentLifecycleTest 18s.
 TEST_CLASSES := \
+  PropertiesFileOptionsTest \
+  ToolOptionsTest \
+  FastTests \
   RenameTest1 \
   RenameTest2 \
-  RenameTest3 \
-  RenameJmlTest \
-  MethodAndClassTest \
-  DefinitionFinderTest \
-  DefinitionFinderJmlTest \
-  DoEscTest \
-  ReferenceFinderTest \
   ReferenceFinderJmlTest \
+  DoEscTest \
+  EscCancellationTest \
+  ConcurrentEscTest \
+  CheckRunnerEscAndRacTest \
   DiagnosticsTest \
-  DocumentSymbolTest \
-  PropertiesFileOptionsTest \
   EscStatusTest \
-  MultiFileEscTest \
+  MethodAndClassTest \
+  DefinitionFinderJmlTest \
   CommandDispatchTest \
-  DocumentLifecycleTest \
+  DocumentSymbolTest \
+  DocumentSymbolProtocolTest \
+  RenameJmlTest \
+  RenameJmlTest2 \
+  RenameMethodAndClassTest \
+  RenameProtocolTest \
+  RenameTest3 \
+  RenameTest4 \
   RacTest \
-  FastTests
+  RenameJmlTest2 \
+  MultiFileEscTest \
+  EscDirWithContextTest \
+  DocumentLifecycleTest \
+  CodeLensAndStatusTest \
+  HoverTest \
+  RenamePreflightTest \
+  DebouncingAndCancellationTest \
+  BatchAndWatchedFilesTest \
+  WatchedFilesHandlerTest \
+  IncrementalSyncProtocolTest \
+  MultiProjectTest \
+  SplitEscTest \
+  WorkspaceIndexTest \
+  DocumentHighlightTest \
+  ModelMethodEscTest \
+  MultiClassEscTest \
+  LauncherIntegrationTest \
+  PerMethodEscStatusTest \
+  JmlCompanionSemanticTokensTest \
+  GoToDefinitionCrossFileTest \
+  LanguageServerLifecycleTest \
+  CheckRunnerEscContextTest \
+  LegacyEscSmokeTest \
+  SymlinkWorkspaceTest \
+  EscSessionGenTest \
+  SymbolsForProjectTest \
+  EscPerMethodMarkerTest \
+  EscAtLineTest \
+  EscInvocationVariantsTest \
+  ClearAndReescTest \
+  ClearMarkersTest \
+  DidCloseTest \
+  WorkspaceFoldersTest
 
 LOG_FILES := $(patsubst %,$(RESULT_DIR)/%.log,$(TEST_CLASSES))
 
-.PHONY: all compile run-tests run-tests-seq _run-logs clean cov-test cov-report cov-show .FORCE
+.PHONY: all compile run-tests run-tests-seq _run-logs clean cov-test cov-report cov-show check-commands .FORCE
 
 all: run-tests
 
+## Verify that command-name constants in extension.js match OpenJMLCommands.java.
+## Requires node (any modern version) on the PATH.
+check-commands:
+	node $(LSPROOT)/check-commands.js
+
 ## Build the LSP server jar when any server source file is newer than the jar.
-$(LSP_JAR): $(LSP_SRCS)
+$(LSP_JAR) jar: $(LSP_SRCS)
 	$(MAKE) -C $(LSPROOT) jar
 
 ## Compile test infrastructure and test cases.
@@ -112,7 +141,7 @@ compile: $(LSP_JAR)
 	@mkdir -p $(CLASSES)
 	@( . $(SRC)/setup-exports; \
 	   NOJML= \
-	   $(NJAVAC) $$OPENJML_EXPORTS $(GSON_EXPORTS) \
+	   $(NJAVAC) $$OPENJML_EXPORTS \
 	     -cp $(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP) \
 	     -d $(CLASSES) \
 	     $(INFRA_SRCS) $(TEST_SRCS) )
@@ -132,8 +161,10 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	      OPENJML_INSTALL="$(BUILDJDK)" \
 	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
 	      OPENJML_SOLVERS="$(SRC)/../../Solvers" \
-	      "$(NJAVA)" $(JAVA_AGENT) $$OPENJML_JVM $$OPENJML_EXPORTS $(GSON_EXPORTS) \
+	      "$(NJAVA)" $(JAVA_AGENT) $$OPENJML_JVM $$OPENJML_EXPORTS \
 	        -Dlsp.testdata=$(LSPTEST)/testdata \
+	        -Djml.grammar.lsp=$(LSPROOT)/vscode-extension/syntaxes/jml.tmLanguage.json \
+	        -Djml.grammar.ui=$(LSPTEST)/../../OpenJMLUI/syntaxes/jml.tmLanguage.json \
 	        -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
 	        org.junit.runner.JUnitCore \
 	        org.openjml.lsp.test.$* \
@@ -148,9 +179,9 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	  exit 1; \
 	fi
 
-## Run all test classes in parallel (default: 5 concurrent JVMs).
+## Run all test classes in parallel (default: 4 concurrent JVMs).
 ## Override with: make run-tests JOBS=3
-JOBS ?= 5
+JOBS ?= 4
 
 ## Two-phase: compile first (serial), then dispatch log targets in parallel.
 _run-logs: $(LOG_FILES)
@@ -179,8 +210,8 @@ clean: .FORCE
 ## Run all LSP tests under JaCoCo and generate an HTML coverage report.
 ## Usage: make cov-test   (writes report to $(LSPTEST)/cov/html/)
 cov-test: .FORCE
+	@rm -rf $(LSPTEST)/cov
 	@mkdir -p $(LSPTEST)/cov
-	@rm -f $(LSPTEST)/cov/lsp-*.exec
 	@$(MAKE) --no-print-directory COV=1 COV_DIR=$(LSPTEST)/cov run-tests
 	@$(MAKE) --no-print-directory COV_DIR=$(LSPTEST)/cov cov-report
 

@@ -11,13 +11,13 @@
 </HEAD>
 <BODY>
 
-<CENTER><H1>JML Eclipse Plugin</H1></CENTER>
+<CENTER><H1>JML Eclipse Plug-in</H1></CENTER>
 <CENTER>Author: David R. Cok</CENTER>
-<CENTER>31 March 2026</CENTER>
+<CENTER>April 2026</CENTER>
 <CENTER><A HREF="https://github.com/OpenJML/OpenJML/issues" TARGET="_blank">Feedback</A></CENTER>
 
 <P>
-This plugin provides JML functionality integrated with Eclipse (2025-06ff) UI for Java 21 and OpenJML 0.21.24.
+This plug-in provides JML functionality integrated with the Eclipse (2025-06 and later) UI for Java 21 and OpenJML 21.0.25.
 It is a GUI interface to the OpenJML command-line tool, operating through an LSP server for OpenJML.
 </P><P>
 A language reference for JML is <A HREF="https://www.openjml.org/documentation/JML_Reference_Manual.pdf">here</A>.
@@ -25,8 +25,12 @@ A language reference for JML is <A HREF="https://www.openjml.org/documentation/J
 A User Guide for the OpenJML tool is <A HREF="https://www.openjml.org/documentation/OpenJMLUserGuide.pdf">here</A>.
 </P><P>
 A tutorial for JML/OpenJML is <A HREF="https://www.openjml.org/tutorial/">here</A>.
+</P><P>
+An integration Guide to aid in connecting the OpenJML language server to LSP clients (in general, but including Eclipse)
+is <A HREF="https://www.openjml.org/documentation/LSP-Integration-Guide.html">here</A>.
+</P><P>
+Because OpenJML is built on OpenJDK, this LSP-compliant server is also an LSP interface for OpenJDK.
 </P>
-
 Contents:
 <!-- start toc.  do not edit; run html-update-toc instead -->
     <UL>
@@ -37,20 +41,27 @@ Contents:
           <LI CLASS="toc"><A HREF="#Selection">Selection</A>
           <LI CLASS="toc"><A HREF="#TypeChecking">Syntax and type-checking</A>
           <LI CLASS="toc"><A HREF="#ESC">Static checking of JML assertions</A>
+          <LI CLASS="toc"><A HREF="#Cancel">Canceling ESC tasks</A>
           <LI CLASS="toc"><A HREF="#RAC">Compiling for Runtime-assertion checking (RAC)</A>
           <LI CLASS="toc"><A HREF="#Nature">Add/Remove OpenJML Nature</A>
           <LI CLASS="toc"><A HREF="#ClearMarkers">Clear Markers</A>
+          <LI CLASS="toc"><A HREF="#IndexProject">Index Project</A>
           <LI CLASS="toc"><A HREF="#ClearAndReindex">Clear and Reindex</A>
         </UL>
       <LI CLASS="toc"><A HREF="#LSPInteractions">Standard LSP interactions implemented for OpenJML</A>
         <UL>
+          <LI CLASS="toc"><A HREF="#Markers">Problem markers</A>
           <LI CLASS="toc"><A HREF="#SyntaxColoring">Syntax coloring</A>
           <LI CLASS="toc"><A HREF="#FindDeclaration">Find Declaration</A>
           <LI CLASS="toc"><A HREF="#FindReferences">Find References</A>
           <LI CLASS="toc"><A HREF="#Rename">Rename</A>
-          <LI CLASS="toc"><A HREF="#FindIdentifiers">Find identifiers</A>
+          <LI CLASS="toc"><A HREF="#FindIdentifiers">Find all declarations</A>
           <LI CLASS="toc"><A HREF="#Folding">Folding</A>
+          <LI CLASS="toc"><A HREF="#Outline">Outline</A>
           <LI CLASS="toc"><A HREF="#CodeLens">Code Lens information</A>
+          <LI CLASS="toc"><A HREF="#Hover">Hover and inlay information</A>
+          <LI CLASS="toc"><A HREF="#Completion">Completions</A>
+          <LI CLASS="toc"><A HREF="#SignatureHelp">Signature Help</A>
         </UL>
       <LI CLASS="toc"><A HREF="#EclipseFeatures">Eclipse functionality adapted to OpenJML</A>
         <UL>
@@ -59,7 +70,7 @@ Contents:
           <LI CLASS="toc"><A HREF="#HelpPage">A Help page</A>
           <LI CLASS="toc"><A HREF="#OtherEclipse">Other Eclipse functionality</A>
         </UL>
-      <LI CLASS="toc"><A HREF="#Troubleshooting">Some OpenJML plugin infelicities and troubleshooting</A>
+      <LI CLASS="toc"><A HREF="#Troubleshooting">Some OpenJML plug-in infelicities and troubleshooting</A>
     </UL>
 <!-- end toc -->
 
@@ -71,10 +82,10 @@ functionality as an Eclipse plug-in into the Java development environment of Ecl
 using an LSP server that is part of the openjml tool.
 The JML plug-in
 in particular provides functionality for checking and manipulating formal specifications
-of Java programs. The plug-in works with Eclipse 4.2 (tested with 2025-06ff); the
-back-end OpenJML tool supports Java version OpenJDK 21 (openjml version 21.0.24ff).
+of Java programs. The plug-in is tested with 2025-06; the
+back-end OpenJML tool supports Java version OpenJDK 21 (openjml version 21.0.25 and following).
 <P>
-The command-line OpenJML tool, which is needed to use this Eclipse plugin, can be found
+The command-line OpenJML tool, which is needed to use this Eclipse plug-in, can be found
 <A HREF="https://openjml.org">here</A>.
 </P>
 <P>
@@ -82,12 +93,12 @@ The command-line OpenJML tool, which is needed to use this Eclipse plugin, can b
 The plug-in builds on the Eclipse JDT and PDE, through their public interfaces;
 it does not modify or contribute to Eclipse itself.
 The source for the plug-in is available at the
-<A HREF="http://www.github.com/OpenJML/OpenJML/"> OpenJML github project</A>.
+<A HREF="http://www.github.com/OpenJML/OpenJML/">OpenJML github project</A>.
 This version of the plug-in is offered without cost and without warranty of any kind.
 Feedback that will
 improve its usefulness is welcome.
 This version of the plug-in is distributed under the
-<A HREF="http://www.eclipse.org/org/documents/epl-v10.php">Eclipse Public License</A>.
+<A HREF="http://www.eclipse.org/org/documents/epl-2.0">Eclipse Public License</A>.
 The copyright is retained by the primary author.
 Future versions may use other licenses.
 
@@ -96,6 +107,7 @@ The underlying OpenJML tool is built on
 (OpenJDK is a trademark of Oracle).
 OpenJDK and thus OpenJML is licensed under
 <A HREF="http://openjdk.java.net/legal/">GPL</A>.
+The language server for OpenJML uses the lsp4j library; it uses the lsp4e library to connect to Eclipse.
 </P>
 
 <P>
@@ -104,28 +116,28 @@ The plug-in adds the following functionality to Eclipse's Java Perspective:
 <LI>A menubar item labeled 'OpenJML' with a number of submenu items that
 invoke various tools and manage the environment.
 <LI>Toolbar items labeled with the JML yellow coffee cup icon that invokes the JML syntax and type checker,
-with 'ESC' to invoke static checking, and with 'RAC to invoke runtime assertion compilation.
-<LI>Problem markers: standard (LSP-generated) Eclipse problem markers that identify syntax, type, and verification
-    errors produced by OpenJML.
+with 'ESC' to invoke static checking, and with 'RAC' to invoke runtime assertion compilation.
+<LI>Problem markers: Eclipse problem markers that identify syntax, type, and verification
+    diagnostics produced by OpenJML.
 <LI>Context menu items in various views
 and on Java editors that replicate some
 of the above menu items for Java Projects, source
 folders, packages, compilation
-units, working sets, and individual classes and methods.
-<LI>The plug-in recognizes the standard JML file suffix (e.g. .jml), giving such files the JML icon (yellow coffee cup).
+units, and individual classes and methods.
+<LI>The plug-in recognizes the standard JML file suffix (.jml), giving such files the JML icon (yellow coffee cup).
     .jml files are edited by default by the Eclipse "Generic Code Editor".
-<LI>Syntax coloring in .jml files and in JML content in .java files, meant to match typical Java syntax coloring</LI>
-<LI>An Eclipse console page to which output from the JML operations is sent.
+<LI>Syntax coloring in .jml files and in JML content in .java files, meant to match typical Java syntax coloring.</LI>
+<LI>An Eclipse console page to which output from the JML language server and plug-in is sent.
 <LI>An OpenJML preferences page
 (under Window &gt;&gt; Preferences &gt;&gt; OpenJML or Eclipse &gt;&gt; Settings &gt;&gt; OpenJML).
 <LI>A decoration visible in the package explorer (and other places)
 on Java Projects to indicate that JML functionality is enabled.
-<LI>A new category of commands in the Workbench &gt;&gt; Keys page of the Eclipse
-preferences.  The category is named 'JML' and allows key bindings to be
+<LI>A new category of commands in the General &gt;&gt; Keys page of the Eclipse
+preferences.  The category is named 'OpenJML' and allows key bindings to be
 defined for the various new menu actions.
 <LI>A Help document describing the JML plug-in functionality available
 through the Help &gt;&gt; HelpContents menu (this document).
-<LI>Other: JML-aware Find declaration, find references, rename; code lens information; folding</LI>
+<LI>JML-aware Find declaration, find identifier declarations, find references, rename; code lens information; signature help; inlay hints; folding</LI>
 </UL>
 
 
@@ -135,25 +147,31 @@ through the Help &gt;&gt; HelpContents menu (this document).
 The plug-in is installed, updated, and uninstalled from Eclipse in the
 standard way. The update site containing the plug-in is
 <B>https://openjml.org/eclipse-update-site</B>.
+Eclipse requires that Eclipse itself be restarted after installing a new plug-in like this one.
 <P>
-The plugin needs an installation of OpenJML to operate. The current release for your platform can
+The plug-in needs an installation of OpenJML to operate. The current release for your platform can
 be obtained <A HREF="https://github.com/OpenJML/OpenJML/releases">here</A>.
 </P>
 <P>
-Once installed, the path to that installation must be entered on the plugin's Eclipse
-Settings/Preferences page for OpenJML.
+Once installed, the path to that installation must be entered on the plug-in's Eclipse
+Settings/Preferences page for OpenJML.  Also projects must be given a 'JML Nature' in order for
+OpenJML actions to apply to them (a menu command will add this Nature).
 </P>
 
 <H2><A NAME="OpenJMLActions">OpenJML Actions</A></H2>
 
-The plugin offers buttons and menu items to accomplish some OpenJML actions.
+The plug-in offers buttons and menu items to accomplish some OpenJML actions. Note that the class-, source-, and specs- patahs used by
+OpenJML actions are decribed in the Preferences section.
 
 <H3><A NAME="Selection">Selection</A></H3>
 
 OpenJML actions act on the items selected.
 <UL>
 <LI>One or more elements (Methods, Files, Folders, Projects) can be selected in the Package Explorer, Project Explorer, or Outline Views.</LI>
-<LI>If nothing is selected in one of those Views, then the file corresponding to the Active Editor is considered selected.</LI>
+<LI>If nothing is selected in one of those Views, then
+    <UL><LI>if the user is right-clicking on an item in a View, that item is selected</LI>
+    <LI>otherwise, the file corresponding to the active editor is selected </LI></UL>
+</LI>
 <LI>Any item selected that is not a Java element is ignored.</LI>
 <LI>Any item selected that is not in a Java project marked with a JML Nature is warned about.</LI>
 <LI>If nothing is selected, a warning dialog is usually presented.</LI>
@@ -161,95 +179,142 @@ OpenJML actions act on the items selected.
 
 <H3><A NAME="TypeChecking">Syntax and type-checking</A></H3>
 
-The OpenJML plugin expands on Eclipse's usual as-you-edit programming-language (e.g., Java) syntax and
+The OpenJML plug-in expands on Eclipse's usual as-you-edit programming-language (e.g., Java) syntax and
 type checking to provide checking of JML text in JML comments and .jml files. Such checking of JML text can be performed
-at various times, controlled by a setting in the OpenJML Preferences("Jml type-check trigger").
+at various times, controlled by a setting in the OpenJML Preferences ("JML type-check trigger").
 <UL>
-<LI>Files are always checked when an editor for the file is opened.</LI>
+<LI>Files are always checked when an editor for the file is opened or when the editor is given focus for the first time or if it changed.</LI>
 <LI>If the setting is set to "On edit", then JML checking is performed for the file being edited as it is edited.
     There is a slight lag to avoid
     a checking process happening on every keystroke. Checking a file will cause checking of its companion .jml file and of
     any files on which it depends. In a large project, the work to be done may be significant and make checking as-you-type
     impractical.
 </LI>
-<LI>If the setting is set to "On save only", then no checking is done as-you-edit, but only when the file is saved.</LI>
+<LI>If the setting is set to "On save only", then no auto-checking is done as-you-edit, but only when the file is saved.</LI>
 <LI>Checking can always be done manually, in a number of ways.
     <UL>
         <LI>the toolbar icon, which checks all selected items</LI>
         <LI>the 'Check JML' menu item under the top-level 'OpenJML' menu, which checks all selected items</LI>
-        <LI>the context menu in an Outline, Package Explorer, or Project Explorer View, which checks the specific item clicked on</LI>
+        <LI>the context menu in an editor, Outline, Package Explorer, or Project Explorer View, which checks the specific item right-clicked on</LI>
     </UL>
 </UL>
 
 <H3><A NAME="ESC">Static checking of JML assertions</A></H3>
-
+<P>
 Performing <I>deductive verification</I> (ESC) on selected items is typically triggered manually because it can be time-consuming and is performed asynchronously.
 There is a Preference that allows triggering ESC automatically on a file at file save.
 One can always trigger ESC manually on whatever Java elements are selected by pressing the toolbar icon,
 the menu item under the top-level 'OpenJML' menu, or a context menu item.  A setting allows choosing whether edited files are
-automatically saved, or not, when ESC is invoked.
+automatically saved, or not, when ESC is invoked. If edited files not saved, the ESC operation acts on the content of the editor. 
+It is also possible to initiate an ESC verification on a single method.
+</P><P>
+Results of proof attempts on each method are reported in the Console and as code lens information associated with the method definition.
+</P><P>
+ESC operations are always separated by project, since projects may have different class- and sourcepaths.
+Within a given project, ESC operations on one or more items can be launched as a single ESC check in OpenJML, divided up by file, 
+or divided up by individual method. Finer division allows more concurrency, but requires more overhead per ESC operation.
+If individual methods are selected in one of the Views, proofs of those methods are always separate, stand-alone tasks.
+</P><P>
+ESC operations can be cancelled or retried -- see the cancel and code lens information.
+</P>
+<H3><A NAME="Cancel">Canceling ESC tasks</A></H3>
 <P>
-It is also possible to initiate a check on a single method with menu actions.
-
-<I>FIXME: More on reporting results of proof checks and code lens information.</I>
+The ESC tasks started by one of the 'Run ESC' commands can be cancelled by the 'Cancel ESC' command (which is a menu command).
+This command shows a dialog that lists the ESC tasks that are running, giving the user the opporutnity to choose which tasks should be
+cancelled. Although each task emits its method proof results as the methods are proved, each task runs through all its method sequentially. 
+Cancelling a task aborts any in-progress proof and halts attempting any further proofs.
+</P><P>
+An alternative way to cancel a proof is to use the Cancel button in a code lens, shown by a method being proved. Selecting this cancel button
+aborts only the in-progress proof attempt.
 </P>
 <H3><A NAME="RAC">Compiling for Runtime-assertion checking (RAC)</A></H3>
 
 The RAC command compiles selected files with JML assertions. At present this action must be done manually on selected items
  after an Eclipse compilation is complete. The RAC-compiled class files overwrite any Java-compiled files, and they are
  also overwritten in turn by Java-compiled files on the next Java compilation.  Java compilations can happen automatically
-on file saves.
+on file saves.  RAC commands always operate only on the saved content of files, as Java compilations do.
 
 <H3><A NAME="Nature">Add/Remove OpenJML Nature</A></H3>
 
-OpenJML plugin commands only act on projects or items in projects that have a <I>JML nature</I>. This allows a use to stipulate
+OpenJML plug-in commands act only on projects or items in projects that have a <I>JML nature</I>. This allows a user to stipulate
 for which Java projects JML actions should be enabled. These two commands add or remove the JML Nature from selected projects, or the projects containing selected items.
 Note that removing the JML Nature from a project also removes all OpenJML error and warning markers from files in that project.
 
 <H3><A NAME="ClearMarkers">Clear Markers</A></H3>
 
-This operation removes OpenJML markers from all files in all projects. It is useful if somehow there are stale JML markers that are obsolete and won't otherwise clear.'
+These two operations remove OpenJML markers from the workspace.
+<UL>
+<LI><B>All</B> removes all OpenJML check and ESC markers from every file in every open JML project.</LI>
+<LI><B>Selected</B> removes all OpenJML check and ESC markers from the files and folders currently selected.
+Selecting a folder or project removes markers from all files within it.
+The server's cached diagnostics are also cleared so that the markers do not reappear until a new check is run.</LI>
+</UL>
+Both operations are useful when markers are stale or obsolete and will not otherwise clear.
+
+<H3><A NAME="IndexProject">Index Project</A></H3>
+
+This operation manually initiaite typechecking of all files in the selected project (whether open in editors or not), initializing the index of declarations and ASTs.
 
 <H3><A NAME="ClearAndReindex">Clear and Reindex</A></H3>
 
-This operation is roughly equivalent to quitting and restarting the plugin -- all markers are deleted, all cached information is deleted  and, if needed,
+This operation is roughly equivalent to quitting and restarting the plug-in -- all markers are deleted, all cached information is deleted  and, if needed,
 is regenerated.  The operation is intended just if it seems internal information has gotten out of synch with the files
 themselves.
+
 <H2><A NAME="LSPInteractions">Standard LSP interactions implemented for OpenJML</A></H2>
 
 <H3><A NAME="Markers">Problem markers</A></H3>
 
-The plugin implements its own set of problem markers, using the LSP's mechanism for reporting problems. 
-JML Markers identify JML syntax and type errors and warnings and iunformational 
-messages. ESC Markers identify JML Verification failures (as errors) and associated information (as information markers).
+The plug-in implements its own set of problem markers, using the LSP mechanism for reporting problems. 
+JML Markers identify JML syntax and type errors and warnings and informational 
+messages. ESC Markers identify JML Verification failures (as errors) and associated information (as warnings)
+and verification success (as informational, green markers).
 The style and coloring of these markers can be set in the General &gt;&gt; Editors &gt;&gt; Text Editors &gt;&gt; Annotations
 settings. 
 
 <H3><A NAME="SyntaxColoring">Syntax coloring</A></H3>
 
-FIXME
+The server reports token types (for parsable source files), enabling clients to render files with syntax coloring. The server reports
+all relevant token types that LSP defines.
+
+The rendering of syntax color and style is completely up to the client. In the case of Eclipse there is a conflict between JDT
+renderings for Java text and renderings through the LSP library.  To simplify using color
+preferences, the OpenJML plug-in defines its own set of preferences on an OpenJML Preferences tab; these override colors
+defined by other mechanisms. The OpenJML Settings includes an option to defer to JDT coloring on Java text.
 
 <H3><A NAME="FindDeclaration">Find Declaration</A></H3>
 
 The standard Java 'Find Declaration' action applies only to Java code and cannot be overridden to apply also to JML text.
-The plugin implements its own Find Declaration action (under OpenJML&gt;&gt;Find Declaration); this action operates much like the Java action
+The plug-in implements its own Find Declaration action (under OpenJML &gt;&gt; Find Declaration); this action operates much like the Java action
  but also finds declarations for instances of variables in JML text, whether those declarations are Java or JML declarations.
+ 
+The action will implicitly do a full project check if needed. 
+
+Declarations are only found within a project.
 
 <H3><A NAME="FindReferences">Find References</A></H3>
 
 The standard Java 'Find References' action applies only to Java code and cannot be overridden to apply also to JML text.
-The plugin implements its own Find References action (under OpenJML&gt;&gt;Find References); this action operates much like the Java action
- but also finds references for instances of variables in JML text, whether those declarations are Java or JML declarations.
+The plug-in implements its own Find References action (under OpenJML &gt;&gt; Find References); this action operates much like the Java action
+ but also finds references for instances of variables in JML text, whether the uses or declarations are in Java or JML program text.
+
+ The action will implicitly do a full project check if needed, in order to be able to find all references consistently.
+
+ References are only found within a project.
 
 <H3><A NAME="Rename">Rename</A></H3>
 
 The standard Java 'Rename' refactoring action applies only to Java code and cannot be overridden to apply also to JML text.
-The plugin implements its own renaming action (under OpenJML&gt;&gt;Rename); this action operates much like the Java rename but renames
+The plug-in implements its own renaming action (under OpenJML &gt;&gt; Rename); this action operates much like the Java rename but renames
 the corresponding identifiers in JML text also.
 
-<H3><A NAME="FindIdentifiers">Find identifiers</A></H3>
+The action will implicitly do a full project check if needed, in order to be able to find all references consistently.
 
-FIXME
+References are only renamed within a project.
+
+<H3><A NAME="FindIdentifiers">Find all declarations</A></H3>
+
+This action finds all the declarations of a given identifier within a selected project.
 
 <H3><A NAME="Folding">Folding</A></H3>
 
@@ -257,51 +322,123 @@ The OpenJML LSP declares some folding regions that an LSP client will display an
 Java already does this for method and class bodies. OpenJML adds folding for a consecutive sequence of JML annotations and Java comments
 with no embedded non-JML non-comment text, other than whitespace.
 
+<H3><A NAME="Outline">Outline</A></H3>
+
+The JDT shows a tree-structured view of the declarations and enclosing classes of a .java file.  The plug-in provides similar information 
+for a .jml file. What is currently lacking is a consolidated outline holding both java and JML information (because of conflicts between the JDT and the LSP implementation in Eclipse).
+
 <H3><A NAME="CodeLens">Code Lens information</A></H3>
+<P>
+Code Lens information is shown in conjunction with a method declaration. The code lens information contains the most recent 
+proof (ESC) attempt for that method: either unknown (-), checking, verified (check mark), or not verified (x). 
+Editing the method does not change these "last attempt" results.
+</P><P>
+Clicking on the code lens will cancel a current proof attempt on that method, if a proof is in progress, or otherwise initiate a
+retry of the proof.
+</P>
+<H3><A NAME="Hover">Hover and inlay information</A></H3>
 
-FIXME
+As hover or inlay information, the plug-in shows the type of a local variable declared with 'var' or the specifications of a method.
 
+<H3><A NAME="Completion">Completions</A></H3>
+
+The plug-in shows possible completions of JML identifiers in JML text, specifically JML keywords (e.g., requires) and 
+JML backslash keywords (e.g. \forall).
+
+<H3><A NAME="SignatureHelp">Signature Help</A></H3>
+<P></P>
+When there is a partially-typed method call (in JML text), the plug-in shows a method signature to aid in completing
+This is standard LSP signature-help functionality.
+</P><P>
+Currently this functionality is a bit limited: it only shows one of the potential signatures and only selects one from the same file;
+no type information from the receiver is used.
+</P>
 <H2><A NAME="EclipseFeatures">Eclipse functionality adapted to OpenJML</A></H2>
 
 <H3><A NAME="ContentType">Content type and Icon</A></H3>
 
-The plugin defines a content type for .jml files.
+The plug-in defines a content type for .jml files.
 This content type is associated with the JML icon, so the icon marks editors and files that have this content type.
 The content type is also associated with the "Generic Code Editor". This editor is used rather than a Java editor for
 .jml files because a Java editor would mark as errors those ways in which a .jml file differs from a .java file.
 
 <H3><A NAME="Preferences">OpenJML Preferences</A></H3>
 
-The plugin implements a standard Eclipse Preferences (or Settings) page, with two tabs.
+The plug-in implements a standard Eclipse Preferences (or Settings) page, with four tabs: 
+Plug-in and LSP Settings, Syntax Colors, OpenJML Tool Options. and Project Options.
 The options control aspects
-of the plugin itself, the LSP server, and the underlying OpenJML tool.  All the OpenJML tool options are
+of the plug-in itself and the LSP server, the color preferences for syntax coloring, and the underlying OpenJML tool, respectively.  
+The OpenJML Tool Options correspond to the command-line options of the command-line `openjml` tool; all the non-default OpenJML tool options are
 sent to OpenJML whenever an OpenJML action is requested.
 
+<B>Paths</B>
+<P>
+The Project Options tab holds path settings that influence what is communicated to OpenJML. These fields act as user
+<em>additions</em> prepended to the paths that Eclipse assembles from its own project model:
+</P>
+<UL>
+<LI><B>Classpath</B> — prepended before the Eclipse-derived classpath (JARs, dependency output directories).
+    The Eclipse RAC output directory preference, if set, also goes on the classpath immediately after this addition.</LI>
+<LI><B>Source path</B> — prepended before the source folders Eclipse collects from the project and its transitive dependencies.</LI>
+<LI><B>Specs path</B> — if empty, OpenJML uses its default (source path plus built-in system library specifications).
+    If non-empty, this value is prepended to the full source path and the result is passed to OpenJML as
+    <code>--specs-path</code>.</LI>
+</UL>
+<P>
+All three paths are project-specific. Path entries must be separated by the OS path-separator character (colon on macOS/Linux,
+semicolon on Windows). Path values may contain environment-variable references of the form <code>$VARNAME</code>,
+<code>${VARNAME}</code>, or <code>$(VARNAME)</code>; the server substitutes the variable's value from the execution
+environment before passing the result to OpenJML.
+</P>
+<P>
+Two output directory settings govern where compiled <code>.class</code> files are written and found:
+</P>
+<UL>
+<LI><B>Java output directory</B> — the Eclipse JDT output folder (set by Eclipse, not user-configurable here).
+    It goes on the classpath so OpenJML can see already-compiled classes.</LI>
+<LI><B>RAC output directory</B> (<code>openjml.racOutputDir</code>) — where <code>--rac</code> writes its
+    instrumented <code>.class</code> files (the <code>-d</code> argument to OpenJML).
+    If empty, the Java output directory is used. This value also goes on the classpath so previously RAC-compiled
+    classes remain visible on subsequent runs.</LI>
+</UL>
 
 <H3><A NAME="HelpPage">A Help page</A></H3>
-The plugin implements a standard Help page to give user guide style information about the Eclipse Plugin.
+
+The plug-in implements a standard Eclipse Help page to give user guide style information about the Eclipse Plug-in.
 
 <H3><A NAME="OtherEclipse">Other Eclipse functionality</A></H3>
 
-Nothing special is implemented with the following functionality, but it is available to users of the plugin to improve their own
+Nothing special is implemented with the following functionality, but it is available to users of the plug-in to improve their own
 experience with Eclipse.
 <UL>
 <LI>Keyboard commands: All OpenJML commands are available to be mapped to key combinations on the General &gt;&gt; Keys setting page.</LI>
-</LI>
+<LI>The style and coloring of diagnostic markers can be set in the General &gt;&gt; Editors &gt;&gt; Text Editors &gt;&gt; Annotations
+settings.</LI>
 </UL>
 
-<H2><A NAME="Troubleshooting">Some OpenJML plugin infelicities and troubleshooting</A></H2>
+<H2><A NAME="Troubleshooting">Some OpenJML plug-in infelicities and troubleshooting</A></H2>
 <UL>
+<LI>It can take a few secods for the server to be launched once Eclipse with the OpenJML plug-in is started.</LI>
+<LI>The Eclipse Console reports a small amount of logging behavior and also, in red, any error messages. 
+    It may give hints as to what is wrong if the plug-in does not behave as expected.
+    Additional detailed log information from the server is written in a file in ~/.openjml/logs.</LI>
 <LI>The Eclipse framework operates on projects one-by-one, because they may have different class, source, and destination paths;
-    however, the OpenJML tool options (on the settings/preference page) apply uniformly to all projects.</LI>
-<LI>RAC must be triggered manually; the destination for RAC-generated .class files is fixed to be the same as for the Eclipse-generated .class files</LI>
+    however, the OpenJML tool options (on the settings/preference page) are not project specific --- they apply uniformly to all projects.</LI>
+<LI>RAC must be triggered manually. The destination for RAC-generated <code>.class</code> files is controlled by the
+    <code>openjml.racOutputDir</code> preference; if not set it defaults to the Eclipse Java output directory.</LI>
 <LI>The OpenJML Find References, Find Declaration, and Rename operations are separate from the similar Java commands,
     which can cause user confusion.</LI>
 <LI>The JML decorations on projects must be enabled in Eclipse settings: General &gt;&gt; Appearance &gt;&gt; Label Decorations.</LI>
-<LI>Marker appearance is controlled by the Eclipse LSP library, but can be adjusted by a user setting: General &gt;&gt; Editors &gt;&gt; TestEditors &gt;&gt; Annotations.</LI>
-<LI>There is currently no good way to review the results of ESC proof attempts; would also be good to show traces and counterexample information.</LI>
+<LI>JML syntax coloring overwrites Java (JDT) syntax coloring. Syntax coloring may not be enabled immediately in a file editor.</LI>
+<LI>There is currently no good way to review the results of ESC proof attempts; it would also be good to show traces and counterexample information.</LI>
 <LI>There should be a way to see the full (inherited) specifications for a method.</LI>
-<LI>Effect of selecting a Working Set.</LI>
+<LI>User additions to class-, source-, and specs-paths on the Project Options preference page are global values prepended to every project's assembled path. They are not yet configurable per-project.</LI>
+<LI><B>Non-disjoint projects are not supported.</B>  If two Eclipse projects share source files
+    (i.e., their root paths overlap), the plug-in cannot reliably associate a file with the correct
+    project.  Symptoms include diagnostics being cleared for the wrong project, ESC tasks being
+    cancelled across project boundaries, and incorrect project settings being applied to a file.
+    Each Eclipse project opened with the OpenJML plug-in must have a source root that is disjoint
+    from every other open project's source root.</LI>
 </UL>
 
 </BODY>

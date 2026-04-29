@@ -72,7 +72,7 @@ public class EscStatusTest extends LspTestBase {
 
         assertEquals("Expected exit code 6 for ESC verification failure", 6, result.exitCode());
 
-        IProverResult.Kind kind = result.proofResults().get("noOp");
+        IProverResult.Kind kind = result.proofResultForMethod("noOp");
         assertNotNull("Expected a proof result for method noOp", kind);
         assertTrue("Expected SAT or POSSIBLY_SAT for failing method",
                 kind == IProverResult.SAT || kind == IProverResult.POSSIBLY_SAT);
@@ -105,7 +105,7 @@ public class EscStatusTest extends LspTestBase {
 
         assertEquals("Expected exit code 0 for clean ESC", 0, result.exitCode());
 
-        IProverResult.Kind kind = result.proofResults().get("identity");
+        IProverResult.Kind kind = result.proofResultForMethod("identity");
         assertNotNull("Expected a proof result for method identity", kind);
         assertEquals("Expected UNSAT for verified method", IProverResult.UNSAT, kind);
 
@@ -154,11 +154,11 @@ public class EscStatusTest extends LspTestBase {
                         .allMatch(d -> d.getSeverity() == DiagnosticSeverity.Error));
 
         // Per-method proof results.
-        IProverResult.Kind verifiedKind = result.proofResults().get("verified");
+        IProverResult.Kind verifiedKind = result.proofResultForMethod("verified");
         assertNotNull("Expected a proof result for method 'verified'", verifiedKind);
         assertEquals("Expected UNSAT for 'verified' method", IProverResult.UNSAT, verifiedKind);
 
-        IProverResult.Kind failingKind = result.proofResults().get("failing");
+        IProverResult.Kind failingKind = result.proofResultForMethod("failing");
         assertNotNull("Expected a proof result for method 'failing'", failingKind);
         assertTrue("Expected SAT or POSSIBLY_SAT for 'failing' method",
                 failingKind == IProverResult.SAT || failingKind == IProverResult.POSSIBLY_SAT);
@@ -193,7 +193,7 @@ public class EscStatusTest extends LspTestBase {
                 "}\n";
         CheckRunner.CheckResult result = runEscResult("file:///SkipEscTest.java", source);
 
-        IProverResult.Kind kind = result.proofResults().get("m");
+        IProverResult.Kind kind = result.proofResultForMethod("m");
         assertNotNull("Expected a proof result for method m (should be SKIPPED)", kind);
         assertEquals("Expected SKIPPED for method annotated with //@ skipesc",
                 IProverResult.SKIPPED, kind);

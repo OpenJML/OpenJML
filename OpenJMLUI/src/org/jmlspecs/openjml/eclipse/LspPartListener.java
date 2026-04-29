@@ -48,9 +48,33 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
     private final java.util.Map<IEditorPart, JmlFoldingManager> foldingManagers =
             new java.util.concurrent.ConcurrentHashMap<>();
 
-    /** JML colorizers for .java editors, keyed by workspace-relative path. */
+    /** JML colorizers for .java and .jml editors, keyed by workspace-relative path. */
     private final java.util.Map<org.eclipse.core.runtime.IPath, JmlColorizer> colorizersByPath =
             new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * URIs whose document content has changed since the last colorizer refresh.
+     * Set by the per-document change listener installed in {@link #setupColorizer};
+     * cleared after a colorizer refresh so that ESC-only runs (no edit) don't trigger one.
+     */
+    private static final java.util.Set<String> editedSinceRefresh =
+            java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
+
+    /** .java editors that have had JmlAutoEditStrategy installed (to avoid duplicates). */
+    private final java.util.Set<IEditorPart> autoEditEditors =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(
+                    new java.util.WeakHashMap<>()));
+
+    /** Single-thread scheduler for debouncing CMD_FOCUS_FILE sends. */
+    private static final java.util.concurrent.ScheduledExecutorService FOCUS_SCHEDULER =
+            java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "openjml-focus");
+                t.setDaemon(true);
+                return t;
+            });
+
+    /** Pending debounced CMD_FOCUS_FILE task; cancelled on each new activation. */
+    private static volatile java.util.concurrent.ScheduledFuture<?> pendingFocusTask;
 
     public LspPartListener() {
         INSTANCE = this;
@@ -110,7 +134,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         }
                     }
                 } catch (Throwable t) {
-                    System.err.println("[OpenJML] restartServer: re-trigger failed: " + t);
+                    Console.errorlog("restartServer: re-trigger failed", t);
                 }
             });
         };
@@ -130,7 +154,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         System.err.println("[OpenJML] restartServer: stop() not found on wrapper");
                     }
                 } catch (Throwable t) {
-                    System.err.println("[OpenJML] restartServer: stop() failed: " + t);
+                    Console.errorlog("restartServer: stop() failed", t);
                 }
                 // Re-trigger only after the old server has fully stopped.
                 retrigger.run();
@@ -174,9 +198,54 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         return java.util.concurrent.CompletableFuture.completedFuture(null);
                     });
             System.err.println("[OpenJML] workspace/didChangeConfiguration sent");
+            // Retrigger all active colorizers so the new syntaxColoringScope
+            // takes effect immediately without waiting for the next --check.
+            refreshAllColorizers();
         } catch (Exception e) {
-            System.err.println("[OpenJML] sendSettingsToServer failed: " + e);
+            Console.errorlog("sendSettingsToServer failed", e);
         }
+    }
+
+    /** Calls {@link JmlColorizer#refreshAsync()} on every registered colorizer (.java and .jml). */
+    static void refreshAllColorizers() {
+        LspPartListener inst = INSTANCE;
+        if (inst == null) return;
+        inst.colorizersByPath.values().forEach(JmlColorizer::refreshAsync);
+    }
+
+    /**
+     * Schedules a {@code CMD_FOCUS_FILE} command for {@code file} with a 200 ms debounce.
+     *
+     * <p>Cancels any previously pending focus task so that rapidly switching between
+     * editors does not launch a check for every intermediate file — only the file the
+     * user actually stops on triggers a server-side recheck.
+     */
+    private static void scheduleFocusFile(IFile file) {
+        java.net.URI fileUri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(file);
+        if (fileUri == null) return;
+        String uri = fileUri.toString();
+        String projectId = file.getProject() != null ? file.getProject().getName() : "";
+
+        java.util.concurrent.ScheduledFuture<?> old = pendingFocusTask;
+        if (old != null) old.cancel(false);
+
+        pendingFocusTask = FOCUS_SCHEDULER.schedule(() -> {
+            org.eclipse.jface.text.IDocument doc = cachedDocument;
+            if (doc == null) return;
+            try {
+                org.eclipse.lsp4j.ExecuteCommandParams params =
+                        new org.eclipse.lsp4j.ExecuteCommandParams(
+                                OpenJMLConstants.CMD_FOCUS_FILE,
+                                java.util.List.of(projectId, uri));
+                org.eclipse.lsp4e.LanguageServers.forDocument(doc)
+                        .computeAll(ls -> {
+                            ls.getWorkspaceService().executeCommand(params);
+                            return java.util.concurrent.CompletableFuture.completedFuture(null);
+                        });
+            } catch (Exception e) {
+                Console.errorlog("scheduleFocusFile failed", e);
+            }
+        }, 200, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -229,10 +298,19 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             setupFolding(ep);
         }
 
-        // Install JML semantic-token colorizer for .java files (once per path).
-        if ("java".equals(ext) && part instanceof IEditorPart ep
+        // Install JML semantic-token colorizer for .java and .jml files (once per path).
+        // For .java files it overlays JML tokens on top of JDT's coloring.
+        // For .jml files it overrides LSP4E/TM4E colors with the preference-store colors.
+        if (part instanceof IEditorPart ep
                 && !colorizersByPath.containsKey(file.getFullPath())) {
             setupColorizer(ep, file);
+        }
+
+        // Install JmlAutoEditStrategy for .java files so ( and , in JML comment
+        // regions trigger signature help automatically (once per editor instance).
+        if ("java".equals(ext) && part instanceof IEditorPart ep
+                && autoEditEditors.add(ep)) {
+            setupAutoEdit(ep);
         }
 
         // Retry the diagnostics hook on every activation until it succeeds.
@@ -242,7 +320,11 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         }
 
         org.eclipse.core.runtime.IPath path = file.getFullPath();
-        if (!triggered.add(path)) return;
+        if (!triggered.add(path)) {
+            // Already set up — send CMD_FOCUS_FILE so the server can recheck if content changed.
+            scheduleFocusFile(file);
+            return;
+        }
 
         System.err.println("[OpenJML] LspPartListener: handling " + file.getName());
 
@@ -314,8 +396,12 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                                         + file.getName());
                             }
                         } catch (Throwable t) {
-                            System.err.println("[OpenJML] updateCodeMinings failed: " + t);
+                            Console.errorlog("updateCodeMinings failed", t);
                         }
+                        // Re-trigger all colorizers now that the server is connected and has
+                        // processed didOpen. This covers the startup case where refreshAsync()
+                        // was a no-op because cachedWrapper was null at editor-open time.
+                        refreshAllColorizers();
                     };
                     if (connectFuture != null) {
                         connectFuture.thenRun(
@@ -325,11 +411,10 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     }
                 }
             } else {
-                System.err.println("[OpenJML] LspPartListener: startLanguageServer method not found");
+                Console.errorlog("startLanguageServer method not found on LanguageServiceAccessor");
             }
         } catch (Throwable t) {
-            System.err.println("[OpenJML] LspPartListener: start/connect failed: " + t);
-            t.printStackTrace(System.err);
+            Console.errorlog("LSP start/connect failed", t);
         }
     }
 
@@ -350,8 +435,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                             + editor.getEditorInput().getName());
                 }
             } catch (Throwable t) {
-                System.err.println("[OpenJML] setupFolding failed: " + t);
-                t.printStackTrace(System.err);
+                Console.errorlog("setupFolding failed", t);
             }
         });
     }
@@ -385,7 +469,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             }
             if (clientField == null) {
                 // The field was not found in any superclass — this is a permanent failure.
-                System.err.println("[OpenJML] diagnosticsHook: languageClient field not found");
+                Console.errorlog("diagnosticsHook: languageClient field not found on LanguageServerWrapper");
                 diagnosticsHookInstalled = true;  // don't retry
                 return;
             }
@@ -417,15 +501,21 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             }
             if (setter == null) {
-                System.err.println("[OpenJML] diagnosticsHook: setDiagnosticsConsumer not found");
+                Console.errorlog("diagnosticsHook: setDiagnosticsConsumer not found on DefaultLanguageClient");
                 return;
             }
             final java.util.function.Consumer<Object> orig = original;
             java.util.function.Consumer<Object> wrapped = params -> {
                 if (orig != null) orig.accept(params);
+                // Always refresh the colorizer after publishDiagnostics so that
+                // AST-based tokens are applied after every --check, including the
+                // initial check on file open (where no edit has been made yet).
                 try {
                     String uri = (String) params.getClass().getMethod("getUri").invoke(params);
-                    if (uri != null) refreshColorizerForUri(uri);
+                    if (uri != null) {
+                        editedSinceRefresh.remove(uri);  // clear the dirty flag
+                        refreshColorizerForUri(uri);
+                    }
                 } catch (Exception ignored) {}
                 // Code-mining refresh is handled by OpenJMLLanguageClient.refreshCodeLenses().
             };
@@ -433,8 +523,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             diagnosticsHookInstalled = true;  // success — don't install again
             System.err.println("[OpenJML] diagnosticsHook installed");
         } catch (Throwable t) {
-            System.err.println("[OpenJML] installDiagnosticsHook failed: " + t);
-            t.printStackTrace(System.err);
+            Console.errorlog("installDiagnosticsHook failed", t);
         }
     }
 
@@ -447,20 +536,21 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         try {
             java.net.URI uri = java.net.URI.create(fileUri);
             IFile[] files = ResourcesPlugin.getWorkspace().getRoot().findFilesForLocationURI(uri);
+            System.err.println("[OpenJML] refreshColorizerForUri: " + fileUri
+                    + " → " + files.length + " file(s), colorizersByPath.size=" + colorizersByPath.size());
             for (IFile f : files) {
                 JmlColorizer c = colorizersByPath.get(f.getFullPath());
+                System.err.println("[OpenJML] refreshColorizerForUri: " + f.getFullPath()
+                        + " colorizer=" + (c != null ? "found" : "null")
+                        + " ext=" + f.getFileExtension());
                 if (c != null) {
-                    // .java files: JmlColorizer overlays JML tokens on JDT's presentation.
+                    // JmlColorizer installed for this file: refresh its cached tokens.
+                    // Works for both .java (overlays on JDT) and .jml (overrides TM4E).
                     c.refreshAsync();
-                } else if ("jml".equals(f.getFileExtension())) {
-                    // .jml files: LSP4E's SemanticTokensPresentationReconciler handles tokens,
-                    // but it only runs on document edits — not when the server sends fresh tokens
-                    // after a check.  Invalidate the presentation so it re-requests tokens now.
-                    invalidateJmlEditorPresentation(f);
                 }
             }
         } catch (Exception e) {
-            System.err.println("[OpenJML] refreshColorizerForUri error: " + e);
+            Console.errorlog("refreshColorizerForUri error", e);
         }
     }
 
@@ -489,16 +579,22 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     }
                 }
             } catch (Exception e) {
-                System.err.println("[OpenJML] invalidateJmlEditorPresentation: " + e);
+                Console.errorlog("invalidateJmlEditorPresentation failed", e);
             }
         });
     }
 
     /**
-     * Attaches a {@link JmlColorizer} to the given {@code .java} editor's viewer.
-     * The colorizer overlays JML semantic-token colors (keyword / macro / variable)
-     * on top of JDT's own syntax coloring, which would otherwise render
-     * {@code //@ …} annotations as plain comments.
+     * Attaches a {@link JmlColorizer} to the given editor's viewer.
+     *
+     * <p>For {@code .java} files the colorizer overlays JML semantic-token colors
+     * on top of JDT's syntax coloring (which otherwise renders {@code //@ …}
+     * annotations as plain comments).
+     *
+     * <p>For {@code .jml} files the colorizer runs after LSP4E's
+     * {@code SemanticHighlightReconcilerStrategy} and overrides the TM4E theme
+     * colors with the user's preference-store colors — making the Syntax Colors
+     * preference page take effect for {@code .jml} files too.
      */
     private void setupColorizer(IEditorPart editor, IFile file) {
         org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
@@ -508,16 +604,61 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 if (!(viewer instanceof ITextViewerExtension4 ext4)) return;
                 org.eclipse.jface.text.IDocument doc = viewer.getDocument();
                 if (doc == null) return;
+                String fileUri = org.eclipse.lsp4e.LSPEclipseUtils.toUri(file).toString();
                 JmlColorizer.ensureColors();
-                JmlColorizer colorizer = new JmlColorizer(viewer, doc);
+                String projectId = file.getProject() != null ? file.getProject().getName() : "";
+                JmlColorizer colorizer = new JmlColorizer(viewer, doc, fileUri, projectId);
                 ext4.addTextPresentationListener(colorizer);
                 colorizersByPath.put(file.getFullPath(), colorizer);
+                // Mark URI dirty whenever the document content changes so the diagnostics
+                // hook knows to refresh the colorizer after the next check completes.
+                doc.addDocumentListener(new org.eclipse.jface.text.IDocumentListener() {
+                    @Override public void documentAboutToBeChanged(org.eclipse.jface.text.DocumentEvent e) {}
+                    @Override public void documentChanged(org.eclipse.jface.text.DocumentEvent e) {
+                        editedSinceRefresh.add(fileUri);
+                    }
+                });
                 System.err.println("[OpenJML] JML colorizer installed for " + file.getName());
                 // Immediate fetch — gets cached tokens if a prior check has already run.
                 colorizer.refreshAsync();
             } catch (Throwable t) {
-                System.err.println("[OpenJML] setupColorizer failed: " + t);
-                t.printStackTrace(System.err);
+                Console.errorlog("setupColorizer failed", t);
+            }
+        });
+    }
+
+    /**
+     * Installs {@link JmlAutoEditStrategy} on the {@link org.eclipse.jface.text.source.SourceViewer}
+     * of a {@code .java} editor so that {@code (} and {@code ,} typed inside JML comment
+     * regions automatically trigger a signature-help popup.
+     */
+    private static void setupAutoEdit(IEditorPart editor) {
+        org.eclipse.swt.widgets.Display.getDefault().asyncExec(() -> {
+            try {
+                Object adapted = editor.getAdapter(
+                        org.eclipse.jface.text.ITextOperationTarget.class);
+                if (adapted == null) return;
+
+                // Obtain the StyledText widget via reflection (avoids a cross-bundle
+                // instanceof check on AdaptedSourceViewer which extends SourceViewer
+                // but is loaded by the JDT bundle's class loader).
+                java.lang.reflect.Method getWidget =
+                        adapted.getClass().getMethod("getTextWidget");
+                Object widgetObj = getWidget.invoke(adapted);
+                if (!(widgetObj instanceof org.eclipse.swt.custom.StyledText st)) return;
+
+                JmlAutoEditStrategy strategy = new JmlAutoEditStrategy(st);
+
+                // Install via reflection for the same classloader-boundary reason.
+                java.lang.reflect.Method prepend = adapted.getClass().getMethod(
+                        "prependAutoEditStrategy",
+                        org.eclipse.jface.text.IAutoEditStrategy.class, String.class);
+                prepend.invoke(adapted, strategy, "__java_singleline_comment");
+                prepend.invoke(adapted, strategy, "__java_multiline_comment");
+                System.err.println("[OpenJML] JmlAutoEditStrategy installed for "
+                        + editor.getTitle());
+            } catch (Throwable t) {
+                Console.errorlog("setupAutoEdit failed", t);
             }
         });
     }
@@ -540,7 +681,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             org.eclipse.core.runtime.IExtensionPoint ep =
                     extReg.getExtensionPoint("org.eclipse.lsp4e.languageServer");
             if (ep == null) {
-                System.err.println("[OpenJML] lsp4e.languageServer extension point not found");
+                Console.errorlog("lsp4e.languageServer extension point not found — OpenJML server cannot start");
                 return null;
             }
             org.eclipse.core.runtime.IConfigurationElement ourCE = null;
@@ -556,7 +697,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             }
             if (ourCE == null) {
-                System.err.println("[OpenJML] Our IConfigurationElement not found");
+                Console.errorlog("OpenJML IConfigurationElement not found in lsp4e.languageServer extension point");
                 return null;
             }
             System.err.println("[OpenJML] Found our IConfigurationElement id="
@@ -586,7 +727,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 } catch (Exception ignored) {}
             }
             if (defClass == null) {
-                System.err.println("[OpenJML] Could not resolve ExtensionLanguageServerDefinition class");
+                Console.errorlog("Could not resolve ExtensionLanguageServerDefinition class — OpenJML server cannot start");
                 return null;
             }
 
@@ -610,14 +751,13 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                     return def;
                 }
             }
-            System.err.println("[OpenJML] No matching constructor on " + defClass.getName()
-                    + "; available:");
-            for (java.lang.reflect.Constructor<?> c : defClass.getDeclaredConstructors()) {
-                System.err.println("[OpenJML]   " + c);
-            }
+            StringBuilder ctors = new StringBuilder(
+                    "No matching constructor on " + defClass.getName() + "; available:");
+            for (java.lang.reflect.Constructor<?> c : defClass.getDeclaredConstructors())
+                ctors.append("\n  ").append(c);
+            Console.errorlog(ctors.toString());
         } catch (Throwable t) {
-            System.err.println("[OpenJML] findOurDefinition failed: " + t);
-            t.printStackTrace(System.err);
+            Console.errorlog("findOurDefinition failed", t);
         }
         return null;
     }
@@ -712,7 +852,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                 }
             }
         } catch (Throwable t) {
-            System.err.println("[OpenJML] refreshAllCodeMinings failed: " + t);
+            Console.errorlog("refreshAllCodeMinings failed", t);
         }
     }
 
@@ -769,11 +909,11 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
                         return (r instanceof java.util.concurrent.CompletableFuture<?> cf) ? cf : null;
                     }
                 } catch (Exception e) {
-                    System.err.println("[OpenJML] " + methodName + "() invocation failed: " + e);
+                    Console.errorlog(methodName + "() invocation failed", e);
                 }
             }
         }
-        System.err.println("[OpenJML] No connect method matched on "
+        Console.errorlog("No connect method matched on "
                 + wrapperClass.getName() + " for " + file.getName());
         return null;
     }
@@ -787,7 +927,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             IEditorPart ge = page.openEditor(new FileEditorInput(file), GENERIC_EDITOR_ID, false);
             System.err.println("[OpenJML] LspPartListener: Generic Editor fallback: " + (ge != null));
         } catch (Throwable e) {
-            System.err.println("[OpenJML] LspPartListener: Generic Editor fallback failed: " + e);
+            Console.errorlog("Generic Editor fallback failed", e);
         }
     }
 }

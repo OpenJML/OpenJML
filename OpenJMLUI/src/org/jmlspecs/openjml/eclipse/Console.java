@@ -4,6 +4,8 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleFactory;
@@ -72,8 +74,21 @@ public class Console {
         if (console == null) console = ConsoleFactory.getJMLConsole();
         return console;
     }
-    
-    // FIXME - do we really want to allocate and close a MessageConsoleStream for every write to the Console?
+
+    /**
+     * Shared stream for Info-level output.  Reusing one stream avoids Eclipse's
+     * IOConsolePartitioner partition-boundary behaviour, which can drop the
+     * trailing newline of a closed stream when a new stream opens immediately
+     * after — causing successive messages to run together on one line.
+     */
+    private static MessageConsoleStream normalStream;
+
+    private static synchronized MessageConsoleStream getNormalStream() {
+        if (normalStream == null || normalStream.isClosed()) {
+            normalStream = getConsole().newMessageStream();
+        }
+        return normalStream;
+    }
 
     /** Returns a timestamp prefix of the form {@code [HH:mm:ss] } (24-hour clock). */
     private static String ts() {
@@ -87,20 +102,38 @@ public class Console {
      * their own timestamp (e.g. forwarded server log lines).
      * Safe to call from any thread.
      */
-    public static void logRaw(String message) {
-        try (MessageConsoleStream stream = getConsole().newMessageStream()) {
-            stream.println(message);
-        } catch (Exception ignored) {}
+    public static synchronized void logRaw(String message) {
+        try {
+            getNormalStream().println(message);
+        } catch (Exception e) { logConsoleFailure("logRaw", e); }
     }
 
     /**
      * Append a timestamped {@code message} followed by a newline to the OpenJML console.
+     * If the message contains embedded newlines, continuation lines are indented to align
+     * under the first character after the timestamp.
      * Safe to call from any thread.
      */
-    public static void log(String message) {
+    public static synchronized void log(String message) {
+        try {
+            String prefix = ts();
+            String indent = " ".repeat(prefix.length());
+            String msg = message.endsWith("\n") ? message.substring(0, message.length() - 1) : message;
+            getNormalStream().println(prefix + msg.replace("\n", "\n" + indent));
+        } catch (Exception e) { logConsoleFailure("log", e); }
+    }
+
+    /**
+     * Append {@code message} followed by a newline to the OpenJML console in red font,
+     * without adding a timestamp.  Use this for messages that already carry their own
+     * timestamp (e.g. forwarded server error lines).
+     * Safe to call from any thread.
+     */
+    public static void errorlogRaw(String message) {
         try (MessageConsoleStream stream = getConsole().newMessageStream()) {
-            stream.println(ts() + message);
-        } catch (Exception ignored) {}
+            stream.setColor(org.eclipse.swt.widgets.Display.getDefault().getSystemColor(org.eclipse.swt.SWT.COLOR_RED));
+            stream.println(message);
+        } catch (Exception e) { logConsoleFailure("errorlogRaw", e); }
     }
 
     /**
@@ -118,17 +151,29 @@ public class Console {
      */
     public static void errorlog(String message, Throwable ex) {
         try (MessageConsoleStream stream = getConsole().newMessageStream()) {
-            stream.setColor(new org.eclipse.swt.graphics.Color(255,0,0)); // Red for errors
-            stream.println(ts() + message);
+            stream.setColor(org.eclipse.swt.widgets.Display.getDefault().getSystemColor(org.eclipse.swt.SWT.COLOR_RED));
+            String prefix = ts();
+            String indent = " ".repeat(prefix.length());
+            String msg = message.endsWith("\n") ? message.substring(0, message.length() - 1) : message;
+            stream.println(prefix + msg.replace("\n", "\n" + indent));
             if (ex != null) {
                 java.io.StringWriter sw = new java.io.StringWriter();
                 ex.printStackTrace(new java.io.PrintWriter(sw));
                 stream.print(sw.toString());
             }
             show();
-        } catch (Exception ignored) {}
+        } catch (Exception e) { logConsoleFailure("errorlog", e); }
     }
     
+    private static void logConsoleFailure(String method, Exception e) {
+        try {
+            Platform.getLog(Console.class).log(new Status(Status.ERROR, Console.class, "OpenJML Console." + method + " failed", e));
+        } catch (Exception ignored) {
+            // Last resort: both the console write and the Eclipse error log failed.
+            // This is extremely unlikely in practice and there is nowhere else to report it.
+        }
+    }
+
     /** Make the console visible in the GUI */
     public static void show() {
         IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();

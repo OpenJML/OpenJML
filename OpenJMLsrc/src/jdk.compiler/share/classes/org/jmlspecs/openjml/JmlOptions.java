@@ -28,6 +28,8 @@ import org.jmlspecs.openjml.Main.Cmd;
 import org.jmlspecs.openjml.Main.PrintProgressReporter;
 import org.jmlspecs.openjml.esc.MethodProverSMT;
 
+import javax.tools.JavaFileObject;
+
 import com.sun.tools.javac.main.Arguments;
 import com.sun.tools.javac.main.JmlCompiler;
 import com.sun.tools.javac.main.Option.OptionKind;
@@ -395,6 +397,11 @@ public class JmlOptions extends Options {
             String v = properties.getProperty(key);
             if (key.startsWith(Strings.optionPropertyPrefix)) {
                 String rest = key.substring(Strings.optionPropertyPrefix.length());
+                boolean negate = false;
+                if (rest.startsWith("no-")) {
+                    negate = true;
+                    rest = rest.substring(3); // 3 == "no-".length()
+                }
                 rest = "--" + rest;
                 JmlOption opt = JmlOption.find(rest);
                 if (opt != null) {
@@ -403,7 +410,7 @@ public class JmlOptions extends Options {
                     } else {
                         opts.put(rest, v);
                     }
-                    opt.check(context, false);
+                    opt.check(context, negate);
                 } else {
                     Log.instance(context).error("jml.message","No such option: " + rest);
                 }
@@ -586,6 +593,11 @@ public class JmlOptions extends Options {
     public static class JmlArguments extends Arguments {
         private Context context;
 
+        /** Mock file objects extracted from args during {@link #init} - added
+         * back in {@link #getFileObjects} without going through the
+         * {@code Files.exists()} check in {@code Option.SOURCEFILE.process}. */
+        private final java.util.List<JavaFileObject> pendingMockFiles = new ArrayList<>();
+
         public static void register(Context context) {
             context.put(argsKey, new JmlArguments(context));
         }
@@ -595,13 +607,71 @@ public class JmlOptions extends Options {
             this.context = context;
         }
 
+        /** Pre-filters any {@code .java} args whose URI is registered in
+         * {@code mockFiles.uriMap} so that {@code Option.SOURCEFILE.process}
+         * never calls {@code Files.exists()} on them.  The mock objects are
+         * stored in {@link #pendingMockFiles} and re-added in
+         * {@link #getFileObjects}.
+         * <p>
+         * URI matching mirrors {@code MockJavaFileObject.makeURI}: for a
+         * relative arg like {@code "A.java"} the key is
+         * {@code file:///A.java}; for an absolute path the key is the
+         * result of {@code Path.toUri().normalize()}. */
+        @Override
+        public void init(String ownName, Iterable<String> args) {
+            pendingMockFiles.clear();
+            var main = context.get(Main.key);
+            if (main != null && main.mockFiles.hasUriEntries()) {
+                java.util.List<String> filteredArgs = new ArrayList<>();
+                for (String arg : args) {
+                    if (arg.endsWith(".java")) {
+                        try {
+                            Path p = Paths.get(arg);
+                            java.net.URI fileUri = p.isAbsolute()
+                                    ? p.toUri().normalize()
+                                    : new java.net.URI("file:///" + arg).normalize();
+                            JavaFileObject mock = main.mockFiles.getByUri(fileUri);
+                            if (mock != null) {
+                                pendingMockFiles.add(mock);
+                                continue; // skip - bypass Files.exists() check
+                            }
+                        } catch (Exception ignored) {
+                            // not a valid Path or URI; let super handle it
+                        }
+                    }
+                    filteredArgs.add(arg);
+                }
+                super.init(ownName, filteredArgs);
+                if (!pendingMockFiles.isEmpty()) allowEmpty();
+            } else {
+                super.init(ownName, args);
+            }
+        }
+
+        /** Adds any mock file objects collected during {@link #init} to the
+         * set returned by {@code super.getFileObjects()}. */
+        @Override
+        public Set<JavaFileObject> getFileObjects() {
+            Set<JavaFileObject> result = super.getFileObjects();
+            result.addAll(pendingMockFiles);
+            return result;
+        }
+
+        /** Reports non-empty when pending mock files exist, preventing the
+         * early {@code Result.OK} return in javac {@code Main.compile}
+         * that would skip compilation when no real files were passed. */
+        @Override
+        public boolean isEmpty() {
+            return pendingMockFiles.isEmpty() && super.isEmpty();
+        }
+
         // FIXME - is this needed? what is its effect on tool component instantiation
         @Override
         public boolean validate() {
             boolean b = super.validate();
             return JmlOptions.instance(context).setupOptions() && b;
         }
-        
+
         @Override // overridden just to suppress message
         public void printUsage(String ownName) {
             if (JmlOption.VERBOSENESS.getInt(context) != Utils.QUIET || JmlOptions.instance(context).isSet("-verbose")) {

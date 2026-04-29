@@ -23760,6 +23760,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    	nthat.type = that.type;
 	    	nthat.literal = copy(((JmlLambda) that).literal);
 	    	nthat.sourceLocation = ((JmlLambda) that).sourceLocation;
+	    	nthat.target = that.target;
 	    	result = eresult = nthat;
 	    	translatingJML = saved;
 	    	popBlock(that, check);
@@ -23775,6 +23776,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    	JmlLambda nthat = M.at(that.pos).JmlLambda(copy(that.params, null), copy(that.body, null), copy(that.jmlType));
 	    	nthat.type = that.type;
 	    	nthat.literal = copy(that.literal);
+            nthat.target = that.target;
 	    	nthat.sourceLocation = that.sourceLocation;
 	    	result = eresult = nthat;
 	    	translatingJML = saved;

@@ -75,6 +75,7 @@ public class JmlCompletionProvider {
     public static List<CompletionItem> complete(String content, Position pos) {
         if (!isInJmlContext(content, pos)) return List.of();
         String prefix = wordBeforeCursor(content, pos);
+        if (prefix.isEmpty()) return List.of();
         if (prefix.startsWith("\\")) {
             // VS Code does not treat '\' as a word character, so without a TextEdit
             // it would insert the completion after the '\', producing '\\result'.
@@ -82,6 +83,7 @@ public class JmlCompletionProvider {
             Range replaceRange = wordBeforeCursorRange(content, pos);
             List<CompletionItem> items = new ArrayList<>(ALL_BACKSLASH_ITEMS.size());
             for (CompletionItem tmpl : ALL_BACKSLASH_ITEMS) {
+                if (!tmpl.getLabel().startsWith(prefix)) continue;
                 CompletionItem item = new CompletionItem(tmpl.getLabel());
                 item.setKind(tmpl.getKind());
                 item.setTextEdit(Either.forLeft(new TextEdit(replaceRange, tmpl.getLabel())));
@@ -89,7 +91,28 @@ public class JmlCompletionProvider {
             }
             return items;
         }
-        return ALL_KEYWORD_ITEMS;
+        // Keyword completions make no sense inside a method argument list.
+        // Suppress them when the token before the prefix (ignoring whitespace) is '(' or ','.
+        if (isArgumentPosition(content, pos, prefix)) return List.of();
+        List<CompletionItem> items = new ArrayList<>(ALL_KEYWORD_ITEMS.size());
+        for (CompletionItem tmpl : ALL_KEYWORD_ITEMS) {
+            if (tmpl.getLabel().startsWith(prefix)) items.add(tmpl);
+        }
+        return items;
+    }
+
+    /**
+     * Returns {@code true} when the cursor is inside a method-call argument list,
+     * i.e. the non-whitespace character immediately before the current word prefix
+     * is {@code (} or {@code ,}.
+     */
+    private static boolean isArgumentPosition(String content, Position pos, String prefix) {
+        int offset = positionToOffset(content, pos);
+        int i = offset - prefix.length() - 1;   // step back past the prefix
+        while (i >= 0 && Character.isWhitespace(content.charAt(i))) i--;
+        if (i < 0) return false;
+        char c = content.charAt(i);
+        return c == '(' || c == ',';
     }
 
     // -----------------------------------------------------------------------

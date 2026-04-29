@@ -20,6 +20,14 @@
            id="org.jmlspecs.openjml.eclipse.PluginLspPage"
            category="org.jmlspecs.openjml.eclipse.SettingsPage"
            name="%openjml.ui.PreferencePage.PluginLsp"/>
+     <page class="org.jmlspecs.openjml.eclipse.OpenJMLSyntaxColorPage"
+           id="org.jmlspecs.openjml.eclipse.SyntaxColorPage"
+           category="org.jmlspecs.openjml.eclipse.SettingsPage"
+           name="Syntax Colors"/>
+     <page class="org.jmlspecs.openjml.eclipse.OpenJMLProjectPage"
+           id="org.jmlspecs.openjml.eclipse.ProjectOptionsPage"
+           category="org.jmlspecs.openjml.eclipse.SettingsPage"
+           name="Project Options"/>
      <!-- Legacy preference sub-pages moved to oldsrc; comment back in when resurrected -->
      <!--
      <page class="org.jmlspecs.openjml.eclipse.PreferencesPage"
@@ -41,6 +49,11 @@
      -->
   </extension>
 
+  <!-- Register default preference values so "Restore Defaults" works correctly -->
+  <extension point="org.eclipse.core.runtime.preferences">
+     <initializer class="org.jmlspecs.openjml.eclipse.OpenJMLPreferenceInitializer"/>
+  </extension>
+
   <!-- Activate this bundle early so LspPartListener registers before any files are opened -->
   <extension point="org.eclipse.ui.startup">
      <startup class="org.openjml.ui.Activator"/>
@@ -57,6 +70,7 @@
            priority="high"/>
   </extension>
   
+  <!-- JML coffee cup icon for .jml files and editors -->
   <extension
       point="org.eclipse.ui.genericeditor.icons">
     <icon
@@ -152,9 +166,10 @@
 
   <!-- Annotation types for OpenJML markers.
        markerSeverity: 0=info  1=warning  2=error
-       ESC markers (JMLESCProblem) come in two severities:
-         ERROR  — verification failure (proof obligation not satisfied)
-         INFO   — associated-declaration message accompanying a failure
+       ESC markers (JMLESCProblem) come in three severities:
+         ERROR   — verification failure (proof obligation not satisfied)
+         WARNING — location information related to an ERROR
+         INFO    — verified successfully (UNSAT)
        JML check markers (JMLProblem) come in three severities:
          ERROR, WARNING, INFO -->
   <extension point="org.eclipse.ui.editors.annotationTypes">
@@ -163,7 +178,12 @@
           name="org.openjml.OpenJMLUI.ESCErrorAnnotation"
           markerType="org.openjml.OpenJMLUI.JMLESCProblem"
           markerSeverity="2"/>
-    <!-- ESC associated info: JMLESCProblem + INFO severity → blue -->
+    <!-- ESC additional location to verification failure: JMLESCProblem + WARNING severity → yellow -->
+    <type
+          name="org.openjml.OpenJMLUI.ESCWarningAnnotation"
+          markerType="org.openjml.OpenJMLUI.JMLESCProblem"
+          markerSeverity="1"/>
+    <!-- ESC verified successfully: JMLESCProblem + INFO severity → green -->
     <type
           name="org.openjml.OpenJMLUI.ESCInfoAnnotation"
           markerType="org.openjml.OpenJMLUI.JMLESCProblem"
@@ -186,9 +206,9 @@
   </extension>
 
   <!-- Annotation display preferences for OpenJML markers (Annotations preference page).
-       Users can change colour, underline, highlight, and ruler visibility at
+       Users can change color, underline, highlight, and ruler visibility at
        General > Editors > Text Editors > Annotations.
-       Colours: ESC failure=orange, ESC info=blue, JML error=red, JML warning=yellow, JML info=blue -->
+       Colours: ESC failure=orange, ESC warning=yellow, ESC info=green, JML error=red, JML warning=yellow, JML info=blue -->
   <extension point="org.eclipse.ui.editors.markerAnnotationSpecification">
     <!-- ESC verification failure: orange (distinguishable from JML error=red) -->
     <specification
@@ -208,22 +228,43 @@
           verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeKey"
           verticalRulerPreferenceValue="true">
     </specification>
-    <!-- ESC associated info: blue, no highlight by default (informational only) -->
+    <!-- ESC additional error location result: yellow -->
+    <specification
+          annotationType="org.openjml.OpenJMLUI.ESCWarningAnnotation"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpewKey"
+          colorPreferenceValue="255,255,128"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpewKey"
+          highlightPreferenceValue="true"
+          icon="icons/jml_warning.gif"
+          includeOnPreferencePage="true"
+          label="%specification.label.8"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpewKey"
+          overviewRulerPreferenceValue="true"
+          presentationLayer="3"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpewKey"
+          textPreferenceValue="true"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpewKey"
+          verticalRulerPreferenceValue="true">
+    </specification>
+    <!-- ESC verified successfully: green, highlight and text enabled.
+         Preference keys use suffix "ei2" so that Eclipse initialises fresh
+         defaults (highlight=true, text=true) regardless of any stale stored
+         values from earlier versions of this annotation. -->
     <specification
           annotationType="org.openjml.OpenJMLUI.ESCInfoAnnotation"
-          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpeiKey"
-          colorPreferenceValue="192,192,255"
-          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpeiKey"
-          highlightPreferenceValue="false"
-          icon="icons/jml_blue.gif"
+          colorPreferenceKey="org.jmlspecs.openjml.eclipse.crpei2Key"
+          colorPreferenceValue="128,255,128"
+          highlightPreferenceKey="org.jmlspecs.openjml.eclipse.hrpei2Key"
+          highlightPreferenceValue="true"
+          icon="icons/jml_green.gif"
           includeOnPreferencePage="true"
           label="%specification.label.7"
-          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpeiKey"
-          overviewRulerPreferenceValue="false"
+          overviewRulerPreferenceKey="org.jmlspecs.openjml.eclipse.orpei2Key"
+          overviewRulerPreferenceValue="true"
           presentationLayer="3"
-          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpeiKey"
+          textPreferenceKey="org.jmlspecs.openjml.eclipse.trpei2Key"
           textPreferenceValue="true"
-          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpeiKey"
+          verticalRulerPreferenceKey="org.jmlspecs.openjml.eclipse.vrpei2Key"
           verticalRulerPreferenceValue="true">
     </specification>
     <!-- JML type-check error: red -->
@@ -289,14 +330,24 @@
            name="OpenJML"/>
      <command
            id="org.jmlspecs.openjml.commands.checkJML"
-           name="Check JML in Current File"
+           name="Check JML on selected items"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Parse and type-check the selected Java/JML files"/>
      <command
            id="org.jmlspecs.openjml.commands.runESC"
-           name="Run ESC on Current File"
+           name="%openjml.ui.command.ESC.asSingleTask"
            categoryId="org.jmlspecs.openjml.commands.category"
-           description="Run extended static checking on the selected Java/JML files"/>
+           description="%openjml.ui.command.ESC.asSingleTask.description"/>
+     <command
+           id="org.jmlspecs.openjml.commands.runEscSplitByFile"
+           name="%openjml.ui.command.ESC.splitByFile"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="%openjml.ui.command.ESC.splitByFile.description"/>
+     <command
+           id="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+           name="%openjml.ui.command.ESC.splitByMethod"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="%openjml.ui.command.ESC.splitByMethod.description"/>
      <command
            id="org.jmlspecs.openjml.commands.runEscForMethod"
            name="Run ESC for Method Under Cursor"
@@ -309,14 +360,29 @@
            description="Compile RAC for selected files"/>
      <command
            id="org.jmlspecs.openjml.commands.clearAndReindex"
-           name="Clear LSP Cache and Reindex"
+           name="Clear Server Cache and Reindex"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Clear all OpenJML server caches and reindex the workspace"/>
      <command
+           id="org.jmlspecs.openjml.commands.indexProject"
+           name="Index Project"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Index all source files in the current project to populate the declaration index"/>
+     <command
            id="org.jmlspecs.openjml.commands.clearMarkers"
-           name="Clear Markers"
+           name="Clear All Markers"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Delete all OpenJML diagnostic markers from the workspace"/>
+     <command
+           id="org.jmlspecs.openjml.commands.clearMarkersSelected"
+           name="Clear Markers in Selected Files"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Delete OpenJML diagnostic markers from the selected files"/>
+     <command
+           id="org.jmlspecs.openjml.commands.cancelEsc"
+           name="Cancel ESC"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Cancel all running ESC verification tasks"/>
      <command
            id="org.jmlspecs.openjml.commands.enableJmlNature"
            name="Add OpenJML Nature"
@@ -338,10 +404,20 @@
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Find all references to the identifier at the cursor"/>
      <command
+           id="org.openjml.eclipse.commands.findAllDeclarations"
+           name="Find All Declarations"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Search the declaration index for all symbols matching the selected or typed identifier"/>
+     <command
            id="org.openjml.eclipse.commands.rename"
            name="Rename (JML-aware)"
            categoryId="org.jmlspecs.openjml.commands.category"
            description="Rename the identifier at the cursor, updating all Java and JML references"/>
+     <command
+           id="org.jmlspecs.openjml.commands.signatureHelp"
+           name="JML Parameter Hints"
+           categoryId="org.jmlspecs.openjml.commands.category"
+           description="Show parameter hints for the method call at the cursor (works in JML comment regions)"/>
   </extension>
 
   <!-- LspCommandHandler entries -->
@@ -350,6 +426,10 @@
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$CheckJML"/>
      <handler commandId="org.jmlspecs.openjml.commands.runESC"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEsc"/>
+     <handler commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEscSplitByFile"/>
+     <handler commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEscSplitByMethod"/>
      <handler commandId="org.jmlspecs.openjml.commands.runEscForMethod"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$RunEscForMethod"/>
      <handler commandId="org.jmlspecs.openjml.commands.RAC"
@@ -358,6 +438,10 @@
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearAndReindex"/>
      <handler commandId="org.jmlspecs.openjml.commands.clearMarkers"
               class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearMarkers"/>
+     <handler commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$ClearMarkersSelected"/>
+     <handler commandId="org.jmlspecs.openjml.commands.cancelEsc"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$CancelEsc"/>
      <handler commandId="org.jmlspecs.openjml.commands.enableJmlNature"
               class="org.jmlspecs.openjml.eclipse.JmlNatureHandler$EnableJmlNature"/>
      <handler commandId="org.jmlspecs.openjml.commands.disableJmlNature"
@@ -366,8 +450,14 @@
               class="org.jmlspecs.openjml.eclipse.JmlOpenDeclarationHandler"/>
      <handler commandId="org.openjml.eclipse.commands.findReferences"
               class="org.jmlspecs.openjml.eclipse.JmlFindReferencesHandler"/>
+     <handler commandId="org.openjml.eclipse.commands.findAllDeclarations"
+              class="org.jmlspecs.openjml.eclipse.JmlFindAllDeclarationsHandler"/>
+     <handler commandId="org.jmlspecs.openjml.commands.indexProject"
+              class="org.jmlspecs.openjml.eclipse.LspCommandHandler$IndexProject"/>
      <handler commandId="org.openjml.eclipse.commands.rename"
               class="org.jmlspecs.openjml.eclipse.JmlRenameHandler"/>
+     <handler commandId="org.jmlspecs.openjml.commands.signatureHelp"
+              class="org.jmlspecs.openjml.eclipse.JmlSignatureHelpHandler"/>
   </extension>
 
   
@@ -425,29 +515,41 @@
            </visibleWhen>
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
                     label="Check JML in File" />
-           <command commandId="org.jmlspecs.openjml.commands.runESC"
-                    label="Run ESC on File" icon="icons/jml-logo-16x16.png"/>
-           <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
-                    label="Run ESC for Method Under Cursor"/>
+           <menu id="org.jmlspecs.openjml.editorPopupMenu.runEsc"
+                 label="Static check (ESC)" icon="icons/jml-logo-16x16.png">
+              <command commandId="org.jmlspecs.openjml.commands.runESC"
+                       label="As Single Task"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+                       label="Split by File"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+                       label="Split by Method"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                       label="For Method Under Cursor"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"/>
-           <separator name="sep1"/>
+           <separator name="sep1" visible="true"/>
            <command commandId="org.openjml.eclipse.commands.findDeclaration"
                     label="Find Declaration"/>
            <command commandId="org.openjml.eclipse.commands.findReferences"
                     label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.findAllDeclarations"
+                    label="Find All Declarations"/>
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
-           <separator name="sep2"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
-                    label="Clear Markers"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
-                    label="Clear and Reindex"/>
-           <separator name="sep3"/>
+           <separator name="sep2" visible="true"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>
            <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
                     label="Remove OpenJML Nature"/>
+           <menu id="org.jmlspecs.openjml.editorPopupMenu.clearMarkers" label="Clear Markers">
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                       label="All"/>
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+                       label="Selected Files"/>
+           </menu>
         </menu>
      </menuContribution>
      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
@@ -455,34 +557,49 @@
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
                     label="Check JML in File"
                     tooltip="%command.tooltip.13"/>
-           <command commandId="org.jmlspecs.openjml.commands.runESC"
-                    label="Run ESC on Current File"
-                    icon="icons/jml-logo-16x16.png"
-                    tooltip="%command.tooltip.14"/>
-           <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
-                    label="Run ESC for Method Under Cursor"/>
+           <menu id="org.jmlspecs.openjml.mainMenu.runEsc"
+                 label="Static check (ESC)" icon="icons/jml-logo-16x16.png">
+              <command commandId="org.jmlspecs.openjml.commands.runESC"
+                       label="As Single Task"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+                       label="Split by File"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+                       label="Split by Method"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                       label="For Method Under Cursor"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"
                     tooltip="%command.tooltip.15"/>
+           <separator name="sep1a" visible="true"/>
            <command commandId="org.openjml.eclipse.commands.findDeclaration"
                     label="Find Declaration"/>
            <command commandId="org.openjml.eclipse.commands.findReferences"
                     label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.findAllDeclarations"
+                    label="Find All Declarations"/>
            <command commandId="org.openjml.eclipse.commands.rename"
                     label="Rename (JML-aware)"/>
-           <separator name="sep1"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
-                    label="Clear Markers"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
-                    label="Clear and Reindex"/>
-           <separator name="sep2"/>
+           <separator name="sep2a" visible="true"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>
            <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
                     label="Remove OpenJML Nature"/>
+           <menu id="org.jmlspecs.openjml.mainMenu.clearMarkers" label="Clear Markers">
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                       label="All"/>
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+                       label="Selected Files"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.indexProject"
+                    label="Index Project"/>
+           <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
+                    label="Clear and Reindex"/>
         </menu>
      </menuContribution>
-     
+
      <!-- View popup: right-click in Package Explorer, Project Explorer, Outline -->
      <menuContribution locationURI="popup:org.eclipse.ui.popup.any?after=additions">
         <menu id="org.jmlspecs.openjml.viewPopupMenu" label="OpenJML"
@@ -503,20 +620,89 @@
            <command commandId="org.jmlspecs.openjml.commands.checkJML"
                     label="Check JML"
                     tooltip="%command.tooltip.13"/>
-           <command commandId="org.jmlspecs.openjml.commands.runESC"
-                    label="Run ESC"
-                    tooltip="%command.tooltip.14"/>
-           <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
-                    label="Run ESC for Method Under Cursor"/>
+           <menu id="org.jmlspecs.openjml.viewPopupMenu.runEsc"
+                 label="Static check (ESC)" icon="icons/jml-logo-16x16.png">
+              <command commandId="org.jmlspecs.openjml.commands.runESC"
+                       label="As Single Task"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+                       label="Split by File"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+                       label="Split by Method"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
            <command commandId="org.jmlspecs.openjml.commands.RAC"
                     label="Compile RAC"
                     tooltip="%command.tooltip.15"/>
+           <separator name="sep1b" visible="true"/>
+           <command commandId="org.openjml.eclipse.commands.findDeclaration"
+                    label="Find Declaration"/>
+           <command commandId="org.openjml.eclipse.commands.findReferences"
+                    label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.findAllDeclarations"
+                    label="Find All Declarations"/>
+           <command commandId="org.openjml.eclipse.commands.rename"
+                    label="Rename (JML-aware)"/>
+           <separator name="sep2b" visible="true"/>
+           <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
+                    label="Add OpenJML Nature"/>
+           <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
+                    label="Remove OpenJML Nature"/>
+           <menu id="org.jmlspecs.openjml.viewPopupMenu.clearMarkers" label="Clear Markers">
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                       label="All"/>
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+                       label="Selected Files"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.indexProject"
+                    label="Index Project"/>
+        </menu>
+     </menuContribution>
+
+     <!-- Explicit contribution for the JDT Java editor context menu.
+          popup:#TextEditorContext does not reliably appear in CompilationUnitEditor;
+          this ensures the OpenJML menu shows when right-clicking in a .java editor. -->
+     <menuContribution locationURI="popup:org.eclipse.jdt.ui.CompilationUnitEditor.EditorContext?after=additions">
+        <menu id="org.jmlspecs.openjml.javaEditorPopupMenu" label="OpenJML"
+              icon="icons/jml-logo-16x16.png">
+           <command commandId="org.jmlspecs.openjml.commands.checkJML"
+                    label="Check JML in File" />
+           <menu id="org.jmlspecs.openjml.javaEditorPopupMenu.runEsc"
+                 label="Static check (ESC)" icon="icons/jml-logo-16x16.png">
+              <command commandId="org.jmlspecs.openjml.commands.runESC"
+                       label="As Single Task"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByFile"
+                       label="Split by File"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscSplitByMethod"
+                       label="Split by Method"/>
+              <command commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+                       label="For Method Under Cursor"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.RAC"
+                    label="Compile RAC"/>
            <separator name="sep1"/>
-           <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
-                    label="Clear Markers"/>
+           <command commandId="org.openjml.eclipse.commands.findDeclaration"
+                    label="Find Declaration"/>
+           <command commandId="org.openjml.eclipse.commands.findReferences"
+                    label="Find References"/>
+           <command commandId="org.openjml.eclipse.commands.findAllDeclarations"
+                    label="Find All Declarations"/>
+           <command commandId="org.openjml.eclipse.commands.rename"
+                    label="Rename (JML-aware)"/>
+           <separator name="sep2"/>
+           <menu id="org.jmlspecs.openjml.javaEditorPopupMenu.clearMarkers" label="Clear Markers">
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkers"
+                       label="All"/>
+              <command commandId="org.jmlspecs.openjml.commands.clearMarkersSelected"
+                       label="Selected Files"/>
+           </menu>
+           <command commandId="org.jmlspecs.openjml.commands.indexProject"
+                    label="Index Project"/>
            <command commandId="org.jmlspecs.openjml.commands.clearAndReindex"
                     label="Clear and Reindex"/>
-           <separator name="sep2"/>
+           <command commandId="org.jmlspecs.openjml.commands.cancelEsc"
+                    label="Cancel ESC"/>
+           <separator name="sep3"/>
            <command commandId="org.jmlspecs.openjml.commands.enableJmlNature"
                     label="Add OpenJML Nature"/>
            <command commandId="org.jmlspecs.openjml.commands.disableJmlNature"
@@ -524,10 +710,11 @@
         </menu>
      </menuContribution>
   </extension>
-  
+
   <!-- The genericeditor.source.menu contribution is kept as a secondary path
        for the Generic Editor's Source submenu (.jml files).  The primary
        editor popup is now via popup:#TextEditorContext above. -->
+  <!--
   <extension point="org.eclipse.ui.menus">
      <menuContribution locationURI="popup:org.eclipse.ui.genericeditor.source.menu?before=additions">
         <command
@@ -541,15 +728,18 @@
               label="Rename (JML-aware)"/>
      </menuContribution>
   </extension>
+  -->
 
-
-  <!-- FIXME - review default key bindings -->
   <!-- Keybindings -->
+  <!--
   <extension point="org.eclipse.ui.bindings">
      <key sequence="M1+M2+J E" commandId="org.jmlspecs.openjml.commands.runESC"
           contextId="org.eclipse.ui.textEditorScope"
           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
      <key sequence="M1+M2+J M" commandId="org.jmlspecs.openjml.commands.runEscForMethod"
+          contextId="org.eclipse.ui.textEditorScope"
+          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+     <key sequence="M1+M2+J H" commandId="org.jmlspecs.openjml.commands.signatureHelp"
           contextId="org.eclipse.ui.textEditorScope"
           schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
      <key
@@ -563,7 +753,94 @@
            contextId="org.eclipse.ui.genericeditor.genericEditorContext"
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
   </extension>
+  -->
   
+    <!-- LSP-based hover for JML specs in the JDT Java editor.
+       LSP4E's hover is registered only for the generic text editor;
+       this extension hooks into JDT's own hover framework so it fires
+       for .java files, including positions inside JML comments. -->
+  <extension point="org.eclipse.jdt.ui.javaEditorTextHovers">
+     <hover
+           activate="true"
+           class="org.jmlspecs.openjml.eclipse.OpenJMLJavaHover"
+           description="OpenJML JML specification hover"
+           id="org.openjml.jmlHover"
+           label="JML">
+     </hover>
+  </extension>
+
+  <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+      id="openjml_proposals"
+      name="%extension.name.7">
+      <proposalCategory icon="icons/jml-logo-16x16.png"/>
+  </extension>
+
+  <extension
+         id="org.openjml.completionProposals_sl"
+         name="%extension.name.8"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+      <javaCompletionProposalComputer
+        class="org.jmlspecs.openjml.eclipse.ProposalComputer"
+        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
+        <partition type="__java_singleline_comment"/>
+      </javaCompletionProposalComputer>
+  </extension>
+
+  <extension
+         id="org.openjml.completionProposals_ml"
+         name="%extension.name.9"
+         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
+      <javaCompletionProposalComputer
+        class="org.jmlspecs.openjml.eclipse.ProposalComputer"
+        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
+        <partition type="__java_multiline_comment"/>
+      </javaCompletionProposalComputer>
+  </extension>
+  
+    <!-- Outline support for .jml files.
+       LSP4E's EditorToOutlineAdapterFactory (registered for ExtensionBasedTextEditor)
+       uses a 50 ms timeout to wait for the language server, which is too short on
+       first-connect.  Our factory intercepts .jml-file requests, waits up to 5 s,
+       then re-delegates so LSP4E's factory can take its fast path. -->
+  <extension point="org.eclipse.core.runtime.adapters">
+     <factory
+           adaptableType="org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor"
+           class="org.jmlspecs.openjml.eclipse.JmlOutlineAdapterFactory">
+        <adapter type="org.eclipse.ui.views.contentoutline.IContentOutlinePage"/>
+     </factory>
+  </extension>
+
+  <!-- Code mining provider for OpenJML ESC proof status in the JDT Java editor.
+       LSP4E's CodeLensProvider uses enabledWhen=editorHasLanguageServer which
+       only matches the generic text editor, not the JDT Java editor.  This
+       provider is registered specifically for JavaEditor instances and calls
+       the OpenJML LSP server directly via OpenJMLLanguageClient. -->
+  <extension point="org.eclipse.ui.workbench.texteditor.codeMiningProviders">
+    <codeMiningProvider
+        class="org.jmlspecs.openjml.eclipse.OpenJMLCodeMiningProvider"
+        id="org.openjml.OpenJMLUI.codelens"
+        label="OpenJML ESC Status">
+      <enabledWhen>
+        <with variable="editor">
+          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
+        </with>
+      </enabledWhen>
+    </codeMiningProvider>
+
+    <!-- Inlay hints (var type inference) for the JDT Java editor.
+         LineContentCodeMining placement in the JDT Java editor. -->
+    <codeMiningProvider
+        class="org.jmlspecs.openjml.eclipse.OpenJMLInlayHintProvider"
+        id="org.openjml.OpenJMLUI.inlayhints"
+        label="OpenJML Inlay Hints (var types)">
+      <enabledWhen>
+        <with variable="editor">
+          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
+        </with>
+      </enabledWhen>
+    </codeMiningProvider>
+  </extension>
+
   
   <!-- Register a unique JML console -->
   <extension
@@ -618,6 +895,10 @@
            class="org.jmlspecs.openjml.eclipse.JmlReferencesResultPage"
            id="org.jmlspecs.openjml.jmlReferencesPage"
            searchResultClass="org.jmlspecs.openjml.eclipse.JmlReferencesSearchQuery$JmlReferencesSearchResult"/>
+     <viewPage
+           class="org.jmlspecs.openjml.eclipse.JmlDeclarationsResultPage"
+           id="org.jmlspecs.openjml.jmlDeclarationsPage"
+           searchResultClass="org.jmlspecs.openjml.eclipse.JmlFindAllDeclarationsHandler$DeclarationSearchResult"/>
   </extension>
   
   <extension
@@ -1174,28 +1455,6 @@
 
   <!--
   <extension
-         id="JMLProblem"
-         name="%extension.name.1"
-         point="org.eclipse.core.resources.markers">
-    <super type="org.eclipse.jdt.core.problem"/>
-    <persistent value="true"/>
-    <attribute name="declarationInfo"/>
-  </extension>
-  -->
-
-  <!--
-  <extension
-         id="JMLESCProblem"
-         name="%extension.name.2"
-         point="org.eclipse.core.resources.markers">
-    <super type="org.eclipse.jdt.core.problem"/>
-    <persistent value="true"/>
-    <attribute name="declarationInfo"/>
-  </extension>
-  -->
-
-  <!--
-  <extension
          id="JMLHighlight"
          name="%extension.name.3"
          point="org.eclipse.core.resources.markers">
@@ -1730,32 +1989,7 @@
   -->
 
   <!--
-  <extension point="org.eclipse.ui.commands">
-    <command
-          name="Run ESC for Method"
-          description="Run extended static checking on the method at the cursor"
-          categoryId="org.jmlspecs.eclipse.JMLCommandCategory"
-          id="org.jmlspecs.eclipse.commands.RunEscForMethod">
-    </command>
-  </extension>
-  -->
 
-  <!--
-  <extension point="org.eclipse.ui.bindings">
-    <key
-          sequence="M1+E"
-          contextId="org.eclipse.ui.textEditorScope"
-          commandId="org.jmlspecs.eclipse.commands.CheckESC"
-          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-    <key
-          sequence="M1+M3+E"
-          contextId="org.eclipse.ui.textEditorScope"
-          commandId="org.jmlspecs.eclipse.commands.RunEscForMethod"
-          schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-  </extension>
-  -->
-
-  <!--
   <extension
          point="org.eclipse.ui.views">
      <category
@@ -1785,40 +2019,6 @@
            id="org.openjml.counterexampleHover"
            label="%hover.label">
      </hover>
-  </extension>
-  -->
-
-  <!--
-  <extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
-      id="openjml_proposals"
-      name="%extension.name.7">
-      <proposalCategory icon="icons/jml-logo-16x16.png"/>
-  </extension>
-  -->
-
-  <!--
-  <extension
-         id="org.openjml.completionProposals_sl"
-         name="%extension.name.8"
-         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-      <javaCompletionProposalComputer
-        class="org.jmlspecs.openjml.eclipse.ProposalComputer"
-        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
-        <partition type="__java_singleline_comment"/>
-      </javaCompletionProposalComputer>
-  </extension>
-  -->
-
-  <!--
-  <extension
-         id="org.openjml.completionProposals_ml"
-         name="%extension.name.9"
-         point="org.eclipse.jdt.ui.javaCompletionProposalComputer">
-      <javaCompletionProposalComputer
-        class="org.jmlspecs.openjml.eclipse.ProposalComputer"
-        categoryId="org.openjml.OpenJMLUI.openjml_proposals">
-        <partition type="__java_multiline_comment"/>
-      </javaCompletionProposalComputer>
   </extension>
   -->
 
@@ -1873,35 +2073,6 @@
        entry that delegate to LSP4E's OpenDeclarationHyperlinkDetector.
        =================================================================== -->
 
-  <!-- Outline support for .jml files.
-       LSP4E's EditorToOutlineAdapterFactory (registered for ExtensionBasedTextEditor)
-       uses a 50 ms timeout to wait for the language server, which is too short on
-       first-connect.  Our factory intercepts .jml-file requests, waits up to 5 s,
-       then re-delegates so LSP4E's factory can take its fast path. -->
-  <extension point="org.eclipse.core.runtime.adapters">
-     <factory
-           adaptableType="org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor"
-           class="org.jmlspecs.openjml.eclipse.JmlOutlineAdapterFactory">
-        <adapter type="org.eclipse.ui.views.contentoutline.IContentOutlinePage"/>
-     </factory>
-  </extension>
 
-  <!-- Code mining provider for OpenJML ESC proof status in the JDT Java editor.
-       LSP4E's CodeLensProvider uses enabledWhen=editorHasLanguageServer which
-       only matches the generic text editor, not the JDT Java editor.  This
-       provider is registered specifically for JavaEditor instances and calls
-       the OpenJML LSP server directly via OpenJMLLanguageClient. -->
-  <extension point="org.eclipse.ui.workbench.texteditor.codeMiningProviders">
-    <codeMiningProvider
-        class="org.jmlspecs.openjml.eclipse.OpenJMLCodeMiningProvider"
-        id="org.openjml.OpenJMLUI.codelens"
-        label="OpenJML ESC Status">
-      <enabledWhen>
-        <with variable="editor">
-          <instanceof value="org.eclipse.jdt.internal.ui.javaeditor.JavaEditor"/>
-        </with>
-      </enabledWhen>
-    </codeMiningProvider>
-  </extension>
 
 </plugin>

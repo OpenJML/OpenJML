@@ -124,14 +124,16 @@ public class JmlCompletionProviderTest {
 
     @Test
     public void testCompleteReturnsKeywordsInJmlContext() {
-        // Cursor after partial "req" inside a JML annotation
+        // Cursor after partial "req": only "req*" keywords must appear.
         List<CompletionItem> items =
                 JmlCompletionProvider.complete("//@ req", new Position(0, 7));
         assertFalse("Expected keyword completions inside JML context", items.isEmpty());
         assertTrue("'requires' must be in completions",
                 items.stream().anyMatch(i -> "requires".equals(i.getLabel())));
-        assertTrue("'ensures' must be in completions",
+        assertFalse("'ensures' must NOT be in completions for prefix 'req'",
                 items.stream().anyMatch(i -> "ensures".equals(i.getLabel())));
+        assertTrue("All returned keywords must start with the prefix 'req'",
+                items.stream().allMatch(i -> i.getLabel().startsWith("req")));
     }
 
     @Test
@@ -160,6 +162,10 @@ public class JmlCompletionProviderTest {
         assertFalse("Expected backslash completions after '\\res'", items.isEmpty());
         assertTrue("All backslash items must carry a TextEdit",
                 items.stream().allMatch(i -> i.getTextEdit() != null));
+        assertTrue("All backslash items must start with the prefix '\\res'",
+                items.stream().allMatch(i -> i.getLabel().startsWith("\\res")));
+        assertFalse("'\\old' must NOT appear for prefix '\\res'",
+                items.stream().anyMatch(i -> "\\old".equals(i.getLabel())));
     }
 
     @Test

@@ -4,6 +4,7 @@ import static com.sun.tools.javac.parser.Tokens.TokenKind.COLON;
 import static com.sun.tools.javac.parser.Tokens.TokenKind.SEMI;
 
 import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.JmlExtension;
 import org.jmlspecs.openjml.JmlOption;
 import org.jmlspecs.openjml.JmlTree;
@@ -47,7 +48,7 @@ public class StatementExprExtensions extends JmlExtension {
         public Type typecheck(JmlAttr attr, JCTree t, Env<AttrContext> env) {
             var type = super.typecheck(attr,  t,  env);
             if (t instanceof JmlTree.JmlStatementExpr tree && !(tree.expression instanceof JCLiteral lit)) {
-                utils.error(tree.expression != null ? tree.expression : tree,
+                Utils.instance(attr.context).error(tree.expression != null ? tree.expression : tree,
                         "jml.message", "A comment statement may only contain a string literal");
             }
             return type;
@@ -72,7 +73,6 @@ public class StatementExprExtensions extends JmlExtension {
         
         @Override
         public JCTree parse(JCModifiers mods, String id, IJmlClauseKind clauseType, JmlParser parser) {
-            init(parser);
             int pp = parser.pos();
 
             parser.nextToken(); // skip over the keyword
@@ -112,13 +112,13 @@ public class StatementExprExtensions extends JmlExtension {
                         parser.nextToken();
                         st.optionalExpression = parser.parseExpression();
                     } else {
-                        utils.error(tk.pos, "jml.message", "A secondary expression is only permitted for assert or assume statements");
+                        Utils.instance(parser.context).error(tk.pos, "jml.message", "A secondary expression is only permitted for assert or assume statements");
                         parser.skipToSemi();
                     }
                 }
                 ste = st;
             }
-            wrapup(ste,clauseType,true, clauseType != splitClause);
+            wrapup(parser,ste,clauseType,true, clauseType != splitClause);
             if (clauseType == splitClause && st.expression == null) {
                 while (parser.jmlTokenClauseKind() == Operators.endjmlcommentKind) parser.nextToken();
                 JCStatement stt = parser.blockStatement().head;
@@ -134,7 +134,7 @@ public class StatementExprExtensions extends JmlExtension {
                 } else if (stt instanceof IJmlLoop) {
                     ((IJmlLoop)stt).setSplit(splitenabled);
                 } else {
-                    utils.warning(ste, "jml.message", "Ignoring out of place split statement");
+                    Utils.instance(parser.context).warning(ste, "jml.message", "Ignoring out of place split statement");
                 }
                 return stt;
             }

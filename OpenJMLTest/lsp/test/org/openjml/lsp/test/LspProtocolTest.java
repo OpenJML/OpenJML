@@ -1,26 +1,21 @@
 package org.openjml.lsp.test;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import org.eclipse.lsp4j.launch.LSPLauncher;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.openjml.lsp.OpenJMLLanguageServer;
 import org.openjml.lsp.OpenJMLCommands;
 
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * Protocol-layer tests for the OpenJML LSP server.
@@ -31,7 +26,7 @@ import static org.junit.Assert.assertTrue;
  *
  * LSP4J's in-process {@code Launcher} is used only on the server side.
  * The client side sends hand-crafted JSON messages directly over
- * {@link PipedInputStream}/{@link PipedOutputStream} pipes.  This design
+ * {@link java.io.PipedInputStream}/{@link java.io.PipedOutputStream} pipes.  This design
  * avoids the jdk.compiler Gson limitation: jdk.compiler bundles a
  * reflection-disabled Gson, so LSP4J's client-side serialization of types
  * without explicit adapters (e.g., {@code ClientCapabilities}) fails.
@@ -49,45 +44,37 @@ import static org.junit.Assert.assertTrue;
  * Note: OpenJML invocation is inherently slow (JVM warm-up, spec loading),
  * so tests use a generous 60-second timeout per check.
  */
-public class LspProtocolTest {
+public class LspProtocolTest extends ProtocolTestBase {
 
-    private static final long TIMEOUT_SECONDS      = 60;
-    private static final long SHORT_TIMEOUT_SECONDS = 5;
+    // Note: this file used TIMEOUT_SECONDS=60 and SHORT_TIMEOUT_SECONDS=5.
+    // The base class TIMEOUT_SECONDS=120 is more generous; SHORT_TIMEOUT=5 is compatible.
 
-    private OpenJMLLanguageServer server;
-    private RawLspClient          client;
     /** The response to the {@code initialize} request, captured during setUp. */
     private JsonObject initializeResponse;
 
     @Before
+    @Override
     public void setUp() throws Exception {
-        // Use large pipe buffers to avoid stalling on big JSON payloads.
-        PipedInputStream  serverIn  = new PipedInputStream(65536);
-        PipedOutputStream clientOut = new PipedOutputStream(serverIn);
-        PipedInputStream  clientIn  = new PipedInputStream(65536);
-        PipedOutputStream serverOut = new PipedOutputStream(clientIn);
+        // We need to capture the initialize response for testInitializeResponseCapabilities.
+        // Replicate the server startup manually so we can read the response.
+        java.io.PipedInputStream  serverIn  = new java.io.PipedInputStream(65536);
+        java.io.PipedOutputStream clientOut = new java.io.PipedOutputStream(serverIn);
+        java.io.PipedInputStream  clientIn  = new java.io.PipedInputStream(65536);
+        java.io.PipedOutputStream serverOut = new java.io.PipedOutputStream(clientIn);
 
-        server = new OpenJMLLanguageServer();
-        var launcher = LSPLauncher.createServerLauncher(server, serverIn, serverOut);
+        server = new org.openjml.lsp.OpenJMLLanguageServer();
+        var launcher = org.eclipse.lsp4j.launch.LSPLauncher.createServerLauncher(server, serverIn, serverOut);
         server.connect(launcher.getRemoteProxy());
         launcher.startListening();
 
         client = new RawLspClient(clientOut, clientIn);
 
         // LSP handshake: initialize + initialized.
-        // We read the initialize response explicitly so (a) tests can inspect
-        // the advertised capabilities, and (b) we know the server is ready
-        // before we send "initialized" and subsequent requests.
         client.sendRequest("initialize",
                 "{\"processId\":null,\"rootUri\":null,\"capabilities\":{}}");
-        initializeResponse = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        initializeResponse = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Server must respond to initialize", initializeResponse);
         client.sendNotification("initialized", "{}");
-    }
-
-    @After
-    public void tearDown() {
-        if (client != null) client.stop();
     }
 
     // -----------------------------------------------------------------------
@@ -143,7 +130,7 @@ public class LspProtocolTest {
         Path file = testdataFile("testDidOpenDiskFileTypeError/TypeErrDisk.java");
         String uri = file.toUri().toString();
 
-        openDocument(uri, "");  // content ignored — server reads from disk
+        openDocumentFile(uri, Files.readString(file));
 
         JsonObject notification =
                 client.nextNotification("textDocument/publishDiagnostics",
@@ -164,7 +151,7 @@ public class LspProtocolTest {
         Path file = testdataFile("testDidOpenDiskFileClean/CleanDisk.java");
         String uri = file.toUri().toString();
 
-        openDocument(uri, "");  // content ignored — server reads from disk
+        openDocumentFile(uri, Files.readString(file));
 
         JsonObject notification =
                 client.nextNotification("textDocument/publishDiagnostics",
@@ -243,7 +230,7 @@ public class LspProtocolTest {
 
         JsonObject notification =
                 client.nextNotification("textDocument/publishDiagnostics",
-                        SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                        SHORT_TIMEOUT, TimeUnit.SECONDS);
 
         assertNull("Expected NO publishDiagnostics from didChange in save mode", notification);
     }
@@ -261,11 +248,23 @@ public class LspProtocolTest {
         return file;
     }
 
-    /** Send textDocument/didOpen with the given URI and source content. */
+    /** Send textDocument/didOpen with the given URI and source content (pre-escaped). */
     private void openDocument(String uri, String source) throws Exception {
         String params = "{\"textDocument\":{\"uri\":\"" + uri + "\","
                 + "\"languageId\":\"java\",\"version\":1,\"text\":\""
                 + source + "\"}}";
+        client.sendNotification("textDocument/didOpen", params);
+    }
+
+    /**
+     * Send textDocument/didOpen with disk-file content (which may contain
+     * characters that require JSON escaping such as {@code "} and newlines).
+     */
+    private void openDocumentFile(String uri, String source) throws Exception {
+        Gson gson = new Gson();
+        String params = "{\"textDocument\":{\"uri\":" + gson.toJson(uri) + ","
+                + "\"languageId\":\"java\",\"version\":1,\"text\":"
+                + gson.toJson(source) + "}}";
         client.sendNotification("textDocument/didOpen", params);
     }
 
@@ -282,14 +281,40 @@ public class LspProtocolTest {
         client.sendNotification("textDocument/didSave", params);
     }
 
+    /**
+     * Send {@code workspace/symbol} for {@code query} and return the list of
+     * matched symbol names (exact case-sensitive match, per the server's filter).
+     * Empty query returns all non-synthetic names.
+     */
+    private List<String> queryWorkspaceSymbol(String query) throws Exception {
+        Gson gson = new Gson();
+        client.sendRequest("workspace/symbol", "{\"query\":" + gson.toJson(query) + "}");
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        assertNotNull("Expected response to workspace/symbol for query=" + query, response);
+        assertFalse("workspace/symbol must not return an error",
+                response.has("error") && !response.get("error").isJsonNull());
+        if (!response.has("result") || response.get("result").isJsonNull()) return List.of();
+        JsonArray arr = response.getAsJsonArray("result");
+        if (arr == null) return List.of();
+        List<String> names = new ArrayList<>();
+        for (var el : arr) {
+            JsonObject sym = el.getAsJsonObject();
+            if (sym.has("name")) names.add(sym.get("name").getAsString());
+        }
+        return names;
+    }
+
     /** Send workspace/didChangeConfiguration to change the checkTriggerOn setting. */
     private void setCheckTriggerOn(String mode) throws Exception {
         String params = "{\"settings\":{\"openjml\":{\"checkTriggerOn\":\"" + mode + "\"}}}";
         client.sendNotification("workspace/didChangeConfiguration", params);
     }
 
-    /** Send workspace/executeCommand with no arguments. */
-    private void executeCommand(String command) throws Exception {
+    /**
+     * Send workspace/executeCommand with no arguments and without draining the response.
+     * (Differs from base {@link #executeCommand(String, String)} which requires args.)
+     */
+    private void executeCommandNoArgs(String command) throws Exception {
         String params = "{\"command\":\"" + command + "\",\"arguments\":[]}";
         client.sendRequest("workspace/executeCommand", params);
     }
@@ -302,24 +327,6 @@ public class LspProtocolTest {
         String params = "{\"command\":\"" + command + "\",\"arguments\":[\"\",\"\",\"\",\"\",\""
                 + uri + "\"]}";
         client.sendRequest("workspace/executeCommand", params);
-    }
-
-    /**
-     * Wait for the next publishDiagnostics notification whose URI matches the
-     * given URI.  Ignores notifications for other URIs.
-     */
-    private JsonObject nextDiagsForUri(String uri, long timeout, TimeUnit unit)
-            throws InterruptedException {
-        long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (true) {
-            long remaining = deadline - System.nanoTime();
-            if (remaining <= 0) return null;
-            JsonObject msg = client.nextNotification(
-                    "textDocument/publishDiagnostics", remaining, TimeUnit.NANOSECONDS);
-            if (msg == null) return null;
-            String msgUri = msg.getAsJsonObject("params").get("uri").getAsString();
-            if (uri.equals(msgUri)) return msg;
-        }
     }
 
     /** Return true if the diagnostics array contains at least one Error-severity (1) entry. */
@@ -362,8 +369,18 @@ public class LspProtocolTest {
         // → runWithContentOrFile finds lastContent → runs ESC on in-memory source.
         executeCommandWithUri(OpenJMLCommands.RUN_ESC, uri);
 
-        // ESC publishes its own diagnostics notification.
-        JsonObject escNotif = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        // ESC may publish intermediate empty notifications (e.g. when a method proof starts
+        // and the CHECKING state is pushed before results arrive).  Poll until we receive a
+        // non-empty diagnostics notification for this URI.
+        JsonObject escNotif = null;
+        long escDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
+        while (System.nanoTime() < escDeadline) {
+            long remaining = escDeadline - System.nanoTime();
+            JsonObject notif = nextDiagsForUri(uri, remaining, TimeUnit.NANOSECONDS);
+            if (notif == null) break;
+            JsonArray diags = notif.getAsJsonObject("params").getAsJsonArray("diagnostics");
+            if (!diags.isEmpty()) { escNotif = notif; break; }
+        }
         assertNotNull("Expected publishDiagnostics notification after openjml.runEsc", escNotif);
         JsonArray escDiags = escNotif.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected ESC to report a postcondition violation", escDiags.isEmpty());
@@ -493,7 +510,7 @@ public class LspProtocolTest {
                 + "\"position\":{\"line\":3,\"character\":15}}";
         client.sendRequest("textDocument/hover", hoverParams);
 
-        JsonObject response = client.nextResponse(SHORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
         assertNotNull("Expected a response to textDocument/hover", response);
         // The server returns null when no spec is found — here it should be non-null.
         assertFalse("Hover result must not be an error",
@@ -560,17 +577,183 @@ public class LspProtocolTest {
     }
 
     // -----------------------------------------------------------------------
+    // Folding range over wire
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code textDocument/foldingRange} returns a non-empty array
+     * of ranges over the full JSON-RPC wire for a document that contains
+     * multi-line JML annotation blocks.
+     *
+     * <p>Folding range computation is a pure text scan ({@link
+     * org.openjml.lsp.FoldingRangeProvider#fromSource}) that requires no AST.
+     * We nonetheless wait for {@code publishDiagnostics} to confirm the document
+     * is fully open on the server before sending the request, so there is no
+     * race between didOpen and the foldingRange response.
+     *
+     * <p>This test exercises the full request / response cycle (JSON-RPC framing,
+     * {@code OpenJMLTextDocumentService#foldingRange}, and
+     * {@link org.openjml.lsp.FoldingRangeProvider}) — unlike
+     * {@code FoldingRangeTest} which calls {@code FoldingRangeProvider.fromSource}
+     * directly.
+     */
+    @Test
+    public void testFoldingRangeOverWireReturnsRanges() throws Exception {
+        String uri = "file:///FoldingWire.java";
+        // Three consecutive JML line-comment lines: lines 1-3 (0-indexed).
+        // FoldingRangeProvider should return at least one range covering them.
+        String source = "public class FoldingWire {\\n"
+                + "    //@ requires x >= 0;\\n"
+                + "    //@ ensures \\\\result >= 0;\\n"
+                + "    //@ assignable \\\\nothing;\\n"
+                + "    public int id(int x) { return x; }\\n"
+                + "}\\n";
+
+        openDocument(uri, source);
+
+        // Wait for the initial --check to complete (confirms doc is open on server).
+        JsonObject diagNotif = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didOpen", diagNotif);
+
+        // textDocument/foldingRange only needs the document URI — no position.
+        String foldParams = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
+        client.sendRequest("textDocument/foldingRange", foldParams);
+
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        assertNotNull("Expected a response to textDocument/foldingRange", response);
+        assertFalse("foldingRange response must not be an error",
+                response.has("error") && !response.get("error").isJsonNull());
+        assertTrue("foldingRange response must have a 'result' field", response.has("result"));
+        assertFalse("foldingRange result must not be JSON null", response.get("result").isJsonNull());
+
+        JsonArray ranges = response.getAsJsonArray("result");
+        assertNotNull("foldingRange result must be a JSON array", ranges);
+        assertFalse("Expected at least one folding range for the multi-line JML block",
+                ranges.isEmpty());
+
+        // The first range must span the three consecutive JML comment lines (1-3, 0-indexed).
+        JsonObject first = ranges.get(0).getAsJsonObject();
+        assertEquals("startLine of first folding range", 1, first.get("startLine").getAsInt());
+        assertEquals("endLine of first folding range",   3, first.get("endLine").getAsInt());
+    }
+
+    // -----------------------------------------------------------------------
+    // workspace/symbol: index then edit
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code workspace/symbol} reflects the live cache accurately
+     * after a document is significantly edited: declarations from the original
+     * content must not be returned once the editor content changes, and newly
+     * introduced declarations must appear.
+     *
+     * <p>Scenario:
+     * <ol>
+     *   <li>Two in-memory files are opened.  {@code Alpha} has {@code alphaField}
+     *       and {@code alphaMethod}; {@code Beta} has {@code betaField} and
+     *       {@code betaMethod}.</li>
+     *   <li>{@code workspace/symbol} is queried for each name — all found.</li>
+     *   <li>{@code Alpha.java} is replaced entirely via {@code textDocument/didChange}:
+     *       {@code alphaField} and {@code alphaMethod} disappear;
+     *       {@code updatedField} and {@code updatedMethod} are introduced.
+     *       The class name {@code Alpha} stays.</li>
+     *   <li>After the server re-checks the file (signalled by
+     *       {@code publishDiagnostics}), {@code workspace/symbol} is queried again:
+     *       new names appear; old names from Alpha.java are gone; Beta's names
+     *       are unaffected.</li>
+     * </ol>
+     */
+    @Test
+    public void testWorkspaceSymbolReflectsEditedContent() throws Exception {
+        String alphaUri = "file:///WsAlpha.java";
+        String betaUri  = "file:///WsBeta.java";
+
+        String alphaInitial =
+                "public class Alpha {\\n" +
+                "    public int alphaField;\\n" +
+                "    public void alphaMethod() {}\\n" +
+                "}\\n";
+        String betaSource =
+                "public class Beta {\\n" +
+                "    public int betaField;\\n" +
+                "    public void betaMethod() {}\\n" +
+                "}\\n";
+
+        // Open both files; wait for the initial checks to complete.
+        openDocument(alphaUri, alphaInitial);
+        assertNotNull("Expected publishDiagnostics after opening Alpha",
+                nextDiagsForUri(alphaUri, TIMEOUT_SECONDS, TimeUnit.SECONDS));
+
+        openDocument(betaUri, betaSource);
+        assertNotNull("Expected publishDiagnostics after opening Beta",
+                nextDiagsForUri(betaUri, TIMEOUT_SECONDS, TimeUnit.SECONDS));
+
+        // --- Phase 1: initial symbol state ---
+        assertTrue("'Alpha' must be found before edit",
+                queryWorkspaceSymbol("Alpha").contains("Alpha"));
+        assertTrue("'alphaField' must be found before edit",
+                queryWorkspaceSymbol("alphaField").contains("alphaField"));
+        assertTrue("'alphaMethod' must be found before edit",
+                queryWorkspaceSymbol("alphaMethod").contains("alphaMethod"));
+        assertTrue("'betaField' must be found before edit",
+                queryWorkspaceSymbol("betaField").contains("betaField"));
+        assertTrue("'betaMethod' must be found before edit",
+                queryWorkspaceSymbol("betaMethod").contains("betaMethod"));
+
+        // --- Phase 2: heavily edit Alpha.java ---
+        // alphaField and alphaMethod are gone; updatedField and updatedMethod appear.
+        String alphaEdited =
+                "public class Alpha {\\n" +
+                "    public long updatedField;\\n" +
+                "    public String updatedMethod(int x, boolean flag) { return \\\"\\\"; }\\n" +
+                "}\\n";
+        changeDocument(alphaUri, alphaEdited);
+
+        // Wait for the re-check to complete.
+        assertNotNull("Expected publishDiagnostics after editing Alpha",
+                nextDiagsForUri(alphaUri, TIMEOUT_SECONDS, TimeUnit.SECONDS));
+
+        // --- Phase 3: verify the index reflects the edit ---
+        // Class name is unchanged.
+        assertTrue("'Alpha' must still be found after edit",
+                queryWorkspaceSymbol("Alpha").contains("Alpha"));
+        // New members must appear.
+        assertTrue("'updatedField' must be found after edit",
+                queryWorkspaceSymbol("updatedField").contains("updatedField"));
+        assertTrue("'updatedMethod' must be found after edit",
+                queryWorkspaceSymbol("updatedMethod").contains("updatedMethod"));
+        // Removed members of Alpha must be gone.
+        assertFalse("'alphaField' must NOT be found after removal",
+                queryWorkspaceSymbol("alphaField").contains("alphaField"));
+        assertFalse("'alphaMethod' must NOT be found after removal",
+                queryWorkspaceSymbol("alphaMethod").contains("alphaMethod"));
+        // Beta is unchanged — its symbols must be unaffected.
+        assertTrue("'betaField' must still be found after Alpha edit",
+                queryWorkspaceSymbol("betaField").contains("betaField"));
+        assertTrue("'betaMethod' must still be found after Alpha edit",
+                queryWorkspaceSymbol("betaMethod").contains("betaMethod"));
+        // New formals from the edited method must be indexed too.
+        assertTrue("Formal 'x' in updatedMethod must be found",
+                queryWorkspaceSymbol("x").contains("x"));
+        assertTrue("Formal 'flag' in updatedMethod must be found",
+                queryWorkspaceSymbol("flag").contains("flag"));
+    }
+
+    // -----------------------------------------------------------------------
     // clearAndReindex command
     // -----------------------------------------------------------------------
 
     /**
      * After openDocument (which triggers a check and produces diagnostics),
-     * {@code openjml.clearAndReindex} must clear all server caches, publish an
-     * empty diagnostics list for the open file, and then re-check it — producing
-     * the original diagnostics again.
+     * {@code openjml.clearAndReindex} must clear all server caches and publish
+     * empty diagnostics for the open file. The server does NOT auto-recheck from
+     * cached editor content — the client is responsible for re-sending
+     * {@code textDocument/didChange} for any dirty editors after a clear.
+     * This test verifies: (1) markers cleared after the command, and (2) errors
+     * are restored once the client re-sends the file content via {@code didChange}.
      */
     @Test
-    public void testClearAndReindexRechecksOpenFile() throws Exception {
+    public void testClearAndReindexClearsMarkersAndClientResendRestoresDiags() throws Exception {
         String uri    = "file:///ClearReindex.java";
         String source = "public class ClearReindex {\\n    public int m() { return \\\"not an int\\\"; }\\n}\\n";
 
@@ -583,19 +766,85 @@ public class LspProtocolTest {
         assertFalse("Expected non-empty initial diagnostics", firstDiags.isEmpty());
 
         // Issue clearAndReindex.
-        executeCommand(OpenJMLCommands.CLEAR_AND_REINDEX);
+        executeCommandNoArgs(OpenJMLCommands.CLEAR_AND_REINDEX);
 
-        // The server should publish empty diagnostics (cache cleared) for the open file.
+        // The server must publish empty diagnostics (markers cleared) for the open file.
         JsonObject cleared = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Expected publishDiagnostics after clearAndReindex (cache clear)", cleared);
         JsonArray clearedDiags = cleared.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertEquals("Expected empty diagnostics immediately after cache clear", 0, clearedDiags.size());
 
-        // The server then re-checks the open file and must produce the original errors again.
+        // The client re-sends the file content (correct protocol after clearAndReindex).
+        changeDocument(uri, source);
+
+        // The server should now re-check and restore the original error diagnostics.
         JsonObject rechecked = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertNotNull("Expected publishDiagnostics after clearAndReindex (re-check)", rechecked);
+        assertNotNull("Expected publishDiagnostics after client re-sent didChange", rechecked);
         JsonArray recheckedDiags = rechecked.getAsJsonObject("params").getAsJsonArray("diagnostics");
         assertFalse("Expected non-empty diagnostics after re-check", recheckedDiags.isEmpty());
         assertTrue("Expected Error-severity diagnostic after re-check", hasErrorDiagnostic(recheckedDiags));
+    }
+
+    // -----------------------------------------------------------------------
+    // textDocument/semanticTokens/full over wire
+    // -----------------------------------------------------------------------
+
+    /**
+     * Verifies that {@code textDocument/semanticTokens/full} returns a non-empty
+     * token list over the full JSON-RPC wire for a document containing JML
+     * annotations.
+     *
+     * <p>The server uses AST-based token generation when an attributed AST is
+     * cached (after a {@code --check} completes), falling back to regex when not.
+     * We wait for {@code publishDiagnostics} to ensure the AST is populated before
+     * requesting tokens.
+     *
+     * <p>The token list is a flat array of 5-integer tuples
+     * {@code [deltaLine, deltaStartChar, length, tokenTypeIndex, tokenModifiers]}.
+     * At minimum one JML keyword token (type index 14) must be present.
+     */
+    @Test
+    public void testSemanticTokensFullOverWireReturnsJmlKeywords() throws Exception {
+        String uri = "file:///SemTokWire.java";
+        String source = "public class SemTokWire {\\n"
+                + "    //@ requires x >= 0;\\n"
+                + "    //@ ensures \\\\result >= 0;\\n"
+                + "    public int id(int x) { return x; }\\n"
+                + "}\\n";
+
+        openDocument(uri, source);
+
+        // Wait for the --check to complete so the AST is cached and AST-based tokens are used.
+        JsonObject diagNotif = nextDiagsForUri(uri, TIMEOUT_SECONDS, TimeUnit.SECONDS);
+        assertNotNull("Expected publishDiagnostics after didOpen", diagNotif);
+
+        String stParams = "{\"textDocument\":{\"uri\":\"" + uri + "\"}}";
+        client.sendRequest("textDocument/semanticTokens/full", stParams);
+
+        JsonObject response = client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        assertNotNull("Expected a response to textDocument/semanticTokens/full", response);
+        assertFalse("semanticTokens/full must not return an error",
+                response.has("error") && !response.get("error").isJsonNull());
+        assertTrue("semanticTokens/full response must have a 'result' field",
+                response.has("result"));
+        assertFalse("semanticTokens/full result must not be JSON null",
+                response.get("result").isJsonNull());
+
+        JsonObject result = response.getAsJsonObject("result");
+        assertTrue("semanticTokens/full result must have a 'data' field", result.has("data"));
+        JsonArray data = result.getAsJsonArray("data");
+        assertNotNull("semanticTokens/full data must be a JSON array", data);
+        assertFalse("semanticTokens/full data must not be empty for a file with JML annotations",
+                data.isEmpty());
+        assertEquals("semanticTokens/full data length must be a multiple of 5",
+                0, data.size() % 5);
+
+        // Verify at least one keyword token (type index 14) is present.
+        boolean hasKeyword = false;
+        for (int i = 3; i < data.size(); i += 5) {
+            if (data.get(i).getAsInt() == 14) { hasKeyword = true; break; }
+        }
+        assertTrue("semanticTokens/full must return at least one keyword token (type 14) "
+                + "for a file with JML requires/ensures", hasKeyword);
     }
 }

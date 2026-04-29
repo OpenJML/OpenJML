@@ -4,7 +4,12 @@
  */
 package org.jmlspecs.openjml.eclipse;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.RGB;
 
 /**
  * Preference keys and defaults for the LSP-based OpenJML integration.
@@ -26,7 +31,7 @@ public class OpenJMLOptions {
 
     /** When to run --check: "edit" (default) or "save". */
     public static final String checkTriggerOnKey       = "openjml.checkTriggerOn";
-    /** When to run --esc: "manual" (default), "save", or "edit". */
+    /** When to run --esc: "manual" (default) or "save". */
     public static final String escTriggerOnKey         = "openjml.escTriggerOn";
     /**
      * How ESC behaves when there are dirty (unsaved) editors:
@@ -40,14 +45,13 @@ public class OpenJMLOptions {
     public static final String propertiesFileKey       = "openjml.propertiesFile";
     /** Path to OpenJML specs directory (blank = use launcher default). */
     public static final String specsPathKey            = "openjml.specsPath";
-    /** Path to SMT solvers directory (blank = use launcher default). */
-    public static final String solversPathKey          = "openjml.solversPath";
+
     /** Source root(s) for -sourcepath (blank = single-file mode). */
     public static final String sourcePathKey           = "openjml.sourcePath";
     /** Classpath for pre-compiled dependencies (blank = none). */
     public static final String classPathKey            = "openjml.classPath";
 
-    /** ESC engine: "subprocess" (default), "concurrent", or "fresh". */
+    /** ESC engine: "fresh" (default) or "concurrent". */
     public static final String escEngineKey            = "openjml.escEngine";
     /** Number of parallel ESC threads (0 = server default). */
     public static final String escThreadsKey           = "openjml.escThreads";
@@ -66,6 +70,9 @@ public class OpenJMLOptions {
 
     /** Syntax coloring strategy: "ast" (default) or "regex". */
     public static final String syntaxColoringStrategyKey = "openjml.syntaxColoringStrategy";
+
+    /** Syntax coloring scope: "preserve Java coloring" (default) or "overwrite Java coloring". */
+    public static final String syntaxColoringScopeKey = "openjml.syntaxColoringScope";
 
     // -----------------------------------------------------------------------
     // Key constants — Tab 2: OpenJML Tool Options — JML section
@@ -93,8 +100,10 @@ public class OpenJMLOptions {
     public static final String allowPureInSpecsKey     = "openjml.allowPureInSpecs";
     /** Require white space after @ in JML comment (--require-white-space; default false). */
     public static final String requireWhiteSpaceKey    = "openjml.requireWhiteSpace";
-    /** Warning keys to enable/disable, comma-separated (--warn). */
+    /** Warning keys to enable, comma-separated (--warn). */
     public static final String warnKey                 = "openjml.warn";
+    /** Warning keys to disable, comma-separated (--no-warn). */
+    public static final String noWarnKey               = "openjml.noWarn";
 
     // -----------------------------------------------------------------------
     // Key constants — Tab 2: OpenJML Tool Options — ESC section
@@ -143,6 +152,106 @@ public class OpenJMLOptions {
     public static final String racMissingModelFieldRepKey = "openjml.racMissingModelFieldRep";
 
     // -----------------------------------------------------------------------
+    // Syntax color token-type descriptors (Tab 2 — Syntax Colors)
+    // -----------------------------------------------------------------------
+
+    /**
+     * One colorable JML semantic token type.
+     *
+     * <p>Defaults are close to Eclipse's Java editor theme:
+     * keywords purple+bold, backslash tokens green+bold,
+     * string literals blue, everything else black.
+     *
+     * @param id             legend token-type id (matches SemanticTokensProvider)
+     * @param label          human-readable label for the preference UI
+     * @param r g b          default RGB color components
+     * @param bold           default bold
+     * @param italic         default italic
+     * @param underline      default underline
+     * @param strikethrough  default strikethrough
+     */
+    public record TokenColorEntry(
+            String id, String label,
+            int r, int g, int b,
+            boolean bold, boolean italic, boolean underline, boolean strikethrough) {
+
+        public RGB    defaultRgb()        { return new RGB(r, g, b); }
+        public String colorKey()          { return "openjml.color." + id; }
+        public String boldKey()           { return "openjml.color." + id + ".bold"; }
+        public String italicKey()         { return "openjml.color." + id + ".italic"; }
+        public String underlineKey()      { return "openjml.color." + id + ".underline"; }
+        public String strikethroughKey()  { return "openjml.color." + id + ".strikethrough"; }
+
+        /** Returns the default TextAttribute style bitmask. */
+        public int defaultStyle() {
+            int s = SWT.NORMAL;
+            if (bold)          s |= SWT.BOLD;
+            if (italic)        s |= SWT.ITALIC;
+            if (underline)     s |= org.eclipse.jface.text.TextAttribute.UNDERLINE;
+            if (strikethrough) s |= org.eclipse.jface.text.TextAttribute.STRIKETHROUGH;
+            return s;
+        }
+    }
+
+    /**
+     * The 19 active JML semantic token types in display order.
+     * (Types "macro" and "comment" are declared in the legend but never emitted.)
+     */
+    public static final java.util.List<TokenColorEntry> TOKEN_COLORS = java.util.List.of(
+        //                id            label                                       r    g    b  bo  it  ul  st
+        new TokenColorEntry("keyword",       "JML keyword (requires, ensures, …)",  127,  0,  85, true,  false, false, false),
+        new TokenColorEntry("modifier",      "JML modifier (pure, spec_public, …)", 127,  0,  85, false, false, false, false),
+        new TokenColorEntry("function",      "Backslash token (\\result, \\old, …)",  63, 127,  95, true,  false, false, false),
+        new TokenColorEntry("type",          "Type (generic)",                         0,   0,   0, false, false, false, false),
+        new TokenColorEntry("class",         "Class name",                             0,   0,   0, false, false, false, false),
+        new TokenColorEntry("interface",     "Interface name",                         0,   0,   0, false, false, false, false),
+        new TokenColorEntry("enum",          "Enum name",                              0,   0,   0, false, false, false, false),
+        new TokenColorEntry("struct",        "Struct name",                            0,   0,   0, false, false, false, false),
+        new TokenColorEntry("typeParameter", "Type parameter",                         0,   0,   0, false, false, false, false),
+        new TokenColorEntry("namespace",     "Namespace / package",                    0,   0, 128, false, false, false, false),
+        new TokenColorEntry("enumMember",    "Enum member",                            0,   0,   0, false, false, false, false),
+        new TokenColorEntry("method",        "Method name",                            0,   0,   0, false, false, false, false),
+        new TokenColorEntry("parameter",     "Parameter name",                         0,   0,   0, false, false, false, false),
+        new TokenColorEntry("variable",      "Variable name",                          0,   0,   0, false, false, false, false),
+        new TokenColorEntry("property",      "Field name",                             0,   0,   0, false, false, false, false),
+        new TokenColorEntry("macro",         "Macro",                                  0,   0,   0, false, false, false, false),
+        new TokenColorEntry("decorator",     "Decorator",                            100, 100, 100, false, false, false, false),
+        new TokenColorEntry("comment",       "Comment",                              128, 128, 128, false, false, false, false),
+        new TokenColorEntry("string",        "String literal",                         42,   0, 255, false, false, false, false),
+        new TokenColorEntry("number",        "Number literal",                         25,   0, 134, false, false, false, false),
+        new TokenColorEntry("operator",      "Operator",                               0,   0,   0, false, false, false, false)
+    );
+
+    /** Returns the stored RGB for a token type, reading from the given preference store. */
+    public static RGB getTokenColor(IPreferenceStore store, TokenColorEntry e) {
+        return PreferenceConverter.getColor(store, e.colorKey());
+    }
+
+    /** Returns the stored style bitmask (SWT.BOLD | SWT.ITALIC | UNDERLINE | STRIKETHROUGH). */
+    public static int getTokenStyle(IPreferenceStore store, TokenColorEntry e) {
+        int s = SWT.NORMAL;
+        if (store.getBoolean(e.boldKey()))          s |= SWT.BOLD;
+        if (store.getBoolean(e.italicKey()))        s |= SWT.ITALIC;
+        if (store.getBoolean(e.underlineKey()))     s |= org.eclipse.jface.text.TextAttribute.UNDERLINE;
+        if (store.getBoolean(e.strikethroughKey())) s |= org.eclipse.jface.text.TextAttribute.STRIKETHROUGH;
+        return s;
+    }
+
+    /**
+     * Registers syntax-color defaults in the preference store.
+     * Called from {@link #initializeDefaults}.
+     */
+    public static void initializeSyntaxColorDefaults(IPreferenceStore store) {
+        for (TokenColorEntry e : TOKEN_COLORS) {
+            PreferenceConverter.setDefault(store, e.colorKey(), e.defaultRgb());
+            store.setDefault(e.boldKey(),          e.bold());
+            store.setDefault(e.italicKey(),        e.italic());
+            store.setDefault(e.underlineKey(),     e.underline());
+            store.setDefault(e.strikethroughKey(), e.strikethrough());
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // Defaults
     // -----------------------------------------------------------------------
 
@@ -156,10 +265,11 @@ public class OpenJMLOptions {
         store.setDefault(escTriggerOnKey,             "manual");
         store.setDefault(escDirtyFilesBehaviorKey,    "ask");
         store.setDefault(racSaveBeforeKey,            false);
-        store.setDefault(escEngineKey,                "subprocess");
+        store.setDefault(escEngineKey,                "fresh");
         store.setDefault(escThreadsKey,               "0");
         store.setDefault(useIntegratedOutlineKey,     "true");
         store.setDefault(syntaxColoringStrategyKey,   "ast");
+        store.setDefault(syntaxColoringScopeKey,      "preserve Java coloring");
         // Tab 2 — JML
         store.setDefault(nullableByDefaultKey,        "false");
         store.setDefault(langKey,                     "openjml");
@@ -173,6 +283,7 @@ public class OpenJMLOptions {
         store.setDefault(allowPureInSpecsKey,         "true");
         store.setDefault(requireWhiteSpaceKey,        "false");
         store.setDefault(warnKey,                     "");
+        store.setDefault(noWarnKey,                   "");
         // Tab 2 — ESC
         store.setDefault(escMaxWarningsKey,           "2147483647");
         store.setDefault(timeoutKey,                  "");
@@ -193,6 +304,8 @@ public class OpenJMLOptions {
         store.setDefault(racShowSourceKey,            "source");
         store.setDefault(showNotExecutableKey,        "false");
         store.setDefault(racMissingModelFieldRepKey,  "skip");
+        // Syntax color defaults (Tab 2 — Syntax Colors)
+        initializeSyntaxColorDefaults(store);
     }
 
     // -----------------------------------------------------------------------
@@ -238,6 +351,7 @@ public class OpenJMLOptions {
         new ToolOption(allowPureInSpecsKey,        "--allow-pure-in-specs",         "true",       true),
         new ToolOption(requireWhiteSpaceKey,       "--require-white-space",         "false",      true),
         new ToolOption(warnKey,                    "--warn",                        "",           false),
+        new ToolOption(noWarnKey,                  "--no-warn",                     "",           false),
         // ── ESC ──────────────────────────────────────────────────────
         new ToolOption(escMaxWarningsKey,          "--esc-max-warnings",            "2147483647", false),
         new ToolOption(timeoutKey,                 "--timeout",                     "",           false),
@@ -264,13 +378,17 @@ public class OpenJMLOptions {
     // Internal policy flags
     // -----------------------------------------------------------------------
 
+    private static final boolean USE_PROPERTIES_FILE = true; // kept for writePropertiesFile / buildToolCommandLineArgs
+
     /**
-     * When {@code true} (default), Tab-2 options are communicated to the LSP
-     * server via a generated {@code .properties} file passed as
-     * {@code --properties}.  When {@code false}, options are passed as
-     * individual command-line flags in a {@code toolArgs} list.
+     * Strips all whitespace around commas in a comma-separated list value.
+     * For example, {@code "a, b , c"} becomes {@code "a,b,c"}.
+     * Returns the value unchanged if it contains no commas.
      */
-    private static final boolean USE_PROPERTIES_FILE = true;
+    private static String stripCommaSpaces(String val) {
+        if (val == null || !val.contains(",")) return val;
+        return val.replaceAll("\\s*,\\s*", ",").trim();
+    }
 
     /**
      * When {@code true} (default), only options whose current value differs
@@ -337,6 +455,9 @@ public class OpenJMLOptions {
             if (val == null) val = "";
             // Verboseness=0 (quiet) suppresses ESC diagnostics; clamp to minimum 1.
             if (opt.prefKey().equals(verbosityKey) && "0".equals(val)) val = "1";
+            // Strip embedded whitespace from comma-separated list options.
+            if (opt.prefKey().equals(warnKey) || opt.prefKey().equals(noWarnKey))
+                val = stripCommaSpaces(val);
             if (ONLY_NON_DEFAULTS && opt.defaultValue().equals(val)) continue;
             if (opt.isBoolean()) {
                 if ("true".equals(val)) {
@@ -380,6 +501,9 @@ public class OpenJMLOptions {
         for (ToolOption opt : TOOL_OPTIONS) {
             String val = store.getString(opt.prefKey());
             if (val == null) val = "";
+            // Strip embedded whitespace from comma-separated list options.
+            if (opt.prefKey().equals(warnKey) || opt.prefKey().equals(noWarnKey))
+                val = stripCommaSpaces(val);
             if (ONLY_NON_DEFAULTS && opt.defaultValue().equals(val)) continue;
             if (opt.isBoolean()) {
                 if ("true".equals(val)) {
@@ -417,38 +541,290 @@ public class OpenJMLOptions {
      * {@code .properties} file ({@link #USE_PROPERTIES_FILE}{@code = true}) or
      * as a flat {@code toolArgs} list of command-line flags
      * ({@link #USE_PROPERTIES_FILE}{@code = false}).
+     *
+     * <p>Per-project paths (sourcePath, classPath, specsPath, propertiesFile,
+     * rootPaths, javaOutputDir, racOutputDir) are now sent inside the {@code projects} list
+     * rather than as global top-level fields.  Commands from the Eclipse plugin
+     * carry only a {@code projectId}; the server looks up the settings.
      */
     public static java.util.Map<String, Object> buildInitializationOptions() {
         var opts = new java.util.LinkedHashMap<String, Object>();
+
+        // Client identification — always sent so the server applies correct defaults.
+        opts.put("client", "eclipse-jdt");
 
         // Tab 1 — plugin / LSP settings (always sent individually)
         opts.put("checkTriggerOn",         nonBlank(value(checkTriggerOnKey),  "edit"));
         opts.put("escTriggerOn",           nonBlank(value(escTriggerOnKey),    "manual"));
         opts.put("specsPath",              value(specsPathKey));
-        opts.put("sourcePath",             value(sourcePathKey));
-        opts.put("classPath",              value(classPathKey));
-        opts.put("solversPath",            value(solversPathKey));
-        opts.put("propertiesFile",         value(propertiesFileKey));
-        opts.put("racOutputDir",           value(racOutputDirKey));
-        opts.put("escEngine",              nonBlank(value(escEngineKey), "subprocess"));
+
+        opts.put("escEngine",              nonBlank(value(escEngineKey), "fresh"));
         opts.put("useIntegratedOutline",   value(useIntegratedOutlineKey));
         opts.put("syntaxColoringStrategy", nonBlank(value(syntaxColoringStrategyKey), "ast"));
+        opts.put("syntaxColoringScope",    nonBlank(value(syntaxColoringScopeKey), "preserve Java coloring"));
         String threads = value(escThreadsKey);
         if (threads != null && !threads.isBlank() && !threads.equals("0")) {
             try { opts.put("escThreads", Integer.parseInt(threads.trim())); }
             catch (NumberFormatException ignored) {}
         }
 
-        // Tab 2 — tool options communicated via properties file or args list
-        if (USE_PROPERTIES_FILE) {
-            java.nio.file.Path propsFile = writePropertiesFile();
-            if (propsFile != null) {
-                opts.put("generatedPropertiesFile", propsFile.toString());
-            }
-        } else {
-            opts.put("toolArgs", buildToolCommandLineArgs());
+        // Tab 2 — tool options sent as a toolOptions array: ["--properties", "<file>"].
+        // This is project-independent; per-project path fields are in the projects list.
+        java.nio.file.Path propsFile = writePropertiesFile();
+        if (propsFile != null) {
+            opts.put("toolOptions",
+                    java.util.List.of("--properties", propsFile.toString()));
         }
 
+        // Per-project configs — sourcePath, classPath, specsPath, rootPaths, outputDir.
+        java.util.List<java.util.Map<String, Object>> projects = buildProjectsList();
+        if (!projects.isEmpty()) opts.put("projects", projects);
+
         return opts;
+    }
+
+    /**
+     * Returns a path-separator-separated string of JDT source-folder filesystem
+     * paths for all open Eclipse projects that carry the JML nature.
+     *
+     * @deprecated Use {@link #buildProjectsList} instead.  This method is kept
+     *             only for backward compatibility with older code paths that have
+     *             not yet been converted to the per-project config protocol.
+     */
+    @Deprecated
+    public static String buildJmlProjectRoots() {
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+            if (!project.isOpen() || !JmlNature.hasNature(project)) continue;
+            org.eclipse.jdt.core.IJavaProject jp =
+                    org.eclipse.jdt.core.JavaCore.create(project);
+            boolean addedSrcFolder = false;
+            if (jp != null && jp.exists()) {
+                try {
+                    for (org.eclipse.jdt.core.IPackageFragmentRoot pfr
+                            : jp.getPackageFragmentRoots()) {
+                        if (pfr.getKind() != org.eclipse.jdt.core.IPackageFragmentRoot.K_SOURCE)
+                            continue;
+                        org.eclipse.core.resources.IResource res =
+                                pfr.getCorrespondingResource();
+                        org.eclipse.core.runtime.IPath loc =
+                                res != null ? res.getLocation() : pfr.getPath();
+                        if (loc != null) {
+                            parts.add(loc.toOSString());
+                            addedSrcFolder = true;
+                        }
+                    }
+                } catch (Exception ignored) {}
+            }
+            if (!addedSrcFolder && project.getLocation() != null) {
+                parts.add(project.getLocation().toOSString());
+            }
+        }
+        return String.join(java.io.File.pathSeparator, parts);
+    }
+
+    /**
+     * Builds a per-project config list for the LSP {@code projects} field.
+     *
+     * <p>Each entry is a {@code Map<String, Object>} with the following fields:
+     * <ul>
+     *   <li>{@code id} — Eclipse {@code IProject.getName()}, the server's registry key</li>
+     *   <li>{@code sourcePath} — this project's own source folders + transitive dep sources,
+     *       path-separator-separated; passed as {@code -sourcepath}</li>
+     *   <li>{@code classPath} — JAR libraries (Maven deps, external JARs) + transitive
+     *       dep output dirs + user classpath pref + racOutputDir pref,
+     *       path-separator-separated; passed as {@code -classpath}</li>
+     *   <li>{@code specsPath} — global specs path preference</li>
+     *   <li>{@code javaOutputDir} — JDT output folder; goes on classpath and serves as
+     *       default RAC {@code -d} when {@code racOutputDir} is empty</li>
+     *   <li>{@code racOutputDir} — user {@code openjml.racOutputDir} preference for RAC
+     *       {@code -d}; absent when empty (server falls back to {@code javaOutputDir})</li>
+     *   <li>{@code rootPaths} — this project's own source folders only (not deps),
+     *       as a {@code List<String>}; used by the server for URI→project lookup</li>
+     * </ul>
+     */
+    public static java.util.List<java.util.Map<String, Object>> buildProjectsList() {
+        var result = new java.util.ArrayList<java.util.Map<String, Object>>();
+
+        String globalSpecsPath = value(specsPathKey);
+
+        org.eclipse.core.resources.IWorkspaceRoot wsRoot =
+                ResourcesPlugin.getWorkspace().getRoot();
+
+        for (IProject project : wsRoot.getProjects()) {
+            if (!project.isOpen()) continue;
+            org.eclipse.jdt.core.IJavaProject jp =
+                    org.eclipse.jdt.core.JavaCore.create(project);
+            if (jp == null || !jp.exists()) continue;
+
+            // --- own source folders (for rootPaths) ---
+            var ownSrcFolders = new java.util.ArrayList<String>();
+            try {
+                for (org.eclipse.jdt.core.IPackageFragmentRoot pfr
+                        : jp.getPackageFragmentRoots()) {
+                    if (pfr.getKind() != org.eclipse.jdt.core.IPackageFragmentRoot.K_SOURCE)
+                        continue;
+                    org.eclipse.core.resources.IResource res = pfr.getCorrespondingResource();
+                    org.eclipse.core.runtime.IPath loc =
+                            res != null ? res.getLocation() : pfr.getPath();
+                    if (loc != null) ownSrcFolders.add(loc.toOSString());
+                }
+            } catch (Exception ignored) {}
+
+            // --- all source folders (own + dep) and dep output dirs ---
+            var allSrcParts = new java.util.ArrayList<String>();
+            var cpParts     = new java.util.ArrayList<String>();
+
+            // User sourcepath additions go first.
+            String prefSrc = value(sourcePathKey);
+            if (prefSrc != null && !prefSrc.isBlank()) allSrcParts.add(prefSrc);
+
+            // User classpath goes first (highest priority on the path).
+            // Raw string is passed; the server expands $VAR tokens uniformly.
+            String prefCp = value(classPathKey);
+            if (prefCp != null && !prefCp.isBlank()) cpParts.add(prefCp);
+
+            // User racOutputDir also goes on the classpath so already-RAC-compiled classes
+            // are visible to subsequent compilations.
+            String prefRacOut = value(racOutputDirKey);
+            if (prefRacOut != null && !prefRacOut.isBlank()) cpParts.add(prefRacOut);
+
+            try {
+                collectJdtPaths(jp, allSrcParts, cpParts, new java.util.HashSet<>(), jreHomeFor(jp));
+            } catch (Exception e) {
+                Console.log("buildProjectsList: collectJdtPaths failed for "
+                        + project.getName() + ": " + e);
+            }
+
+            // --- outputDir (for RAC -d) ---
+            String outputDir = null;
+            try {
+                org.eclipse.core.runtime.IPath outPath = jp.getOutputLocation();
+                org.eclipse.core.resources.IFolder outFolder = wsRoot.getFolder(outPath);
+                org.eclipse.core.runtime.IPath outLoc = outFolder.getLocation();
+                if (outLoc != null) outputDir = outLoc.toOSString();
+            } catch (Exception ignored) {}
+
+            var cfg = new java.util.LinkedHashMap<String, Object>();
+            cfg.put("id",         project.getName());
+            cfg.put("sourcePath", String.join(java.io.File.pathSeparator, allSrcParts));
+            cfg.put("classPath",  String.join(java.io.File.pathSeparator, cpParts));
+            if (globalSpecsPath != null && !globalSpecsPath.isBlank())
+                cfg.put("specsPath", globalSpecsPath);
+            if (outputDir != null)
+                cfg.put("javaOutputDir", outputDir);
+            String racOutPref = value(racOutputDirKey);
+            if (racOutPref != null && !racOutPref.isBlank()) cfg.put("racOutputDir", racOutPref);
+            cfg.put("rootPaths", ownSrcFolders.isEmpty()
+                    ? (project.getLocation() != null
+                            ? java.util.List.of(project.getLocation().toOSString())
+                            : java.util.List.of())
+                    : ownSrcFolders);
+            result.add(cfg);
+        }
+        return result;
+    }
+
+    /**
+     * Returns the OS path prefix of the JVM install used by the given project,
+     * or {@code null} if it cannot be determined.  Used to exclude JRE system
+     * library JARs from the classpath sent to OpenJML, which ships its own JDK.
+     *
+     * <p><b>Limitation:</b> if the Eclipse project targets a different Java version
+     * than OpenJML's bundled JDK, there may be class-version or API conflicts.
+     * The OpenJML JDK version takes precedence at runtime.
+     */
+    static String jreHomeFor(org.eclipse.jdt.core.IJavaProject jp) {
+        // Use getVMInstall(IPath) via the JRE container entry — avoids the
+        // getVMInstall(IJavaProject) overload which is not available in all Eclipse versions.
+        try {
+            for (org.eclipse.jdt.core.IClasspathEntry e : jp.getRawClasspath()) {
+                if (e.getEntryKind() == org.eclipse.jdt.core.IClasspathEntry.CPE_CONTAINER) {
+                    org.eclipse.core.runtime.IPath p = e.getPath();
+                    if (p.segmentCount() > 0 && org.eclipse.jdt.launching.JavaRuntime.JRE_CONTAINER
+                            .equals(p.segment(0))) {
+                        org.eclipse.jdt.launching.IVMInstall vm =
+                                org.eclipse.jdt.launching.JavaRuntime.getVMInstall(p);
+                        if (vm != null && vm.getInstallLocation() != null)
+                            return vm.getInstallLocation().getAbsolutePath();
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+        // Fall back to the workspace default JVM.
+        try {
+            org.eclipse.jdt.launching.IVMInstall vm =
+                    org.eclipse.jdt.launching.JavaRuntime.getDefaultVMInstall();
+            if (vm != null && vm.getInstallLocation() != null)
+                return vm.getInstallLocation().getAbsolutePath();
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    /**
+     * Recursively collects source folders into {@code srcParts} and dependency
+     * output directories and JAR files into {@code cpParts} for {@code jp}.
+     *
+     * <p>JRE system library JARs are excluded because OpenJML ships its own
+     * bundled JDK and must not have a conflicting JRE on its classpath.
+     * {@code jreHome} is the install-location prefix used to detect JRE JARs;
+     * {@code null} disables the filter (no JARs are excluded).
+     */
+    static void collectJdtPaths(
+            org.eclipse.jdt.core.IJavaProject jp,
+            java.util.List<String> srcParts,
+            java.util.List<String> cpParts,
+            java.util.Set<String> visited,
+            String jreHome) throws Exception {
+
+        if (!visited.add(jp.getProject().getName())) return;
+
+        org.eclipse.core.resources.IWorkspaceRoot root =
+                ResourcesPlugin.getWorkspace().getRoot();
+
+        // This project's own source folders.
+        for (org.eclipse.jdt.core.IPackageFragmentRoot pfr : jp.getPackageFragmentRoots()) {
+            if (pfr.getKind() != org.eclipse.jdt.core.IPackageFragmentRoot.K_SOURCE) continue;
+            org.eclipse.core.resources.IResource res = pfr.getCorrespondingResource();
+            org.eclipse.core.runtime.IPath loc =
+                    res != null ? res.getLocation() : pfr.getPath();
+            if (loc != null) srcParts.add(loc.toOSString());
+        }
+
+        // Walk the resolved classpath: collect JAR libraries and recurse into projects.
+        // getResolvedClasspath(true) has already expanded containers (JRE, Maven, etc.)
+        // so every CPE_LIBRARY entry is a concrete path.
+        for (org.eclipse.jdt.core.IClasspathEntry entry
+                : jp.getResolvedClasspath(/* ignoreUnresolvedEntry= */ true)) {
+
+            if (entry.getEntryKind() == org.eclipse.jdt.core.IClasspathEntry.CPE_LIBRARY) {
+                org.eclipse.core.runtime.IPath p = entry.getPath();
+                if (!p.isAbsolute()) {
+                    // Workspace-relative path (JAR inside the workspace).
+                    org.eclipse.core.resources.IResource r = root.findMember(p);
+                    if (r != null) p = r.getLocation();
+                }
+                if (p == null) continue;
+                // Skip JRE system library JARs — OpenJML uses its own bundled JDK.
+                if (jreHome != null && p.toOSString().startsWith(jreHome)) continue;
+                cpParts.add(p.toOSString());
+
+            } else if (entry.getEntryKind() == org.eclipse.jdt.core.IClasspathEntry.CPE_PROJECT) {
+                String depName = entry.getPath().lastSegment();
+                org.eclipse.core.resources.IProject depProject = root.getProject(depName);
+                org.eclipse.jdt.core.IJavaProject depJp =
+                        org.eclipse.jdt.core.JavaCore.create(depProject);
+                if (depJp == null || !depJp.exists()) continue;
+
+                // Dependency output location → classpath.
+                org.eclipse.core.runtime.IPath outputPath = depJp.getOutputLocation();
+                org.eclipse.core.resources.IFolder outputFolder = root.getFolder(outputPath);
+                org.eclipse.core.runtime.IPath outputLoc = outputFolder.getLocation();
+                if (outputLoc != null) cpParts.add(outputLoc.toOSString());
+
+                // Recurse so transitive dependency sources and JARs are included.
+                collectJdtPaths(depJp, srcParts, cpParts, visited, jreHome);
+            }
+        }
     }
 }

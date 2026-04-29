@@ -9,16 +9,15 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.lsp4e.LanguageServers;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
+import org.eclipse.lsp4j.ExecuteCommandParams;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.PreferencesUtil;
@@ -27,10 +26,11 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
  * Launches the openjml-lsp server process and connects to it via
  * stdin/stdout using the LSP4E framework.
  *
- * The server executable path is taken from the preference
- * {@link OpenJMLOptions#lspServerPathKey} if set; otherwise it defaults to
- * an {@code openjml-lsp} script in the same directory as the Eclipse
- * installation.
+ * The server executable path is determined by {@link #findServerPath()}.
+ * Priority: (1) the {@code -D}{@link OpenJMLConstants#LSP_SERVER_PATH_PROPERTY}
+ * system property (used by the test harness); (2) the user preference
+ * {@link OpenJMLOptions#lspServerPathKey}; (3) bare {@code openjml-lsp},
+ * which the OS resolves via {@code $PATH}.
  *
  * <p>If the server script is not found at startup, a dialog loops until the
  * user either configures a valid path via Preferences or cancels (in which case
@@ -41,10 +41,6 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
  * recovery dialog offers to restart it.
  */
 public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProvider {
-
-    static {
-        System.err.println("OpenJMLStreamConnectionProvider class loaded");
-    }
 
     /** The most recently created provider instance; used for deliberate stop/restart. */
     private static volatile OpenJMLStreamConnectionProvider currentInstance;
@@ -58,56 +54,79 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
 
     public OpenJMLStreamConnectionProvider() {
         String path = findServerPath();
-        System.err.println("OpenJMLStreamConnectionProvider created, path=" + path);
         setCommands(Arrays.asList(path));
         setWorkingDirectory(System.getProperty("user.dir"));
         currentInstance = this;
     }
 
     /**
-     * Resolves the path to the openjml-lsp launcher script.
-     * Priority:
-     *   1. User preference ({@link OpenJMLOptions#lspServerPathKey})
-     *   2. System property — used by the test harness
-     *   3. Directory of the Eclipse install ({@link Platform#getInstallLocation})
+     * Resolves a configured path (which may be either an OpenJML installation
+     * folder or the launcher script itself) to the actual launcher script path.
+     * If {@code path} is a directory, appends {@link OpenJMLConstants#LSP_LAUNCHER_SCRIPT};
+     * otherwise returns it unchanged.
+     */
+    public static String resolveToScript(String path) {
+        if (path == null || path.isBlank()) return path;
+        java.io.File f = new java.io.File(path);
+        if (f.isDirectory()) {
+            String sep = path.endsWith("/") || path.endsWith(java.io.File.separator)
+                    ? "" : java.io.File.separator;
+            return path + sep + OpenJMLConstants.LSP_LAUNCHER_SCRIPT;
+        }
+        return path;
+    }
+
+    /**
+     * Resolves the effective server path.  Priority:
+     * <ol>
+     *   <li>{@code -D}{@link OpenJMLConstants#LSP_SERVER_PATH_PROPERTY} system property
+     *       (always takes precedence, regardless of whether the preference is set)</li>
+     *   <li>User preference ({@link OpenJMLOptions#lspServerPathKey}), trimmed;
+     *       blank after trimming is treated as not set</li>
+     *   <li>{@link #findDefaultServerPath()} — bare {@code openjml-lsp} found via
+     *       {@code $PATH}</li>
+     * </ol>
      */
     public static String findServerPath() {
-        // 1. User preference (set via OpenJML Preferences page)
+        // 1. System property — takes precedence over the preference field.
+        String sysProp = System.getProperty(OpenJMLConstants.LSP_SERVER_PATH_PROPERTY);
+        if (sysProp != null && !sysProp.isBlank()) {
+            return sysProp;
+        }
+        // 2. User preference (set via OpenJML Preferences page), trimmed.
         String pref = OpenJMLOptions.value(OpenJMLOptions.lspServerPathKey);
-        if (pref != null && !pref.isBlank()) {
-            return pref;
+        if (pref != null && !pref.trim().isBlank()) {
+            return pref.trim();
         }
         return findDefaultServerPath();
     }
 
     /**
-     * Resolves the server path ignoring the stored preference — checks only
-     * the system property and the Eclipse install directory.  Used by the
-     * preferences page to validate what path will be used when the field is
-     * left blank.
+     * Returns the default server path when neither the system property nor the
+     * user preference is set: the bare launcher script name
+     * {@link OpenJMLConstants#LSP_LAUNCHER_SCRIPT}, which the OS resolves via
+     * {@code $PATH}.  Used by the preferences page to describe the fallback.
      */
     public static String findDefaultServerPath() {
-        // 1. System property — used by the test harness to inject the dev path
-        //    without modifying workspace preferences.
-        String sysProp = System.getProperty(OpenJMLConstants.LSP_SERVER_PATH_PROPERTY);
-        if (sysProp != null && !sysProp.isBlank()) {
-            return sysProp;
-        }
-        // 2. Script alongside the Eclipse install (release layout)
-        try {
-            URL installUrl = Platform.getInstallLocation().getURL();
-            String installDir = installUrl.getPath();
-            if (!installDir.endsWith("/")) installDir += "/";
-            return installDir + "openjml-lsp";
-        } catch (Exception e) {
-            // Fall back to expecting it on PATH
-            return "openjml-lsp";
-        }
+        return OpenJMLConstants.LSP_LAUNCHER_SCRIPT;
     }
 
-    /** Returns {@code true} if the server script at {@code path} is present and executable. */
+    /**
+     * Returns {@code true} if the launcher script is available at {@code path}.
+     * {@code path} may be an installation folder (script name appended automatically),
+     * a full script path, or a bare name with no path separator (in which case the
+     * OS will resolve it via {@code $PATH} at spawn time — we return {@code true}
+     * and let the process start fail if the name is not on {@code $PATH}).
+     */
     public static boolean isServerAvailable(String path) {
-        java.io.File f = new java.io.File(path);
+        String script = resolveToScript(path);
+        // Bare name (no separator) — trust the OS to find it on PATH.
+        if (script != null
+                && !script.contains("/")
+                && !script.contains(java.io.File.separator)) {
+            return true;
+        }
+        java.io.File f = new java.io.File(script);
         return f.isFile() && f.canExecute();
     }
 
@@ -118,6 +137,10 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     @Override
     public Object getInitializationOptions(URI rootUri) {
         Map<String, Object> opts = OpenJMLOptions.buildInitializationOptions();
+        // Advertise support for $/openjml/actionMessage so the server routes
+        // advisory and error messages through the richer custom notification
+        // instead of plain window/logMessage.
+        opts.put("supportsActionMessages", true);
         Console.log("Sending initializationOptions: checkTriggerOn="
                 + opts.get("checkTriggerOn") + ", escEngine=" + opts.get("escEngine"));
         return opts;
@@ -132,32 +155,32 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      */
     @Override
     public void start() throws IOException {
-        System.err.println("OpenJMLStreamConnectionProvider.start() called");
         intentionalStop = false;
 
         // Loop until we have a valid server path or the user cancels.
         while (true) {
             String path = findServerPath();
+            String script = resolveToScript(path);
             if (isServerAvailable(path)) {
-                setCommands(Arrays.asList(path));
+                setCommands(Arrays.asList(script));
                 break;
             }
-            Console.errorlog("OpenJML server script not found or not executable: " + path);
+            Console.errorlog("OpenJML server launcher not found or not executable: " + script);
 
             Display display = Display.getDefault();
             if (display == null || display.isDisposed()) {
-                throw new IOException("openjml-lsp not found or not executable: " + path);
+                throw new IOException("OpenJML launcher not found or not executable: " + script);
             }
             boolean[] retry = { false };
             display.syncExec(() -> {
                 Shell shell = display.getActiveShell();
                 String msg =
-                        "The OpenJML LSP server script was not found or is not executable:\n\n"
-                        + "  " + path + "\n\n"
+                        "The OpenJML LSP server launcher was not found or is not executable:\n\n"
+                        + "  " + script + "\n\n"
                         + "Without a running server, all OpenJML features (type-checking, ESC,\n"
                         + "RAC, syntax coloring, etc.) will be non-functional.\n\n"
-                        + "Open Preferences to set the server script path, or Cancel to continue\n"
-                        + "without OpenJML (the plugin will be non-functional for this session).";
+                        + "Open Preferences to set the OpenJML installation path, or Cancel to\n"
+                        + "continue without OpenJML (the plugin will be non-functional for this session).";
                 MessageDialog dialog = new MessageDialog(shell,
                         "OpenJML: Server Not Found", null, msg,
                         MessageDialog.WARNING,
@@ -172,7 +195,7 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
 
             if (!retry[0]) {
                 throw new IOException(
-                        "openjml-lsp not configured; server startup cancelled by user.");
+                        "OpenJML installation not configured; server startup cancelled by user.");
             }
             // Path may have changed in preferences; loop to re-check.
         }
@@ -182,7 +205,6 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
         OpenJMLOptions.writePropertiesFile();
         Console.log("OpenJML LSP server starting: " + getCommands().get(0));
         super.start();
-        System.err.println("OpenJMLStreamConnectionProvider.start() completed");
     }
 
     /**
@@ -286,17 +308,17 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
      * offers to restart it.  Called on the UI thread via {@code asyncExec}.
      */
     private void showCrashRecoveryDialog() {
-        String path = findServerPath();
-        Console.errorlog("OpenJML LSP server stopped unexpectedly (path: " + path + ")");
+        String script = resolveToScript(findServerPath());
+        Console.errorlog("OpenJML LSP server stopped unexpectedly (launcher: " + script + ")");
         Display display = Display.getDefault();
         Shell shell = display != null ? display.getActiveShell() : null;
         String msg =
                 "The OpenJML LSP server has stopped unexpectedly.\n\n"
-                + "Server path: " + path + "\n\n"
+                + "Server launcher: " + script + "\n\n"
                 + "Without a running server, all OpenJML features (type-checking, ESC, RAC,\n"
                 + "syntax coloring, etc.) are non-functional.\n\n"
-                + "Restart the server, open Preferences to fix the server path, or continue\n"
-                + "without OpenJML for the rest of this Eclipse session.";
+                + "Restart the server, open Preferences to fix the OpenJML installation path,\n"
+                + "or continue without OpenJML for the rest of this Eclipse session.";
         MessageDialog dialog = new MessageDialog(shell,
                 "OpenJML: Server Stopped Unexpectedly", null, msg,
                 MessageDialog.WARNING,
@@ -317,44 +339,125 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
     // -----------------------------------------------------------------------
 
     /**
-     * Intercept every incoming server message.  {@code window/logMessage}
-     * notifications are routed to the JML Console so proof results and other
-     * server messages are visible to the user without opening the Error Log.
+     * Intercepts raw LSP notifications before LSP4E routing.
+     *
+     * <p>Handles two notification methods:
+     * <ul>
+     *   <li>{@code $/openjml/actionMessage} — sent by the server to capable clients.
+     *       Logs to the JML Console (severity-coloured) and optionally shows an
+     *       action dialog (e.g. "Open Preferences").</li>
+     *   <li>{@code window/logMessage} — fallback for generic clients, and for
+     *       {@code Log}-type verbose output that never needs a dialog.
+     *       Routing by type: Log (4) → {@link Console#logRaw} (no timestamp);
+     *       everything else → {@link Console#log} (with timestamp).</li>
+     * </ul>
      */
     @Override
     public void handleMessage(org.eclipse.lsp4j.jsonrpc.messages.Message message,
                               org.eclipse.lsp4j.services.LanguageServer server,
                               java.net.URI rootUri) {
-        if (message instanceof org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage n
-                && "window/logMessage".equals(n.getMethod())) {
+        if (!(message instanceof org.eclipse.lsp4j.jsonrpc.messages.NotificationMessage n)) return;
+
+        if ("$/openjml/actionMessage".equals(n.getMethod())) {
+            handleActionMessage(n.getParams());
+            return;
+        }
+
+        if ("window/logMessage".equals(n.getMethod())) {
             Object params = n.getParams();
-            String text = extractLogMessageText(params);
-            if (text != null) Console.logRaw(text);
+            String text = extractField(params, "message");
+            if (text == null) return;
+            boolean isLog = (params instanceof org.eclipse.lsp4j.MessageParams mp)
+                    ? mp.getType() == org.eclipse.lsp4j.MessageType.Log
+                    : extractIntField(params, "type", 3) == 4;
+            if (isLog) Console.logRaw(text);
+            else       Console.log(text);
         }
     }
 
     /**
-     * Extracts the "message" field from a {@code window/logMessage} params object.
+     * Handles a {@code $/openjml/actionMessage} notification.
      *
-     * The params may be a typed {@link org.eclipse.lsp4j.MessageParams} (if LSP4J has
-     * already deserialized it) or a raw Gson {@code JsonObject} (if accessed before
-     * LSP4J routing). We avoid a direct Gson class reference to sidestep OSGi
-     * classloader issues and instead fall back to {@code toString()} parsing.
+     * <p>Logs the message to the JML Console with severity-appropriate coloring,
+     * then — if the {@code actions} list is non-empty — shows a dialog on the SWT
+     * UI thread whose buttons correspond to the action items.
      */
-    private static String extractLogMessageText(Object params) {
+    private static void handleActionMessage(Object rawParams) {
+        String text    = extractField(rawParams, "message");
+        int    type    = extractIntField(rawParams, "type", 3);
+        java.util.List<?> actions = extractListField(rawParams, "actions");
+
+        if (text == null || text.isBlank()) return;
+
+        // Log to the JML Console (errors and warnings in red).
+        if (type == 1 || type == 2) Console.errorlog(text);
+        else if (type == 4)         Console.logRaw(text);
+        else                        Console.log(text);
+
+        // Show a dialog only when there are action items.
+        if (actions == null || actions.isEmpty()) return;
+
+        Display display = Display.getDefault();
+        if (display == null || display.isDisposed()) return;
+        display.asyncExec(() -> {
+            Shell shell = display.getActiveShell();
+            String[] labels = actions.stream()
+                    .map(a -> { String t = extractField(a, "title"); return t != null ? t : "OK"; })
+                    .toArray(String[]::new);
+            int dialogStyle = (type == 1) ? MessageDialog.ERROR : MessageDialog.WARNING;
+            MessageDialog dialog = new MessageDialog(shell, "OpenJML", null,
+                    text, dialogStyle, labels, 0);
+            int choice = dialog.open();
+            if (choice < 0 || choice >= actions.size()) return;
+            String kind   = extractField(actions.get(choice), "kind");
+            String target = extractField(actions.get(choice), "target");
+            if ("openPreferences".equals(kind)) {
+                String pageId = resolvePreferencesPageId(target);
+                var prefDialog = PreferencesUtil.createPreferenceDialogOn(shell, pageId, null, null);
+                if (prefDialog != null) prefDialog.open();
+            }
+            // "dismiss" and unknown kinds: no-op
+        });
+    }
+
+    /**
+     * Maps an abstract preference target name (sent by the server) to the
+     * fully-qualified Eclipse preference page ID.
+     */
+    private static String resolvePreferencesPageId(String target) {
+        if ("toolOptions".equals(target)) return "org.jmlspecs.openjml.eclipse.ToolOptionsPage";
+        return "org.jmlspecs.openjml.eclipse.SettingsPage";  // "settings" and unknown
+    }
+
+    // -----------------------------------------------------------------------
+    // Generic JSON field extraction helpers
+    // -----------------------------------------------------------------------
+    // Params arriving in handleMessage may be either typed lsp4j POJOs (if
+    // deserialized before routing) or raw Gson JsonObjects from a different
+    // OSGi classloader.  We avoid direct Gson API calls and use toString()
+    // parsing with regex as a universal fallback.
+
+    /**
+     * Extracts a named string field from an LSP params object.
+     * Works whether params is a typed POJO (via reflection) or a raw JSON object
+     * (via {@code toString()} regex).
+     */
+    private static String extractField(Object params, String fieldName) {
         if (params == null) return null;
-        if (params instanceof org.eclipse.lsp4j.MessageParams mp) {
-            return mp.getMessage();
-        }
-        // params is likely a Gson JsonObject from a different classloader.
-        // JsonObject.toString() produces JSON like {"type":3,"message":"..."}.
-        // Use a simple regex to extract the message field.
+        // Try reflection first (works for typed POJOs and Gson JsonObject).
+        try {
+            var method = params.getClass().getMethod("get"
+                    + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1));
+            Object val = method.invoke(params);
+            return val instanceof String s ? s : null;
+        } catch (Exception ignored) {}
+        // Fallback: regex on toString() JSON representation.
         String json = params.toString();
         var m = java.util.regex.Pattern
-                .compile("\"message\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
+                .compile("\"" + java.util.regex.Pattern.quote(fieldName)
+                        + "\"\\s*:\\s*\"((?:[^\"\\\\]|\\\\.)*)\"")
                 .matcher(json);
         if (m.find()) {
-            // Unescape basic JSON escape sequences
             return m.group(1)
                     .replace("\\\"", "\"")
                     .replace("\\\\", "\\")
@@ -363,6 +466,67 @@ public class OpenJMLStreamConnectionProvider extends ProcessStreamConnectionProv
                     .replace("\\t", "\t");
         }
         return null;
+    }
+
+    /** Extracts a named integer field; returns {@code defaultValue} if absent or unparseable. */
+    private static int extractIntField(Object params, String fieldName, int defaultValue) {
+        if (params == null) return defaultValue;
+        // Try reflection.
+        try {
+            var method = params.getClass().getMethod("get"
+                    + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1));
+            Object val = method.invoke(params);
+            if (val instanceof Number n) return n.intValue();
+            if (val != null) return Integer.parseInt(val.toString());
+        } catch (Exception ignored) {}
+        // Fallback: regex.
+        String json = params.toString();
+        var m = java.util.regex.Pattern
+                .compile("\"" + java.util.regex.Pattern.quote(fieldName) + "\"\\s*:\\s*(\\d+)")
+                .matcher(json);
+        if (m.find()) { try { return Integer.parseInt(m.group(1)); } catch (NumberFormatException ignored) {} }
+        return defaultValue;
+    }
+
+    /**
+     * Extracts a named array field as a {@code List<?>}.
+     *
+     * <p>Tries three strategies in order:
+     * <ol>
+     *   <li>Gson {@code JsonObject.get(fieldName)} → iterate via {@code size()} /
+     *       {@code get(int)} — works for any Gson version and any OSGi classloader.</li>
+     *   <li>Typed POJO {@code getFieldName()} returning a {@link java.util.List}.</li>
+     *   <li>Parse the JSON {@code toString()} to count array elements (last resort).</li>
+     * </ol>
+     * Returns an empty list if the field is absent or cannot be read.
+     */
+    private static java.util.List<?> extractListField(Object params, String fieldName) {
+        if (params == null) return java.util.List.of();
+
+        // Strategy 1: Gson JsonObject.get(String) → JsonArray via size()/get(int).
+        // Does NOT use asList() (added in Gson 2.10) so it works with any Gson bundle.
+        try {
+            java.lang.reflect.Method get = params.getClass().getMethod("get", String.class);
+            Object arr = get.invoke(params, fieldName);
+            if (arr != null) {
+                java.lang.reflect.Method size  = arr.getClass().getMethod("size");
+                java.lang.reflect.Method getAt = arr.getClass().getMethod("get", int.class);
+                int n = (int) size.invoke(arr);
+                var list = new java.util.ArrayList<>(n);
+                for (int i = 0; i < n; i++) list.add(getAt.invoke(arr, i));
+                return java.util.Collections.unmodifiableList(list);
+            }
+        } catch (Exception ignored) {}
+
+        // Strategy 2: typed POJO getter (e.g. getActions())
+        try {
+            java.lang.reflect.Method getter = params.getClass().getMethod("get"
+                    + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1));
+            Object val = getter.invoke(params);
+            if (val instanceof java.util.List<?> list) return list;
+        } catch (Exception ignored) {}
+
+        return java.util.List.of();
     }
 
     @Override
