@@ -29,11 +29,11 @@ build:
 install: node_modules $(EXTENSION)/node_modules
 
 node_modules: package.json
-	$(NPM) install
+	$(NODE) $(NPM) install
 	@touch node_modules
 
 $(EXTENSION)/node_modules: $(EXTENSION)/package.json
-	cd $(EXTENSION) && npm install
+	cd $(EXTENSION) && $(NODE) $(NPM) install
 	@touch $(EXTENSION)/node_modules
 
 ## Run all VS Code UI test suites.

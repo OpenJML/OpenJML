@@ -23,7 +23,7 @@ The extension requires an OpenJML installation on the local machine.
 the installer sets this automatically.
 
 **Version requirements:**
-- VS Code 1.75 or later (tested against 1.117+; output-channel `getText()` is unavailable in 1.117+ due to the xterm.js renderer — the extension uses log-file polling instead).
+- VS Code 1.79 or later (the extension manifest declares `engines.vscode: ^1.79.0`; tested against 1.118).
 - The UI test suite (`OpenJMLTest/vscode/`) requires Node.js ≥ 20 (`@vscode/vsce` and ExTester both require Node 16+; Node 20 LTS is the minimum recommended version).
 - `vscode-extension-tester` ≥ 8.23 is required; versions targeting VS Code ≤ 1.110 use `@redhat-developer/locators` which does not support the xterm.js output panel used in 1.117+.
 
@@ -38,7 +38,7 @@ the installer sets this automatically.
 - JML keyword and backslash-token completion inside `//@ ...` and `/*@ ... */` annotations
 - Document outline with Java and JML symbols (classes, methods, ghost/model declarations)
 - Go to definition, find references, and rename for Java and JML identifiers
-- Workspace symbol search (Find All Declarations) for cross-file navigation, populated by Index Project
+- Workspace symbol search (Find All Declarations) for cross-file navigation
 - Signature help inside method call argument lists
 - Folding ranges for multi-line JML annotation blocks
 - JML syntax highlighting (semantic tokens) merged additively with Red Hat Java Extension coloring — covers JML clause keywords, modifiers, backslash expressions, operators, and literals inside JML context; in `full` mode also covers all Java symbols
@@ -98,18 +98,18 @@ color themes apply automatically:
 
 | Category | Examples |
 |---|---|
-| `keyword` | `requires`, `ensures`, `invariant`, `ghost`, `model`, `also`, `behavior`, `loop_invariant` |
-| `modifier` | `pure`, `spec_public`, `spec_protected`, `nullable`, `non_null`, `strictly_pure`, `helper` |
-| `function` | <code>\result</code>, <code>\old</code>, <code>\forall</code>, <code>\exists</code>, <code>\nothing</code>, <code>\fresh</code>, <code>\typeof</code> |
-| `type` | `int`, `boolean`, <code>\bigint</code>, <code>\real</code>, <code>\locset</code> |
+| `keyword` | `requires`, `ensures`, `invariant`, `ghost`, `model`, `also`, `behavior`, `loop_invariant`,  …  |
+| `modifier` | `pure`, `spec_public`, `spec_protected`, `nullable`, `non_null`, `strictly_pure`, `helper`,  …  |
+| `function` | <code>\result</code>, <code>\old</code>, <code>\forall</code>, <code>\exists</code>, <code>\nothing</code>, <code>\fresh</code>, <code>\typeof</code>,  …  |
+| `type` | `int`, `boolean`, <code>\bigint</code>, <code>\real</code>, <code>\locset</code>,  …  |
 | `operator` | `==>`, `<==`, `<==>`, `<:`, `+`, `-`, `==`, … |
 | `string` | String literals and text blocks inside JML expressions |
 | `number` | Numeric and character literals inside JML expressions |
 | `macro` | Reserved; not currently emitted |
 | `decorator` | `@Override`, `@NonNull`, and other annotations |
 | `comment` | Reserved; not currently emitted |
-| `method`, `property`, `variable`, `parameter` | Resolved symbols inside JML expressions (AST strategy only) |
-| `class`, `interface`, `enum`, `struct` | Class, interface, enum, and record type references in JML expressions (AST strategy only; `struct` = record) |
+| `method`, `property`, `variable`, `parameter` | Resolved symbols inside JML expressions (AST strategy only)  (property = Java class field)|
+| `class`, `interface`, `enum`, `struct` | Class, interface, enum, and record type references in JML expressions (AST strategy only; `struct` = Java record) |
 | `namespace` | Package-qualified name prefixes in JML expressions (AST strategy only) |
 | `typeParameter` | Type parameter references in JML expressions (AST strategy only) |
 | `enumMember` | Enum constant references in JML expressions (AST strategy only) |

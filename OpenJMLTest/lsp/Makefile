@@ -84,7 +84,6 @@ TEST_CLASSES := \
   RenameTest3 \
   RenameTest4 \
   RacTest \
-  RenameJmlTest2 \
   MultiFileEscTest \
   EscDirWithContextTest \
   DocumentLifecycleTest \

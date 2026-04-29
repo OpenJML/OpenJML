@@ -426,13 +426,17 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         String uri = params.getTextDocument().getUri();
         ServerLog.serverLog("[textDocument/didSave] uri=" + uri);
         dirtyUris.remove(uri);
-        cancelPending(uri);
 
-        // --check: on save unless manual-only mode.  projectId is unavailable from
-        // the LSP didSave message; null causes a root-path lookup in scheduleCheckFile.
-        if (!globalSettings.isCheckManual()) scheduleCheckFile(uri, null);
+        // didSave carries no content change, so do not cancel any in-progress or
+        // pending checks — let them complete normally.
 
-        // --esc: on save when escTriggerOn == "save".  LSP does not carry a save-reason
+        // --check: only when checkTriggerOn=="save" and ESC is not also on save
+        // (ESC subsumes check, so running both would be redundant).
+        // projectId is unavailable from the LSP didSave message; null causes a
+        // root-path lookup in scheduleCheckFile.
+        if (globalSettings.isCheckOnSave() && !globalSettings.isEscOnSave()) scheduleCheckFile(uri, null);
+
+        // --esc: on save when escTriggerOn=="save".  LSP does not carry a save-reason
         // (manual vs. auto-save), so this fires on every didSave regardless of how the
         // save was initiated.
         if (globalSettings.isEscOnSave()) scheduleEscForUri(uri, null);
