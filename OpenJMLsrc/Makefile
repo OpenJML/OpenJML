@@ -199,7 +199,7 @@ userguide-examples:
 
 TEMPDOCS=tempDocs
 # Mac-specific path; adjust for other platforms
-DOWNLOADS=~/Desktop
+DOWNLOADS=$(HOME)/Desktop
 ## Pulls the JML reference manual and the OpenJML User Guide LaTeX sources from Overleaf and then builds the pdfs locally (not using Overleaf to build)
 ## Requires a local installation of pdflatex
 update-docs:
