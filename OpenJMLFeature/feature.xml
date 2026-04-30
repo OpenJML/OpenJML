@@ -31,6 +31,6 @@ https://github.com/OpenJML/OpenJML
 
    <plugin
          id="org.openjml.OpenJMLUI"
-         version="0.21.0"/>
+         version="21.0.25"/>
 
 </feature>
