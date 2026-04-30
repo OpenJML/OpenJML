@@ -139,3 +139,10 @@ Restart VS Code (File → Exit, then reopen) or run
   Ctrl+Shift+P → "Developer: Reload Window"
 to activate the OpenJML extension.
 MSG
+
+# mac-setup is needed to fix Mac security complaints, though it is only needed the first time this binary is executed
+# mac-setup is in the release files; it must be executed manually for the development environment
+if [ "$( uname )" = "Darwin" ] ; then
+  "${DIR}/mac-setup" > /dev/null 2>&1 ;
+fi
+
