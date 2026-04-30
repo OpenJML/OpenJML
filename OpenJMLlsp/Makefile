@@ -31,6 +31,7 @@ CLASSES := $(LSPROOT)/build/classes
 JARFILE := $(LSPROOT)/build/openjml-lsp.jar
 
 VERSION_TXT   := $(LSPROOT)/../version.txt
+VERSION       := $(shell cat $(VERSION_TXT) | tr -d '[:space:]')
 VERSION_PROPS := $(CLASSES)/org/openjml/lsp/version.properties
 
 ## All Java source files in the server (exclude module-info.java — Eclipse artifact,
@@ -40,7 +41,7 @@ JAVASRC := $(shell find $(LSPROOT)/src -name '*.java' ! -name 'module-info.java'
 ## Staging directory used by the release target
 RELEASE_STAGE  := $(LSPROOT)/release-stage
 VSIX_DIR       := $(LSPROOT)/vscode-extension
-VSIX_NAME      := openjml-0.0.1.vsix
+VSIX_NAME      := openjml-$(VERSION).vsix
 
 .PHONY: all jar compile libs check-gson run-tests release vsix clean .FORCE
 
@@ -106,7 +107,7 @@ jar: compile $(VERSION_PROPS)
 ## Build the VS Code extension .vsix package.
 vsix:
 	cd $(VSIX_DIR) && npm install
-	cd $(VSIX_DIR) && ./node_modules/.bin/vsce package --no-yarn --out $(VSIX_NAME)
+	cd $(VSIX_DIR) && ./node_modules/.bin/vsce package --no-yarn --packageVersion $(VERSION) --out $(VSIX_NAME)
 
 ## Stage LSP files for inclusion in an OpenJML release zip.
 ## Produces $(RELEASE_STAGE)/openjml-lsp   (launcher, goes to release root)
