@@ -32,6 +32,8 @@ JARFILE := $(LSPROOT)/build/openjml-lsp.jar
 
 VERSION_TXT   := $(LSPROOT)/../version.txt
 VERSION       := $(shell cat $(VERSION_TXT) | tr -d '[:space:]')
+## VS Code/npm requires strict semver (major.minor.patch); strip any OSGi qualifier.
+VSIX_VERSION  := $(shell echo $(VERSION) | sed 's/^\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')
 VERSION_PROPS := $(CLASSES)/org/openjml/lsp/version.properties
 
 ## All Java source files in the server (exclude module-info.java — Eclipse artifact,
@@ -41,7 +43,7 @@ JAVASRC := $(shell find $(LSPROOT)/src -name '*.java' ! -name 'module-info.java'
 ## Staging directory used by the release target
 RELEASE_STAGE  := $(LSPROOT)/release-stage
 VSIX_DIR       := $(LSPROOT)/vscode-extension
-VSIX_NAME      := openjml-$(VERSION).vsix
+VSIX_NAME      := openjml-$(VSIX_VERSION).vsix
 
 .PHONY: all jar compile libs check-gson run-tests release vsix clean .FORCE
 
@@ -107,7 +109,7 @@ jar: compile $(VERSION_PROPS)
 ## Build the VS Code extension .vsix package.
 vsix:
 	cd $(VSIX_DIR) && npm install
-	cd $(VSIX_DIR) && npm version $(VERSION) --no-git-tag-version --allow-same-version
+	cd $(VSIX_DIR) && npm version $(VSIX_VERSION) --no-git-tag-version --allow-same-version
 	cd $(VSIX_DIR) && ./node_modules/.bin/vsce package --no-yarn --out $(VSIX_NAME)
 
 ## Stage LSP files for inclusion in an OpenJML release zip.
