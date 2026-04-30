@@ -160,7 +160,9 @@ jobs:
           pwd
           ls -la
         fi
-        export id=$(curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases/tags/$ver" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
+        export resp=$(curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases/tags/$ver" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}')
+        echo "Release API response: $resp"
+        export id=$(echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
         echo Uploading $f to id $id at url $upload_url
         curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f"
