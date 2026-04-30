@@ -40,7 +40,6 @@ Options:
   --overwrite         Allow overwriting existing output JARs of the same version.
   --no-compile        Skip compilation of OpenJMLUI source; package existing bin/ contents.
   --no-publish        Skip copying to eclipse-update-site (build only).
-  --no-p2             Skip p2 metadata regeneration in the pages site.
   -h, --help          Show this help and exit.
 
 Environment:
@@ -53,7 +52,6 @@ VERSION=""
 OVERWRITE_FLAG=""
 BUILD_FLAG=""
 PUBLISH=1
-P2_FLAG=""
 
 while [ $# -gt 0 ]; do
     case "$1" in
@@ -61,7 +59,6 @@ while [ $# -gt 0 ]; do
         --overwrite)  OVERWRITE_FLAG="--overwrite"; shift ;;
         --no-compile) BUILD_FLAG="--no-compile"; shift ;;
         --no-publish) PUBLISH=0; shift ;;
-        --no-p2)      P2_FLAG="--no-p2"; shift ;;
         -h|--help)    usage; exit 0 ;;
         *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
     esac
@@ -113,8 +110,8 @@ echo ""
 if [ "$PUBLISH" -eq 0 ]; then
     echo "--- Step 3: publish skipped (--no-publish) ---"
 else
-    PUBLISH_CMD=("$PUBLISH_SCRIPT")
-    [ -n "$P2_FLAG" ] && PUBLISH_CMD+=("$P2_FLAG")
+    PUBLISH_CMD=("$PUBLISH_SCRIPT" "--version" "$VERSION")
+    [ "$OVERWRITE_FLAG" = "--overwrite" ] && PUBLISH_CMD+=("--overwrite")
     echo "--- Step 3: publish ---"
     ( cd "$UI_DIR" && "${PUBLISH_CMD[@]}" )
 fi

@@ -122,18 +122,13 @@ set_version_in_sources() {
 
     sedi "s/^Bundle-Version:.*/Bundle-Version: ${newv}/" "$MANIFEST"
 
+    # feature.xml has version= on its own line; match it directly.
+    # Anchor on a two-or-more-digit major to avoid touching <?xml version="1.0"?>.
     sedi -E \
-        -e 's/(<feature[^>]* version=")[^"]*(")/\1'"${newv}"'\2/' \
-        -e 's/(<plugin[^>]* version=")[^"]*(")/\1'"${newv}"'\2/' \
+        's/version="[0-9]{2,}[^"]*"/version="'"${newv}"'"/g' \
         "$FEATURE_DIR/feature.xml"
 
-    local cat_xml="$UPDATESITE_DIR/category.xml"
-    if [ -f "$cat_xml" ]; then
-        sedi -E \
-            -e "s|(features/[^_]+_)[^\"]+(\.jar\")|\1${newv}\2|g" \
-            -e 's/(<feature[^>]* version=")[^"]*(")/\1'"${newv}"'\2/' \
-            "$cat_xml"
-    fi
+    # category.xml uses version="0.0.0" to match all versions — no update needed.
 }
 
 
@@ -288,10 +283,13 @@ fi
 
 # ---------------------------------------------------------------------------
 # Prepare output directories
+# OpenJMLUpdateSite is a staging site (one build at a time) — remove all
+# stale JARs from previous builds before writing the new ones.
 # ---------------------------------------------------------------------------
 PLUGINS_OUT="$UPDATESITE_DIR/plugins"
 FEATURES_OUT="$UPDATESITE_DIR/features"
 mkdir -p "$PLUGINS_OUT" "$FEATURES_OUT"
+rm -f "$PLUGINS_OUT"/*.jar "$FEATURES_OUT"/*.jar
 
 PLUGIN_JAR="$PLUGINS_OUT/${PLUGIN_ID}_${BUNDLE_VERSION}.jar"
 FEATURE_JAR="$FEATURES_OUT/${FEATURE_ID}_${BUNDLE_VERSION}.jar"
@@ -366,18 +364,29 @@ fi
 
 if [ -n "$LAUNCHER_JAR" ]; then
     JAVACMD="${JAVA_HOME:+$JAVA_HOME/bin/}java"
-    echo "--- Running p2 publisher ---"
     SITE_URI="file:$(cd "$UPDATESITE_DIR" && pwd -P)"
     # Delete stale metadata so the publisher creates correct fresh files.
     rm -f "$UPDATESITE_DIR/content.jar" "$UPDATESITE_DIR/artifacts.jar"
+
+    echo "--- Running p2 FeaturesAndBundlesPublisher ---"
     "$JAVACMD" -jar "$LAUNCHER_JAR" -nosplash \
         -application org.eclipse.equinox.p2.publisher.FeaturesAndBundlesPublisher \
         -metadataRepository "$SITE_URI" \
         -artifactRepository "$SITE_URI" \
         -source "$(cd "$UPDATESITE_DIR" && pwd -P)" \
         -publishArtifacts -append -compress -consolelog \
-        && echo "p2 metadata written to $UPDATESITE_DIR" \
-        || echo "Warning: p2 publisher exited with errors; basic plugins/features layout is still valid." >&2
+        && echo "FeaturesAndBundlesPublisher succeeded." \
+        || { echo "Warning: FeaturesAndBundlesPublisher exited with errors." >&2; }
+
+    echo "--- Running p2 CategoryPublisher ---"
+    CATEGORY_URI="file://$(cd "$UPDATESITE_DIR" && pwd -P)/category.xml"
+    "$JAVACMD" -jar "$LAUNCHER_JAR" -nosplash \
+        -application org.eclipse.equinox.p2.publisher.CategoryPublisher \
+        -metadataRepository "$SITE_URI" \
+        -categoryDefinition "$CATEGORY_URI" \
+        -compress -consolelog \
+        && echo "CategoryPublisher succeeded — feature will appear grouped in Install New Software." \
+        || echo "Warning: CategoryPublisher exited with errors." >&2
 else
     if [ -n "${ECLIPSE_HOME-}" ]; then
         echo "p2 publisher bundle not found in ECLIPSE_HOME; skipping p2 metadata generation."

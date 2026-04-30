@@ -13,16 +13,15 @@
 #   3.  cd ../../openjml.github.io && git add -A && git commit && git push
 #
 # Usage:
-#   ./publish-update-site.sh [--p2 | --no-p2] [--help]
+#   ./publish-update-site.sh --version VERSION [--overwrite] [--help]
 #
 # Options:
-#   --p2        Run the headless p2 publisher to regenerate content.jar /
-#               artifacts.jar after copying (default when ECLIPSE_HOME is set).
-#   --no-p2     Skip p2 metadata generation; just copy the JARs.
-#   --help      Show this help and exit.
+#   --version VERSION  Version of the JARs to copy from OpenJMLUpdateSite (required).
+#   --overwrite        Allow overwriting existing JARs of the same version.
+#   --help             Show this help and exit.
 #
 # Environment:
-#   ECLIPSE_HOME   Path to an Eclipse installation.  Required for --p2.
+#   ECLIPSE_HOME   Path to an Eclipse installation.  Required for p2 metadata regeneration.
 #   JAVA_HOME      Path to a JDK.  Defaults to 'java' on PATH.
 #
 # Non-interactive: the script never launches the Eclipse GUI.
@@ -39,42 +38,42 @@ DEST_DIR="$SCRIPT_DIR/../../openjml.github.io/eclipse-update-site"
 # ---------------------------------------------------------------------------
 # CLI parsing
 # ---------------------------------------------------------------------------
-# Default: defer until after Eclipse auto-detection; track explicit --no-p2
-DO_P2=0
-P2_EXPLICIT=""   # set to "1" if user passed --no-p2 explicitly
+VERSION=""
+OVERWRITE=0
 
 usage() {
     cat <<EOF
-Usage: $(basename "$0") [--p2 | --no-p2] [--help]
+Usage: $(basename "$0") --version VERSION [--overwrite] [--help]
 
-  --p2      Regenerate p2 metadata after copying (default when ECLIPSE_HOME is set).
-  --no-p2   Copy JARs only; skip p2 metadata generation.
-  --help    Show this help and exit.
+  --version VERSION  Version of the JARs to copy from OpenJMLUpdateSite (required).
+  --overwrite        Allow overwriting existing JARs of the same version in the destination.
+  --help             Show this help and exit.
 
 Environment:
-  ECLIPSE_HOME   Eclipse installation directory (required for --p2).
+  ECLIPSE_HOME   Eclipse installation directory (required for p2 metadata regeneration).
   JAVA_HOME      JDK directory (defaults to 'java' on PATH).
 EOF
 }
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --p2)     DO_P2=1; shift ;;
-        --no-p2)  DO_P2=0; P2_EXPLICIT="1"; shift ;;
-        --help|-h) usage; exit 0 ;;
+        --version)  VERSION="$2"; shift 2 ;;
+        --overwrite) OVERWRITE=1; shift ;;
+        --help|-h)  usage; exit 0 ;;
         *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
     esac
 done
+
+if [ -z "$VERSION" ]; then
+    echo "ERROR: --version is required." >&2
+    usage >&2
+    exit 1
+fi
 
 # shellcheck source=eclipse-utils.sh
 . "$SCRIPT_DIR/eclipse-utils.sh"
 
 find_eclipse_home || true
-
-# Re-evaluate DO_P2 default now that ECLIPSE_HOME may have been auto-detected
-if [ -n "${ECLIPSE_HOME-}" ] && [ "$DO_P2" -eq 0 ] && [ -z "${P2_EXPLICIT-}" ]; then
-    DO_P2=1
-fi
 
 # ---------------------------------------------------------------------------
 # Validate source
@@ -90,19 +89,8 @@ fi
 # ---------------------------------------------------------------------------
 echo "Source:      $SOURCE_DIR"
 echo "Destination: $DEST_DIR"
+echo "Version:     $VERSION"
 echo ""
-
-PLUGIN_COUNT=0
-FEATURE_COUNT=0
-[ -d "$SOURCE_DIR/plugins" ]  && PLUGIN_COUNT=$(find "$SOURCE_DIR/plugins"  -name "*.jar" | wc -l | tr -d ' ')
-[ -d "$SOURCE_DIR/features" ] && FEATURE_COUNT=$(find "$SOURCE_DIR/features" -name "*.jar" | wc -l | tr -d ' ')
-echo "Plugins to copy:  $PLUGIN_COUNT"
-echo "Features to copy: $FEATURE_COUNT"
-
-if [ "$PLUGIN_COUNT" -eq 0 ] && [ "$FEATURE_COUNT" -eq 0 ]; then
-    echo "ERROR: no JAR files found to copy." >&2
-    exit 1
-fi
 
 # ---------------------------------------------------------------------------
 # Clean up stale artifacts from old p2 publisher runs
@@ -142,38 +130,40 @@ if [ -d "$DEST_DIR/features" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Copy JARs into the live site (accumulate — keeps older versions)
+# Copy version-matching JARs into the live site (accumulates older versions)
 # ---------------------------------------------------------------------------
 mkdir -p "$DEST_DIR/plugins" "$DEST_DIR/features"
 
-echo ""
-echo "--- Copying plugins ---"
-if [ -d "$SOURCE_DIR/plugins" ]; then
-    for jar in "$SOURCE_DIR/plugins"/*.jar; do
+copy_versioned_jars() {
+    local src_subdir="$1" dest_subdir="$2" label="$3"
+    local found=0
+    echo "--- Copying $label ---"
+    for jar in "$src_subdir"/*_"${VERSION}".jar; do
         [ -f "$jar" ] || continue
-        dest="$DEST_DIR/plugins/$(basename "$jar")"
+        found=1
+        local name dest
+        name="$(basename "$jar")"
+        dest="$dest_subdir/$name"
         if [ -f "$dest" ]; then
-            echo "  (already present, overwriting) $(basename "$jar")"
+            if [ "$OVERWRITE" -eq 1 ]; then
+                echo "  (overwriting) $name"
+            else
+                echo "ERROR: $name already exists in destination; use --overwrite to replace." >&2
+                exit 1
+            fi
         else
-            echo "  + $(basename "$jar")"
+            echo "  + $name"
         fi
         cp "$jar" "$dest"
     done
-fi
+    if [ "$found" -eq 0 ]; then
+        echo "ERROR: no $label JARs matching version $VERSION found in $(basename "$src_subdir")." >&2
+        exit 1
+    fi
+}
 
-echo "--- Copying features ---"
-if [ -d "$SOURCE_DIR/features" ]; then
-    for jar in "$SOURCE_DIR/features"/*.jar; do
-        [ -f "$jar" ] || continue
-        dest="$DEST_DIR/features/$(basename "$jar")"
-        if [ -f "$dest" ]; then
-            echo "  (already present, overwriting) $(basename "$jar")"
-        else
-            echo "  + $(basename "$jar")"
-        fi
-        cp "$jar" "$dest"
-    done
-fi
+copy_versioned_jars "$SOURCE_DIR/plugins"  "$DEST_DIR/plugins"  "plugins"
+copy_versioned_jars "$SOURCE_DIR/features" "$DEST_DIR/features" "features"
 
 # Copy category.xml (always keep it current)
 if [ -f "$SOURCE_DIR/category.xml" ]; then
@@ -184,20 +174,10 @@ fi
 # ---------------------------------------------------------------------------
 # Regenerate p2 metadata
 # ---------------------------------------------------------------------------
-if [ "$DO_P2" -eq 0 ]; then
-    echo ""
-    echo "--- Skipping p2 metadata (--no-p2) ---"
-    echo "Done.  Remember to regenerate p2 metadata before pushing, or users"
-    echo "will not be able to discover the new version via the update site URL."
-    echo ""
-    echo "Next step (manual): cd ../../openjml.github.io && git add -A && git commit && git push"
-    exit 0
-fi
-
 if [ -z "${ECLIPSE_HOME-}" ]; then
     echo "" >&2
-    echo "ERROR: --p2 requires ECLIPSE_HOME to be set." >&2
-    echo "       Set ECLIPSE_HOME to your Eclipse installation, or use --no-p2." >&2
+    echo "ERROR: ECLIPSE_HOME is required for p2 metadata regeneration." >&2
+    echo "       Set ECLIPSE_HOME to your Eclipse installation." >&2
     exit 1
 fi
 
