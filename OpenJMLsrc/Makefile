@@ -175,13 +175,15 @@ post: .FORCE
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
-	$(MAKE) openjml-ui
-
-openjml-ui:
-	$(MAKE) -C ../OpenJMLlsp release
-	cp -pR ../OpenJMLlsp/release-stage/. $(TEMP)
+	$(MAKE) openjml-lsp
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
+
+openjml-lsp:
+	$(MAKE) -C ../OpenJMLlsp release
+	cp -pR ../OpenJMLlsp/release-stage/. $(TEMP)
+
+openjml-ui:
 	../OpenJMLUI/release.sh --version `cat ../version.txt` --overwrite
 
 
