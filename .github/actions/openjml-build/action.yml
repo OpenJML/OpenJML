@@ -65,7 +65,7 @@ runs:
         grep jvm.cfg /tmp/archive-contents.txt || echo "NOT FOUND"
     - name: Upload build artifact
       if: inputs.upload == 'true'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: openjml-build-${{ inputs.os-label }}
         path: openjml-build.tar.gz

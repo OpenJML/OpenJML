@@ -45,7 +45,7 @@ jobs:
     ## A workflow_dispatch trigger might do the checkout at the main branch.
     ## Note that the current working directory, which is the default directory at the start of a job, is the folder that holds version.txt, OpenJMLsrc, OpenJMLTest etc.
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         sparse-checkout: 'version.txt'
 
@@ -86,7 +86,7 @@ jobs:
     steps:
     ## The following step checks out the OpenJML repo, which is needed to get the actions in the next few steps
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         sparse-checkout: ./.github
         path: ACTIONS
@@ -117,7 +117,7 @@ jobs:
         cp OpenJML/$FOLDER/release-temp/*.zip $f
 
     - name: Upload github artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: openjml-release-${{ matrix.os }}-${{ github.run_id }}
         path: '*.zip'
@@ -136,14 +136,14 @@ jobs:
       fail-fast: false
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         sparse-checkout: ./.github
         path: ACTIONS
     - name: OS setup
       uses: ./ACTIONS/.github/actions/os-setup/
     - name: Download github artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: openjml-release-${{ matrix.os }}-${{ github.run_id }}
     - name: Copy OpenJML build into GitHub release
