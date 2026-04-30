@@ -552,6 +552,7 @@ public class OpenJMLOptions {
 
         // Client identification — always sent so the server applies correct defaults.
         opts.put("client", "eclipse-jdt");
+        opts.put("genericMode", false);  // Eclipse pre-assembles paths; server must not overwrite them
 
         // Tab 1 — plugin / LSP settings (always sent individually)
         opts.put("checkTriggerOn",         nonBlank(value(checkTriggerOnKey),  "edit"));

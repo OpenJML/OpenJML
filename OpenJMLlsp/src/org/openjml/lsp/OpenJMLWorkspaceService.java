@@ -130,6 +130,7 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         if (src.specsPath              != null) cs.specsPath              = src.specsPath;
         if (src.javaOutputDir          != null) cs.javaOutputDir          = src.javaOutputDir;
         if (src.racOutputDir           != null) cs.racOutputDir           = src.racOutputDir;
+        if (src.genericMode            != null) cs.genericMode            = src.genericMode;
         if (src.workspaceFolderPaths   != null) cs.workspaceFolderPaths   = src.workspaceFolderPaths;
         if (src.checkTriggerOn         != null) cs.checkTriggerOn         = src.checkTriggerOn;
         if (src.escTriggerOn           != null) cs.escTriggerOn           = src.escTriggerOn;
@@ -170,11 +171,11 @@ public class OpenJMLWorkspaceService implements WorkspaceService {
         }
 
         // Assemble effective paths.
-        // workspaceFolderPaths non-null → VS Code/generic (assemble from components).
-        // workspaceFolderPaths null     → Eclipse (paths already pre-assembled in cs).
+        // genericMode==true  → generic/VS Code client: server assembles paths from components.
+        // genericMode==false → non-generic client (e.g. Eclipse): paths are pre-assembled.
         String sep = java.io.File.pathSeparator;
-        String wfp = cs.workspaceFolderPaths;
-        if (wfp != null) {
+        String wfp = cs.workspaceFolderPaths != null ? cs.workspaceFolderPaths : "";
+        if (cs.genericMode) {
             // sourcePath = user additions + workspace folder roots
             String userSrc = expandEnvVarsInPath(cs.sourcePath != null ? cs.sourcePath : "");
             var srcParts = new java.util.ArrayList<String>();

@@ -211,29 +211,29 @@ public class DocumentLifecycleTest extends ProtocolTestBase {
         Path file = testdataFile("testDirtyLifecycle/LifecycleClean.java");
         String uri = file.toUri().toString();
 
-        // Open the clean disk file — drain the initial empty diagnostics.
+        // Switch to save-trigger mode: didChange must NOT fire a check; didSave must.
+        client.sendNotification("workspace/didChangeConfiguration",
+                "{\"settings\":{\"openjml\":{\"checkTriggerOn\":\"save\",\"escTriggerOn\":\"manual\"}}}");
+        Thread.sleep(100);
+
+        // Open the clean disk file — didOpen always triggers a check regardless of mode.
         openDocumentFile(uri, Files.readString(file));
         nextDiagsFor("LifecycleClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
-        // Introduce a type error — URI enters dirtyUris; check reports the error.
+        // Introduce a type error — in save mode didChange does NOT trigger a check.
         String errSource =
                 "public class LifecycleClean {\n" +
                 "    public int m() { return \"not an int\"; }\n" +
                 "}\n";
         didChange(uri, 2, errSource);
-        JsonObject changeNote = nextDiagsFor("LifecycleClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        assertNotNull("Expected error diagnostics after didChange", changeNote);
-        assertFalse("Expected at least one diagnostic after didChange",
-                changeNote.getAsJsonObject("params").getAsJsonArray("diagnostics").isEmpty());
 
-        // Save — URI removed from dirtyUris; server schedules a check using the
-        // saved content (lastContent still holds the error, same as what's on disk now).
+        // Save — checkTriggerOn=="save" so didSave schedules a --check.
         didSave(uri);
 
-        // The save-triggered check must run and report the same error.
+        // The save-triggered check must run and report the error.
         JsonObject saveNote = nextDiagsFor("LifecycleClean", TIMEOUT_SECONDS, TimeUnit.SECONDS);
         assertNotNull("Expected publishDiagnostics after didSave", saveNote);
-        assertFalse("Expected error diagnostic after save: saved content still has the type error",
+        assertFalse("Expected error diagnostic after save: saved content has a type error",
                 saveNote.getAsJsonObject("params").getAsJsonArray("diagnostics").isEmpty());
     }
 

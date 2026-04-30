@@ -81,20 +81,19 @@ public class ClientSettings {
     public String racOutputDir;
 
     /**
-     * VS Code / generic-client: joined workspace folder paths
-     * (OS path-separator-delimited).
+     * Mode selector: {@code true} (default) — generic/VS Code client; the server
+     * assembles effective paths from {@link #workspaceFolderPaths}, {@link #sourcePath},
+     * {@link #classPath}, etc.  {@code false} — non-generic client (e.g. Eclipse/JDT);
+     * paths are already fully assembled in {@link #sourcePath}, {@link #classPath}, etc.
      *
-     * <p>This field is the key mode selector:
-     * <ul>
-     *   <li><b>Non-null</b> (empty or non-empty) — generic client (VS Code
-     *       or any other client that wants the server to assemble paths).
-     *       Generic clients must always send this field (as {@code ""}
-     *       when no folders are open) so the server can distinguish them
-     *       from Eclipse.</li>
-     *   <li><b>Null</b> — non-generic client (Eclipse/JDT).  Paths are
-     *       already fully assembled in {@link #sourcePath},
-     *       {@link #classPath}, etc.</li>
-     * </ul>
+     * <p>Generic clients may omit this field; the default {@code true} is the right
+     * behavior for any client that is not pre-assembling paths itself.
+     */
+    public Boolean genericMode;
+
+    /**
+     * VS Code / generic-client: joined workspace folder paths
+     * (OS path-separator-delimited).  Used only when {@link #genericMode} is {@code true}.
      */
     public String workspaceFolderPaths;
 
@@ -178,6 +177,7 @@ public class ClientSettings {
         d.syntaxColoringStrategy = "ast";
         d.escEngine              = "fresh";
         d.escThreads             = DEFAULT_ESC_THREADS;
+        d.genericMode            = true;
         d.useIntegratedOutline   = true;
         d.incrementalSync        = true;
         d.supportsActionMessages = false;

@@ -176,6 +176,11 @@ public class LspProtocolTest extends ProtocolTestBase {
         Path file = testdataFile("testDidSaveProducesDiagnostics/TypeErrSave.java");
         String uri = file.toUri().toString();
 
+        // didSave only triggers --check when checkTriggerOn=="save".
+        client.sendNotification("workspace/didChangeConfiguration",
+                "{\"settings\":{\"openjml\":{\"checkTriggerOn\":\"save\",\"escTriggerOn\":\"manual\"}}}");
+        Thread.sleep(100);
+
         saveDocument(uri);
 
         JsonObject notification =

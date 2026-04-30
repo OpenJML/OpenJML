@@ -961,6 +961,7 @@ public class CheckRunner {
                 + " racOutputDir=" + settings.racOutputDir
                 + " javaOutputDir=" + settings.javaOutputDir
                 + " rootPaths=" + settings.rootPaths
+                + " genericMode=" + settings.clientSettings.genericMode
                 + " workspaceFolderPaths=" + settings.clientSettings.workspaceFolderPaths);
         List<String> args = buildArgs(settings, "--rac");
 

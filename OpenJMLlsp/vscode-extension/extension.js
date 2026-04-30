@@ -604,6 +604,7 @@ async function getSettings() {
         useIntegratedOutline: cfg.get('useIntegratedOutline', true),
         javaMode: cfg.get('javaMode', 'jml-only'),
         client: 'vscode-java',
+        genericMode: true,
         workspaceFolderPaths: workspaceFolderPaths,
     };
 }

@@ -25,5 +25,5 @@ public class Sample {
             result *= i;
         }
         return result;
-    }  
+    }   
 }
