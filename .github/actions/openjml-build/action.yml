@@ -13,8 +13,11 @@ inputs:
     type: boolean
     default: 'false'
   os-label:
-    description: 'Unique OS label for naming the artifact (pass matrix.os to avoid collisions between e.g. ubuntu-22.04 and ubuntu-latest)'
+    description: 'Unique OS label for naming the artifact (pass matrix.label to avoid collisions between builds on the same runner)'
     default: ${{ runner.os }}
+  arch:
+    description: 'Target architecture: "x86_64" to build under arch -x86_64 (Rosetta 2) for Intel; anything else builds natively'
+    default: 'default'
 
 runs:
   using: 'composite'
@@ -28,13 +31,20 @@ runs:
         ./configure
         make release
         cd ..
-    - name: Build OpenJML release on non-Windows
-      if: runner.os != 'Windows'
+    - name: Build OpenJML release on non-Windows (native)
+      if: runner.os != 'Windows' && inputs.arch != 'x86_64'
       shell: bash
       run: |
         cd OpenJML/OpenJMLsrc
         ./configure
         make release
+        cd ..
+    - name: Build OpenJML release on macOS (x86_64 via Rosetta 2)
+      if: inputs.arch == 'x86_64'
+      shell: bash
+      run: |
+        cd OpenJML/OpenJMLsrc
+        arch -x86_64 bash -c "./configure && make release"
         cd ..
     - name: Test the build
       if: inputs.test == 'true'

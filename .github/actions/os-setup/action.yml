@@ -17,6 +17,8 @@ runs:
         brew install autoconf
         echo 'sep=:' >> $GITHUB_ENV
         echo 'sepsemi=\\\;' >> $GITHUB_ENV
+        ## Install Rosetta 2 so that arch -x86_64 works for the Intel build.
+        softwareupdate --install-rosetta --agree-to-license || true
 
     - name: Linux additions
       if: runner.os == 'Linux'

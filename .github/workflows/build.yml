@@ -32,8 +32,10 @@ jobs:
     steps:
     - id: export
       run: |
-        ## Edit the list of OSes here
-        echo 'oslist=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
+        ## Each entry: os = GitHub runner, label = artifact/zip name suffix.
+        ## Two macOS entries share the macos-14 (ARM) runner; the x86_64 build
+        ## runs under arch -x86_64 (Rosetta 2) to produce an Intel binary.
+        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-22.04","label":"ubuntu-22.04"}, {"os":"ubuntu-latest","label":"ubuntu-latest"} ]' >> "$GITHUB_OUTPUT"
 
   prepare:
     runs-on: ubuntu-latest
@@ -80,7 +82,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
@@ -102,6 +104,7 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-build/
       with:
         test: true
+        arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
 
     - name: Check current GitHub release number against version.txt
       run: |
@@ -113,26 +116,26 @@ jobs:
     - name: Copy zip for upload
       run: |
         export ver=`cat OpenJML/version.txt`
-        export f=openjml-${{ matrix.os }}-${ver}.zip
+        export f=openjml-${{ matrix.label }}-${ver}.zip
         cp OpenJML/$FOLDER/release-temp/*.zip $f
 
     - name: Upload github artifact
       uses: actions/upload-artifact@v7
       with:
-        name: openjml-release-${{ matrix.os }}-${{ github.run_id }}
+        name: openjml-release-${{ matrix.label }}-${{ github.run_id }}
         path: '*.zip'
         overwrite: true
         include-hidden-files: true
         retention-days: 1
 
-  ## This job uploads the release, which has been stored in a github artifact, into the OpenJML release that is under construction, 
+  ## This job uploads the release, which has been stored in a github artifact, into the OpenJML release that is under construction,
   ## which is presumed to be the most recent
   upload:
     needs: [ export-matrix, prepare, build ]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
     steps:
     - name: Checkout repo
@@ -145,11 +148,11 @@ jobs:
     - name: Download github artifact
       uses: actions/download-artifact@v8
       with:
-        name: openjml-release-${{ matrix.os }}-${{ github.run_id }}
+        name: openjml-release-${{ matrix.label }}-${{ github.run_id }}
     - name: Copy OpenJML build into GitHub release
       run: |
         export ver=${{ needs.prepare.outputs.version }}
-        export f=openjml-${{ matrix.os }}-${ver}.zip
+        export f=openjml-${{ matrix.label }}-${ver}.zip
         export ff=`echo openjml*.zip`
         echo $ver $f $ff
         if [[ -f "$f" ]]; then
