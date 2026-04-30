@@ -2,7 +2,7 @@
   "name": "openjml",
   "displayName": "OpenJML",
   "description": "JML specification type-checking and static verification for Java via OpenJML",
-  "version": "0.0.1",
+  "version": "21.0.25",
   "publisher": "openjml",
   "license": "GPL-2.0-only",
   "repository": {

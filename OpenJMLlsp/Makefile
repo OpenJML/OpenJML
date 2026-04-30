@@ -107,7 +107,8 @@ jar: compile $(VERSION_PROPS)
 ## Build the VS Code extension .vsix package.
 vsix:
 	cd $(VSIX_DIR) && npm install
-	cd $(VSIX_DIR) && ./node_modules/.bin/vsce package --no-yarn --packageVersion $(VERSION) --out $(VSIX_NAME)
+	cd $(VSIX_DIR) && npm version $(VERSION) --no-git-tag-version --allow-same-version
+	cd $(VSIX_DIR) && ./node_modules/.bin/vsce package --no-yarn --out $(VSIX_NAME)
 
 ## Stage LSP files for inclusion in an OpenJML release zip.
 ## Produces $(RELEASE_STAGE)/openjml-lsp   (launcher, goes to release root)
