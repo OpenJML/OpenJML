@@ -17,7 +17,25 @@ import java.util.concurrent.ExecutionException;
  */
 public class ServerLauncher {
 
+    private static final String HELP =
+            "openjml-lsp " + LspVersion.VERSION + "\n"
+            + "Usage: openjml-lsp [--version] [--help]\n"
+            + "  Starts the OpenJML LSP server communicating via stdin/stdout.\n"
+            + "  Intended to be launched by an LSP client (VS Code, Eclipse, etc.).\n"
+            + "  No other options are recognized.";
+
     public static void main(String[] args) throws ExecutionException, InterruptedException {
+        for (String arg : args) {
+            switch (arg) {
+                case "--version" -> { System.out.println("openjml-lsp " + LspVersion.VERSION); return; }
+                case "--help"    -> { System.out.println(HELP); return; }
+                default -> {
+                    if (arg.startsWith("-"))
+                        System.err.println("openjml-lsp: unknown option '" + arg + "' (ignored)");
+                }
+            }
+        }
+
         // Capture real stdout for the LSP stream BEFORE redirecting System.out,
         // so that OpenJML (javac) output does not corrupt the LSP wire protocol.
         PrintStream lspOut = System.out;

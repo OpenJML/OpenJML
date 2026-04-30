@@ -9,4 +9,4 @@ fi
 ## It actually only needs to be run once; it emits errors on subsequent runs.
 
 cd "$(dirname $BASH_SOURCE)"
-xattr -d com.apple.quarantine `find . -name java` `find . -name *.dylib` `find . -name javac` `find . -name  *z3*` `find . -name *cvc*` `find . -name jspawnhelper`
+xattr -d com.apple.quarantine `find . -name java` `find . -name *.dylib` `find . -name javac` `find . -name  *z3*` `find . -name *cvc*` `find . -name jspawnhelper` `find . -name mac-setup` 2> /dev/null

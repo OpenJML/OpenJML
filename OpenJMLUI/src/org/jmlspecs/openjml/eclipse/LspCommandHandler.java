@@ -315,12 +315,18 @@ public abstract class LspCommandHandler extends AbstractHandler {
         Long prev = lastDispatch.put(key, now);
         if (prev != null && (now - prev) < DEBOUNCE_MS) return;
         try {
+            // The lambda returns a non-null sentinel so that computeFirst produces
+            // Optional.of("sent") when a server was reached, regardless of what
+            // executeCommand returns.  Optional.empty() then reliably means "no
+            // server found for this project/document" and not "server returned null".
             java.util.concurrent.CompletableFuture<java.util.Optional<Object>> cf =
                     doc != null
                     ? LanguageServers.forDocument(doc)
-                            .computeFirst(s -> s.getWorkspaceService().executeCommand(params))
+                            .computeFirst(s -> { s.getWorkspaceService().executeCommand(params);
+                                                 return java.util.concurrent.CompletableFuture.completedFuture((Object) "sent"); })
                     : LanguageServers.forProject(project)
-                            .computeFirst(s -> s.getWorkspaceService().executeCommand(params));
+                            .computeFirst(s -> { s.getWorkspaceService().executeCommand(params);
+                                                 return java.util.concurrent.CompletableFuture.completedFuture((Object) "sent"); });
             cf.orTimeout(15, java.util.concurrent.TimeUnit.SECONDS)
               .thenAccept(opt -> {
                 if (opt == null || opt.isEmpty()) {
@@ -1182,15 +1188,12 @@ public abstract class LspCommandHandler extends AbstractHandler {
                 sendDirtyEditorsToServer();
                 return null;
             }
-            for (org.eclipse.core.resources.IProject project :
-                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace()
-                            .getRoot().getProjects()) {
-                if (JmlNature.hasNature(project)) {
-                    LanguageServers.forProject(project).computeFirst(
-                            server -> server.getWorkspaceService().executeCommand(p));
-                    sendDirtyEditorsToServer();
-                    return null;
-                }
+            OpenJMLLanguageClient lc = OpenJMLCodeMiningProvider.languageClient;
+            org.eclipse.lsp4j.services.LanguageServer ls = lc != null ? lc.server() : null;
+            if (ls != null) {
+                ls.getWorkspaceService().executeCommand(p);
+                sendDirtyEditorsToServer();
+                return null;
             }
             Console.log("WARNING: no connected server found — clearAndReindex not sent.");
             return null;

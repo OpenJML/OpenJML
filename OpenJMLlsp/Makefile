@@ -30,6 +30,9 @@ MAVEN := https://repo1.maven.org/maven2
 CLASSES := $(LSPROOT)/build/classes
 JARFILE := $(LSPROOT)/build/openjml-lsp.jar
 
+VERSION_TXT   := $(LSPROOT)/../version.txt
+VERSION_PROPS := $(CLASSES)/org/openjml/lsp/version.properties
+
 ## All Java source files in the server (exclude module-info.java — Eclipse artifact,
 ## incompatible with the classpath-based build)
 JAVASRC := $(shell find $(LSPROOT)/src -name '*.java' ! -name 'module-info.java')
@@ -86,8 +89,16 @@ compile: libs check-gson
 	     -d $(CLASSES) \
 	     $(JAVASRC) )
 
+## Inject version into the classes tree as a properties resource.
+## Only updates the file (and its mtime) when version.txt actually changes,
+## so that the jar target is not forced to rebuild on every make invocation.
+$(VERSION_PROPS): $(VERSION_TXT)
+	@mkdir -p $(dir $@)
+	@ver=$$(cat $(VERSION_TXT) | tr -d '[:space:]'); \
+	echo "version=$$ver" > $@
+
 ## Package into an executable jar
-jar: compile
+jar: compile $(VERSION_PROPS)
 	$(JAR) --create --file=$(JARFILE) \
 	       --main-class=org.openjml.lsp.ServerLauncher \
 	       -C $(CLASSES) .

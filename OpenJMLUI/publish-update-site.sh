@@ -9,6 +9,7 @@
 # Typical workflow:
 #   1.  ./build-update-site.sh --overwrite   (or with --version X)
 #   2.  ./publish-update-site.sh             (copies + regenerates metadata)
+#  This step is manual:
 #   3.  cd ../../openjml.github.io && git add -A && git commit && git push
 #
 # Usage:
@@ -189,7 +190,7 @@ if [ "$DO_P2" -eq 0 ]; then
     echo "Done.  Remember to regenerate p2 metadata before pushing, or users"
     echo "will not be able to discover the new version via the update site URL."
     echo ""
-    echo "Next step: cd ../../openjml.github.io && git add -A && git commit && git push"
+    echo "Next step (manual): cd ../../openjml.github.io && git add -A && git commit && git push"
     exit 0
 fi
 
@@ -300,4 +301,4 @@ echo ""
 echo "--- Done ---"
 echo "  Site: $DEST_DIR"
 echo ""
-echo "Next step: cd ../../openjml.github.io && git add -A && git commit -m 'Update Eclipse update site' && git push"
+echo "Next step (manual): cd ../../openjml.github.io && git add -A && git commit -m 'Update Eclipse update site' && git push"

@@ -122,7 +122,9 @@ public class JmlNatureHandler {
         public Object execute(ExecutionEvent event) throws ExecutionException {
             List<IProject> projects = projectsFromSelection(HandlerUtil.getCurrentSelection(event));
             if (projects.isEmpty()) {
-                Console.log("EnableJmlNature: no project in current selection.");
+                MessageDialog.openWarning(HandlerUtil.getActiveShell(event),
+                        "OpenJML — No Project Selected",
+                        "No project is selected.\n\nSelect a project in the Package Explorer or Project Explorer first.");
                 return null;
             }
             if (!checkDecoratorAndPrompt(HandlerUtil.getActiveShell(event))) return null;
@@ -141,7 +143,9 @@ public class JmlNatureHandler {
         public Object execute(ExecutionEvent event) throws ExecutionException {
             List<IProject> projects = projectsFromSelection(HandlerUtil.getCurrentSelection(event));
             if (projects.isEmpty()) {
-                Console.log("DisableJmlNature: no project in current selection.");
+                MessageDialog.openWarning(HandlerUtil.getActiveShell(event),
+                        "OpenJML — No Project Selected",
+                        "No project is selected.\n\nSelect a project in the Package Explorer or Project Explorer first.");
                 return null;
             }
             if (!checkDecoratorAndPrompt(HandlerUtil.getActiveShell(event))) return null;
