@@ -404,8 +404,7 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
     /**
      * Dispatches {@code params} to the server for {@code project}, without debouncing.
-     * Used for clear commands that iterate multiple projects in a tight loop (debouncing
-     * would suppress all but the first dispatch if all share the same command+args key).
+     * Used for clear-selected commands that dispatch per distinct project.
      * Falls back to {@link #sendViaWrapper} when {@code forProject} finds no server.
      */
     private static void dispatchCommand(org.eclipse.core.resources.IProject project,
@@ -426,6 +425,35 @@ public abstract class LspCommandHandler extends AbstractHandler {
                     });
         } catch (Throwable t) {
             Console.errorlog(label + ": dispatch failed: " + t.getMessage(), t);
+        }
+    }
+
+    /**
+     * Sends {@code params} to every distinct running OpenJML server.
+     * Iterates all open projects, finds their server via {@link LanguageServers#forProject},
+     * and deduplicates by server identity.  In the typical single-server configuration
+     * this sends the command exactly once.
+     */
+    private static void sendToAllServers(ExecuteCommandParams params, String label) {
+        java.util.concurrent.ConcurrentHashMap<LanguageServer, Boolean> seen =
+                new java.util.concurrent.ConcurrentHashMap<>();
+        for (IProject proj : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+            if (!proj.isOpen()) continue;
+            try {
+                LanguageServers.forProject(proj)
+                    .computeFirst(server -> {
+                        if (seen.putIfAbsent(server, Boolean.TRUE) == null)
+                            server.getWorkspaceService().executeCommand(params);
+                        return java.util.concurrent.CompletableFuture.completedFuture((Object) "sent");
+                    })
+                    .orTimeout(10, java.util.concurrent.TimeUnit.SECONDS)
+                    .exceptionally(t -> {
+                        Console.errorlog(label + ": dispatch error: " + t.getMessage(), null);
+                        return java.util.Optional.<Object>empty();
+                    });
+            } catch (Throwable t) {
+                Console.errorlog(label + ": dispatch failed: " + t.getMessage(), t);
+            }
         }
     }
 
@@ -1072,25 +1100,15 @@ public abstract class LspCommandHandler extends AbstractHandler {
         @Override
         public Object execute(ExecutionEvent event) {
             try {
-                clearMarkersFromResource(
-                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot());
+                clearMarkersFromResource(ResourcesPlugin.getWorkspace().getRoot());
                 Console.log("Cleared OpenJML markers.");
-            } catch (org.eclipse.core.runtime.CoreException e) {
+            } catch (CoreException e) {
                 Console.errorlog("ClearMarkers failed: " + e.getMessage(), e);
             }
-            // Tell the server to clear its internal diagnostic state so that
+            // Tell each distinct server to clear its internal diagnostic state so
             // stale diagnostics are not re-published on the next LSP4E event.
-            ExecuteCommandParams p = new ExecuteCommandParams(
-                    OpenJMLConstants.CMD_CLEAR_MARKERS, java.util.List.of());
-            boolean any = false;
-            for (org.eclipse.core.resources.IProject proj :
-                    org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-                if (!proj.isOpen() || !JmlNature.hasNature(proj)) continue;
-                dispatchCommand(proj, p, "ClearMarkers");
-                any = true;
-            }
-            if (!any)
-                Console.errorlog("ClearMarkers: no open JML-nature projects found; markers cleared locally only.", null);
+            sendToAllServers(new ExecuteCommandParams(OpenJMLConstants.CMD_CLEAR_MARKERS, List.of()),
+                    "ClearMarkers");
             return null;
         }
     }
@@ -1175,27 +1193,19 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
             // 1. Clear all OpenJML Eclipse markers workspace-wide.
             try {
-                clearMarkersFromResource(
-                        org.eclipse.core.resources.ResourcesPlugin.getWorkspace().getRoot());
+                clearMarkersFromResource(ResourcesPlugin.getWorkspace().getRoot());
                 Console.log("Cleared OpenJML markers.");
-            } catch (org.eclipse.core.runtime.CoreException e) {
+            } catch (CoreException e) {
                 Console.errorlog("Could not clear markers: " + e.getMessage(), e);
             }
 
-            // 2. Send clearAndReindex to the server.
-            ExecuteCommandParams p = new ExecuteCommandParams(OpenJMLConstants.CMD_CLEAR_AND_REINDEX, List.of());
-            if (sendViaWrapper(LspPartListener.cachedWrapper, p)) {
-                sendDirtyEditorsToServer();
-                return null;
-            }
-            OpenJMLLanguageClient lc = OpenJMLCodeMiningProvider.languageClient;
-            org.eclipse.lsp4j.services.LanguageServer ls = lc != null ? lc.server() : null;
-            if (ls != null) {
-                ls.getWorkspaceService().executeCommand(p);
-                sendDirtyEditorsToServer();
-                return null;
-            }
-            Console.log("WARNING: no connected server found — clearAndReindex not sent.");
+            // 2. Send clearAndReindex to each distinct server.
+            sendToAllServers(new ExecuteCommandParams(OpenJMLConstants.CMD_CLEAR_AND_REINDEX, List.of()),
+                    "ClearAndReindex");
+
+            // 3. Re-send in-memory content for dirty editors so the server's cache
+            //    is restored after the wipe.
+            sendDirtyEditorsToServer();
             return null;
         }
 
