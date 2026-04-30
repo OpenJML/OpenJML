@@ -1226,38 +1226,39 @@ public abstract class LspCommandHandler extends AbstractHandler {
 
         @Override
         public Object execute(ExecutionEvent event) throws ExecutionException {
-            IProject project = projectFromEvent(event);
-            String projectId = project != null ? project.getName() : "";
-            Console.log(OpenJMLConstants.CMD_INDEX_PROJECT + " [" + projectId + "]");
-
-            ExecuteCommandParams p = new ExecuteCommandParams(
-                    OpenJMLConstants.CMD_INDEX_PROJECT, List.of(projectId));
-
-            if (sendViaWrapper(LspPartListener.cachedWrapper, p)) return null;
-
-            if (project != null) {
-                LanguageServers.forProject(project)
-                        .computeFirst(server -> server.getWorkspaceService().executeCommand(p));
-            } else {
-                for (IProject proj : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-                    if (proj.isOpen() && JmlNature.hasNature(proj)) {
-                        LanguageServers.forProject(proj)
-                                .computeFirst(server -> server.getWorkspaceService().executeCommand(p));
-                        break;
-                    }
-                }
+            // Resolve selected projects; fall back to all open JML-natured projects.
+            List<IProject> projects = projectsFromEvent(event);
+            if (projects.isEmpty()) {
+                MessageDialog.openWarning(HandlerUtil.getActiveShell(event),
+                        "OpenJML — No Project Selected",
+                        "No open JML-natured project is selected.\n\n"
+                        + "Select one or more projects in the Package Explorer first.");
+                return null;
+            }
+            for (IProject proj : projects) {
+                String projectId = proj.getName();
+                Console.log(OpenJMLConstants.CMD_INDEX_PROJECT + " [" + projectId + "]");
+                ExecuteCommandParams p = new ExecuteCommandParams(
+                        OpenJMLConstants.CMD_INDEX_PROJECT, List.of(projectId));
+                dispatchCommand(p, null, proj);
             }
             return null;
         }
 
-        private static IProject projectFromEvent(ExecutionEvent event) {
-            IEditorPart editor = HandlerUtil.getActiveEditor(event);
-            if (editor != null) {
-                var resource = org.eclipse.ui.ide.ResourceUtil.getResource(editor.getEditorInput());
-                if (resource != null) return resource.getProject();
+        private static List<IProject> projectsFromEvent(ExecutionEvent event) {
+            // Collect distinct projects from the current selection.
+            List<SelectionResolver.Target> targets = SelectionResolver.resolve(
+                    HandlerUtil.getCurrentSelection(event), HandlerUtil.getActiveEditor(event));
+            Set<IProject> selected = new LinkedHashSet<>();
+            for (SelectionResolver.Target t : targets) {
+                IProject p = switch (t) {
+                    case SelectionResolver.Target.File   f -> f.file().getProject();
+                    case SelectionResolver.Target.Method m -> m.file().getProject();
+                    case SelectionResolver.Target.Dir    d -> d.container().getProject();
+                };
+                if (p != null && p.isOpen() && JmlNature.hasNature(p)) selected.add(p);
             }
-            // Fallback: first open JML-natured project in the workspace.
-            return findJmlProject();
+            return new ArrayList<>(selected);
         }
     }
 

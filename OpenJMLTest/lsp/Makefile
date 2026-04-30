@@ -97,6 +97,7 @@ TEST_CLASSES := \
   MultiProjectTest \
   SplitEscTest \
   WorkspaceIndexTest \
+  IndexProjectMultiSelectionTest \
   DocumentHighlightTest \
   ModelMethodEscTest \
   MultiClassEscTest \
