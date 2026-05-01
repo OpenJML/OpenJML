@@ -472,31 +472,6 @@ public class esc2 extends EscBase {
                 );
     }
 
-    // FIXME
-//    @Test
-//    public void testAt() {
-//        expectedExit = 1;
-//        helpEsc("tt.TestJava",
-//                          "package tt; \n" 
-//                        + "/*@ code_java_math spec_java_math*/ public class TestJava { \n" 
-//                        + "  static public int i;\n"
-//                        + "  //@ modifies i;\n" 
-//                        + "  //@ ensures i == \\old(i)+2;\n"
-//                        + "  public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}\n" 
-//                        + "  //@ modifies i;\n"
-//                        + "  //@ ensures i == \\old(i+1);\n" 
-//                        + "  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }\n" 
-//                        + "  //@ modifies i;\n" 
-//                        + "  public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}\n" 
-//                        + "  //@ requires a.length > 10 && a[0] >= 0;\n" 
-//                        + "  //@ modifies i;\n" 
-//                        + "  public static void bok3(int[] a) { x: i = i + 1; /*@ assert a[0]@x > -1; */ i = i + 1;}\n" 
-//                        + "}"
-//                ,"/tt/TestJava.java:9: error: There is no label named x", 60
-//                );
-//    }
-//
-
     @Test
     public void testWhileSpecs() {
         helpEsc("tt.TestJava",
@@ -3558,8 +3533,6 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:1: verify: The prover cannot establish an assertion (Assert) in method m", 59
         );
     }
-
-    // THE FOLLOWING WERE ALL COMMENTED OUT AT ONE POINT
     
     // TODO: Parser has trouble distinguishing an @ for \old from an @ for a type annotation. Is the complexity worth the feature?
     @Test @Ignore
