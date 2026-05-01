@@ -96,11 +96,16 @@ public class CheckRunner {
         toolWarningCallback = cb;
     }
 
-    /** Log a tool-level warning (bad preference value, etc.) in red with a timestamp. */
+    /** Log a tool-level error (bad arguments, bad preference value, etc.). */
     static void logToolWarning(String msg) {
         java.util.function.Consumer<String> cb = toolWarningCallback;
-        if (cb != null) cb.accept(msg);
-        else log(msg); // fallback for tests that only set logCallback
+        if (cb != null) {
+            ServerLog.serverLog("[toolError] " + msg);
+            try { cb.accept(msg); }
+            catch (Exception e) { ServerLog.serverLog("[toolError] client notification failed: " + e.getMessage()); }
+        } else {
+            log("[toolError] " + msg);
+        }
     }
 
     private static String ts() {
@@ -341,14 +346,6 @@ public class CheckRunner {
     }
 
     /**
-     * Run {@code --esc --dirs path1 path2 ...} on one or more files or directories.
-     *
-     * <p>Each path may be a {@code .java} file or a directory; OpenJML processes
-     * directory arguments recursively (same behaviour as repeated {@code --dir}).
-     * Diagnostics are returned grouped by source-file URI so the caller can
-     * publish them to the correct LSP document.
-     */
-    /**
      * Run {@code --check --dirs path1 path2 ...} on one or more files or directories.
      * Returns diagnostics grouped by source-file URI.
      */
@@ -377,8 +374,7 @@ public class CheckRunner {
         } finally {
             api.removeASTListener(astListener);
         }
-        ServerLog.serverLog("[CheckRunner.runCheckDir] exit code " + rc
-                + " for " + paths.size() + " path(s)");
+        ServerLog.serverLog("[CheckRunner.runCheckDir] exit code " + rc);
         for (String msg : listener.toGlobalMessages()) logToolWarning(msg);
         return new DirCheckResult(listener.toLspDiagnosticsByFile(), rc, Map.of(), Map.of());
     }
@@ -2174,7 +2170,9 @@ public class CheckRunner {
             ServerLog.serverLog("[CheckRunner.runDoEscMethod] no cached IAPI for " + uri
                     + " — falling back to fresh engine");
             String filePath = uriToPath(uri);
-            if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
+            if (filePath != null && Files.exists(java.nio.file.Path.of(filePath)))
+                return runEscFileMethod(filePath, uri, methodName, settings);
+            ServerLog.serverLog("[CheckRunner.runDoEscMethod] file not on disk: " + filePath + " — cannot run ESC");
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         }
 
@@ -2184,7 +2182,9 @@ public class CheckRunner {
             ServerLog.serverLog("[CheckRunner.runDoEscMethod] method '" + simple
                     + "' not found in cached AST for " + uri + " — falling back to fresh engine");
             String filePath = uriToPath(uri);
-            if (filePath != null) return runEscFileMethod(filePath, uri, methodName, settings);
+            if (filePath != null && Files.exists(java.nio.file.Path.of(filePath)))
+                return runEscFileMethod(filePath, uri, methodName, settings);
+            ServerLog.serverLog("[CheckRunner.runDoEscMethod] file not on disk: " + filePath + " — cannot run ESC");
             return new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
         }
 
@@ -2227,7 +2227,9 @@ public class CheckRunner {
             ServerLog.serverLog("[CheckRunner.runDoEscFileAsync] no cached IAPI for " + uri
                     + " — falling back to fresh engine");
             String filePath = uriToPath(uri);
-            CheckResult result = (filePath != null)
+            boolean exists = filePath != null && Files.exists(java.nio.file.Path.of(filePath));
+            if (!exists) ServerLog.serverLog("[CheckRunner.runDoEscFileAsync] file not on disk: " + filePath + " — cannot run ESC");
+            CheckResult result = exists
                     ? runEscFile(filePath, uri, settings)
                     : new CheckResult(List.of(), -1, Map.of(), List.of(), Map.of(), Map.of());
             return CompletableFuture.completedFuture(result);

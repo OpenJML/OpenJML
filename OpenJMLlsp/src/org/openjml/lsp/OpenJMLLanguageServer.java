@@ -296,6 +296,11 @@ public class OpenJMLLanguageServer implements LanguageServer, LanguageClientAwar
         return CompletableFuture.completedFuture(null);
     }
 
+    /** Drain background executor tasks. For use in tests before tearing down temp directories. */
+    public void awaitIdle(long timeout, java.util.concurrent.TimeUnit unit) {
+        textDocumentService.awaitIdle(timeout, unit);
+    }
+
     @Override
     public void exit() {
         System.exit(exitCode);

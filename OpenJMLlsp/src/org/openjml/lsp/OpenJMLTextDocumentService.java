@@ -196,7 +196,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final java.util.Set<String> shownDialogMessages =
             java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
-    private final ExecutorService          executor      = Executors.newCachedThreadPool();
+    private final java.util.concurrent.atomic.AtomicInteger activeTaskCount = new java.util.concurrent.atomic.AtomicInteger(0);
+    private final ExecutorService executor = new java.util.concurrent.ThreadPoolExecutor(
+            0, Integer.MAX_VALUE, 60L, java.util.concurrent.TimeUnit.SECONDS,
+            new java.util.concurrent.SynchronousQueue<>()) {
+        @Override protected void beforeExecute(Thread t, Runnable r) { activeTaskCount.incrementAndGet(); }
+        @Override protected void afterExecute(Runnable r, Throwable t) { activeTaskCount.decrementAndGet(); }
+    };
     private final ScheduledExecutorService scheduler     = Executors.newSingleThreadScheduledExecutor();
 
     /** Pending debounce futures for --check, keyed by URI. */
@@ -328,11 +334,14 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     public void connect(LanguageClient client) {
         this.client = client;
         CheckRunner.setLogCallback(msg -> {
-            if (client != null)
-                client.logMessage(new MessageParams(MessageType.Log, msg));
+            try {
+                if (client != null)
+                    client.logMessage(new MessageParams(MessageType.Log, msg));
+            } catch (Exception e) {
+                ServerLog.serverLog("[logCallback] client notification failed: " + e.getMessage());
+            }
         });
-        CheckRunner.setToolWarningCallback(msg ->
-                clientWarnPrefs(msg, "toolOptions"));
+        CheckRunner.setToolWarningCallback(msg -> clientError(msg));
     }
 
     /**
@@ -2640,11 +2649,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void runProjectCheck(String projectId) {
         List<String> roots = rootsForProject(projectId);
         if (roots.isEmpty()) return;
+        // Filter out paths that no longer exist on disk (e.g. temp test directories
+        // deleted by test teardown while a background reindex is still running).
+        List<String> existingRoots = roots.stream()
+                .filter(r -> java.nio.file.Files.exists(java.nio.file.Path.of(r)))
+                .collect(java.util.stream.Collectors.toList());
+        if (existingRoots.isEmpty()) {
+            ServerLog.serverLog("[runProjectCheck] all roots gone for project " + projectId + " — skipping");
+            return;
+        }
         OpenJMLSettings s = settingsForProject(projectId);
         Map<String, String> snapshot = dirtySnapshot();
         try {
             CheckRunner.DirCheckResult result =
-                    CheckRunner.runCheckDirWithContext(roots, snapshot, s, projectId);
+                    CheckRunner.runCheckDirWithContext(existingRoots, snapshot, s, projectId);
             result.diagnosticsByUri().forEach((diagUri, diags) -> {
                 storeCheckDiags(diagUri, diags);
                 publishMerged(diagUri);
@@ -3155,27 +3173,32 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void sendActionMessage(int type, String message,
                                    List<ActionMessageParams.ActionItem> actions) {
         if (client == null) return;
-        if (clientSupportsActionMessages) {
-            // Always send the notification so the client logs the message to its console.
-            // But suppress the dialog actions for repeated messages — the same warning
-            // (e.g. an unrecognised --warn key) would otherwise pop up on every
-            // per-file or per-method ESC sub-pass.
-            boolean firstOccurrence = shownDialogMessages.add(message);
-            var p = new ActionMessageParams();
-            p.type    = type;
-            p.message = message;
-            p.actions = firstOccurrence ? actions : List.of();
-            ((org.eclipse.lsp4j.jsonrpc.Endpoint) client).notify(
-                    "$/openjml/actionMessage", p);
-        } else {
-            // Fallback for generic clients: plain window/logMessage, no dialog.
-            MessageType mt = switch (type) {
-                case 1  -> MessageType.Error;
-                case 2  -> MessageType.Warning;
-                case 4  -> MessageType.Log;
-                default -> MessageType.Info;
-            };
-            client.logMessage(new MessageParams(mt, message));
+        try {
+            if (clientSupportsActionMessages) {
+                // Always send the notification so the client logs the message to its console.
+                // But suppress the dialog actions for repeated messages — the same warning
+                // (e.g. an unrecognised --warn key) would otherwise pop up on every
+                // per-file or per-method ESC sub-pass.
+                boolean firstOccurrence = shownDialogMessages.add(message);
+                var p = new ActionMessageParams();
+                p.type    = type;
+                p.message = message;
+                p.actions = firstOccurrence ? actions : List.of();
+                ((org.eclipse.lsp4j.jsonrpc.Endpoint) client).notify(
+                        "$/openjml/actionMessage", p);
+            } else {
+                // Fallback for generic clients: plain window/logMessage, no dialog.
+                MessageType mt = switch (type) {
+                    case 1  -> MessageType.Error;
+                    case 2  -> MessageType.Warning;
+                    case 4  -> MessageType.Log;
+                    default -> MessageType.Info;
+                };
+                client.logMessage(new MessageParams(mt, message));
+            }
+        } catch (Exception e) {
+            ServerLog.serverLog("[sendActionMessage] client notification failed (type=" + type
+                    + "): " + e.getMessage() + " — message was: " + message);
         }
     }
 
@@ -3677,6 +3700,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     void shutdown() {
         scheduler.shutdownNow();
         executor.shutdownNow();
+    }
+
+    /**
+     * Block until all currently queued executor tasks have completed (or the timeout elapses).
+     * Used by tests to drain background tasks (e.g. workspace reindex) before tearing down
+     * temp directories, avoiding TOCTOU races where OpenJML accesses a path mid-deletion.
+     */
+    void awaitIdle(long timeout, java.util.concurrent.TimeUnit unit) {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        while (activeTaskCount.get() > 0 && System.nanoTime() < deadline) {
+            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+        }
     }
 
     /**

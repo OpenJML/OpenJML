@@ -46,6 +46,7 @@ public class IndexProjectMultiSelectionTest extends ProtocolTestBase {
     @After
     @Override
     public void tearDown() {
+        if (server != null) server.awaitIdle(10, java.util.concurrent.TimeUnit.SECONDS);
         super.tearDown();
         if (tmpDir != null && Files.exists(tmpDir)) {
             try {

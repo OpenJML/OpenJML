@@ -57,6 +57,9 @@ public class MultiProjectTest extends ProtocolTestBase {
     @After
     @Override
     public void tearDown() {
+        // Drain background executor tasks (e.g. workspace reindex) before deleting
+        // temp directories, so OpenJML does not access paths mid-deletion.
+        if (server != null) server.awaitIdle(10, java.util.concurrent.TimeUnit.SECONDS);
         super.tearDown();
         if (tmpDir != null && Files.exists(tmpDir)) {
             try {

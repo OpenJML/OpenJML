@@ -172,6 +172,9 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	then \
 	  _elapsed=$$(( $$(date +%s) - _start )); \
 	  grep -E "^OK|Tests run" $@ | tail -1 | sed "s/^/[PASS] $* ($${_elapsed}s): /"; \
+	  if grep -qE '\[toolError\]' $@; then \
+	    grep -E '\[toolError\]' $@ | sed 's/^/[WARN] $*: /' | head -10; \
+	  fi; \
 	else \
 	  _elapsed=$$(( $$(date +%s) - _start )); \
 	  echo "[FAIL] $* ($${_elapsed}s) — log: $@"; \
@@ -188,12 +191,30 @@ _run-logs: $(LOG_FILES)
 
 run-tests: $(RESULT_DIR)/.compiled
 	@$(MAKE) --no-print-directory -j$(JOBS) _run-logs
+	@_warn_files=$$(grep -rl '\[toolError\]' $(LOG_FILES) 2>/dev/null); \
+	if [ -n "$$_warn_files" ]; then \
+	  echo "ERRORS: tool errors found in logs — treating as test failures:"; \
+	  for f in $$_warn_files; do \
+	    echo "  $$(basename $$f .log):"; \
+	    grep '\[toolError\]' "$$f" | head -5 | sed 's/^/    /'; \
+	  done; \
+	  exit 1; \
+	fi
 	@echo "All LSP tests passed."
 
 ## Sequential fallback — useful for debugging; shows [PASS]/[FAIL] per class.
 run-tests-seq: $(RESULT_DIR)/.compiled
 	@rm -f $(LOG_FILES)
 	@$(MAKE) --no-print-directory -j1 _run-logs
+	@_warn_files=$$(grep -rl '\[toolError\]' $(LOG_FILES) 2>/dev/null); \
+	if [ -n "$$_warn_files" ]; then \
+	  echo "ERRORS: tool errors found in logs — treating as test failures:"; \
+	  for f in $$_warn_files; do \
+	    echo "  $$(basename $$f .log):"; \
+	    grep '\[toolError\]' "$$f" | head -5 | sed 's/^/    /'; \
+	  done; \
+	  exit 1; \
+	fi
 	@echo "All LSP tests passed (sequential)."
 
 ## Run a single test group, e.g.: make test-RenameTest1
