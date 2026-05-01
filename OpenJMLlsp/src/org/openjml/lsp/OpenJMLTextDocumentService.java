@@ -1757,6 +1757,18 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
+     * Resolve settings by project ID if non-blank, otherwise by URI.
+     * Treats a blank/empty projectId the same as null so that VSCode clients
+     * passing "" (meaning "no project specified") get URI-based lookup and the
+     * project-root guard works correctly for untracked files.
+     */
+    OpenJMLSettings settingsFor(String uri, String projectId) {
+        return (projectId != null && !projectId.isBlank())
+                ? settingsForProject(projectId)
+                : settingsForUri(uri);
+    }
+
+    /**
      * Returns the settings for the project that owns {@code uri}, matched by
      * {@link OpenJMLSettings#rootPaths}.
      *
@@ -1824,7 +1836,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * when non-empty; {@code null} or empty means use the global settings.
      */
     void scheduleCheckForUri(String uri, String projectId) {
-        OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
+        OpenJMLSettings s = settingsFor(uri, projectId);
         if (uri.endsWith(".jml")) {
             String javaUri = resolveCompanionJavaUri(uri, null);
             ServerLog.serverLog("[scheduleCheckForUri] .jml redirect: javaUri=" + javaUri);
@@ -1844,7 +1856,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * unsaved edits are included.  No-op if the file is not currently open.
      */
     void recheckUri(String uri, String projectId) {
-        OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
+        OpenJMLSettings s = settingsFor(uri, projectId);
         if (s == null) return;
         String content = lastContent.get(uri);
         if (content == null) return;
@@ -1863,7 +1875,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * {@link OpenJMLSettings}: api-mode or fresh.
      */
     void scheduleEscForUri(String uri, String projectId) {
-        OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
+        OpenJMLSettings s = settingsFor(uri, projectId);
         if (s.isEscApiMode()) {
             submitEscApiWorkList(uri, s, projectId);
         } else {
@@ -1979,7 +1991,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
      * diagnostics (within its line range) are updated; other methods are left unchanged.
      */
     void scheduleEscForMethod(String uri, String methodName, String projectId) {
-        OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
+        OpenJMLSettings s = settingsFor(uri, projectId);
         String content = lastContent.get(uri);
         JavaSourceScanner.MethodInfo target = findMethod(uri, content, methodName);
 
@@ -2312,7 +2324,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void scheduleCheckNow(String uri, String content, String projectId) {
         // Skip files that don't belong to any configured project (e.g. non-JML-natured
         // Eclipse projects, or files outside all workspace roots).
-        OpenJMLSettings s = projectId != null ? settingsForProject(projectId) : settingsForUri(uri);
+        OpenJMLSettings s = settingsFor(uri, projectId);
         if (s == null) return;
         // .jml files are spec files; redirect check to companion .java
         if (uri.endsWith(".jml")) {
