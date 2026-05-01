@@ -25,7 +25,7 @@ public class escnew3 extends EscBase {
                     //@ assume a != null && a.length == 3;
                     //@ assume \\nonnullelements(a);
                     a[0] = null;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // BAD
                   }
                   //@ modifies \\everything;
                   public void m5c(Object[] a) {
@@ -51,27 +51,27 @@ public class escnew3 extends EscBase {
                   public void m1x(/*@ non_null */ Object[] a) {
                     //@ assume \\nonnullelements(a);
                     //@ assume a.length > 1;
-                    //@ assert a[0] != null;
+                    //@ assert a[0] != null; // OK
                   }
                   //@ modifies \\everything;
                   public void m11(Object[] a) {
                     //@ assume \\nonnullelements(a);
-                    //@ assert a != null;
+                    //@ assert a != null; // OK
                   }
                   //@ modifies \\everything;
                   public void m11a(Object[] a) {
                     //@ assume \\nonnullelements(a);
-                    //@ assert a == null;
+                    //@ assert a == null; // BAD
                   }
                   //@ modifies \\everything;
                   public void m1a(Object[] a) {
                     //@ assume a != null && a.length > 1;
-                    //@ assert a[0] != null;
+                    //@ assert a[0] != null; // BAD
                   }
                   //@ modifies \\everything;
                   public void m2(Object[] a) {
                     //@ assume a != null && a.length == 0;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // OK
                   }
                 }
                 """
@@ -90,33 +90,33 @@ public class escnew3 extends EscBase {
                   //@ modifies \\everything;
                   public void m22(Object[] a) {
                     //@ assume a != null && a.length == 0;
-                    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null);
+                    //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null); // OK
                   }
                   //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
                   public void m3(Object[] a) {
                     //@ assume a != null && a.length == 1;
                     a[0] = new Object();    //@ assert a[0] != null;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // OK
                   }
                   //@ modifies \\everything;
                   public void m33(Object[] a) {
                     //@ assume a != null && a.length == 1;
                     //@ assume a[0] != null;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // OK
                   }
                   //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
                   public void m4(Object[] a) {
                     //@ assume a != null && a.length == 2;
                     a[0] = new Object();
                     a[1] = new Object();
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // OK
                   }
                   //@ modifies \\everything;
                   public void m44(Object[] a) {
                     //@ assume a != null && a.length == 2;
                     //@ assume a[0] != null;
                     //@ assume a[1] != null;
-                    //@ assert \\nonnullelements(a);
+                    //@ assert \\nonnullelements(a); // OK
                   }
                 }
                 """
@@ -133,12 +133,12 @@ public class escnew3 extends EscBase {
                   //@ modifies \\everything;
                   public void m1(int i) {
                     i = 5;
-                    //@ assert \\not_modified(i);
+                    //@ assert \\not_modified(i); // OK
                   }
                   //@ modifies \\everything;
                   public void m1a(int i) {
                     i = 5;
-                    //@ assert \\not_modified(i);
+                    //@ assert \\not_modified(i); // BAD
                   }
                   public int i;
                   public static int si;
@@ -147,34 +147,34 @@ public class escnew3 extends EscBase {
                   //@ modifies \\everything;
                   public void m2() {
                     i = 5;
-                    //@ assert \\not_modified(i);
+                    //@ assert \\not_modified(i); // OK
                   }
                   //@ modifies \\everything;
                   public void m2a() {
                     i = 5;
-                    //@ assert \\not_modified(i);
+                    //@ assert \\not_modified(i); // BAD
                   }
                   //@ requires si == 5;
                   //@ modifies \\everything;
                   public void m3() {
                     si = 5;
-                    //@ assert \\not_modified(si);
+                    //@ assert \\not_modified(si); // OK
                   }
                   //@ modifies \\everything;
                   public void m3a() {
                     si = 5;
-                    //@ assert \\not_modified(si);
+                    //@ assert \\not_modified(si); // BAD
                   }
                   //@ requires gi == 5;
                   //@ modifies \\everything;
                   public void m4() {
                     //@ set gi = 5;
-                    //@ assert \\not_modified(gi);
+                    //@ assert \\not_modified(gi); // OK
                   }
                   //@ modifies \\everything;
                   public void m4a() {
                     //@ set gi = 5;
-                    //@ assert \\not_modified(gi);
+                    //@ assert \\not_modified(gi); // BAD
                   }
                 }
                 """
@@ -197,23 +197,23 @@ public class escnew3 extends EscBase {
                   //@ requires t != null;
                   //@ modifies \\everything;
                   public void m0() {
-                    //@ assert \\not_modified(t.i);
+                    //@ assert \\not_modified(t.i); // OK
                   }
                   //@ requires t != null;
                   //@ modifies \\everything;
                   public void m1a() {
                     t = null;
-                    //@ assert \\not_modified(t.i) ? true: true;
+                    //@ assert \\not_modified(t.i) ? true: true; // BAD
                   }
                   //@ requires t == null;
                   //@ modifies \\everything;
                   public void m1b() {
                     t = new TestJava();
-                    //@ assert \\not_modified(t.i) ? true: true;
+                    //@ assert \\not_modified(t.i) ? true: true; // OK
                   }
                   //@ modifies \\everything;
                   public void m1c() {
-                    //@ assert \\not_modified(t.i) ? true: true;
+                    //@ assert \\not_modified(t.i) ? true: true; // BAD
                   }
                 }
                 """
@@ -239,15 +239,15 @@ public class escnew3 extends EscBase {
                   //@ modifies \\everything;
                   public void m0() {
                     s = (short)i;
-                    //@ assert s == i;
+                    //@ assert s == i; // OK
                     b = (byte)i;
-                    //@ assert b == i;
+                    //@ assert b == i; // OK
                     c = (char)i;
-                    //@ assert c == i;
+                    //@ assert c == i; // OK
                     l = (long)i;
-                    //@ assert l == i;
+                    //@ assert l == i; // OK
                     int ii = (int)i;
-                    //@ assert ii == i;
+                    //@ assert ii == i; // OK
                     //@ assert i == (short)i;
                     //@ assert i == (long)i;
                     //@ assert i == (char)i;
@@ -263,7 +263,7 @@ public class escnew3 extends EscBase {
                   //@ requires i == 100000;
                   //@ modifies \\everything;
                   public static void m0badx() {
-                    //@ assert i == (short)i;
+                    //@ assert i == (short)i; // BAD
                   }
                   //@ requires i == 100000;
                   //@ modifies \\everything;
@@ -323,37 +323,37 @@ public class escnew3 extends EscBase {
                   //@ modifies \\everything;
                   public void m0() {
                     /*@ nullable */ Short s = null;
-                    short ss = (short)s;
+                    short ss = (short)s; // ERROR
                     //@ assert 0 == (short)s;
                   }
                   //@ modifies \\everything;
                   public void m1() {
                     /*@ nullable */ Integer s = null;
-                    int ss = (int)s;
+                    int ss = (int)s; // ERROR
                     //@ assert 0 == (int)s;
                   }
                   //@ modifies \\everything;
                   public void m2() {
                     /*@ nullable */ Long s = null;
-                    long ss = (long)s;
+                    long ss = (long)s; // ERROR - line 18
                     //@ assert 0L == (long)s;
                   }
                   //@ modifies \\everything;
                   public void m3() {
                     /*@ nullable */ Byte s = null;
-                    byte ss = (byte)s;
+                    byte ss = (byte)s; // ERROR
                     //@ assert 0 == (byte)s;
                   }
                   //@ modifies \\everything;
                   public void m4() {
                     /*@ nullable */ Character s = null;
-                    char ss = (char)s;
+                    char ss = (char)s; // ERROR - line 30
                     //@ assert 0 == (char)s;
                   }
                   //@ modifies \\everything;
                   public void m7() {
                     /*@ nullable */ Boolean s = null;
-                    boolean ss = (boolean)s;
+                    boolean ss = (boolean)s; // ERROR
                     //@ assert (boolean)s;
                   }
                 }
@@ -379,7 +379,7 @@ public class escnew3 extends EscBase {
                   //@ modifies \\everything;
                   public void m5() {
                     /*@ nullable */ Double s = null;
-                    double ss = (double)s;
+                    double ss = (double)s; // ERROR
                     //@ assert 0 == (double)s;
                   }
                 }
@@ -401,7 +401,7 @@ public class escnew3 extends EscBase {
                   //@ modifies \\everything;
                   public void m6() {
                     /*@ nullable */ Float s = null;
-                    float ss = (float)s;
+                    float ss = (float)s; // ERROR
                     //@ assert 0.0 == (float)s;
                   }
                 }
@@ -486,7 +486,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   private int i;
-                  //@ requires true;
+                  //@ requires true; // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -502,7 +502,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   private int i;
-                  //@ requires true; pure
+                  //@ requires true; pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -518,7 +518,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   private int i;
-                  //@ pure
+                  //@ pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -550,7 +550,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava { //@ public model nullable Object state;
                   private int i; //@ in state;
-                  //@ pure
+                  //@ pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -566,7 +566,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava { //@ public model nullable Object state;
                   private int i; //@ in state;
-                  //@ requires true;
+                  //@ requires true; // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -582,7 +582,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava { //@ public model nullable Object state;
                   private int i; //@ in state;
-                  //@ requires true; pure
+                  //@ requires true; pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -646,7 +646,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   /*@ spec_public */ private int i;
-                  //@ requires true;
+                  //@ requires true; // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -662,7 +662,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   /*@ spec_public */ private int i;
-                  //@ pure
+                  //@ pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -678,7 +678,7 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   /*@ spec_public */ private int i;
-                  //@ requires true; pure
+                  //@ requires true; pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -821,7 +821,7 @@ public class escnew3 extends EscBase {
                      //@ assert !(b & bb);
                      //@ assert (b | bb);
                      //@ assert (b ^ bb);
-                     //@ assert (b & bb);
+                     //@ assert (b & bb); // FALSE
                     }
                 }
                 """
@@ -959,13 +959,13 @@ public class escnew3 extends EscBase {
                      int x = 100;
                      d:{}
                      x = 101;
-                     //@ assert 100 == \\old(x,d);
+                     //@ assert 100 == \\old(x,d); // 100
                      d:{}
                      x = 102;
-                     //@ assert 101 == \\old(x,d);
+                     //@ assert 101 == \\old(x,d); // 101
                      d:{}
                      x = 103;
-                     //@ assert 102 == \\old(x,d);
+                     //@ assert 102 == \\old(x,d); // 102
                     }
                 }
                 """
@@ -985,7 +985,7 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   //@ requires i > -10 && i < 10;
                   public void m(int i) {
-                     //@ assert i != i;
+                     //@ assert i != i; // ERROR -- but not checked when using preconditionOnly
                     }
 
                   //@ requires i > 0;
@@ -1015,9 +1015,9 @@ public class escnew3 extends EscBase {
                   //@ requires i > -10 && i < 10;
                   public void m(int i) {
                      if (i < 0)
-                        //@ assert i < 0;
+                        //@ assert i < 0; // OK
                         i = -i;
-                     //@ assert i >= 0;
+                     //@ assert i >= 0; // OK
                     }
                 }
                 """
@@ -1036,7 +1036,7 @@ public class escnew3 extends EscBase {
                   public void m(int i) {
                      if (i < 0)
                         i = -i;
-                        //@ assert i < 0;
+                        //@ assert i < 0; // false, since not in if
                      //@ assert i >= 0;
                     }
                 }
@@ -1057,7 +1057,7 @@ public class escnew3 extends EscBase {
                   public void m(int i) {
                      if (i < 0)
                         i = -i;
-                        //@ assert i > 0;
+                        //@ assert i > 0; // false, since not in if
                      //@ assert i >= 0;
                     }
                 }
@@ -1158,13 +1158,13 @@ public class escnew3 extends EscBase {
                   public void foo(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     int j = a[i];
+                     int j = a[i]; // Old error
                   }
                   //@ public normal_behavior
                   public void fooA(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     try { int j = a[i]; } catch (ArrayIndexOutOfBoundsException e) {}
+                     try { int j = a[i]; } catch (ArrayIndexOutOfBoundsException e) {} // No error
                   }
                   //@ public normal_behavior
                   public void fooB(int[] a, int i) {
@@ -1172,13 +1172,13 @@ public class escnew3 extends EscBase {
                      //@ assume 1 < a.length;
                      //@ assume i < a.length;
                      try { int j = a[0]; } catch (ArrayIndexOutOfBoundsException e) {}
-                     int j = a[i];
+                     int j = a[i]; // Old Error
                   }
                   //@ public normal_behavior
                   public void fooC(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     try { int j = a[i]; } catch (IndexOutOfBoundsException e) {}
+                     try { int j = a[i]; } catch (IndexOutOfBoundsException e) {} // No error
                   }
                   //@ public normal_behavior
                   public void fooD(int[] a, int i) {
@@ -1220,13 +1220,13 @@ public class escnew3 extends EscBase {
                   public void foo(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     a[i] = 0;
+                     a[i] = 0; // Old error
                   }
                   //@ public normal_behavior
                   public void fooA(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     try { a[i] = 0; } catch (ArrayIndexOutOfBoundsException e) {}
+                     try { a[i] = 0; } catch (ArrayIndexOutOfBoundsException e) {} // No error
                   }
                   //@ public normal_behavior
                   public void fooB(int[] a, int i) {
@@ -1234,13 +1234,13 @@ public class escnew3 extends EscBase {
                      //@ assume 1 < a.length;
                      //@ assume i < a.length;
                      try { a[i] = 0; } catch (ArrayIndexOutOfBoundsException e) {}
-                     a[i] = 0;
+                     a[i] = 0; // Old Error
                   }
                   //@ public normal_behavior
                   public void fooC(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     try { a[i] = 0; } catch (IndexOutOfBoundsException e) {}
+                     try { a[i] = 0; } catch (IndexOutOfBoundsException e) {} // No error
                   }
                   //@ public normal_behavior
                   public void fooD(int[] a, int i) {
@@ -1282,13 +1282,13 @@ public class escnew3 extends EscBase {
                   public void foo(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     a[i] += 0;
+                     a[i] += 0; // Old error
                   }
                   //@ public normal_behavior
                   public void fooA(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     try { a[i] += 0; } catch (ArrayIndexOutOfBoundsException e) {}
+                     try { a[i] += 0; } catch (ArrayIndexOutOfBoundsException e) {} // No error
                   }
                   //@ public normal_behavior
                   public void fooB(int[] a, int i) {
@@ -1296,13 +1296,13 @@ public class escnew3 extends EscBase {
                      //@ assume 1 < a.length;
                      //@ assume i < a.length;
                      try { a[i] += 0; } catch (ArrayIndexOutOfBoundsException e) {}
-                     a[i] += 0;
+                     a[i] += 0; // Old Error
                   }
                   //@ public normal_behavior
                   public void fooC(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
-                     try { a[i] += 0; } catch (IndexOutOfBoundsException e) {}
+                     try { a[i] += 0; } catch (IndexOutOfBoundsException e) {} // No error
                   }
                   //@ public normal_behavior
                   public void fooD(int[] a, int i) {
@@ -1709,7 +1709,7 @@ public class escnew3 extends EscBase {
                   enum A { X,Y; };
                   //@ public normal_behavior
                   public void foo(/*@ nullable */ A a) {
-                     switch (a) {};
+                     switch (a) {}; // ERROR - a might be null
                   }
                   //@ public normal_behavior
                   public void fooA(/*@ nullable */ A a) {

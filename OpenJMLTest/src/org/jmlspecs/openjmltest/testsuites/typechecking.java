@@ -1774,7 +1774,7 @@ public class typechecking extends TCBase {
                   //@ requires true;
                   public void m1() {
                   }
-                  //@ public behavior requires true;
+                  //@ public behavior requires true; // Warning
                   protected void m2p() {
                   }
                   //@ protected behavior requires true;
@@ -1789,13 +1789,13 @@ public class typechecking extends TCBase {
                   //@ requires true;
                   protected void m2() {
                   }
-                  //@ public behavior requires true;
+                  //@ public behavior requires true; // Warning
                   private void m3p() {
                   }
-                  //@ protected behavior requires true;
+                  //@ protected behavior requires true; // Warning
                   private void m3r() {
                   }
-                  //@ behavior requires true;
+                  //@ behavior requires true; // Warning
                   private void m3k() {
                   }
                   //@ private behavior requires true;
@@ -1804,10 +1804,10 @@ public class typechecking extends TCBase {
                   //@ requires true;
                   private void m3() {
                   }
-                  //@ public behavior requires true;
+                  //@ public behavior requires true; // Warning
                   void m4p() {
                   }
-                  //@ protected behavior requires true;
+                  //@ protected behavior requires true; // Warning
                   void m4r() {
                   }
                   //@ behavior requires true;

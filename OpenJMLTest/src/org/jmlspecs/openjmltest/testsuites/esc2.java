@@ -115,7 +115,7 @@ public class esc2 extends EscBase {
                   public void v10a() {
                     long[] a = { 1,2,3,4};
                     for (long k: a) {
-                      //@ ghost org.jmlspecs.lang.JMLList i = \\values;
+                      //@ ghost org.jmlspecs.lang.JMLList i = \\values; // OK
                     }
                   }
                 }
@@ -569,25 +569,25 @@ public class esc2 extends EscBase {
                   int f; static int sf;
                   int g; static int sg;
                   public static TestJava t;  //@ public static invariant t != null;
-                  public void inst2(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  /*@ assert t.f == 2; */ }
-                  public void inst2a(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  /*@ assert t.f == 3; */ }
-                  public void inst3(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 3; */ }
-                  public void inst3a(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 4; */ }
-                  public void inst4(int/*@non_null*/[] a) { /*@ assume t.g == 2; */  t.f = 3; /*@ assert t.g == 2; */ }
-                  public void inst4a(int/*@non_null*/[] a) { /*@ assume t.g == 2; */  t.f = 3; /*@ assert t.g == 4; */ }
-                  public void inst5(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 3; */  t.f = 4; /*@ assert t.f == 4; */}
-                  public void inst5a(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 3; */  t.f = 4; /*@ assert t.f == 5; */}
-                  public void inst6(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { b = a; /*@ assert a.f == b.f; */}
-                  public void inst6a(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { b = a; /*@ assert a.f != b.f; */}
-                  public void inst7(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { b.f = 0; b = a; a.f = 7; /*@ assert b.f == 7; */}
-                  public void inst7a(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { b.f = 0; b = a; a.f = 7; /*@ assert b.f == 8; */}
-                  public void inst8(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { /*@ assert a.sf == b.sf; */}
-                  public void inst8a(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { /*@ assert a.sf != b.sf; */}
-                  public void inst9(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { a.sf = 3; /*@ assert 3 == b.sf; */}
-                  public void inst9a(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { a.sf = 3; /*@ assert 3 != b.sf; */}
-                  public void inst10(/*@non_null*/TestJava a) { /*@ assert f == this.f; */ /*@ assert a == this ==> a.f == f; */}
-                  public void inst10a(/*@non_null*/TestJava a) { /*@ assert f == this.f; */ /*@ assert a.f == f; */}
-                  public void inst11(/*@non_null*/TestJava a) { /*@ assert sf == this.sf; */ /*@ assert a.sf == sf; */}
+                  public void inst2(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  /*@ assert t.f == 2; */ } // OK
+                  public void inst2a(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  /*@ assert t.f == 3; */ } // BAD
+                  public void inst3(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 3; */ } // OK
+                  public void inst3a(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 4; */ } // BAD
+                  public void inst4(int/*@non_null*/[] a) { /*@ assume t.g == 2; */  t.f = 3; /*@ assert t.g == 2; */ } // OK
+                  public void inst4a(int/*@non_null*/[] a) { /*@ assume t.g == 2; */  t.f = 3; /*@ assert t.g == 4; */ } // BAD
+                  public void inst5(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 3; */  t.f = 4; /*@ assert t.f == 4; */} // OK
+                  public void inst5a(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  t.f = 3; /*@ assert t.f == 3; */  t.f = 4; /*@ assert t.f == 5; */} // BAD
+                  public void inst6(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { b = a; /*@ assert a.f == b.f; */} // OK
+                  public void inst6a(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { b = a; /*@ assert a.f != b.f; */} // BAD
+                  public void inst7(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { b.f = 0; b = a; a.f = 7; /*@ assert b.f == 7; */} // OK
+                  public void inst7a(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { b.f = 0; b = a; a.f = 7; /*@ assert b.f == 8; */} // BAD
+                  public void inst8(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { /*@ assert a.sf == b.sf; */} // OK
+                  public void inst8a(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { /*@ assert a.sf != b.sf; */} // BAD
+                  public void inst9(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { a.sf = 3; /*@ assert 3 == b.sf; */} // OK
+                  public void inst9a(/*@non_null*/TestJava a, /*@non_null*/TestJava b) { a.sf = 3; /*@ assert 3 != b.sf; */} // BAD
+                  public void inst10(/*@non_null*/TestJava a) { /*@ assert f == this.f; */ /*@ assert a == this ==> a.f == f; */} // OK
+                  public void inst10a(/*@non_null*/TestJava a) { /*@ assert f == this.f; */ /*@ assert a.f == f; */} // BAD
+                  public void inst11(/*@non_null*/TestJava a) { /*@ assert sf == this.sf; */ /*@ assert a.sf == sf; */} // OK
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method inst2a", 75
@@ -631,13 +631,13 @@ public class esc2 extends EscBase {
                   int f; static int sf;
                   int g; static int sg;
                   static TestJava t;
-                  public void inst1a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; break; case 2: j = 2; } /*@ assert j!=0; */ }
-                  public void inst1b(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; break; case 2: j = 2; } /*@ assert j==1; */ }
-                  public void inst2(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; case 2: j = 2; } /*@ assert j>0; */ }
-                  public void inst2a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; case 2: j = 2; } /*@ assert i==0 ==> j==-1; */ }
-                  public void inst3(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: switch(i) {default: i=4; } break; default: j=-1; case 2: j = 2; } /*@ assert j>=0; */ }
-                  public void inst3a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: switch(i) {default: i=4; } break; default: j=-1; break; case 2: j = 2; } /*@ assert j>0; */ }
-                  public void inst4(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: switch(i) {} break; default: j=-1; case 2: j = 2; } /*@ assert j>=0; */ }
+                  public void inst1a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; break; case 2: j = 2; } /*@ assert j!=0; */ } // OK
+                  public void inst1b(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; break; case 2: j = 2; } /*@ assert j==1; */ } // BAD
+                  public void inst2(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; case 2: j = 2; } /*@ assert j>0; */ } // OK
+                  public void inst2a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; case 2: j = 2; } /*@ assert i==0 ==> j==-1; */ } // BAD
+                  public void inst3(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: switch(i) {default: i=4; } break; default: j=-1; case 2: j = 2; } /*@ assert j>=0; */ } // OK
+                  public void inst3a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: switch(i) {default: i=4; } break; default: j=-1; break; case 2: j = 2; } /*@ assert j>0; */ } // OK
+                  public void inst4(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: switch(i) {} break; default: j=-1; case 2: j = 2; } /*@ assert j>=0; */ } // OK
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method inst1b", 148
@@ -654,9 +654,9 @@ public class esc2 extends EscBase {
                 public class TestJava {
                   static public int i;
                   //@ ensures i == 2;
-                  public void inst1() { i=0; try { i = 1; return; } finally { i = 2; } }
+                  public void inst1() { i=0; try { i = 1; return; } finally { i = 2; } } // OK
                   //@ ensures i == 1;
-                  public void inst1a() { i=0; try { i = 1; return; } finally { i = 2; } }
+                  public void inst1a() { i=0; try { i = 1; return; } finally { i = 2; } } // BAD
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method inst1a", 44
@@ -730,7 +730,7 @@ public class esc2 extends EscBase {
                   static public int i;
                   //@ requires i > 0;
                   //@ ensures i > 0;
-                  public static void m() { i = i -1; }
+                  public static void m() { i = i -1; } // OK
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m", 22
@@ -962,12 +962,12 @@ public class esc2 extends EscBase {
                   //@ requires i == 3;
                   //@ ensures \\result == i;
                   //@ pure
-                  public int m(int i) { return i; }
+                  public int m(int i) { return i; } // OK
                   //@ requires a >= 1 && a <= 3;
                   //@ ensures \\result == a;
-                  public int m1(int a) { return m(a); }
+                  public int m1(int a) { return m(a); } // OK
                   //@ ensures \\result == a;
-                  public int m1a(int a) { return m(-1); }
+                  public int m1a(int a) { return m(-1); } // Precondition ERROR
                 }
                 """
                 ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Precondition) in method m1a", 35
@@ -1416,7 +1416,7 @@ public class esc2 extends EscBase {
                   }
                   public static void m6(RuntimeException r) {
                     Throwable t = r;
-                    //@ assume ((Exception)t) != null ? true : true;
+                    //@ assume ((Exception)t) != null ? true : true; // OK
                   }
                   public static void m6a(Exception r) {
                     Throwable t = r;
@@ -1951,7 +1951,7 @@ public class esc2 extends EscBase {
                   }
                   //@ requires i >= 0;
                   //@ ensures i>0;
-                  //@ signals (Exception e) i == 1;
+                  //@ signals (Exception e) i == 1; // FAILS
                   public void m1a() throws Exception {
                     if (i==0) throw new Exception();
                   }
@@ -1971,13 +1971,13 @@ public class esc2 extends EscBase {
                   static public int i;
                   //@ requires i >= 0;
                   //@ ensures i>0;
-                  //@ signals (Exception e) i == 0;
+                  //@ signals (Exception e) i == 0; // OK
                   public void m2() throws Exception {
                     if (i==0) throw new Exception();
                   }
                   //@ requires i >= 0;
                   //@ ensures i>0;
-                  //@ signals (RuntimeException e) i == 1;
+                  //@ signals (RuntimeException e) i == 1; // FAILS
                   public void m2a() throws Exception {
                     if (i==0) throw new RuntimeException();
                   }
@@ -2003,7 +2003,7 @@ public class esc2 extends EscBase {
                   }
                   //@ requires i >= 0;
                   //@ ensures i>0;
-                  //@ signals (Exception e) i == 1;
+                  //@ signals (Exception e) i == 1; // FAILS
                   public void m3a() throws RuntimeException {
                     if (i==0) throw new RuntimeException();
                   }
@@ -2023,7 +2023,7 @@ public class esc2 extends EscBase {
                   static public int i;
                   //@ requires i >= 0;
                   //@ ensures i>0;
-                  //@ signals (RuntimeException e) i == 1;
+                  //@ signals (RuntimeException e) i == 1; // OK
                   public void m4() throws Exception {
                     if (i==0) throw new Exception();
                   }
@@ -2039,15 +2039,15 @@ public class esc2 extends EscBase {
                 package tt;
                 public class TestJava {
                   static int i;
-                  //@ signals_only java.io.IOException;
+                  //@ signals_only java.io.IOException; // FAILS
                   public void m1a() throws Exception {
                     if (i==0) throw new Exception();
                   }
-                  //@ signals_only \\nothing;
+                  //@ signals_only \\nothing; // FAILS
                   public void m2a() {
                     if (i==0) throw new RuntimeException();
                   }
-                  //@ signals_only Exception;
+                  //@ signals_only Exception; // OK
                   public void m3() {
                     if (i==0) throw new RuntimeException();
                   }
@@ -2426,8 +2426,8 @@ public class esc2 extends EscBase {
                   //@ no_state
                   //@ model public static boolean m(int i);
                   //@ pure
-                  public void mm() {  //@ assert !m(10);
-                  //@ assert !(\\forall int k; 3 < k < 11; m(k));
+                  public void mm() {  //@ assert !m(10); // Assertion serves as a lemma that aids in quickly proving the following assert
+                  //@ assert !(\\forall int k; 3 < k < 11; m(k)); // Should be OK because m(10) is false
                   }
                 }
                 """
@@ -2446,7 +2446,7 @@ public class esc2 extends EscBase {
                   //@ model public boolean m(int i);
                   //@ pure
                   public void mm() {
-                  //@ assert (\\forall int k; 3 < k < 11; m(k));
+                  //@ assert (\\forall int k; 3 < k < 11; m(k)); // ERROR because m(10) is false
                   }
                 }
                 """
@@ -2466,7 +2466,7 @@ public class esc2 extends EscBase {
                   //@ model public boolean m(int i);
                   //@ pure
                   public void mm() {
-                  //@ assert (\\forall int k; 3 < k < 10; m(k));
+                  //@ assert (\\forall int k; 3 < k < 10; m(k)); // OK
                   }
                 }
                 """
@@ -3064,12 +3064,12 @@ public class esc2 extends EscBase {
                   //@   requires true;
                   public static void m(int i, int j) {
                      //@ show i;
-                     //@ show ijk
-                     //@ show i ijk;
+                     //@ show ijk // ERROR
+                     //@ show i ijk; // ERROR
                      //@ show;
-                     //@ show ijk
-                     //@ show %;
-                     //@ show ijk show ijk;
+                     //@ show ijk // ERROR
+                     //@ show %; // ERROR
+                     //@ show ijk show ijk; // ERROR
                   }
                 }
                 """
@@ -3154,15 +3154,15 @@ public class esc2 extends EscBase {
                   //@ check  !(0 <= i < 10);
                   //@ check  0 <= i < 11 == 2 <= i <= 12;
                   //@ check  11 >= i+1 > 1 == 12 >= i > 2;
-                  //@ check  11 >= i+1 < 12;
-                  //@ check  11 >= i+1 <= 12 == true;
-                  //@ check  11 > i+1 < 12;
-                  //@ check  11 > i+1 <= 12 == true;
-                  //@ check  11 >= i+1 > 1 != 12 <= i <= 22;
-                  //@ check  11 < i+1 > 12;
-                  //@ check  11 < i+1 >= 12;
-                  //@ check  11 <= i+1 > 12;
-                  //@ check  11 <= i+1 >= 12;
+                  //@ check  11 >= i+1 < 12; // ERROR
+                  //@ check  11 >= i+1 <= 12 == true; // ERROR
+                  //@ check  11 > i+1 < 12; // ERROR
+                  //@ check  11 > i+1 <= 12 == true; // ERROR
+                  //@ check  11 >= i+1 > 1 != 12 <= i <= 22; // OK but bad style
+                  //@ check  11 < i+1 > 12; // ERROR
+                  //@ check  11 < i+1 >= 12; // ERROR
+                  //@ check  11 <= i+1 > 12; // ERROR
+                  //@ check  11 <= i+1 >= 12; // ERROR
                   }
                 }
                 """
@@ -3548,7 +3548,7 @@ public class esc2 extends EscBase {
                   public static void bok() { x: i = i + 1; /*@ assert i == i@x + 1 && i == (i+1)@x; */ i = i + 1;}
                   //@ assigns i;
                   //@ ensures i == \\old(i+1);
-                  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ }
+                  public static void bbad() { i = i - 1; /*@ assert i == i@x + 1; */ } // ERROR
                   //@ assigns i;
                   public void bok2() { x: i = i + 1; /*@ assert i == this.i@x + 1; */ i = i + 1;}
                   //@ requires a.length > 10 && a[0] >= 0;

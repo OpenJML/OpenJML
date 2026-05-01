@@ -581,7 +581,7 @@ public class escnew extends EscBase {
                            k = 2;
                         } return k;
                   }
-                  //@ ensures \\result == 2;
+                  //@ ensures \\result == 2; // Line 50
                   public int m2good() throws Exception {
                       int k;
                        try {
@@ -2012,15 +2012,15 @@ public class escnew extends EscBase {
                   public void m1(int i) {
                   }
                   //@ ensures mmr(i) == \\result;
-                  public int m1x(int i) {
+                  public int m1x(int i) { // Line 20
                       return mmr(i);
                   }
                   //@ ensures mt(i) == mt(i);
-                  public void m3(int i) {
+                  public void m3(int i) { // Line 24
                   }
                   //@ ensures mtr(i) == \\result;
                   public /*@ nullable */ <T> T m3x(int i) {
-                    return mtr(i); }
+                    return mtr(i); } // Line 28
                   //@ ensures mf(i) == mf(i);
                   public void m2(int i) {
                   }
@@ -2044,20 +2044,20 @@ public class escnew extends EscBase {
                   //@ ensures \\fresh(\\result); pure
                   public Object mm(int i) { return new Object(); }
                   //@ ensures \\result == o; pure
-                  public /*@ nullable */ Object mm2(int i) { return o; }
+                  public /*@ nullable */ Object mm2(int i) { return o; } // Line 7
                   //@ ensures true; pure
                   public Object mm3(int i) { return new Object(); }
-                  //@ ensures \\fresh(\\result);
-                  //@ ensures mm(i) == \\result;
+                  //@ ensures \\fresh(\\result); // Line 10
+                  //@ ensures mm(i) == \\result; // ERROR - not necessarily the case
                   public Object m1(int i) {
-                      return mm(i);
+                      return mm(i); // Line 13
                   }
                   //@ ensures \\result == null || !\\fresh(\\result);
                   //@ ensures mm2(i) == \\result;
                   public /*@ nullable */ Object m2(int i) {
                       return mm2(i);
                   }
-                  //@ ensures mm3(i) == \\result;
+                  //@ ensures mm3(i) == \\result; // Line 20 // ERROR - not necessarily the case
                   public Object m3(int i) {
                       return mm3(i);
                   }
@@ -2090,8 +2090,8 @@ public class escnew extends EscBase {
                      else  j = 29;
                      //@ assert i==1 ==> j == mpure(1);
                      //@ assert i==2 ==> j == mpure(2);
-                     //@ assert i==3 ==> j == mpure(1);
-                     //@ assert i==3 ==> j != mpure(1);
+                     //@ assert i==3 ==> j == mpure(1); // CAN'T PROVE
+                     //@ assert i==3 ==> j != mpure(1); // CAN'T PROVE
                   }
                 }
                 """
@@ -2118,9 +2118,9 @@ public class escnew extends EscBase {
                      else if (i == 2) { j = mpure(i); k = 0; }
                      else  j = 29;
                      //@ check i==1 ==> j == mpure(1);
-                     //@ check i==2 ==> j == mpure(2);
-                     //@ check i==3 ==> j == mpure(1);
-                     //@ check i==3 ==> j != mpure(1);
+                     //@ check i==2 ==> j == mpure(2); // CAN'T PROVE
+                     //@ check i==3 ==> j == mpure(1); // CAN'T PROVE
+                     //@ check i==3 ==> j != mpure(1); // CAN'T PROVE
                   }
                 }
                 """
@@ -2157,7 +2157,7 @@ public class escnew extends EscBase {
                     assert i == 0 ;
                   }
                   //@ requires true;
-                  public void m2badb(int i) {
+                  public void m2badb(int i) { // Line 20
                     assert i == 0 : "m2badb fails" ;
                   }
                   //@ requires i == 0;

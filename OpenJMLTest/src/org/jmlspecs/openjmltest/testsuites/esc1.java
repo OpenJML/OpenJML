@@ -1999,9 +1999,13 @@ public class esc1 extends EscBase {
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
+
                   public /*@ non_null*/Object inst(boolean b, /*@ non_null */Object i, Object ii) { return i; }
+
                   public /*@ non_null*/Object instbad(boolean b, /*@ non_null */Object i, Object ii) { return ii; }
+
                   public /*@ non_null*/Object inst2(boolean b, @NonNull Object i, Object ii) { return i; }
+
                   public /*@ non_null*/Object inst2bad(boolean b, @NonNull Object i, Object ii) { return ii; }
                 }
                 """
