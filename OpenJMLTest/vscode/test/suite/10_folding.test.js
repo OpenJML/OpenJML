@@ -2,13 +2,8 @@
 /**
  * Suite 10: Code Folding
  *
- * Verifies that multi-line JML block comments (/*@ ... @* /) can be folded.
- * Uses JmlFold.java which has two long /*@ @* / blocks.
- *
- * NOTE (missing feature): Folding of JML blocks requires either a grammar
- * indentation rule or an LSP textDocument/foldingRange response.  Neither is
- * confirmed to be implemented.  Tests skip with a logged reason if no fold
- * controls appear, flagging this as a missing feature.
+ * Verifies that multi-line JML block comments (/*@ ... @*\/) can be folded.
+ * Uses JmlFold.java which has two long /*@ @*\/ blocks.
  *
  * Fold controls are detected via Monaco gutter CSS classes rather than a
  * vscode-extension-tester FoldingRange API (which does not exist).
@@ -16,24 +11,21 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
-const { Key } = require('selenium-webdriver');
-const { suiteTeardown, runCommand, noteSkip, openAndFocusFile } = require('./helpers');
+const { suiteTeardown, runCommand, openAndFocusFile } = require('./helpers');
 
 const JML_FOLD_JAVA = path.resolve(__dirname, '../../resources/JmlFold.java');
 
+/** Returns count of expanded fold chevrons in the Monaco gutter. */
 async function countFoldControls(driver) {
-    try {
-        return (await driver.findElements(
-            { css: '.monaco-editor .cldr.codicon-folding-expanded' })).length;
-    } catch (_) { return 0; }
+    const els = await driver.findElements(
+        { css: '.monaco-editor .cldr.codicon-folding-expanded' });
+    return els.length;
 }
 
 describe('Code Folding', function () {
     this.timeout(90_000);
 
     let editor;
-    let foldControlsAvailable = false;
-    let foldSucceeded = false;
 
     before(async function () {
         await VSBrowser.instance.waitForWorkbench(20_000);
@@ -50,60 +42,32 @@ describe('Code Folding', function () {
         await driver.sleep(1_000);
 
         const count = await countFoldControls(driver);
-        if (count === 0)
-            // NOTE: JML block folding not implemented — needs grammar rule or
-            // textDocument/foldingRange LSP support.
-            noteSkip(this, 'no fold controls found — JML /*@ @*/ block folding is not implemented');
-
-        foldControlsAvailable = true;
         assert.ok(count >= 1,
             `Expected at least 1 fold control for /*@ ... @*/ blocks, found ${count}`);
     });
 
     it('clicking a fold control collapses a JML block', async function () {
-        if (!foldControlsAvailable)
-            noteSkip(this, 'skipping — no fold controls available (test 1 skipped)');
-
         const driver = VSBrowser.instance.driver;
         await editor.click();
         await driver.sleep(500);
 
-        const before = await countFoldControls(driver);
-        if (before === 0)
-            noteSkip(this, 'no fold controls — JML block folding not implemented');
+        const chevrons = await driver.findElements(
+            { css: '.monaco-editor .cldr.codicon-folding-expanded' });
+        assert.ok(chevrons.length >= 1,
+            `Expected at least 1 fold control to click, found ${chevrons.length}`);
 
-        try {
-            const chevrons = await driver.findElements(
-                { css: '.monaco-editor .cldr.codicon-folding-expanded' });
-            await chevrons[0].click();
-            await driver.sleep(1_000);
-        } catch (_) {
-            noteSkip(this, 'could not click fold control');
-        }
+        await chevrons[0].click();
+        await driver.sleep(1_000);
 
         const collapsed = await driver.findElements(
             { css: '.monaco-editor .cldr.codicon-folding-collapsed' }).catch(() => []);
-        // NOTE: VS Code 1.117+ may use different CSS class names for the collapsed state;
-        // if the class is not found after clicking, treat as a missing-feature skip.
-        if (collapsed.length === 0)
-            noteSkip(this, 'codicon-folding-collapsed class not found after click — VS Code may use different fold indicator CSS in 1.117+');
-        foldSucceeded = true;
         assert.ok(collapsed.length >= 1,
-            'Expected at least one collapsed fold control after clicking');
+            'Expected at least one collapsed fold control after clicking — codicon-folding-collapsed class not found');
     });
 
     it('unfolding restores the JML block lines', async function () {
-        if (!foldControlsAvailable)
-            noteSkip(this, 'skipping — no fold controls available (test 1 skipped)');
-        if (!foldSucceeded)
-            noteSkip(this, 'skipping — fold did not succeed in test 2');
-        // Use the command palette instead of a keyboard shortcut to avoid
-        // cross-platform key binding differences (Cmd+Shift+] on Mac switches
-        // editor tabs rather than unfolding).
-        const ok = await require('./helpers').runCommand('editor.unfoldAll');
-        if (!ok) noteSkip(this, 'editor.unfoldAll command unavailable');
+        await runCommand('editor.unfoldAll');
 
-        // Poll until collapsed controls disappear or deadline.
         const driver = VSBrowser.instance.driver;
         const deadline = Date.now() + 5_000;
         let collapsedAfter = [];
@@ -113,8 +77,6 @@ describe('Code Folding', function () {
                 { css: '.monaco-editor .cldr.codicon-folding-collapsed' }).catch(() => []);
             if (collapsedAfter.length === 0) break;
         }
-        if (collapsedAfter.length > 0)
-            noteSkip(this, 'collapsed fold controls still present after Unfold All — VS Code may not have completed the unfold');
         assert.ok(collapsedAfter.length === 0,
             'Expected no collapsed fold controls after Unfold All');
     });

@@ -338,21 +338,20 @@ async function waitForServer(timeoutMs = 120_000) {
 // ── Skip helpers ──────────────────────────────────────────────────────────────
 
 /**
- * Log a SKIP reason and immediately skip the current Mocha test.
+ * Fail the current Mocha test with a descriptive reason.
  *
- * Because Mocha's this.skip() throws a Pending error, execution stops at the
- * throw — no 'return' statement is needed after calling noteSkip().
+ * Throws an AssertionError so execution stops at the call site —
+ * no 'return' statement is needed after calling noteSkip().
  *
- * Usage:
- *   if (!serverRunning) noteSkip(this, 'server not running');
- *   // code here is unreachable when skipping
+ * The ctx parameter is retained for call-site compatibility but is
+ * no longer used (previously called ctx.skip()).
  *
- * @param {Mocha.Context} ctx   The test context — pass `this` from the test.
- * @param {string}        reason  Human-readable reason shown in the test log.
+ * @param {Mocha.Context} ctx   Unused — kept for call-site compatibility.
+ * @param {string}        reason  Human-readable failure reason.
  */
 function noteSkip(ctx, reason) {
-    console.log('    [SKIP] ' + reason);
-    ctx.skip();
+    const assert = require('assert');
+    assert.fail(reason);
 }
 
 module.exports = {

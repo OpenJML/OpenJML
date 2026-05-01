@@ -87,15 +87,23 @@ describe('Code Lenses', function () {
         if (lenses.length === 0)
             noteSkip(this, 'no code lenses — server may not be running');
 
-        let target = null;
-        for (const lens of lenses) {
-            const text = await lens.getText();
-            if (text.includes('Run ESC')) { target = lens; break; }
+        // getText() and click() can both go stale if the server refreshes lenses
+        // while we're interacting.  Re-fetch and retry the whole sequence.
+        let clicked = false;
+        for (let attempt = 0; attempt < 5 && !clicked; attempt++) {
+            try {
+                const fresh = await pollUntilNonEmpty(() => editor.getCodeLenses(), 3_000);
+                for (const lens of fresh) {
+                    const text = await lens.getText();
+                    if (text.includes('Run ESC')) { await lens.click(); clicked = true; break; }
+                }
+            } catch (e) {
+                if (!e.toString().includes('stale')) throw e;
+                await VSBrowser.instance.driver.sleep(500);
+            }
         }
-        if (!target)
-            noteSkip(this, 'no "Run ESC" lens — all methods already have results');
-
-        await target.click();
+        if (!clicked)
+            noteSkip(this, 'no "Run ESC" lens found or click failed after 5 attempts');
         await VSBrowser.instance.driver.sleep(3_000);
 
         const updatedLenses = await editor.getCodeLenses();

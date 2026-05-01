@@ -26,7 +26,7 @@ const { suiteTeardown, runCommand, waitForServer, noteSkip, openAndFocusFile,
         getExplorerSection, findExplorerItem, invokeContextMenuItem } = require('./helpers');
 
 const JML_ERRORS_JAVA = path.resolve(__dirname, '../../resources/JmlErrors.java');
-const DIAG_WAIT_MS    = 30_000;
+const DIAG_WAIT_MS    = 60_000;
 
 /**
  * Poll the Problems panel until at least minCount markers appear, or timeout.
@@ -172,7 +172,7 @@ describe('Diagnostics (Markers)', function () {
         if (!item) noteSkip(this, 'JmlErrors.java not found in Explorer');
 
         const clicked = await invokeContextMenuItem(item, 'Clear Markers for Selection',
-                                                    ['Clear Markers', 'Clear Caches']);
+                                                    ['Clear Caches']);
         if (!clicked) noteSkip(this, '"Clear Markers for Selection" not in context menu');
         await driver.sleep(2_000);
 
@@ -186,10 +186,15 @@ describe('Diagnostics (Markers)', function () {
 
     it('ESC on bad() reports a verification failure', async function () {
         // bad() has ensures \result < 0 but returns x > 0 — ESC must fail.
-        // Dismiss any stale context menu left by the previous test.
+        // Re-focus the editor (previous test may have left Explorer sidebar focused).
         try { await VSBrowser.instance.driver.actions()
             .sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
         await VSBrowser.instance.driver.sleep(300);
+        await openAndFocusFile(JML_ERRORS_JAVA);
+        await VSBrowser.instance.driver.sleep(500);
+        // Ensure the file is type-checked before ESC — the server needs the AST.
+        await runCommand('OpenJML: Check JML');
+        await VSBrowser.instance.driver.sleep(3_000);
         const ok = await runCommand('OpenJML: Run ESC');
         if (!ok) noteSkip(this, 'Run ESC command unavailable — server may not be running');
         await VSBrowser.instance.driver.sleep(5_000);

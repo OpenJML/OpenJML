@@ -71,9 +71,18 @@ describe('ESC via Explorer context menu', function () {
         if (!clicked)
             noteSkip(this, '"Run ESC" not in Explorer context menu — server may not be running');
 
-        // Use server log (not output channel) since getText() is broken in VS Code 1.117+.
-        const fullLog = await waitForServerLog([FILEA], Date.now() + 30_000);
-        const newLog  = fullLog.slice(logLengthBefore);
+        // Poll only the NEW portion of the server log (after the snapshot) so that a
+        // prior mention of FILEA (from opening the file) does not cause a false pass.
+        const deadline = Date.now() + 60_000;
+        let newLog = '';
+        while (Date.now() < deadline) {
+            try {
+                const full = fs.readFileSync(SERVER_LOG, 'utf8');
+                newLog = full.slice(logLengthBefore);
+                if (newLog.includes(FILEA)) break;
+            } catch (_) {}
+            await driver.sleep(1_000);
+        }
         if (!newLog.includes(FILEA))
             noteSkip(this, 'server log did not mention ' + FILEA + ' — ESC may not have run');
 
