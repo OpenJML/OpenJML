@@ -11,6 +11,12 @@
 # Claude Code local settings and runtime files
 .claude/
 
+# Per-user VS Code workspace settings (launch.json is tracked; settings.json is local-only)
+**/.vscode/settings.json
+
+# Local planning notes (not for source control)
+plans/
+
 # Local scratch / legacy directories never meant for source control
 OpenJMLFeature-OLD/
 old-OpenJML21/
