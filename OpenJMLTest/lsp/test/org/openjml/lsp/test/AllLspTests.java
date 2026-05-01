@@ -77,5 +77,6 @@ import org.junit.runners.Suite;
     ClearMarkersTest.class,
     DidCloseTest.class,
     WorkspaceFoldersTest.class,
+    IndexProjectMultiSelectionTest.class,
 })
 public class AllLspTests {}
