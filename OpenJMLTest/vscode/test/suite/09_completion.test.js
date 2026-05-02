@@ -46,7 +46,12 @@ async function getCompletionItems(editor, line, col) {
     // Re-obtain a fresh editor reference — the TextEditor DOM element can become
     // stale after Check JML rewrites code lenses, causing ElementNotInteractableError.
     try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
-    try { await editor.click(); } catch (_) {}
+    // Focus the Monaco editor's raw textarea — more reliable than editor.click()
+    // when the TextEditor reference is stale after code lenses rewrite the DOM.
+    try {
+        const textareas = await driver.findElements({ css: '.monaco-editor .inputarea' });
+        if (textareas.length > 0) await textareas[0].click();
+    } catch (_) { try { await editor.click(); } catch (__) {} }
     // Wait for focusFile debounce + server notification, then dismiss.
     await driver.sleep(1_500);
     await dismissNotifications(driver);
@@ -90,7 +95,10 @@ describe('Code Completion', function () {
         const driver = VSBrowser.instance.driver;
         // Re-obtain fresh reference in case Check JML rewrote the editor DOM.
         try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
-        try { await editor.click(); } catch (_) {}
+        try {
+            const textareas = await driver.findElements({ css: '.monaco-editor .inputarea' });
+            if (textareas.length > 0) await textareas[0].click();
+        } catch (_) { try { await editor.click(); } catch (__) {} }
         await driver.sleep(1_500);
         await dismissNotifications(driver);
         await driver.sleep(300);

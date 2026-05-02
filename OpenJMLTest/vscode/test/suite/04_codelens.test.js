@@ -51,8 +51,12 @@ describe('Code Lenses', function () {
         const ok = await runCommand('OpenJML: Check JML');
         if (!ok) noteSkip(this, 'Check JML command unavailable — server may not be running');
 
-        const lenses = await pollUntilNonEmpty(
-            () => editor.getCodeLenses(), LENS_WAIT_S * 1_000);
+        // Refresh editor reference on each attempt: Check JML adds code lenses and
+        // changes the DOM, invalidating the before()-hook reference.
+        const lenses = await pollUntilNonEmpty(async () => {
+            try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
+            return editor.getCodeLenses();
+        }, LENS_WAIT_S * 1_000);
 
         if (lenses.length === 0)
             noteSkip(this, 'no code lenses appeared — server may not be running');
@@ -65,6 +69,7 @@ describe('Code Lenses', function () {
         // lenses between the poll and the read.  Retry once with a fresh fetch.
         let texts = [];
         for (let attempt = 0; attempt < 3; attempt++) {
+            try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
             const fresh = attempt === 0 ? lenses : await editor.getCodeLenses().catch(() => []);
             try {
                 texts = await Promise.all(fresh.map(l => l.getText()));
@@ -83,12 +88,16 @@ describe('Code Lenses', function () {
     });
 
     it('code lens texts include method status indicators', async function () {
-        const lenses = await pollUntilNonEmpty(() => editor.getCodeLenses(), 5_000);
+        const lenses = await pollUntilNonEmpty(async () => {
+            try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
+            return editor.getCodeLenses();
+        }, 5_000);
         if (lenses.length === 0)
             noteSkip(this, 'no code lenses — server may not be running');
 
         let texts = [];
         for (let attempt = 0; attempt < 3; attempt++) {
+            try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
             const fresh = attempt === 0 ? lenses : await editor.getCodeLenses().catch(() => []);
             try {
                 texts = await Promise.all(fresh.map(l => l.getText()));
@@ -106,7 +115,10 @@ describe('Code Lenses', function () {
     });
 
     it('clicking a Run ESC lens starts a proof', async function () {
-        const lenses = await pollUntilNonEmpty(() => editor.getCodeLenses(), 5_000);
+        const lenses = await pollUntilNonEmpty(async () => {
+            try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
+            return editor.getCodeLenses();
+        }, 5_000);
         if (lenses.length === 0)
             noteSkip(this, 'no code lenses — server may not be running');
 
@@ -115,6 +127,7 @@ describe('Code Lenses', function () {
         let clicked = false;
         for (let attempt = 0; attempt < 5 && !clicked; attempt++) {
             try {
+                try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
                 const fresh = await pollUntilNonEmpty(() => editor.getCodeLenses(), 3_000);
                 for (const lens of fresh) {
                     const text = await lens.getText();

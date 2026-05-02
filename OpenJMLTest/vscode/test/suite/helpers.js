@@ -68,10 +68,15 @@ async function waitForJdtReady(driver, timeoutMs = 180_000) {
  *   3. Fall back to pressing Escape.
  */
 async function dismissWelcomeDialog(driver) {
-    // Retry up to 3 times — the dialog can re-appear during VS Code initialization.
-    for (let attempt = 0; attempt < 3; attempt++) {
+    // VS Code 1.118+ shows a multi-step first-run onboarding flow:
+    //   Step 1: sign-in dialog   (.onboarding-a-signin)
+    //   Step 2: walkthrough step (.onboarding-a-step-subtitle and siblings)
+    // Retry up to 5 times to dismiss all steps.
+    for (let attempt = 0; attempt < 5; attempt++) {
         try {
-            const overlays = await driver.findElements({ css: '.onboarding-a-signin' });
+            const overlays = await driver.findElements({
+                css: '[class*="onboarding-a-"]',
+            });
             if (overlays.length === 0) return;
 
             // Try clicking "Continue without Signing In".
@@ -81,11 +86,11 @@ async function dismissWelcomeDialog(driver) {
             if (links.length > 0) {
                 await links[0].click();
                 await driver.sleep(600);
-            } else {
-                // Fallback: Escape closes most VS Code modals.
-                await driver.actions().sendKeys(Key.ESCAPE).perform();
-                await driver.sleep(600);
+                continue;
             }
+            // Fallback: Escape dismisses most VS Code overlays.
+            await driver.actions().sendKeys(Key.ESCAPE).perform();
+            await driver.sleep(600);
         } catch (_) {}
     }
 }

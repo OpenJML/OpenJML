@@ -17,7 +17,8 @@ const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, SideBarView, Workbench } = require('vscode-extension-tester');
 const { suiteTeardown, runCommand, readOutputSafe, openAndFocusFile,
-        getExplorerSection, findExplorerItem, invokeContextMenuItem }
+        getExplorerSection, findExplorerItem, invokeContextMenuItem,
+        dismissWelcomeDialog, dismissNotifications }
     = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
@@ -67,7 +68,10 @@ describe('Menu Contributions', function () {
     let editor;
 
     before(async function () {
+        const driver = VSBrowser.instance.driver;
         await VSBrowser.instance.waitForWorkbench(20_000);
+        await dismissWelcomeDialog(driver);
+        await dismissNotifications(driver);
         editor = await openAndFocusFile(SAMPLE_JAVA);
     });
 
