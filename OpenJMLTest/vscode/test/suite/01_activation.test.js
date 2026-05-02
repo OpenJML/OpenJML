@@ -8,7 +8,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, BottomBarPanel, Workbench } = require('vscode-extension-tester');
-const { suiteTeardown, runCommand, waitForServer } = require('./helpers');
+const { suiteTeardown, runCommand, waitForServer, dismissWelcomeDialog, closeSecondarySidebar, waitForJdtReady } = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 
@@ -17,7 +17,15 @@ describe('Extension Activation', function () {
     this.timeout(60_000);
 
     before(async function () {
+        this.timeout(300_000);  // up to 5 min for cold JDT start
+        const driver = VSBrowser.instance.driver;
+        await dismissWelcomeDialog(driver);
         await VSBrowser.instance.waitForWorkbench(30_000);
+        await dismissWelcomeDialog(driver);
+        await closeSecondarySidebar(driver);
+        // Wait for the Red Hat Java extension to finish initializing JDT.
+        // On a fresh install this can take 2-4 minutes; subsequent runs are fast.
+        await waitForJdtReady(driver, 240_000);
     });
 
     it('workbench opens without an error dialog', async function () {
@@ -27,11 +35,18 @@ describe('Extension Activation', function () {
     });
 
     it('opening a Java file activates the extension', async function () {
+        const driver = VSBrowser.instance.driver;
         await VSBrowser.instance.openResources(SAMPLE_JAVA);
-        await VSBrowser.instance.driver.sleep(3_000);
 
-        const editorView = new EditorView();
-        const activeTab  = await editorView.getActiveTab();
+        // On a fresh VS Code install the Red Hat Java extension starts JDT in
+        // the background — the editor tab can take up to 20 s to appear.
+        const deadline = Date.now() + 20_000;
+        let activeTab = null;
+        while (Date.now() < deadline) {
+            await driver.sleep(1_000);
+            activeTab = await new EditorView().getActiveTab().catch(() => null);
+            if (activeTab) break;
+        }
         assert.ok(activeTab, 'An editor tab must be open');
         const tabTitle = await activeTab.getTitle();
         assert.ok(tabTitle.includes('Sample.java'),
@@ -40,7 +55,12 @@ describe('Extension Activation', function () {
 
     it('OpenJML output channel is created', async function () {
         // Trigger any command so the extension initialises its output channel.
-        await runCommand('OpenJML: Check JML');
+        // Time-box the command: on a fresh install the server may still be starting
+        // and executeCommand can block for the full Mocha timeout.
+        await Promise.race([
+            runCommand('OpenJML: Check JML'),
+            new Promise(r => setTimeout(r, 15_000)),
+        ]).catch(() => {});
         await VSBrowser.instance.driver.sleep(2_000);
 
         // Try to list output channels via the bottom bar.  VS Code 1.118+ changed

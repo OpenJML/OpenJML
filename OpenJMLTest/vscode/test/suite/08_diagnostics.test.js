@@ -174,7 +174,9 @@ describe('Diagnostics (Markers)', function () {
         const clicked = await invokeContextMenuItem(item, 'Clear Markers for Selection',
                                                     ['Clear Caches']);
         if (!clicked) noteSkip(this, '"Clear Markers for Selection" not in context menu');
-        await driver.sleep(2_000);
+        // Wait for the server to publish empty diagnostics and VS Code to refresh
+        // the Problems panel — 2 seconds is not always enough.
+        await driver.sleep(5_000);
 
         const countAfter = await markerCount();
         if (countAfter < 0)

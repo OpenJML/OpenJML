@@ -61,7 +61,20 @@ describe('Code Lenses', function () {
         assert.ok(lenses.length >= 3,
             `Expected at least 3 code lenses, got ${lenses.length}`);
 
-        const texts = await Promise.all(lenses.map(l => l.getText()));
+        // getText() can throw StaleElementReferenceError if the server refreshes
+        // lenses between the poll and the read.  Retry once with a fresh fetch.
+        let texts = [];
+        for (let attempt = 0; attempt < 3; attempt++) {
+            const fresh = attempt === 0 ? lenses : await editor.getCodeLenses().catch(() => []);
+            try {
+                texts = await Promise.all(fresh.map(l => l.getText()));
+                break;
+            } catch (e) {
+                if (!e.toString().includes('stale') && !e.toString().includes('Stale')) throw e;
+                await VSBrowser.instance.driver.sleep(500);
+            }
+        }
+        assert.ok(texts.length > 0, 'Could not read code lens texts after retries');
         assert.ok(
             texts.every(t => t.includes('Run ESC') || t.includes('Verified')
                            || t.includes('issue')   || t.includes('Checking')
@@ -74,7 +87,17 @@ describe('Code Lenses', function () {
         if (lenses.length === 0)
             noteSkip(this, 'no code lenses — server may not be running');
 
-        const texts = await Promise.all(lenses.map(l => l.getText()));
+        let texts = [];
+        for (let attempt = 0; attempt < 3; attempt++) {
+            const fresh = attempt === 0 ? lenses : await editor.getCodeLenses().catch(() => []);
+            try {
+                texts = await Promise.all(fresh.map(l => l.getText()));
+                break;
+            } catch (e) {
+                if (!e.toString().includes('stale') && !e.toString().includes('Stale')) throw e;
+                await VSBrowser.instance.driver.sleep(500);
+            }
+        }
         const hasStatusMarker = texts.some(
             t => t.includes('Run ESC') || t.includes('✓') || t.includes('✗')
               || t.includes('Verified') || t.includes('issue'));
@@ -104,11 +127,19 @@ describe('Code Lenses', function () {
         }
         if (!clicked)
             noteSkip(this, 'no "Run ESC" lens found or click failed after 5 attempts');
-        await VSBrowser.instance.driver.sleep(3_000);
 
-        const updatedLenses = await editor.getCodeLenses();
+        // Poll until the lens count stabilises at or above the pre-click count.
+        // The server briefly removes and re-adds lenses when ESC starts, so a
+        // 3 s fixed sleep can sample during the transition window.
+        const deadline = Date.now() + 10_000;
+        let updatedLenses = [];
+        while (Date.now() < deadline) {
+            await VSBrowser.instance.driver.sleep(1_000);
+            updatedLenses = await editor.getCodeLenses().catch(() => []);
+            if (updatedLenses.length >= lenses.length) break;
+        }
         assert.ok(updatedLenses.length >= lenses.length,
-            'Lens count should not decrease after clicking Run ESC');
+            `Lens count should not decrease after clicking Run ESC (before=${lenses.length}, after=${updatedLenses.length})`);
     });
 
     it('OpenJML output channel shows ESC activity', async function () {

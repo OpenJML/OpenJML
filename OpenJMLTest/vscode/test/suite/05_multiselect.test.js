@@ -16,7 +16,7 @@ const path    = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { Key } = require('selenium-webdriver');
 const { suiteTeardown, waitForServerLog, waitForServer, noteSkip,
-        getExplorerSection, findExplorerItem, invokeContextMenuItem }
+        getExplorerSection, findExplorerItem, invokeContextMenuItem, openAndFocusFile }
     = require('./helpers');
 
 const SERVER_LOG = process.env.OPENJML_LSP_LOG
@@ -44,15 +44,11 @@ describe('ESC via Explorer context menu', function () {
     it('Context menu on single Explorer file runs only that file', async function () {
         const driver = VSBrowser.instance.driver;
 
-        await VSBrowser.instance.openResources(
-            path.resolve(__dirname, '../../resources', FILEA));
-        await driver.sleep(2_000);
-        let opened = false;
-        for (let attempt = 0; attempt < 5 && !opened; attempt++) {
-            try { await new EditorView().openEditor(FILEA); opened = true; }
-            catch (_) { await driver.sleep(1_000); }
+        try {
+            await openAndFocusFile(path.resolve(__dirname, '../../resources', FILEA));
+        } catch (_) {
+            noteSkip(this, 'could not open ' + FILEA + ' in editor');
         }
-        if (!opened) noteSkip(this, 'could not open ' + FILEA + ' in editor');
 
         const section = await getExplorerSection();
         if (!section) noteSkip(this, 'Explorer sidebar unavailable');
@@ -67,9 +63,21 @@ describe('ESC via Explorer context menu', function () {
         let logLengthBefore = 0;
         try { logLengthBefore = fs.readFileSync(SERVER_LOG, 'utf8').length; } catch (_) {}
 
-        const clicked = await invokeContextMenuItem(itemA, 'Run ESC', ['Split', 'Method', 'Save']);
+        let clicked = await invokeContextMenuItem(itemA, 'Run ESC', ['Split', 'Method', 'Save']);
         if (!clicked)
             noteSkip(this, '"Run ESC" not in Explorer context menu — server may not be running');
+
+        // Verify the context menu actually closed after the click.  If the item
+        // click was intercepted (menu still open), Escape it and retry once.
+        await driver.sleep(600);
+        const menuStillOpen = (await driver.findElements({css: '.monaco-menu .action-label'}).catch(() => [])).length > 0;
+        if (menuStillOpen) {
+            try { await driver.actions().sendKeys(Key.ESCAPE).perform(); } catch (_) {}
+            await driver.sleep(400);
+            clicked = await invokeContextMenuItem(itemA, 'Run ESC', ['Split', 'Method', 'Save']);
+            if (!clicked)
+                noteSkip(this, '"Run ESC" context menu click did not dismiss — ESC may not have run');
+        }
 
         // Poll only the NEW portion of the server log (after the snapshot) so that a
         // prior mention of FILEA (from opening the file) does not cause a false pass.
@@ -94,12 +102,10 @@ describe('ESC via Explorer context menu', function () {
     it('Context menu on multi-selected Explorer files runs all selected files', async function () {
         const driver = VSBrowser.instance.driver;
 
-        await VSBrowser.instance.openResources(
-            path.resolve(__dirname, '../../resources', FILEA));
-        await driver.sleep(2_000);
-        for (let attempt = 0; attempt < 5; attempt++) {
-            try { await new EditorView().openEditor(FILEA); break; }
-            catch (_) { await driver.sleep(1_000); }
+        try {
+            await openAndFocusFile(path.resolve(__dirname, '../../resources', FILEA));
+        } catch (_) {
+            noteSkip(this, 'could not open ' + FILEA + ' in editor');
         }
 
         const section = await getExplorerSection();

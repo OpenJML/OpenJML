@@ -76,16 +76,24 @@ async function invokeAndCapture(cmdName, waitMs = 4_000) {
 }
 
 /**
- * Return true if the output channel grew (new content appeared) after invoking
+ * Return new server-log content (non-empty if activity occurred) after invoking
  * cmdName.  Skips with a note if the command is unavailable.
+ *
+ * Uses the server log file rather than the VS Code output channel: the
+ * BottomBarPanel getText() API is broken in VS Code 1.118+ and calling it
+ * before runCommand() leaves VS Code in a bad state that causes the command
+ * palette to fail.
  */
 async function assertCommandProducesOutput(ctx, cmdName, waitMs = 4_000) {
-    const before = (await readOutputSafe()) || '';
-    const ok     = await runCommand(cmdName);
+    let logBefore = 0;
+    try { logBefore = fs.readFileSync(SERVER_LOG, 'utf8').length; } catch (_) {}
+    const ok = await runCommand(cmdName);
     if (!ok) noteSkip(ctx, cmdName + ' command unavailable — server may not be running');
     await VSBrowser.instance.driver.sleep(waitMs);
-    const after = (await readOutputSafe()) || '';
-    return after;
+    try {
+        const full = fs.readFileSync(SERVER_LOG, 'utf8');
+        return full.length > logBefore ? full.slice(logBefore) : '';
+    } catch (_) { return ''; }
 }
 
 describe('Remaining Command Invocations', function () {
@@ -106,8 +114,9 @@ describe('Remaining Command Invocations', function () {
     // ── Server-dependent commands ─────────────────────────────────────────────
 
     it('"Run ESC for Method" runs ESC on the method at the cursor', async function () {
-        // Click into the editor body (cursor lands somewhere in Sample.java).
-        await editor.click();
+        // Re-obtain a fresh editor reference to avoid StaleElementReferenceError.
+        try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
+        try { await editor.click(); } catch (_) {}
         await VSBrowser.instance.driver.sleep(300);
 
         const output = await assertCommandProducesOutput(this, 'OpenJML: Run ESC for Method', 6_000);
@@ -224,16 +233,19 @@ describe('Remaining Command Invocations', function () {
 
     it('"Clear Markers for Selection" succeeds without error', async function () {
         this.timeout(30_000);
+        const driver = VSBrowser.instance.driver;
         // Dismiss any stale context menu left by the previous Explorer test.
-        try {
-            await VSBrowser.instance.driver.actions()
-                .sendKeys(require('selenium-webdriver').Key.ESCAPE).perform();
-        } catch (_) {}
-        await VSBrowser.instance.driver.sleep(500);
-        // This command clears markers for files selected in the Explorer.
-        // With no selection it may be a no-op, but must not crash.
-        const ok = await runCommand('OpenJML: Clear Markers for Selection');
-        assert.ok(ok, '"Clear Markers for Selection" command should succeed');
+        try { await driver.actions().sendKeys(Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(500);
+        // Invoke via the Explorer context menu — the command palette search for
+        // "OpenJML: Clear Markers for Selection" is unreliable in VS Code 1.118+.
+        const section = await getExplorerSection();
+        if (!section) noteSkip(this, 'Explorer sidebar unavailable');
+        const item = await findExplorerItem(section, FILEA);
+        if (!item) noteSkip(this, FILEA + ' not found in Explorer — cannot test Clear Markers for Selection');
+        const clicked = await invokeContextMenuItem(item, 'Clear Markers for Selection',
+                                                    ['Clear Caches']);
+        assert.ok(clicked, '"Clear Markers for Selection" command should succeed');
     });
 
     it('"Clear Caches and Reindex" succeeds and produces output', async function () {
@@ -344,6 +356,12 @@ describe('Remaining Command Invocations', function () {
 
     it('"Clear Caches and Reindex" with dirty editor — Save All saves and reindexes', async function () {
         const driver = VSBrowser.instance.driver;
+
+        // Dismiss any stale Save As dialogs or notifications left by the previous test.
+        try { await driver.actions().sendKeys(Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(500);
+        try { await driver.actions().sendKeys(Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(300);
 
         // ── 1. Open JmlErrors.java and run Check JML to establish diagnostics ─
         let errEditor = await openAndFocusFile(JML_ERRORS_JAVA);

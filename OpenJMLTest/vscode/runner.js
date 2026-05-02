@@ -67,6 +67,45 @@ function writeSettings() {
 async function main() {
     writeSettings();
 
+    // ExTester's VSBrowser.start() calls fs-extra.removeSync() on settings/User,
+    // which uses Node.js rmdirSync and fails with ENOTEMPTY when the Red Hat Java
+    // extension has written workspace-storage files there.  Pre-clean with the
+    // shell rm -rf (which handles locked/non-empty dirs) while preserving the
+    // JDT workspaceStorage so that JDT does not need to re-initialize on every run.
+    const settingsUserDir = path.join(STORAGE_DIR, 'settings', 'User');
+    const jdtWsDir        = path.join(settingsUserDir, 'workspaceStorage');
+    if (fs.existsSync(settingsUserDir)) {
+        const { execSync } = require('child_process');
+        for (const entry of fs.readdirSync(settingsUserDir)) {
+            if (entry !== 'workspaceStorage') {
+                try { execSync(`rm -rf "${path.join(settingsUserDir, entry)}"`, { stdio: 'ignore' }); }
+                catch (_) {}
+            }
+        }
+        // If workspaceStorage is all that remains, ExTester's rmdir(settings/User)
+        // will still fail.  Move it aside, let ExTester clean, then restore it.
+        const wsBackup = path.join(STORAGE_DIR, '_jdt_ws_backup');
+        if (fs.existsSync(jdtWsDir)) {
+            try {
+                execSync(`rm -rf "${wsBackup}"`, { stdio: 'ignore' });
+                execSync(`mv "${jdtWsDir}" "${wsBackup}"`, { stdio: 'ignore' });
+            } catch (_) {}
+        }
+        // Register a one-shot restore after ExTester has run its cleanup.
+        process.once('beforeExit', () => {});  // keep event loop alive briefly
+        const restoreJdt = () => {
+            if (fs.existsSync(wsBackup)) {
+                try {
+                    execSync(`mkdir -p "${jdtWsDir}"`, { stdio: 'ignore' });
+                    execSync(`cp -r "${wsBackup}/." "${jdtWsDir}/"`, { stdio: 'ignore' });
+                    execSync(`rm -rf "${wsBackup}"`, { stdio: 'ignore' });
+                } catch (_) {}
+            }
+        };
+        // Restore JDT after the tester finishes (success or failure).
+        process.on('exit', restoreJdt);
+    }
+
     const tester = new ExTester(STORAGE_DIR);
 
     // Download VS Code and ChromeDriver (both are cached after the first run).
@@ -91,6 +130,8 @@ async function main() {
         config:     path.join(SCRIPT_DIR, '.mocharc.yml'),
         vscodeLaunchArgs: [
             '--disable-extension', 'visualstudioexptteam.intellicode-api-usage-examples',
+            '--disable-extension', 'github.copilot-chat',
+            '--disable-extension', 'github.copilot',
         ],
     });
     process.exit(result);

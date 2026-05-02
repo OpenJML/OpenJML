@@ -24,6 +24,127 @@ const path = require('path');
 const SERVER_LOG = process.env.OPENJML_LSP_LOG
     || path.resolve(__dirname, '../../.test-resources/server.log');
 
+// ── JDT (Red Hat Java extension) readiness ────────────────────────────────────
+
+/**
+ * Wait until the Red Hat Java extension's JDT language server is ready.
+ * Polls the status bar for a "Java: Ready" (or similar) indicator.
+ *
+ * On a fresh VS Code install (no cached JDT) this can take 2-4 minutes.
+ * Returns true when ready, false on timeout.
+ */
+async function waitForJdtReady(driver, timeoutMs = 180_000) {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        try {
+            const items = await driver.findElements({
+                css: '.statusbar-item[aria-label*="Java"], .statusbar-item[title*="Java"]',
+            });
+            for (const item of items) {
+                const label = await item.getAttribute('aria-label').catch(() => '');
+                const title = await item.getAttribute('title').catch(() => '');
+                const combined = (label + ' ' + title).toLowerCase();
+                if (combined.includes('ready') || combined.includes('started')) return true;
+            }
+        } catch (_) {}
+        await driver.sleep(2_000);
+    }
+    return false;
+}
+
+// ── Welcome / onboarding dialog dismissal ─────────────────────────────────────
+
+/**
+ * Dismiss the "Welcome to VS Code" sign-in / onboarding dialog if it is present.
+ *
+ * VS Code shows this modal on first launch in a fresh data directory.  It
+ * intercepts clicks and blocks the command palette, causing many tests to time
+ * out.  Call this at the top of every suite's before() hook (it is a no-op when
+ * the dialog is absent).
+ *
+ * Strategy:
+ *   1. Look for the known overlay CSS class (.onboarding-a-signin).
+ *   2. Click the "Continue without Signing In" link if found.
+ *   3. Fall back to pressing Escape.
+ */
+async function dismissWelcomeDialog(driver) {
+    try {
+        const overlays = await driver.findElements({ css: '.onboarding-a-signin' });
+        if (overlays.length === 0) return;
+
+        // Try clicking "Continue without Signing In".
+        const links = await driver.findElements({
+            xpath: '//*[contains(normalize-space(text()), "Continue without Signing In")]',
+        });
+        if (links.length > 0) {
+            await links[0].click();
+            await driver.sleep(600);
+            return;
+        }
+        // Fallback: Escape closes most VS Code modals.
+        await driver.actions().sendKeys(Key.ESCAPE).perform();
+        await driver.sleep(600);
+    } catch (_) {}
+}
+
+/**
+ * Close the VS Code secondary sidebar (Copilot chat, etc.) if it is open.
+ * Call this early in test suites that interact with the editor to avoid the
+ * panel reducing usable editor area or intercepting clicks.
+ */
+async function closeSecondarySidebar(driver) {
+    try {
+        // Only close if the secondary sidebar is actually visible.
+        const sidebars = await driver.findElements({ css: '.auxiliarybar' });
+        if (sidebars.length > 0) {
+            const visible = await sidebars[0].isDisplayed().catch(() => false);
+            if (visible) {
+                await new Workbench().executeCommand('workbench.action.closeAuxiliaryBar');
+                await driver.sleep(300);
+            }
+        }
+    } catch (_) {}
+}
+
+/**
+ * Dismiss all visible VS Code notification toasts (error, warning, info).
+ *
+ * Notifications can intercept Selenium click/keyboard actions directed at the
+ * editor, causing ElementNotInteractableError.  Call this before interacting
+ * with the editor after commands that may produce notifications (e.g. Check JML).
+ */
+async function dismissNotifications(driver) {
+    // Click action buttons ("OK", "Dismiss") and close buttons (×) in all
+    // visible notification toasts.  Tries multiple selectors and button-text
+    // patterns to cover VS Code version differences.
+    try {
+        const toasts = await driver.findElements({ css: '.notifications-toasts .notification-toast' });
+        for (const toast of toasts) {
+            // Find all clickable action labels within this toast.
+            const labels = await toast.findElements({ css: 'a[role="button"], button' }).catch(() => []);
+            for (const label of labels) {
+                try { await label.click(); } catch (_) {}
+            }
+        }
+        await driver.sleep(200);
+    } catch (_) {}
+
+    // Also try broad selectors for the close (×) button.
+    for (const css of [
+        '[aria-label="Close Notification"]',
+        '.notification-actions .codicon-close',
+        '.notifications-toasts .codicon-close',
+    ]) {
+        try {
+            const btns = await driver.findElements({ css });
+            for (const btn of btns) {
+                try { await btn.click(); } catch (_) {}
+            }
+        } catch (_) {}
+    }
+    await driver.sleep(200);
+}
+
 // ── Output channel ────────────────────────────────────────────────────────────
 
 /**
@@ -119,7 +240,9 @@ async function openAndFocusFile(filePath) {
     const driver    = VSBrowser.instance.driver;
     const fileName  = require('path').basename(filePath);
     await VSBrowser.instance.openResources(filePath);
-    for (let attempt = 0; attempt < 8; attempt++) {
+    // Allow up to 60 s for the tab to appear — on a fresh VS Code install JDT
+    // downloads and starts in the background, adding substantial delay.
+    for (let attempt = 0; attempt < 60; attempt++) {
         await driver.sleep(1_000);
         try {
             return await new EditorView().openEditor(fileName);
@@ -361,6 +484,10 @@ module.exports = {
     waitForServerLog,
     hasOpenJMLChannel,
     waitForServer,
+    waitForJdtReady,
+    dismissWelcomeDialog,
+    closeSecondarySidebar,
+    dismissNotifications,
     openAndFocusFile,
     getExplorerSection,
     findExplorerItem,

@@ -10,7 +10,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
-const { suiteTeardown, runCommand } = require('./helpers');
+const { suiteTeardown, runCommand, closeSecondarySidebar, dismissNotifications, openAndFocusFile } = require('./helpers');
 
 const SAMPLE_JAVA     = path.resolve(__dirname, '../../resources/Sample.java');
 // The visible slice of the completion list varies by run; include early-alphabet
@@ -24,6 +24,18 @@ const JML_EXPRESSIONS = ['\\result', '\\old'];
  * Returns the list of item labels.  Throws on any failure.
  */
 async function getCompletionItems(editor, line, col) {
+    const driver = VSBrowser.instance.driver;
+    // Re-obtain a fresh editor reference — the TextEditor DOM element can become
+    // stale after Check JML rewrites code lenses, causing ElementNotInteractableError.
+    try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
+    try { await editor.click(); } catch (_) {}
+    // Wait for the focusFile debounce + any server notification to fire and appear.
+    // The extension sends focusFile on onDidChangeActiveTextEditor (debounced ~200 ms);
+    // if the server responds with an error notification, we must dismiss it AFTER it
+    // appears, not before.
+    await driver.sleep(1_500);
+    await dismissNotifications(driver);
+    await driver.sleep(300);
     await editor.moveCursor(line, col);
     await VSBrowser.instance.driver.sleep(500);
     const assist = await editor.toggleContentAssist(true);
@@ -41,12 +53,16 @@ describe('Code Completion', function () {
     let editor;
 
     before(async function () {
+        const driver = VSBrowser.instance.driver;
         await VSBrowser.instance.waitForWorkbench(20_000);
-        await VSBrowser.instance.openResources(SAMPLE_JAVA);
-        await VSBrowser.instance.driver.sleep(2_000);
-        editor = await new EditorView().openEditor('Sample.java');
+        await closeSecondarySidebar(driver);
+        editor = await openAndFocusFile(SAMPLE_JAVA);
         await runCommand('OpenJML: Check JML');
-        await VSBrowser.instance.driver.sleep(3_000);
+        await driver.sleep(3_000);
+        // Dismiss any notifications produced by Check JML (e.g. "no method found",
+        // JML errors) — they can cover the editor and cause ElementNotInteractableError.
+        await dismissNotifications(driver);
+        await driver.sleep(300);
     });
 
     after(async function () { this.timeout(60_000); await suiteTeardown(true); });
@@ -56,6 +72,14 @@ describe('Code Completion', function () {
     // Sample.java line 9:  //@ ensures \result == x || \result == -x;
 
     it('content assist API is available in a Java editor', async function () {
+        const driver = VSBrowser.instance.driver;
+        // Re-obtain fresh reference in case Check JML rewrote the editor DOM.
+        try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
+        try { await editor.click(); } catch (_) {}
+        // Wait for focusFile debounce + any server notification before dismissing.
+        await driver.sleep(1_500);
+        await dismissNotifications(driver);
+        await driver.sleep(300);
         await editor.moveCursor(7, 9);
         await VSBrowser.instance.driver.sleep(500);
         const assist = await editor.toggleContentAssist(true);

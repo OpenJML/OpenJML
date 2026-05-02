@@ -1323,6 +1323,32 @@ async function activate(context) {
     // The server fires on every didSave regardless of whether it was a manual or
     // auto-save (LSP does not carry a save reason).
 
+    // Folding provider for JML block comments (/*@ ... @*/).
+    // VS Code does not recognize /*@ as a block-comment start for folding, so
+    // we register a client-side provider that matches the JML delimiters.
+    context.subscriptions.push(
+        vscode.languages.registerFoldingRangeProvider(
+            [{ language: 'java' }, { language: 'jml' }],
+            {
+                provideFoldingRanges(document) {
+                    const ranges = [];
+                    const lineCount = document.lineCount;
+                    let start = -1;
+                    for (let i = 0; i < lineCount; i++) {
+                        const text = document.lineAt(i).text.trimStart();
+                        if (start === -1 && text.startsWith('/*@')) {
+                            start = i;
+                        } else if (start !== -1 && document.lineAt(i).text.includes('@*/')) {
+                            if (i > start) ranges.push(new vscode.FoldingRange(start, i));
+                            start = -1;
+                        }
+                    }
+                    return ranges;
+                }
+            }
+        )
+    );
+
     // Start the language client (shows retry dialog if script not found).
     await startClient();
 }
