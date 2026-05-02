@@ -68,23 +68,26 @@ async function waitForJdtReady(driver, timeoutMs = 180_000) {
  *   3. Fall back to pressing Escape.
  */
 async function dismissWelcomeDialog(driver) {
-    try {
-        const overlays = await driver.findElements({ css: '.onboarding-a-signin' });
-        if (overlays.length === 0) return;
+    // Retry up to 3 times — the dialog can re-appear during VS Code initialization.
+    for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+            const overlays = await driver.findElements({ css: '.onboarding-a-signin' });
+            if (overlays.length === 0) return;
 
-        // Try clicking "Continue without Signing In".
-        const links = await driver.findElements({
-            xpath: '//*[contains(normalize-space(text()), "Continue without Signing In")]',
-        });
-        if (links.length > 0) {
-            await links[0].click();
-            await driver.sleep(600);
-            return;
-        }
-        // Fallback: Escape closes most VS Code modals.
-        await driver.actions().sendKeys(Key.ESCAPE).perform();
-        await driver.sleep(600);
-    } catch (_) {}
+            // Try clicking "Continue without Signing In".
+            const links = await driver.findElements({
+                xpath: '//*[contains(normalize-space(text()), "Continue without Signing In")]',
+            });
+            if (links.length > 0) {
+                await links[0].click();
+                await driver.sleep(600);
+            } else {
+                // Fallback: Escape closes most VS Code modals.
+                await driver.actions().sendKeys(Key.ESCAPE).perform();
+                await driver.sleep(600);
+            }
+        } catch (_) {}
+    }
 }
 
 /**

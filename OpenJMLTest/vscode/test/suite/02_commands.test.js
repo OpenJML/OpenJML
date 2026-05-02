@@ -8,7 +8,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, Workbench, EditorView } = require('vscode-extension-tester');
-const { suiteTeardown } = require('./helpers');
+const { suiteTeardown, dismissWelcomeDialog, dismissNotifications, openAndFocusFile } = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 
@@ -34,14 +34,14 @@ describe('Command Registration', function () {
     this.timeout(120_000);
 
     before(async function () {
+        const driver = VSBrowser.instance.driver;
         await VSBrowser.instance.waitForWorkbench(15_000);
+        // Dismiss the welcome sign-in dialog and any Red Hat / Git notifications
+        // that can intercept command palette keyboard input.
+        await dismissWelcomeDialog(driver);
+        await dismissNotifications(driver);
         // Open a Java file so resourceLangId-gated commands appear in the palette.
-        await VSBrowser.instance.openResources(SAMPLE_JAVA);
-        await VSBrowser.instance.driver.sleep(2_000);
-        for (let attempt = 0; attempt < 5; attempt++) {
-            try { await new EditorView().openEditor('Sample.java'); break; }
-            catch (_) { await VSBrowser.instance.driver.sleep(1_000); }
-        }
+        try { await openAndFocusFile(SAMPLE_JAVA); } catch (_) {}
     });
 
     it('all OpenJML commands appear in the command palette', async function () {

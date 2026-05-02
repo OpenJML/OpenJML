@@ -8,7 +8,7 @@
 const assert = require('assert');
 const path   = require('path');
 const { VSBrowser, EditorView, BottomBarPanel, Workbench } = require('vscode-extension-tester');
-const { suiteTeardown, runCommand, waitForServer, dismissWelcomeDialog, closeSecondarySidebar, waitForJdtReady } = require('./helpers');
+const { suiteTeardown, runCommand, waitForServer, dismissWelcomeDialog, dismissNotifications, closeSecondarySidebar, waitForJdtReady } = require('./helpers');
 
 const SAMPLE_JAVA = path.resolve(__dirname, '../../resources/Sample.java');
 
@@ -36,6 +36,9 @@ describe('Extension Activation', function () {
 
     it('opening a Java file activates the extension', async function () {
         const driver = VSBrowser.instance.driver;
+        // The sign-in dialog can re-appear during VS Code initialization — dismiss
+        // it once more right before opening a resource to prevent blocking.
+        await dismissWelcomeDialog(driver);
         await VSBrowser.instance.openResources(SAMPLE_JAVA);
 
         // On a fresh VS Code install the Red Hat Java extension starts JDT in
@@ -54,6 +57,9 @@ describe('Extension Activation', function () {
     });
 
     it('OpenJML output channel is created', async function () {
+        // Dismiss Red Hat "Help improve" and Git notifications before opening
+        // the command palette — they can intercept keyboard input.
+        await dismissNotifications(VSBrowser.instance.driver);
         // Trigger any command so the extension initialises its output channel.
         // Time-box the command: on a fresh install the server may still be starting
         // and executeCommand can block for the full Mocha timeout.

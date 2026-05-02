@@ -5,11 +5,10 @@
  * Verifies that foldable regions in JmlFold.java (JML block comments and Java
  * method bodies) can be collapsed and restored.
  *
- * In VS Code 1.118+ the fold gutter chevrons are no longer persistent DOM
- * elements — they are only rendered while the mouse hovers over the exact
- * line, making CSS-selector-based detection unreliable.  This suite therefore
- * tests folding BEHAVIOUR via the editor.foldAll / editor.unfoldAll commands
- * and the resulting change in the number of rendered view-lines.
+ * Detection strategy: after editor.foldAll, Monaco inserts an ".inline-folded"
+ * element at the end of each collapsed line (the "..." placeholder).  Counting
+ * those elements is independent of viewport size — unlike .view-line counting,
+ * which varies with editor height.
  */
 const assert = require('assert');
 const path   = require('path');
@@ -18,9 +17,9 @@ const { suiteTeardown, runCommand, openAndFocusFile, closeSecondarySidebar } = r
 
 const JML_FOLD_JAVA = path.resolve(__dirname, '../../resources/JmlFold.java');
 
-/** Returns the number of currently rendered view-line elements in the active Monaco editor. */
-async function visibleLineCount(driver) {
-    const els = await driver.findElements({ css: '.monaco-editor .view-lines .view-line' })
+/** Returns the number of inline-folded ("...") placeholders in the active editor. */
+async function countFoldedRegions(driver) {
+    const els = await driver.findElements({ css: '.monaco-editor .inline-folded' })
         .catch(() => []);
     return els.length;
 }
@@ -45,33 +44,23 @@ describe('Code Folding', function () {
 
     it('fold controls appear in the gutter for multi-line JML blocks', async function () {
         const driver = VSBrowser.instance.driver;
+        try { await editor.click(); } catch (_) {}
+        await driver.sleep(500);
 
-        // Poll until Monaco has rendered view-lines (initial render can be slow
-        // on a fresh VS Code install while JDT is starting in the background).
-        const deadline = Date.now() + 8_000;
-        let totalLines = 0;
-        while (Date.now() < deadline) {
-            try { await editor.click(); } catch (_) {}
-            await driver.sleep(500);
-            totalLines = await visibleLineCount(driver);
-            if (totalLines > 0) break;
-        }
-        assert.ok(totalLines >= 5,
-            `JmlFold.java must have at least 5 visible lines; got ${totalLines}`);
-
-        // Fold all regions and verify that fewer lines are rendered — this proves
-        // VS Code has at least one foldable region (method body or block comment).
+        // Fold all regions — JML block comments and method bodies collapse.
         await runCommand('editor.foldAll');
-        await driver.sleep(800);
-        const afterFold = await visibleLineCount(driver);
+        await driver.sleep(1_000);
 
-        // Restore so the next test starts from a known state.
+        // Count inline-folded placeholders; at least one must appear.
+        const folded = await countFoldedRegions(driver);
+
+        // Restore for the next test.
         await runCommand('editor.unfoldAll');
         await driver.sleep(500);
 
-        assert.ok(afterFold < totalLines,
-            `Expected fewer visible lines after Fold All `
-            + `(before=${totalLines}, after=${afterFold}) — no foldable regions found`);
+        assert.ok(folded >= 1,
+            `Expected at least 1 folded region after Fold All, got ${folded} — ` +
+            'check that the FoldingRangeProvider is registered for Java files');
     });
 
     it('clicking a fold control collapses a JML block', async function () {
@@ -79,35 +68,35 @@ describe('Code Folding', function () {
         try { await editor.click(); } catch (_) {}
         await driver.sleep(300);
 
-        const before = await visibleLineCount(driver);
+        // No inline-folded placeholders should be present when fully unfolded.
+        const before = await countFoldedRegions(driver);
 
-        // Fold all regions.
         await runCommand('editor.foldAll');
-        await driver.sleep(800);
+        await driver.sleep(1_000);
 
-        const afterFold = await visibleLineCount(driver);
-        assert.ok(afterFold < before,
-            `Expected fewer lines after folding (before=${before}, after=${afterFold})`);
+        const afterFold = await countFoldedRegions(driver);
+        assert.ok(afterFold > before,
+            `Expected inline-folded placeholders after Fold All (before=${before}, after=${afterFold})`);
     });
 
     it('unfolding restores the JML block lines', async function () {
         const driver = VSBrowser.instance.driver;
 
-        // Start from fully folded state (previous test left it folded).
-        const folded = await visibleLineCount(driver);
+        // Start from fully folded state (previous test).
+        const folded = await countFoldedRegions(driver);
 
         await runCommand('editor.unfoldAll');
 
-        // Poll until the line count stabilises above the folded count.
+        // Poll until all inline-folded placeholders are gone.
         const deadline = Date.now() + 5_000;
         let unfolded = folded;
         while (Date.now() < deadline) {
             await driver.sleep(400);
-            unfolded = await visibleLineCount(driver);
-            if (unfolded > folded) break;
+            unfolded = await countFoldedRegions(driver);
+            if (unfolded === 0) break;
         }
 
-        assert.ok(unfolded > folded,
-            `Expected more lines after Unfold All (folded=${folded}, unfolded=${unfolded})`);
+        assert.ok(unfolded === 0,
+            `Expected 0 inline-folded placeholders after Unfold All, got ${unfolded}`);
     });
 });

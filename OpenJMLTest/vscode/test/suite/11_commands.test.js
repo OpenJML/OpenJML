@@ -258,8 +258,13 @@ describe('Remaining Command Invocations', function () {
     });
 
     it('"Clear Caches and Reindex" with dirty editor — Cancel aborts the command', async function () {
-        // ── 1. Make the editor dirty ──────────────────────────────────────────
         const driver = VSBrowser.instance.driver;
+        // Dismiss any stale Save As dialogs or notifications from previous tests.
+        try { await driver.actions().sendKeys(Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(500);
+        try { await driver.actions().sendKeys(Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(300);
+        // ── 1. Make the editor dirty ──────────────────────────────────────────
         // Re-focus Sample.java — previous tests may have changed the active tab.
         editor = await openAndFocusFile(SAMPLE_JAVA);
         await editor.click();

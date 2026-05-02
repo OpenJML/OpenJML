@@ -9,8 +9,26 @@
  */
 const assert = require('assert');
 const path   = require('path');
+const { Key } = require('selenium-webdriver');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { suiteTeardown, runCommand, closeSecondarySidebar, dismissNotifications, openAndFocusFile } = require('./helpers');
+
+/**
+ * Position the cursor at (line, col) using the VS Code Go-to-Line widget
+ * (Ctrl+G → "line:col" → Enter).
+ *
+ * This bypasses TextEditor.moveCursor() which internally calls getNumberOfLines()
+ * via a DOM click that fails with ElementNotInteractableError when a notification
+ * is covering the editor.  Keyboard-driven navigation is not affected by overlays.
+ */
+async function gotoLineByKeyboard(driver, line, col) {
+    await driver.actions().keyDown(Key.CONTROL).sendKeys('g').keyUp(Key.CONTROL).perform();
+    await driver.sleep(400);
+    await driver.actions().sendKeys(`${line}:${col}`).perform();
+    await driver.sleep(200);
+    await driver.actions().sendKeys(Key.RETURN).perform();
+    await driver.sleep(300);
+}
 
 const SAMPLE_JAVA     = path.resolve(__dirname, '../../resources/Sample.java');
 // The visible slice of the completion list varies by run; include early-alphabet
@@ -29,14 +47,11 @@ async function getCompletionItems(editor, line, col) {
     // stale after Check JML rewrites code lenses, causing ElementNotInteractableError.
     try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
     try { await editor.click(); } catch (_) {}
-    // Wait for the focusFile debounce + any server notification to fire and appear.
-    // The extension sends focusFile on onDidChangeActiveTextEditor (debounced ~200 ms);
-    // if the server responds with an error notification, we must dismiss it AFTER it
-    // appears, not before.
+    // Wait for focusFile debounce + server notification, then dismiss.
     await driver.sleep(1_500);
     await dismissNotifications(driver);
     await driver.sleep(300);
-    await editor.moveCursor(line, col);
+    await gotoLineByKeyboard(driver, line, col);
     await VSBrowser.instance.driver.sleep(500);
     const assist = await editor.toggleContentAssist(true);
     assert.ok(assist, 'ContentAssist API returned null — not supported in this vscode-extension-tester version');
@@ -76,11 +91,10 @@ describe('Code Completion', function () {
         // Re-obtain fresh reference in case Check JML rewrote the editor DOM.
         try { editor = await new EditorView().openEditor('Sample.java'); } catch (_) {}
         try { await editor.click(); } catch (_) {}
-        // Wait for focusFile debounce + any server notification before dismissing.
         await driver.sleep(1_500);
         await dismissNotifications(driver);
         await driver.sleep(300);
-        await editor.moveCursor(7, 9);
+        await gotoLineByKeyboard(driver, 7, 9);
         await VSBrowser.instance.driver.sleep(500);
         const assist = await editor.toggleContentAssist(true);
         assert.ok(assist, 'ContentAssist API returned null — not supported in this vscode-extension-tester version');
