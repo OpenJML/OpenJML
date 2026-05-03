@@ -44,15 +44,21 @@ describe('Code Folding', function () {
 
     it('fold controls appear in the gutter for multi-line JML blocks', async function () {
         const driver = VSBrowser.instance.driver;
+        try { editor = await new EditorView().openEditor('JmlFold.java'); } catch (_) {}
         try { await editor.click(); } catch (_) {}
         await driver.sleep(500);
 
         // Fold all regions — JML block comments and method bodies collapse.
         await runCommand('editor.foldAll');
-        await driver.sleep(1_000);
 
-        // Count inline-folded placeholders; at least one must appear.
-        const folded = await countFoldedRegions(driver);
+        // Poll until inline-folded placeholders appear (Monaco folds asynchronously).
+        const foldDeadline = Date.now() + 5_000;
+        let folded = 0;
+        while (Date.now() < foldDeadline) {
+            await driver.sleep(500);
+            folded = await countFoldedRegions(driver);
+            if (folded > 0) break;
+        }
 
         // Restore for the next test.
         await runCommand('editor.unfoldAll');
@@ -65,6 +71,7 @@ describe('Code Folding', function () {
 
     it('clicking a fold control collapses a JML block', async function () {
         const driver = VSBrowser.instance.driver;
+        try { editor = await new EditorView().openEditor('JmlFold.java'); } catch (_) {}
         try { await editor.click(); } catch (_) {}
         await driver.sleep(300);
 
@@ -72,9 +79,15 @@ describe('Code Folding', function () {
         const before = await countFoldedRegions(driver);
 
         await runCommand('editor.foldAll');
-        await driver.sleep(1_000);
 
-        const afterFold = await countFoldedRegions(driver);
+        // Poll for fold to complete.
+        const foldDeadline = Date.now() + 5_000;
+        let afterFold = before;
+        while (Date.now() < foldDeadline) {
+            await driver.sleep(500);
+            afterFold = await countFoldedRegions(driver);
+            if (afterFold > before) break;
+        }
         assert.ok(afterFold > before,
             `Expected inline-folded placeholders after Fold All (before=${before}, after=${afterFold})`);
     });
