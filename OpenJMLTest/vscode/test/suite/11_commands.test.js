@@ -249,6 +249,9 @@ describe('Remaining Command Invocations', function () {
     });
 
     it('"Clear Caches and Reindex" succeeds and produces output', async function () {
+        // Dismiss any stale context menu left by the preceding Explorer test.
+        try { await VSBrowser.instance.driver.actions().sendKeys(Key.ESCAPE).perform(); } catch (_) {}
+        await VSBrowser.instance.driver.sleep(300);
         const ok = await runCommand('OpenJML: Clear Caches and Reindex');
         if (!ok) noteSkip(this, 'Clear Caches and Reindex unavailable — server may not be running');
         await VSBrowser.instance.driver.sleep(3_000);

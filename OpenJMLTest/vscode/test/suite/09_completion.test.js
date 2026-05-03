@@ -9,24 +9,29 @@
  */
 const assert = require('assert');
 const path   = require('path');
-const { Key } = require('selenium-webdriver');
 const { VSBrowser, EditorView } = require('vscode-extension-tester');
 const { suiteTeardown, runCommand, closeSecondarySidebar, dismissNotifications, openAndFocusFile } = require('./helpers');
 
 /**
- * Position the cursor at (line, col) using the VS Code Go-to-Line widget
- * (Ctrl+G → "line:col" → Enter).
+ * Position the cursor at (line, col) by calling Monaco's internal API directly
+ * via executeScript.
  *
- * This bypasses TextEditor.moveCursor() which internally calls getNumberOfLines()
- * via a DOM click that fails with ElementNotInteractableError when a notification
- * is covering the editor.  Keyboard-driven navigation is not affected by overlays.
+ * Keyboard shortcuts (Ctrl+G) are unreliable in the Electron/ChromeDriver context
+ * because focus can be stolen between editor.click() and the key event.  Using
+ * Monaco's setPosition() bypasses focus entirely and is always synchronous.
  */
-async function gotoLineByKeyboard(driver, line, col) {
-    await driver.actions().keyDown(Key.CONTROL).sendKeys('g').keyUp(Key.CONTROL).perform();
-    await driver.sleep(400);
-    await driver.actions().sendKeys(`${line}:${col}`).perform();
-    await driver.sleep(200);
-    await driver.actions().sendKeys(Key.RETURN).perform();
+async function gotoLineByMonaco(driver, line, col) {
+    try {
+        await driver.executeScript(
+            'try { ' +
+            '  var eds = window.monaco && window.monaco.editor && window.monaco.editor.getEditors(); ' +
+            '  if (eds && eds.length > 0) { ' +
+            '    eds[0].setPosition({lineNumber: ' + line + ', column: ' + col + '}); ' +
+            '    eds[0].focus(); ' +
+            '  } ' +
+            '} catch(e) {}'
+        );
+    } catch (_) {}
     await driver.sleep(300);
 }
 
@@ -52,7 +57,7 @@ async function getCompletionItems(editor, line, col) {
     await driver.sleep(1_500);
     await dismissNotifications(driver);
     await driver.sleep(300);
-    await gotoLineByKeyboard(driver, line, col);
+    await gotoLineByMonaco(driver, line, col);
     await VSBrowser.instance.driver.sleep(500);
     const assist = await editor.toggleContentAssist(true);
     assert.ok(assist, 'ContentAssist API returned null — not supported in this vscode-extension-tester version');
@@ -95,7 +100,7 @@ describe('Code Completion', function () {
         await driver.sleep(1_500);
         await dismissNotifications(driver);
         await driver.sleep(300);
-        await gotoLineByKeyboard(driver, 7, 9);
+        await gotoLineByMonaco(driver, 7, 9);
         await VSBrowser.instance.driver.sleep(500);
         const assist = await editor.toggleContentAssist(true);
         assert.ok(assist, 'ContentAssist API returned null — not supported in this vscode-extension-tester version');
