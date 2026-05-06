@@ -251,6 +251,7 @@ public class purity extends TCBase {
     public void testPureNotSpecPureDefault() {
         expectedExit = 0;
         helpTCText(null, " class A { /*@ pure */ Object m() { return new Object(); }  \n //@ invariant m() != null; \n}"
+                ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.m()", 17
                 );
     }
     

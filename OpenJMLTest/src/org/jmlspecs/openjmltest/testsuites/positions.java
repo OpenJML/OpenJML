@@ -172,6 +172,7 @@ public class positions extends JmlTestSuite {
     static int count = 0;
     
     public static class Test {
+        int id;           // index
         boolean compunit; // true->compilation unit; false->expression
         String input;     // text to be parsed
         Class<?> clazz;   // the class of the AST text enclosed in ##...#
@@ -179,6 +180,7 @@ public class positions extends JmlTestSuite {
         String[] output;
         
         public Test(boolean cu, String input, Class<?> clazz, int numerrors, String... output) {
+            this.id = count++;
             this.compunit = cu;
             this.input = input;
             this.clazz = clazz;
@@ -187,8 +189,7 @@ public class positions extends JmlTestSuite {
         }
         
         public String toString() {
-            String s = clazz.toString();
-            return s + -((++count)+1)/2;
+            return "" + id;
         }
     }
     
@@ -213,9 +214,16 @@ public class positions extends JmlTestSuite {
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. 4]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. ]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A {  void m(){ class Z { void q() { //@ ghost int s = 0; \n  //@ ##assert true#; \n}}}}", JmlStatementExpr.class, 0)},
-        { new Test(false,"2 + (##~ 1#) +", JCUnary.class, 1, "/TEST.java:1: error: reached end of file while parsing\n"
-                + "2 + (~ 1) +\n"
-                + "           ^")},
+        { new Test(true,"public class A {  void m(){ class Z { void q() { //@ ghost int s = 0; \n  //@ ##assert true# \n}}}}", JmlStatementExpr.class, 1
+                ,"""
+                 /TEST.java:2: warning: Inserting missing semicolon at the end of a assert statement
+                   //@ assert true\s
+                                   ^""")},
+        { new Test(false,"2 + (##~ 1#) +", JCUnary.class, 1,
+                """
+                /TEST.java:1: error: reached end of file while parsing
+                2 + (~ 1) +
+                           ^""")},
 
 //        FIXME
 //        { new Test(true,"public class A { //@ assignable ##abc# ;\n void m(){}}", JCIdent.class, 0)},

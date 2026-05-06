@@ -461,11 +461,11 @@ public class JmlOption {
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("--inline-function-literal",false,true,"Whether to inline function literals (default: true)",null);
     public static final JmlOption REQUIRE_WS = new JmlOption("--require-white-space",false,false, "Whether white space is required after the @ in a JML comment (default: false)", null);
 
+    public static final JmlOption ALLOW_PURE_IN_SPECS = new JmlOption("--allow-pure-in-specs",false,false,"When on, allow pure (as well as spec_pure) methods to be used in specifications", null);
+
     // Obsolete
     public static final JmlOption PURITYCHECK = new JmlOption("--purity-check",false,true,"When on (the default), warnings for use of impure methods from system libraries are issued",null);
     { map.put("-purityCheck",PURITYCHECK); }
-
-    public static final JmlOption ALLOW_PURE_IN_SPECS = new JmlOption("--allow-pure-in-specs",false,true,"When on (the default), allow pure methods to be used in specifications", null);
 
 //    // Options Related to Specification Inference
 //    public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");
