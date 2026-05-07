@@ -34,14 +34,14 @@ env:
 jobs:
 
   export-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       oses: ${{ steps.export.outputs.oslist }}
     steps:
     - id: export
       run: |
         ## Edit the list of OSes here
-        echo 'oslist=[ "macos-14", "ubuntu-22.04", "ubuntu-latest" ]' >> "$GITHUB_OUTPUT"
+        echo 'oslist=[ "macos-14", "ubuntu-24.04", "ubuntu-24.04-arm" ]' >> "$GITHUB_OUTPUT"
     
   ## This job builds OpenJML once per OS and uploads the built JDK as an artifact
   build:

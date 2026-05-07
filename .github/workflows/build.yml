@@ -26,7 +26,7 @@ env:
 
 jobs:
   export-matrix:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       oses: ${{ steps.export.outputs.oslist }}
     steps:
@@ -35,10 +35,10 @@ jobs:
         ## Each entry: os = GitHub runner, label = artifact/zip name suffix.
         ## Two macOS entries share the macos-14 (ARM) runner; the x86_64 build
         ## runs under arch -x86_64 (Rosetta 2) to produce an Intel binary.
-        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-22.04","label":"ubuntu-22.04"}, {"os":"ubuntu-latest","label":"ubuntu-latest"} ]' >> "$GITHUB_OUTPUT"
+        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"} ]' >> "$GITHUB_OUTPUT"
 
   prepare:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.version.outputs.version }} # Define output
 
