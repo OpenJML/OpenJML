@@ -172,6 +172,9 @@ post: .FORCE
 	cp -pRL build/*release/jdk $(TEMP)
 	(cd $(TEMP); rm -rf `find . -name .DS_Store`)
 	cp -pR ../../Solvers/Solvers-$(OS_NAME) $(TEMP)
+	uname
+	uname -m
+	if [ "$(uname)" = "Linux" -a "$(uname -m)" = "aarch64" ]; then cp -p ../../Solvers/Solvers-linux-arm/* $(TEMP)/Solvers-linux; fi
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
