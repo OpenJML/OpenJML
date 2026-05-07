@@ -9476,17 +9476,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     Map<JmlSpecificationCase, JCExpression> calleePreconditions;
     Map<JmlSpecificationCase, JCExpression> calleeWriteFrames;
 
-	int cpreindex3 = 0;
+    int cpreindex3 = 0;
 
-	/** Helper method to do the work of visitApply and visitNewObject */
-	protected void applyHelper(JCExpression that) {
-		boolean print = Utils.debug("trans");// || that.toString().contains("Double.valueOf(d2)");
+    /** Helper method to do the work of visitApply and visitNewObject */
+    protected void applyHelper(JCExpression that) {
+        boolean print = Utils.debug("trans");// || that.toString().contains("Double.valueOf(d2)");
         boolean printb = print;
         //print |= that.toString().contains("cops.id");
-    	if (print) {
-    	    System.out.println("APPLY HELPER: " + that);
-    	    utils.warning(that, "jml.message", "applyHelper");
-    	}
+        if (print) {
+            System.out.println("APPLY HELPER: " + that);
+            utils.warning(that, "jml.message", "applyHelper");
+        }
 //    	if (that instanceof JCMethodInvocation) {
 //    		JCMethodInvocation m = (JCMethodInvocation)that;
 //    		JCExpression sel = m.meth instanceof JCFieldAccess ? ((JCFieldAccess)m.meth).selected : currentEnv.currentReceiver;
@@ -9697,7 +9697,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
 				} else {
 					receiverType = fa.selected.type;
+					if (print) System.out.println("CONVERTING RECV " + fa.selected + " " + fa + " " + that);
 					convertedReceiver = alreadyConverted ? fa.selected : convertExpr(fa.selected);
+					if (print) System.out.println("APPLYHELPER_RECV " + alreadyConverted + " " + fa.selected + " " + convertedReceiver);
 					//if (calleeMethodSym.toString().contains("empty")) System.out.println("METHSEL " + that + " " + fa.selected + " " + fa.selected.type + " " + convertedReceiver);
 				}
 
@@ -10137,7 +10139,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						addNullnessAllocationTypeCondition(that, resultSym, false, false, false, null);
 					} else {
 						resultSym = null;
-						resultExpr = that;
+						resultExpr = makeDeterminismCall(that, calleeMethodSym, convertedReceiver, extendedArgs);
+						if (print) System.out.println("RESULT-NOSPLIT " + resultExpr);
 					}
 				} else {
 					// ESC - Constructor call

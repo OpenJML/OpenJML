@@ -95,6 +95,16 @@ public class escfiles3 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug955() {
+        helpEscSimple("--allow-pure-in-specs");
+    }
+    
+    @Test
+    public void gitbug955a() {
+        helpEscSimple();
+    }
+    
+    @Test
     public void byteQuant() {
         helpEscSimple();
     }
