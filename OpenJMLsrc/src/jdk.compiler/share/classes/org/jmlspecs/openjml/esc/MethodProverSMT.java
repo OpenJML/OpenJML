@@ -182,7 +182,7 @@ public class MethodProverSMT {
     }
     
     /** Returns the prover exec specified by the options */
-    public /*@ nullable */ String pickProverExec(String proverToUse) {
+    public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
         org.smtlib.SolverProcess.useMultiThreading = false;
         org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.PROVEREXEC.value(context);
@@ -213,7 +213,7 @@ public class MethodProverSMT {
                     }
                 }
                 if (!new java.io.File(exec).exists()) {
-                    utils.warning("jml.message","Implicit executable does not exist " + exec + "X");
+                    Utils.instance(context).warning("jml.message","Implicit executable does not exist " + exec + "X");
                     exec =  null;
                 }
             }
@@ -265,7 +265,7 @@ public class MethodProverSMT {
 //            JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
 
         // determine the executable
-        String exec = pickProverExec(proverToUse);
+        String exec = pickProverExec(proverToUse, context);
         if (exec == null || exec.trim().isEmpty()) {
             //log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
             JCDiagnostic d = utils.errorDiag(log.currentSource(), null,"esc.no.exec",proverToUse);

@@ -447,7 +447,10 @@ public class Utils {
         String sp = context == null ? null : JmlOption.OSNAME.value(context);
         if (sp == null || sp.isEmpty() || "auto".equals(sp)) sp = System.getProperty("os.name");
         if (sp.contains("mac") || sp.contains("Mac")) return "macos";
-        if (sp.contains("lin") || sp.contains("Lin")) return "linux";
+        if (sp.contains("lin") || sp.contains("Lin")) {
+            if ("aarch64".equals(System.getProperty("os.arch"))) return "linux-arm64";
+            return "linux";
+        }
         if (sp.contains("win") || sp.contains("Win")) return "windows";
         return sp;
     }

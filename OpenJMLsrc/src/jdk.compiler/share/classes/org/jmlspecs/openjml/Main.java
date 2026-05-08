@@ -455,6 +455,8 @@ public class Main extends com.sun.tools.javac.main.Main {
             }
         }
 
+        if (Utils.debug("config")) { showConfig(context); return Result.OK; }
+
         // Note that the Java option processing happens in compile method call below.
         // All the JML tool registration has to happen before compile is called (which should have happened in initialize()).
         canceled = false;
@@ -638,6 +640,21 @@ public class Main extends com.sun.tools.javac.main.Main {
     protected void bugMessage(Throwable ex) {
         stdOut.println("Internal JML bug - please report.  Build" + JavaCompiler.version());
         ex.printStackTrace(stdOut);
+    }
+    
+    public static void showConfig(Context context) {
+        StringBuilder sb = new StringBuilder();
+        java.util.function.Consumer<String> appln = s -> { sb.append(s); sb.append(Strings.eol); };
+        appln.accept("Version:          " + JavaCompiler.version() + " " + JavaCompiler.fullVersion());
+        appln.accept("Install location: " + install);
+        appln.accept("Specs location:   " + specs);
+        appln.accept("Solvers location: " + solvers);
+        appln.accept("Operating system: " + Utils.identifyOS(context));
+        appln.accept("Architecture:     " + System.getProperty("os.arch"));
+        appln.accept("Prover:           " + org.jmlspecs.openjml.esc.JmlEsc.pickProver(context));
+        appln.accept("Prover exec:      " + org.jmlspecs.openjml.esc.MethodProverSMT.pickProverExec(org.jmlspecs.openjml.esc.JmlEsc.pickProver(context), context));
+        appln.accept("CWD:              " + System.getProperty("user.name"));
+        System.out.print(sb.toString());
     }
 
 

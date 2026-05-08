@@ -293,7 +293,7 @@ public class JmlEsc extends JmlTreeScanner {
     }
     
     /** Returns the prover specified by the options. */
-    public String pickProver() {
+    public static String pickProver(Context context) {
         // Pick a prover to use
         String proverToUse = JmlOption.PROVER.value(context);
         if (proverToUse == null || proverToUse.isEmpty()) proverToUse = Options.instance(context).get(Strings.defaultProverProperty);
@@ -314,7 +314,7 @@ public class JmlEsc extends JmlTreeScanner {
     protected IProverResult doMethod(/*@non_null*/ JmlMethodDecl methodDecl) {
         boolean printPrograms = this.verbose || JmlOption.SHOW.includes(context, "translated", "all", "program");
                 
-        String proverToUse = pickProver();
+        String proverToUse = pickProver(context);
 
         boolean isConstructor = methodDecl.sym.isConstructor();
         //boolean doEsc = ((methodDecl.mods.flags & (Flags.SYNTHETIC|Flags.ABSTRACT|Flags.NATIVE)) == 0);

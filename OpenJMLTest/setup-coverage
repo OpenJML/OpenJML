@@ -1,5 +1,6 @@
 
 ## Sets up coverage AND/OR profiling, depending on whether COV and PROF are set
+## ONLY TO BE CALLED WHEN RUNNING FROM DEVELOPMENT ENVIRONMENT
 
 ## Source this file
 

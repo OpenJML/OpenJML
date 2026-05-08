@@ -174,7 +174,6 @@ post: .FORCE
 	cp -pR ../../Solvers/Solvers-$(OS_NAME) $(TEMP)
 	uname
 	uname -m
-	if [ "$$(uname)" = "Linux" -a "$$(uname -m)" = "aarch64" ]; then cp -p ../../Solvers/Solvers-linux-arm64/* $(TEMP)/Solvers-linux; fi
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
