@@ -95,12 +95,14 @@ ZIPCMD := zip
 
 ## OS name used to select the correct Solvers subfolder
 UNAME := $(shell uname)
+ANAME := $(shell uname -m)
 ifeq ($(UNAME),Darwin)
   OS_NAME := macos
-else ifeq ($(UNAME),Linux)
-  OS_NAME := linux
-else
+else ifeq ($(UNAME),Windows)
   OS_NAME := windows
+else ifeq ($(ANAME),aarch64)
+  OS_NAME := linux-arm64
+  else OS_NAME := linux
 endif
 
 ## Used in both the github build.yml action and the development environment
