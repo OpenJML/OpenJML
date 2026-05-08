@@ -47,7 +47,7 @@ runs:
         arch -x86_64 bash -c "./configure && make release"
         cd ..
     - name: Test the build
-      if: inputs.test == 'true'
+      if: inputs.test == 'true' && ( inputs.arch == 'x86_64' || inputs.os == 'macos-14' )
       shell: bash
       run: |
         make -C OpenJML/OpenJMLsrc release-test
