@@ -111,6 +111,8 @@ public class positions extends JmlTestSuite {
             int startpos = markedString.indexOf('#');
             int prefpos = markedString.indexOf('#',startpos+1)-1;
             int endpos = markedString.indexOf('#',prefpos+2)-2;
+            int endpos2 = markedString.indexOf('#',endpos+3)-3;
+            if (endpos2 < 0) endpos2 = endpos;
             String testString = markedString.replaceAll("#","");
             Log log = Log.instance(context);
             log.useSource(new MockJavaFileObject(testString));
@@ -121,32 +123,27 @@ public class positions extends JmlTestSuite {
             try {
                 if (compunit) {
                     JCCompilationUnit tree = parser.parseCompilationUnit();
-                    ztree = tree;
                     assertTrue("parse failure", tree != null);
                     result = Finder.find(clazz,tree);
-                    observedErrors = collector.getDiagnostics().size();
-                    // printDiagnostics(); // Uncomment to debug test failures
-                    assertEquals("Wrong number of errors:", numErrors, observedErrors);
-                    assertTrue("failed to find node", result != null);
-                    assertEquals("start position-A", startpos, result.getStartPosition());
-                    assertEquals("start position-B", startpos, parser.getStartPos(result));
-                    assertEquals("pref position", prefpos, result.getPreferredPosition());
                     assertEquals("end position-A", endpos, result.getEndPosition(tree.endPositions));
-                    assertEquals("end position-B", endpos, parser.getEndPos(result));
+                    ztree = tree;
                 } else {
                     parser.getScanner().setJml(true);
                     JCExpression tree = parser.parseExpression();
-                    observedErrors = collector.getDiagnostics().size();
+                    assertTrue("parse failure", tree != null);
                     ztree = tree;
-                    result = Finder.find(clazz,tree);
-                    // printDiagnostics(); // Uncomment to debug test failures
-                    assertEquals("Wrong number of errors:", numErrors, observedErrors);
-                    assertTrue("failed to find node", result != null);
-                    assertEquals("start position-A", startpos, result.getStartPosition());
-                    assertEquals("start position-B", startpos, parser.getStartPos(result));
-                    assertEquals("pref position", prefpos, result.getPreferredPosition());
-                    assertEquals("end position", endpos, parser.getEndPos(result));
                 }
+                observedErrors = collector.getDiagnostics().size();
+
+                result = Finder.find(clazz,ztree);
+                // printDiagnostics(); // Uncomment to debug test failures
+                assertTrue("failed to find node", result != null);
+                assertEquals("start position-A", startpos, result.getStartPosition());
+                assertEquals("start position-B", startpos, parser.getStartPos(result));
+                assertEquals("pref position", prefpos, result.getPreferredPosition());
+                assertEquals("end position-B", endpos2, parser.getEndPos(result));
+                assertEquals("Wrong number of errors:", numErrors, observedErrors);
+
                 for (int i = 0; i < observedErrors; i++) {
                     String msg = collector.getDiagnostics().get(i).toString();
                     assertEquals(messages[i], msg);
@@ -213,7 +210,8 @@ public class positions extends JmlTestSuite {
         { new Test(true,"public class A { //@ assignable #a#[ *]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. 4]#;\n void m(){}}", JCArrayAccess.class, 0)},
         { new Test(true,"public class A { //@ assignable #a#[ 2 .. ]#;\n void m(){}}", JCArrayAccess.class, 0)},
-        { new Test(true,"public class A {  void m(){ class Z { void q() { //@ ghost int s = 0; \n  //@ ##assert true#; \n}}}}", JmlStatementExpr.class, 0)},
+        { new Test(true,"public class A {  void m(){ class Z { void q() { //@ ghost int s = 0; \n  //@ ##assert true#;# \n}}}}", 
+                JmlStatementExpr.class, 0)},
         { new Test(true,"public class A {  void m(){ class Z { void q() { //@ ghost int s = 0; \n  //@ ##assert true# \n}}}}", JmlStatementExpr.class, 1
                 ,"""
                  /TEST.java:2: warning: Inserting missing semicolon at the end of a assert statement
