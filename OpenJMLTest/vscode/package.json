@@ -9,6 +9,10 @@
   "devDependencies": {
     "vscode-extension-tester": "^8.23.0"
   },
+  "overrides": {
+    "serialize-javascript": ">6.0.2",
+    "diff": ">8.0.2"
+  },
   "engines": {
     "node": ">=20"
   }
