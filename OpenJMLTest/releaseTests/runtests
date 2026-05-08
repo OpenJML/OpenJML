@@ -60,8 +60,6 @@ cd $LOCAL
 export RTH=$LOCAL/releaseTestHelper
 RES=0
 
-echo SOLVERS $OJBIN/Solver*
-ls -R $OJBIN/Solver*
 OJ=config $JML -h
 
 ## Checks the version
@@ -192,15 +190,15 @@ ${RTH} testRuntime4 "$JML src/C.java " || RES=$(($RES+1))
 ## Checks using annotations with normal use - should be OK
 ${RTH} testRuntime5 "$JML src/D.java " || RES=$(($RES+1))
 
-## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc1 "$JML --esc ./src/testEsc/A.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "$JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
+${RTH} testEsc1 "timeout 30 $JML --esc ./src/testEsc/A.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
-## FIXME - is not platform-independent
 ## Checks using classpath - ok, uses specs in java file
-##${RTH} testEsc2 "$JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" --exec=../../../Solvers/Solvers-macos/z3-4.3.1 || RES=$(($RES+1))
+${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
+
+## Checks using classpath - ok, uses specs in java file
+${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" --exec=`echo ../../../Solvers/Solvers-*/z3-4.3.1` || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
