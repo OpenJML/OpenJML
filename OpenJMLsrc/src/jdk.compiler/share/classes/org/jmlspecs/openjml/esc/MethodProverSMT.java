@@ -200,9 +200,9 @@ public class MethodProverSMT {
                 if (new java.io.File(exec).exists()) break x;
                 if (new java.io.File(exec + ".exe").exists()) { exec = exec + ".exe"; break x; }
                 if (proverToUse.equals("cvc4")) ex = ex + "-1"; // FIXME - is this needed?
-                exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex + ".";
+                exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex;
                 for (int i=20; i>=0; --i) {
-                    String execi = exec + i;
+                    String execi = exec + "." + i;
                     if (new java.io.File(execi).exists()) {
                         exec = execi;
                         break;
@@ -211,9 +211,10 @@ public class MethodProverSMT {
                         exec = execi;
                         break;
                     }
+                    System.out.println("NO " + execi);
                 }
                 if (!new java.io.File(exec).exists()) {
-                    Utils.instance(context).warning("jml.message","Implicit executable does not exist " + exec + "X");
+                    Utils.instance(context).warning("jml.message","Implicit executable does not exist " + exec + ".X");
                     exec =  null;
                 }
             }

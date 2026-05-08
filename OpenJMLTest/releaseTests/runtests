@@ -60,6 +60,8 @@ cd $LOCAL
 export RTH=$LOCAL/releaseTestHelper
 RES=0
 
+echo SOLVERS $OJBIN/Solver*
+ls -R $OJBIN/Solver*
 OJ=config $JML -h
 
 ## Checks the version

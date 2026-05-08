@@ -102,7 +102,8 @@ else ifeq ($(UNAME),Windows)
   OS_NAME := windows
 else ifeq ($(ANAME),aarch64)
   OS_NAME := linux-arm64
-  else OS_NAME := linux
+else
+  OS_NAME := linux
 endif
 
 ## Used in both the github build.yml action and the development environment
