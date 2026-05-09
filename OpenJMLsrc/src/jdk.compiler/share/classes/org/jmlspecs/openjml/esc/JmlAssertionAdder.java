@@ -15054,10 +15054,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             result = eresult = e;
             return;
-        } else if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
+        } else if (optag == JCTree.Tag.PLUS && jmltypes.isSameTypeWithoutAnnotations(that.type, syms.stringType)) {
 			if ((infer || esc)) {
 				Symbol s = utils.findStaticMember(syms.stringType.tsym, "concat");
 				if (s == null) {
+				    // This may happen if (1) a mismatched set of Specs (for java.langString) is used
+				    // or something happened in maintenance that introduced a bug.
 					utils.error(that, "jml.internal", "Could not find the concat method");
 				} else {
 					JCIdent id = M.Ident("String");
