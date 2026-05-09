@@ -22,11 +22,11 @@ fi
 
 count=0
 while true; do
-  r=`( time ./runtests $* ) 2>&1 | tee $f | grep failures`
+  r=$(( time ./runtests "$@" ) 2>&1 | tee "$f" | grep successes )
   if [ -n "$r" ]; then break; fi
   sleep 5
-  echo "Retrying (# $count) summary for $@"
   count=$(( $count + 1 ))
+  echo "Retrying (# $count) summary for $@"
   if [ $count -ge 3 ]; then echo Giving up on $@ ; exit 1; fi
 done
 
@@ -34,3 +34,4 @@ actfailures=`echo $r | sed -e 's/^.*timeouts,//' | sed -e 's/failures,.*$//' | t
 
 if [ "$actfailures" != "0" ]; then m="<<<<<<<<<<<< $actfailures failures" ; else m="" ; fi
 echo -e "$f\t" $r $m
+if [ "$actfailures" != "0" ]; then exit 1; else exit 0; fi

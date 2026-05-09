@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/org.openjml.OpenJMLFeature_21.0.25.jar" id="org.openjml.OpenJMLFeature" version="21.0.25">
+      <category name="OpenJML"/>
+   </feature>
+   <category-def name="OpenJML" label="OpenJML"/>
+</site>

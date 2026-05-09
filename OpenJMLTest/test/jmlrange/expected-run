@@ -1,0 +1,8 @@
+OUT:
+LABEL JMLSHOW_1 = (5..8)
+LABEL JMLSHOW_2 = (5..9)
+test/jmlrange/Trange.java:28: verify: JML assertion is false
+            //@ check r1.equals(null); // ERROR
+                ^
+
+ERR:

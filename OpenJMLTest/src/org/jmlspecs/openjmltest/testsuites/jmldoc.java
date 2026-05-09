@@ -1,9 +1,5 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.io.ByteArrayOutputStream;
-
-import java.io.PrintStream;
-
 import org.junit.*;
 import org.junit.rules.TestName;
 
@@ -20,31 +16,18 @@ public class jmldoc extends JmlTestSuite {
     @Rule
     public TestName name = new TestName();
 
-    ByteArrayOutputStream berr;
-    ByteArrayOutputStream bout;
-    PrintStream savederr;
-    PrintStream savedout;
-    static String eol = System.getProperty("line.separator");
-    static String z = java.io.File.pathSeparator;
-    boolean print = false;
     boolean capture = true;
     
     @Before
     public void setUp() throws Exception {
         //capture = false;
         //print = true;
-        savederr = System.err;
-        savedout = System.out;
-        if (capture) System.setErr(new PrintStream(berr=new ByteArrayOutputStream(10000)));
-        if (capture) System.setOut(new PrintStream(bout=new ByteArrayOutputStream(10000)));
+        collectSystemOutput(true);
     }
     
     @After
     public void tearDown() {
-        berr = null;
-        bout = null;
-        System.setErr(savederr);
-        System.setOut(savedout);
+        collectSystemOutput(false);
     }
     
     /** This is a helper method that runs the compiler on the given set of
@@ -57,18 +40,14 @@ public class jmldoc extends JmlTestSuite {
      * @param output the expected output as one string
      */
     public void helper(String[] args, int exitcode, int all, String ... output) {
-        int e = 4; // org.jmlspecs.openjml.jmldoc.Main.execute(args);
-        System.err.flush();
-        System.out.flush();
-        System.setErr(savederr);
-        System.setOut(savedout);
+        int exitCode = 4; // org.jmlspecs.openjml.jmldoc.Main.execute(args);
         // Depending on how the log is setup, error output can go to either bout or berr
-        String actualOutput = capture ? bout.toString() : "";
-        String errOutput = capture ? berr.toString() : "";
+        String actualOutput = output();
+        String errOutput = errorOutput();
         if (print) System.out.println("EXPECTING: " + output[0]);
         if (capture) try {
             String tail = ""; //exitcode == 0 ? "" : "ENDING with exit code " + exitcode + eol;
-            if (print) System.out.println("TEST: " + getTestName() + " exit=" + e + eol + errOutput);
+            if (print) System.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + errOutput);
             String expected = output[0];
             if (all==0) assertEquals("The error message is wrong",expected+tail,errOutput);
             else if (all == -1) assertEquals("The error message is wrong",expected,errOutput);
@@ -88,9 +67,9 @@ public class jmldoc extends JmlTestSuite {
                     fail("Output does not end with: " + expected + eol + "Instead is: " + actualOutput);
                 }
             }
-            assertEquals("The exit code is wrong",exitcode,e);
+            assertEquals("The exit code is wrong",exitcode,exitCode);
         } catch (AssertionError ex) {
-            if (!print) System.out.println("TEST: " + getTestName() + " exit=" + e + eol + actualOutput);
+            if (!print) System.out.println("TEST: " + getTestName() + " exit=" + exitCode + eol + actualOutput);
             throw ex;
         }
     }

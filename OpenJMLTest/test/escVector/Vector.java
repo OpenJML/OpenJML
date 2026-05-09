@@ -87,10 +87,19 @@ public class Vector {
    */ //@ requires the_array != my_element_data;
   public final synchronized void copyInto(final Object[] the_array) {
       int i = my_element_count;
-      //@ loop_invariant 0 <= i && i <= my_element_count;
+      //@ loop_invariant 0 <= i && i <= my_element_count; // ERROR
       //@ decreases i;
       while (i-- > 0) {
         the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
+      }
+    }
+  //@ requires the_array != my_element_data && the_array.length >= my_element_count && my_element_count > 0;
+  public final synchronized void copyIntoA(final Object[] the_array) {
+      int i = my_element_count;
+      //@ loop_invariant 0 <= i && i <= my_element_count;
+      //@ decreases i;
+      while (--i > 0) {
+        the_array[i] = my_element_data[i]; //  ERROR - don't know the runtime type of the_array
       }
     }
   //@ requires the_array != my_element_data && the_array.length >= my_element_count && my_element_count > 0;
@@ -98,7 +107,7 @@ public class Vector {
       int i = my_element_count;
       //@ loop_invariant 0 <= i && i <= my_element_count;
       //@ decreases i;
-      while (--i > 0) {
+      while (i > 0) { --i;
         the_array[i] = my_element_data[i]; //  ERROR - don't know the runtime type of the_array
       }
     }
@@ -138,6 +147,7 @@ public class Vector {
   public final synchronized Object elementAt(final int the_index) 
     throws ArrayIndexOutOfBoundsException {
     if (the_index >= my_element_count) {
+      //@ assume 100 + " >= ".length() + 100 <= Integer.MAX_VALUE;
       throw new ArrayIndexOutOfBoundsException(the_index + " >= " + my_element_count);
     }
     try {

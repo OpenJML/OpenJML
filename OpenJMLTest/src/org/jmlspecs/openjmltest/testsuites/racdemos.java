@@ -1,21 +1,10 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.fail;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.jmlspecs.openjmltest.RacBase;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.io.File;
+
+import static org.junit.Assert.fail;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.openjml.runners.Ignorable;
 
@@ -41,15 +30,14 @@ public class racdemos extends RacBase {
     @Override
     @Before
     public void setUp() throws Exception {
-        setUpForFiles();
         super.setUp();
         Assume.assumeTrue( new File(OpenJMLDemoPath).exists() );
     }
     
     public void helpCompileRunDemo(String dir, String mainClassname, String ... opts) {
         String adir = OpenJMLDemoPath + dir;
-        if (opts.length == 0) helpTCF(adir, adir, mainClassname, "-cp", adir);
-        else helpTCF(adir, adir, mainClassname, org.jmlspecs.openjml.Utils.concat(new String[] { "-cp", adir}, opts));
+        if (opts.length == 0) helpRac(adir, adir, mainClassname, "-cp", adir);
+        else helpRac(adir, adir, mainClassname, org.jmlspecs.openjml.Utils.concat(new String[] { "-cp", adir}, opts));
     }
 
     
@@ -82,25 +70,23 @@ public class racdemos extends RacBase {
 
     @Test
     public void demoecu2a() {
-        //collectOutput(true);
         expectedExit = 0;
         expectedRACExit = 0;
         helpCompileRunDemo("/src/openjml/ecu2a","IgnitionTest");
-        //collectOutput(false);
     }
 
     @Test
     public void demoQueue() {
         expectedExit = 0;
         expectedRACExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Queue.java", "test/racQueue","Queue");
+        helpRac(OpenJMLDemoPath + "/src/openjml/demo/Queue.java", "test/racQueue","Queue");
     }
 
     @Test
     public void demoTime() {
         expectedExit = 0;
         expectedRACExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Time.java", "test/racTime","Time");
+        helpRac(OpenJMLDemoPath + "/src/openjml/demo/Time.java", "test/racTime","Time");
     }
 
 
@@ -133,7 +119,7 @@ public class racdemos extends RacBase {
         expectedExit = 1;
         runrac = false;
         expectedRACExit = 0;
-        helpTCF(dir,dir+"/../bug","Game","-cp",dir,"-progress","-racJavaChecks");
+        helpRac(dir,dir+"/../bug","Game","-cp",dir,"-progress","-racJavaChecks");
     }
 
 

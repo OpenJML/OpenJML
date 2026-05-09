@@ -4,7 +4,7 @@ import org.openjml.*;
 public class Run {
     
   public static void main(String... args) {
-    String exp = System.getenv("EXPORTS");
+    String exp = System.getenv("OPENJML_EXPORTS");
     var combined = args;
     if (exp != null) {
        String[] exps = exp.split(" ");

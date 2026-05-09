@@ -23,10 +23,10 @@ test\escTrace6\trace.java:9:  	Terminated with exception
 			VALUE: _JML___exception	 === REF!val!2
 test\escTrace6\trace.java:9:  	signals (Exception e) false; 
 			VALUE: false	 === false
-test\escTrace6\trace.java:12: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m
+test\escTrace6\trace.java:12: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m
         mm();
           ^
-test\escTrace6\trace.java:9: warning: Associated declaration
+test\escTrace6\trace.java:9: verify: Associated declaration
     //@ signals (Exception e) false;
         ^
 Completed proof of trace.m() with prover !!!! - with warnings
@@ -50,12 +50,12 @@ test\escTrace6\trace.java:31:  	ensures k == 2;
 			VALUE: k	 === 1
 			VALUE: 2	 === 2
 			VALUE: k == 2	 === false
-test\escTrace6\trace.java:37: warning: The prover cannot establish an assertion (Postcondition) in method m3
+test\escTrace6\trace.java:37: verify: The prover cannot establish an assertion (Postcondition) in method m3
             mm();
               ^
-test\escTrace6\trace.java:31: warning: Associated declaration
+test\escTrace6\trace.java:31: verify: Associated declaration
     //@ ensures k == 2;
         ^
 Completed proof of trace.m3() with prover !!!! - with warnings
 Completed proving methods in trace
-4 warnings
+4 verification failures

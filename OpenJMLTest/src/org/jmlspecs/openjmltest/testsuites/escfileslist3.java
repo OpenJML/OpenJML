@@ -16,7 +16,8 @@ public class escfileslist3 extends escfileslist {
         var data = escfileslist.alldata();
         var n = data.size();
         java.util.Collection<String[]> ndata = new java.util.LinkedList<>();
-        for (int i=(int)(.7*n); i<n; i++) ndata.add(data.get(i));
+        for (int i=(int)(split2*n); i<n; i++) ndata.add(data.get(i));
+        System.out.println("escfileslist3: Running " + ndata.size() + " of " + n + " tests");
         return ndata;
     }
 
@@ -27,7 +28,7 @@ public class escfileslist3 extends escfileslist {
     
     @Test
     public void test() {
-        helpTF(testName, getOptions());
+        helpEscName(testName, getOptions());
     }
 
     

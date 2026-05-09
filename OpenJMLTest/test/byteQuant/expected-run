@@ -1,0 +1,16 @@
+OUT:
+test/byteQuant/Test.java:4: verify: JML there is no value satisfying the \choose predicate
+    //@ ghost byte b = (\choose byte i; -200 < i < 200; i == 150);
+                        ^
+LABEL JMLSHOW_1 = 50
+test/byteQuant/Test.java:10: verify: JML assertion is false
+    //@ assert b != 50;
+        ^
+test/byteQuant/Test.java:16: verify: JML there is no value satisfying the \choose predicate
+    //@ ghost byte b = (\choose byte i; x < i < y; i == 120);
+                        ^
+test/byteQuant/Test.java:22: verify: JML there is no value satisfying the \choose predicate
+    //@ ghost int b = (\choose int i; x < i < y; i == 120);
+                       ^
+
+ERR:

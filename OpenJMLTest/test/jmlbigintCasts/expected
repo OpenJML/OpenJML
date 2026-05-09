@@ -1,0 +1,86 @@
+Proving methods in Tcasts
+Starting proof of Tcasts.Tcasts() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.Tcasts() with prover !!!! - no warnings
+Starting proof of Tcasts.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.main(String...) with prover !!!! - no warnings
+Starting proof of Tcasts.m0() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.m0() with prover !!!! - no warnings
+Starting proof of Tcasts.m1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.m1() with prover !!!! - no warnings
+Starting proof of Tcasts.m2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.m2() with prover !!!! - no warnings
+Starting proof of Tcasts.m3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.m3() with prover !!!! - no warnings
+Starting proof of Tcasts.m4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.m4() with prover !!!! - no warnings
+Starting proof of Tcasts.m5() with prover !!!!
+test/jmlbigintCasts/Tcasts.java:23: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m5
+      /*@ show (z+Byte.MAX_VALUE).byteValue(); */
+                                           ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:213: verify: Associated declaration
+    public byte byteValue();
+                ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:210: verify: Precondition conjunct is false: Byte.MIN_VALUE <= this <= Byte.MAX_VALUE
+    //@   requires Byte.MIN_VALUE <= this <= Byte.MAX_VALUE;
+                                          ^
+Completed proof of Tcasts.m5() with prover !!!! - with warnings
+Starting proof of Tcasts.m6() with prover !!!!
+test/jmlbigintCasts/Tcasts.java:26: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m6
+      /*@ show (z+Short.MAX_VALUE).shortValue(); */
+                                             ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:207: verify: Associated declaration
+    public short shortValue();
+                 ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:204: verify: Precondition conjunct is false: Short.MIN_VALUE <= this <= Short.MAX_VALUE
+    //@   requires Short.MIN_VALUE <= this <= Short.MAX_VALUE;
+                                           ^
+Completed proof of Tcasts.m6() with prover !!!! - with warnings
+Starting proof of Tcasts.m7() with prover !!!!
+test/jmlbigintCasts/Tcasts.java:29: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m7
+      /*@ show (z+2*Character.MAX_VALUE).charValue(); */
+                                                  ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:219: verify: Associated declaration
+    public char charValue();
+                ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:216: verify: Precondition conjunct is false: Character.MIN_VALUE <= this <= Character.MAX_VALUE
+    //@   requires Character.MIN_VALUE <= this <= Character.MAX_VALUE;
+                                               ^
+Completed proof of Tcasts.m7() with prover !!!! - with warnings
+Starting proof of Tcasts.m8() with prover !!!!
+test/jmlbigintCasts/Tcasts.java:32: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m8
+      /*@ show (z+Integer.MAX_VALUE).intValue(); */
+                                             ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:201: verify: Associated declaration
+    public int intValue();
+               ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:197: verify: Precondition conjunct is false: Integer.MIN_VALUE <= this <= Integer.MAX_VALUE
+    //@   requires Integer.MIN_VALUE <= this <= Integer.MAX_VALUE;
+                                             ^
+Completed proof of Tcasts.m8() with prover !!!! - with warnings
+Starting proof of Tcasts.m9() with prover !!!!
+test/jmlbigintCasts/Tcasts.java:35: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m9
+      /*@ show (z+Long.MAX_VALUE).longValue(); */
+                                           ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:194: verify: Associated declaration
+    public long longValue();
+                ^
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:190: verify: Precondition conjunct is false: Long.MIN_VALUE <= this <= Long.MAX_VALUE
+    //@   requires Long.MIN_VALUE <= this <= Long.MAX_VALUE;
+                                          ^
+Completed proof of Tcasts.m9() with prover !!!! - with warnings
+Completed proving methods in Tcasts
+15 verification failures

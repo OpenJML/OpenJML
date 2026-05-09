@@ -1,9 +1,7 @@
 #! /usr/bin/env bash
 
-F1="$BASH_SOURCE[0]"
-F2=$(dirname "$F1")
-cd "$F2"
-INSTALL="../../../OpenJML21"
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
 
-($INSTALL/openjml-compile --compile Run.java && $INSTALL/openjml-run Run) |& diff - RUN.out
-if [ $? -ne 0 ]; then echo test/apistatic FAILED ; fi
+(openjml-compile --compile Run.java && openjml-run Run) | 2>&1  diff - RUN.out
+exit $?

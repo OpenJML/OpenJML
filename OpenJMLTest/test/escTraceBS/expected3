@@ -21,7 +21,7 @@ test\escTraceBS\trace.java:5:  	assert Assert i == 0 && \nonnullelements(a);
 			VALUE: a	 === @uc_REF_2
 			VALUE: \nonnullelements(a)	 === false
 			VALUE: i == 0 && \nonnullelements(a)	 === false
-test\escTraceBS\trace.java:5: warning: The prover cannot establish an assertion (Assert) in method mnonnullelements
+test\escTraceBS\trace.java:5: verify: The prover cannot establish an assertion (Assert) in method mnonnullelements
         //@ assert i == 0 && \nonnullelements(a);
             ^
 Completed proof of trace.mnonnullelements(int[]) with prover cvc4 - with warnings
@@ -42,9 +42,9 @@ test\escTraceBS\trace.java:12:  	assert Assert i == 4 && \not_modified(i);
 			VALUE: i	 === 4
 			VALUE: \not_modified(i)	 === false
 			VALUE: i == 4 && \not_modified(i)	 === false
-test\escTraceBS\trace.java:12: warning: The prover cannot establish an assertion (Assert) in method mnotmodified
+test\escTraceBS\trace.java:12: verify: The prover cannot establish an assertion (Assert) in method mnotmodified
         //@ assert i == 4 && \not_modified(i);
             ^
 Completed proof of trace.mnotmodified(int) with prover cvc4 - with warnings
 Completed proving methods in trace
-2 warnings
+2 verification failures

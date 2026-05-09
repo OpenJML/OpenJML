@@ -1,7 +1,8 @@
 public class Test {
-    
+    //@ requires n >= 0;
     //@ old int nnnn = 120+4;
     //@ ensures \result <= nnnn;
+    //@ measured_by n;
     public int m(int n) {
         if (n == 0) return 124;
         return m(n-1);

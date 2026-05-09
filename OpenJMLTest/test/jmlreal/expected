@@ -1,0 +1,148 @@
+Proving methods in Tcasts
+Starting proof of Tcasts.Tcasts() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.Tcasts() with prover !!!! - no warnings
+Starting proof of Tcasts.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.main(String...) with prover !!!! - no warnings
+Starting proof of Tcasts.m0() with prover !!!!
+test/jmlreal/Tcasts.java:8: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m0
+      /*@ show (byte)(z+Byte.MAX_VALUE); */
+               ^
+Completed proof of Tcasts.m0() with prover !!!! - with warnings
+Starting proof of Tcasts.m1() with prover !!!!
+test/jmlreal/Tcasts.java:12: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m1
+      /*@ show (short)(z+Short.MAX_VALUE); */
+               ^
+Completed proof of Tcasts.m1() with prover !!!! - with warnings
+Starting proof of Tcasts.m2() with prover !!!!
+test/jmlreal/Tcasts.java:16: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m2
+      /*@ show (char)(z+2*Character.MAX_VALUE); */
+               ^
+Completed proof of Tcasts.m2() with prover !!!! - with warnings
+Starting proof of Tcasts.m3() with prover !!!!
+test/jmlreal/Tcasts.java:20: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m3
+      /*@ show (int)(z+Integer.MAX_VALUE); */
+               ^
+Completed proof of Tcasts.m3() with prover !!!! - with warnings
+Starting proof of Tcasts.m4() with prover !!!!
+test/jmlreal/Tcasts.java:24: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m4
+      /*@ show (long)(z+Long.MAX_VALUE); */
+               ^
+Completed proof of Tcasts.m4() with prover !!!! - with warnings
+Starting proof of Tcasts.m5() with prover !!!!
+test/jmlreal/Tcasts.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m5
+      /*@ show (z+Byte.MAX_VALUE).byteValue(); */
+                                           ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:13: verify: Associated declaration
+    public byte byteValue();
+                ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:11: verify: Precondition conjunct is false: Byte.MIN_VALUE <= this <= Byte.MAX_VALUE
+    //@ public normal_behavior requires Byte.MIN_VALUE <= this <= Byte.MAX_VALUE; //-RAC@ ensures \result == (byte)this;
+                                                               ^
+Completed proof of Tcasts.m5() with prover !!!! - with warnings
+Starting proof of Tcasts.m6() with prover !!!!
+test/jmlreal/Tcasts.java:32: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m6
+      /*@ show (z+Short.MAX_VALUE).shortValue(); */
+                                             ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:16: verify: Associated declaration
+    public short shortValue();
+                 ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:14: verify: Precondition conjunct is false: Short.MIN_VALUE <= this <= Short.MAX_VALUE
+    //@ public normal_behavior requires Short.MIN_VALUE <= this <= Short.MAX_VALUE; //-RAC@ ensures \result == (short)this;
+                                                                ^
+Completed proof of Tcasts.m6() with prover !!!! - with warnings
+Starting proof of Tcasts.m7() with prover !!!!
+test/jmlreal/Tcasts.java:36: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m7
+      /*@ show (z+2*Character.MAX_VALUE).charValue(); */
+                                                  ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:19: verify: Associated declaration
+    public char charValue();
+                ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:18: verify: Precondition conjunct is false: Character.MIN_VALUE <= this <= Character.MAX_VALUE
+    //@ public normal_behavior requires Character.MIN_VALUE <= this <= Character.MAX_VALUE; //-RAC@ ensures \result == (char)this;
+                                                                    ^
+Completed proof of Tcasts.m7() with prover !!!! - with warnings
+Starting proof of Tcasts.m8() with prover !!!!
+test/jmlreal/Tcasts.java:40: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m8
+      /*@ show (z+Integer.MAX_VALUE).intValue(); */
+                                             ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:23: verify: Associated declaration
+    abstract public int intValue();
+                        ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:21: verify: Precondition conjunct is false: Integer.MIN_VALUE <= this <= Integer.MAX_VALUE
+    //@ public normal_behavior requires Integer.MIN_VALUE <= this <= Integer.MAX_VALUE; //-RAC@ ensures \result == (int)this;
+                                                                  ^
+Completed proof of Tcasts.m8() with prover !!!! - with warnings
+Starting proof of Tcasts.m9() with prover !!!!
+test/jmlreal/Tcasts.java:44: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m9
+      /*@ show (z+Long.MAX_VALUE).longValue(); */
+                                           ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:26: verify: Associated declaration
+    abstract public long longValue();
+                         ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:24: verify: Precondition conjunct is false: Long.MIN_VALUE <= this <= Long.MAX_VALUE
+    //@ public normal_behavior requires Long.MIN_VALUE <= this <= Long.MAX_VALUE; //-RAC@ ensures \result == (long)this;
+                                                               ^
+Completed proof of Tcasts.m9() with prover !!!! - with warnings
+Starting proof of Tcasts.m10() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.m10() with prover !!!! - no warnings
+Starting proof of Tcasts.m11() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.m11() with prover !!!! - no warnings
+Starting proof of Tcasts.p1(short) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.p1(short) with prover !!!! - no warnings
+Starting proof of Tcasts.p2(short) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.p2(short) with prover !!!! - no warnings
+Starting proof of Tcasts.p3(short) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.p3(short) with prover !!!! - no warnings
+Starting proof of Tcasts.p4(short) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.p4(short) with prover !!!! - no warnings
+Completed proving methods in Tcasts
+Proving methods in Treal
+Starting proof of Treal.Treal() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Treal.Treal() with prover !!!! - no warnings
+Starting proof of Treal.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Treal.main(String...) with prover !!!! - no warnings
+Starting proof of Treal.ops(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Treal.ops(int,int) with prover !!!! - no warnings
+Starting proof of Treal.compare(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Treal.compare(int,int) with prover !!!! - no warnings
+Starting proof of Treal.misc() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Treal.misc() with prover !!!! - no warnings
+Starting proof of Treal.errors() with prover !!!!
+test/jmlreal/Treal.java:94: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors
+        //@ check rlong.equals(null);  // Not allowed
+                              ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:52: verify: Associated declaration
+    public boolean equals(/*@ nullable */ Object o);
+                   ^
+$SPECS/org/jmlspecs/lang/internal/real.jml:51: verify: Precondition conjunct is false: false
+    //@ requires false; // Use == and not .equals for comparing \\real values
+                 ^
+Completed proof of Treal.errors() with prover !!!! - with warnings
+Completed proving methods in Treal
+23 verification failures

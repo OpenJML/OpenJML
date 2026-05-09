@@ -11,44 +11,44 @@ public class TestInteger {
         Integer a = Integer.valueOf(i);
         Integer c = Integer.valueOf(i+1);
         Integer b = i;
-        //@ assert a != null;
-        //@ assert b != null;
-        // @ assert a != b; // Does not necessarily hold
-        //@ assert a.intValue() == b.intValue();
-        //@ assert a.equals(b);
-        //@ assert a.intValue() != c.intValue();
-        //@ assert !a.equals(c);
-        //@ assert ((int)a) == i;
+        //@ check a != null;
+        //@ check b != null;
+        // @ check a != b; // Does not necessarily hold
+        //@ check a.intValue() == b.intValue();
+        //@ check a.equals(b);
+        //@ check a.intValue() != c.intValue();
+        //@ check !a.equals(c);
+        //@ check ((int)a) == i;
         int k = b;
-        //@ assert k == i;
-        //@ assert a.equals(b);
-        //@ assert !a.equals(c);
-        //@ assert !a.equals(null);
-        //@ assert Integer.MIN_VALUE == -2147483648;
-        //@ assert Integer.MAX_VALUE == 2147483647;
-        //@ assert Integer.BYTES == 4;
-        //@ assert Integer.SIZE == 32;
-        //@ assert Integer.TYPE == int.class;
+        //@ check k == i;
+        //@ check a.equals(b);
+        //@ check !a.equals(c);
+        //@ check !a.equals(null);
+        //@ check Integer.MIN_VALUE == -2147483648;
+        //@ check Integer.MAX_VALUE == 2147483647;
+        //@ check Integer.BYTES == 4;
+        //@ check Integer.SIZE == 32;
+        //@ check Integer.TYPE == int.class;
 
-        //@ assert \typeof(a) == \type(Integer);
-        //@ assert \typeof(a) <: \type(Number);
-        //@ assert \typeof(a) != \type(Object);
+        //@ check \typeof(a) == \type(Integer);
+        //@ check \typeof(a) <: \type(Number);
+        //@ check \typeof(a) != \type(Object);
 
         int s = i+j;
-        //@ assert Integer.sum(i,j) == s;
-        //@ assert Integer.max(i,j) == (i>j ? i : j);
-        //@ assert Integer.min(i,j) == (i<j ? i : j);
-        //-RAC@ assert z.intValue() == z.theInteger;
+        //@ check Integer.sum(i,j) == s;
+        //@ check Integer.max(i,j) == (i>j ? i : j);
+        //@ check Integer.min(i,j) == (i<j ? i : j);
+        //-RAC@ check z.intValue() == z.theInteger;
         byte by = (byte)z.intValue();
-        //@ assert z.byteValue() == by;
+        //@ check z.byteValue() == by;
         long lg = (long)z.intValue();
-        //@ assert z.longValue() == lg;
+        //@ check z.longValue() == lg;
         short sh = (short)z.intValue();
-        //@ assert z.shortValue() == sh;
-        //@ assert Integer.signum(i) == (i > 0 ? 1 : i == 0 ? 0 : -1);
+        //@ check z.shortValue() == sh;
+        //@ check Integer.signum(i) == (i > 0 ? 1 : i == 0 ? 0 : -1);
 
-        //@ assert z.hashCode() == z.intValue();
-        //@ assert Integer.hashCode(j) == j;
+        //@ check z.hashCode() == z.intValue();
+        //@ check Integer.hashCode(j) == j;
         // TODO - divideUnsigned, doubleValue, floatValue, remainderUnsigned
 
         // FIXME - compare operations
@@ -68,11 +68,11 @@ public class TestInteger {
 
         //		String s = a.toString();
         //		int k = Integer.parseInt(s);
-        //		//@ assert k == i;
+        //		//@ check k == i;
         //		s = Integer.toString(a);
         //		k = Integer.parseInt(s);
-        //		//@ assert k == i;
+        //		//@ check k == i;
 
-        //		//@ assert a.hashCode() == i;
+        //		//@ check a.hashCode() == i;
     }
 }

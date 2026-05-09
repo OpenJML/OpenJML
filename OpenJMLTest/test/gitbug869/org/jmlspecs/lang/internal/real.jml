@@ -1,0 +1,139 @@
+package org.jmlspecs.lang.internal;
+
+//@ no_state
+public abstract class real extends Number implements org.jmlspecs.lang.IJmlPrimitiveType, Comparable<real>  {
+    
+    //@ public normal_behavior
+    //@   requires true;
+    //-RAC@   ensures \result == 0;
+    public static real empty();
+
+    //@ public normal_behavior requires Byte.MIN_VALUE <= this <= Byte.MAX_VALUE; //-RAC@ ensures \result == (byte)this;
+    @Override
+    public byte byteValue();
+    //@ public normal_behavior requires Short.MIN_VALUE <= this <= Short.MAX_VALUE; //-RAC@ ensures \result == (short)this;
+    @Override
+    public short shortValue();
+    
+    //@ public normal_behavior requires Character.MIN_VALUE <= this <= Character.MAX_VALUE; //-RAC@ ensures \result == (char)this;
+    public char charValue();
+    
+    //@ public normal_behavior requires Integer.MIN_VALUE <= this <= Integer.MAX_VALUE; //-RAC@ ensures \result == (int)this;
+    @Override
+    abstract public int intValue();
+    //@ public normal_behavior requires Long.MIN_VALUE <= this <= Long.MAX_VALUE; //-RAC@ ensures \result == (long)this;
+    @Override
+    abstract public long longValue();
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (float)this && Float.isFinite(\result);
+    @Override
+    abstract public float floatValue();
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (double)this && Double.isFinite(\result);
+    @Override
+    abstract public double doubleValue();
+    
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\bigint)this;
+    abstract public bigint bigintValue();
+    
+    //@ public normal_behavior
+    //-RAC@  ensures this == r ==> \result == 0;
+    //-RAC@  ensures this != r ==> \result != 0;
+    //-RAC@  ensures this >= r ==> \result >= 0;
+    //-RAC@  ensures this <= r ==> \result <= 0;
+    //-RAC@  ensures this >  r ==> \result >  0;
+    //-RAC@  ensures this <  r ==> \result <  0;
+    abstract public int compareTo(real r);
+    //@ public normal_behavior requires true; 
+    abstract public String toString();
+    //@ public normal_behavior requires true; 
+    abstract public int hashCode();
+    
+    // No 'also' and no Override because JML considers that JML primitive types do not inherit any specs
+    //@ equires false; // Use == and not .equals for comparing \\real values
+    public boolean equals(/*@ nullable */ Object o);
+    //@ public normal_behavior
+    //@   requires true;
+    //-RAC@ ensures \result == eq(r);
+    public boolean equals(real r);
+    
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (double)\result;    // FIXME - require isFinite when feasible
+    public static real of(double v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (float)\result;    // FIXME - require isFinite when feasible
+    public static real of(float v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (long)\result & Long.MIN_VALUE <= \result <= Long.MAX_VALUE;
+    public static real of(long v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (int)\result & Integer.MIN_VALUE <= \result <= Integer.MAX_VALUE;
+    public static real of(int v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (char)\result & Character.MIN_VALUE <= \result <= Character.MAX_VALUE;
+    public static real of(char v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (short)\result & Short.MIN_VALUE <= \result <= Short.MAX_VALUE;
+    public static real of(short v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (byte)\result & Byte.MIN_VALUE <= \result <= Byte.MAX_VALUE;
+    public static real of(byte v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v & v == (\bigint)\result;
+    public static real of(bigint v);
+    //@ public normal_behavior requires true; //-RAC@ ensures \result == (\real)v.value & v.value == (\bigint)\result; strictly_pure
+    public static real of(java.math.BigInteger v);
+
+    // FIXME -- should these be visible?
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this == r);
+    public boolean eq(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this != r);
+    public boolean ne(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this >= r);
+    public boolean ge(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this <= r);
+    public boolean le(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this > r);
+    public boolean gt(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this < r);
+    public boolean lt(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this + r);
+    abstract public real add(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this - r);
+    abstract public real subtract(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (this * r);
+    abstract public real multiply(real r);
+    
+    //@ public normal_behavior
+    //@  requires r != 0;
+    //-RAC@   ensures \result == (this / r);
+    abstract public real divide(real r);
+    
+    //@ public normal_behavior
+    //@  requires r != 0;
+    //-RAC@   ensures \result == (this % r);
+    abstract public real mod(real r);
+    
+    //@ public normal_behavior
+    //@  requires true;
+    //-RAC@   ensures \result == (-this);
+    abstract public real negate();
+    
+}

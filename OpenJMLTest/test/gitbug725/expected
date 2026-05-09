@@ -1,0 +1,24 @@
+Proving methods in WFFBug
+Starting proof of WFFBug.WFFBug() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of WFFBug.WFFBug() with prover !!!! - no warnings
+Proving methods in WFFBug.Node
+Starting proof of WFFBug.Node.Node(@NonNull Object,@NonNull Object,WFFBug.Node) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of WFFBug.Node.Node(@NonNull Object,@NonNull Object,WFFBug.Node) with prover !!!! - no warnings
+Starting proof of WFFBug.Node.getf(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of WFFBug.Node.getf(int) with prover !!!! - no warnings
+Starting proof of WFFBug.Node.lemma_getf_wff(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of WFFBug.Node.lemma_getf_wff(int) with prover !!!! - no warnings
+Starting proof of WFFBug.Node.lemma_getf_aux(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of WFFBug.Node.lemma_getf_aux(int,int) with prover !!!! - no warnings
+Completed proving methods in WFFBug.Node
+Completed proving methods in WFFBug

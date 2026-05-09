@@ -19,44 +19,54 @@ public class deprecation extends TCBase {
     }
 
     @Test
-    public void testRepresents() {
-    	Options.instance(main.context()).put(dep_opt, "true");
-        helpTCF("A.java","public class A {\n" +
+    public void testRepresentsB() {
+        addOptions(dep_opt);
+        helpTCText("A.java","public class A {\n" +
                 " //@ model int i;\n" +
                 " //@ represents i <- 0;\n }"
-                ,"/A.java:3: warning: The left arrow is deprecated in represents clauses, use = instead",19
+                ,"/A.java:3: warning: [deprecated] The left arrow is deprecated in represents clauses, use = instead",19
                 );
     }
 
     @Test
     public void testRepresentsA() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " //@ model int i;\n" +
                 " //@ represents i <- 0;\n }"
                 );
     }
 
-//    @Test
-//    public void testParsePlus() {
-//        helpTCF("A.java","public class A {\n" +
-//                " //+@ model int i;\n" +
-//                " }"
-//                ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
-//                );
-//    }
-//
-//    @Test
-//    public void testParseMinus() {
-//        helpTCF("A.java","public class A {\n" +
-//                " //-@ model int i;\n" +
-//                " }"
-//                ,"/A.java:2: warning: Annotation comments beginning with +@ or -@ are no longer supported; use keys instead",4
-//                );
-//    }
+    @Test
+    public void testParsePlusSilent() {
+        helpTCText("A.java","public class A {\n" +
+                " //+@ model int i;\n" +
+                " }"
+                );
+    }
+
+    @Test
+    public void testParsePlus() {
+        addOptions(dep_opt);
+        helpTCText("A.java","public class A {\n" +
+                " //+@ model int i;\n" +
+                " }"
+                ,"/A.java:2: warning: [deprecated] The //+@ and //-@ annotation styles are deprecated - use keys instead",4
+                );
+    }
+
+    @Test
+    public void testParseMinus() {
+        addOptions(dep_opt);
+        helpTCText("A.java","public class A {\n" +
+                " //-@ model int i;\n" +
+                " }"
+                ,"/A.java:2: warning: [deprecated] The //+@ and //-@ annotation styles are deprecated - use keys instead",4
+                );
+    }
     
     @Test
     public void testIndex() {
-        helpTCF("A.java","public class A {\n" +
+        helpTCText("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\index == i; \n" +
                 " }}}"
@@ -65,12 +75,12 @@ public class deprecation extends TCBase {
 
     @Test
     public void testIndex2() {
-    	Options.instance(main.context()).put(dep_opt, "true");
-        helpTCF("A.java","public class A {\n" +
+        addOptions(dep_opt);
+        helpTCText("A.java","public class A {\n" +
                 " void m(int[] a) { for (int i: a) {\n" +
                 "    //@ assert \\index == i; \n" +
                 " }}}"
-                ,"/A.java:3: warning: The \\index construct is deprecated in favor of \\count",16
+                ,"/A.java:3: warning: [deprecated] The \\index construct is deprecated in favor of \\count",16
                 );
     }
 

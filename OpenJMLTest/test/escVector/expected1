@@ -4,31 +4,25 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Vector.Vector(int,int) with prover !!!! - no warnings
 Starting proof of Vector.add(Object) with prover !!!!
-test/escVector/Vector.java:69: warning: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
+test/escVector/Vector.java:69: verify: The prover cannot establish an assertion (PossiblyNegativeSize) in method add
       final Object[] new_data = new Object[my_element_count + my_capacity_increment]; // ERROR - could be negative under Java math
                                                             ^
 Completed proof of Vector.add(Object) with prover !!!! - with warnings
 Starting proof of Vector.copyInto(Object[]) with prover !!!!
-test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyInto
+test/escVector/Vector.java:93: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyInto
         the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
                      ^
-test/escVector/Vector.java:90: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method copyInto
-      //@ loop_invariant 0 <= i && i <= my_element_count;
-          ^
-test/escVector/Vector.java:93: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
+test/escVector/Vector.java:93: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method copyInto
         the_array[i] = my_element_data[i]; // ERROR _ don't know size of the_array - it might be too big; ERROR - don't know the runtime type of the_array
                  ^
-Completed proof of Vector.copyInto(Object[]) with prover !!!! - with warnings
-Starting proof of Vector.copyIntoOK(Object[]) with prover !!!!
-test/escVector/Vector.java:102: warning: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyIntoOK
-        the_array[i] = my_element_data[i]; //  ERROR - don't know the runtime type of the_array
-                     ^
-test/escVector/Vector.java:99: warning: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method copyIntoOK
-      //@ loop_invariant 0 <= i && i <= my_element_count;
+test/escVector/Vector.java:90: verify: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method copyInto
+      //@ loop_invariant 0 <= i && i <= my_element_count; // ERROR
           ^
-Completed proof of Vector.copyIntoOK(Object[]) with prover !!!! - with warnings
+Completed proof of Vector.copyInto(Object[]) with prover !!!! - with warnings
+Skipping proof of Vector.copyIntoA(Object[]) (Skipping Vector.copyIntoA because it matches the exclusion copyIntoA)
+Skipping proof of Vector.copyIntoOK(Object[]) (Skipping Vector.copyIntoOK because it matches the exclusion copyIntoOK)
 Starting proof of Vector.indexOf(Object,int) with prover !!!!
-test/escVector/Vector.java:123: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method indexOf
+test/escVector/Vector.java:132: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method indexOf
       if (the_elem.equals(my_element_data[i]) ) {   // ERROR - the_index might be negative
                                          ^
 Completed proof of Vector.indexOf(Object,int) with prover !!!! - with warnings
@@ -37,4 +31,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Vector.elementAt(int) with prover !!!! - no warnings
 Completed proving methods in Vector
-7 warnings
+5 verification failures

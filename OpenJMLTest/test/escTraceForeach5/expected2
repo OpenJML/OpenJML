@@ -45,7 +45,7 @@ test\escTraceLoops\trace.java:209:  	Loop test
 			VALUE: \count	 === 1
 			VALUE: _JML__tmp111	 === 2
 			VALUE: \count < _JML__tmp111	 === true
-test\escTraceLoops\trace.java:208: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
+test\escTraceLoops\trace.java:208: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
         //@ decreases -j;
             ^
 Completed proof of trace.mforeach5(int[]) with prover cvc4 - with warnings

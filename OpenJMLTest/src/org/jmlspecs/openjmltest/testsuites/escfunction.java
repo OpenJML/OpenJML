@@ -3,9 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import java.util.Collection;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.openjml.runners.ParameterizedWithNames;
@@ -18,7 +16,7 @@ public class escfunction extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullableByDefault"); // Because the tests were written this way
+        addOptions("--nullable-by-default"); // Because the tests were written this way
         //addOptions("-trace");
         //JmlEsc.escdebug = true;
         //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
@@ -29,7 +27,7 @@ public class escfunction extends EscBase {
     
     @Test // FIXME - for reasons unknown, this test appears to be non-deterministic - sometimes succeeding sometimes failing
     public void testMethodAxioms() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" //@ code_java_math spec_java_math \n"
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
@@ -49,7 +47,7 @@ public class escfunction extends EscBase {
     
     @Test
     public void testMethodAxioms2() { 
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" //@ code_java_math spec_java_math \n"
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
@@ -67,7 +65,7 @@ public class escfunction extends EscBase {
 
     @Test
     public void testFunction() { 
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
                 +"public @Immutable class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
@@ -85,9 +83,9 @@ public class escfunction extends EscBase {
 
     @Test
     public void testFunctionError3() { 
-    	expectedExit = 1;
-    	addOptions("-check");
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
+        expectedExit = 1;
+        addOptions("-check");
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ assignable n; \n"
@@ -101,15 +99,16 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(0);\n"
                 +"  }\n"
                 +"}"
-                //,"/tt/TestJava.java:6: error: A non-static function method must be a member of a Immutable class", 7
+                //,"/tt/TestJava.java:6: error: A non-static function method must be a member of a Immutable class", 7 // FIXME
+                ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
-        		);
+                );
     }
 
     @Test
     public void testFunctionError2() { 
     	expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
                 +"public @Immutable class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ assignable n; \n"
@@ -123,6 +122,7 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(0);\n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
     }
@@ -130,7 +130,7 @@ public class escfunction extends EscBase {
     @Test
     public void testFunctionError() { 
     	expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
                 +"public @Immutable class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ assignable n; \n"
@@ -145,6 +145,7 @@ public class escfunction extends EscBase {
                 +"  //@ assert !mfunc(n);\n"
                 +"  }\n"
                 +"}"
+                ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
     }
@@ -152,7 +153,7 @@ public class escfunction extends EscBase {
     
     @Test
     public void testStaticFunction() { 
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
                 +"public class TestJava  { \n"
                 +"  //@ normal_behavior \n"
                 +"  //@ ensures \\result == (i > 0 && i < 10);\n"
@@ -168,7 +169,5 @@ public class escfunction extends EscBase {
                 +"}"
                 );
     }
-
-    
 }
 

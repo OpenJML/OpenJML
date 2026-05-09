@@ -1,0 +1,16 @@
+OUT:
+test/gitbug932/M.java:14: verify: JML postcondition is false
+  public int m() {
+             ^
+test/gitbug932/M.java:12: verify: Associated declaration: test/gitbug932/M.java:14:
+  //@ ensures \result == 43; // ERROR
+      ^
+test/gitbug932/M.java:3: verify: JML postcondition is false
+    int k = new Super().m();
+                         ^
+test/gitbug932/M.java:12: verify: Associated declaration: test/gitbug932/M.java:3:
+  //@ ensures \result == 43; // ERROR
+      ^
+DONE
+
+ERR:

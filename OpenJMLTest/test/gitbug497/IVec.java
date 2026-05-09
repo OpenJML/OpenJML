@@ -27,6 +27,7 @@ public abstract class IVec {
 
     //@ requires true;
     //@ ensures \result <= i && \result <= j && (\result == i || \result == j);
+    //@ no_state
     public static int min(int i, int j) {
         return i <= j ? i : j;
     }

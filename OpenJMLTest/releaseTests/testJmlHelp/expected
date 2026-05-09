@@ -76,6 +76,7 @@ Java options:
   --version, -version          Version information
   -Werror                      Terminate compilation if warnings occur
 JML options:
+  --verboseness              Level of verboseness (0=quiet...4=debug)
   --dir                      Process all files, recursively, within this directory
   --dirs                     Process all files, recursively, within these directories (listed as separate arguments, up to an argument that begins with a - sign)
   --keys                     Identifiers for optional JML comments
@@ -90,11 +91,11 @@ JML options:
   --lang                     Set the language variant to use (default 'openjml'): jml openjml
   --verify-exit              Exit code for verification errors
   --extensions               Extension packages and classes (comma-separated qualified names)
-  --stop-if-parse-errors     When enabled, stops after parsing if any files have parsing errors
   --method                   Comma-separated list of method name patterns on which to run ESC
   --exclude                  Comma-separated list of method name patterns to exclude from ESC
   --prover                   The prover to use to check verification conditions
   --exec                     The prover executable to use
+  --logic                    The SMT logic to use (default ALL)
   --smt                      A file to write the smt command file to
   --nonnull-by-default       Makes references non_null by default [--nullable-by-default=false]
   --nullable-by-default      Makes references nullable by default
@@ -103,15 +104,13 @@ JML options:
   --arithmetic-failure       Whether arithmetic warnings are hard, soft (default) or quiet
   --check-accessible         When on (the default), JML accessible clauses are checked
   --specs-path               Specifies the directory path to search for specification files
-  --check-specs-path         When on (the default), warnings for non-existent specification path directories are issued
-  --purity-check             When on (the default), warnings for use of impure methods from system libraries are issued
   --timeout                  Number of seconds to limit any individual proof attempt (default infinite)
   --show-not-implemented     When on (off by default), warnings about unimplemented constructs are issued
   --show-not-executable      When on (off by default), warnings about non-executable constructs are issued
-  --verboseness              Level of verboseness (0=quiet...4=debug)
   --warn                     Comma-separated list of warning keys to enable or disable
-  --quiet                    Only output warnings and errors [--verboseness=0]
-  --normal                   Limited output [--verboseness=1]
+  --infer                    Comma-separated list of inference keys to enable or disable
+  --quiet                    Only output the exit code [--verboseness=0]
+  --normal                   Error and warning messages (default) [--verboseness=1]
   --progress                 Shows progress through compilation phases [--verboseness=2]
   --show-skipped             Shows methods whose proofs are skipped
   --show-summary             Shows summary and time information
@@ -140,6 +139,6 @@ JML options:
   --defaults                 Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses
   --determinism              Experimental: enables better determinism (default is true)
-  --os-name                  Name of OS to use in selecting solver executable (default: auto detect)
+  --os-name                  Name of OS to use in selecting solver executable (default: auto detect; macos, linux, windows)
   --inline-function-literal  Whether to inline function literals (default: true)
   --require-white-space      Whether white space is required after the @ in a JML comment (default: false)

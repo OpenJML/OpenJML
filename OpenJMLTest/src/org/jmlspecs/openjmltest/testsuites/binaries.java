@@ -7,20 +7,12 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class binaries extends TCBase {
 
-    @Override
-    public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
-        //jmldebug = true;
-        super.setUp();
-        //main.addOptions("-jmldebug");
-    }
-
     /** Tests that a system spec file is loaded from mock files - though this has no error reports to be sure it happened*/
     @Test
     public void testBinary() {
         addMockFile("$A/java/io/File.jml",
                 "package java.io; //@ model class VVV{}\n public class File implements Serializable, Comparable<File> { \n//@model static public class TTT {} \n }");
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
@@ -36,7 +28,7 @@ public class binaries extends TCBase {
                 " public void m() {  }\n" +
                 "//@ model static class TTT { static int j; } " +
                 "\n }");
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
@@ -53,7 +45,7 @@ public class binaries extends TCBase {
                 " public void exists() { /*@ assert true; assume true; */ }\n" +
                 "//@ model static class TTT { static int j; } " +
                 "\n }");
-        helpTCF("A.java",
+        helpTCText("A.java",
                 " class A { \n" +
                 "    java.io.File file; \n" +
                 "}"
@@ -72,7 +64,7 @@ public class binaries extends TCBase {
                 "/*@ public invariant VVV.i; public invariant TTT.j; */ \n" +
                 "//@ model public static class TTT { public static int j; } \n" +
                 "}\n ");
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "class A { \n" +
                 "    java.io.File file; \n" +
                 " public void m() { /*@ assert java.io.VVV.i; assume java.io.File.TTT.j; */ }\n" +
@@ -95,7 +87,7 @@ public class binaries extends TCBase {
                 "  static public int j;\n" +
                 "  //@ ghost static public int k; \n" +
                 "}\n ");
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import java.io.File; class A { \n" +
                 "    java.io.File file; \n" +
                 " public void m() { boolean i = File.j; int ii = File.k; \n" +
@@ -119,7 +111,7 @@ public class binaries extends TCBase {
                 "public class File implements Serializable, Comparable<File> { \n" +
                 "}\n" +
                 "class Extra {}\n");
-        helpTCF("/A.java",
+        helpTCText("/A.java",
                 "class A { \n" +
                 "    java.io.File file; \n" +
                 "}"

@@ -1,5 +1,13 @@
-/rcptt-results/
-/benchmarks/
+# Eclipse cache: pristine download and test copies — never committed
+/eclipse-cache/
+
+# Build output
+/build/
+/bin/
+
+# Test workspace (created fresh per run)
+/test-ws/
+
+# Eclipse metadata from running Eclipse in this directory
 /.metadata/
 /.recommenders/
-/Test/

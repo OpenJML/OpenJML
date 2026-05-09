@@ -1,0 +1,87 @@
+{
+  "@class": "org.jmlspecs.openjml.JmlTree$JmlCompilationUnit",
+  "@id": "1",
+  "sourcefile": {
+    "@class": "javax.tools.JavaFileObject",
+    "@id": "2",
+    "primitive": "pck/Test.java"
+  },
+  "pid": {
+    "@class": "com.sun.tools.javac.tree.JCTree$JCPackageDecl",
+    "@id": "3",
+    "annotations": [],
+    "pid": {
+      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+      "@id": "4",
+      "name": {
+        "@class": "com.sun.tools.javac.util.Name",
+        "@id": "5",
+        "primitive": "p"
+      }
+    }
+  },
+  "defs": [
+    {
+      "@class": "com.sun.tools.javac.tree.JCTree$JCPackageDecl",
+      "@ref": "3",
+      "annotations": [],
+      "pid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+        "@ref": "4",
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@ref": "5",
+          "primitive": "p"
+        }
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "6",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "7",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "8",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "9",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "10",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "11",
+                "primitive": "org"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "12",
+              "primitive": "jmlspecs"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "13",
+            "primitive": "lang"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "14",
+          "primitive": "*"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "true"
+      }
+    }
+  ]
+}

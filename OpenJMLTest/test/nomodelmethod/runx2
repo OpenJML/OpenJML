@@ -1,4 +1,0 @@
-#! /usr/bin/env bash
-rm -f *.class
-openjml --rac T.java P.java
-openjml-java T

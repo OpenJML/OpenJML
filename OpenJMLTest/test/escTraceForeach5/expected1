@@ -23,7 +23,7 @@ test\escTraceLoops\trace.java:207:  	//@ loop_invariant j == \count && 0 <= \cou
 			VALUE: a.length	 === -1
 			VALUE: \count <= a.length	 === false
 			VALUE: j == \count && 0 <= \count && \count <= a.length	 === false
-test\escTraceLoops\trace.java:207: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mforeach5
+test\escTraceLoops\trace.java:207: verify: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mforeach5
         //@ loop_invariant j == \count && 0 <= \count && \count <= a.length;
             ^
 
@@ -71,9 +71,9 @@ test\escTraceLoops\trace.java:209:  	Loop test
 			VALUE: \count	 === 1097
 			VALUE: _JML__tmp111	 === 1098
 			VALUE: \count < _JML__tmp111	 === true
-test\escTraceLoops\trace.java:208: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
+test\escTraceLoops\trace.java:208: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mforeach5
         //@ decreases -j;
             ^
 Completed proof of trace.mforeach5(int[]) with prover yices2 - with warnings
 Completed proving methods in trace
-2 warnings
+2 verification failures

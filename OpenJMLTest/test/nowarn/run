@@ -1,55 +1,55 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
-cd $(dirname "$BASH_SOURCE[0]" )
-BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml ; fi
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
 
 (\
 echo Test 1 ;\
-$OJA --check D.java ; \
+openjml --check D.java ; \
 echo EXIT $? ;\
 echo Test 2; \
-$OJA --check D.java ;\
+openjml --check D.java ;\
 echo EXIT $? ;\
 echo Test 3; \
-$OJA --check -nowarn D.java ;\
+openjml --check -nowarn D.java ;\
 echo EXIT $? ;\
 echo Test 4; \
-$OJA --check -Werror -nowarn D.java ; \
+openjml --check -Werror -nowarn D.java ; \
 echo EXIT $? ;\
 echo Test 5; \
-$OJA --check -Werror D.java ; \
+openjml --check -Werror D.java ; \
 echo EXIT $? ;\
 ) >& actual
 
 (\
 echo Test 1 ;\
-$OJA --check K.java ; \
+openjml --check K.java ; \
 echo EXIT $? ;\
 echo Test 2; \
-$OJA --check K.java ;\
+openjml --check K.java ;\
 echo EXIT $? ;\
 echo Test 3; \
-$OJA --check -nowarn K.java ;\
+openjml --check -nowarn K.java ;\
 echo EXIT $? ;\
 echo Test 4; \
-$OJA --check -Werror -nowarn K.java ; \
+openjml --check -Werror -nowarn K.java ; \
 echo EXIT $? ;\
 echo Test 4a; \
-$OJA --check -nowarn -Werror K.java ; \
+openjml --check -nowarn -Werror K.java ; \
 echo EXIT $? ;\
 echo Test 5; \
-$OJA --check -Werror K.java ; \
+openjml --check -Werror K.java ; \
 echo EXIT $? ;\
 ) >> actual 2>&1
 
 ## Test that -Xlint works
 (\
 echo Test -Xlint; \
-$OJA --check -Xlint:text-blocks t/TB.java ;\
+openjml --check -Xlint:text-blocks t/TB.java ;\
 echo Test -Xlint off ;\
-$OJA --check t/TB.java ;\
+openjml --check t/TB.java ;\
 ) >> actual 2>&1
 
 diff actual expected && rm -rf actual
+exit $?
 

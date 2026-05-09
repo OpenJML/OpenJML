@@ -1,0 +1,37 @@
+Proving methods in BinaryTree
+Proving methods in BinaryTree.Node
+Skipping proof of BinaryTree.Node.Node() (Skipping BinaryTree.Node.Node because it does not match ks)
+Skipping proof of BinaryTree.Node.size(BinaryTree.Node) (Skipping BinaryTree.Node.size because it does not match ks)
+Starting proof of BinaryTree.Node.ks(BinaryTree.Node) with prover !!!!
+test/gitbug814b/BinaryTree.java:23: verify: The prover cannot establish an assertion (Precondition) in method ks
+            r.addAll(ks(n.right));
+                    ^
+$SPECS/java/util/TreeSet.jml:49: verify: Associated declaration
+  public boolean addAll(java.util.Collection<? extends E> c);
+                 ^
+$SPECS/java/util/Collection.jml:211: verify: Precondition conjunct is false: !false ==> (!containsNull ==> !c.containsNull)
+      @   requires !\key("RAC") ==> !containsNull ==> !c.containsNull;
+                                ^
+$SPECS/java/util/Collection.jml:220: verify: Precondition conjunct is false: c == null
+      @  requires c == null;
+                    ^
+Completed proof of BinaryTree.Node.ks(BinaryTree.Node) with prover !!!! - with warnings
+Completed proving methods in BinaryTree.Node
+Skipping proof of BinaryTree.keySet() (Skipping BinaryTree.keySet because it does not match ks)
+Skipping proof of BinaryTree.BinaryTree() (Skipping BinaryTree.BinaryTree because it does not match ks)
+Skipping proof of BinaryTree.BinaryTree(int) (Skipping BinaryTree.BinaryTree because it does not match ks)
+Skipping proof of BinaryTree.BinaryTree(@NonNull BinaryTree,@NonNull BinaryTree,int) (Skipping BinaryTree.BinaryTree because it does not match ks)
+Skipping proof of BinaryTree.allNullAtOrPred(BinaryTree.Node,int) (Skipping BinaryTree.allNullAtOrPred because it does not match ks)
+Skipping proof of BinaryTree.allNullAtNearlySameLevel() (Skipping BinaryTree.allNullAtNearlySameLevel because it does not match ks)
+Proving methods in BinaryTree.Interval
+Skipping proof of BinaryTree.Interval.Interval(int,int) (Skipping BinaryTree.Interval.Interval because it does not match ks)
+Skipping proof of BinaryTree.Interval.size() (Skipping BinaryTree.Interval.size because it does not match ks)
+Completed proving methods in BinaryTree.Interval
+Skipping proof of BinaryTree.depthOfNull(BinaryTree.Node) (Skipping BinaryTree.depthOfNull because it does not match ks)
+Skipping proof of BinaryTree.size() (Skipping BinaryTree.size because it does not match ks)
+Skipping proof of BinaryTree.toArray() (Skipping BinaryTree.toArray because it does not match ks)
+Skipping proof of BinaryTree.between(int,int) (Skipping BinaryTree.between because it does not match ks)
+Skipping proof of BinaryTree.btwT(BinaryTree.Node,int,int) (Skipping BinaryTree.btwT because it does not match ks)
+Skipping proof of BinaryTree.btw(BinaryTree.Node,int,int) (Skipping BinaryTree.btw because it does not match ks)
+Completed proving methods in BinaryTree
+4 verification failures

@@ -13,9 +13,6 @@ test/behaviors/T.java:24: error: the content of a behaviors clause must be a sim
 test/behaviors/T.java:24: warning: Inserting missing semicolon at the end of a behaviors statement
   //@ behaviors ;
                  ^
-test/behaviors/T.java:28: error: Token @*/ does not introduce an expression
-  //@ behaviors 
-                ^
 test/behaviors/T.java:28: error: the content of a behaviors clause must be a simple identifier
   //@ behaviors 
                 ^
@@ -23,5 +20,5 @@ test/behaviors/T.java:28: warning: Inserting missing semicolon at the end of a b
   //@ behaviors 
                 ^
 Operation not performed because of parse or type errors
-5 errors
+4 errors
 3 warnings

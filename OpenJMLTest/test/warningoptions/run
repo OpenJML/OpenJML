@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+rm -rf actual
+openjml --warn=list >> actual 2>&1
+openjml --warn=missing-specs --warn=list  >> actual 2>&1
+openjml --warn=missing-specs --warn= --warn=list  >> actual 2>&1
+openjml --warn=missing-specs --warn=reset --warn=list >> actual 2>&1
+openjml --warn=all --warn=list    >> actual 2>&1
+openjml --warn=none --warn=list   >> actual 2>&1
+openjml --no-warn=all --warn=list >> actual 2>&1
+openjml --warn=zzz >> actual 2>&1
+openjml "--warn= " >> actual 2>&1
+openjml --warn= >> actual 2>&1
+openjml --help=warn >> actual 2>&1
+
+diff actual expected && rm -rf actual

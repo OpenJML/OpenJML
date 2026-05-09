@@ -3,9 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import java.util.Collection;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -15,18 +13,9 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnew2 extends EscBase {
 
-    @Override
-    public void setUp() throws Exception {
-        super.setUp();
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-    }
-
-
     @Test
     public void testMultiple() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m(int i) throws Exception {\n"
@@ -39,18 +28,18 @@ public class escnew2 extends EscBase {
                 +"      }\n"
                 +"  }\n"
                 
-                +"}" // We should get all three messages, but in some arbitrary order. We hack it by making some of them optional
+                +"}"
                 ,anyorder(
-                seq("/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method m",15)
-                ,seq("/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",15)
-                ,seq("/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",15)
+                seq("/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m",15)
+                ,seq("/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",15)
+                ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",15)
                 )
                 );
     }
     
     @Test
     public void testNullReceiver() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m() {}; \n"
@@ -78,12 +67,12 @@ public class escnew2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mm0",8
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method mm0",8
                 );
     }
     
     @Test public void testReceiver1good() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -95,7 +84,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver1bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n"
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -103,14 +92,14 @@ public class escnew2 extends EscBase {
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = a.m(1); \n"
                 +"}}"
-                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",8
-                ,"/tt/A.java:4: warning: Associated declaration",57
-                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",16
+                ,"/tt/A.java:7: verify: The prover cannot establish an assertion (Precondition) in method mm",8
+                ,"/tt/A.java:4: verify: Associated declaration",57
+                ,"/tt/A.java:4: verify: Precondition conjunct is false: i == j",16
                 );
     }
 
     @Test public void testReceiver2good() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -122,7 +111,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver2bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n"
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -130,14 +119,14 @@ public class escnew2 extends EscBase {
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = m(2); \n"
                 +"}}"
-                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",6
-                ,"/tt/A.java:4: warning: Associated declaration",57
-                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",16
+                ,"/tt/A.java:7: verify: The prover cannot establish an assertion (Precondition) in method mm",6
+                ,"/tt/A.java:4: verify: Associated declaration",57
+                ,"/tt/A.java:4: verify: Precondition conjunct is false: i == j",16
                 );
     }
 
     @Test public void testReceiver3good() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -149,7 +138,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver3bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i;\n"
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -157,14 +146,14 @@ public class escnew2 extends EscBase {
                 +"//@ assume i == 1 && a.i == 2;\n"
                 +"z = this.m(2); \n"
                 +"}}"
-                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method mm",11
-                ,"/tt/A.java:4: warning: Associated declaration",57
-                ,"/tt/A.java:4: warning: Precondition conjunct is false: i == j",16
+                ,"/tt/A.java:7: verify: The prover cannot establish an assertion (Precondition) in method mm",11
+                ,"/tt/A.java:4: verify: Associated declaration",57
+                ,"/tt/A.java:4: verify: Precondition conjunct is false: i == j",16
                 );
     }
 
     @Test public void testReceiver4() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -179,7 +168,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver4a() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -194,7 +183,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver4bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -204,12 +193,12 @@ public class escnew2 extends EscBase {
                 +"A a = new A(1);\n"
                 +"//@ assert a.i == 2;\n"
                 +"}}"
-                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Assert) in method main",5
+                ,"/tt/A.java:7: verify: The prover cannot establish an assertion (Assert) in method main",5
                 );
     }
 
      @Test public void testReceiver5() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -225,8 +214,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReceiver6() { 
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; pure \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -251,7 +239,7 @@ public class escnew2 extends EscBase {
                 
                 +"public void m2(A z) { \n"
                 +"  A a = new A(1);\n"
-                +"  //@ assert a != x; \n" // FIXME - I don't believe the axioms support proving this
+                +"  //@ assert a != x; \n"
                 +"}\n"
                 
                 +"public void m2bad(A z) { \n"
@@ -262,15 +250,13 @@ public class escnew2 extends EscBase {
                 +"  //@ assert x != z; \n" // Not necessarily
                 +"}\n"
                 +"}"
-                ,"/tt/A.java:24: warning: The prover cannot establish an assertion (Assert) in method m2bad",7
-                ,"/tt/A.java:27: warning: The prover cannot establish an assertion (Assert) in method m3bad",7
+                ,"/tt/A.java:24: verify: The prover cannot establish an assertion (Assert) in method m2bad",7
+                ,"/tt/A.java:27: verify: The prover cannot establish an assertion (Assert) in method m3bad",7
                 );
     }
 
-
-
     @Test public void testReturn1good() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -283,7 +269,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testReturn1bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -292,13 +278,12 @@ public class escnew2 extends EscBase {
                 +"z = a.m(2); \n"
                 +"//@ assert !z; \n"
                 +"}}"
-                ,"/tt/A.java:8: warning: The prover cannot establish an assertion (Assert) in method mm",5
+                ,"/tt/A.java:8: verify: The prover cannot establish an assertion (Assert) in method mm",5
                 );
     }
 
     @Test public void testSuper() {
-    	//main.addOptions("-no-checkAccessible");
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -310,7 +295,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testSuperbad2() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -318,13 +303,13 @@ public class escnew2 extends EscBase {
                 +"   //@ assignable i; ensures i == 2;\n"
                 +"   public B() { super(3); }\n"
                 +"}}"
-                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Postcondition) in method B",11
-                ,"/tt/A.java:6: warning: Associated declaration",22
+                ,"/tt/A.java:7: verify: The prover cannot establish an assertion (Postcondition) in method B",11
+                ,"/tt/A.java:6: verify: Associated declaration",22
                 );
     }
 
     @Test public void testSuperbad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -332,14 +317,14 @@ public class escnew2 extends EscBase {
                 +"   //@ assignable i; ensures i == 3;\n"
                 +"   public B() { super(0); }\n"
                 +"}}"
-                ,"/tt/A.java:7: warning: The prover cannot establish an assertion (Precondition) in method B",22
-                ,"/tt/A.java:4: warning: Associated declaration",9
-                ,"/tt/A.java:3: warning: Precondition conjunct is false: k > 0",17
+                ,"/tt/A.java:7: verify: The prover cannot establish an assertion (Precondition) in method B",22
+                ,"/tt/A.java:4: verify: Associated declaration",9
+                ,"/tt/A.java:3: verify: Precondition conjunct is false: k > 0",17
                 );
     }
     
     @Test public void testThis() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n "
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
@@ -350,35 +335,34 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testThisBad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n"
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 +"//@ ensures i == 2; assignable i; \n"
                 +"public A() { this(1); } \n"
                 +"}"
-                ,"/tt/A.java:6: warning: The prover cannot establish an assertion (Postcondition) in method A",8
-                ,"/tt/A.java:5: warning: Associated declaration",5
+                ,"/tt/A.java:6: verify: The prover cannot establish an assertion (Postcondition) in method A",8
+                ,"/tt/A.java:5: verify: Associated declaration",5
                 );
     }
 
     @Test public void testThisBad2() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpEsc("tt.A","package tt; public class A { \n"
                 +"static public int i; \n"
                 +"//@ requires k > 0; assignable i; ensures i == k; \n "
                 +"public A(int k) { i = k; }\n"
                 +"//@ ensures i == 0; \n"
                 +"public A() { this(0); }\n"
                 +"}"
-                ,"/tt/A.java:6: warning: The prover cannot establish an assertion (Precondition) in method A",18
-                ,"/tt/A.java:4: warning: Associated declaration",9
-                ,"/tt/A.java:3: warning: Precondition conjunct is false: k > 0",16
+                ,"/tt/A.java:6: verify: The prover cannot establish an assertion (Precondition) in method A",18
+                ,"/tt/A.java:4: verify: Associated declaration",9
+                ,"/tt/A.java:3: verify: Precondition conjunct is false: k > 0",16
                 );
     }
 
     @Test public void testNullField() { 
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@Nullable Integer k = a.i; \n"
@@ -389,8 +373,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullField2() { 
-        Assume.assumeTrue(runLongTests || !"cvc4".equals(solver));
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"mm(); \n"
@@ -403,30 +386,30 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullFieldBad() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@Nullable static Integer i; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@Nullable Integer k = a.i; \n"
                 +"//@ assert k != null; \n"
                 +"}\n"
                 +"}"
-                ,"/tt/A.java:5: warning: The prover cannot establish an assertion (Assert) in method m",5
+                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }
 
     @Test public void testNullFieldBad2() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@Nullable static Integer i; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@NonNull Integer k = a.i; \n"
                 +"}\n"
                 +"}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: k",18
+                ,"/tt/A.java:4: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: k",18
                 );
     }
 
     @Test public void testNullFieldAssign() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@NonNull Integer k = 1; \n"
@@ -437,7 +420,7 @@ public class escnew2 extends EscBase {
     }
 
     @Test public void testNullFieldAssignBad2() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a) { \n"
                 +"@NonNull Integer k = 1; \n"
@@ -445,28 +428,24 @@ public class escnew2 extends EscBase {
                 +"a.i = null; \n"
                 +"}\n"
                 +"}"
-                ,"/tt/A.java:6: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m",5
+                ,"/tt/A.java:6: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m",5
                 );
     }
 
     @Test public void testNullFieldAssignBad() { 
-        helpTCX("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
+        helpEsc("tt.A","package tt; import org.jmlspecs.annotation.*; public class A { \n"
                 +"@NonNull static Integer i = 0; \n"
                 +"public void m(@NonNull A a, @Nullable Integer k) { \n"
                 +"a.i = k; \n"
                 +"}\n"
                 +"}"
-                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m",5
+                ,"/tt/A.java:4: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m",5
                 );
     }
 
-
-
-
-    
     @Test
     public void testBreak() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 6; \n"
@@ -526,18 +505,18 @@ public class escnew2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",7
-                ,"/tt/TestJava.java:16: warning: Associated declaration",7
-                ,"/tt/TestJava.java:40: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",7
-                ,"/tt/TestJava.java:30: warning: Associated declaration",7
-                ,"/tt/TestJava.java:53: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",7
-                ,"/tt/TestJava.java:44: warning: Associated declaration",7
+                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",7
+                ,"/tt/TestJava.java:16: verify: Associated declaration",7
+                ,"/tt/TestJava.java:40: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",7
+                ,"/tt/TestJava.java:30: verify: Associated declaration",7
+                ,"/tt/TestJava.java:53: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",7
+                ,"/tt/TestJava.java:44: verify: Associated declaration",7
                 );
     }
     
     @Test
     public void testSwitch2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 2; \n"
@@ -586,18 +565,18 @@ public class escnew2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
-                ,"/tt/TestJava.java:13: warning: Associated declaration",7
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",10
-                ,"/tt/TestJava.java:24: warning: Associated declaration",7
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",10
-                ,"/tt/TestJava.java:35: warning: Associated declaration",7
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:13: verify: Associated declaration",7
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",10
+                ,"/tt/TestJava.java:24: verify: Associated declaration",7
+                ,"/tt/TestJava.java:41: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",10
+                ,"/tt/TestJava.java:35: verify: Associated declaration",7
                 );
     }
     
     @Test
     public void testSwitchShort() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 2; \n"
@@ -643,21 +622,19 @@ public class escnew2 extends EscBase {
                 +"        case 2: k = 5; \n"
                 +"       } return k;\n"
                 +"  }\n"
-                
-                
                 +"}"
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
-                ,"/tt/TestJava.java:13: warning: Associated declaration",7
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",10
-                ,"/tt/TestJava.java:24: warning: Associated declaration",7
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",10
-                ,"/tt/TestJava.java:35: warning: Associated declaration",7
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:13: verify: Associated declaration",7
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",10
+                ,"/tt/TestJava.java:24: verify: Associated declaration",7
+                ,"/tt/TestJava.java:41: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",10
+                ,"/tt/TestJava.java:35: verify: Associated declaration",7
                 );
     }
     
     @Test
     public void testSwitchByte() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 2; \n"
@@ -706,18 +683,18 @@ public class escnew2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
-                ,"/tt/TestJava.java:13: warning: Associated declaration",7
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",10
-                ,"/tt/TestJava.java:24: warning: Associated declaration",7
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",10
-                ,"/tt/TestJava.java:35: warning: Associated declaration",7
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:13: verify: Associated declaration",7
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",10
+                ,"/tt/TestJava.java:24: verify: Associated declaration",7
+                ,"/tt/TestJava.java:41: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",10
+                ,"/tt/TestJava.java:35: verify: Associated declaration",7
                 );
     }
     
     @Test
     public void testSwitchChar() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 'z' ==> \\result == 2; \n"
@@ -766,18 +743,18 @@ public class escnew2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",10
-                ,"/tt/TestJava.java:13: warning: Associated declaration",7
-                ,"/tt/TestJava.java:31: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",10
-                ,"/tt/TestJava.java:24: warning: Associated declaration",7
-                ,"/tt/TestJava.java:41: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",10
-                ,"/tt/TestJava.java:35: warning: Associated declaration",7
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",10
+                ,"/tt/TestJava.java:13: verify: Associated declaration",7
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",10
+                ,"/tt/TestJava.java:24: verify: Associated declaration",7
+                ,"/tt/TestJava.java:41: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",10
+                ,"/tt/TestJava.java:35: verify: Associated declaration",7
                 );
     }
     
     @Test
     public void testTryNested() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ ensures i == 0 ==> \\result == 5; \n"
@@ -884,22 +861,22 @@ public class escnew2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Postcondition) in method m1bad",7
-                ,"/tt/TestJava.java:19: warning: Associated declaration",7
-                ,"/tt/TestJava.java:42: warning: The prover cannot establish an assertion (Postcondition) in method m2bad",25
-                ,"/tt/TestJava.java:36: warning: Associated declaration",7
-                ,"/tt/TestJava.java:60: warning: The prover cannot establish an assertion (Postcondition) in method m3bad",31
-                ,"/tt/TestJava.java:53: warning: Associated declaration",7
-                ,"/tt/TestJava.java:79: warning: The prover cannot establish an assertion (Postcondition) in method m4bad",21
-                ,"/tt/TestJava.java:70: warning: Associated declaration",7
-                ,"/tt/TestJava.java:95: warning: The prover cannot establish an assertion (Postcondition) in method m5bad",21
-                ,"/tt/TestJava.java:87: warning: Associated declaration",7
+                ,"/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",7
+                ,"/tt/TestJava.java:19: verify: Associated declaration",7
+                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",25
+                ,"/tt/TestJava.java:36: verify: Associated declaration",7
+                ,"/tt/TestJava.java:60: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",31
+                ,"/tt/TestJava.java:53: verify: Associated declaration",7
+                ,"/tt/TestJava.java:79: verify: The prover cannot establish an assertion (Postcondition) in method m4bad",21
+                ,"/tt/TestJava.java:70: verify: Associated declaration",7
+                ,"/tt/TestJava.java:95: verify: The prover cannot establish an assertion (Postcondition) in method m5bad",21
+                ,"/tt/TestJava.java:87: verify: Associated declaration",7
                 );
     }
     
     @Test
     public void testAdd() { // Tests datagroup expansion
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
            +"public class TestJava { \n"
            +" public java.util.LinkedList<Object> list = new java.util.LinkedList<>(); \n"
            +" //@ assigns list.objectState;  \n"
@@ -907,6 +884,4 @@ public class escnew2 extends EscBase {
            +"}\n"
            );
     }
-    
-
 }

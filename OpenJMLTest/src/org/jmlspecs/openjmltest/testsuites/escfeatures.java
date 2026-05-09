@@ -2,21 +2,12 @@ package org.jmlspecs.openjmltest.testsuites;
 
 import static org.junit.Assert.fail;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.*;
@@ -57,12 +48,17 @@ public class escfeatures extends EscBaseFiles {
     public void helpFeatures() {
         expectedExit = 6;
         String n = getTestName();
-        helpTCF(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress","-verify-exit=6");
+        helpEscFile(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress","--verify-exit=6");
     }
 
 
     @Test
     public void IndexOutOfRange() {
+        helpFeatures();
+    }
+
+    @Test
+    public void IllegalArgument() {
         helpFeatures();
     }
 

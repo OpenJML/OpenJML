@@ -4,7 +4,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of trace.trace() with prover !!!! - no warnings
 Starting proof of trace.m() with prover !!!!
-test\escTrace3\trace.java:6: warning: The prover cannot establish an assertion (LoopInvariant) in method m
+test\escTrace3\trace.java:6: verify: The prover cannot establish an assertion (LoopInvariant) in method m
         //@ loop_invariant i == j;
             ^
 Completed proof of trace.m() with prover !!!! - with warnings
@@ -13,9 +13,9 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of trace.mok() with prover !!!! - no warnings
 Starting proof of trace.mdec() with prover !!!!
-test\escTrace3\trace.java:28: warning: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mdec
+test\escTrace3\trace.java:28: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method mdec
         //@ decreases 8-i;
             ^
 Completed proof of trace.mdec() with prover !!!! - with warnings
 Completed proving methods in trace
-2 warnings
+2 verification failures

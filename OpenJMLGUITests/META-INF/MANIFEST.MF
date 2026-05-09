@@ -1,0 +1,20 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: OpenJMLUI SWTBot GUI Tests
+Bundle-SymbolicName: org.openjml.OpenJMLGUITest;singleton:=true
+Bundle-Version: 0.21.0
+Bundle-RequiredExecutionEnvironment: JavaSE-21
+Require-Bundle: org.eclipse.swtbot.eclipse.finder,
+ org.eclipse.swtbot.eclipse.core,
+ org.eclipse.swtbot.swt.finder,
+ org.eclipse.swtbot.junit4_x,
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.core.jobs,
+ org.eclipse.ui,
+ org.eclipse.ui.workbench,
+ org.eclipse.ui.ide,
+ org.eclipse.jdt.core,
+ org.junit;bundle-version="[4.13,5.0)",
+ org.openjml.OpenJMLUI;resolution:=optional
+

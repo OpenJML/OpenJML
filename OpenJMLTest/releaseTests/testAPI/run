@@ -1,8 +1,8 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 cd $(dirname $BASH_SOURCE[0])
 if [ -z "$OJBIN" ] ; then
-  OJBIN=../../../OpenJML21
+  OJBIN=../../../OpenJMLsrc
 fi
 
 rm -rf *.class

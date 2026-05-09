@@ -3,6 +3,9 @@ Starting proof of ModelFunctions.ModelFunctions() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of ModelFunctions.ModelFunctions() with prover !!!! - no warnings
+Starting proof of ModelFunctions.chomp(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of ModelFunctions.chomp(int) with prover !!!! - no warnings
 Starting proof of ModelFunctions.main(String[]) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

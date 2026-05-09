@@ -8,7 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.dowhile() with prover !!!! - no warnings
 Starting proof of Test.boolsplit(int) with prover !!!!
-test/splits3/Test.java:12: warning: The prover cannot establish an assertion (Assert) in method boolsplit
+test/splits3/Test.java:12: verify: The prover cannot establish an assertion (Assert) in method boolsplit
         //@ assert i == 0;
             ^
 Completed proof of Test.boolsplit(int) with prover !!!! - with warnings
@@ -18,11 +18,11 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split A is Verified
 Proof attempt for split B
-test/splits3/Test.java:18: warning: The prover cannot establish an assertion (Assert) in method boolsplitB
+test/splits3/Test.java:18: verify: The prover cannot establish an assertion (Assert) in method boolsplitB
         //@ assert i == 0;
             ^
 Result of split B is Not verified
 Composite result Not verified
 Completed proof of Test.boolsplitB(int) with prover !!!! - with warnings
 Completed proving methods in Test
-2 warnings
+2 verification failures

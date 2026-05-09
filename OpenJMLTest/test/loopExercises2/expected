@@ -1,0 +1,9 @@
+Proving methods in sv_esc.LoopExercises
+Skipping proof of sv_esc.LoopExercises.LoopExercises() (Skipping sv_esc.LoopExercises.LoopExercises because it does not match gauss,gauss2)
+Skipping proof of sv_esc.LoopExercises.isOrdered(int[]) (Skipping sv_esc.LoopExercises.isOrdered because it does not match gauss,gauss2)
+Starting proof of sv_esc.LoopExercises.gauss(int) with prover !!!!
+Completed proof of sv_esc.LoopExercises.gauss(int) with prover !!!! - no warnings
+Starting proof of sv_esc.LoopExercises.gauss2(int) with prover !!!!
+Completed proof of sv_esc.LoopExercises.gauss2(int) with prover !!!! - no warnings
+Skipping proof of sv_esc.LoopExercises.max(int[]) (Skipping sv_esc.LoopExercises.max because it does not match gauss,gauss2)
+Completed proving methods in sv_esc.LoopExercises

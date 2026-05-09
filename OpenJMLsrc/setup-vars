@@ -1,0 +1,30 @@
+# A sourced script that is shared between openjml and openjml-java
+
+## Uses $INSTALL
+## Sets BINJAVA BINJAVAC OPENJML_INSTALL OPENJML_SOLVERS OPENJML_SPECS
+
+if [ "$0" = "$BASH_SOURCE" ]; then
+    echo "Error: setup-vars script must be sourced"
+    exit 1
+fi
+
+# if OPENJML_INSTALL is not set, then set and export it; otherwise just export the current value
+if [ -z ${OPENJML_INSTALL++} ]; then export OPENJML_INSTALL="$INSTALL" ; else export OPENJML_INSTALL ; fi
+
+
+## set BINJAVA, BINJAVAC and other vars -- if those others are already set, then export them
+## BINJAVA and BINJAVAC are an absolute path, still might have spaces
+
+if [ -e "$INSTALL/version-info.txt" ]; then
+  ## In a release
+  if [ -n ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS ; fi
+  if [ -n ${OPENJML_SPECS++} ]; then export OPENJML_SPECS ; fi
+  BINJAVA="$INSTALL/jdk/bin/java"
+  BINJAVAC="$INSTALL/jdk/bin/javac"
+else
+  ## In development environment
+  if [ -z ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS=$(realpath "$INSTALL"/../../Solvers) ; else export OPENJML_SOLVERS ; fi
+  if [ -z ${OPENJML_SPECS++} ]; then export OPENJML_SPECS=$(realpath "$INSTALL"/../../Specs/specs) ; else export OPENJML_SPECS ; fi
+  BINJAVA=`echo "$INSTALL"/build/*/jdk/bin/java`
+  BINJAVAC=`echo "$INSTALL"/build/*/jdk/bin/javac`
+fi

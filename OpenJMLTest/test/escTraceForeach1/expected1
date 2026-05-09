@@ -23,7 +23,7 @@ test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count &&
 			VALUE: a.length	 === -1
 			VALUE: \count <= a.length	 === false
 			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === false
-test\escTraceLoops\trace.java:170: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mforeach1
+test\escTraceLoops\trace.java:170: verify: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method mforeach1
         //@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
             ^
 
@@ -77,7 +77,7 @@ test\escTraceLoops\trace.java:170:  	//@ loop_invariant j == 0 && 0 <= \count &&
 			VALUE: j == 0	 === false
 			VALUE: j == 0 && 0 <= \count	 === false
 			VALUE: j == 0 && 0 <= \count && \count <= a.length	 === false
-test\escTraceLoops\trace.java:170: warning: The prover cannot establish an assertion (LoopInvariant) in method mforeach1
+test\escTraceLoops\trace.java:170: verify: The prover cannot establish an assertion (LoopInvariant) in method mforeach1
         //@ loop_invariant j == 0 && 0 <= \count && \count <= a.length;
             ^
 
@@ -126,9 +126,9 @@ test\escTraceLoops\trace.java:174:  	assert Assert j == a.length;
 			VALUE: a	 === const!83
 			VALUE: a.length	 === 4311
 			VALUE: j == a.length	 === false
-test\escTraceLoops\trace.java:174: warning: The prover cannot establish an assertion (Assert) in method mforeach1
+test\escTraceLoops\trace.java:174: verify: The prover cannot establish an assertion (Assert) in method mforeach1
         //@ assert j == a.length;
             ^
 Completed proof of trace.mforeach1(int[]) with prover yices2 - with warnings
 Completed proving methods in trace
-3 warnings
+3 verification failures

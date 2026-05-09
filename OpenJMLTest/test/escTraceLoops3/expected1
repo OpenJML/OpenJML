@@ -1,6 +1,6 @@
 Proving methods in trace
 Starting proof of trace.m3() with prover yices2
-test\escTraceLoops\trace.java:40: warning: The prover cannot establish an assertion (LoopDecreases) in method m3
+test\escTraceLoops\trace.java:40: verify: The prover cannot establish an assertion (LoopDecreases) in method m3
         //@ decreases j;
             ^
 Completed proof of trace.m3() with prover yices2 - with warnings

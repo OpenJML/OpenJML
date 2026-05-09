@@ -39,7 +39,7 @@ public interface JMLType extends Cloneable, java.io.Serializable {
       @*/
     //@ implies_that
     /*@    ensures \result != null
-      @        && \typeof(\result) <: \type(JMLType);
+      @        && \typeof(\result) <:= \type(JMLType);
       @*/
     public /*@ pure @*/ Object clone();    
 

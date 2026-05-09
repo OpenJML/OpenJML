@@ -1,8 +1,5 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,16 +11,9 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escnewBoxing extends EscBase {
 
-    @Override
-    public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
-        super.setUp();
-        //print = true;
-    }
-    
     @Test
     public void testSimple() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  \n"
@@ -57,14 +47,14 @@ public class escnewBoxing extends EscBase {
                 
 
                 +"}"
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assert) in method m1bad",9
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad2",13
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad2",13
                 );
     }
     
     @Test
     public void testSimple2Static() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  static Integer i = 5;\n"
@@ -74,6 +64,8 @@ public class escnewBoxing extends EscBase {
                 +"  static { Integer j = 6; int m = j; //@ assert m == 6; \n}\n"
 
                 +"  static { Integer j = null; int m = j; \n}\n"
+                
+                +"  //@ ensures true; static_initializer\n"
 
                 +"}"
                 );   // FIXME - should generate warnings here
@@ -81,7 +73,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSimple2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  Integer i = 5;\n"
@@ -93,13 +85,13 @@ public class escnewBoxing extends EscBase {
                 +"  { Integer j = null; int m = j; \n}\n"
 
                 +"}",
-                "/tt/TestJava.java:9: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method TestJava",31
+                "/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method TestJava",31
                 );
     }
     
     @Test
     public void testSwitch() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(int i) {;\n"
@@ -118,7 +110,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSwitchShort() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(short i) {;\n"
@@ -137,7 +129,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSwitchByte() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(byte i) {;\n"
@@ -156,7 +148,7 @@ public class escnewBoxing extends EscBase {
     
     @Test
     public void testSwitchNull() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(int i) {;\n"
@@ -170,13 +162,13 @@ public class escnewBoxing extends EscBase {
                 +"  } //@ assert m == i; \n"
 
                 +"}}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",11
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",11
                 );
     }
     
     @Test
     public void testBinary() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"/*@ nullable_by_default*/ public class TestJava { \n"
                 
                 +"  public void m(int i) {\n"
@@ -198,11 +190,9 @@ public class escnewBoxing extends EscBase {
                 +"  } \n"
 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Assert) in method m",7
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",15
-                ,"/tt/TestJava.java:16: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2bad",11
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m",7
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m1bad",15
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m2bad",11
                 );
     }
-    
-
 }

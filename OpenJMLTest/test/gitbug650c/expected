@@ -4,6 +4,9 @@ Starting proof of A.Content.Content() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of A.Content.Content() with prover !!!! - no warnings
+Starting proof of A.Content.P(@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of A.Content.P(@Nullable Object) with prover !!!! - no warnings
 Completed proving methods in A.Content
 Completed proving methods in A
 Proving methods in B

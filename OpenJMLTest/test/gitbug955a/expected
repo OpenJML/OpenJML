@@ -1,0 +1,32 @@
+Proving methods in Item
+Starting proof of Item.Item(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Item.Item(String) with prover !!!! - no warnings
+Starting proof of Item.name() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Item.name() with prover !!!! - no warnings
+Completed proving methods in Item
+Proving methods in MapStore
+Starting proof of MapStore.MapStore() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MapStore.MapStore() with prover !!!! - no warnings
+Starting proof of MapStore.find(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MapStore.find(String) with prover !!!! - no warnings
+Starting proof of MapStore.update(Item) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MapStore.update(Item) with prover !!!! - no warnings
+Completed proving methods in MapStore
+Proving methods in Store
+Starting proof of Store.find(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Store.find(String) with prover !!!! - no warnings
+Starting proof of Store.update(Item) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Store.update(Item) with prover !!!! - no warnings
+Completed proving methods in Store

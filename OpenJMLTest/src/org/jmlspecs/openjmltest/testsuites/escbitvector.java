@@ -1,9 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.openjml.runners.ParameterizedWithNames;
 
@@ -29,19 +27,17 @@ public class escbitvector extends EscBase {
     @Test 
     public void testBV2() {
         addOptions("--esc-bv=auto");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires n <= 0x7ffffff0;\n"
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
+                +"  //@ ensures n <= \\result <= n+15;\n"
                 +"  //@ ensures (\\result&15) == 0;\n"
                 +"  //@ pure\n"
                 +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
                 +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
-                                
                 +"}"
                 );
     }
@@ -50,7 +46,7 @@ public class escbitvector extends EscBase {
     @Test 
     public void testBV2a() {
         addOptions("--esc-bv=true","-solver-seed=42");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires n <= 0x7ffffff0;\n"
@@ -68,23 +64,41 @@ public class escbitvector extends EscBase {
     }
     
     // BV true, with precondition and modulo operation
-    @Test @Ignore // non-deterministically times out
-    public void testBV2b() {
+    @Test // non-deterministically times out
+    public void testBV2b_int() {
         Assume.assumeTrue(runLongTests);
         addOptions("--esc-bv=true");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires n <= 0x7ffffff0;\n"
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
+                +"  //@ ensures n <= \\result <= n+15;\n"
                 +"  //@ ensures (\\result%16) == 0;\n"
                 +"  //@ pure\n"
                 +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
                 +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
-                                
+                +"}"
+                );
+    }
+    
+    // BV true, with precondition and modulo operation
+    @Test 
+    public void testBV2b_short() {
+        Assume.assumeTrue(runLongTests);
+        addOptions("--esc-bv=true");
+        helpEsc("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                
+                +"  //@ requires n <= 0x7ff0;\n"
+                +"  //@ ensures n <= \\result <= n+15;\n"
+                +"  //@ ensures (\\result%16) == 0;\n"
+                +"  //@ pure\n"
+                +"//@ code_java_math spec_java_math\n"
+                +"  public int m1(short n) {\n"
+                +"    return n + ((-n) & 0x0f);\n"
+                +"  }\n"
                 +"}"
                 );
     }
@@ -93,21 +107,19 @@ public class escbitvector extends EscBase {
     @Test 
     public void testBV1() {
         Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
+                    // Rounds up to a multiple of 16 that is above and closest to n
+                +"  //@ ensures n <= \\result <= n+15;\n"
                 +"  //@ ensures (\\result&15) == 0;\n"  // FAILS for very large n, e.g. Integer.MAX_VALUE
                 +"  //@ pure\n"
                 +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
                 +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
-                                
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Postcondition) in method m1",5
-                ,"/tt/TestJava.java:3: warning: Associated declaration",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration",7
                 );
     }
     
@@ -116,18 +128,16 @@ public class escbitvector extends EscBase {
     public void testBV1b() {
         expectedExit = 0;
         addOptions("--esc-bv=false");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  //@ requires n <= Integer.MAX_VALUE-15;\n"
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
+                +"  //@ ensures n <= \\result <= n+15;\n"
                 +"  //@ ensures (\\result&15) == 0;\n"
                 +"  //@ pure\n"
                 +"//@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
                 +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
-                                
                 +"}"
                 );
     }
@@ -136,7 +146,7 @@ public class escbitvector extends EscBase {
     @Test 
     public void testBVe1() {
         addOptions("--esc-bv","--normal"); // Testing incorrect use of -escBV
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires true;\n"
@@ -154,7 +164,7 @@ public class escbitvector extends EscBase {
     @Test 
     public void testBVe2() {
         addOptions("--esc-bv=xx");  // This should cause an error
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires true;\n"
@@ -171,13 +181,12 @@ public class escbitvector extends EscBase {
     // OK option, with precondition
     @Test 
     public void testBVe3() {
-        addOptions("-escBV=");  // Should revert to auto
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--esc-bv=");  // Should revert to auto
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires n <= 0x7ffffff0;\n"
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
+                +"  //@ ensures n <= \\result <= n+15;\n"
                 +"  //@ ensures (\\result&15) == 0;\n"
                 +"  //@ pure\n"
                 +"//@ code_java_math spec_java_math\n"
@@ -194,19 +203,17 @@ public class escbitvector extends EscBase {
     public void testBVe4() {
         expectedExit = 0;
         addOptions("--esc-bv");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  //@ requires n <= 0x7ffffff0;\n"
-                +"  //@ ensures n <= \\result;\n"
-                +"  //@ ensures \\result <= n+15;\n"
+                +"  //@ ensures n <= \\result <= n+15;\n"
                 +"  //@ ensures (\\result&15) == 0;\n"
                 +"  //@ pure\n"
-                +"//@ code_java_math spec_java_math\n"
+                +"  //@ code_java_math spec_java_math\n"
                 +"  public int m1(int n) {\n"
                 +"    return n + ((-n) & 0x0f);\n"
                 +"  }\n"
-                                
                 +"}"
                 ,"warning: The last command-line option expects a parameter: --esc-bv",-1
           );
@@ -217,8 +224,8 @@ public class escbitvector extends EscBase {
     public void testBVauto() {
         // This test first tries SMT translation without BV, which fails, and then it tries with, and succeeds.
         expectedExit = 0;
-        addOptions("--esc-bv=auto","-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--esc-bv=auto","--method=m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +" class A { \n"
                 +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
@@ -238,8 +245,8 @@ public class escbitvector extends EscBase {
     public void testBVauto2() {
         // This test, the same code as above, only tries SMT translation without BV, which fails.
         expectedExit = 1;
-        addOptions("--esc-bv=false","-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--esc-bv=false","--method=m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +" class A { \n"
                 +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
@@ -261,8 +268,8 @@ public class escbitvector extends EscBase {
     public void testBVauto3() {
         // This test, the same code as above, only tries SMT translation with BV the first time.
         expectedExit = 0;
-        addOptions("--esc-bv=true","-method=m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--esc-bv=true","--method=m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +" class A { \n"
                 +"   //@ requires (i&5) == 1; pure \n"
                 +"   public static boolean mm(int i) { return true; } \n"
@@ -282,22 +289,52 @@ public class escbitvector extends EscBase {
     public void testBVoption() {
         expectedExit = 1;
         addOptions("--esc-bv=false");
-        helpTCX("tt.TestJava","package tt; \n"
-                
-                +" public class TestJava { \n"
-                +"  public int m1(int x) {\n"
-                +"    return x | x;\n"
-                +"  }\n"
-                +"  @org.jmlspecs.annotation.Options(\"--esc-bv=true\")\n"
-                +"  public int m2(int x) {\n"
-                +"    return x | x;\n"
-                +"  }\n"
-                                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1(int x) {
+                    return x | x;
+                  }
+                  @org.jmlspecs.annotation.Options(\"--esc-bv=true\")
+                  public int m2(int x) {
+                    return x | x;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITOR]", 14
           );
     }
 
+    @Test
+    public void testBVSwitch() {
+        addOptions("--esc-bv=true");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1(int x) {
+                    return x | x;
+                  }
+                }
+                """
+          );
+        
+    }
     
-
+    @Test
+    public void testBVSwitch2() {
+        addOptions("--esc-bv=auto");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1(int x) {
+                    return x | x;
+                  }
+                }
+                """
+          );
+        
+    }
 }

@@ -7,8 +7,8 @@ public class Test {
     
     public void m1() {
         //@ assert EEE.AA instanceof EEE;
-        //@ assert \type(EEE) <: \type(Enum<EEE>);  // FIXME - needs work
-        //@ assert EEE.class <: Enum.class;
+        //@ assert \type(EEE) <:= \type(Enum<EEE>);  // FIXME - needs work
+        //@ assert EEE.class <:= Enum.class;
     }
     
     //@ pure

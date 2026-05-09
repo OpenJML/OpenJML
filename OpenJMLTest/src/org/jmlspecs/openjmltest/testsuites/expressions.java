@@ -7,9 +7,8 @@ import javax.tools.JavaFileObject;
 import org.jmlspecs.openjml.JmlTree.*;
 import org.jmlspecs.openjmltest.IgnoreFalseAssumptions;
 import org.jmlspecs.openjmltest.ParseBase;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
-import org.junit.Assume;
-import org.junit.Test;
+import org.junit.*;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.parser.JmlFactory;
 import com.sun.tools.javac.parser.JmlParser;
@@ -22,6 +21,8 @@ import com.sun.tools.javac.util.Log;
 
 import static org.junit.Assert.*;
 
+// FIXME - verify that the output that occurs is desired
+
 /** These test the AST structure produced by parsing various expressions -
  * checking the node type and position.
  * @author David Cok
@@ -29,17 +30,25 @@ import static org.junit.Assert.*;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @org.junit.runner.RunWith(org.jmlspecs.openjmltest.IgnoreFalseAssumptions.class)
 public class expressions extends ParseBase {
+    
+    public boolean skip = false;
+    public boolean failharness = false;
+    
+    // FIXME - capture output and check it -- can we do so thread safely?
 
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
         jml = true;
+        print = false;
+        skip = false;
+        failharness = false;
+        postOptions();
     }
-
-    // TODO - put in a few harness tests
-    // TODO - test error messages
+    
     public void helpFailure(String failureMessage, String s, Object ... list) {
+        if (skip) return;
         boolean failed = false;
         try {
             helpExpr(s,list);
@@ -47,32 +56,34 @@ public class expressions extends ParseBase {
             failed = true;
             assertEquals("Failure report wrong",failureMessage,a.getMessage());
         }
-        if (!failed) fail("Test Harness failed to report an error");
+        assertTrue("Test harness failed to report an error", failed);
     }
 
     public void helpExpr(String s, Object... list) {
+        if (skip) return;
+        List<JCTree> nodes = null;
+        JmlParser p = null;
         try {
-            Log.instance(context).useSource(new TestJavaFileObject(s));
-            JmlParser p = ((JmlFactory)fac).newParser(s,false,true,true,jml);
+            if (failharness) throw new IllegalArgumentException();
+            Log.instance(context).useSource(new MockJavaFileObject(s));
+            p = ((JmlFactory)fac).newParser(s,false,jml);
             JCTree.JCExpression e = p.parseExpression();
-            List<JCTree> out = ParseTreeScanner.walk(e);
+            nodes = ParseTreeScanner.walk(e);
             int i = 0;
             int k = 0;
-            if (print || true) {
-                for (JCTree t: out) {
-                    System.out.println(t.getClass() 
+            if (print) {
+                for (JCTree t: nodes) {
+                    this.out.println(t.getClass() 
                             + " " + t.getStartPosition() 
                             + " " + t.getPreferredPosition() 
                             + " " + p.getEndPos(t));
                 }
             }
-            if (print || collector.getDiagnostics().size() != 0)
-                printDiagnostics();
-            if (collector.getDiagnostics().size() != 0) {
-                fail("Saw unexpected errors");
-            }
+            printDiagnostics(); // There should be no errors
+            assertTrue("Saw unexpected errors", collector.getDiagnostics().size() == 0);
+
             Object p1, p2, p3;
-            for (JCTree t: out) {
+            for (JCTree t: nodes) {
                 assertEquals("Class not matched at token " + k, list[i++], t.getClass());
                 p1 = list[i++];
                 p2 = (i < list.length && list[i] instanceof Integer) ? list[i++] : null;
@@ -90,19 +101,28 @@ public class expressions extends ParseBase {
                 }
                 ++k;
             }
-            if ( i != list.length) fail("Incorrect number of nodes listed");
-
-            if (p.getScanner().token().kind != TokenKind.EOF) fail("Not at end of input");
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
+            assertTrue("Incorrect number of nodes listed", i == list.length);
+            assertTrue("Not at end of input", p.getScanner().token().kind == TokenKind.EOF);
+        } catch (AssertionError e) {
+            if (nodes != null) for (JCTree t: nodes) {
+                this.out.println(t.getClass() 
+                        + " " + t.getStartPosition() 
+                        + " " + t.getPreferredPosition() 
+                        + " " + p.getEndPos(t));
+            }
+            throw e;
+        } catch (Exception e) { // An exception is thrown only if there is an internal bug
+            e.printStackTrace(this.out);
+            fail("Exception thrown while processing test: " + e); // NOCOV: Always throws exception -- won't show as covered
         }
     }
 
     public void helpExprErrors(String s, Object... list) {
+        if (skip) return;
         try {
-            Log.instance(context).useSource(new TestJavaFileObject(s));
-            Parser p = ((JmlFactory)fac).newParser(s,false,true,true,jml);
+            if (failharness) throw new IllegalArgumentException();
+            Log.instance(context).useSource(new MockJavaFileObject(s));
+            Parser p = ((JmlFactory)fac).newParser(s,false,true,true,false,jml);
             p.parseExpression();
             int i = 0;
             if (print || collector.getDiagnostics().size() != list.length) printDiagnostics();
@@ -110,15 +130,135 @@ public class expressions extends ParseBase {
             for (Diagnostic<? extends JavaFileObject> dd: collector.getDiagnostics()) {
                 assertEquals("Error message " + i,list[i++],noSource((JCDiagnostic)dd));
             }
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + e);
+        } catch (Exception e) { // An exception is thrown only if there is an internal bug
+            e.printStackTrace(this.out);
+            fail("Exception thrown while processing test: " + e); // NOCOV: Always throws exception -- won't show as covered
         }
     }
     
-    String noSource(JCDiagnostic dd) {
-        return dd.getMessage(java.util.Locale.getDefault());
+//    String noSource(JCDiagnostic dd) {  // FIXME - delete in favor of JmlTestSuite.noSource?
+//        return dd.getMessage(java.util.Locale.getDefault());
+//    }
+    
+    /////////////////////////////////////////////////////////
+    
+
+    /** Test that fails */
+    @Test
+    public void testFailure1() {
+        jml = false;
+        helpFailure("Incorrect number of nodes listed", "a",
+                JCIdent.class, 0, 1,
+                JCIdent.class, 0, 1);
     }
+    
+    /** Test that fails */
+    @Test
+    public void testFailure3() {
+        try {
+            jml = false; // Intentionally prints output
+            helpExpr("#",
+                    JCIdent.class, 0, 1,
+                    JCIdent.class, 0, 1);
+        } catch (AssertionError ex) {
+            assertEquals("Saw unexpected errors", ex.getMessage());
+        }
+    }
+
+    /** Test that fails */
+    @Test
+    public void testFailure4() {
+        try {
+            jml = false;
+            helpExpr("a a",
+                    JCIdent.class, 0, 1);
+        } catch (AssertionError ex) {
+            assertEquals("Not at end of input", ex.getMessage());
+        }
+    }
+    
+    @Test
+    public void testFailure5() {
+        try { 
+            helpExprErrors(" \\max","reached end of file while parsing","ZZZ");
+        } catch (AssertionError ex) {
+            assertEquals("Saw wrong number of errors  expected:<2> but was:<1>", ex.getMessage());
+        }
+    }
+
+    @Test
+    public void testFailure6() {
+        print = true; // Intentionally prints output
+        helpExprErrors(" \\max","/TEST.java:1: error: reached end of file while parsing");
+    }
+
+    /** Test that fails */
+    @Test
+    public void testFailure0() {
+        try { 
+            jml = false;
+            helpFailure("", "a", JCIdent.class, 0, 1);
+        } catch (AssertionError ex) {
+            assertEquals("Test harness failed to report an error", ex.getMessage());
+        }
+    }
+
+    /** Test that fails */
+    @Test
+    public void testFailure2() {
+        try { 
+            jml = false;
+            helpFailure("ZZZ", "a",
+                                JCIdent.class, 0, 1,
+                                JCIdent.class, 0, 1);
+        } catch (AssertionError ex) {
+            assertEquals("Failure report wrong expected:<[ZZZ]> but was:<[Incorrect number of nodes listed]>",
+                    ex.getMessage());
+        }
+    }
+    
+    // These tests are simply to improve coverage in failure paths of the helper methods
+    @Test
+    public void testFailureNone() {
+        skip = true;
+        testFailure0();
+        testFailure2();
+        testFailure3();
+        testFailure4();
+        jml = true;
+        testFailure5();
+    }
+
+    // These tests are simply to improve coverage in failure paths of the helper methods
+    @Test
+    public void testFailureNone1() {
+        skip = false;
+        for (int i = 0; i<2; i++) {
+            failharness = i == 0; // Intentional failure and stack output
+            skip = i != 0;
+            try {
+                helpExpr("");
+            } catch (AssertionError e) {
+                assertEquals("Exception thrown while processing test: java.lang.IllegalArgumentException", e.getMessage());
+            }
+        }
+    }
+
+    // These tests are simply to improve coverage in failure paths of the helper methods
+    @Test
+    public void testFailureNone2() {
+        for (int i = 0; i<2; i++) {
+            failharness = i == 0; // Intentional failure and stack output
+            skip = i != 0;
+            try {
+                helpExprErrors("");
+            } catch (AssertionError e) {
+                assertEquals("Exception thrown while processing test: java.lang.IllegalArgumentException", e.getMessage());
+            }
+        }
+    }
+
+    ///////////////////////////////////////////////////////////////////
     
     // Each bit of source text (in this series of tests, each must be a
     // JML expression) is parsed into a tree of nodes. The expected data
@@ -161,7 +301,6 @@ public class expressions extends ParseBase {
          );
     }
 
-
     /** Test scanning something very simple */
     @Test
     public void testSomeJava() {
@@ -172,6 +311,24 @@ public class expressions extends ParseBase {
                 JCIdent.class ,0,0,3);
     }
 
+    /** Test scanning something very simple */
+    @Test
+    public void testSomeJavaZ() {
+        jml = false;
+        helpExpr("a",
+                JCIdent.class ,0,1); // Intentionally just two positions, to cover that case in the test handler
+        helpExpr("aaa",
+                JCIdent.class ,0,3);
+    }
+
+    /** Test scanning something very simple */
+    @Test
+    public void testSomeJavaP() {
+        jml = false;
+        print = true; // Intentionally prints output
+        helpExpr("a",
+                JCIdent.class ,0,0,1);
+    }
     /** Test scanning Java binary expression to check node positions */
     @Test
     public void testBinary() {
@@ -490,7 +647,7 @@ public class expressions extends ParseBase {
     /** Test scanning \max(\lockset) expression */
     @Test
     public void testMaxLocksetError2() {
-        helpExprErrors(" \\max","reached end of file while parsing");
+        helpExprErrors(" \\max","/TEST.java:1: error: reached end of file while parsing");  // FIXME - a duplicate test?
     }
 
     /** Test precedence of <= operator */
@@ -514,79 +671,79 @@ public class expressions extends ParseBase {
                     JCIdent.class ,6,6,7,
                   JCIdent.class ,11,11,12);
     }
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof() {
-        helpExpr(" a == b <: c",
-                JCBinary.class, 1,3,12,
+        helpExpr(" a == b <:= c",
+                JCBinary.class, 1,3,13,
                   JCIdent.class, 1,1,2,
-                  JmlBinary.class, 6,8,12,
+                  JmlBinary.class, 6,8,13,
                     JCIdent.class ,6,6,7,
-                    JCIdent.class ,11,11,12);
+                    JCIdent.class ,12,12,13);
     }
 
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof2() {
-        helpExpr(" a <: b == c",
-                JCBinary.class, 1,8,12,
-                JmlBinary.class, 1,3,7,
+        helpExpr(" a <:= b == c",
+                JCBinary.class, 1,9,13,
+                JmlBinary.class, 1,3,8,
                   JCIdent.class, 1,1,2,
-                  JCIdent.class ,6,6,7,
-                JCIdent.class ,11,11,12);
+                  JCIdent.class, 7,7,8,
+                JCIdent.class ,12,12,13);
     }
     
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof3() {
-        helpExpr(" a <: b << c",
+        helpExpr(" a <:= b << c",
                 JmlBinary.class, 3,
                 JCIdent.class, 1,
-                JCBinary.class, 8,
-                JCIdent.class ,6,
-                JCIdent.class ,11);
+                JCBinary.class, 9,
+                JCIdent.class ,7,
+                JCIdent.class ,12);
     }
     
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof4() {
-        helpExpr(" a << b <: c",
+        helpExpr(" a << b <:= c",
                 JmlBinary.class, 8,
                 JCBinary.class, 3,
                 JCIdent.class, 1,
                 JCIdent.class ,6,
-                JCIdent.class ,11);
+                JCIdent.class ,12);
     }
     
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof5() {
-        helpExpr(" (a) <: c",
+        helpExpr(" (a) <:= c",
                 JmlBinary.class, 5,
                 JCParens.class, 1,
                 JCIdent.class, 2,
+                JCIdent.class ,9);
+    }
+    
+    /** Test precedence of <:= operator */
+    @Test
+    public void testSubTypeof6() {
+        helpExpr(" a <:= (c)",
+                JmlBinary.class, 3,
+                JCIdent.class, 1,
+                JCParens.class, 7,
                 JCIdent.class ,8);
     }
     
-    /** Test precedence of <: operator */
-    @Test
-    public void testSubTypeof6() {
-        helpExpr(" a <: (c)",
-                JmlBinary.class, 3,
-                JCIdent.class, 1,
-                JCParens.class, 6,
-                JCIdent.class ,7);
-    }
-    
-    /** Test precedence of <: operator */
+    /** Test precedence of <:= operator */
     @Test
     public void testSubTypeof7() {
-        helpExpr(" (a) <: (c)",
+        helpExpr(" (a) <:= (c)",
                 JmlBinary.class, 5,
                 JCParens.class, 1,
                 JCIdent.class, 2,
-                JCParens.class, 8,
-                JCIdent.class ,9);
+                JCParens.class, 9,
+                JCIdent.class ,10);
     }
     
     @Test
@@ -700,17 +857,17 @@ public class expressions extends ParseBase {
 
     @Test
     public void testMisc() {
-        helpExpr("(\\result==j) ==> \\typeof(o) <: \\type(oo) "
-                ,JmlBinary.class ,0,13,40
+        helpExpr("(\\result==j) ==> \\typeof(o) <:= \\type(oo) "
+                ,JmlBinary.class ,0,13,41
                 ,JCParens.class, 0,0,12
                 ,JCBinary.class ,1,8,11
                 ,JmlSingleton.class ,1,1,8
                 ,JCIdent.class ,10,10,11
-                ,JmlBinary.class ,17,28,40 
+                ,JmlBinary.class ,17,28,41 
                 ,JmlMethodInvocation.class, 17,24,27 
                 ,JCIdent.class ,25,25,26
-                ,JmlMethodInvocation.class, 31,36,40
-                ,JCIdent.class ,37,37,39
+                ,JmlMethodInvocation.class, 32,37,41
+                ,JCIdent.class ,38,38,40
                 );
     }
     
@@ -740,7 +897,4 @@ public class expressions extends ParseBase {
     }
 
 // TODO: other expressions, etc.
-
-
 }
-

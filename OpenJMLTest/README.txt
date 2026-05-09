@@ -18,8 +18,7 @@ scripttests - convenience scripts for running individual file-based tests
 Makefile - the Makefile for the tests, including some convenience targets that call make in the OpenJML source folder
 
 setup-coverage - a script used to setup for coverage measurement during testing (cf. make cov-test )
-Run.java - a wrapper program needed when running coverage, profiling or any program using the OpenJML programmatic API
-            FIXME - change the name to something more descriptive?
+RunOpenJML.java - a wrapper program needed when running coverage, profiling or any program using the OpenJML programmatic API
 
 Temporary files:
 testcompiles - a folder holding all the (temporary) .class files generated when testing RAC
@@ -27,5 +26,4 @@ smt - a folder holding (temporary) smt files generated during ESC
 temp-release - a temp folder that holds an expanded release for testing
 cov - a folder holding (intermediate) results of coverage testing
 
-build_OpenJMLTest.xml -- FIXME likely obsolete
 launchConfigs - FIXME obsolete

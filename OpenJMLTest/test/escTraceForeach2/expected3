@@ -16,7 +16,7 @@ Skipping proof of trace.mdo2() (excluded by -method)
 Skipping proof of trace.mforeach(int[]) (excluded by -method)
 Skipping proof of trace.mforeach1(int[]) (excluded by -method)
 Starting proof of trace.mforeach2(int[]) with prover !!!!
-test\escTraceLoops\trace.java:181: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method mforeach2:  overflow in int sum
+test\escTraceLoops\trace.java:181: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method mforeach2:  overflow in int sum
             j = j + j + 1;
                   ^
 
@@ -179,7 +179,7 @@ test\escTraceLoops\trace.java:181:  	ArithmeticOperationRange assertion: !(0 < j
 			VALUE: !(0 < j_3968_4089___7 && 0 < j_3968_4089___7) || j_3968_4089___7 <= 2147483647 - j_3968_4089___7	 === false
 test\escTraceLoops\trace.java:181:  Invalid assertion (ArithmeticOperationRange)
 
-test\escTraceLoops\trace.java:179: warning: The prover cannot establish an assertion (LoopInvariant) in method mforeach2
+test\escTraceLoops\trace.java:179: verify: The prover cannot establish an assertion (LoopInvariant) in method mforeach2
         //@ loop_invariant j == \count && 0 <= \count && \count <= a.length;
             ^
 
@@ -394,4 +394,4 @@ Skipping proof of trace.mforeach3(int[]) (excluded by -method)
 Skipping proof of trace.mforeach4(int[]) (excluded by -method)
 Skipping proof of trace.mforeach5(int[]) (excluded by -method)
 Completed proving methods in trace
-2 warnings
+2 verification failures

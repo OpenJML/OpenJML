@@ -68,7 +68,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m8(int) with prover !!!! - no warnings
 Starting proof of Test.m9() with prover !!!!
-test/enums/Test.java:126: warning: The prover cannot establish an assertion (Assert) in method m9
+test/enums/Test.java:126: verify: The prover cannot establish an assertion (Assert) in method m9
         //@ assert \fresh(e); // false
             ^
 Completed proof of Test.m9() with prover !!!! - with warnings
@@ -77,4 +77,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m9a() with prover !!!! - no warnings
 Completed proving methods in Test
-1 warning
+1 verification failure

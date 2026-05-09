@@ -2,21 +2,13 @@ package org.jmlspecs.openjmltest.testsuites;
 
 import static org.junit.Assert.fail;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBase;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.openjml.runners.ParameterizedWithNames;
@@ -43,12 +35,8 @@ public class escfilesTrace extends EscBaseFiles {
 
     boolean enableSubexpressions = false;
     
-    /** The command-line to use to run ESC on a program */
-    String[] sysrac = new String[]{jdk, "-classpath","bin"+z+"../OpenJML/bin-runtime",null};
-
     @Override
     public void setUp() throws Exception {
-        rac = sysrac;
         super.setUp();
     }
 
@@ -58,11 +46,10 @@ public class escfilesTrace extends EscBaseFiles {
         new File(outDir).mkdirs();
         java.util.List<String> args = new LinkedList<String>();
         args.add("--esc");
-        args.add("--no-purity-check");
         args.add("-jmltesting");
         if (new File(sourceDirname).isDirectory()) args.add("--dir");
         args.add(sourceDirname);
-        if (solver != null) args.add("-prover="+solver);
+        if (solver != null) args.add("--prover="+solver);
         //addOptionsToArgs(options,args);        
         args.addAll(Arrays.asList(opts));
         return args;
@@ -73,7 +60,7 @@ public class escfilesTrace extends EscBaseFiles {
     @Test 
     public void escDMZCashTrace() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoNonPublicPath + "/src/dmz2","test/escDMZCashTrace","-subexpressions","-method=dmz2.Cash.Cash","-escMaxWarnings=1","-jmltesting");
+        helpEscFile(OpenJMLDemoNonPublicPath + "/src/dmz2","test/escDMZCashTrace","--subexpressions","--method=dmz2.Cash.Cash","-escMaxWarnings=1","-jmltesting");
     }
 
 
@@ -81,169 +68,169 @@ public class escfilesTrace extends EscBaseFiles {
     @Test // @Ignore // Ignoring for now because the output is too volatile, even if correct - lots of paths that can be found in various orders
     public void escDemoPaths() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/Paths.java","test/escDemoPaths","-subexpressions","-progress");
+        helpEscFile(OpenJMLDemoPath + "/src/openjml/demo/Paths.java","test/escDemoPaths","--subexpressions","--progress");
     }
 
     @Test 
     public void escDemoChangeCase() {
         expectedExit = 0;
-        helpTCF(OpenJMLDemoPath + "/src/openjml/demo/ChangeCase.java","test/escDemoChangeCase","-noInternalSpecs","-progress","-method=changeCase","-escMaxWarnings=1","-subexpressions","-jmltesting");
+        helpEscFile(OpenJMLDemoPath + "/src/openjml/demo/ChangeCase.java","test/escDemoChangeCase","--progress","--method=changeCase","-escMaxWarnings=1","--subexpressions","-jmltesting");
     }
 
     @Test
     public void escTrace() {
         expectedExit = 0;
-        helpTCF("test/escTrace","test/escTrace",
-                "-method=m","-escMaxWarnings=1",enableSubexpressions ? "-subexpressions" : "");
+        helpEscFile("test/escTrace","test/escTrace",
+                "--method=m","-escMaxWarnings=1",enableSubexpressions ? "--subexpressions" : "");
     }
 
     @Test
     public void escTrace2() {
         expectedExit = 0;
-        helpTCF("test/escTrace2","test/escTrace2","-method=m", enableSubexpressions ? "-subexpressions" : "");
+        helpEscFile("test/escTrace2","test/escTrace2","--method=m", enableSubexpressions ? "--subexpressions" : "");
     }
 
     @Test
     public void escTrace3() {
         expectedExit = 0;
-        helpTCF("test/escTrace3","test/escTrace3","-progress", enableSubexpressions ? "-subexpressions" : "", "-jmltesting");
+        helpEscFile("test/escTrace3","test/escTrace3","--progress", enableSubexpressions ? "--subexpressions" : "", "-jmltesting");
     }
 
     @Test
     public void escTrace4() {
         expectedExit = 0;
-        helpTCF("test/escTrace4","test/escTrace4","-method=m","-subexpressions","-progress");
+        helpEscFile("test/escTrace4","test/escTrace4","--method=m","--subexpressions","--progress");
     }
 
     @Test
     public void escTrace5() {
         expectedExit = 0;
-        helpTCF("test/escTrace5","test/escTrace5","-method=m","-progress", enableSubexpressions ? "-subexpressions" : "","-jmltesting");
+        helpEscFile("test/escTrace5","test/escTrace5","--method=m","--progress", enableSubexpressions ? "--subexpressions" : "","-jmltesting");
     }
 
     @Test
     public void escTrace6() {
         expectedExit = 0;
-        helpTCF("test/escTrace6","test/escTrace6","-progress", "-subexpressions","-jmltesting");
+        helpEscFile("test/escTrace6","test/escTrace6","--progress", "--subexpressions","-jmltesting");
     }
 
     @Test
     public void escTraceLoops() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceLoops","-method=mgood","-progress", "-subexpressions","-jmltesting");
+        helpEscFile("test/escTraceLoops","test/escTraceLoops","--method=mgood","--progress", "--subexpressions","-jmltesting");
     }
 
     @Test
     public void escTraceLoops1() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceLoops1","-method=m1","-subexpressions","-progress","-jmltesting");
+        helpEscFile("test/escTraceLoops","test/escTraceLoops1","--method=m1","--subexpressions","--progress","-jmltesting");
     }
 
     @Test
     public void escTraceLoops2() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceLoops2","-method=m2","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceLoops2","--method=m2","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceLoops3() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceLoops3","-method=m3","-progress", enableSubexpressions ? "-subexpressions" : "");
+        helpEscFile("test/escTraceLoops","test/escTraceLoops3","--method=m3","--progress", enableSubexpressions ? "--subexpressions" : "");
     }
 
     @Test
     public void escTraceLoops4() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceLoops4","-method=m4","-progress", enableSubexpressions ? "-subexpressions" : "");
+        helpEscFile("test/escTraceLoops","test/escTraceLoops4","--method=m4","--progress", enableSubexpressions ? "--subexpressions" : "");
     }
 
     @Test
     public void escTraceLoops5() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceLoops5","-method=m5","-subexpressions","-progress","-jmltesting");
+        helpEscFile("test/escTraceLoops","test/escTraceLoops5","--method=m5","--subexpressions","--progress","-jmltesting");
     }
 
     @Test
     public void escTraceLoops6() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceLoops6","-method=m6","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceLoops6","--method=m6","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceWhile() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceWhile","-method=mwhile","-subexpressions","-progress","-jmltesting");
+        helpEscFile("test/escTraceLoops","test/escTraceWhile","--method=mwhile","--subexpressions","--progress","-jmltesting");
     }
 
     @Test
     public void escTraceWhile1() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceWhile1","-method=mwhile1","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceWhile1","--method=mwhile1","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceWhile2() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceWhile2","-method=mwhile2","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceWhile2","--method=mwhile2","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceDo() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceDo","-method=mdo","-subexpressions","-progress","-jmltesting");
+        helpEscFile("test/escTraceLoops","test/escTraceDo","--method=mdo","--subexpressions","--progress","-jmltesting");
     }
 
     @Test
     public void escTraceDo1() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceDo1","-method=mdo1","-subexpressions","-progress","-jmltesting");
+        helpEscFile("test/escTraceLoops","test/escTraceDo1","--method=mdo1","--subexpressions","--progress","-jmltesting");
     }
 
     @Test
     public void escTraceDo2() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceDo2","-method=mdo2","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceDo2","--method=mdo2","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceForeach() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceForeach","-method=mforeach","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceForeach","--method=mforeach","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceForeach1() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceForeach1","-method=mforeach1","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceForeach1","--method=mforeach1","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceForeach2() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceForeach2","-method=mforeach2","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceForeach2","--method=mforeach2","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceForeach3() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceForeach3","-method=mforeach3","-subexpressions","-progress","-jmltesting");
+        helpEscFile("test/escTraceLoops","test/escTraceForeach3","--method=mforeach3","--subexpressions","--progress","-jmltesting");
     }
 
     @Test
     public void escTraceForeach4() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceForeach4","-method=mforeach4","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceForeach4","--method=mforeach4","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceForeach5() {
         expectedExit = 0;
-        helpTCF("test/escTraceLoops","test/escTraceForeach5","-method=mforeach5","-subexpressions","-progress");
+        helpEscFile("test/escTraceLoops","test/escTraceForeach5","--method=mforeach5","--subexpressions","--progress");
     }
 
     @Test
     public void escTraceBS() {
         expectedExit = 0;
-        helpTCF("test/escTraceBS","test/escTraceBS","-subexpressions","-progress");
+        helpEscFile("test/escTraceBS","test/escTraceBS","--subexpressions","--progress");
     }
 }

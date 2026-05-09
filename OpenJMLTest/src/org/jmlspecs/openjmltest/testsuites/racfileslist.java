@@ -1,77 +1,59 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.fail;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import org.jmlspecs.openjmltest.RacBase;
+import org.jmlspecs.openjmltest.Utils;
+import java.io.*;
 import java.util.*;
 
-import org.jmlspecs.openjmltest.RacBase;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.fail;
+import org.junit.*;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
 /** These tests check running RAC on files in the file system, comparing the
- * output against expected files. These tests are a bit easier to create, since 
- * the file and output do not have to be converted into Strings; however, they
- * are not as easily read, since the content is tucked away in files, rather 
- * than immediately there in the test class.
- * <P>
- * To add a new test:
- * <UL>
- * <LI> create a directory containing the test files as a subdirectory of 
- * 'test'
- * <LI> add a test to this class - typically named similarly to the folder
- * containing the source data
- * </UL>
+ * output against expected files. This suite checks for any folders under OpenJMLTest/test
+ * that contain a 'rac' file or have 'rac' in their name,
+ * and are not already tested in the suites listed in
+ * 'testsuitesToExclude'
  */
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
-public class racfileslist extends RacBase {
+@org.junit.runner.RunWith(Parameterized.class)
+public class racfileslist extends RacBase implements Utils {
 
     @Override
     @Before
     public void setUp() throws Exception {
-        setUpForFiles();
         super.setUp();
-        ignoreNotes = true;
     }
     
-    public static String[] testsuites = new String[]{
+    /** These are the suites whose files are already being run, and so are excluded from this suite */
+    public static String[] testsuitesToExclude = new String[]{
+            "org.jmlspecs.openjmltest.testsuites.primrac",
             "org.jmlspecs.openjmltest.testsuites.racfiles",
             "org.jmlspecs.openjmltest.testsuites.racfilesmodels"
     };
 
-    
+    /** A routine that computes a List of one-element String arrays, where each of those elements is a 
+     * test directory that is not already used in a test by any of the testsuites in the 'testsuitesToExclude' array above.
+     * The output of this method serves as the parameter list for the parameterized unit test.
+     */
     @Parameters
     static public Collection<String[]> data() {
         try {
-            java.util.SortedSet<String> allfiles = new java.util.TreeSet<String>();
-            var dir = new File("test");
-            for (var f: dir.listFiles()) {
-                if (new java.io.File(f, "rac").exists() && !new java.io.File(f, "skip").exists()) {
-                    allfiles.add(f.getName());
-                }
-            }
-            for (var f: dir.listFiles((f,s)->s.startsWith("rac"))) {
-                if (!new java.io.File(f, "skip").exists()) allfiles.add(f.getName());
-            }
-            for (var suite: testsuites) {
-                var racfiles = Class.forName(suite);
-                var racmethods = java.util.Arrays.stream(racfiles.getDeclaredMethods()).filter(method->method.getAnnotationsByType(org.junit.Test.class).length != 0)
-                    .map(m->m.getName()).collect(java.util.stream.Collectors.toList());
-                allfiles.removeAll(racmethods);
-            }
-            System.out.println("REMAINING " + allfiles);
-            var tests = allfiles.stream().map(f->new String[] {f}).collect(java.util.stream.Collectors.toList());
+            java.util.List<String[]> tests = Utils.findTests((File f, String nm) -> f.isDirectory() &&
+                    (new java.io.File(f, "rac").exists() || nm.startsWith("rac")) && !new java.io.File(f, "skip").exists(),
+                    testsuitesToExclude);
+            // Just for information, print out all the tests that have been identified
+            List<String> remaining = tests.stream().map(t -> t[0]).collect(java.util.stream.Collectors.toList());
+            // System.out.println("ORPHANED RAC FILES FOLDERS: " + remaining); // Expect the racfilesorphan harness test
+            // Comment out this assert if you want the orphaned tests to actually run, but it is better to make
+            // explicit tests in racfiles
+            Assert.assertTrue(remaining.size() != 1 || !"racfilesorphan".equals(remaining.get(0)));
             return tests;
         } catch (Exception e) {
+            // Using a throw instead of Assert.fail to avoid complaint about missing return
             throw new AssertionError("Exception while determining test methods in racfileslist: " + e);
         }
     }
@@ -82,9 +64,12 @@ public class racfileslist extends RacBase {
         this.testName = testName;
     }
     
+    /** The actual test method -- don't rely on this method for anything other than harness tests
+     * because it just attempts to compile the test file.
+     */
     @Test
     public void test() {
-        helpTCF("test/" + testName,"test/" + testName,"T");
+        helpRac("test/" + testName,"test/" + testName, null);
     }
 
 }

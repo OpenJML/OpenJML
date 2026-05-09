@@ -1,0 +1,21 @@
+Proving methods in Vector
+Skipping proof of Vector.Vector(int,int) (Skipping Vector.Vector because it does not match copyIntoOK,copyIntoA)
+Skipping proof of Vector.add(Object) (Skipping Vector.add because it does not match copyIntoOK,copyIntoA)
+Skipping proof of Vector.copyInto(Object[]) (Skipping Vector.copyInto because it does not match copyIntoOK,copyIntoA)
+Starting proof of Vector.copyIntoA(Object[]) with prover !!!!
+test/escVectorA/Vector.java:102: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyIntoA
+        the_array[i] = my_element_data[i]; //  ERROR - don't know the runtime type of the_array
+                     ^
+test/escVectorA/Vector.java:99: verify: The prover cannot establish an assertion (LoopInvariantAfterLoop) in method copyIntoA
+      //@ loop_invariant 0 <= i && i <= my_element_count;
+          ^
+Completed proof of Vector.copyIntoA(Object[]) with prover !!!! - with warnings
+Starting proof of Vector.copyIntoOK(Object[]) with prover !!!!
+test/escVectorA/Vector.java:111: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method copyIntoOK
+        the_array[i] = my_element_data[i]; //  ERROR - don't know the runtime type of the_array
+                     ^
+Completed proof of Vector.copyIntoOK(Object[]) with prover !!!! - with warnings
+Skipping proof of Vector.indexOf(Object,int) (Skipping Vector.indexOf because it does not match copyIntoOK,copyIntoA)
+Skipping proof of Vector.elementAt(int) (Skipping Vector.elementAt because it does not match copyIntoOK,copyIntoA)
+Completed proving methods in Vector
+3 verification failures

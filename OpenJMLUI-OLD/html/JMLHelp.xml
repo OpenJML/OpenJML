@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="JML"  topic="html/JMLHelp.html">
+    <topic label="OpenJML User Guide (PDF)" href="html/OpenJMLUserGuide.pdf"/>
+    <topic label="JML Reference Manual" href="html/JMLReferenceManual.pdf"/>
+    <topic label="JML Eclipse User Guide" href="html/JMLHelp.html">
+      <topic label="Overview" href="html/JMLHelp.html#Overview"/>
+      <topic label="Installation" href="html/JMLHelp.html#Installation"/>
+      <topic label="General comments" href="html/JMLHelp.html#General_comments"/>
+      <topic label="Menu and toolbar items" href="html/JMLHelp.html#Menus">
+          <topic label="JML Checking" href="html/JMLHelp.html#Checks"/>
+          <topic label="Deleting JML Markers" href="html/JMLHelp.html#Clear"/>
+          <topic label="Enable JML auto checking" href="html/JMLHelp.html#Enable"/>
+          <topic label="Disable JML auto checking" href="html/JMLHelp.html#Disable"/>
+        </topic>
+      <topic label="JML Preferences" href="html/JMLHelp.html#Preferences">
+          <topic label="Options for JML-Eclipse" href="html/JMLHelp.html#EclipseOptions"/>
+          <topic label="Options related to JML" href="html/JMLHelp.html#JMLOptions"/>
+        </topic>
+      <topic label="Other Features" href="html/JMLHelp.html#Features">
+          <topic label="JML Problem Markers" href="html/JMLHelp.html#Markers"/>
+          <topic label="JML Console" href="html/JMLHelp.html#Console"/>
+          <topic label="Context Menus" href="html/JMLHelp.html#Context"/>
+          <topic label="JML automatic builder" href="html/JMLHelp.html#Builder"/>
+          <topic label="JML Decorations" href="html/JMLHelp.html#Decorators"/>
+          <topic label="JML Key Bindings" href="html/JMLHelp.html#Commands"/>
+          <topic label="JML Help" href="html/JMLHelp.html#Help"/>
+        </topic>
+      <topic label="Version History" href="html/JMLHelp.html#Versions"/>
+      <topic label="Getting Started Tutorial" href="html/JMLHelp.html#Tutorial"/>
+      <topic label="Notes for Developers" href="html/JMLHelp.html#DevNotes"/>
+      <topic label="Problems to fix and features to add" href="html/JMLHelp.html#TODO"/>
+    </topic>   	
+
+</toc>

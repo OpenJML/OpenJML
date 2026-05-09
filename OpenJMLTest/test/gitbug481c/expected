@@ -5237,16 +5237,16 @@ Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(or
 Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct(org.apache.commons.math3.linear.FieldVector<T>) (excluded by -method)
 Skipping proof of org.apache.commons.math3.linear.ArrayFieldVector.outerProduct(org.apache.commons.math3.linear.ArrayFieldVector<T>) (excluded by -method)
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.getEntry(int) with prover !!!!
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method getEntry
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method getEntry
         return data[index];
                    ^
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method getEntry
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method getEntry
         return data[index];
                    ^
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: warning: The prover cannot establish an assertion (Postcondition) in method getEntry
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: verify: The prover cannot establish an assertion (Postcondition) in method getEntry
         return data[index];
         ^
-test/gitbug481b/org/apache/commons/math3/linear/FieldVector.java:234: warning: Associated declaration
+test/gitbug481b/org/apache/commons/math3/linear/FieldVector.java:234: verify: Associated declaration
     T getEntry(int index) throws OutOfRangeException;
       ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getEntry(int) with prover !!!! - with warnings
@@ -10735,4 +10735,4 @@ Note: Some input files use or override a deprecated API.
 Note: Recompile with -Xlint:deprecation for details.
 Note: Some input files use unchecked or unsafe operations.
 Note: Recompile with -Xlint:unchecked for details.
-4 warnings
+4 verification failures

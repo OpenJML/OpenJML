@@ -4,10 +4,10 @@ Completed proof of Add.Add() with prover !!!! - no warnings
 Starting proof of Add.add(int,int) with prover !!!!
 Completed proof of Add.add(int,int) with prover !!!! - no warnings
 Starting proof of Add.add2(int,int) with prover !!!!
-test/changeMathMode/Add.java:14: warning: The prover cannot establish an assertion (Postcondition) in method add2
+test/changeMathMode/Add.java:14: verify: The prover cannot establish an assertion (Postcondition) in method add2
   return add(xx,yy);
   ^
-test/changeMathMode/Add.java:11: warning: Associated declaration
+test/changeMathMode/Add.java:11: verify: Associated declaration
 //@ ensures \result == xx + yy; // ERROR - should fail
     ^
 Completed proof of Add.add2(int,int) with prover !!!! - with warnings
@@ -20,4 +20,4 @@ Completed proof of Add2.add(int,int) with prover !!!! - no warnings
 Starting proof of Add2.add2(int,int) with prover !!!!
 Completed proof of Add2.add2(int,int) with prover !!!! - no warnings
 Completed proving methods in Add2
-2 warnings
+2 verification failures

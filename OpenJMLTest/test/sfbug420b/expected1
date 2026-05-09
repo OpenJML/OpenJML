@@ -1,13 +1,21 @@
 Proving methods in stack.Stack
+Skipping proof of stack.Stack.count() (Skipping stack.Stack.count because it does not match itemAt)
+Starting proof of stack.Stack.itemAt(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.itemAt(int) with prover !!!! - no warnings
+Skipping proof of stack.Stack.isEmpty() (Skipping stack.Stack.isEmpty because it does not match itemAt)
+Skipping proof of stack.Stack.push(int) (Skipping stack.Stack.push because it does not match itemAt)
+Skipping proof of stack.Stack.top() (Skipping stack.Stack.top because it does not match itemAt)
+Skipping proof of stack.Stack.remove() (Skipping stack.Stack.remove because it does not match itemAt)
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match itemAt)
 Skipping proof of stack.StackImpl.count() (Skipping stack.StackImpl.count because it does not match itemAt)
 Starting proof of stack.StackImpl.itemAt(int) with prover !!!!
-test/sfbug420b/StackImpl.java:24: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method itemAt
+test/sfbug420b/StackImpl.java:24: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method itemAt
 		return internalStack[i-1];
 		                    ^
-test/sfbug420b/StackImpl.java:24: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method itemAt
+test/sfbug420b/StackImpl.java:24: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method itemAt
 		return internalStack[i-1];
 		                    ^
 Completed proof of stack.StackImpl.itemAt(int) with prover !!!! - with warnings
@@ -17,4 +25,4 @@ Skipping proof of stack.StackImpl.top() (Skipping stack.StackImpl.top because it
 Skipping proof of stack.StackImpl.remove() (Skipping stack.StackImpl.remove because it does not match itemAt)
 Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it does not match itemAt)
 Completed proving methods in stack.StackImpl
-2 warnings
+2 verification failures

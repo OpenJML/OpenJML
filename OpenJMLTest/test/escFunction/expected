@@ -3,6 +3,9 @@ Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.cv(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test.cv(int) with prover !!!! - no warnings
 Starting proof of Test.g(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -11,6 +14,9 @@ Starting proof of Test.f(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.f(int) with prover !!!! - no warnings
+Starting proof of Test.cv2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test.cv2(int) with prover !!!! - no warnings
 Starting proof of Test.g2(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -19,6 +25,9 @@ Starting proof of Test.f2(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.f2(int) with prover !!!! - no warnings
+Starting proof of Test.cv3(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test.cv3(int) with prover !!!! - no warnings
 Starting proof of Test.g3(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

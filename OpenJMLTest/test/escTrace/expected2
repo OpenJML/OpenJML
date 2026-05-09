@@ -174,7 +174,7 @@ test\escTrace\trace.java:60:  	set x = (\lbl AAA k + 1)
 			VALUE: \lbl AAA k + 1	 === 17
 			VALUE: (\lbl AAA k + 1)	 === 17
 			VALUE: x = (\lbl AAA k + 1)	 === 17
-test\escTrace\trace.java:60: warning: Label AAA has value 17
+test\escTrace\trace.java:60: verify: Label AAA has value 17
         //@ set x = (\lbl AAA k+1);
                           ^
 test\escTrace\trace.java:62:  	for ...
@@ -248,10 +248,10 @@ test\escTrace\trace.java:13:  	ensures \result != 0;
 			VALUE: \result	 === 0
 			VALUE: 0	 === 0
 			VALUE: \result != 0	 === false
-test\escTrace\trace.java:83: warning: The prover cannot establish an assertion (Postcondition) in method m
+test\escTrace\trace.java:83: verify: The prover cannot establish an assertion (Postcondition) in method m
         return 0;
         ^
-test\escTrace\trace.java:13: warning: Associated declaration
+test\escTrace\trace.java:13: verify: Associated declaration
     //@ ensures \result != 0;
         ^
-3 warnings
+3 verification failures

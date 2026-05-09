@@ -1,7 +1,13 @@
 test/invariantsClause/T.java:7: error: cannot find symbol
-  //@ invariants x, T;
+  //@ invariants x, T; // ERROR - no x
                  ^
   symbol:   variable x
   location: class T
+test/invariantsClause/T.java:17: error: invariants clauses are not permitted in any specification cases
+  //@ invariants y; // ERROR - out of place
+      ^
+test/invariantsClause/T.java:21: error: invariants clauses are not permitted in any specification cases
+  //@ invariants y; // ERROR - out of place
+      ^
 Operation not performed because of parse or type errors
-1 error
+3 errors

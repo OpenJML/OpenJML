@@ -1,0 +1,24 @@
+OUT:
+java.lang.IndexOutOfBoundsException: \seq.get: -1 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.get: 5 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.put: -1 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.put: 5 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.remove: -1 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.remove: 5 vs. 5
+OK
+java.lang.IndexOutOfBoundsException: \seq.put: -1 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.put: 6 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.head: sequence is empty
+java.lang.IndexOutOfBoundsException: \seq.subseq: 0 -1 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.subseq: 0 6 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.subseq: -1 5 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.subseq: 6 5 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.subseq: -1 5 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.subseq: 0 6 vs. 5
+java.lang.IndexOutOfBoundsException: \seq.subseq: 1 0 vs. 5
+test/jmlseq/TSeq.java:181: verify: JML assertion is false
+            //@ assert s.equals(o);
+                ^
+END
+
+ERR:

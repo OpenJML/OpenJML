@@ -1,5 +1,7 @@
 package org.jmlspecs.openjmltest;
 
+import static org.junit.Assert.fail;
+
 import org.junit.Assert;
 
 
@@ -16,8 +18,12 @@ import org.junit.Assert;
  *
  */
 public abstract class RunBase extends JmlTestSuite {
+    
+    /** Timeout to apply to the test, in milliseconds; <=0 means no timeout */
+    public int timeoutMS = 0;
 
-    public static final String[] args = new String[] { "./run" };
+    /** Convenient holder for the array needed by the ProcessBuilder */
+    protected static final String[] args = new String[] { "./run" };
     
     /** Runs the 'run' executable within the 'workingDir' folder, reporting a test success if 
      * the exit code is 0 and failure for any other result.
@@ -29,23 +35,22 @@ public abstract class RunBase extends JmlTestSuite {
             pb.inheritIO();
             pb.directory(new java.io.File(workingDir));
             process = pb.start();
-            try {
-                int exitCode = process.waitFor();
-                //System.out.println("EXIT: " + exitCode);
-                Assert.assertEquals("Test case emitted a failure exit code:", 0, exitCode);
-            } catch (Throwable e) {
-                Assert.fail("Test " + workingDir + " threw exception " + e);
+            if (timeoutMS > 0 && timeout(process,timeoutMS)) {
+                throw new AssertionError("Test " + getTestName() + ": did not complete within the timeout period");
             }
+            int exitCode = process.waitFor();
+            Assert.assertEquals("Test " + getTestName() + ": emitted a failure exit code:", 0, exitCode);
+        } catch (AssertionError e) {
+            throw e;
         } catch (Throwable e) {
-            //System.out.println("FAILED " + e);
-            Assert.fail("Test " + workingDir + " failed to launch: " + e);
+            throw new AssertionError("Test " + getTestName() + ": failed to launch or to execute: " + e);
         }
     }
     
-    /** A helper method that runs a test in the folder 'test/testname' where testname is the both
+    /** A helper method that runs a test in the folder 'test/testname' where testname is both
      * the name of the test method and the name of the test folder.
      */
-    public void help() {
+    public void doTest() {
         run("test/" + getTestName());
     }
 

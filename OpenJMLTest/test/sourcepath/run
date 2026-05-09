@@ -1,21 +1,23 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
-cd $(dirname "$BASH_SOURCE[0]" )
-BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml ; fi
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
 
+rm -rf *.class */*.class
 (\
 echo Test 1 uses B.java from . ;\
-$OJA --esc A.java ;\
+openjml -cp . --esc A.java ;\
 echo Test 2 uses B.java from srcp ;\
-$OJA --source-path srcp --esc A.java ;\
+openjml -cp . --source-path srcp --esc A.java ;\
 echo Test 2a cannot find B.java ;\
-$OJA --source-path srce --esc A.java ;\
+openjml -cp . --source-path srce --esc A.java ;\
 echo Test 3 uses B.java from .;\
-$OJA --esc srcx/A.java ;\
+openjml -cp . --esc srcx/A.java ;\
 echo Test 4 uses B.java from srcp ;\
-$OJA --source-path srcp --specs-path srce --esc srcx/A.java ;\
+openjml -cp . --source-path srcp --specs-path srce --esc srcx/A.java ;\
 echo Test 4a cannot find B.java;\
-$OJA --source-path srce --specs-path srce --esc srcx/A.java ;\
+openjml -cp . --source-path srce --specs-path srce --esc srcx/A.java ;\
 ) >& actual
-(diff expected actual && rm -rf actual ) || echo PWD for specspath: `pwd`
+
+diff expected actual && rm -rf actual
+exit $?

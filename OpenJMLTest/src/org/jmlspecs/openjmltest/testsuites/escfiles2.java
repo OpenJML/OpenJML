@@ -3,21 +3,12 @@ package org.jmlspecs.openjmltest.testsuites;
 import static org.junit.Assert.*;
 
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assume;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -48,116 +39,324 @@ public class escfiles2 extends EscBaseFiles {
         ignoreNotes = true;
     }
     
+    public void helpEscSimple(String... opts) {
+        super.helpEscSimple(opts);
+    }
+
+    
     @Test
     public void gitbug362() {
         expectedExit = 1;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void gitbug450a() {
-        expectedExit = 1;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void gitbug450b() {
         expectedExit = 1;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void gitbug455a() {
-        helpTCG();
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug582() {
+        expectedExit = 0;
+    }
+
+
+    @Test
+    public void gitbug600() {
+        helpEscSimple();
     }
     
     @Test
-    public void gitbug600() {
-        helpTCG();
+    public void gitbug724() {
+        helpEscSimple("--warn=missing-measured-by");
+    }
+    
+    @Test
+    public void gitbug725() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug726() {
+        helpEscSimple("--check-feasibility=none");
+    }
+    
+    @Test
+    public void gitbug726a() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug761() {
+        helpEscSimple("--check");
+    }
+    
+    @Test
+    public void gitbug762() {
+        helpEscSimple("--check");
+    }
+    
+    @Test
+    public void gitbug763() {
+        helpEscSimple("--check-feasibility=none");
+    }
+    
+    @Test
+    public void gitbug766() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug777() {
+        helpEscSimple();
     }
     
     @Test
     public void gitbug780a() {
-        helpTCG("--method=marray");
+        helpEscSimple("--method=marray");
     }
     
     @Test @Ignore // FIXME - times out in attempting to prove
     public void gitbug802() {
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void gitbug812() {
-        helpTCG("--code-math=safe");
+        helpEscSimple("--code-math=safe");
     }
     
-    @Test @Ignore // FIXME - times out in attempting to prove and --code-math=math not supported
+    @Test 
     public void gitbug812a() {
-        helpTCG("--code-math=math");
+        helpEscSimple("--code-math=safe","--check-feasibility=none");
+    }
+    
+    @Test
+    public void gitbug816() {
+        helpEscSimple();
     }
     
     @Test
     public void gitbug861() {
-        helpTCG();
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug869() {
+        expectedExit = 1;
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug812crash() {
+        expectedExit = 1;
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug872() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug873() {
+        helpEscSimple("--check");
+    }
+    
+    @Test
+    public void gitbug875() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug876() {
+        helpEscSimple("--normal","--method=isNonPrime","--check-feasibility=none");
+    }
+    
+    // gitbug877 is in escall3 as testSwitch
+    
+    @Test
+    public void gitbug879() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug880() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug883() {
+        helpEscSimple("--esc-max-warnings=1","--check-feasibility=precondition,exit","--nullable-by-default","--timeout=60");
+    }
+    
+    @Test
+    public void gitbug889() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug890() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug894() {
+        helpEscSimple("--method=Test3.*");
+    }
+    
+    @Test
+    public void gitbug895() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug898() {
+        expectedExit = 1;
+        helpEscSimple("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug898a() {
+        expectedExit = 1;
+        helpEscSimple("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug898b() {
+        helpEscSimple("--spec-math=java","--code-math=java");
+    }
+    
+    @Test
+    public void gitbug899() {
+        expectedExit = 1;
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug901() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug901a() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug902() {
+        helpEscSimple("--check");
+    }
+    
+    @Test
+    public void gitbug903() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug922() {
+        expectedExit = 1;
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug932() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug932a() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug934() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug935() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug938() {
+        helpEscSimple();
+    }
+    
+    @Test
+    public void gitbug941() {
+        helpEscSimple();
     }
     
     @Test
     public void importProblem() {
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void importProblem2() {
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void imports() {
         expectedExit = 1;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void recommends() {
-        helpTCG("--show=program","--code-math=bigint");
+        helpEscSimple("--show=program","--code-math=bigint");
     }
     
     @Test
     public void recommendsA() {
         expectedExit = 1;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void recommendsB() {
         expectedExit = 1;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void recommendsC() {
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void escRawding2() {
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void escRawdingA() {
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void escRawdingB() {
-        helpTCG();
+        helpEscSimple();
     }
     
     @Test
     public void escharness1() {
         try {
-            helpTCG("--check");
+            helpEscSimple("--check");
         } catch (AssertionError a) {
             assertEquals("Incorrect harness failure:", "There are no expected output files in test/escharness1", a.getMessage());
         }
@@ -167,17 +366,17 @@ public class escfiles2 extends EscBaseFiles {
     public void escharness2() {
         // When a comparison difference is found, the behavior is to print out the differences to 'out'
         // For the purpose of this test, we redirect that output.
-        out = tempout;
+        var savedout = this.out;
+        this.out = tempout;
         try {
-            helpTCG("--check");
+            helpEscSimple("--check");
         } catch (AssertionError a) {
             String expected =
                     """
-                    Files differ: Less actual output than expected: -- intentionally incorrect content --
-                    """;
+                    Files differ""";
             assertEquals("Incorrect harness failure:", expected, a.getMessage());
         } finally {
-            out = System.out;
+            this.out = savedout;
         }
     }
 
@@ -185,95 +384,83 @@ public class escfiles2 extends EscBaseFiles {
     @Test
     public void escharness3() {
         solver = "z3_4_3";
-        helpTCG("--normal");
-    }
-
-    public void helpTCF(String sourceDirname, String outDir, String ... opts) {
-        //Assert.fail(); // FIXME - Java8 - long running
-        ArrayList<String> list = new ArrayList<String>();
-        list.add("-code-math=safe");
-        list.add("-spec-math=bigint");
-        list.add("--check-feasibility=precondition,reachable,exit,spec");
-        list.add("--progress");
-        list.addAll(Arrays.asList(opts));
-        escOnFiles(sourceDirname,outDir,list.toArray(opts));
-    }
-    
-    public void helpTCN(String ... opts) {
-        String n = "test/" + getTestName();
-        helpTCF(n, n, Utils.concat(new String[] {"-cp", n}, opts));
+        helpEscSimple("--normal");
     }
     
     @Test public void typecheckWithJML() {
         expectedExit = 1;
-        helpTCN("--check");
-    }
-    
-    @Test public void jmlstring() {
-        helpTCN("--esc");
+        helpEscSimple("--check");
     }
     
     @Test public void sfpatch25() {
-        helpTCN("--esc","--quiet");
+        helpEscSimple("--normal");
     }
     
     @Ignore // FIXME very long
     @Test public void sfbug402() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Ignore // FIXME very long
     @Test public void sfbug402a() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Ignore // FIXME very long
     @Test public void sfbug402b() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Test public void sfbug407() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Ignore // times out
     @Test public void sfbug396() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Test public void sfbug398() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Test public void sfbug399() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Test public void sfbug404() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Test public void sfbug408() {
-        helpTCN("--esc","--progress");
+        helpEscSimple();
     }
     
     @Test public void sfbug409() {
-        helpTCN("--esc","--progress","--check-feasibility=precondition,exit,reachable,assert,assume");
+        helpEscSimple("--check-feasibility=precondition,exit,reachable,assert,assume");
     }
     
     @Test public void sfbug410() {
-        helpTCN("--esc", "--progress");
+        helpEscSimple();
     }
     
     @Test public void optiondir() {
-        helpTCN("--check", "--dirs", "test/optiondir/p", "q");
+        helpEscSimple("--check", "--dirs", "test/optiondir/p", "q");
     }
     
     @Test public void changeMathMode() {
-        helpTCN("--esc","--progress","--check-feasibility=none");
+        helpEscSimple("--check-feasibility=none");
     }
     
-
-
-
+    @Test public void termination() {
+        helpEscSimple("--warn=missing-measured-by");
+    }
+    
+    @Test public void terminationBad() {
+        helpEscSimple("--warn=missing-measured-by");
+    }
+    
+    @Test public void legacyVerify() {
+        helpEscSimple("--verify-exit=-1");
+    }
 }

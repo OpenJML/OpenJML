@@ -1,0 +1,72 @@
+/*
+ * This file is part of the OpenJML project. 
+ * Author: David R. Cok
+ */
+package org.jmlspecs.openjml.ext;
+
+import org.jmlspecs.openjml.IJmlClauseKind;
+import org.jmlspecs.openjml.JmlExtension;
+import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.JmlTree.JmlAbstractStatement;
+import org.jmlspecs.openjml.JmlTree.JmlStatementExprList;
+
+import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.comp.AttrContext;
+import com.sun.tools.javac.comp.Env;
+import com.sun.tools.javac.comp.JmlAttr;
+import com.sun.tools.javac.parser.JmlParser;
+import com.sun.tools.javac.parser.Tokens.TokenKind;
+import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.tree.JCTree;
+import com.sun.tools.javac.tree.JCTree.JCExpression;
+import com.sun.tools.javac.tree.JCTree.JCModifiers;
+import com.sun.tools.javac.util.ListBuffer;
+
+public class ShowStatement extends JmlExtension {
+
+    public static final String showID = "show";
+    public static final String printID = "print";
+    
+    public static final IJmlClauseKind showClause = new JmlStatementType(showID);
+    public static final IJmlClauseKind printClause = new JmlStatementType(printID);
+
+    public static class JmlStatementType extends IJmlClauseKind.Statement {
+        public JmlStatementType(String keyword) { super(keyword); }
+        public boolean oldNoLabelAllowed() { return true; }
+        public boolean preOrOldWithLabelAllowed() { return true; }
+
+        public JmlAbstractStatement parse(JCModifiers mods, String keyword, IJmlClauseKind clauseType, JmlParser parser) {
+            int pp = parser.pos();
+            int pe = parser.endPos();
+            strictCheck(parser.context, pp,keyword + " statement");
+            
+            parser.nextToken();
+
+            ListBuffer<JCExpression> expressions = new ListBuffer<>();
+            if (parser.token().kind != TokenKind.SEMI && !parser.isEndJml()) {
+                do {
+                    int n = Log.instance(parser.context).nerrors;
+                    JCExpression t = parser.parseExpression();
+                    if (n != Log.instance(parser.context).nerrors) {
+                        parser.skipToSemi();
+                        break;
+                    }
+                    expressions.add(t);
+                } while (parser.acceptIf(TokenKind.COMMA));
+            }
+            JmlStatementExprList st = parser.toP(parser.maker().at(pp).JmlStatementExprList(clauseType,expressions.toList()));
+            wrapup(parser, st, clauseType, true, true);
+            return st;
+        }
+        
+        @Override
+        public Type typecheck(JmlAttr attr, JCTree stat, Env<AttrContext> env) {
+            if (stat instanceof JmlStatementExprList ps) {
+                for (var e: ps.expressions) {
+                    attr.attribExpr(e, env, Type.noType);
+                }
+            }
+            return null;
+        }
+    }
+}

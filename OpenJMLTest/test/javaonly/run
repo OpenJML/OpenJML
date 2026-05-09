@@ -1,0 +1,26 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## This script tests using the -java flag. Such tests must be done in a script,
+## not a JUnit test suite, because the -java flag sets a static field in Utils,
+## causing different test instances (especially concurrent ones) to interfere with
+## each other.
+
+rm -rf actual
+touch actual
+
+## Tests the -java option 
+echo "Test -java" >> actual 2>&1
+openjml -java -classpath ../compiler ../compiler/testSpecErrors/A.java >> actual 2>&1
+
+## Tests that errors result if there is no -java option
+echo "Test without -java" >> actual 2>&1
+openjml -classpath ../compiler ../compiler/testSpecErrors/A.java >> actual 2>&1
+
+echo "Test that -java must be first" >> actual 2>&1
+## Tests that the -java option must be first >> actual 2>&1
+openjml -classpath ../compiler -java ../compiler/testNoErrors/A.java >> actual 2>&1
+
+cat expected | sed -e "s^\$SPECS^$SPECS^" -e "s^\$ROOT^$ROOT^" | diff actual -  && rm actual

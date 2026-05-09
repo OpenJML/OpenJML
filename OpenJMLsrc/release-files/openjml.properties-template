@@ -1,0 +1,57 @@
+## Template for OpenJML properties defined in a openjml.properties file
+
+# org.openjml.option.arithmetic-failure=soft
+# org.openjml.option.check-accessible=true
+# org.openjml.option.check-feasibility=none
+# org.openjml.option.code-math=safe
+# org.openjml.option.command=check
+# org.openjml.option.counterexample=false
+# org.openjml.option.dir=
+# org.openjml.option.dirs=
+# org.openjml.option.esc-bv=auto
+# org.openjml.option.esc-max-warnings=1000000
+# org.openjml.option.esc-warnings-path=false:
+# org.openjml.option.exclude=
+# org.openjml.option.exec=
+# org.openjml.option.extensions=
+# org.openjml.option.jmltesting=false
+# org.openjml.option.keys=
+# org.openjml.option.lang=openjml
+# org.openjml.option.method=
+# org.openjml.option.nullable-by-default=false    
+# org.openjml.option.os-name=auto
+# org.openjml.option.prover=
+# org.openjml.option.purity-check=true
+# org.openjml.option.rac-check-assumptions=true
+# org.openjml.option.rac-compile-to-java-assert=false
+# org.openjml.option.rac-java-checks=false
+# org.openjml.option.rac-missing-model-field-rep=skip
+# org.openjml.option.rac-precondition-entry=false
+# org.openjml.option.rac-show-source=line
+# org.openjml.option.require-white-space=false
+# org.openjml.option.show=
+# org.openjml.option.show-not-executable=false
+# org.openjml.option.show-not-implemented=false
+# org.openjml.option.show-skipped=true
+# org.openjml.option.show-summary=true
+# org.openjml.option.smt=
+# org.openjml.option.solver-seed=0
+# org.openjml.option.spec-math=bigint
+# org.openjml.option.specs-path=
+# org.openjml.option.split=
+# org.openjml.option.subexpressions=false
+# org.openjml.option.timeout=0
+# org.openjml.option.trace=false
+# org.openjml.option.triggers=true
+# org.openjml.option.verboseness=1
+# org.openjml.option.verify-exit=6
+# org.openjml.option.warn=
+
+### TODO: THe following are not final or completely implemented and may go away
+# org.openjml.option.defaults=
+# org.openjml.option.determinism=
+# org.openjml.option.inline-function-literal=
+# org.openjml.option.staticInitWarning=
+# org.openjml.option.typeQuants=auto
+# org.openjml.option.properties= ## This option may only be used on the command-line
+

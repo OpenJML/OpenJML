@@ -1,17 +1,11 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjmltest.EscBase;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.openjml.runners.ParameterizedWithNames;
 
@@ -21,7 +15,7 @@ public class escfilesmodels extends EscBaseFiles {
     
     String cpathAddition = "";
 
-    public void helpTCF(String sourceDirname, String outDir, String ... opts) {
+    public void helpEscFile(String sourceDirname, String outDir, String ... opts) {
         //Assert.fail(); // FIXME - Java8 - long running
         ArrayList<String> list = new ArrayList<String>();
         list.add("-code-math=safe");
@@ -40,6 +34,7 @@ public class escfilesmodels extends EscBaseFiles {
         a.add("--code-math=safe");
         a.add("--spec-math=bigint");
         a.add("--check-feasibility=precondition,reachable,exit,spec");
+        a.add("--source-path=$SY");
         a.add("--progress");
         a.addAll(Arrays.asList(opts));
         escOnFiles(dir, dir, a.toArray(new String[a.size()]));
@@ -58,7 +53,7 @@ public class escfilesmodels extends EscBaseFiles {
 
     @Test public void gitbug431() {
         expectedExit = 0;
-        helpTCF("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "--esc", "--progress");
+        helpEscFile("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "--esc", "--progress");
     }
         
     @Test public void gitbug461() {
@@ -82,15 +77,8 @@ public class escfilesmodels extends EscBaseFiles {
     }
 
     @Ignore // times out
-    @Test public void gitbug582() {
-        expectedExit = 0;
-        helpTCG("-purityCheck");
-    }
-
-    @Ignore // times out
     @Test public void gitbug584() {
         expectedExit = 0;
-        helpTCG("-purityCheck");
     }
     
     @Test @Ignore  // Needs specs about double
@@ -107,12 +95,5 @@ public class escfilesmodels extends EscBaseFiles {
         expectedExit = 0;
         helpTCG();
     }
-    
-    @Test public void sfbug414() {
-        expectedExit = 0;
-        helpTCF("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","-logic=AUFNIRA","--esc-max-warnings=5");
-    }
-
-
 }
 

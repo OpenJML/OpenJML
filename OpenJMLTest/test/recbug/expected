@@ -1,15 +1,22 @@
+test/recbug/Test.java:3: warning: [missing-measured-by] Method b() is called recursively, but a specification case has no measured_by clause
+  //@ ensures \result == b();
+                          ^
+test/recbug/Test.java:3: warning: Associated declaration: test/recbug/Test.java:3:
+  //@ ensures \result == b();
+      ^
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.b() with prover !!!!
-test/recbug/Test.java:5: warning: The prover cannot establish an assertion (Postcondition) in method b
+test/recbug/Test.java:5: verify: The prover cannot establish an assertion (Postcondition) in method b
   public boolean b() { return true; }
                        ^
-test/recbug/Test.java:3: warning: Associated declaration
+test/recbug/Test.java:3: verify: Associated declaration
   //@ ensures \result == b();
       ^
 Completed proof of Test.b() with prover !!!! - with warnings
 Completed proving methods in Test
 2 warnings
+2 verification failures

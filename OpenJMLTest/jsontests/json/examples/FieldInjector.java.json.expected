@@ -1,0 +1,4534 @@
+{
+  "@class": "org.jmlspecs.openjml.JmlTree$JmlCompilationUnit",
+  "@id": "1",
+  "sourcefile": {
+    "@class": "javax.tools.JavaFileObject",
+    "@id": "2",
+    "primitive": "examples/FieldInjector.java"
+  },
+  "pid": {
+    "@class": "com.sun.tools.javac.tree.JCTree$JCPackageDecl",
+    "@id": "3",
+    "annotations": [],
+    "pid": {
+      "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+      "@id": "4",
+      "selected": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "5",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "6",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "7",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "8",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "9",
+                "primitive": "com"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "10",
+              "primitive": "hellokaton"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "11",
+            "primitive": "blade"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "12",
+          "primitive": "ioc"
+        }
+      },
+      "name": {
+        "@class": "com.sun.tools.javac.util.Name",
+        "@id": "13",
+        "primitive": "bean"
+      }
+    }
+  },
+  "defs": [
+    {
+      "@class": "com.sun.tools.javac.tree.JCTree$JCPackageDecl",
+      "@ref": "3",
+      "annotations": [],
+      "pid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@ref": "4",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@ref": "5",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@ref": "6",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@ref": "7",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@ref": "8",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "9",
+                  "primitive": "com"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "10",
+                "primitive": "hellokaton"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "11",
+              "primitive": "blade"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@ref": "12",
+            "primitive": "ioc"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@ref": "13",
+          "primitive": "bean"
+        }
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "14",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "15",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "16",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "17",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "18",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "19",
+                "primitive": "org"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "20",
+              "primitive": "jmlspecs"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "21",
+            "primitive": "lang"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "22",
+          "primitive": "*"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "true"
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "23",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "24",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "25",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "26",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "27",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "28",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "9",
+                  "primitive": "com"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "10",
+                "primitive": "hellokaton"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "11",
+              "primitive": "blade"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@ref": "12",
+            "primitive": "ioc"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "29",
+          "primitive": "Injector"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "false"
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "30",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "31",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "32",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "33",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "34",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "35",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "9",
+                  "primitive": "com"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "10",
+                "primitive": "hellokaton"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "11",
+              "primitive": "blade"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@ref": "12",
+            "primitive": "ioc"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "36",
+          "primitive": "Ioc"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "false"
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "37",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "38",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "39",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "40",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "41",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "42",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "9",
+                  "primitive": "com"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "10",
+                "primitive": "hellokaton"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "11",
+              "primitive": "blade"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "43",
+            "primitive": "kit"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "44",
+          "primitive": "IocKit"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "false"
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "45",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "46",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "47",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "48",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "49",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "50",
+                "primitive": "java"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "21",
+              "primitive": "lang"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "51",
+            "primitive": "reflect"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "52",
+          "primitive": "Field"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "false"
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "@id": "53",
+      "sourcefile": {
+        "@class": "javax.tools.JavaFileObject",
+        "@ref": "2",
+        "primitive": "examples/FieldInjector.java"
+      },
+      "mods": {
+        "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+        "@id": "54",
+        "annotations": [],
+        "flags": {
+          "@class": "long",
+          "primitive": "1"
+        },
+        "jmlmods": []
+      },
+      "name": {
+        "@class": "com.sun.tools.javac.util.Name",
+        "@id": "55",
+        "primitive": "FieldInjector"
+      },
+      "typarams": [],
+      "extending": null,
+      "implementing": [
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+          "@id": "56",
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@ref": "29",
+            "primitive": "Injector"
+          }
+        }
+      ],
+      "permitting": [],
+      "defs": [
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlTypeClauseExpr",
+          "@id": "57",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "name": null,
+          "modifiers": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "58",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "jmlmods": []
+          },
+          "keyword": {
+            "@class": "java.lang.String",
+            "@id": "59",
+            "primitive": null
+          },
+          "clauseType": {
+            "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+            "@id": "60",
+            "primitive": "invariant"
+          },
+          "expression": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+            "@id": "61",
+            "lhs": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+              "@id": "62",
+              "typeargs": [],
+              "meth": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "63",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                  "@id": "64",
+                  "typeargs": [],
+                  "meth": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                    "@id": "65",
+                    "selected": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                      "@id": "66",
+                      "selected": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "67",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@id": "68",
+                          "primitive": "this"
+                        }
+                      },
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "12",
+                        "primitive": "ioc"
+                      }
+                    },
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@id": "69",
+                      "primitive": "getClass"
+                    }
+                  },
+                  "args": []
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "70",
+                  "primitive": "getName"
+                }
+              },
+              "args": []
+            },
+            "opcode": {
+              "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+              "@id": "71",
+              "primitive": "EQ"
+            },
+            "rhs": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+              "@id": "72",
+              "typeargs": [],
+              "meth": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "73",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                  "@id": "74",
+                  "selected": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                    "@id": "75",
+                    "selected": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                      "@id": "76",
+                      "selected": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "77",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "78",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "79",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "9",
+                              "primitive": "com"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "10",
+                            "primitive": "hellokaton"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "11",
+                          "primitive": "blade"
+                        }
+                      },
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "12",
+                        "primitive": "ioc"
+                      }
+                    },
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@id": "80",
+                      "primitive": "SimpleIoc"
+                    }
+                  },
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@id": "81",
+                    "primitive": "class"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "70",
+                  "primitive": "getName"
+                }
+              },
+              "args": []
+            }
+          }
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+          "@id": "82",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "83",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "1"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@ref": "12",
+            "primitive": "ioc"
+          },
+          "vartype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+            "@id": "84",
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "36",
+              "primitive": "Ioc"
+            }
+          },
+          "init": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+          "@id": "85",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "86",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "1"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "87",
+            "primitive": "field"
+          },
+          "vartype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+            "@id": "88",
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "52",
+              "primitive": "Field"
+            }
+          },
+          "init": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "89",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "90",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "1"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "91",
+            "primitive": "\u003cinit\u003e"
+          },
+          "restype": null,
+          "typarams": [],
+          "recvparam": null,
+          "params": [
+            {
+              "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@id": "92",
+              "sourcefile": {
+                "@class": "javax.tools.JavaFileObject",
+                "@ref": "2",
+                "primitive": "examples/FieldInjector.java"
+              },
+              "mods": {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@id": "93",
+                "annotations": [],
+                "flags": {
+                  "@class": "long",
+                  "primitive": "8589934592"
+                },
+                "jmlmods": []
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "12",
+                "primitive": "ioc"
+              },
+              "vartype": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "94",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "36",
+                  "primitive": "Ioc"
+                }
+              },
+              "init": null
+            },
+            {
+              "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@id": "95",
+              "sourcefile": {
+                "@class": "javax.tools.JavaFileObject",
+                "@ref": "2",
+                "primitive": "examples/FieldInjector.java"
+              },
+              "mods": {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@id": "96",
+                "annotations": [],
+                "flags": {
+                  "@class": "long",
+                  "primitive": "8589934592"
+                },
+                "jmlmods": []
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "87",
+                "primitive": "field"
+              },
+              "vartype": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "97",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "52",
+                  "primitive": "Field"
+                }
+              },
+              "init": null
+            }
+          ],
+          "thrown": [],
+          "methodSpecs": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodSpecs",
+            "@id": "98",
+            "cases": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlSpecificationCase",
+                "@id": "99",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "examples/FieldInjector.java"
+                },
+                "also": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "59",
+                  "primitive": null
+                },
+                "modifiers": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "100",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "1"
+                  },
+                  "jmlmods": []
+                },
+                "code": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "token": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@id": "101",
+                  "primitive": "normal_behavior"
+                },
+                "callee_only": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "clauses": [
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "102",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "103",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@id": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "105",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "106",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "107",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "108",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "109",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "110",
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "12",
+                                  "primitive": "ioc"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "69",
+                                "primitive": "getClass"
+                              }
+                            },
+                            "args": []
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "111",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "112",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "113",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "114",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                "@id": "115",
+                                "selected": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                  "@id": "116",
+                                  "selected": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                    "@id": "117",
+                                    "selected": {
+                                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                      "@id": "118",
+                                      "name": {
+                                        "@class": "com.sun.tools.javac.util.Name",
+                                        "@ref": "9",
+                                        "primitive": "com"
+                                      }
+                                    },
+                                    "name": {
+                                      "@class": "com.sun.tools.javac.util.Name",
+                                      "@ref": "10",
+                                      "primitive": "hellokaton"
+                                    }
+                                  },
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "11",
+                                    "primitive": "blade"
+                                  }
+                                },
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "12",
+                                  "primitive": "ioc"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "80",
+                                "primitive": "SimpleIoc"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "81",
+                              "primitive": "class"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "119",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "120",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@id": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "122",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "123",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "124",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "12",
+                          "primitive": "ioc"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "125",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@id": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "127",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "12",
+                              "primitive": "ioc"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "128",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "129",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "130",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "131",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "132",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "133",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "134",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                "@id": "135",
+                                "selected": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                  "@id": "136",
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "68",
+                                    "primitive": "this"
+                                  }
+                                },
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "12",
+                                  "primitive": "ioc"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "69",
+                                "primitive": "getClass"
+                              }
+                            },
+                            "args": []
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "137",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "138",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "139",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                                "@id": "140",
+                                "typeargs": [],
+                                "meth": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                  "@id": "141",
+                                  "selected": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                    "@id": "142",
+                                    "name": {
+                                      "@class": "com.sun.tools.javac.util.Name",
+                                      "@ref": "12",
+                                      "primitive": "ioc"
+                                    }
+                                  },
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "69",
+                                    "primitive": "getClass"
+                                  }
+                                },
+                                "args": []
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "70",
+                                "primitive": "getName"
+                              }
+                            },
+                            "args": []
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "143",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "144",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "145",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "146",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "147",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "87",
+                          "primitive": "field"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "148",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "149",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "87",
+                              "primitive": "field"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  }
+                ]
+              }
+            ],
+            "behaviors": null,
+            "impliesThatCases": [],
+            "forExampleCases": []
+          },
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "150",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
+                "@id": "151",
+                "expr": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCAssign",
+                  "@id": "152",
+                  "lhs": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                    "@id": "153",
+                    "selected": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                      "@id": "154",
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "68",
+                        "primitive": "this"
+                      }
+                    },
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "12",
+                      "primitive": "ioc"
+                    }
+                  },
+                  "rhs": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "155",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "12",
+                      "primitive": "ioc"
+                    }
+                  }
+                }
+              },
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
+                "@id": "156",
+                "expr": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCAssign",
+                  "@id": "157",
+                  "lhs": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                    "@id": "158",
+                    "selected": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                      "@id": "159",
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "68",
+                        "primitive": "this"
+                      }
+                    },
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "87",
+                      "primitive": "field"
+                    }
+                  },
+                  "rhs": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "160",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "87",
+                      "primitive": "field"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "defaultValue": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "161",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "162",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "1"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "163",
+            "primitive": "getType"
+          },
+          "restype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCTypeApply",
+            "@id": "164",
+            "clazz": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "165",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "166",
+                "primitive": "Class"
+              }
+            },
+            "arguments": [
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCWildcard",
+                "@id": "167",
+                "kind": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$TypeBoundKind",
+                  "@id": "168",
+                  "kind": {
+                    "@class": "com.sun.tools.javac.code.BoundKind",
+                    "@id": "169",
+                    "primitive": "UNBOUND"
+                  }
+                },
+                "inner": null
+              }
+            ]
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [],
+          "thrown": [],
+          "methodSpecs": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodSpecs",
+            "@id": "170",
+            "cases": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlSpecificationCase",
+                "@id": "171",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "examples/FieldInjector.java"
+                },
+                "also": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "59",
+                  "primitive": null
+                },
+                "modifiers": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "172",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "1"
+                  },
+                  "jmlmods": []
+                },
+                "code": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "token": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "101",
+                  "primitive": "normal_behavior"
+                },
+                "callee_only": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "clauses": [
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "173",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "174",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "175",
+                      "typetag": {
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@id": "176",
+                        "primitive": "BOOLEAN"
+                      },
+                      "value": 1
+                    },
+                    "exception": null
+                  }
+                ]
+              }
+            ],
+            "behaviors": null,
+            "impliesThatCases": [],
+            "forExampleCases": []
+          },
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "177",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCReturn",
+                "@id": "178",
+                "expr": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                  "@id": "179",
+                  "typeargs": [],
+                  "meth": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                    "@id": "180",
+                    "selected": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                      "@id": "181",
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "87",
+                        "primitive": "field"
+                      }
+                    },
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "163",
+                      "primitive": "getType"
+                    }
+                  },
+                  "args": []
+                }
+              }
+            ]
+          },
+          "defaultValue": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "182",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "183",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "1"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "184",
+            "primitive": "isSingleton"
+          },
+          "restype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@id": "185",
+            "typetag": {
+              "@class": "com.sun.tools.javac.code.TypeTag",
+              "@ref": "176",
+              "primitive": "BOOLEAN"
+            }
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [],
+          "thrown": [],
+          "methodSpecs": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodSpecs",
+            "@id": "186",
+            "cases": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlSpecificationCase",
+                "@id": "187",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "examples/FieldInjector.java"
+                },
+                "also": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "59",
+                  "primitive": null
+                },
+                "modifiers": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "188",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "1"
+                  },
+                  "jmlmods": []
+                },
+                "code": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "token": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "101",
+                  "primitive": "normal_behavior"
+                },
+                "callee_only": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "clauses": [
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "189",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "190",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "191",
+                      "typetag": {
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "176",
+                        "primitive": "BOOLEAN"
+                      },
+                      "value": 1
+                    },
+                    "exception": null
+                  }
+                ]
+              }
+            ],
+            "behaviors": null,
+            "impliesThatCases": [],
+            "forExampleCases": []
+          },
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "192",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCReturn",
+                "@id": "193",
+                "expr": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                  "@id": "194",
+                  "typeargs": [],
+                  "meth": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                    "@id": "195",
+                    "selected": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                      "@id": "196",
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "44",
+                        "primitive": "IocKit"
+                      }
+                    },
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "184",
+                      "primitive": "isSingleton"
+                    }
+                  },
+                  "args": [
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                      "@id": "197",
+                      "typeargs": [],
+                      "meth": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "198",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "199",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "87",
+                            "primitive": "field"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "163",
+                          "primitive": "getType"
+                        }
+                      },
+                      "args": []
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          "defaultValue": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "200",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "201",
+            "annotations": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                "@id": "202",
+                "annotationType": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "203",
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@id": "204",
+                    "primitive": "Override"
+                  }
+                },
+                "token": null,
+                "kind": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "59",
+                  "primitive": null
+                },
+                "args": []
+              }
+            ],
+            "flags": {
+              "@class": "long",
+              "primitive": "1"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "205",
+            "primitive": "injection"
+          },
+          "restype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@id": "206",
+            "typetag": {
+              "@class": "com.sun.tools.javac.code.TypeTag",
+              "@id": "207",
+              "primitive": "VOID"
+            }
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [
+            {
+              "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@id": "208",
+              "sourcefile": {
+                "@class": "javax.tools.JavaFileObject",
+                "@ref": "2",
+                "primitive": "examples/FieldInjector.java"
+              },
+              "mods": {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@id": "209",
+                "annotations": [],
+                "flags": {
+                  "@class": "long",
+                  "primitive": "8589934592"
+                },
+                "jmlmods": []
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "13",
+                "primitive": "bean"
+              },
+              "vartype": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "210",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "211",
+                  "primitive": "Object"
+                }
+              },
+              "init": null
+            }
+          ],
+          "thrown": [],
+          "methodSpecs": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodSpecs",
+            "@id": "212",
+            "cases": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlSpecificationCase",
+                "@id": "213",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "examples/FieldInjector.java"
+                },
+                "also": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@id": "214",
+                  "primitive": "also"
+                },
+                "modifiers": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "215",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "1"
+                  },
+                  "jmlmods": []
+                },
+                "code": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "token": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "101",
+                  "primitive": "normal_behavior"
+                },
+                "callee_only": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "clauses": [
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "216",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "217",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "218",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "219",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "68",
+                          "primitive": "this"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@id": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "221",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@id": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "223",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "224",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "225",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "226",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "227",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "12",
+                          "primitive": "ioc"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "228",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "229",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "230",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "231",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "232",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "233",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "87",
+                          "primitive": "field"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "234",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "235",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "236",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "237",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "238",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "13",
+                          "primitive": "bean"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "239",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "240",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "241",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "242",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "243",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "244",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "245",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "246",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "247",
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "13",
+                                  "primitive": "bean"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "69",
+                                "primitive": "getClass"
+                              }
+                            },
+                            "args": []
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "248",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "249",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "250",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "251",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                "@id": "252",
+                                "selected": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                  "@id": "253",
+                                  "selected": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                    "@id": "254",
+                                    "selected": {
+                                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                      "@id": "255",
+                                      "name": {
+                                        "@class": "com.sun.tools.javac.util.Name",
+                                        "@ref": "9",
+                                        "primitive": "com"
+                                      }
+                                    },
+                                    "name": {
+                                      "@class": "com.sun.tools.javac.util.Name",
+                                      "@ref": "10",
+                                      "primitive": "hellokaton"
+                                    }
+                                  },
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "11",
+                                    "primitive": "blade"
+                                  }
+                                },
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@id": "256",
+                                  "primitive": "types"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@id": "257",
+                                "primitive": "BladeBeanDefineType"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "81",
+                              "primitive": "class"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "258",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "259",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "260",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "261",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "262",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "12",
+                          "primitive": "ioc"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "263",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "264",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@id": "265",
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "68",
+                                "primitive": "this"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "12",
+                              "primitive": "ioc"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "266",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "267",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "268",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "269",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "270",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "271",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "272",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                "@id": "273",
+                                "selected": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                  "@id": "274",
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "68",
+                                    "primitive": "this"
+                                  }
+                                },
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "12",
+                                  "primitive": "ioc"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "69",
+                                "primitive": "getClass"
+                              }
+                            },
+                            "args": []
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "275",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "276",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "277",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                                "@id": "278",
+                                "typeargs": [],
+                                "meth": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                  "@id": "279",
+                                  "selected": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                    "@id": "280",
+                                    "selected": {
+                                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                      "@id": "281",
+                                      "name": {
+                                        "@class": "com.sun.tools.javac.util.Name",
+                                        "@ref": "68",
+                                        "primitive": "this"
+                                      }
+                                    },
+                                    "name": {
+                                      "@class": "com.sun.tools.javac.util.Name",
+                                      "@ref": "12",
+                                      "primitive": "ioc"
+                                    }
+                                  },
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "69",
+                                    "primitive": "getClass"
+                                  }
+                                },
+                                "args": []
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "70",
+                                "primitive": "getName"
+                              }
+                            },
+                            "args": []
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "282",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "283",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "284",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "285",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "286",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "87",
+                          "primitive": "field"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "287",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "288",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@id": "289",
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "68",
+                                "primitive": "this"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "87",
+                              "primitive": "field"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "290",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "291",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "292",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "293",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "294",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "12",
+                          "primitive": "ioc"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "295",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "296",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "297",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "298",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "299",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "300",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "87",
+                          "primitive": "field"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "301",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  }
+                ]
+              }
+            ],
+            "behaviors": null,
+            "impliesThatCases": [],
+            "forExampleCases": []
+          },
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "302",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCTry",
+                "@id": "303",
+                "resources": [],
+                "body": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@id": "304",
+                  "sourcefile": null,
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "0"
+                  },
+                  "stats": [
+                    {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                      "@id": "305",
+                      "sourcefile": {
+                        "@class": "javax.tools.JavaFileObject",
+                        "@ref": "2",
+                        "primitive": "examples/FieldInjector.java"
+                      },
+                      "mods": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                        "@id": "306",
+                        "annotations": [],
+                        "flags": {
+                          "@class": "long",
+                          "primitive": "0"
+                        },
+                        "jmlmods": []
+                      },
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@id": "307",
+                        "primitive": "fieldType"
+                      },
+                      "vartype": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCTypeApply",
+                        "@id": "308",
+                        "clazz": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "309",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "166",
+                            "primitive": "Class"
+                          }
+                        },
+                        "arguments": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCWildcard",
+                            "@id": "310",
+                            "kind": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$TypeBoundKind",
+                              "@id": "311",
+                              "kind": {
+                                "@class": "com.sun.tools.javac.code.BoundKind",
+                                "@ref": "169",
+                                "primitive": "UNBOUND"
+                              }
+                            },
+                            "inner": null
+                          }
+                        ]
+                      },
+                      "init": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "312",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "313",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "314",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "87",
+                              "primitive": "field"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "163",
+                            "primitive": "getType"
+                          }
+                        },
+                        "args": []
+                      }
+                    },
+                    {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                      "@id": "315",
+                      "sourcefile": {
+                        "@class": "javax.tools.JavaFileObject",
+                        "@ref": "2",
+                        "primitive": "examples/FieldInjector.java"
+                      },
+                      "mods": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                        "@id": "316",
+                        "annotations": [],
+                        "flags": {
+                          "@class": "long",
+                          "primitive": "0"
+                        },
+                        "jmlmods": []
+                      },
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@id": "317",
+                        "primitive": "value"
+                      },
+                      "vartype": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "318",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "211",
+                          "primitive": "Object"
+                        }
+                      },
+                      "init": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "319",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "320",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "321",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "12",
+                              "primitive": "ioc"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@id": "322",
+                            "primitive": "getBean"
+                          }
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "323",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "307",
+                              "primitive": "fieldType"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlIfStatement",
+                      "@id": "324",
+                      "cond": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCParens",
+                        "@id": "325",
+                        "expr": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                          "@id": "326",
+                          "lhs": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "327",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "317",
+                              "primitive": "value"
+                            }
+                          },
+                          "opcode": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                            "@ref": "71",
+                            "primitive": "EQ"
+                          },
+                          "rhs": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                            "@id": "328",
+                            "typetag": {
+                              "@class": "com.sun.tools.javac.code.TypeTag",
+                              "@ref": "222",
+                              "primitive": "BOT"
+                            },
+                            "value": null
+                          }
+                        }
+                      },
+                      "thenpart": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                        "@id": "329",
+                        "sourcefile": null,
+                        "flags": {
+                          "@class": "long",
+                          "primitive": "0"
+                        },
+                        "stats": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCThrow",
+                            "@id": "330",
+                            "expr": {
+                              "@class": "org.jmlspecs.openjml.JmlTree$JmlNewClass",
+                              "@id": "331",
+                              "encl": null,
+                              "typeargs": [],
+                              "clazz": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "332",
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@id": "333",
+                                  "primitive": "IllegalStateException"
+                                }
+                              },
+                              "args": [
+                                {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                                  "@id": "334",
+                                  "lhs": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                                    "@id": "335",
+                                    "lhs": {
+                                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                                      "@id": "336",
+                                      "lhs": {
+                                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                                        "@id": "337",
+                                        "typetag": {
+                                          "@class": "com.sun.tools.javac.code.TypeTag",
+                                          "@id": "338",
+                                          "primitive": "CLASS"
+                                        },
+                                        "value": "Can\u0027t inject bean: "
+                                      },
+                                      "opcode": {
+                                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                                        "@id": "339",
+                                        "primitive": "PLUS"
+                                      },
+                                      "rhs": {
+                                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                                        "@id": "340",
+                                        "typeargs": [],
+                                        "meth": {
+                                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                          "@id": "341",
+                                          "selected": {
+                                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                            "@id": "342",
+                                            "name": {
+                                              "@class": "com.sun.tools.javac.util.Name",
+                                              "@ref": "307",
+                                              "primitive": "fieldType"
+                                            }
+                                          },
+                                          "name": {
+                                            "@class": "com.sun.tools.javac.util.Name",
+                                            "@ref": "70",
+                                            "primitive": "getName"
+                                          }
+                                        },
+                                        "args": []
+                                      }
+                                    },
+                                    "opcode": {
+                                      "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                                      "@ref": "339",
+                                      "primitive": "PLUS"
+                                    },
+                                    "rhs": {
+                                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                                      "@id": "343",
+                                      "typetag": {
+                                        "@class": "com.sun.tools.javac.code.TypeTag",
+                                        "@ref": "338",
+                                        "primitive": "CLASS"
+                                      },
+                                      "value": " for field: "
+                                    }
+                                  },
+                                  "opcode": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                                    "@ref": "339",
+                                    "primitive": "PLUS"
+                                  },
+                                  "rhs": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                    "@id": "344",
+                                    "name": {
+                                      "@class": "com.sun.tools.javac.util.Name",
+                                      "@ref": "87",
+                                      "primitive": "field"
+                                    }
+                                  }
+                                }
+                              ],
+                              "def": null
+                            }
+                          }
+                        ]
+                      },
+                      "elsepart": null
+                    },
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
+                      "@id": "345",
+                      "expr": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "346",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "347",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "205",
+                            "primitive": "injection"
+                          }
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "348",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "13",
+                              "primitive": "bean"
+                            }
+                          },
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "349",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "317",
+                              "primitive": "value"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "catchers": [
+                  {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCCatch",
+                    "@id": "350",
+                    "param": {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                      "@id": "351",
+                      "sourcefile": {
+                        "@class": "javax.tools.JavaFileObject",
+                        "@ref": "2",
+                        "primitive": "examples/FieldInjector.java"
+                      },
+                      "mods": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                        "@id": "352",
+                        "annotations": [],
+                        "flags": {
+                          "@class": "long",
+                          "primitive": "8589934592"
+                        },
+                        "jmlmods": []
+                      },
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@id": "353",
+                        "primitive": "e"
+                      },
+                      "vartype": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "354",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@id": "355",
+                          "primitive": "Exception"
+                        }
+                      },
+                      "init": null
+                    },
+                    "body": {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                      "@id": "356",
+                      "sourcefile": null,
+                      "flags": {
+                        "@class": "long",
+                        "primitive": "0"
+                      },
+                      "stats": [
+                        {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCThrow",
+                          "@id": "357",
+                          "expr": {
+                            "@class": "org.jmlspecs.openjml.JmlTree$JmlNewClass",
+                            "@id": "358",
+                            "encl": null,
+                            "typeargs": [],
+                            "clazz": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@id": "359",
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@id": "360",
+                                "primitive": "RuntimeException"
+                              }
+                            },
+                            "args": [
+                              {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "361",
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "353",
+                                  "primitive": "e"
+                                }
+                              }
+                            ],
+                            "def": null
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "finalizer": null
+              }
+            ]
+          },
+          "defaultValue": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "362",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "363",
+            "annotations": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                "@id": "364",
+                "annotationType": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "365",
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "204",
+                    "primitive": "Override"
+                  }
+                },
+                "token": null,
+                "kind": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "59",
+                  "primitive": null
+                },
+                "args": []
+              }
+            ],
+            "flags": {
+              "@class": "long",
+              "primitive": "1"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@ref": "205",
+            "primitive": "injection"
+          },
+          "restype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@id": "366",
+            "typetag": {
+              "@class": "com.sun.tools.javac.code.TypeTag",
+              "@ref": "207",
+              "primitive": "VOID"
+            }
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [
+            {
+              "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@id": "367",
+              "sourcefile": {
+                "@class": "javax.tools.JavaFileObject",
+                "@ref": "2",
+                "primitive": "examples/FieldInjector.java"
+              },
+              "mods": {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@id": "368",
+                "annotations": [],
+                "flags": {
+                  "@class": "long",
+                  "primitive": "8589934592"
+                },
+                "jmlmods": []
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "13",
+                "primitive": "bean"
+              },
+              "vartype": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "369",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "211",
+                  "primitive": "Object"
+                }
+              },
+              "init": null
+            },
+            {
+              "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+              "@id": "370",
+              "sourcefile": {
+                "@class": "javax.tools.JavaFileObject",
+                "@ref": "2",
+                "primitive": "examples/FieldInjector.java"
+              },
+              "mods": {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                "@id": "371",
+                "annotations": [],
+                "flags": {
+                  "@class": "long",
+                  "primitive": "8589934592"
+                },
+                "jmlmods": []
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "317",
+                "primitive": "value"
+              },
+              "vartype": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "372",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "211",
+                  "primitive": "Object"
+                }
+              },
+              "init": null
+            }
+          ],
+          "thrown": [],
+          "methodSpecs": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodSpecs",
+            "@id": "373",
+            "cases": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlSpecificationCase",
+                "@id": "374",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "examples/FieldInjector.java"
+                },
+                "also": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "214",
+                  "primitive": "also"
+                },
+                "modifiers": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "375",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "1"
+                  },
+                  "jmlmods": []
+                },
+                "code": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "token": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "101",
+                  "primitive": "normal_behavior"
+                },
+                "callee_only": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "clauses": [
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "376",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "377",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "378",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "379",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "68",
+                          "primitive": "this"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "380",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "381",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "382",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "383",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "384",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "385",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "12",
+                          "primitive": "ioc"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "386",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "387",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "388",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "389",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "390",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "391",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "87",
+                          "primitive": "field"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "392",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "393",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "394",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "395",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "396",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "13",
+                          "primitive": "bean"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "397",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "398",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "399",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "400",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "401",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "402",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "403",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "404",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "405",
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "13",
+                                  "primitive": "bean"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "69",
+                                "primitive": "getClass"
+                              }
+                            },
+                            "args": []
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "406",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "407",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "408",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "409",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                "@id": "410",
+                                "selected": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                  "@id": "411",
+                                  "selected": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                    "@id": "412",
+                                    "selected": {
+                                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                      "@id": "413",
+                                      "name": {
+                                        "@class": "com.sun.tools.javac.util.Name",
+                                        "@ref": "9",
+                                        "primitive": "com"
+                                      }
+                                    },
+                                    "name": {
+                                      "@class": "com.sun.tools.javac.util.Name",
+                                      "@ref": "10",
+                                      "primitive": "hellokaton"
+                                    }
+                                  },
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "11",
+                                    "primitive": "blade"
+                                  }
+                                },
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "256",
+                                  "primitive": "types"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "257",
+                                "primitive": "BladeBeanDefineType"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "81",
+                              "primitive": "class"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "414",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "415",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "416",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "417",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "317",
+                          "primitive": "value"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "418",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "419",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "420",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "421",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "422",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "423",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "424",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "425",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "426",
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "317",
+                                  "primitive": "value"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "69",
+                                "primitive": "getClass"
+                              }
+                            },
+                            "args": []
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "427",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "428",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "429",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "430",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                "@id": "431",
+                                "selected": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                  "@id": "432",
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "50",
+                                    "primitive": "java"
+                                  }
+                                },
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "21",
+                                  "primitive": "lang"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@id": "433",
+                                "primitive": "String"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "81",
+                              "primitive": "class"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "434",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "435",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "436",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "437",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "438",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "12",
+                          "primitive": "ioc"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "439",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "440",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@id": "441",
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "68",
+                                "primitive": "this"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "12",
+                              "primitive": "ioc"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "442",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "443",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "444",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "445",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "446",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "447",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "448",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                "@id": "449",
+                                "selected": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                  "@id": "450",
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "68",
+                                    "primitive": "this"
+                                  }
+                                },
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "12",
+                                  "primitive": "ioc"
+                                }
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "69",
+                                "primitive": "getClass"
+                              }
+                            },
+                            "args": []
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "70",
+                            "primitive": "getName"
+                          }
+                        },
+                        "args": []
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "451",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                            "@id": "452",
+                            "typeargs": [],
+                            "meth": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                              "@id": "453",
+                              "selected": {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                                "@id": "454",
+                                "typeargs": [],
+                                "meth": {
+                                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                  "@id": "455",
+                                  "selected": {
+                                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                                    "@id": "456",
+                                    "selected": {
+                                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                      "@id": "457",
+                                      "name": {
+                                        "@class": "com.sun.tools.javac.util.Name",
+                                        "@ref": "68",
+                                        "primitive": "this"
+                                      }
+                                    },
+                                    "name": {
+                                      "@class": "com.sun.tools.javac.util.Name",
+                                      "@ref": "12",
+                                      "primitive": "ioc"
+                                    }
+                                  },
+                                  "name": {
+                                    "@class": "com.sun.tools.javac.util.Name",
+                                    "@ref": "69",
+                                    "primitive": "getClass"
+                                  }
+                                },
+                                "args": []
+                              },
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "70",
+                                "primitive": "getName"
+                              }
+                            },
+                            "args": []
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "458",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "459",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "460",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "461",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "462",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "87",
+                          "primitive": "field"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "71",
+                        "primitive": "EQ"
+                      },
+                      "rhs": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodInvocation",
+                        "@id": "463",
+                        "typeargs": [],
+                        "meth": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "126",
+                          "primitive": "\\old"
+                        },
+                        "name": {
+                          "@class": "java.lang.String",
+                          "@ref": "59",
+                          "primitive": null
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "464",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@id": "465",
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "68",
+                                "primitive": "this"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "87",
+                              "primitive": "field"
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "466",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "467",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "468",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "469",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "470",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "12",
+                          "primitive": "ioc"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "471",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  },
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "472",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "473",
+                      "primitive": "ensures"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "121",
+                      "primitive": "ensures"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                      "@id": "474",
+                      "lhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "475",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "476",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "68",
+                            "primitive": "this"
+                          }
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "87",
+                          "primitive": "field"
+                        }
+                      },
+                      "opcode": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                        "@ref": "220",
+                        "primitive": "NE"
+                      },
+                      "rhs": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                        "@id": "477",
+                        "typetag": {
+                          "@class": "com.sun.tools.javac.code.TypeTag",
+                          "@ref": "222",
+                          "primitive": "BOT"
+                        },
+                        "value": null
+                      }
+                    },
+                    "exception": null
+                  }
+                ]
+              }
+            ],
+            "behaviors": null,
+            "impliesThatCases": [],
+            "forExampleCases": []
+          },
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "478",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCTry",
+                "@id": "479",
+                "resources": [],
+                "body": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                  "@id": "480",
+                  "sourcefile": null,
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "0"
+                  },
+                  "stats": [
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
+                      "@id": "481",
+                      "expr": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "482",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "483",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "484",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "87",
+                              "primitive": "field"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@id": "485",
+                            "primitive": "setAccessible"
+                          }
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                            "@id": "486",
+                            "typetag": {
+                              "@class": "com.sun.tools.javac.code.TypeTag",
+                              "@ref": "176",
+                              "primitive": "BOOLEAN"
+                            },
+                            "value": 1
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCExpressionStatement",
+                      "@id": "487",
+                      "expr": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                        "@id": "488",
+                        "typeargs": [],
+                        "meth": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                          "@id": "489",
+                          "selected": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "490",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "87",
+                              "primitive": "field"
+                            }
+                          },
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@id": "491",
+                            "primitive": "set"
+                          }
+                        },
+                        "args": [
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "492",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "13",
+                              "primitive": "bean"
+                            }
+                          },
+                          {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "493",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "317",
+                              "primitive": "value"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "catchers": [
+                  {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCCatch",
+                    "@id": "494",
+                    "param": {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                      "@id": "495",
+                      "sourcefile": {
+                        "@class": "javax.tools.JavaFileObject",
+                        "@ref": "2",
+                        "primitive": "examples/FieldInjector.java"
+                      },
+                      "mods": {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                        "@id": "496",
+                        "annotations": [],
+                        "flags": {
+                          "@class": "long",
+                          "primitive": "8589934592"
+                        },
+                        "jmlmods": []
+                      },
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "353",
+                        "primitive": "e"
+                      },
+                      "vartype": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "497",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "355",
+                          "primitive": "Exception"
+                        }
+                      },
+                      "init": null
+                    },
+                    "body": {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+                      "@id": "498",
+                      "sourcefile": null,
+                      "flags": {
+                        "@class": "long",
+                        "primitive": "0"
+                      },
+                      "stats": [
+                        {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCThrow",
+                          "@id": "499",
+                          "expr": {
+                            "@class": "org.jmlspecs.openjml.JmlTree$JmlNewClass",
+                            "@id": "500",
+                            "encl": null,
+                            "typeargs": [],
+                            "clazz": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@id": "501",
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "360",
+                                "primitive": "RuntimeException"
+                              }
+                            },
+                            "args": [
+                              {
+                                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                                "@id": "502",
+                                "name": {
+                                  "@class": "com.sun.tools.javac.util.Name",
+                                  "@ref": "353",
+                                  "primitive": "e"
+                                }
+                              }
+                            ],
+                            "def": null
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "finalizer": null
+              }
+            ]
+          },
+          "defaultValue": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "503",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "examples/FieldInjector.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "504",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "1"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "505",
+            "primitive": "hasInjectFields"
+          },
+          "restype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@id": "506",
+            "typetag": {
+              "@class": "com.sun.tools.javac.code.TypeTag",
+              "@ref": "176",
+              "primitive": "BOOLEAN"
+            }
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [],
+          "thrown": [],
+          "methodSpecs": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodSpecs",
+            "@id": "507",
+            "cases": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlSpecificationCase",
+                "@id": "508",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "examples/FieldInjector.java"
+                },
+                "also": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "59",
+                  "primitive": null
+                },
+                "modifiers": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "509",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "1"
+                  },
+                  "jmlmods": []
+                },
+                "code": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "token": {
+                  "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                  "@ref": "101",
+                  "primitive": "normal_behavior"
+                },
+                "callee_only": {
+                  "@class": "boolean",
+                  "primitive": "false"
+                },
+                "clauses": [
+                  {
+                    "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodClauseExpr",
+                    "@id": "510",
+                    "sourcefile": {
+                      "@class": "javax.tools.JavaFileObject",
+                      "@ref": "2",
+                      "primitive": "examples/FieldInjector.java"
+                    },
+                    "name": null,
+                    "keyword": {
+                      "@class": "java.lang.String",
+                      "@id": "511",
+                      "primitive": "requires"
+                    },
+                    "clauseKind": {
+                      "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                      "@ref": "104",
+                      "primitive": "requires"
+                    },
+                    "expression": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "512",
+                      "typetag": {
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "176",
+                        "primitive": "BOOLEAN"
+                      },
+                      "value": 1
+                    },
+                    "exception": null
+                  }
+                ]
+              }
+            ],
+            "behaviors": null,
+            "impliesThatCases": [],
+            "forExampleCases": []
+          },
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "513",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCReturn",
+                "@id": "514",
+                "expr": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                  "@id": "515",
+                  "lhs": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                    "@id": "516",
+                    "selected": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                      "@id": "517",
+                      "typeargs": [],
+                      "meth": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                        "@id": "518",
+                        "selected": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCMethodInvocation",
+                          "@id": "519",
+                          "typeargs": [],
+                          "meth": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                            "@id": "520",
+                            "selected": {
+                              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                              "@id": "521",
+                              "name": {
+                                "@class": "com.sun.tools.javac.util.Name",
+                                "@ref": "87",
+                                "primitive": "field"
+                              }
+                            },
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@ref": "163",
+                              "primitive": "getType"
+                            }
+                          },
+                          "args": []
+                        },
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@id": "522",
+                          "primitive": "getDeclaredFields"
+                        }
+                      },
+                      "args": []
+                    },
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@id": "523",
+                      "primitive": "length"
+                    }
+                  },
+                  "opcode": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$Tag",
+                    "@id": "524",
+                    "primitive": "GT"
+                  },
+                  "rhs": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                    "@id": "525",
+                    "typetag": {
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@id": "526",
+                      "primitive": "INT"
+                    },
+                    "value": 0
+                  }
+                }
+              }
+            ]
+          },
+          "defaultValue": null
+        }
+      ]
+    }
+  ]
+}

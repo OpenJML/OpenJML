@@ -1,0 +1,96 @@
+START
+LABEL JMLSHOW_1 = 0
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 0
+LABEL JMLSHOW_4 = 11
+LABEL JMLSHOW_1 = 1
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 1
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LABEL JMLSHOW_1 = 2
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 2
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LABEL JMLSHOW_1 = 3
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 3
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LABEL JMLSHOW_1 = 4
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 4
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LABEL JMLSHOW_1 = 5
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 5
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LABEL JMLSHOW_1 = 6
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 6
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LABEL JMLSHOW_1 = 7
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 7
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LABEL JMLSHOW_1 = 8
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 8
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LABEL JMLSHOW_1 = 9
+LABEL JMLSHOW_2 = 20
+LABEL JMLSHOW_3 = 9
+LABEL JMLSHOW_4 = 20
+LoopBody.java:13: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+LoopBody.java:18: verify: JML assertion is false
+      //@ assert \old(k,\LoopBody) == 11;
+          ^
+END

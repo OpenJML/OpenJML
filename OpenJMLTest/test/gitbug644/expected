@@ -8,5 +8,17 @@ Starting proof of B.Content.Content() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of B.Content.Content() with prover !!!! - no warnings
+Starting proof of B.Content.mapsObject(@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of B.Content.mapsObject(@Nullable Object) with prover !!!! - no warnings
+Starting proof of B.Content.mapss(@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of B.Content.mapss(@Nullable Object) with prover !!!! - no warnings
+Starting proof of B.Content.hasMapObject(@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of B.Content.hasMapObject(@Nullable Object) with prover !!!! - no warnings
+Starting proof of B.Content.hasMap(@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of B.Content.hasMap(@Nullable Object) with prover !!!! - no warnings
 Completed proving methods in B.Content
 Completed proving methods in B

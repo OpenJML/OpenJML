@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+CP=.:commons-lang3-3.3.2.jar
+
+rm -rf actual
+echo COMPILING >> actual
+"openjml" --rac Test.java -cp $CP >> actual 2>&1
+echo RUNNING >> actual
+"openjml-java" -cp $CP Test >> actual 2>&1
+
+diff actual expected && rm -rf actual Test.class

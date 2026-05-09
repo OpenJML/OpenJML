@@ -1,0 +1,26 @@
+Proving methods in BitRotator
+Starting proof of BitRotator.BitRotator() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BitRotator.BitRotator() with prover !!!! - no warnings
+Starting proof of BitRotator.rotateLeftBits() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BitRotator.rotateLeftBits() with prover !!!! - no warnings
+Starting proof of BitRotator.usr(int) with prover !!!!
+test/gitbug872/BitRotator.java:8: verify: The prover cannot establish an assertion (UndefinedBigintUSR) in method usr
+        //@ ghost var z = ((\bigint)x) >>> 3;
+                                       ^
+Completed proof of BitRotator.usr(int) with prover !!!! - with warnings
+Starting proof of BitRotator.usr2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BitRotator.usr2(int) with prover !!!! - no warnings
+Starting proof of BitRotator.main(String...) with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of BitRotator.main(String...) with prover !!!! - no warnings
+Completed proving methods in BitRotator
+1 verification failure

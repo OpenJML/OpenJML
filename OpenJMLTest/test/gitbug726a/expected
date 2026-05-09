@@ -1,0 +1,13 @@
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.g(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of A.g(int) with prover !!!! - no warnings
+Starting proof of A.f(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.f(int) with prover !!!! - no warnings
+Completed proving methods in A

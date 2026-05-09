@@ -1,133 +1,65 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.jmlspecs.openjmltest.TCBase;
+import org.jmlspecs.openjml.Dir;
+///import org.jmlspecs.openjml.JmlOption;
+import org.jmlspecs.openjml.Main;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlSpecs.*;
-import org.jmlspecs.openjmltest.*;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
-import org.junit.Ignore;
-import org.junit.Test;
+import static org.junit.Assert.*;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+import org.openjml.MockJavaFileObject;
 import org.openjml.runners.ParameterizedWithNames;
 
-import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.util.Context;
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
 
-/** This is the parent class for classes that simply test whether the spec file 
- * for a JDK class parses without error.  There are two methods of creating
- * these tests implemented here.
- * <P>
- * One is to create a TestSuite, and dynamically add to it an individual test
- * for each class found.  That construction has to be done statically.  It has
- * the advantage that each test appears in the JUnit list of tests and marked
- * as successful or not.  The individual tests can be rerun from the JUnit
- * test runner, but the suite as a whole cannot.  The suite can be run as a
- * Run Configuration.  Another advantage is that the tests can
- * be canceled while in progress.
- * <P>
- * A second implementation, currently disabled, has SpecsBase consisting of
- * just one test, that loops through all the classes being tested.  A disadvantage
- * is that one cannot cancel the tests while in progress and they do not appear
- * in the JUnit listing.  They can also be run from the RunConfiguration.  To
- * enable this mode, comment out the suite() and runTest() methods.
+/** This test suite finds each of the specification (.jml) files in the 
+ * library specifications, creates a temporary .java file that simply declares
+ * a field of the class for that specification file, and then runs
+ * openjml --check on that .java file. The effect is to test that the
+ * library .jml file parses and type checks without error, with reference to the 
+ * corresponding binary for the class.
  * 
- * <P>
- * Alternatively, you can create explicit tests for individual system classes.
- * The template is the following:
+ * Some classes (cf. the list 'donttest') and some packages are excluded from
+ * being tested.
  * 
- *<PRE>
-    public void testFile() {
-        checkClass("<fully-qualified-type-name>");
-    }
-   </PRE>
- * or
- *<PRE>
-    public void testFile() {
-        helpTCF("A.java","public class A { <fully-qualified-type-name> f; }"
-                );
-    }
-   </PRE>
- *
- *For generic classes (with one type argument) write
- *<PRE>
-    public void testFile() {
-        checkClassGeneric("<fully-qualified-type-name>");
-    }
-   </PRE>
- * or
- *<PRE>
-    public void testFile() {
-        helpTCF("A.java","public class A { <fully-qualified-type-name><?> f; }"
-                );
-    }
-   </PRE>
- *
- * Note also that no errors are reported if there is no specification file or 
- * the class path is such that the spec file is not found.
- * 
- * @author David Cok
- *
+ * The location of the specification files is given by Main.specs, that is
+ * by the OPENJML_SPECS environment variable, which is setup in the
+ * runtests scriot.
  */
-// Note - this does not test spec files that are hidden by a later version
-//   you need to rerun Eclipse with a different JDK and correspondingly different
-//   specifications path.  You can do this with separate Run Configurations.
-
-// At one point in development, running these tests would cause later tests in
-// the JUnit sequence to fail, when they would not fail otherwise.  Before that
-// problem could be solved, it disappeared, so its cause and resolution are
-// unknown.  For now we will leave these tests in, but beware that this was once
-// the case and may crop up again in the future.
-
-// Since these tests are a bit time-consuming (about 2 min right now) and will be
-// more so as more spec files are added, you can turn them off with the dotests
-// flag.
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class SpecsBase extends TCBase {
-
-    /** Enables or disables this suite of tests */
-    static private boolean dotests = true;  // Change this to enable/disable dynamic tests
     
-    /** If true, then a progress message is printed as each test is executed.*/
-    private static boolean verbose = false;
+    public static final String testdir = "testspecs"; // The subfolder of OpenJMLTest/test that contains expected results from these tests
 
+    /** This method creates the list of classnames to be tested, for this
+     * parameterized suite of JUnit tests.
+     * Each item in the collection is a 1-element array that gives the actual argument
+     * of the one-argument constructor of SpecsBase.
+     */
     @Parameters
-    static public  Collection<String[]> datax() {
-        if (!dotests) return new ArrayList<String[]>(0);
+    static public Collection<String[]> datax() {
         Collection<String[]> data = new ArrayList<String[]>(1000);
-        for (String f: findAllFiles(null)) {
-        	if (f.contains("org.jmlspecs.models")) continue; // FIXME - eventually support or delete these
+        for (String f: findAllFiles()) {
             data.add(new String[]{ f});
         }
-//        data.clear(); data.add(new String[] { "java.nio.file.Files" });
-//        counts.put("java.nio.file.Files", 0);
         return data;
     }
 
-    /** The name of the class to be tested (which is also the name of the test)
-     * when the suite mode is used. This is defined simply to enable debugging.
+    /** The name of the class to be tested (which is also the name of the test);
+     * it is set by the constructor for each test in turn.
      */
     /*@ non_null*/
     private String classname;
@@ -139,237 +71,174 @@ public class SpecsBase extends TCBase {
     public SpecsBase(String classname) {
         this.classname = classname;
     }
+    
+    public static String jarString;
 
-    java.util.List<String> jars;
-    String jarString;
+    /** Deletes any files whose names end in 'actual' from the testspecs folder,
+     * and checks that the specs folder exists and sets up jarstring */
+    @BeforeClass
+    public static void clean() {
+        var ts = new File(testdir);
+        if (ts.exists()) {
+            for (var f : ts.listFiles((ff,nm)->nm.endsWith("actual"))) f.delete();
+        }
+        assertTrue("Specifications folder does not exist: " + Main.specs, new File(Main.specs).exists());
+    }
 
-    @Override
+    @Override @Before
     public void setUp() throws Exception {
         ignoreNotes = false;
         //print = printDiagnostics = true; // true = various debugging output
         super.setUp();
-        jars = java.nio.file.Files.list(Paths.get("../OpenJMLTest/libs")).map(Path::toString).collect(java.util.stream.Collectors.toList());
-        jars.add(0,"../OpenJML/bin-runtime"); // prepend
-        jarString = String.join(File.pathSeparator,jars);
-        main.addOptions("-classpath",jarString);
-        // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
-        JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
     }
     
-    /** Helper method that executes a test 
-     * 
-     * @param filename name to use for the pseudo source file
-     * @param s the code for the pseudo source file
-     * @param testClass class being tested, for output only
+    /** This is the entry point of the test, which tests the file that is named as classname by the constructor.
      */
-    public void helpTCFile(String filename, String s, String testClass) {
-    	boolean foundErrors = false;
+    @Test
+    public void testSpecificationFile() {
+        checkClass(classname);
+    }
+    
+    /** Does a test on the given fully qualified, dot-separated class name
+     * 
+     * @param className the name of the class to test
+     */
+    public void checkClass(String className) {
         try {
-            JavaFileObject f = new TestJavaFileObject(filename,s);
-            if (filename != null) addMockFile("#B/" + filename,f);
+            Class<?> clazz = Class.forName(className);
+            var typeParameters = clazz.getTypeParameters();
+            int numTypeArgs = typeParameters.length;
+
+            String program = "public class AJDK { "+ className + typeargs[numTypeArgs] + " o; }";
+            // These two take special treatment because they may not have a field
+            if (className.equals("org.jmlspecs.lang.internal.range")) program = "public class AJDK { public void m(org.jmlspecs.lang.internal.range o) {} }"; // cf. primesc.jmldatagroup, primrac.jmldatagroup for full tests
+            if (className.equals("org.jmlspecs.lang.internal.datagroup")) program = "public class AJDK { /*@ model public \\datagroup d; */ }"; // cf. primesc.jmldatagroup, primrac.jmldatagroup, primTC.jmldatagroup for full tests
+
+            String filename = "AJDK.java";
+            var testClass = className;
+            
+            String foundError = null;
+
+            JavaFileObject f = new MockJavaFileObject(filename,program);
+            addMockFile("#B/" + filename,f);
             Log.instance(context).useSource(f);
             List<JavaFileObject> files = List.of(f);
-            String cp1 = "/Users/davidcok/.p2/pool/plugins/org.junit_4.12.0.v201504281640/junit.jar";  // FIXME - has absolute path
-            //String cp2 = "libs/hamcrest-junit-2.0.0.0.jar:libs/java-hamcrest-2.0.0.0.jar";
-            int ex = main.compile(new String[]{"-cp",cp1 + ":" + jarString,"-Xlint:removal","-Xlint:deprecation"}, files).exitCode;
-            if (print) JmlSpecs.instance(context).printDatabase();
+            // Register by URI in the existing mockFiles (same object as main.mockFiles).
+            mockFiles.addMockByUri(f.toUri().normalize(), f);
+            // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
+            int ex = main.compile(new String[]{
+                    "-Xlint:removal","-Xlint:deprecation", f.getName()},
+                    mockFiles).exitCode;
             int expected = expectedExit;
             boolean allNotes = collector.getDiagnostics().stream().allMatch(d->d.toString().contains("Note:"));
             boolean anyErrors = collector.getDiagnostics().stream().anyMatch(d->d.toString().contains("error:"));
             if (expected == -1) expected = !anyErrors ? 0 : 1;
             if (ex != expected) {
-                System.out.println("Unexpected return code for "  + testClass + " actual: " + ex + " expected: " + expected);
-                foundErrors = true;
+                foundError = "Unexpected return code  actual: " + ex + " expected: " + expected;
             }
+            String expfile = testdir + "/" + testClass + "-expected";
+            String actfile = testdir + "/" + testClass + "-actual";
             if (!allNotes) {
-                String expfile = "testspecs/" + testClass + "-expected";
-                String actfile = "testspecs/" + testClass + "-actual";
-                try {
-                    if (new java.io.File(expfile).exists()) {
-                        String exp = java.nio.file.Files.readString(Paths.get(expfile));
-                        String act = diagnosticsToString(collector.getDiagnostics());
-                        if (!exp.equals(act)) {
-                            System.out.println("UNEXPECTED OUTPUT: " + testClass);
-                            System.out.println(act);
-                            java.nio.file.Files.writeString(Paths.get(actfile), act);
-                            foundErrors = true;
-                            printDiagnostics();
-                        } else {
-                            System.out.println("Output matched for " + testClass);
-                            new java.io.File(actfile).delete();
-                        }
-                    } else {
-                        String act = diagnosticsToString(collector.getDiagnostics());
+                String act = diagnosticsToString(collector.getDiagnostics());
+                if (new java.io.File(expfile).exists()) {
+                    String exp = java.nio.file.Files.readString(Paths.get(expfile));
+                    if (!exp.equals(act)) {
+                        foundError = "unexpected output";
+                        this.out.println(act);
                         java.nio.file.Files.writeString(Paths.get(actfile), act);
-                        System.out.println("ERRORS FOUND " + testClass);
-                        foundErrors = true;
-                        printDiagnostics();
+                    } else {
+                        // this.out.println("Output matched for " + testClass);
+                        new java.io.File(actfile).delete();
                     }
-                } catch (IOException e) {
-                    System.out.println("Failure trying to read or write expected or actual output: " + e);
-                    foundErrors = true;
+                } else {
+                    java.nio.file.Files.writeString(Paths.get(actfile), act);
+                    foundError = "Errors found but no corresponding expected file";
                     printDiagnostics();
                 }
-           }
+            } else { // No output (except notes)
+                if (new java.io.File(expfile).exists()) {
+                    // If there is no output there should not be an expected test
+                    foundError = "No test output but there is an expected output file";
+                }
+            }
+            assertTrue("Found errors checking specs for " + foundError, foundError == null);
         } catch (Exception e) {
-            e.printStackTrace(System.out);
-            fail("Exception thrown while processing test: " + testClass + " " + e);
-        } catch (AssertionError e) {
-            if (!print && !noExtraPrinting) printDiagnostics();
-            throw e;
-        }
-        assertTrue("Found errors checking specs for " + testClass, !foundErrors);
-    }
-
-    /** This test tests the file that is named as classname by the constructor */
-    @Test
-    public void testSpecificationFile() {
-    	if (classname.startsWith("Array")) return;
-    	if (classname.startsWith("java.awt")) return;
-    	if (classname.startsWith("javax.swing")) return;
-        int n = counts.get(classname);
-        if (verbose) System.out.println("JUnit SpecsBase: " + classname + " " + n);
-        if (n < typeargs.length) checkClass(classname, n);
-        else {
-            assertTrue("Not implemented for " + n + " + generic arguments: " + classname,false);
+            e.printStackTrace(this.out);
+            fail("Failed to test " + className + ": " + e);
         }
     }
+    // FIXME - the above test template does not seem to trigger all the
+    // modifier checking in attribute testing.
     
     /** Finds all classes that have library specification files.
+     * Output is the filename with '/' separators
      */
-    static public SortedSet<String> findAllFiles(/*@ nullable*/ JmlSpecs specs) {
+    static public SortedSet<String> findAllFiles() {
         System.out.println("JRE version " + System.getProperty("java.version"));
-        try {
-            if (specs == null) {
-                Main main = new Main();
-                main.initialize(null);
-                Context context = main.context();
-                specs = JmlSpecs.instance(context);
-                specs.setSpecsPath("$SY");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("Exception in findAllFiles");
-        }
-        java.util.List<Dir> dirs = specs.getSpecsPath();
-        dirs.clear(); dirs.add(specs.new FileSystemDir(JmlTestSuite.root + "/Specs/specs"));
-        assertTrue ("Null specs path",dirs != null); 
-        assertTrue ("No specs path",dirs.size() != 0); 
+        var dir = new Dir.FileSystemDir(Main.specs);
         
         SortedSet<String> classes = new TreeSet<String>(); 
-        for (Dir dir: dirs) {
-            System.out.println("DIR " + dir.toString());
-            File d = new File(dir.toString());
-            classes.addAll(findAllFiles(d, dir.toString()));
-        }
+        File d = new File(dir.toString());
+        classes.addAll(findAllFiles(d, dir.toString()));
         classes.removeAll(donttest);
+        classes.removeIf(f->exclude(f));
         System.out.println(classes.size() + " system specification classes found");
         return classes;
     }
-    
-    /** Set of classes (fully qualified, dot-separated names) that should not
-     * be tested.
-     */
-    static Set<String> donttest = new HashSet<String>();
-    static {
-        donttest.add("org.junit.Assert"); // (FIXME) Turn this off because the test does not find the junit library 
-        donttest.add("java.lang.AbstractStringBuilder"); // FIXME - not public
-        donttest.add("java.lang.StringCoding");
-        donttest.add("org.jmlspecs.lang.range"); // See specialized test below
-    }
-    
-    static java.util.HashMap<String,Integer> counts = new java.util.HashMap<>();
-    
-    
+
     /** Creates a list of all the files (of any suffix), interpreted as fully-qualified Java class 
-     * names when the root prefix is removed,
-     * recursively found underneath the given directory
+     * names when the root prefix is removed, recursively found underneath the given directory
      * @param d the directory in which to search
      * @param root the prefix of the path to ignore
      * @return list of dot-separated class names for which files were found
      */
-    static public java.util.List<String> findAllFiles(File d, String root) {
+    static private java.util.List<String> findAllFiles(File d, String root) {
         String[] files = d.list();
         java.util.List<String> list = new ArrayList<String>();
-        if (files == null) return list;
-        for (String s: files) {
+        for (String s: files) { // 'files' is null if 'd' is not a valid directory, that is, Main.specs is incorrectly initialized
             if (s.charAt(0) == '.') continue;
             File f = new File(d,s);
             if (f.isDirectory()) {
                 list.addAll(findAllFiles(f, root));
             } else {
-                String qualifiedName = f.toString().substring(root.length()+1);
-                int p = qualifiedName.lastIndexOf('.');
-                String baseName = qualifiedName.substring(0,p).replace(File.separatorChar,'.');
-                list.add(baseName);
-                int numArgs = countTypeArgs(f,baseName);
-                Integer nn = counts.get(baseName);
-                if (nn == null || numArgs > nn) counts.put(baseName, numArgs);
+                processFile(root, list, f);
             }
         }
         return list;
     }
-    
-    public static int countTypeArgs(File f, String baseName) {
-        try {
-            // This is a imprecise method to count the number of type arguments, but so for I have not
-            // found any .jml files for which it fails. If the number is wrong and non-zero, the test will fail,
-            // but if wrong and 0 it may not.
-            java.util.List<String> lines = java.nio.file.Files.readAllLines(f.toPath(), java.nio.charset.Charset.defaultCharset());
-            StringBuffer sb = new StringBuffer();
-            for (String line: lines) sb.append(line);
-            String all = sb.toString();
-            int k = baseName.lastIndexOf('.');
-            String tail = baseName.substring(k+1);
-            k = all.indexOf(tail + "<");
-            int n = 0;
-            if (k >= 0) {
-                n = 1;
-                k += (tail + "<").length();
-                int depth = 0;
-                while (depth >= 0) {
-                    char c = all.charAt(k);
-                    if (c == '<') depth++;
-                    if (c == ',' && depth == 0) n++;
-                    if (c == '>') depth--;
-                    k++;
-                }
-            }
-            return n;
-        } catch (Exception e) {
-            assertTrue("Failed to find number of generic type arguments", false);
-            return 0;
-        }    
-    }
-    
-    String[] typeargs = { "", "<?>", "<?,?>" , "<?,?,?>" };
 
-    /** Does a test on the given fully qualified,
-     * dot-separated class name with n generic type arguments
-     * 
-     * @param className the name of the class to test
+    /** Set of classes (fully qualified, dot-separated names) that should not be tested.
      */
-    public void checkClass(String className, int n) {
-        String program = "public class AJDK { "+ className + typeargs[n] + " o; }";
-        // Do these because the classes are not public
-        if (className.equals("java.lang.AbstractStringBuilder")) program = "package java.lang; " + program;
-        if (className.equals("java.lang.StringCoding")) program = "package java.lang; " + program;
-        if (className.equals("org.jmlspecs.lang.range")) program = "public class AJDK { public void m(org.jmlspecs.lang.range o) {} }"; // FIXME - needs better specs and tests
-        if (className.equals("org.jmlspecs.lang.internal.datagroup")) program = "public class AJDK { public void m(org.jmlspecs.lang.internal.datagroup o) {} }"; // FIXME - needs better specs and tests
-        helpTCFile("AJDK.java",program,className);
+    static Set<String> donttest = new HashSet<String>();
+    static {
+       // donttest.add("org.junit.Assert"); // (FIXME) Turn this off because the test does not find the junit library 
+        donttest.add("java.lang.AbstractStringBuilder"); // FIXME - not public
+        donttest.add("java.lang.StringCoding");
+        donttest.add("org.hamcrest.Matchers");
+        donttest.add("org.jmlspecs.lang.internal.range"); // See specialized test below
     }
-
-    // FIXME - the above test template does not seem to trigger all the
-    // modifier checking in attribute testing.
-
-    /** Use this to test the specs for a specific file. Enable it by
-     * adding an @Test as an annotation. */
-    // FIXME - runs the single test repeatedly for each parameter
-    // @Test
-    public void testSingle() {
-        checkClass("org.hamcrest.Matcher", 0);
+    
+    /** Returns true for any filepath that should not be tested */
+    public static boolean exclude(String classname) {
+        if (classname.startsWith("org.jmlspecs.models")) return true; // FIXME - eventually support or delete these
+        if (classname.startsWith("Array")) return true;
+        if (classname.startsWith("java.awt")) return true;
+        if (classname.startsWith("javax.swing")) return true;
+        return false;
     }
-
+    
+    private static void processFile(String root, java.util.List<String> list, File f) {
+        String qualifiedName = f.toString().substring(root.length()+1);
+        int p = qualifiedName.lastIndexOf('.');
+        String baseName = qualifiedName.substring(0,p);
+        baseName = baseName.replace(File.separatorChar,'.');
+        if (exclude(baseName)) return;
+        if (qualifiedName.substring(p).equals(".jml")) list.add(baseName);
+        else System.out.println("IGNORING FILE " + qualifiedName + " in " + root);
+    }
+    
+    /** Needs as many entries as the most type arguments that will be found */
+    String[] typeargs = { "", "<?>", "<?,?>", "<?,?,?>", "<?,?,?,?>", "<?,?,?,?,?>" };
 }

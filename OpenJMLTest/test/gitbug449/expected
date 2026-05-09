@@ -1,0 +1,14 @@
+COMPILING
+RUNNING
+Test.java:3: verify: JML null initialization of non_null field o
+    Object o = null;
+           ^
+Test.java:4: verify: JML precondition is false
+      var oo = org.apache.commons.lang3.Validate.notNull(o, "Checking");
+                                                        ^
+Test.java:4: verify: Associated declaration: Test.java:4:
+      var oo = org.apache.commons.lang3.Validate.notNull(o, "Checking");
+                                                         ^
+Exception in thread "main" java.lang.NullPointerException: Checking
+	at org.apache.commons.lang3.Validate.notNull(Validate.java:222)
+	at Test.main(Test.java:4)

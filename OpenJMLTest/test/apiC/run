@@ -1,11 +1,11 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
-cd $(dirname "$BASH_SOURCE[0]" )
-BIN=../../../OpenJML21
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
 
 rm -rf *.class actual
-$BIN/openjml-compile Run.java || exit 1
-$BIN/openjml-run Run > actual
-$BIN/openjml-java A >> actual
-diff actual expected
-
+openjml-compile Run.java || exit 1
+openjml-run Run > actual || exit 1
+openjml-java A >> actual || exit 1
+diff actual expected && rm -rf actual
+exit $?

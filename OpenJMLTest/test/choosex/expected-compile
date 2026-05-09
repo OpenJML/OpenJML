@@ -1,6 +1,7 @@
-test/choosex/Demo.java:12: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+test/choosex/Demo.java:12: warning: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
   //@ ghost int i = \choose short k;;true;
                     ^
-test/choosex/Demo.java:18: Note: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+test/choosex/Demo.java:18: warning: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
   //@ ghost boolean bb = \choosex short k;; k <= Short.MAX_VALUE;
                          ^
+2 warnings

@@ -15,17 +15,15 @@ public class racreadable extends RacBase {
 
     @Override
     public void setUp() throws Exception {
-        testspecpath1 = "$A"+z+"$B"+z+"$SS";
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        expectedNotes = 0;
         addOptions("-jmltesting");
     }
 
     @Test
     public void testReadable() {
     	addOptions("--rac-show-source=line");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ readable z if bb;\n"
                 +"  int x; //@ readable x if b; \n"
@@ -124,7 +122,7 @@ public class racreadable extends RacBase {
     @Test
     public void testWritable() {
     	addOptions("--rac-show-source=line");
-        helpTCX("tt.TestJava","package tt; \n"
+    	helpRacText("tt.TestJava","package tt; \n"
                 +"/*@ code_java_math*/ public class TestJava { \n"
                 +"  public static boolean b; public boolean bb; int z; //@ writable z if bb; \n"
                 +"  int x; //@ writable x if b; \n"
@@ -220,6 +218,4 @@ public class racreadable extends RacBase {
                 ,"/tt/TestJava.java:3: Associated declaration"
                 );
     }
-
-
 }

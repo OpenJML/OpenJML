@@ -1,0 +1,20 @@
+Proving methods in LoopBody
+Starting proof of LoopBody.LoopBody() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of LoopBody.LoopBody() with prover !!!! - no warnings
+Starting proof of LoopBody.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of LoopBody.main(String...) with prover !!!! - no warnings
+Completed proving methods in LoopBody
+Proving methods in LoopInit
+Starting proof of LoopInit.LoopInit() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of LoopInit.LoopInit() with prover !!!! - no warnings
+Starting proof of LoopInit.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of LoopInit.m() with prover !!!! - no warnings
+Completed proving methods in LoopInit

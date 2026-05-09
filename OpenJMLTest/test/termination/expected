@@ -1,0 +1,35 @@
+Proving methods in Termination
+Starting proof of Termination.Termination() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Termination.Termination() with prover !!!! - no warnings
+Starting proof of Termination.f(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Termination.f(int) with prover !!!! - no warnings
+Starting proof of Termination.sf(\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Termination.sf(\bigint) with prover !!!! - no warnings
+Starting proof of Termination.add(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Termination.add(int) with prover !!!! - no warnings
+Starting proof of Termination.count(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Termination.count(int) with prover !!!! - no warnings
+Starting proof of Termination.z(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Termination.z(int) with prover !!!! - no warnings
+Starting proof of Termination.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Termination.main(String...) with prover !!!! - no warnings
+Completed proving methods in Termination
+Proving methods in I
+Starting proof of I.z(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of I.z(int) with prover !!!! - no warnings
+Completed proving methods in I

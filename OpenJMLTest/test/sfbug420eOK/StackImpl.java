@@ -10,7 +10,7 @@ public class StackImpl implements Stack {
 	//@ public represents max = maxSize;
 	//@ public invariant internalStack.length == max;
 
-	@SuppressWarnings("unchecked")
+    //@ ensures count() == 0; pure
 	public StackImpl() {
 		internalStack = new int[maxSize];
 		stackCounter = 0;
@@ -38,7 +38,7 @@ public class StackImpl implements Stack {
 
 	public boolean push(int item) {
 		if(stackCounter + 1 > maxSize) return false;
-		internalStack[stackCounter] = item; // FIXME - why does this not violate the frame condition
+		internalStack[stackCounter] = item; // ERROR - violates the frame condition
 		stackCounter = stackCounter + 1;
 		// @ assert item == internalStack[stackCounter-1];
 		// @ assert item==(top()); // FIXME - uncommenting this makes a postcondition fail - but the equlaivalent line above is OK

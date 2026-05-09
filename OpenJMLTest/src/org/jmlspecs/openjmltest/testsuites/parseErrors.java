@@ -1,17 +1,20 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.ParseBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import static org.junit.Assert.*;
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class parseErrors extends ParseBase {
-
+    
     @Override
     public void setUp() throws Exception {
         super.setUp();
+        // These options are needed for stringTemplate(); they have to be set before postOptions() is called
+        addOptions("--source","21");
+        addOptions("--enable-preview","--enable-preview");
         addOptions("--check");
+        postOptions();
     }
 
     @Test public void badTry() {
@@ -23,7 +26,7 @@ public class parseErrors extends ParseBase {
 
     @Test public void orphanCatch() {
         checkParseErrors("class A { public A() { catch(Exception e) {}} }"
-                ,"/TEST.java:1: error: 'catch' without 'try'", 24, 23, 23, 23 // FIXME - Beeeter would be end=28
+                ,"/TEST.java:1: error: 'catch' without 'try'", 24, 23, 23, 23 // FIXME - Better would be end=28
                 );
     }
 
@@ -60,15 +63,15 @@ public class parseErrors extends ParseBase {
 
     @Test public void modifierOnImport() {
         checkParseErrors("//@ @Pure import java.lang.System; \nclass A { }"
-                ,"/TEST.java:1: error: No modifiers are allowed on an import statement", 5, 4, 4, 15
-                ,"/TEST.java:1: error: An import statement in a JML comment must have a model modifier", 11, 10, 10, 15
-                ,"/TEST.java:1: warning: misplaced model import", 11, 10, 10, 35 // FIXME - need a clearer error message
+                ,"/TEST.java:1: error: No modifiers are allowed on an import statement", 5, 4, 4, 16
+                ,"/TEST.java:1: error: An import statement in a JML comment must have a model modifier", 11, 10, 10, 16
+                ,"/TEST.java:1: warning: misplaced model import", 11, 10, 10, 36 // FIXME - need a clearer error message
                 );
     }
 
     @Test public void modifierOnImport2() {
         checkParseErrors("//@ @Model import java.lang.System; \nclass A { }"
-                ,"/TEST.java:1: warning: misplaced model import", 12, 11, 11, 36  // FIXME - need a clearer error message
+                ,"/TEST.java:1: warning: misplaced model import", 12, 11, 11, 37  // FIXME - need a clearer error message
                 );
     }
 
@@ -85,18 +88,16 @@ public class parseErrors extends ParseBase {
                 ,"/TEST.java:1: error: not a statement", 41, 40, 40, 40
                 ,"/TEST.java:1: error: Expected a declaration or a JML construct inside the JML annotation here", 41, 40, 40, 40
                 );
-
-
     }
 
     // FIXME - not sure this helps coverage
     @Test public void prematureTypeListEnd2() {
         checkParseErrors("class A { public A() { /*@ model T<A:B> t; */} }"
                 ,"/TEST.java:1: error: > or ',' expected", 37, 36, 36, 36
+                ,"/TEST.java:1: error: Error in parsed declaration, or misspelled keyword: //@ model T<A, (ERROR)> <error>", 37, 27, 36, 36
                 ,"/TEST.java:1: error: not a statement", 39, 37, 38, 38
                 ,"/TEST.java:1: error: Expected a declaration or a JML construct inside the JML annotation here", 38, 37, 37, 37
                 );
-
     }
 
     @Test public void missingCase() {
@@ -163,14 +164,119 @@ public class parseErrors extends ParseBase {
                 );
     }
     
-    @Ignore // FIXME - don't seem to be able to add a Java option to enable preview features
     @Test public void stringTemplate() {
-        addOptions("--source","21","--enable-preview");
         checkParseErrors("class A { String s = STR.\"My \\{x} template\"; }"
                 );
     }
     
+    @Test public void badMods2() {
+        checkParseErrors(
+            """
+            class A {
+            /*@
+            public normal_behavior
+              requires true;
+            public for_example public normal_example
+              requires true;
+            @*/
+            public void m() {}
+            }
+            """
+            ,"/TEST.java:5: error: No modifiers are allowed prior to a lightweight specification case", 1, 54, 54 ,54  // FIXME - why this error
+            ,"/TEST.java:5: warning: No modifiers are allowed prior to a for_example token", 1, 54, 54, 60
+            
+            );
+    }
+    
+    @Test public void badMods() {
+        checkParseErrors(
+            """
+            class A {
+            /*@
+            public normal_behavior
+              requires true;
+            also public implies_that
+              requires true;
+            @*/
+            public void m() {}
+            }
+            """
+            ,"/TEST.java:5: error: No modifiers are allowed prior to a lightweight specification case", 6, 59, 59, 59 // FIXME - why these adiagnostics
+            //,"/TEST.java:5: warning: No modifiers are allowed prior to a implies_that token", 8, 61, 61, 72
+            
+            );
+    }
+    
+    @Test
+    public void specGroup1() {
+        checkParseErrors(
+                """
+                class A {
+                  //@ public normal_behavior {| |}
+                  public void m() {}
+                }
+                """
+                );
+    }
+    
+    @Test
+    public void specGroup2() {
+        checkParseErrors(
+                """
+                class A {
+                  //@ public normal_behavior {|
+                  public void m() {}
+                }
+                """
+                ,"/TEST.java:3: error: Invalid clause or missing end of specification group token ( |} )", 3, 44, 44, 50
+                ,"/TEST.java:2: error: Method specifications without a following method declaration", 14, 23, 23, 23  // FIXME - why this cascade of errors
+                ,"/TEST.java:4: error: reached end of file while parsing", 2, 64, 64, 64
+                );
+    }
+    
+    // FIXME - does not trigger the desired error
+    public void orphanMethodSpecs() {
+        checkParseErrors(
+            """
+            class A {
+            /*@
+            public normal_behavior
+              requires true;
+            
+            @*/
+            //@ axiom true;
+            public void m() {}
+            }
+            """
+            ,"/TEST.java:5: error: No modifiers are allowed prior to a lightweight specification case", 6, 59, 59, 59 // FIXME - why these adiagnostics
+            //,"/TEST.java:5: warning: No modifiers are allowed prior to a implies_that token", 8, 61, 61, 72
+            
+            );
+    }
+    
     // Test harness tests -- checking that test failures are properly reported
+    
+    /** This test allows the included harness tests to complete without an AssertionError, thereby
+     *  allowing the normal execution route to be executed for coverage.
+     */
+    @Test
+    public void harnessSkip() {
+        skip = true;
+        harness1();
+        harness1a();
+        harness2();
+        harness3();
+        harness4();
+        harness5();
+        harness6();
+        harness7();
+        harness8();
+        harness9();
+        harness10();
+        harness11();
+        harness12();
+        harness13();
+    }
     
     @Test
     public void harness1() {
@@ -179,22 +285,23 @@ public class parseErrors extends ParseBase {
             checkParseErrors("public c A {}");
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message",
-                    "More errors observed (1) than expected (0)",
+                    "More errors observed (1) than expected. First extra: /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7",
                     a.getMessage());
         }
     }
     
     @Test
     public void harness1a() {
-        out = tempout;
+        var savedout = this.out;
+        this.out = tempout;
         try {
             checkParseErrors("public c A {}");
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message",
-                    "More errors observed (1) than expected (0)",
+                    "More errors observed (1) than expected. First extra: /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7",
                     a.getMessage());
         } finally {
-            out = System.out;
+            out = savedout;
         }
     }
     
@@ -207,7 +314,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "No positions given for message 0", 
+                    "Failed to match diagnostic 0 (col): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -236,7 +343,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Message 0 mismatch expected:<[ZZZ]> but was:<[/TEST.java:1: error: class, interface, enum, or record expected]>", 
+                    "Failed to match diagnostic 0 (text): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -250,7 +357,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Column for message 0 expected:<99> but was:<8>", 
+                    "Failed to match diagnostic 0 (col): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -264,7 +371,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Start for message 0 expected:<7> but was:<0>", 
+                    "Failed to match diagnostic 0 (start): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -278,7 +385,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Position for message 0 expected:<-10> but was:<7>", 
+                    "Failed to match diagnostic 0 (pos): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -292,7 +399,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "End for message 0 expected:<-10> but was:<7>", 
+                    "Failed to match diagnostic 0 (end): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -306,7 +413,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Expected 0 or 3 position values after the column value", 
+                    "Failed to match diagnostic 0 (pos): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -348,7 +455,7 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "Expected a message string instead of 8", 
+                    "Failed to match diagnostic 0 (text): /TEST.java:1: error: class, interface, enum, or record expected line=1 col=8 start=0 pos=7 end=7", 
                     a.getMessage());
         }
     }
@@ -362,12 +469,8 @@ public class parseErrors extends ParseBase {
                 );
         } catch (AssertionError a) {
             assertEquals("Intentional failure issued wrong message", 
-                    "No positions given for message 0", 
+                    "Failed to match diagnostic 0 (text): /TEST.java:1: error: orphaned case line=1 col=24 start=23 pos=23 end=23", 
                     a.getMessage());
         }
     }
-
-
-
-
 }

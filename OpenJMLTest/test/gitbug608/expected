@@ -3,6 +3,9 @@ Starting proof of Doctor.Doctor() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Doctor.Doctor() with prover !!!! - no warnings
+Starting proof of Doctor.getTitle() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Doctor.getTitle() with prover !!!! - no warnings
 Completed proving methods in Doctor
 Proving methods in Staff
 Completed proving methods in Staff
@@ -21,4 +24,7 @@ Starting proof of Nurse.Nurse() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Nurse.Nurse() with prover !!!! - no warnings
+Starting proof of Nurse.isChief() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Nurse.isChief() with prover !!!! - no warnings
 Completed proving methods in Nurse

@@ -1,0 +1,39 @@
+This file (README) describes the content of the folder in which it resides.
+This folder is the top of the OpenJDK release, with additions for OpenJML.
+
+OpenJDK material: (mostly consistent with 21-ga branch of OpenJDK)
+src - source code for OpenJDK + OpenJML
+doc - documentation files for OpenJDK
+make - the makefiles for OpenJDK (only change for OpenJML is to add -g into build flags)
+test - the test material for OpenJDK
+ADDITIONAL_LICENSE_INFO
+ASSEMBLY_EXCEPTION
+configure
+CONTRIBUTING.md
+LICENSE
+Makefile -- builds OpenJDK, with additional targets to build OpenJML
+README.md -- brief OpenJDK documentation
+
+OpenJML public executables (fixed scripts that reference build products)
+openjml
+openjml-java
+openjml-compiler
+openjml-run
+
+OpenJML material
+release-files - this folder holds files that are copied verbatim into an OpenJML release
+setup-exports - an OpenJML script
+version.sh - an OpenJML script
+README - this file
+README-OpenJML.txt -- brief OpenJLM documentation
+
+Build results:
+build - output build files for OpenJDK + OpenJML
+jmlruntime.jar -- the OpenJML runtime libaray (used for RAC)
+
+Folders that hold temporary output material:
+release-temp -- folder used to stage material in creating a local release .zip file
+tempDocs -- folder used to clone and build pdf files from LaTeX sources in OverLeaf
+temp-release -- folder used to expand a release for testing
+tempUserGuide -- folder used to stage user guide examples
+templib -- folder used to stage the materials for jmlruntime.jar

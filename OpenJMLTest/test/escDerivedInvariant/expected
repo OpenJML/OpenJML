@@ -1,4 +1,7 @@
 Proving methods in Interface
+Starting proof of Interface.good() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Interface.good() with prover !!!! - no warnings
 Completed proving methods in Interface
 Proving methods in Derived
 Starting proof of Derived.good() with prover !!!!

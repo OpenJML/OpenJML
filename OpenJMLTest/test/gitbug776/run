@@ -1,0 +1,20 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+( \
+echo TEST1 ; \
+openjml --rac --rac-compile-to-java-assert B.java;\
+openjml-java -ea B ;\
+echo TEST2 ;\
+openjml --rac --rac-compile-to-java-assert --rac-java-checks B.java ;\
+openjml-java -ea B ;\
+echo TEST3 ;\
+openjml --rac --rac-java-checks B.java ;\
+openjml-java B ;\
+echo TEST-A ;\
+openjml --rac A.java ; openjml-java -Dorg.jmlspecs.openjml.rac=showstack A ;\
+echo TEST-END ;\
+) >& actual
+diff actual expected && rm -rf actual *.class

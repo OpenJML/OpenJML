@@ -14,8 +14,8 @@ public class FreshBugs {
             payload_ = payload;
             next_ = next;
         }
-        //@ ensures payload_ == payload && next_ == null;
-        // No pure on purpose
+        //@ writes \everything; // No pure on purpose
+	//@ ensures payload_ == payload && next_ == null;
         Node(Object payload){
             payload_ = payload;
             next_ = null;

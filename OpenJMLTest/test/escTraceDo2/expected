@@ -13,7 +13,7 @@ Skipping proof of trace.mwhile2() (excluded by -method)
 Skipping proof of trace.mdo() (excluded by -method)
 Skipping proof of trace.mdo1() (excluded by -method)
 Starting proof of trace.mdo2() with prover !!!!
-test\escTraceLoops\trace.java:150: warning: The prover cannot establish an assertion (LoopInvariant) in method mdo2
+test\escTraceLoops\trace.java:150: verify: The prover cannot establish an assertion (LoopInvariant) in method mdo2
         //@ loop_invariant j == 2*i && 0 <= i && i < k;
             ^
 
@@ -148,7 +148,7 @@ test\escTraceLoops\trace.java:150:  	LoopInvariant assertion: j == 2 * i && 0 <=
 			VALUE: j == 2 * i && 0 <= i && i < k	 === false
 test\escTraceLoops\trace.java:150:  Invalid assertion (LoopInvariant)
 
-test\escTraceLoops\trace.java:155: warning: The prover cannot establish an assertion (Assert) in method mdo2
+test\escTraceLoops\trace.java:155: verify: The prover cannot establish an assertion (Assert) in method mdo2
         //@ assert j == k+k;
             ^
 
@@ -281,4 +281,4 @@ Skipping proof of trace.mforeach3(int[]) (excluded by -method)
 Skipping proof of trace.mforeach4(int[]) (excluded by -method)
 Skipping proof of trace.mforeach5(int[]) (excluded by -method)
 Completed proving methods in trace
-2 warnings
+2 verification failures

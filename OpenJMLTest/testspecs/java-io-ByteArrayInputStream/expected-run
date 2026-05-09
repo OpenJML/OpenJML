@@ -1,0 +1,4 @@
+OUT:
+java.lang.NullPointerException: Cannot read the array length because "buf" is null
+
+ERR:

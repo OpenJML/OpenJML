@@ -4,7 +4,7 @@ public static void main(String... args) {
   //@ ghost boolean b = \choosex int k; 0 < k < 10; k == 0;
   //@ assert !b; // OK
   m0(); m(); mm();
-  //+RAC@ set System.out.println("END");
+  //@ print "END";
 }
 
 //@ pure

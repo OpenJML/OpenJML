@@ -1,4 +1,12 @@
 Proving methods in stack.Stack
+Skipping proof of stack.Stack.count() (Skipping stack.Stack.count because it does not match top)
+Skipping proof of stack.Stack.itemAt(int) (Skipping stack.Stack.itemAt because it does not match top)
+Skipping proof of stack.Stack.isEmpty() (Skipping stack.Stack.isEmpty because it does not match top)
+Skipping proof of stack.Stack.push(int) (Skipping stack.Stack.push because it does not match top)
+Starting proof of stack.Stack.top() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.top() with prover !!!! - no warnings
+Skipping proof of stack.Stack.remove() (Skipping stack.Stack.remove because it does not match top)
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match top)
@@ -7,14 +15,14 @@ Skipping proof of stack.StackImpl.itemAt(int) (Skipping stack.StackImpl.itemAt b
 Skipping proof of stack.StackImpl.isEmpty() (Skipping stack.StackImpl.isEmpty because it does not match top)
 Skipping proof of stack.StackImpl.push(int) (Skipping stack.StackImpl.push because it does not match top)
 Starting proof of stack.StackImpl.top() with prover !!!!
-test/sfbug420f/StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
+test/sfbug420f/StackImpl.java:40: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method top
 		return internalStack[stackCounter-1];
 		                    ^
-test/sfbug420f/StackImpl.java:40: warning: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
+test/sfbug420f/StackImpl.java:40: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method top
 		return internalStack[stackCounter-1];
 		                    ^
 Completed proof of stack.StackImpl.top() with prover !!!! - with warnings
 Skipping proof of stack.StackImpl.remove() (Skipping stack.StackImpl.remove because it does not match top)
 Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it does not match top)
 Completed proving methods in stack.StackImpl
-2 warnings
+2 verification failures

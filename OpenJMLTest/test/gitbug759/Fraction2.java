@@ -18,17 +18,13 @@ public class Fraction2 {
       @ ensures GCD.gcd(this.numerator,this.denominator)==1;
       @ pure @*/
     public Fraction2(int numerator, int denominator){
-//@ reachable;
         int gcd = GCD.gcd(numerator, denominator);
-//@ reachable;
         this.numerator = numerator / gcd;
         this.denominator = denominator / gcd;
         //@ assume GCD.divmod(numerator,gcd);
         //@ assume GCD.divmod(denominator,gcd);
         //@ assume GCD.lemma(numerator,denominator);
-//@ reachable;
         //@ assert GCD.gcd(this.numerator,this.denominator) == 1;
-//@ reachable;
     }
 
 /*@ 
@@ -50,15 +46,14 @@ public class Fraction2 {
       @ old \bigint new_denominator = denominator * f.denominator;
       @ requires Integer.MIN_VALUE + 1 < new_numerator < Integer.MAX_VALUE;
       @ requires 0 < new_denominator < Integer.MAX_VALUE;
-      @ old int gcd = GCD.gcd((int)new_numerator, (int)new_denominator);
-      @ ensures \result.numerator == new_numerator/gcd && \result.denominator == new_denominator/gcd;
+      @ //old int gcd = GCD.gcd((int)new_numerator, (int)new_denominator);
+      @ //ensures \result.numerator == new_numerator/gcd && \result.denominator == new_denominator/gcd;
       @ ensures equal(\result, new_numerator, new_denominator);
       @ pure @*/
     public Fraction2 Multiply(Fraction2 f){
         int new_numerator = this.numerator * f.numerator;
         int new_denominator = this.denominator * f.denominator;
         Fraction2 result = new Fraction2(new_numerator, new_denominator);
-// @ assert GCD.gcd(result.numerator,result.denominator) == 1;
         return result;
     }
 
@@ -69,8 +64,8 @@ public class Fraction2 {
       @ old \bigint new_denominator = this.denominator * f.denominator;
       @ requires -Integer.MAX_VALUE < new_numerator < Integer.MAX_VALUE;
       @ requires -Integer.MAX_VALUE < new_denominator < Integer.MAX_VALUE;
-      @ old int gcd = GCD.gcd((int)new_numerator,(int)new_denominator);
-      @ ensures \result.numerator == new_numerator/gcd && \result.denominator == new_denominator/gcd;
+      @ //old int gcd = GCD.gcd((int)new_numerator,(int)new_denominator);
+      @ //ensures \result.numerator == new_numerator/gcd && \result.denominator == new_denominator/gcd;
       @ ensures equal(\result, new_numerator, new_denominator);
      @ pure @*/
     public Fraction2 Add(Fraction2 f){
@@ -79,12 +74,12 @@ public class Fraction2 {
         //@ assume GCD.lemma(new_numerator,new_denominator);
         var result = new Fraction2(new_numerator, new_denominator);
          // @ assert GCD.gcd(result.numerator,result.denominator) == 1;
-	return result;
+        return result;
    }
 
     /*@ requires Integer.MIN_VALUE+1< numerator < Integer.MAX_VALUE;
       @ requires 0 < denominator < Integer.MAX_VALUE;
-      @ requires GCD.gcd(numerator,denominator)==1;
+      @ //requires GCD.gcd(numerator,denominator)==1;
       @ ensures \result.numerator == -numerator;
       @ ensures \result.denominator == denominator;
       @ ensures equal(\result, -numerator, denominator);
@@ -100,7 +95,7 @@ public class Fraction2 {
     /*@ requires numerator != 0;
       @ requires Integer.MIN_VALUE + 1 < numerator < Integer.MAX_VALUE;
       @ requires 0 < denominator < Integer.MAX_VALUE;
-      @ requires GCD.gcd(numerator,denominator)==1;
+      @ //requires GCD.gcd(numerator,denominator)==1;
       @ ensures \result.denominator > 0;
       @ ensures \result.denominator == GCD.abs(numerator);
       @ ensures \result.numerator == ( numerator < 0 ? -denominator : denominator);
@@ -111,7 +106,7 @@ public class Fraction2 {
         int d = numerator < 0 ? -denominator : denominator;
         int n = numerator < 0 ? -numerator : numerator;
         //@ assume GCD.lemma7(d,n);
-        //@ assert GCD.gcd(d,n) == 1;
+        // @ assert GCD.gcd(d,n) == 1;
         Fraction2 result = new Fraction2(d, n);
  // @ assert GCD.gcd(result.numerator,result.denominator) == 1;
         return result;

@@ -4,7 +4,7 @@ import java.math.BigInteger;
 
 public class bigint {
 
-    // FIXME - what about ++, --, conversion to \real, op=
+    // Duplicate and more complete tests in racfiles.jmlbigint
 
     public static void main(String... args) {
         //@ ghost \bigint b = 20;
@@ -37,7 +37,7 @@ public class bigint {
             e.printStackTrace(System.out);
         }
         try {
-            //@ set prod = prod / 0;
+            //@ set prod = prod % 0;
         } catch (Exception e) {
             e.printStackTrace(System.out);
         }

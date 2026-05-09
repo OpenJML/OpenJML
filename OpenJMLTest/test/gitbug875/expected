@@ -1,0 +1,10 @@
+Proving methods in TestSets
+Starting proof of TestSets.TestSets() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestSets.TestSets() with prover !!!! - no warnings
+Starting proof of TestSets.main(String[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestSets.main(String[]) with prover !!!! - no warnings
+Completed proving methods in TestSets

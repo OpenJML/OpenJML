@@ -1,0 +1,82 @@
+name: 'OpenJML Build'
+description: 'A composite action that builds OpenJML in an existing check out'
+
+## Presumes the current working folder is the one containsing OpenJML, Specs, Solvers, JMLAnnotations etc.
+
+inputs:
+  test:
+    description: 'Whether to run the release test'
+    type: boolean
+    required: true
+  upload:
+    description: 'Whether to upload the built JDK as an artifact for use by test jobs'
+    type: boolean
+    default: 'false'
+  os-label:
+    description: 'Unique OS label for naming the artifact (pass matrix.label to avoid collisions between builds on the same runner)'
+    default: ${{ runner.os }}
+  arch:
+    description: 'Target architecture: "x86_64" to build under arch -x86_64 (Rosetta 2) for Intel; anything else builds natively'
+    default: 'default'
+
+runs:
+  using: 'composite'
+  steps:
+    ## The expected working directory is OpenJML, that is, the folder that holds OpenJMLsrc
+    - name: Build OpenJML release on Windows
+      if: runner.os == 'Windows'
+      shell: wsl-bash {0}
+      run: |
+        cd OpenJML/OpenJMLsrc
+        ./configure
+        make release
+        cd ..
+    - name: Build OpenJML release on non-Windows (native)
+      if: runner.os != 'Windows' && inputs.arch != 'x86_64'
+      shell: bash
+      run: |
+        cd OpenJML/OpenJMLsrc
+        ./configure
+        make release
+        cd ..
+    - name: Build OpenJML release on macOS (x86_64 via Rosetta 2)
+      if: inputs.arch == 'x86_64'
+      shell: bash
+      run: |
+        cd OpenJML/OpenJMLsrc
+        arch -x86_64 bash -c "./configure && make release"
+        cd ..
+    - name: Test the build
+      if: inputs.test == 'true' && ( inputs.arch == 'x86_64' || inputs.os == 'macos-14' )
+      shell: bash
+      run: |
+        make -C OpenJML/OpenJMLsrc release-test
+    - name: Archive build artifact
+      if: inputs.upload == 'true'
+      shell: bash
+      run: |
+        echo "=== Disk space before archive ==="
+        df -h .
+        echo "=== JDK directory size ==="
+        du -sh OpenJML/OpenJMLsrc/build/*/jdk
+        tar -czhf openjml-build.tar.gz OpenJML/OpenJMLsrc/build/*/jdk OpenJML/OpenJMLsrc/jmlruntime.jar
+    - name: Diagnose archive (debug)
+      if: inputs.upload == 'true'
+      shell: bash
+      run: |
+        echo "=== build/ contents ==="
+        ls OpenJML/OpenJMLsrc/build/
+        echo "=== Archive size ==="
+        ls -lh openjml-build.tar.gz
+        tar -tzf openjml-build.tar.gz > /tmp/archive-contents.txt
+        echo "=== First 30 archive entries ==="
+        head -30 /tmp/archive-contents.txt
+        echo "=== jvm.cfg in archive? ==="
+        grep jvm.cfg /tmp/archive-contents.txt || echo "NOT FOUND"
+    - name: Upload build artifact
+      if: inputs.upload == 'true'
+      uses: actions/upload-artifact@v7
+      with:
+        name: openjml-build-${{ inputs.os-label }}
+        path: openjml-build.tar.gz
+        retention-days: 1

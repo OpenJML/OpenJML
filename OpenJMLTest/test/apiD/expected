@@ -5,13 +5,13 @@ Completed proof of A.A() with prover !!!! - no warnings
 Starting proof of A.m() with prover !!!!
 Completed proof of A.m() with prover !!!! - no warnings
 Starting proof of A.n() with prover !!!!
-A.java:7: warning: The prover cannot establish an assertion (Postcondition) in method n
+A.java:7: verify: The prover cannot establish an assertion (Postcondition) in method n
         return 43;
         ^
-A.java:5: warning: Associated declaration
+A.java:5: verify: Associated declaration
     //@ ensures \result == 42;
         ^
 Completed proof of A.n() with prover !!!! - with warnings
 Completed proving methods in A
-2 warnings
-RUN-Z 0
+2 verification failures
+RUN-Z 6

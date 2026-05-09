@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+## install-vscode-extension — Install the OpenJML VS Code extension and
+## configure the openjml-lsp server path in VS Code user settings.
+##
+## Run this script from the directory that contains it (the root of the
+## unzipped OpenJML release), for example:
+##
+##     cd ~/openjml
+##     ./install-vscode-extension
+##
+## What this script does:
+##   1. Locates the 'code' CLI (VS Code command-line tool).
+##   2. Installs openjml.vsix via 'code --install-extension'.
+##   3. Sets "openjml.serverPath" in your VS Code user settings.json to
+##      point to the openjml-lsp script in the same directory.
+##
+## After running, restart VS Code (or Reload Window) to activate the extension.
+
+set -e
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VSIX="$DIR/openjml.vsix"
+SERVER="$DIR/openjml-lsp"
+
+# --------------------------------------------------------------------------
+# 1. Locate the VS Code CLI
+# --------------------------------------------------------------------------
+
+find_code() {
+    # Honour an explicit override.
+    if [ -n "${VSCODE_CLI:-}" ]; then
+        echo "$VSCODE_CLI"; return
+    fi
+    # Try names on PATH first.
+    for name in code code-insiders codium; do
+        if command -v "$name" &>/dev/null; then
+            echo "$name"; return
+        fi
+    done
+    # macOS app-bundle fall-backs.
+    local mac_paths=(
+        "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"
+        "/Applications/Visual Studio Code - Insiders.app/Contents/Resources/app/bin/code"
+        "/Applications/VSCodium.app/Contents/Resources/app/bin/codium"
+    )
+    for p in "${mac_paths[@]}"; do
+        if [ -x "$p" ]; then
+            echo "$p"; return
+        fi
+    done
+}
+
+CODE="$(find_code)"
+
+if [ -z "$CODE" ]; then
+    cat >&2 <<'MSG'
+ERROR: Could not find the VS Code 'code' command.
+
+To fix this, do one of the following:
+  • macOS/Linux: open VS Code, open the Command Palette (Cmd/Ctrl+Shift+P),
+    and run "Shell Command: Install 'code' command in PATH", then re-run
+    this script.
+  • Set the VSCODE_CLI environment variable to the full path of your 'code'
+    (or 'codium') executable:
+        VSCODE_CLI=/path/to/code ./install-vscode-extension
+MSG
+    exit 1
+fi
+
+echo "Using VS Code CLI: $CODE"
+
+# --------------------------------------------------------------------------
+# 2. Install the VSIX
+# --------------------------------------------------------------------------
+
+if [ ! -f "$VSIX" ]; then
+    echo "ERROR: openjml.vsix not found at $VSIX" >&2
+    exit 1
+fi
+
+echo "Installing OpenJML VS Code extension ..."
+# --force replaces any previously installed version of the extension.
+"$CODE" --install-extension "$VSIX" --force
+
+# --------------------------------------------------------------------------
+# 3. Set openjml.serverPath in VS Code user settings.json
+# --------------------------------------------------------------------------
+
+case "$(uname -s)" in
+    Darwin*)
+        SETTINGS="$HOME/Library/Application Support/Code/User/settings.json"
+        ;;
+    Linux*)
+        SETTINGS="${XDG_CONFIG_HOME:-$HOME/.config}/Code/User/settings.json"
+        ;;
+    CYGWIN*|MINGW*|MSYS*)
+        SETTINGS="${APPDATA}/Code/User/settings.json"
+        ;;
+    *)
+        echo "WARNING: Unrecognised OS — skipping settings.json update." >&2
+        echo "Manually add to your VS Code settings:"
+        echo "  \"openjml.serverPath\": \"$SERVER\""
+        exit 0
+        ;;
+esac
+
+mkdir -p "$(dirname "$SETTINGS")"
+
+echo "Configuring openjml.serverPath in $SETTINGS ..."
+
+python3 - "$SETTINGS" "$SERVER" <<'PYEOF'
+import sys, json, pathlib
+
+settings_file = pathlib.Path(sys.argv[1])
+server_path   = sys.argv[2]
+
+settings = {}
+if settings_file.exists():
+    try:
+        settings = json.loads(settings_file.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        print(f"WARNING: {settings_file} contains invalid JSON; "
+              "a new file will be written.", file=sys.stderr)
+
+settings["openjml.serverPath"] = server_path
+settings_file.write_text(
+    json.dumps(settings, indent=4, ensure_ascii=False) + "\n",
+    encoding="utf-8")
+print(f"  Updated: {settings_file}")
+PYEOF
+
+cat <<MSG
+
+Done.
+  Extension : openjml.vsix installed
+  Server    : $SERVER
+
+Restart VS Code (File → Exit, then reopen) or run
+  Ctrl+Shift+P → "Developer: Reload Window"
+to activate the OpenJML extension.
+MSG
+
+# mac-setup is needed to fix Mac security complaints, though it is only needed the first time this binary is executed
+# mac-setup is in the release files; it must be executed manually for the development environment
+if [ "$( uname )" = "Darwin" ] ; then
+  "${DIR}/mac-setup" > /dev/null 2>&1 ;
+fi
+

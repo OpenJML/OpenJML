@@ -1,7 +1,5 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.fail;
-
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Test;
 
@@ -17,24 +15,14 @@ public class racnewWithSpecs extends RacBase {
 
     @Override
     public void setUp() throws Exception {
-        testspecpath1 = "$A"+z+"$B"+z+"$SY";
         //noCollectDiagnostics = true; print = true;
         super.setUp();
-        //main.addOptions("-verboseness=4");
-        expectedNotes = 2;
         addOptions("-jmltesting");
         addOptions("--rac-show-source=line");
     }
-    
-    @Override
-    public void tearDown() throws Exception {
-        testspecpath1 = "$A"+z+"$B";
-    }
-
 
     @Test public void testTypeOf() {
-        expectedNotes = 4;
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                    """
                    package tt; import static org.jmlspecs.lang.JML.*; public class TestJava {
                       public static void main(String[] args) {

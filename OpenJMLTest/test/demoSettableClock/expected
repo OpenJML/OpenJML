@@ -1,4 +1,10 @@
 Proving methods in Clock
+Starting proof of Clock.legalTime(int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Clock.legalTime(int,int,int) with prover !!!! - no warnings
+Starting proof of Clock.totalSeconds() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Clock.totalSeconds() with prover !!!! - no warnings
 Starting proof of Clock.Clock(int,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

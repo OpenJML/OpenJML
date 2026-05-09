@@ -3,10 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import java.io.File;
 
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assert;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.openjml.runners.ParameterizedWithNames;
 
@@ -25,10 +22,10 @@ public class escwebexamples extends EscBaseFiles {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-    	ignoreNotes = true;
+        addOptions("--no-infer=show");
     }
     
-    public void helpTG() {
+    public void helpEscSimple() {
         String testFileroot = getTestName();
         Assert.assertTrue("Web example sources not found", new File(sources).exists() && new File(sources).isDirectory());
         Assert.assertTrue("Expected location not found", new File(expected).exists() && new File(expected).isDirectory());
@@ -37,22 +34,22 @@ public class escwebexamples extends EscBaseFiles {
     
     @Test  // This one non-deterministically timesout - hence the fixing of solver-seed
     public void HeapSort() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void SelectionSort() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void BubbleSort() {
-        helpTG();
+        helpEscSimple();
     }
 
     @Test
     public void MergeSort() {
-        helpTG();
+        helpEscSimple();
     }
 
  

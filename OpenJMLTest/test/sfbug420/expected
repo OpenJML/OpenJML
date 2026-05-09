@@ -1,4 +1,12 @@
 Proving methods in stack.Stack
+Skipping proof of stack.Stack.count() (Skipping stack.Stack.count because it matches the exclusion count)
+Skipping proof of stack.Stack.itemAt(int) (Skipping stack.Stack.itemAt because it matches the exclusion itemAt)
+Skipping proof of stack.Stack.isEmpty() (Skipping stack.Stack.isEmpty because it matches the exclusion isEmpty)
+Skipping proof of stack.Stack.push(int) (Skipping stack.Stack.push because it matches the exclusion push)
+Skipping proof of stack.Stack.top() (Skipping stack.Stack.top because it matches the exclusion top)
+Starting proof of stack.Stack.remove() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.remove() with prover !!!! - no warnings
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Starting proof of stack.StackImpl.StackImpl() with prover !!!!

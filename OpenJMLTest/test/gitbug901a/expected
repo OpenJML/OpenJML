@@ -1,0 +1,8 @@
+Proving methods in ArrayNullness2
+Starting proof of ArrayNullness2.ArrayNullness2() with prover !!!!
+test/gitbug901a/ArrayNullness2.java:9: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method ArrayNullness2
+		s = null;
+		  ^
+Completed proof of ArrayNullness2.ArrayNullness2() with prover !!!! - with warnings
+Completed proving methods in ArrayNullness2
+1 verification failure

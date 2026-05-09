@@ -14,10 +14,10 @@ import java.util.List;
 
 import javax.tools.JavaFileObject;
 
-import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjml.Strings;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.openjml.MockJavaFileObject;
 
 import com.sun.tools.javac.util.ListBuffer;
 import com.sun.tools.javac.util.Log;
@@ -29,25 +29,26 @@ import com.sun.tools.javac.util.Options;
  * implements as well the mechanisms for running RAC via programmatic
  * calls to openjml and then executing the resulting program.
  * 
- * @author David R. Cok
+ * Tests may be based on files in the filesystem or on mock files.
  *
  */
 public abstract class RacBase extends JmlTestSuite {
-	
-	// These are common strings for parts of expected output that can frequently change
+
+    // These are common strings for parts of expected output that can frequently change
     public static final String locA = "(Utils.java:143)";
     public static final String locB = "(Utils.java:94)";
     public static final String locC = "(Utils.java:96)";
     public static final String locD = "(Utils.java:127)";
+    
+    // These fields may be set by tests, in the test method itself, or after calling super.setUp
+    protected int expectedExit = 0; // Expected result of compiler; may be set in a test
+    protected int expectedRACExit = 0; // Expected result of RACed program; may be set in a test
+    protected boolean continueAnyway = false; // If true, attempt to run the program despite compiler warnings or errors
+    protected boolean runrac = true; // Only test compilation, not running the compiled file, if this field is false, or there is no executable name given, or the compile failed
 
     protected String testspecpath1 = "$A"+z+"$B";
     protected String testspecpath;
-    protected int expectedExit = 0; // Expected result of compiler
-    protected int expectedRACExit = 0; // Expected result of RACed program
-    protected int expectedNotes; // Number of messages to ignore (e.g. uninteresting compiler warnings)
-    protected boolean jdkrac = false; // Set to true to do external system tests of RAC (emulating outside of JUnit)
-    protected boolean continueAnyway = false; // If true, attempt to run the program despite compiler warnings or errors
-    
+
     /** File name of the expected output of compilation */
     protected String expected_compile = "expected-compile";
     /** File name of the expected output of running the RACed program */
@@ -55,7 +56,7 @@ public abstract class RacBase extends JmlTestSuite {
 
     /** These are the default command-line arguments for running the RACed
      * program.  The first argument is the java executable; the null argument
-     * is replaced by the class name of the class containing the main method.     
+     * is replaced by the class name of the class containing the main method.
      * */
     protected String[] defrac = new String[]{jdk, "-ea", "-classpath", "",null};
 
@@ -63,7 +64,7 @@ public abstract class RacBase extends JmlTestSuite {
      * by a subclass.
      */
     protected String[] rac = null; // initialized in subclasses
-    
+
     /** Holds the path to the folder in which expected outputs are present and actual outputs are placed;
      * the path is relative to OpenJMLTest
      */
@@ -84,42 +85,38 @@ public abstract class RacBase extends JmlTestSuite {
     @Before
     public void setUp() throws Exception {
         //System.out.println("Using " + jdk);
-        
+
         // Use the default specs path for tests
         testspecpath = testspecpath1;
-        // Define a new collector that filters out the notes
-        collector = new FilteredDiagnosticCollector<JavaFileObject>(false,false);
         super.setUp();
-        
+
         // Setup the options
         addOptions("--specs-path", testspecpath);
         //main.addJavaOption("-d", outdir); // This is where the output program goes // FIXME - for some reason this does not work here
         addOptions("--rac","--rac-java-checks","--rac-check-assumptions");
         addOptions("--show-not-implemented");
-        addOptions("--no-purity-check"); // System specs have a lot of purity errors, so turn this off for now
-        addOptions("--rac-show-source=none");
+        addOptions("--rac-show-source=none"); // To make the test output more stable and smaller
         expectedExit = 0;
         expectedRACExit = 0;
-        expectedNotes = 2; // Two lines to ignore
         print = false;
     }
-    
+
     @Override
     public void tearDown() throws Exception {
         super.tearDown();
     }
-    
+
     public static String macstring = "Exception in thread \"main\" ";
 
     public String setupOutdir() {
-        outdir = System.getenv("OPENJML_ROOT") + "/../OpenJML/OpenJMLTest/testcompiles/" + getTestName();
+        outdir = root + "/OpenJML/OpenJMLTest/testcompiles/" + getTestName();
         var d = new java.io.File(outdir);
         d.mkdirs();
         defrac[3] = outdir;
         if (rac == null) rac = new String[]{jdk, "-ea", "-classpath", outdir, null};
         return outdir;
     }
-    
+
     /** This method does the running of a RAC test for tests that supply with body
      * of a file as a String.
      * No output is
@@ -129,10 +126,13 @@ public abstract class RacBase extends JmlTestSuite {
      * @param compilationUnitText the compilation unit text which will be put in a mock file
      * @param list any expected diagnostics from openjml, followed by the error messages from the RACed program, line by line
      */
-    public void helpTCX(String classname, String compilationUnitText, Object... list) {
+    //public int expectedNotes = 0;
+    //public void helpEsc(String classname, String compilationUnitText, Object... expectedDiagnostics) { helpRacText(classname, compilationUnitText, expectedDiagnostics); }
+
+    public void helpRacText(String classname, String compilationUnitText, Object... expectedDiagnostics) {
         // Source files are synthetic
         // Compile destination is destdir
-        // Expected output is containted in the test code (not in a file)
+        // Expected output is contained in the test code (not in a file)
         String destdir = setupOutdir();
         new java.io.File(destdir).delete(); // Make sure old builds are deleted
         new java.io.File(destdir).mkdir();
@@ -143,39 +143,32 @@ public abstract class RacBase extends JmlTestSuite {
         try {
             ListBuffer<JavaFileObject> files = new ListBuffer<JavaFileObject>();
             String filename = classname.replace(".","/")+".java";
-            JavaFileObject f = new TestJavaFileObject(filename,compilationUnitText);
+            JavaFileObject f = new MockJavaFileObject(filename,compilationUnitText);
             files.append(f);
-            for (JavaFileObject ff: mockFiles) {
-                if (ff.toString().endsWith(".java")) files.append(ff);
-            }
+            files.addAll(javamockFiles);
 
             Log.instance(context).useSource(files.first());
 
-            int ex = main.compile(new String[]{"-d", destdir},files.toList()).exitCode;
+            // Register each file by URI in the existing mockFiles (same object as main.mockFiles).
+            for (JavaFileObject jfo : files.toList()) mockFiles.addMockByUri(jfo.toUri().normalize(), jfo);
+            String[] fileArgs = files.toList().stream()
+                    .map(JavaFileObject::getName).toArray(String[]::new);
+            String[] allArgs = new String[2 + fileArgs.length];
+            allArgs[0] = "-d"; allArgs[1] = destdir;
+            System.arraycopy(fileArgs, 0, allArgs, 2, fileArgs.length);
+            int ex = main.compile(allArgs, mockFiles).exitCode;
             if (print) printDiagnostics();
-            int observedMessages = collector.getDiagnostics().size() - expectedNotes;
-            if (observedMessages < 0) observedMessages = 0;
 
-            for (int i=0; i<observedMessages; i++) {
-                int k = 2*i + 2*expectedNotes;
-                if (k >= list.length) {
-                    if (!print) printDiagnostics();
-                    fail("More diagnostics than expected");
-                }
-                String expected = list[k].toString();
-                String s = noSource(collector.getDiagnostics().get(i));
-                assertEquals("Message " + i, expected, s);
-                assertEquals("Message " + i, ((Integer)list[k+1]).intValue(), collector.getDiagnostics().get(i).getColumnNumber());
-            }
+            int expectedUsed = new OutputCompare().compareResults(expectedDiagnostics, collector, false);
             assertEquals("Compile ended with exit code:", expectedExit, ex);
             if (ex != 0 && !continueAnyway) return;
             if (!runrac) return;
-            
+
             if (rac == null) rac = defrac;
             rac[rac.length-2] = destdir;
             rac[rac.length-1] = classname;
             Process p = Runtime.getRuntime().exec(rac);
-            
+
             outs = new StreamGobbler(p.getInputStream());
             errs = new StreamGobbler(p.getErrorStream());
             outs.start();
@@ -183,8 +176,8 @@ public abstract class RacBase extends JmlTestSuite {
             if (timeout(p,10000)) { // 10 second timeout
                 fail("Process did not complete within the timeout period");
             }
-            
-            int i = observedMessages*2;
+
+            int i = expectedUsed;
             if (print) {
                 String data = outs.input();
                 if (data.length() > 0) {
@@ -205,21 +198,19 @@ public abstract class RacBase extends JmlTestSuite {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String actual: lines) {
-                	//out.println("ACT: " + line);
-                	if (i < list.length) {
-                		String expected = list[i].toString();
-                        expected = expected.replace("$SPECS", specsdir);
-                        expected = expected.replace("#DEMO", OpenJMLDemoPath);
-                		//out.println("EXP: " + expected);
-                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
-                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
-                		if (!actual.matches(".*:[0-9]+:$")) 
-                			expected = expected.replaceFirst(": [^:]*:[0-9]+:$","");
-                		//out.println("EXP: " + expected);
+                    //out.println("ACT: " + line);
+                    if (i < expectedDiagnostics.length) {
+                        String expected = doReplacements(expectedDiagnostics[i].toString());
+                        //out.println("EXP: " + expected);
+                        if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
+                            expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
+                        if (!actual.matches(".*:[0-9]+:$")) 
+                            expected = expected.replaceFirst(": [^:]*:[0-9]+:$","");
+                        //out.println("EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
-                		//out.println("EXP: " + expected);
+                        //out.println("EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
-                	}
+                    }
                     i++;
                 }
             }
@@ -227,36 +218,28 @@ public abstract class RacBase extends JmlTestSuite {
             if (data.length() > 0) {
                 String[] lines = data.split(term);
                 for (String actual: lines) {
-                	//out.println("ERR-ACT: " + actual);
-                	if (i < list.length) {
-                		String expected = list[i].toString();
-                		expected = expected.replace("#DEMO", OpenJMLDemoPath);
-                		//out.println("ERR-EXP: " + expected);
+                    //out.println("ERR-ACT: " + actual);
+                    if (i < expectedDiagnostics.length) {
+                        String expected = doReplacements(expectedDiagnostics[i].toString());
+                        //out.println("ERR-EXP: " + expected);
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
-                		//out.println("ERR-EXP: " + expected);
-//                		if (expected.contains(":") && !actual.matches("^[^:]*:[0-9]+:.*")) 
-//                			expected = expected.replaceFirst("^[^:]*:[0-9]+: ","");
-//                		if (!actual.matches(".*:[0-9]+:$")) 
-//                			expected = expected.replaceFirst(": [^:]*:[0-9]+:",":");
-                		//out.println("ERR-EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
-                		//out.println("ERR-EXP: " + expected);
+                        //out.println("ERR-EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
-                	}
+                    }
                     i++;
                 }
-                if (isMac && i < list.length && list[i].equals(macstring)) i++;
             }
 
-            if (i != list.length && !print) { // if print, then we already printed
+            if (i != expectedDiagnostics.length && !print) { // if print, then we already printed
                 printDiagnostics();
             }
-            assertFalse("More output than specified: " + i + " vs. " + list.length + " lines", i > list.length);
-            assertFalse("Less output than specified: " + i + " vs. " + list.length + " lines", i < list.length);
+            assertFalse("More output than specified: " + i + " vs. " + expectedDiagnostics.length + " lines", i > expectedDiagnostics.length);
+            assertFalse("Less output than specified: " + i + " vs. " + expectedDiagnostics.length + " lines", i < expectedDiagnostics.length);
             if (p.exitValue() != expectedRACExit) fail("Exit code was " + p.exitValue());
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
             if (!print) printDiagnostics();
@@ -275,43 +258,22 @@ public abstract class RacBase extends JmlTestSuite {
                 }
             }
             throw e;
-        } finally {
-//            if (r != null) 
-//                try { r.close(); } 
-//                catch (java.io.IOException e) { 
-//                    // Give up if there is an exception
-//                }
-//            if (rerr != null) 
-//                try { rerr.close(); } 
-//                catch (java.io.IOException e) {
-//                    // Give up if there is an exception
-//                }
         }
     }
-    
-    // The following is for tests based on files
 
-    protected boolean runrac = true;
-    
-    
-    /** Call this as a setup routine, followed by RacBase.setUp for file based tests */
-    public void setUpForFiles() throws Exception {
-//        rac = sysrac;
-        jdkrac = true;
-        runrac = true;
-    }
-
+    /** Runs a test (RAC compilation only) on a test folder whose name is the same as the test name. */
     public void helpCompileOnly(String ... opts) {
         String dir = "test/" + getTestName();
-        helpTCF(dir, dir, null, opts);
+        helpRac(dir, dir, null, opts);
     }
 
+    /** Runs a test (RAC compilation and then running the compiled program) on a test folder whose name is the same as the test name. */
     public void helpCompileRun(String mainClassname, String ... opts) {
         String dir = "test/" + getTestName();
-        helpTCF(dir, dir, mainClassname, opts);
+        helpRac(dir, dir, mainClassname, opts);
     }
 
-    /** This method does compiles a test with RAC whose source is in a given directory,
+    /** This method compiles a test with RAC whose source is in a given directory,
      * and then runs the compiled program.  The compilation is expected to have no errors.
      * the number of expected diagnostics is set by 'expectedErrors'.
      * 
@@ -324,12 +286,13 @@ public abstract class RacBase extends JmlTestSuite {
      * from the project folder
      * @param mainClassname The fully-qualified classname for the test class (where main is)
      */
-    public void helpTCF(String sourcedir, String outputdir, String mainClassname, String ... opts) {
+ //   public void helpTCF(String sourcedir, String outputdir, String mainClassname, String ... opts) { helpRac(sourcedir, outputdir, mainClassname, opts); }
+    public void helpRac(String sourcedir, String outputdir, String mainClassname, String ... opts) {
         String destDir = setupOutdir(); // This is the location for compiled .class files
-//        System.out.println("SOURCEDIR " + sourcedir);
-//        System.out.println("DESTDIR " + destDir);
-//        System.out.println("OUTDIR " + outputdir);
-//        System.out.println("OPTS " + String.join(",",opts));
+        //        System.out.println("SOURCEDIR " + sourcedir);
+        //        System.out.println("DESTDIR " + destDir);
+        //        System.out.println("OUTDIR " + outputdir);
+        //        System.out.println("OPTS " + String.join(",",opts));
         boolean print = false;
         StreamGobbler out=null,err=null;
         try {
@@ -344,21 +307,20 @@ public abstract class RacBase extends JmlTestSuite {
             //args.add("-classpath");
             //args.add(cp);
             args.add("--rac");
-            args.add("--no-purity-check");
             args.add("--code-math=java");
             args.add("--spec-math=bigint");
             if (new File(sourcedir).isDirectory()) args.add("--dir");
             args.add(sourcedir);
             args.addAll(Arrays.asList(opts));
-            
+
             PrintWriter pw = new PrintWriter(actCompile);
-            int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
+            int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(String[]::new));
             pw.close();
-            
+
             String compdiffs = "";
             boolean hasExpected = false;
             for (String file: new File(outputdir).list()) {
-                if (!file.contains("expected-compile")) continue;
+                if (!file.contains(expected_compile)) continue;
                 hasExpected = true;
                 compdiffs = outputCompare.compareFiles(outputdir + "/" + file, actCompile);
                 if (compdiffs == null) {
@@ -376,6 +338,7 @@ public abstract class RacBase extends JmlTestSuite {
                     compdiffs = ("No expected output file for compiler output");
                     System.out.println(compdiffs);
                 } else {
+                    compdiffs = ("No match to actual file: " + compdiffs.substring(0, Math.min(150, compdiffs.length())));
                     System.out.println(compdiffs);
                     // Delay failing on file differences until after an attempt to run the file
                 }
@@ -397,10 +360,10 @@ public abstract class RacBase extends JmlTestSuite {
                 String output = out.input().replaceAll("@[0-9abcdef]+", "@########");
                 ex = p.exitValue();
                 output = "OUT:" + eol + output + eol + "ERR:" + eol + err.input();
-                if (print) System.out.println(output);
+                if (print) this.out.println(output);
                 String diffs = "";
                 for (String file: new File(outputdir).list()) {
-                    if (!file.contains("expected-run")) continue;
+                    if (!file.contains(expected_run)) continue;
                     diffs = outputCompare.compareText(outputdir + "/" + file,output);
                     if (diffs == null) break;
                 }
@@ -414,27 +377,28 @@ public abstract class RacBase extends JmlTestSuite {
                     if (diffs.isEmpty()) {
                         fail("No expected output file for runtime output");
                     } else {
-                        //System.out.println("EXP:" + outputdir + "   ACT: " + actRun + "   CUR: " + System.getProperty("user.dir") + "  DEMO: " + OpenJMLDemoPath);
-                        System.out.println(diffs);
-                        fail("Unexpected output: " + diffs);
+                        //this.out.println("EXP:" + outputdir + "   ACT: " + actRun + "   CUR: " + System.getProperty("user.dir") + "  DEMO: " + OpenJMLDemoPath);
+                        if (print) this.out.println(diffs);
+                        fail("Unexpected output: " + actRun);
                     }
                 }
             } else {
                 for (String file: new File(outputdir).list()) {
-                    if (file.contains("expected-run")) {
-                        fail("Test has an expected-run file even though the RACed program is not executed");
+                    if (file.contains(expected_run)) {
+                        fail("Test has an " + expected_run + " file even though the RACed program is not executed");
                     }
                 }
             }
-            if (compdiffs != null) fail("Files differ: " + compdiffs);
+            if (compdiffs != null) {
+                if (!print) compdiffs = actRun;
+                fail("Files differ: " + compdiffs);
+            }
 
         } catch (Exception e) {
             e.printStackTrace(System.out);
             fail("Exception thrown while processing test: " + e);
         } catch (AssertionError e) {
             throw e;
-        } finally {
-            // Should close open objects
         }
     }
 }

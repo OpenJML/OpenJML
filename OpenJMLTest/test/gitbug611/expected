@@ -1,4 +1,13 @@
 Proving methods in AA
+Starting proof of AA.test(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of AA.test(int) with prover !!!! - no warnings
+Starting proof of AA.test2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of AA.test2(int) with prover !!!! - no warnings
+Starting proof of AA.ok(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of AA.ok(int) with prover !!!! - no warnings
 Completed proving methods in AA
 Proving methods in A
 Starting proof of A.A() with prover !!!!

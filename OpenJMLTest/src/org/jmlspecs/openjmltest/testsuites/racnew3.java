@@ -16,13 +16,12 @@ public class racnew3 extends RacBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        expectedNotes = 0;
         addOptions("--rac-show-source=line");
     }
     
     /** Tests not_modified */
     @Test public void testNotModified1() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*;  \n" +
+        helpRacText("tt.TestJava","package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    public static void main(String... args) {\n" +
                 "       m(3);\n" +
@@ -40,7 +39,7 @@ public class racnew3 extends RacBase {
 
     /** Tests not_modified */
     @Test public void testNotModified2() {
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
@@ -61,7 +60,7 @@ public class racnew3 extends RacBase {
 
     /** Tests not_modified */
     @Test public void testNotModified3() {
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
@@ -82,7 +81,7 @@ public class racnew3 extends RacBase {
 
     /** Tests not_modified */
     @Test public void testNotModified4() {
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 "package tt; import org.jmlspecs.annotation.*;  \n" +
                 "public class TestJava { \n" +
                 "    int f = 5;\n" +
@@ -105,8 +104,8 @@ public class racnew3 extends RacBase {
     
     @Test
     public void testCast() {
-        addOptions("-code-math=safe","-spec-math=safe");
-        helpTCX("tt.TestJava",
+        addOptions("--code-math=safe","--spec-math=safe");
+        helpRacText("tt.TestJava",
                 "package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -184,7 +183,7 @@ public class racnew3 extends RacBase {
 
     @Test
     public void testCast1() {
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 "package tt; \n"
                 +"public class TestJava { \n"
                 
@@ -215,7 +214,7 @@ public class racnew3 extends RacBase {
                 +"    }\n"
                 +"    {/*@ nullable */ Float s = null;\n"
                 +"    try { //@ assert 0 == (float)s;\n} catch (NullPointerException e) {}\n" 
-                +"    try { float d = (Float)null;} //@ forbid \n catch (NullPointerException e) {}   \n"
+                +"    try { float d = (Float)null; //@ forbid \n} catch (NullPointerException e) {}   \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Double s = null;\n"
                 +"    try { //@ assert 0 == (double)s;\n} catch (NullPointerException e) {}\n"
@@ -251,7 +250,7 @@ public class racnew3 extends RacBase {
 
     @Test
     public void testCast2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"    public static void main(String... args) {\n" 
@@ -269,7 +268,7 @@ public class racnew3 extends RacBase {
     
     @Test
     public void testVarargs() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"    public static void main(String... args) {\n" 
@@ -291,7 +290,7 @@ public class racnew3 extends RacBase {
     
     @Test
     public void testTryResources1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -324,7 +323,7 @@ public class racnew3 extends RacBase {
     // If close exits normally, flag == 1
     // If close throws an exception, flag == 10
     @Test public void testTryResources1x() {
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -361,7 +360,7 @@ public class racnew3 extends RacBase {
     
     // If RR() throws an exception, mmm exits exceptionally
     @Test public void testTryResources1a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -394,8 +393,8 @@ public class racnew3 extends RacBase {
     
     // Checks that close calls execute in reverse order
     @Test public void testTryResources2() {
-        addOptions("-racCheckAssumptions");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--rac-check-assumptions");
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -434,8 +433,8 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
-        addOptions("-racCheckAssumptions");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--rac-check-assumptions");
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
                 +"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
@@ -488,8 +487,8 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
-        addOptions("-racCheckAssumptions");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--rac-check-assumptions");
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    public static class EE extends RuntimeException {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
                 +"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
@@ -542,7 +541,7 @@ public class racnew3 extends RacBase {
     
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    public static class EE extends Exception {  /*@ public normal_behavior ensures true; */public EE() {}}\n"
                 +"    public static class EE1 extends EE {/*@ public normal_behavior ensures true; */public EE1() {}}\n"
@@ -591,7 +590,7 @@ public class racnew3 extends RacBase {
     
     // Check that finally block of try encloses declarations and calls to close
     @Test public void testTryResources3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -624,7 +623,7 @@ public class racnew3 extends RacBase {
     
     // If RR() throws an exception, then catch block will execute
     @Test public void testTryResources4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -659,7 +658,7 @@ public class racnew3 extends RacBase {
     }
     
     @Test public void testTryResources4a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -692,7 +691,7 @@ public class racnew3 extends RacBase {
     }
     
     @Test public void testTryResources4b() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -725,7 +724,7 @@ public class racnew3 extends RacBase {
     
     // No resource - executes the catch block
     @Test public void testTryResources4c() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -759,7 +758,7 @@ public class racnew3 extends RacBase {
     
     // Checks that the outer finally block is last to execute
     @Test public void testTryResources5() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"    static public int flag = 0;\n"
                 +"    public static class RR implements AutoCloseable {\n"
@@ -791,4 +790,89 @@ public class racnew3 extends RacBase {
                 );
     }
 
+    @Test
+    public void testInstanceOfA() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava && ((TestJava)a).k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t) {
+                       //@ check t.k == 42;
+                       //@ check t.k == 43; // ERROR
+                    }
+                  }
+                  public static void main(String... args) { var t = new TestJava(); t.k = 42; t.m(t); }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: JML assertion is false"
+                );
+    }
+    
+    @Test
+    public void testInstanceOfB() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava tt && tt.k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t) {
+                       //@ check t.k == 42;
+                       //@ check t.k == 43; // ERROR
+                    }
+                  }
+                  public static void main(String... args) { var t = new TestJava(); t.k = 42; t.m(t); }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: JML assertion is false"
+                );
+    }
+    
+    @Test
+    public void testInstanceOfC() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  //@ requires a instanceof TestJava tt && tt.k == 42;
+                  public void m(A a) {
+                    if (a instanceof TestJava t && t.k == 42) {
+                        //@ unreachable; // ERROR is reachable
+                    } else {
+                        //@ unreachable; // OK
+                    }
+                  }
+                  public static void main(String... args) { var t = new TestJava(); t.k = 42; t.m(t); }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: JML unreachable statement reached"
+                );
+    }
+    
+    @Test
+    public void testInstanceOfD() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                class A {}
+                public class TestJava extends A {
+                  public int k;
+                  public void m(A a) {
+                    //@ check \\forall int i; i == 0; (a instanceof TestJava t && t.k == 42);
+                  }
+                  public static void main(String... args) { var t = new TestJava(); t.m(t); }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: JML assertion is false"
+                );
+    }
+   
 }

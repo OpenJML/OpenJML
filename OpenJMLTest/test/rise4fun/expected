@@ -54,10 +54,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of MaybeAdd.MaybeAdd() with prover !!!! - no warnings
 Starting proof of MaybeAdd.add(int,int) with prover !!!!
-test/rise4fun/MaybeAdd.java:9: warning: The prover cannot establish an assertion (Postcondition) in method add
+test/rise4fun/MaybeAdd.java:9: verify: The prover cannot establish an assertion (Postcondition) in method add
         return a-b;
         ^
-test/rise4fun/MaybeAdd.java:7: warning: Associated declaration
+test/rise4fun/MaybeAdd.java:7: verify: Associated declaration
     //@ ensures \result == a+b;
         ^
 Completed proof of MaybeAdd.add(int,int) with prover !!!! - with warnings
@@ -90,4 +90,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Smallest.Smallest(int[]) with prover !!!! - no warnings
 Completed proving methods in Smallest
-2 warnings
+2 verification failures

@@ -1,7 +1,7 @@
-..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:47: warning: The prover cannot establish an assertion (Assignable) in method Cash:  my_loaded
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:47: verify: The prover cannot establish an assertion (Assignable) in method Cash:  my_loaded
     my_loaded = false;
               ^
-..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:44: warning: Associated declaration
+..\..\OpenJMLDemoNonPublic\src\dmz2\Cash.java:44: verify: Associated declaration
   //@ assignable amount, loaded;
       ^
 

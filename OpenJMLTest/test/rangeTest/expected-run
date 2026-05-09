@@ -1,6 +1,0 @@
-OUT:
-test/rangeTest/R.java:10: verify: JML assertion is false
-    //@ assert (2 .. 3) != (2 .. 3); // ERROR
-        ^
-
-ERR:

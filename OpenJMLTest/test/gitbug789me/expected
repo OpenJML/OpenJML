@@ -9,19 +9,13 @@ Skipping proof of CircleOperations.main(String[]) (Skipping CircleOperations.mai
 Skipping proof of CircleOperations.mn(String[]) (Skipping CircleOperations.mn because it does not match me)
 Skipping proof of CircleOperations.mp(String[]) (Skipping CircleOperations.mp because it does not match me)
 Starting proof of CircleOperations.me(String[]) with prover !!!!
-test/gitbug789me/CircleOperations.java:46: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method me: (Caller: CircleOperations.me(String[]), Callee: java.io.PrintStream.println(int))
+test/gitbug789me/CircleOperations.java:46: verify: The prover cannot establish an assertion (InvariantEntrance) in method me: (Caller: CircleOperations.me(String[]), Callee: java.io.PrintStream.println(int))
         System.out.println(cops.ide(79));
                           ^
-$SPECS/java/io/PrintStream.jml:42: warning: Associated declaration
-    //-RAC@ public invariant outputText != null && \invariant_for(outputText);
+$SPECS/java/io/PrintStream.jml:43: verify: Associated declaration
+    //-RAC@ public invariant outputText.length >= 0;
                    ^
-test/gitbug789me/CircleOperations.java:46: warning: The prover cannot establish an assertion (InvariantLeaveCaller) in method me: (Caller: CircleOperations.me(String[]), Callee: java.io.PrintStream.println(int))
-        System.out.println(cops.ide(79));
-                          ^
-$SPECS/java/io/PrintStream.jml:35: warning: Associated declaration
-    //-RAC@ public static invariant \invariant_for(eol) && eol.length() > 0;
-                          ^
 Completed proof of CircleOperations.me(String[]) with prover !!!! - with warnings
 Skipping proof of CircleOperations.mee(String[]) (Skipping CircleOperations.mee because it does not match me)
 Completed proving methods in CircleOperations
-4 warnings
+2 verification failures

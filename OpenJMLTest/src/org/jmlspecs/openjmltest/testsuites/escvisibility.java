@@ -1,6 +1,6 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import org.jmlspecs.openjmltest.*;
+import org.jmlspecs.openjmltest.EscBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -16,27 +16,21 @@ public class escvisibility extends EscBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-no-purityCheck");
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
         Options.instance(context).put("--class-path",   testspecpath);
         Options.instance(context).put("--source-path",   testspecpath);
-        addOptions("-specspath",   testspecpath);
-        addOptions("-quiet");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-        addOptions("-jmltesting");
+        addOptions("--specspath",   testspecpath);
+        addOptions("--normal");
     }
 
     // Invariant inherited from same package
     
     @Test
     public void testPrivate() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  private boolean b = false; public boolean bb = true;\n"
@@ -56,8 +50,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  public boolean b = true;\n"
@@ -71,15 +65,15 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
-                ,"/tt/TestJava.java:4: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:4: verify: Associated declaration",14
                 );
     }
     
     @Test
     public void testProtected() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  protected boolean b = true;\n"
@@ -93,15 +87,15 @@ public class escvisibility extends EscBase {
                 
                 +"}"
                 
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
-                ,"/tt/TestJava.java:4: warning: Associated declaration",17
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:4: verify: Associated declaration",17
                 );
     }
     
     @Test
     public void testPackage() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  boolean b = true;\n"
@@ -114,8 +108,8 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
-                ,"/tt/TestJava.java:4: warning: Associated declaration",7
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:4: verify: Associated declaration",7
                 );
     }
     
@@ -123,8 +117,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate2() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"}\n"
@@ -137,15 +131,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",15
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:6: verify: Associated declaration",15
                 );
     }
     
     @Test
     public void testPublic2() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  public boolean b = true;\n"
@@ -158,15 +152,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",14
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:6: verify: Associated declaration",14
                 );
     }
     
     @Test
     public void testProtected2() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  protected boolean b = true;\n"
@@ -179,15 +173,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",17
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:6: verify: Associated declaration",17
                 );
     }
     
     @Test
     public void testPackage2() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  boolean b = true;\n"
@@ -200,8 +194,8 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (InvariantExit) in method m1",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",7
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method m1",15
+                ,"/tt/TestJava.java:6: verify: Associated declaration",7
                 );
     }
     
@@ -209,8 +203,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate3() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  //@ private normal_behavior ensures false;\n"
@@ -228,8 +222,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic3() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  //@ public normal_behavior ensures false;\n"
@@ -242,15 +236,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:3: warning: Associated declaration",30
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: verify: Associated declaration",30
                 );
     }
     
     @Test
     public void testProtected3() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  //@ protected normal_behavior ensures false;\n"
@@ -263,15 +257,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:3: warning: Associated declaration",33
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: verify: Associated declaration",33
                 );
     }
     
     @Test
     public void testPackage3() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  //@ normal_behavior ensures false;\n"
@@ -284,8 +278,8 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:3: warning: Associated declaration",23
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: verify: Associated declaration",23
                 );
     }
     
@@ -293,8 +287,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate3a() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  //@   ensures false;\n"
@@ -312,8 +306,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic3a() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  //@  ensures false;\n"
@@ -326,15 +320,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:3: warning: Associated declaration",8
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: verify: Associated declaration",8
                 );
     }
     
     @Test
     public void testProtected3a() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  //@  ensures false;\n"
@@ -347,15 +341,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:3: warning: Associated declaration",8
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: verify: Associated declaration",8
                 );
     }
     
     @Test
     public void testPackage3a() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  //@  ensures false;\n"
@@ -368,8 +362,8 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:3: warning: Associated declaration",8
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:3: verify: Associated declaration",8
                 );
     }
     
@@ -377,8 +371,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate4() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  public void m1() {\n"
@@ -391,15 +385,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",36
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration",36
                 );
     }
     
     @Test
     public void testPublic4() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  public void m1() {\n"
@@ -412,15 +406,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",35
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration",35
                 );
     }
     
     @Test
     public void testProtected4() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  public void m1() {\n"
@@ -433,15 +427,15 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",38
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration",38
                 );
     }
     
     @Test
     public void testPackage4() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class Parent { \n"
                 
                 +"  public void m1() {\n"
@@ -454,8 +448,8 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",28
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration",28
                 );
     }
     
@@ -463,8 +457,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate5() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX2("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
                 +"  }\n"
@@ -482,8 +476,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic5() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX2("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
                 +"  }\n"
@@ -496,15 +490,15 @@ public class escvisibility extends EscBase {
                         +"  }\n"
                         +"}"
                         
-                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tx/Parent.java:2: warning: Associated declaration",30
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tx/Parent.java:2: verify: Associated declaration",30
                 );
     }
     
     @Test
     public void testProtected5() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX2("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
                 +"  }\n"
@@ -517,15 +511,15 @@ public class escvisibility extends EscBase {
                         +"  }\n"
                         +"}"
                         
-                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tx/Parent.java:2: warning: Associated declaration",33
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tx/Parent.java:2: verify: Associated declaration",33
                 );
     }
     
     @Test
     public void testPackage5() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX2("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
                 +"  }\n"
@@ -546,8 +540,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPrivate6() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX2("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
                 +"  }\n"
@@ -565,8 +559,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic6() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX2("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
                 +"  }\n"
@@ -579,15 +573,15 @@ public class escvisibility extends EscBase {
                         +"  }\n"
                         +"}"
                         
-                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tx/Parent.java:2: warning: Associated declaration",8
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tx/Parent.java:2: verify: Associated declaration",8
                 );
     }
     
     @Test
     public void testProtected6() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX2("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
                 +"  }\n"
@@ -600,15 +594,15 @@ public class escvisibility extends EscBase {
                         +"  }\n"
                         +"}"
                         
-                ,"/tt/TestJava.java:3: warning: The prover cannot establish an assertion (Postcondition) in method m1",15
-                ,"/tx/Parent.java:2: warning: Associated declaration",8
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Postcondition) in method m1",15
+                ,"/tx/Parent.java:2: verify: Associated declaration",8
                 );
     }
     
     @Test
     public void testPackage6() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX2("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava extends tx.Parent { \n"
                 +"  public void m1() {\n"
                 +"  }\n"
@@ -623,14 +617,12 @@ public class escvisibility extends EscBase {
                         
                 );
     }
-    
 
     // Not-inherited method spec
     
-    
     @Test
     public void testPublic7() {
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         String s2 = "package tx; public class B {\n"
                 +"  //@  requires false;\n"
                 +"  static public void m1() {\n"
@@ -638,7 +630,7 @@ public class escvisibility extends EscBase {
                 +"}"
                 ;
                         
-        helpTCX2("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
@@ -648,12 +640,11 @@ public class escvisibility extends EscBase {
                 , "tx.B", s2
                 
                         
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
-                ,"/tx/B.java:3: warning: Associated declaration",22
-                ,"/tx/B.java:2: warning: Precondition conjunct is false: false",17
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method m1",13
+                ,"/tx/B.java:3: verify: Associated declaration",22
+                ,"/tx/B.java:2: verify: Precondition conjunct is false: false",17
                 );
     }
-    
     
     @Test
     public void testPrivate8() {
@@ -667,7 +658,7 @@ public class escvisibility extends EscBase {
                 +"}"
                 ;
                         
-        helpTCX2("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
@@ -689,7 +680,7 @@ public class escvisibility extends EscBase {
                 +"}"
                 ;
                         
-        helpTCX2("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
@@ -697,9 +688,9 @@ public class escvisibility extends EscBase {
                 +"}"
                 ,"tx.B",s2
                         
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method m1",13
-                ,"/tx/B.java:4: warning: Associated declaration",22
-                ,"/tx/B.java:3: warning: Precondition conjunct is false: false",17
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method m1",13
+                ,"/tx/B.java:4: verify: Associated declaration",22
+                ,"/tx/B.java:3: verify: Precondition conjunct is false: false",17
                 );
     }
     
@@ -707,7 +698,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testProtected8() {
     	expectedExit = 0;
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         String s2 = "package tx; public class B {\n"
                 +"  //@ protected normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -716,7 +707,7 @@ public class escvisibility extends EscBase {
                 +"}"
                 ;
                         
-        helpTCX2("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
@@ -730,7 +721,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPackage8() {
     	expectedExit = 0;
-        addOptions("-method", "tt.TestJava.m1");
+        addOptions("--method", "tt.TestJava.m1");
         String s2 = "package tx; public class B {\n"
                 +"  //@ normal_behavior\n"
                 +"  //@  requires false;\n"
@@ -739,7 +730,7 @@ public class escvisibility extends EscBase {
                 +"}"
                 ;
 
-        helpTCX2("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m1() {\n"
                 +"     tx.B.m1();"
@@ -750,12 +741,11 @@ public class escvisibility extends EscBase {
                 );
     }
 
-
     @Test
     public void testPrivate9() {
     	expectedExit = 0;
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  //@ private normal_behavior\n"
@@ -776,8 +766,8 @@ public class escvisibility extends EscBase {
     
     @Test
     public void testPublic9() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  //@ public normal_behavior\n"
@@ -792,16 +782,16 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:5: warning: Associated declaration",22
-                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Precondition) in method m1",11
+                ,"/tt/TestJava.java:5: verify: Associated declaration",22
+                ,"/tt/TestJava.java:4: verify: Precondition conjunct is false: false",17
                 );
     }
     
     @Test
     public void testProtected9() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  //@ protected normal_behavior\n"
@@ -816,16 +806,16 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:5: warning: Associated declaration",22
-                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Precondition) in method m1",11
+                ,"/tt/TestJava.java:5: verify: Associated declaration",22
+                ,"/tt/TestJava.java:4: verify: Precondition conjunct is false: false",17
                 );
     }
     
     @Test
     public void testPackage9() {
-        addOptions("-method", "tt.TestJava.m1");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method", "tt.TestJava.m1");
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  //@ normal_behavior\n"
@@ -840,10 +830,9 @@ public class escvisibility extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (Precondition) in method m1",11
-                ,"/tt/TestJava.java:5: warning: Associated declaration",22
-                ,"/tt/TestJava.java:4: warning: Precondition conjunct is false: false",17
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Precondition) in method m1",11
+                ,"/tt/TestJava.java:5: verify: Associated declaration",22
+                ,"/tt/TestJava.java:4: verify: Precondition conjunct is false: false",17
                 );
     }
-
 }

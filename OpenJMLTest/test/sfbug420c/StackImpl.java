@@ -6,25 +6,26 @@ public class StackImpl implements Stack {
 	private int[] internalStack;
 	/*@ spec_public */ private int stackCounter; //-RAC@ in count;
 	
-	@SuppressWarnings("unchecked") //@ pure
+	//@ ensures count() == 0;
+	//@ pure
 	public StackImpl() {
 		internalStack = new int[maxSize];
 		stackCounter = 0;
 	}
 	
 	//@ also ensures \result == stackCounter;
-	//@ pure
+	//@ spec_pure
 	//@ helper
 	public int count() {
 		return stackCounter;
 	}
 
-	//@ pure
+	//@ spec_pure
 	public int itemAt(int i) {
 		return internalStack[i-1];
 	}
 
-	//@ pure
+	//@ spec_pure
 	public boolean isEmpty() {
 		return internalStack.length == 0;
 	}
@@ -51,11 +52,11 @@ public class StackImpl implements Stack {
 		var b1 = s.push(2);
 		var b2 = s.push(2);
 		var b3 = s.push(2);
-		//@ assume b1 && b2 && b3;
+		//@ assume b1 & b2 & b3;
 		//@ assert s.count() == 3;
-		System.out.println(s.itemAt(1));
-		System.out.println(s.itemAt(2));
-		System.out.println(s.itemAt(3));
+//		System.out.println(s.itemAt(1));
+//		System.out.println(s.itemAt(2));
+//		System.out.println(s.itemAt(3));
 	}
 
 }

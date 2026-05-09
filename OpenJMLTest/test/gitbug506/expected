@@ -1,0 +1,12 @@
+Proving methods in Big
+Starting proof of Big.Big() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Big.Big() with prover !!!! - no warnings
+Completed proving methods in Big
+Proving methods in B
+Starting proof of B.B() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.B() with prover !!!! - no warnings
+Completed proving methods in B

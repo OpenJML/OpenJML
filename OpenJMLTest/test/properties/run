@@ -1,21 +1,23 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
-if [ -z "$OJA" ]; then OJA=openjml; fi
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
 
 ( \
 echo Test of my.properties ;\
-$OJA --esc --properties=my.properties Test.java ;\
+openjml --esc --properties=my.properties Test.java ;\
 echo Test of openjml.properties ;\
-$OJA Test.java ;\
+openjml Test.java ;\
 echo Test of bad.properties ;\
-$OJA --check --properties=bad.properties Test.java ;\
+openjml --check --properties=bad.properties Test.java ;\
 echo Test of no properties ;\
-$OJA --properties ;\
+openjml --properties ;\
 echo Test of folder ;\
-$OJA --properties folder --check Test.java ;\
+openjml --properties folder --check Test.java ;\
 echo Test of non-existent file ;\
-$OJA --properties zzz --check Test.java ;\
+openjml --properties zzz --check Test.java ;\
 echo Test of mal-formed file ;\
-$OJA --properties=bad2.properties Test.java ;\
+openjml --properties=bad2.properties Test.java ;\
 ) >& actual
 diff expected actual && rm -rf actual
+exit $?

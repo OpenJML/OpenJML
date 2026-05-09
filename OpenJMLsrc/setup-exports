@@ -1,0 +1,27 @@
+## This file sets OPENJML_EXPORTS, which contains a list of options stating which modules are to be exported.
+## These exports are needed when using OpenJML programmatically. OpenJDK itself was not designed with programmatic use
+## in mind, so all the internal APIs are fairly tightly encapsulated. This is fine for running OpenJML on the command-line
+## but is inadequate if internal ASTs etc are to be available when OpenJML is used programmatically.
+
+## These options are needed for the OpenJDK versions of both java and javac.
+
+## source this file
+if [ "$0" = "$BASH_SOURCE" ]; then
+    echo "Error: setup-exports script must be sourced"
+    exit 1
+fi
+
+OPENJML_EXPORTS="\
+--add-modules jdk.compiler,java.base \
+--add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED \
+--add-exports=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED \
+--add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED \
+--add-exports=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED \
+--add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED \
+--add-exports=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED \
+--add-exports=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED \
+--add-exports=jdk.compiler/org.jmlspecs.openjml=ALL-UNNAMED \
+--add-exports=jdk.compiler/org.jmlspecs.openjml.ext=ALL-UNNAMED \
+--add-exports=jdk.compiler/org.jmlspecs.openjml.proverinterface=ALL-UNNAMED \
+--add-exports=jdk.compiler/org.jmlspecs.openjml.visitors=ALL-UNNAMED \
+"

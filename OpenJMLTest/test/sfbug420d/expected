@@ -1,14 +1,22 @@
 Proving methods in stack.Stack
+Skipping proof of stack.Stack.count() (Skipping stack.Stack.count because it does not match isEmpty)
+Skipping proof of stack.Stack.itemAt(int) (Skipping stack.Stack.itemAt because it does not match isEmpty)
+Starting proof of stack.Stack.isEmpty() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.isEmpty() with prover !!!! - no warnings
+Skipping proof of stack.Stack.push(int) (Skipping stack.Stack.push because it does not match isEmpty)
+Skipping proof of stack.Stack.top() (Skipping stack.Stack.top because it does not match isEmpty)
+Skipping proof of stack.Stack.remove() (Skipping stack.Stack.remove because it does not match isEmpty)
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match isEmpty)
 Skipping proof of stack.StackImpl.count() (Skipping stack.StackImpl.count because it does not match isEmpty)
 Skipping proof of stack.StackImpl.itemAt(int) (Skipping stack.StackImpl.itemAt because it does not match isEmpty)
 Starting proof of stack.StackImpl.isEmpty() with prover !!!!
-test/sfbug420d/StackImpl.java:29: warning: The prover cannot establish an assertion (Postcondition) in method isEmpty
+test/sfbug420d/StackImpl.java:29: verify: The prover cannot establish an assertion (Postcondition) in method isEmpty
 		return internalStack.length == 0;
 		^
-test/sfbug420d/Stack.java:20: warning: Associated declaration
+test/sfbug420d/Stack.java:20: verify: Associated declaration
 	//@ ensures \result==(count()==0);
 	    ^
 Completed proof of stack.StackImpl.isEmpty() with prover !!!! - with warnings
@@ -17,4 +25,4 @@ Skipping proof of stack.StackImpl.top() (Skipping stack.StackImpl.top because it
 Skipping proof of stack.StackImpl.remove() (Skipping stack.StackImpl.remove because it does not match isEmpty)
 Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it does not match isEmpty)
 Completed proving methods in stack.StackImpl
-2 warnings
+2 verification failures

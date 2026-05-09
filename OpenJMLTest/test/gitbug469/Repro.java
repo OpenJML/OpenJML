@@ -5,7 +5,7 @@ import java.io.IOException;
 public class Repro {
 
 public static class Bar {
-    private static final FileInputStream URANDOM;
+    public static final FileInputStream URANDOM;
 
     static {
         FileInputStream tmp = null;
@@ -16,12 +16,16 @@ public static class Bar {
         }
         URANDOM = tmp;
     }
+    
+    //@ ensures URANDOM != null;
+    //@ static_initializer
 
+    //-RAC@ public static invariant URANDOM != null;
 
-    //@ requires length > 0;
     //@ requires URANDOM.isOpen;
+    //@ requires length > 0;
     //@ requires URANDOM.availableBytes > 0;
-    private static synchronized void getSeed(int length) {
+    public static synchronized void getSeed(int length) {
         int read = 0;
         byte[] result = new byte[length];
         try {
@@ -31,7 +35,10 @@ public static class Bar {
         }
     }
     
-    private static synchronized void getSeed2(int length) {
+    //@ requires URANDOM.isOpen;
+    //@ requires length > 0;
+    //@ requires URANDOM.availableBytes > 0;
+    public static synchronized void getSeed2(int length) {
         int read = 0;
         byte[] result = new byte[length];
         try {

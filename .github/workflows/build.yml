@@ -1,5 +1,17 @@
 name: Build OpenJML
 
+## This workflow builds and creates a new OpenJML release.
+## The release number is taken from the OpenJML/version.txt file.
+## The workflow clones the master branch of all the OpenJML components, builds the release, running the release tests, packaging it into a zip file,
+## creates a GitHub release entry in the OpenJML project and uploads the zip file to the release.
+## If a release with current release number already exists, the workflow fails (though you can inspect to see if the release build was successful).
+## The (human) build manager must check that the release was successfully created, edit the release notes and manually publich the release to make it public.
+
+## The advantage of separating the release build from the release creation and upload is this: if the release creation (the prepare job) fails because a
+## release by that name already exists, then the time-consuming build will still complete. If then the already existing draft release is deleted externally,
+## the failed prepare and upload tasks can be rerun quickly without having to redo the build jobs, so long as the build artifact has not been deleted from
+## the github artifact cache.
+
 on:
   workflow_dispatch:
   push:
@@ -9,123 +21,149 @@ env:
   ## Branch to build from (both in OpenJML and Specs). (JMLAnnotation, Solvers, openjml.github.io are fixed to be 'master')
   ## The github branch that was pushed
   BRANCH: ${{ github.ref_name }}
-  ## Name of folder containing openjml code within OpenJML repo. Ought to match the triggering branch in 'on push'.
-  FOLDER: OpenJML21
+  ## Name of folder containing openjml code within OpenJML repo.
+  FOLDER: OpenJMLsrc
 
 jobs:
+  export-matrix:
+    runs-on: ubuntu-24.04
+    outputs:
+      oses: ${{ steps.export.outputs.oslist }}
+    steps:
+    - id: export
+      run: |
+        ## Each entry: os = GitHub runner, label = artifact/zip name suffix.
+        ## Two macOS entries share the macos-14 (ARM) runner; the x86_64 build
+        ## runs under arch -x86_64 (Rosetta 2) to produce an Intel binary.
+        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"} ]' >> "$GITHUB_OUTPUT"
+
   prepare:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }} # Define output
 
     steps:
-    - name: Checkout OpenJML
+    ## The following step just checks out the OpenJML repo on the branch that caused the push, which is all we need to determine the version
+    ## A workflow_dispatch trigger might do the checkout at the main branch.
+    ## Note that the current working directory, which is the default directory at the start of a job, is the folder that holds version.txt, OpenJMLsrc, OpenJMLTest etc.
+    - name: Checkout repo
+      uses: actions/checkout@v6
+      with:
+        sparse-checkout: 'version.txt'
+
+    - name: Determine version
+      id: version
       run: |
-        git config --global core.autocrlf input
-        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
+        ls -laR
+        export ver=`cat version.txt`
+        echo Building release $ver
+        echo "version=$ver" >> "$GITHUB_OUTPUT"
+
     - name: Check most recent release
       run: |
-        export ver=`cat OpenJML/version.txt`
-        ( curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep "\"name\": \"OpenJML $ver\"" ) && echo "Version $ver already exists" && false
-        echo "No prior release found for version " $ver
+        export ver=${{ steps.version.outputs.version }}
+        if curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | grep -q "\"name\": \"OpenJML $ver\""; then
+          echo "Version $ver already exists"
+          exit 1
+        fi
+        echo "No prior release found for version $ver"
 
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
       run: |
-        cd OpenJML
-        export ver=`cat version.txt`
+        export ver=${{ steps.version.outputs.version }}
         echo Version $ver from branch $BRANCH
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases"
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
-        echo Created release with id $id
+        export resp=$(curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases")
+        export id=$(echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
+        echo Created release $ver with id $id
 
   build:
+    needs: export-matrix
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        ## Omitting ubuntu-24 because the cert-sync command fails
-        os: [ ubuntu-22.04, macos-13, macos-14 ]
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
-    - name: Manually sync certs
-      if: runner.os == 'Linux'
-      run: cert-sync /etc/ssl/certs/ca-certificates.crt
-    - name: MacOSX additions
-      if: runner.os == 'MacOS'
-      run: |
-        brew install coreutils
-        brew install autoconf
-    - name: Linux additions
-      if: runner.os == 'Linux'
-      run: |
-        sudo apt-get update
-        sudo apt-get install libxext-dev libxtst-dev libxrandr-dev libcups2-dev
-        sudo apt-get install autoconf 
-        sudo apt-get install libasound2-dev
-    - name: Setup Cygwin for Windows
-      if: runner.os == 'Windows'
-      uses: egor-tensin/setup-cygwin@v3
+    ## The following step checks out the OpenJML repo, which is needed to get the actions in the next few steps
+    - name: Checkout repo
+      uses: actions/checkout@v6
       with:
-        platform: x64
-        packages: cmake python3 autoconf make zip unzip ar m4 free file gawk cpio
-    - uses: actions/setup-python@v5
-    - name: Set up JDK21 
-      uses: actions/setup-java@v1
-      with:
-        java-version: 1.21
+        sparse-checkout: ./.github
+        path: ACTIONS
+    - name: OS setup
+      uses: ./ACTIONS/.github/actions/os-setup/
+
     - name: Checkout OpenJML
-      run: |
-        git config --global core.autocrlf input
-        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b $BRANCH --depth 1 https://github.com/OpenJML/Specs
-        git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
-        git clone -b master --depth 1 https://github.com/OpenJML/Solvers
-        git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
-        git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
-    - name: Build OpenJML release on Windows
-      if: runner.os == 'Windows'
-      run: |
-        basic() {
-          cd D:/a/OpenJML/OpenJML
-          cd OpenJML/$FOLDER
-          bash ./configure
-          make release 
-        }
-        basic
-      shell: C:\tools\cygwin\bin\bash.exe --login --norc -eo pipefail -o igncr '{0}'
-    - name: Build OpenJML release on non-Windows
-      if: runner.os != 'Windows'
-      run: |
-        cd OpenJML/$FOLDER
-        bash ./configure
-        make release 
-    - name: Test the release
-      run: |
-        make -C OpenJML/$FOLDER release-test
-
-    ## Only need 'prepare' to have concluded by this point in the job
-    - name: Wait for prepare
-      uses: yogeshlonkar/wait-for-jobs@v0
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
-        gh-token: ${{ secrets.GITHUB_TOKEN }}
-        jobs: prepare 
-        interval: '2000'
-        ttl: '10'
+        branch: ${{ env.BRANCH }}
 
+    - name: Build OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-build/
+      with:
+        test: true
+        arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
 
-    - name: Copy OpenJML build into GitHub release
-      run: |
-        cd OpenJML
-        export ver=`cat version.txt`
-        cd $FOLDER/release-temp
-        export f=openjml-${{ matrix.os }}-${ver}.zip
-        mv *.zip $f
-        export id=`curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' | grep --max-count 1 '"id":' | sed -e 's/.*: //' -e 's/,//'`
-        export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
-        echo Uploading $f to id $id at url $upload_url
-        curl -s -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" 
     - name: Check current GitHub release number against version.txt
       run: |
         export ver=`cat OpenJML/version.txt`
-        export tag=`curl --silent --header 'Authorization: token ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | grep --max-count 1 tag_name | sed -e 's/.*: \"//' -e 's/\",//'`
+        export tag=$(curl --silent --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
         echo $ver $tag
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
+
+    - name: Copy zip for upload
+      run: |
+        export ver=`cat OpenJML/version.txt`
+        export f=openjml-${{ matrix.label }}-${ver}.zip
+        cp OpenJML/$FOLDER/release-temp/*.zip $f
+
+    - name: Upload github artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: openjml-release-${{ matrix.label }}-${{ github.run_id }}
+        path: '*.zip'
+        overwrite: true
+        include-hidden-files: true
+        retention-days: 1
+
+  ## This job uploads the release, which has been stored in a github artifact, into the OpenJML release that is under construction,
+  ## which is presumed to be the most recent
+  upload:
+    needs: [ export-matrix, prepare, build ]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+      fail-fast: false
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v6
+      with:
+        sparse-checkout: ./.github
+        path: ACTIONS
+    - name: OS setup
+      uses: ./ACTIONS/.github/actions/os-setup/
+    - name: Download github artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: openjml-release-${{ matrix.label }}-${{ github.run_id }}
+    - name: Copy OpenJML build into GitHub release
+      run: |
+        export ver=${{ needs.prepare.outputs.version }}
+        export f=openjml-${{ matrix.label }}-${ver}.zip
+        export ff=`echo openjml*.zip`
+        echo $ver $f $ff
+        if [[ -f "$f" ]]; then
+          echo Downloaded zip file $f
+        else
+          echo Expected file not found $f, using $ff
+          export f=$ff
+          pwd
+          ls -la
+        fi
+        export id=$(curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases?per_page=10" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | python3 -c "import json,sys,os; r=next(r for r in json.load(sys.stdin) if r['tag_name']==os.environ['ver']); print(r['id'])")
+        export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
+        echo Uploading $f to id $id at url $upload_url
+        curl -s -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f"

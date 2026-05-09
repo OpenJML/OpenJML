@@ -4,30 +4,33 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test540.Test540() with prover !!!! - no warnings
 Starting proof of Test540.m(int) with prover !!!!
-test/gitbug540/Test540.java:7: warning: The prover cannot establish an assertion (Postcondition) in method m
+test/gitbug540/Test540.java:7: verify: The prover cannot establish an assertion (Postcondition) in method m
         return i;
         ^
-test/gitbug540/Test540.java:20: warning: Associated declaration
+test/gitbug540/Test540.java:20: verify: Associated declaration
     //@   ensures \result > i;
           ^
 Completed proof of Test540.m(int) with prover !!!! - with warnings
 Starting proof of Test540.md(int) with prover !!!!
-test/gitbug540/Test540.java:12: warning: The prover cannot establish an assertion (Postcondition) in method md
+test/gitbug540/Test540.java:12: verify: The prover cannot establish an assertion (Postcondition) in method md
         return i;
         ^
-test/gitbug540/Test540.java:24: warning: Associated declaration
+test/gitbug540/Test540.java:24: verify: Associated declaration
     //@   ensures \result > i;  // FAILS
           ^
 Completed proof of Test540.md(int) with prover !!!! - with warnings
 Completed proving methods in Test540
 Proving methods in Test540I
+Starting proof of Test540I.m(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test540I.m(int) with prover !!!! - no warnings
 Starting proof of Test540I.md(int) with prover !!!!
-test/gitbug540/Test540.java:26: warning: The prover cannot establish an assertion (Postcondition) in method md
+test/gitbug540/Test540.java:26: verify: The prover cannot establish an assertion (Postcondition) in method md
         return i;
         ^
-test/gitbug540/Test540.java:24: warning: Associated declaration
+test/gitbug540/Test540.java:24: verify: Associated declaration
     //@   ensures \result > i;  // FAILS
           ^
 Completed proof of Test540I.md(int) with prover !!!! - with warnings
 Completed proving methods in Test540I
-6 warnings
+6 verification failures

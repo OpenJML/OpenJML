@@ -1,0 +1,16 @@
+#! /bin/bash
+
+cat known-failures  | sed -e '/^\#/d' | awk '{print $1}' | sort > known-failures-sorted
+newfailures=`grep -E 'FAILED' log-*  | sed -e 's/.*testsuites[.]//' | sort | comm -13 known-failures-sorted -`
+newsuccesses=`grep -E 'FAILED' log-* | sed -e 's/.*testsuites[.]//' | sort | comm -23 known-failures-sorted -`
+rm known-failures-sorted
+echo Unexpected successes: $newsuccesses
+echo Unexpected failures: $newfailures
+if [ "$1" != "-run" ]; then echo "Use 'retry -run' to retry unexpectedly failing tests"; exit 0; fi
+
+ERR=0
+for t in $newfailures ; do
+    echo Retrying $t
+    ./runtests $t || ERR=1
+done
+exit $ERR

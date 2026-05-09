@@ -1,0 +1,38 @@
+test/terminationBad/Test.java:4: warning: [missing-measured-by] Method m() is called recursively, but a specification case has no measured_by clause
+    m();
+     ^
+test/terminationBad/Test.java:3: warning: Associated declaration: test/terminationBad/Test.java:4:
+  static public void m() {
+                     ^
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m() with prover !!!! - no warnings
+Starting proof of Test.q(int) with prover !!!!
+test/terminationBad/Test.java:7: verify: The prover cannot establish an assertion (TerminationDecreases) in method q
+  //@ measured_by 0;
+                  ^
+test/terminationBad/Test.java:9: verify: Associated declaration
+    if (i > 0) q(i-1);
+                ^
+Completed proof of Test.q(int) with prover !!!! - with warnings
+Starting proof of Test.p(int) with prover !!!!
+test/terminationBad/Test.java:13: verify: The prover cannot establish an assertion (TerminationNonNegative) in method p
+  //@ measured_by i;
+                  ^
+test/terminationBad/Test.java:15: verify: Associated declaration
+    if (i > -2) p(i-1);
+                 ^
+Completed proof of Test.p(int) with prover !!!! - with warnings
+Starting proof of Test.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.main(String...) with prover !!!! - no warnings
+Completed proving methods in Test
+2 warnings
+4 verification failures

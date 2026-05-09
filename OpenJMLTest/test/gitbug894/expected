@@ -1,0 +1,25 @@
+Proving methods in Test
+Skipping proof of Test.Test() (Skipping Test.Test because it does not match Test3.*)
+Skipping proof of Test.uniqueCharS1(String) (Skipping Test.uniqueCharS1 because it does not match Test3.*)
+Completed proving methods in Test
+Proving methods in Test2
+Skipping proof of Test2.Test2() (Skipping Test2.Test2 because it does not match Test3.*)
+Skipping proof of Test2.uniqueCharS1(String) (Skipping Test2.uniqueCharS1 because it does not match Test3.*)
+Skipping proof of Test2.uniqueCharS2(String) (Skipping Test2.uniqueCharS2 because it does not match Test3.*)
+Completed proving methods in Test2
+Proving methods in Test3
+Starting proof of Test3.Test3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test3.Test3() with prover !!!! - no warnings
+Starting proof of Test3.hasMatch(\string,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test3.hasMatch(\string,\bigint) with prover !!!! - no warnings
+Starting proof of Test3.hasMatch(\string,\bigint,\bigint) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test3.hasMatch(\string,\bigint,\bigint) with prover !!!! - no warnings
+Starting proof of Test3.uniqueCharS1(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test3.uniqueCharS1(String) with prover !!!! - no warnings
+Completed proving methods in Test3

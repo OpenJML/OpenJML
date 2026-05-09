@@ -3,8 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import java.util.Collection;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
@@ -25,12 +24,11 @@ public class escgeneric extends EscBase {
         addOptions("--nullable-by-default"); // Because the tests were written this way
         //JmlEsc.escdebug = false;
         addOptions("--timeout=30");
-        addOptions("-jmltesting");
     }
     
     @Test
     public void testConstructor() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void mx(Integer i) {\n"
@@ -44,9 +42,9 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) != \\type(Integer) ; pure\n"
                 +"  public TestG(E i) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method mx",17
-                ,"/tt/TestJava.java:12: warning: Associated declaration",10
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method mx",17
+                ,"/tt/TestJava.java:12: verify: Associated declaration",10
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
                 );
     }
     
@@ -54,11 +52,11 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeOf() {
     	addOptions("--check-feasibility=all");  // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void m(Integer i) {\n"
-                +"    //@ assert \\typeof(this) <: \\type(TestJava);\n"
+                +"    //@ assert \\typeof(this) <:= \\type(TestJava);\n"
                 +"  }\n"
                 +"  public void ma(Object o) {\n"
                 +"    //@ assume \\typeof(this) == \\type(Object);\n"
@@ -68,16 +66,16 @@ public class escgeneric extends EscBase {
                 +"    //@ assert \\typeof(this) == \\type(Object);\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:7: warning: There is no feasible path to program point after explicit assume statement in method tt.TestJava.ma(java.lang.Object)",9
-                ,"/tt/TestJava.java:8: warning: There is no feasible path to program point before explicit assert statement in method tt.TestJava.ma(java.lang.Object)",9
-                ,"/tt/TestJava.java:6: warning: There is no feasible path to program point at program exit in method tt.TestJava.ma(java.lang.Object)",15
-                ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (Assert) in method mb",9
+                ,"/tt/TestJava.java:7: verify: There is no feasible path to program point after explicit assume statement in method tt.TestJava.ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:8: verify: There is no feasible path to program point before explicit assert statement in method tt.TestJava.ma(java.lang.Object)",9
+                ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at program exit in method tt.TestJava.ma(java.lang.Object)",15
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method mb",9
                 );
     }
 
     @Test
     public void testGenericType() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T> extends B<T> { \n"
                 +"  public void ma(T i) {\n"
                 +"  }\n"
@@ -93,68 +91,68 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testGenericType2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(T i) {\n"
                 +"    //@ assume i != null;\n"
-                +"    //@ assert i instanceof Object;\n"
-                +"    //@ assert \\typeof(i) <: \\type(Object);\n" // Line 6
-                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(Object));\n"
-                +"    //@ assert \\typeof(i) <: \\type(T);\n"
-                +"    //@ assert i instanceof B;\n"
-                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(B));\n"
-                +"    //@ assert \\typeof(i) <: \\type(B);\n" // Line 11
-                +"    //@ assert \\erasure(\\typeof(i)) <: \\erasure(\\type(C));\n" // false
-               +"  }\n"
+                +"    //@ check  i instanceof Object;\n"
+                +"    //@ check  \\typeof(i) <:= \\type(Object);\n" // Line 6
+                +"    //@ check  \\erasure(\\typeof(i)) <:= \\erasure(\\type(Object));\n"
+                +"    //@ check  \\typeof(i) <:= \\type(T);\n"
+                +"    //@ check  i instanceof B;\n"
+                +"    //@ check  \\erasure(\\typeof(i)) <:= \\erasure(\\type(B));\n"
+                +"    //@ check  \\typeof(i) <:= \\type(B);\n" // Line 11
+                +"    //@ check  \\erasure(\\typeof(i)) <:= \\erasure(\\type(C));\n" // false
+                +"  }\n"
                 +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method m",9
         );
     }
     
     @Test
     public void testGenericType2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(T i) {\n"
                 +"    //@ assume i != null;\n"
                 +"    //@ assert i instanceof Object;\n"
-                +"    //@ assert \\typeof(i) <: \\type(C);\n" // false
+                +"    //@ assert \\typeof(i) <:= \\type(C);\n" // false
                 +"  }\n"
                 +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m",9
         );
     }
     
     @Test
     public void testGenericType2b() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(T i) {\n"
                 +"    //@ assume i != null;\n"
                 +"    //@ assert i instanceof Object;\n"
-                +"    //@ assert \\type(T) <: \\type(B);\n" // true
-                +"    //@ assert \\type(T) <: \\type(C);\n" // false
+                +"    //@ assert \\type(T) <:= \\type(B);\n" // true
+                +"    //@ assert \\type(T) <:= \\type(C);\n" // false
                 +"  }\n"
                 +"  /*@ public normal_behavior ensures true; pure */ public TestJava() {}\n"
                 +"}\n"
                 +"class B {}\n"
                 +"class C extends TestJava<B> {}\n"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",9
         );
     }
     
     @Test
     public void testGenericType1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava<T extends B> { \n"
                 
                 +"  public void m(Integer i) {\n"
@@ -181,16 +179,16 @@ public class escgeneric extends EscBase {
                 +"}\n"
                 +"class B {}\n"
                 +"class C {}\n"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assert) in method mz",9
-                ,"/tt/TestJava.java:12: warning: The prover cannot establish an assertion (Assert) in method ma",9
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (Assert) in method mb",9
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (Assert) in method mc",9
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method mz",9
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method ma",9
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method mb",9
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method mc",9
         );
     }
 
     @Test
     public void testStatic() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
@@ -204,15 +202,15 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) != \\type(Integer) ; pure \n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",22
-                ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",22
+                ,"/tt/TestJava.java:12: verify: Associated declaration",26
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
         );
     }
 
     @Test
     public void testStaticB() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
@@ -226,15 +224,15 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) != \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",13
-                ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",13
+                ,"/tt/TestJava.java:12: verify: Associated declaration",26
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",25
         );
     }
 
     @Test
     public void testStatic2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
@@ -248,15 +246,15 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) == \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",21
-                ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method mb",21
+                ,"/tt/TestJava.java:12: verify: Associated declaration",26
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
         );
     }
 
     @Test
     public void testStatic2B() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
 
                 +"  public void ma(Integer i) {\n"
@@ -270,15 +268,15 @@ public class escgeneric extends EscBase {
                 +"  //@ requires \\type(E) == \\type(Integer) ; pure\n"
                 +"  public static <E> void mm(E t) {}\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Precondition) in method mb",13
-                ,"/tt/TestJava.java:12: warning: Associated declaration",26
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method mb",13
+                ,"/tt/TestJava.java:12: verify: Associated declaration",26
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) == \\type(Integer)",25
         );
     }
 
     @Test
     public void testTypeParameter() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(/*@ non_null*/ TestG<Integer> i, Integer j) {\n"
@@ -292,15 +290,15 @@ public class escgeneric extends EscBase {
                 +"    //@ requires \\type(E) != \\type(Integer); pure\n"
                 +"    public void mm(E t) {}\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:12: warning: Associated declaration",17
-                ,"/tt/TestJava.java:11: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:12: verify: Associated declaration",17
+                ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
     @Test
     public void testTypeParameter2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ non_null*/TestH i, Integer j) {\n"
@@ -319,15 +317,15 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: verify: Associated declaration",17
+                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
     @Test
     public void testTypeParameter2b() {
-        helpTCX("tt.TestJava","package tt;import org.jmlspecs.annotation.*;\n"
+        helpEsc("tt.TestJava","package tt;import org.jmlspecs.annotation.*;\n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>.@NonNull TestH i, Integer j) {\n"
@@ -346,15 +344,15 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: verify: Associated declaration",17
+                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
     @Test
     public void testTypeParameter2c() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(/*@ non_null*/TestG<Integer>.TestH i, Integer j) {\n"
@@ -373,15 +371,15 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: verify: Associated declaration",17
+                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
                 );
     }
     
     @Test
     public void testTypeParameter2d() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
+        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(@NonNull TestG<Integer>.TestH i, Integer j) {\n" // FIXME: i is nullable by default, or is the NonNull pushed to the nested class
@@ -400,18 +398,18 @@ public class escgeneric extends EscBase {
                 +"    public void mm(E t) {}\n"
                 +"  }\n"
                 +"}\n"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Precondition) in method ma",9
-                ,"/tt/TestJava.java:16: warning: Associated declaration",17
-                ,"/tt/TestJava.java:15: warning: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method ma",6
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (PossiblyNullDeReference) in method mb",6
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method ma",9
+                ,"/tt/TestJava.java:16: verify: Associated declaration",17
+                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: \\type(E) != \\type(Integer)",27
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method ma",6
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method mb",6
                 );
     }
         
     @Test
     public void testTypeParameter2e() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ qqq*/TestH i, Integer j) {\n"
@@ -432,7 +430,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2f() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ final */TestH i, Integer j) {\n"
@@ -453,7 +451,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2g() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ pure */TestH i, Integer j) {\n"
@@ -473,7 +471,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2h() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(TestG<Integer>./*@ public */TestH i, Integer j) {\n"
@@ -493,7 +491,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2k1() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void ma(/*@ public */Object i) { }\n"
@@ -505,7 +503,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2k2() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void mb(/*@ pure */Object i) { }\n"
@@ -516,7 +514,7 @@ public class escgeneric extends EscBase {
     
     @Test
     public void testTypeParameter2k3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void mc(/*@ final */Object i) { }\n"
@@ -528,7 +526,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testTypeParameter2k4() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 
                 +"  public void me(/*@ qqq */Object i) { }\n"
@@ -541,7 +539,7 @@ public class escgeneric extends EscBase {
     @Test
     public void testUnboxing() {
         addOptions("--method=m");  // Just test method m
-        helpTCX("tt.TestJava"," class A { void m(/*@non_null*/ Integer ooo) { \n "
+        helpEsc("tt.TestJava"," class A { void m(/*@non_null*/ Integer ooo) { \n "
                 +"int sum = 0; \n"
                 +"{ /*@ assume ooo >= 0; */ sum += ooo; }  \n"
                 +"//@ assert sum >= 0; \n"
@@ -551,7 +549,7 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3() {
-        helpTCX("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
+        helpEsc("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ assert sum == 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
@@ -565,20 +563,20 @@ public class escgeneric extends EscBase {
     public void testForEach3c() {
     	//addOptions("-show","-method=m");
     	// nullable by default so list might be null
-        helpTCX("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util.List<Integer> list) { \n "
+        helpEsc("tt.TestJava"," class A {  /*@ spec_bigint_math */ void m(java.util.List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ assert sum == 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (Integer o: list) { /*@ assume o != null && o >= 0 && sum + o <= Integer.MAX_VALUE; */ sum += o; }  \n"
                 +"//@ assert sum >= 0; \n"
                 +"}}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",17
                 );
     }
 
     @Test
     public void testForEach3a() {
-        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List</*@ non_null*/ Integer> list) { \n "
+        helpEsc("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List</*@ non_null*/ Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
@@ -589,19 +587,19 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testForEach3bad() {
-        helpTCX("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
+        helpEsc("tt.TestJava"," class A { /*@ code_bigint_math spec_bigint_math */ void m(java.util./*@ non_null*/ List<Integer> list) { \n "
                 +"int sum = 0; \n"
                 +"//@ loop_invariant sum >= 0; \n"
                 +"for (int o: list) { /*@ assume o >= 0; */ sum += o; }  \n"
                 +"//@ assert sum >= 0; \n"
                 +"}}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",10
                 );
     }
 
     @Test
     public void testElemType() {
-        helpTCX("tt.TestJava"," class A { void m(char/*@ non_null */ [] a) { \n"
+        helpEsc("tt.TestJava"," class A { void m(char/*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(char); \n"
                 +"}}"
                 );
@@ -609,17 +607,17 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType2() {
-        helpTCX("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
+        helpEsc("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Assert) in method m",5
+                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }
 
     @Test
     public void testElemType3() {
         expectedExit = 1;
-        helpTCX("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
+        helpEsc("tt.TestJava"," class A { void m(/*@ non_null */ char[] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
                 ,"/tt/TestJava.java:1: error: the type modifier/annotation is not permitted on a primitive type: char", 23
@@ -628,26 +626,23 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType4() {
-        helpTCX("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
+        helpEsc("tt.TestJava"," class A { void m(char /*@ non_null */ [] a) { \n"
                 +"//@ assert \\elemtype(\\typeof(a)) == \\type(int); \n"
                 +"}}"
-                ,"/tt/TestJava.java:2: warning: The prover cannot establish an assertion (Assert) in method m",5
+                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }
 
     @Test
     public void testGenericThrow() {
         addOptions("--method=rt"); // Just test method rt
-        helpTCX("tt.TestJava",
-        		 "public class TestJava { \n"
-        	    +" //@ public exceptional_behavior \n"
-        	    +" //@   requires true; \n"  // FIXME - should be t instanceof T
-        	    // Can't say signals_only T; because JML only deals with Exception, not Throwable
-        	    +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ Throwable t) throws T { throw (T)t; } \n"
+        helpEsc("tt.TestJava",
+                 "public class TestJava { \n"
+                +" //@ public exceptional_behavior \n"
+                +" //@   requires true; \n"  // FIXME - should be t instanceof T
+                // Can't say signals_only T; because JML only deals with Exception, not Throwable
+                +" public static <T extends Throwable> RuntimeException rt(/*@ non_null*/ Throwable t) throws T { throw (T)t; } \n"
                 +"}"
                 );
     }
-
-    
 }
-    

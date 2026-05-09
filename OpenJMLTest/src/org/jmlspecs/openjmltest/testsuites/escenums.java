@@ -3,8 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import java.util.Collection;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -16,7 +15,7 @@ public class escenums extends EscBase {
 
     @Test
     public void testBasicEnum() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public enum TestJava { AA \n"
                 +"}"
                 );
@@ -24,7 +23,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testBasicEnum2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public enum TestJava { AA, BB, CC \n"
                 +"}"
                 );
@@ -32,7 +31,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -44,22 +43,28 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2() {
-        helpTCX("tt.TestJava","package tt; \n"
-                +" enum Z { AA, BB, CC } \n"
-                +" public class TestJava {\n"
-                +"    public void m() {\n"
-                +"       Z ee = Z.AA; \n"
-                +"       //@ assert Z.AA == ee; \n"
-                +"       m();\n" // to put in a havoc everything
-                +"       //@ assert Z.AA == ee && ee != Z.BB; \n"
-                +"    }\n"
-                +"}"
+        addOptions("--warn=missing-measured-by");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                enum Z { AA, BB, CC }
+                public class TestJava {
+                    public void mmm() {
+                       Z ee = Z.AA;
+                       //@ assert Z.AA == ee;
+                       mmm(); // to put in a havoc everything
+                       //@ assert Z.AA == ee && ee != Z.BB;
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:7: warning: [missing-measured-by] Method mmm() is called recursively, but a specification case has no measured_by clause",11
+                ,"/tt/TestJava.java:4: warning: Associated declaration: /tt/TestJava.java:7:",17
                 );
     }
     
     @Test
     public void testUseEnum2a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -71,7 +76,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2b() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -83,7 +88,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2c() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -95,7 +100,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2d() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -107,7 +112,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2e() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(/* nullable */ Z ee) {\n"
@@ -119,7 +124,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2f() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(/* non_null */ Z ee) {\n"
@@ -133,7 +138,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum2g() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(/* non_null */ Z ee) {\n"
@@ -142,13 +147,13 @@ public class escenums extends EscBase {
                 +"       //@ assert ee != Z.BB ; \n" // ERROR
                 +"    }\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
     
     @Test
     public void testUseEnum2h() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(/* non_null */ Z ee) {\n"
@@ -157,13 +162,13 @@ public class escenums extends EscBase {
                 +"       //@ assert o instanceof Integer ; \n" // ERROR
                 +"    }\n"
                 +"}"
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
     
     @Test
     public void testUseEnum3() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m() {\n"
@@ -176,7 +181,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum4() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(Object o) {\n"
@@ -189,7 +194,7 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum4a() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(Object o) {\n"
@@ -202,20 +207,20 @@ public class escenums extends EscBase {
     
     @Test
     public void testUseEnum5() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" enum Z { AA, BB, CC } \n"
                 +" public class TestJava {\n"
                 +"    public void m(Object o) {\n"
                 +"       //@ assert Z.AA != o; \n"
                 +"    }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (Assert) in method m",12
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",12
                 );
     }
     
     @Test
     public void enumSwitch() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava {\n"
                 +"    //@ ensures \\result > 0;\n"
                 +"    //@ ensures the_value == MyEnum.ONE ==> \\result == 2;\n"
@@ -250,6 +255,4 @@ public class escenums extends EscBase {
                 +"}    \n"
                 );
         }
-        
-
 }

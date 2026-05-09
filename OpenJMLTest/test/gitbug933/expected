@@ -1,0 +1,17 @@
+Proving methods in MyArray
+Starting proof of MyArray.MyArray() with prover !!!!
+test/gitbug933/MyArray.java:14: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method MyArray
+            arr[i] = 0;
+               ^
+Completed proof of MyArray.MyArray() with prover !!!! - with warnings
+Starting proof of MyArray.MyArray(short) with prover !!!!
+test/gitbug933/MyArray.java:27: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method MyArray
+            arr[i] = 0;
+               ^
+Completed proof of MyArray.MyArray(short) with prover !!!! - with warnings
+Starting proof of MyArray.MyArray(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MyArray.MyArray(int) with prover !!!! - no warnings
+Completed proving methods in MyArray
+2 verification failures

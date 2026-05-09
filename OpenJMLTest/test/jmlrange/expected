@@ -1,0 +1,38 @@
+Proving methods in Trange
+Starting proof of Trange.Trange() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Trange.Trange() with prover !!!! - no warnings
+Starting proof of Trange.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Trange.main(String...) with prover !!!! - no warnings
+Starting proof of Trange.misc() with prover !!!!
+test/jmlrange/Trange.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method misc
+            //@ check r1.equals(null); // ERROR
+                               ^
+$SPECS/org/jmlspecs/lang/internal/range.jml:83: verify: Associated declaration
+    public boolean equals(Object o);
+                   ^
+$SPECS/org/jmlspecs/lang/internal/range.jml:33: verify: Precondition conjunct is false: null != null
+    //-RAC@   ensures \result.lo == lo;
+                       ^
+Completed proof of Trange.misc() with prover !!!! - with warnings
+Starting proof of Trange.equality(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Trange.equality(int,int) with prover !!!! - no warnings
+Starting proof of Trange.equality2(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Trange.equality2(int,int) with prover !!!! - no warnings
+Starting proof of Trange.equality3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Trange.equality3() with prover !!!! - no warnings
+Starting proof of Trange.dotdot() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Trange.dotdot() with prover !!!! - no warnings
+Completed proving methods in Trange
+3 verification failures

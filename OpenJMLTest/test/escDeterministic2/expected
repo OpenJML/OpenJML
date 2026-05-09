@@ -3,6 +3,9 @@ Starting proof of escDeterministic2.escDeterministic2() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of escDeterministic2.escDeterministic2() with prover !!!! - no warnings
+Starting proof of escDeterministic2.comp(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of escDeterministic2.comp(int) with prover !!!! - no warnings
 Starting proof of escDeterministic2.m() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

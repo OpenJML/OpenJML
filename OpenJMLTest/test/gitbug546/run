@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+BINX="openjml -jmltesting --esc --progress -cp . Test.java"
+( \
+echo TEST-A; \
+$BINX ; \
+echo TEST-B; \
+$BINX --check-feasibility=precondition ;\
+echo TEST-C; \
+$BINX --check-feasibility=preconditionOnly ;\
+echo TEST-D; \
+$BINX --check-feasibility=exit  ; \
+echo TEST-X; \
+) >& actual
+
+diff actual expected && rm -rf actual

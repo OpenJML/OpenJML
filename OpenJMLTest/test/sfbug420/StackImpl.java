@@ -6,7 +6,7 @@ public class StackImpl implements Stack {
 	private int[] internalStack;
 	/*@ spec_public */ private int stackCounter; //-RAC@ in count;
 	
-	@SuppressWarnings("unchecked")
+	//@ ensures count() == 0; pure
 	public StackImpl() {
 		internalStack = new int[maxSize];
 		stackCounter = 0;

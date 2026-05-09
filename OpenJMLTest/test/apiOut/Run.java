@@ -8,7 +8,7 @@ public class Run {
         int x = api.execute("-sdf");
         System.out.println("EXIT " + x);
         api = IAPI.make(new org.jmlspecs.openjml.Main.NullPrintWriter(), null);
-        boolean b = api.isOptionSet("--stop-if-parser-error");
+        boolean b = api.isOptionSet("--show-summary");
         System.out.println("Option set " + b);
         String s = api.getOption("--command");
         System.out.println("Option value " + s);

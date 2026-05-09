@@ -1,12 +1,20 @@
 Proving methods in stack.Stack
+Starting proof of stack.Stack.count() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of stack.Stack.count() with prover !!!! - no warnings
+Skipping proof of stack.Stack.itemAt(int) (Skipping stack.Stack.itemAt because it does not match count)
+Skipping proof of stack.Stack.isEmpty() (Skipping stack.Stack.isEmpty because it does not match count)
+Skipping proof of stack.Stack.push(int) (Skipping stack.Stack.push because it does not match count)
+Skipping proof of stack.Stack.top() (Skipping stack.Stack.top because it does not match count)
+Skipping proof of stack.Stack.remove() (Skipping stack.Stack.remove because it does not match count)
 Completed proving methods in stack.Stack
 Proving methods in stack.StackImpl
 Skipping proof of stack.StackImpl.StackImpl() (Skipping stack.StackImpl.StackImpl because it does not match count)
 Starting proof of stack.StackImpl.count() with prover !!!!
-test/sfbug420a/StackImpl.java:19: warning: The prover cannot establish an assertion (Postcondition) in method count
+test/sfbug420a/StackImpl.java:19: verify: The prover cannot establish an assertion (Postcondition) in method count
 		return stackCounter;
 		^
-test/sfbug420a/Stack.java:11: warning: Associated declaration
+test/sfbug420a/Stack.java:11: verify: Associated declaration
 	//-RAC@ ensures \result == count;
 	        ^
 Completed proof of stack.StackImpl.count() with prover !!!! - with warnings
@@ -17,4 +25,4 @@ Skipping proof of stack.StackImpl.top() (Skipping stack.StackImpl.top because it
 Skipping proof of stack.StackImpl.remove() (Skipping stack.StackImpl.remove because it does not match count)
 Skipping proof of stack.StackImpl.main(String[]) (Skipping stack.StackImpl.main because it does not match count)
 Completed proving methods in stack.StackImpl
-2 warnings
+2 verification failures

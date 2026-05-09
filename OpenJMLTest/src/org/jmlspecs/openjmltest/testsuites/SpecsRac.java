@@ -1,54 +1,45 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.jmlspecs.openjmltest.RacBase;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
-import javax.tools.JavaFileObject;
-
-import org.jmlspecs.openjml.JmlOption;
-import org.jmlspecs.openjml.JmlSpecs;
-import org.jmlspecs.openjml.JmlSpecs.Dir;
-import org.jmlspecs.openjmltest.RacBase;
-import org.jmlspecs.openjmltest.TCBase;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
-import org.jmlspecs.openjml.Main;
-import org.jmlspecs.openjml.Utils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
 import org.openjml.runners.ParameterizedWithNames;
 
-import com.sun.tools.javac.file.JavacFileManager;
-import com.sun.tools.javac.util.Context;
-import com.sun.tools.javac.util.List;
-import com.sun.tools.javac.util.Log;
 
-
+/** This suite of tests runs openjml --rac on a set of custom written test files that
+ * exercise (ideally all) the Java functionality and JML specifications of a given Java library class.
+ * These custom written test files are contained in subfolders of the OpenJMLTest/testspecs folder.
+ * Those subfolders have names that are fully-qualified class names, but with '.' replaced by '-'.
+ * Within the folder is a .java file whose content exercises the class's functionality and
+ * are meant to be checked with RAC using the JML specifications for the class.
+ * The expected output from the application of openjml --rac is found in the file named 'expected-compile'
+ * in that same folder. After successful compilation, the compiled program is run using openjml-java
+ * and the output is expected to match that in 'expected-run'.
+ * 
+ * Note that the specifications in the library class's .jml file will largely be unused in this testing,
+ * because it is not compiled into the library's .class file for the class. Instead the behavior of the 
+ * class is checked against the assertions in the test program, which assertions are those proved valid
+ * by the companion tests in SpecsEsc.
+ * 
+ * This suite is a parameterized JUnit test suite, where the parameters are the names of the classes
+ * to be tested.
+ */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class SpecsRac extends RacBase {
 
-    /** Enables or disables this suite of tests */
-    static private boolean dotests = true;  // Change this to enable/disable dynamic tests
+    /** The name of the subfolder of OpenJMLTest that holds the data for this suite */
+    public static final String testdir = "testspecs";
     
-    /** If true, then a progress message is printed as each test is executed.*/
-    private static boolean verbose = false;
-
+    /** Returns the parameters for this parameterized test suite */
     @Parameters
     static public  Collection<String[]> datax() {
-        if (!dotests) return new ArrayList<String[]>(0);
         Collection<String[]> data = new ArrayList<String[]>(1000);
         for (File f: findAllFiles()) {
             data.add(new String[]{ f.getName()});
@@ -56,57 +47,47 @@ public class SpecsRac extends RacBase {
         return data;
     }
 
-    /** The name of the class to be tested (which is also the name of the test)
-     * when the suite mode is used. This is defined simply to enable debugging.
+    /** The name of the folder to be tested (which is also the name of the test),
+     * filled in by the constructor when called by the test infrastructure.
      */
     /*@ non_null*/
-    private String classname;
+    private String foldername;
     
-    /** We use SpecsBase as a test case, with a name and its own runTest, to
-     * execute the test on a given class name.
-     * @param classname the fully qualified class to test
-     */
-    public SpecsRac(String classname) {
-        this.classname = classname;
+    public SpecsRac(String foldername) {
+        this.foldername = foldername;
     }
 
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        // We turn off purity checking because there are too many purity errors in the specs to handle right now. (TODO)
-        JmlOption.setOption(context,JmlOption.PURITYCHECK,false);
         expectedExit = -1; // -1 means use default: some message==>1, no messages=>0
                     // this needs to be set manually if all the messages are warnings
-        print = false; // true = various debugging output
     }
     
-    /** Set to true if errors are found in any test in checkFiles */
-    protected boolean foundErrors;
-    
-    /** This test tests the file that is named as classname by the constructor */
+    /** This test tests the folder that is named as foldername by the constructor.
+     * The file within the folder whose name begins with 'Test' is presumed to contain 
+     * the 'main' method used to run the RAC-compiled program. */
     @Test
     public void testSpecificationFile() {
-    	expectedExit = 0;
-    	ignoreNotes = true;
-    	String subdir = "testspecs" + "/" + classname;
-    	String testname = null;
+        expectedExit = 0;
+        ignoreNotes = true;
+        String subdir = testdir + "/" + foldername;
+        String testname = null;
         for (File f: new File(subdir).listFiles()) {
-        	if (f.getName().startsWith("Test")) {
-        		testname = f.getName().replace(".java","");
-        		break;
-        	}
+            if (f.getName().startsWith("Test")) {
+                testname = f.getName().replace(".java","");
+                break;
+            }
         }
-    	helpTCF(subdir,subdir,testname);
+        helpRac(subdir,subdir,testname);
     }
     
     static public java.util.List<File> findAllFiles() {
         File dir = new File("testspecs");
-        java.util.List<File> classes = new ArrayList<>();
-        for (File f: dir.listFiles()) if (f.isDirectory()) classes.add(f);
-        System.out.println(classes.size() + " system specification classes found for rac testing");
-        return classes;
+        java.util.List<File> folders = new ArrayList<>();
+        for (File f: dir.listFiles()) if (f.isDirectory()) folders.add(f);
+        System.out.println(folders.size() + " system specification classes found for rac testing");
+        return folders;
     }
-    
-
 }

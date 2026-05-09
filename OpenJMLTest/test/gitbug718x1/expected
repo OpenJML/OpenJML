@@ -3,18 +3,19 @@ test/gitbug718x1/test1.java:3: warning: Use a static_initializer clause to speci
 	                                                            ^
 Proving methods in test1
 Starting proof of test1.test1() with prover !!!!
-test/gitbug718x1/test1.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method test1
+test/gitbug718x1/test1.java:2: verify: The prover cannot establish an assertion (InvariantExit) in method test1
 public class test1 {
        ^
-test/gitbug718x1/test1.java:14: warning: Associated declaration
+test/gitbug718x1/test1.java:14: verify: Associated declaration
 //@ public invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]+binarr[j]==binarr[j+1];
            ^
-test/gitbug718x1/test1.java:2: warning: The prover cannot establish an assertion (InvariantExit) in method test1
+test/gitbug718x1/test1.java:2: verify: The prover cannot establish an assertion (InvariantExit) in method test1
 public class test1 {
        ^
-test/gitbug718x1/test1.java:15: warning: Associated declaration
+test/gitbug718x1/test1.java:15: verify: Associated declaration
 //@ public invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
            ^
 Completed proof of test1.test1() with prover !!!! - with warnings
 Completed proving methods in test1
-5 warnings
+1 warning
+4 verification failures

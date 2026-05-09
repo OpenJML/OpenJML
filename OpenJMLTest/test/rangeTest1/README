@@ -1,3 +1,0 @@
-The errors in 'expected' are produced by running openjml.
-The errors in 'expected-compile' are produced by running the unittest framework, in which a flag (Log.alwaysReport) is set 
-that disables the suppression of multiple error reports at the same source code location.

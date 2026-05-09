@@ -1,0 +1,28 @@
+test/gitbug812crash/BinaryTree.java:2: error: package org.jmlspecs does not exist
+import org.jmlspecs.annotation;
+                   ^
+test/gitbug812crash/BinaryTree.java:2: error: package org.jmlspecs does not exist
+import org.jmlspecs.annotation;
+                   ^
+test/gitbug812crash/BinaryTree.java:28: error: cannot find symbol
+    BinaryTree(@NonNUll BinaryTree left, @NonNull BinaryTree right, int r) {
+                                          ^
+  symbol:   class NonNull
+  location: class BinaryTree
+test/gitbug812crash/BinaryTree.java:85: error: cannot find symbol
+     */ @NonNull
+         ^
+  symbol:   class NonNull
+  location: class BinaryTree
+test/gitbug812crash/BinaryTree.java:66: error: cannot find symbol
+    private @NonNullByDefault
+             ^
+  symbol:   class NonNullByDefault
+  location: class BinaryTree
+test/gitbug812crash/BinaryTree.java:28: error: cannot find symbol
+    BinaryTree(@NonNUll BinaryTree left, @NonNull BinaryTree right, int r) {
+                ^
+  symbol:   class NonNUll
+  location: class BinaryTree
+Operation not performed because of parse or type errors
+6 errors

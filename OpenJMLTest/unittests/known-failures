@@ -1,0 +1,188 @@
+QueryPure.testAnotherCacheExample
+QueryPure.testAnotherValidExample
+QueryPure.testCacheExample
+QueryPure.testCircular
+QueryPure.testClass5
+QueryPure.testClass6
+QueryPure.testClass7
+QueryPure.testClass8
+QueryPure.testClass9
+QueryPure.testInvariant
+QueryPure.testMethod5
+QueryPure.testMethod6
+QueryPure.testMethod7
+QueryPure.testMethod8
+QueryPure.testMethod9
+QueryPure.testQuery0
+QueryPure.testQuery1
+QueryPure.testQuery10
+QueryPure.testQuery11
+QueryPure.testQuery2
+QueryPure.testQuery3
+QueryPure.testQuery4
+QueryPure.testQuery5
+QueryPure.testQuery6
+QueryPure.testQuery7
+QueryPure.testQuery8
+#QueryPure.testQuery8OK
+QueryPure.testQuery8a
+QueryPure.testQuery8b
+QueryPure.testQuery8c
+QueryPure.testQuery9
+QueryPure.testSimplerCacheExample
+QuerySecret.testBadParse
+QuerySecret.testBadParse2
+QuerySecret.testBadParse3
+QuerySecret.testBadParse4
+QuerySecret.testConstantExpression
+QuerySecret.testFBadParse
+QuerySecret.testFBadParse2
+QuerySecret.testFBadParse3
+QuerySecret.testFBadParse4
+QuerySecret.testFInNonSecret
+QuerySecret.testFInSecret
+QuerySecret.testFInSecret2
+QuerySecret.testInvariantSecret
+QuerySecret.testMethodCallSecret
+QuerySecret.testNoDG
+QuerySecret.testNoDG2
+QuerySecret.testNoOuter
+QuerySecret.testNotModel
+QuerySecret.testRepresents
+QuerySecret.testRepresents0
+QuerySecret.testRepresents1
+QuerySecret.testRepresents2
+QuerySecret.testRepresents3
+QuerySecret.testRepresents5
+QuerySecret.testSBadParse
+QuerySecret.testSBadParse2
+QuerySecret.testSBadParse3
+QuerySecret.testSBadParse4
+QuerySecret.testSNoDG
+QuerySecret.testSNoDG2
+QuerySecret.testSNotModel
+QuerySecret.testSOK3
+QuerySecret.testSameDG
+QuerySecret.testSameDG2
+QuerySecret.testSameDG3
+QuerySecret.testSameDG4
+escfilesTrace.escDMZCashTrace
+escfilesTrace.escDemoChangeCase
+escfilesTrace.escDemoPaths
+escfilesTrace.escTrace
+escfilesTrace.escTrace2
+escfilesTrace.escTrace3
+escfilesTrace.escTrace4
+escfilesTrace.escTrace5
+escfilesTrace.escTrace6
+escfilesTrace.escTraceBS
+escfilesTrace.escTraceDo
+escfilesTrace.escTraceDo1
+escfilesTrace.escTraceDo2
+escfilesTrace.escTraceForeach
+escfilesTrace.escTraceForeach1
+escfilesTrace.escTraceForeach2
+escfilesTrace.escTraceForeach3
+escfilesTrace.escTraceForeach4
+escfilesTrace.escTraceForeach5
+escfilesTrace.escTraceLoops
+escfilesTrace.escTraceLoops1
+escfilesTrace.escTraceLoops2
+escfilesTrace.escTraceLoops3
+escfilesTrace.escTraceLoops4
+escfilesTrace.escTraceLoops5
+escfilesTrace.escTraceLoops6
+escfilesTrace.escTraceWhile
+escfilesTrace.escTraceWhile1
+escfilesTrace.escTraceWhile2
+escTrace.testEnsuresSafeTrace
+escTrace.testEnsuresTrace
+escTrace.testFieldTrace
+escTrace.testSimpleTrace
+# escTraceTests - need work, but are successful at the moment
+
+escfilesmodels.gitbug431
+escfilesmodels.gitbug461
+escfilesmodels.gitbug498
+escfilesmodels.gitbug673
+
+SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
+SpecsEsc.testSpecificationFile[java-util-Map]
+SFBugs.gitbug481a1
+SFBugs.gitbug481a2
+SFBugs.gitbug481a3
+SFBugs.gitbug481a4
+SFBugs.gitbug481a5
+SFBugs.gitbug481a8
+SFBugs.gitbug481b
+SFBugs.gitbug481c
+SFBugs.gitbug671                # crash during speculative attribution
+
+#escArithmeticModes2.testModJavaB
+escArithmeticModes2.testModSafeBB
+escfiles.customPrimitiveTypes	# <<<<< test of user-defined custom JML primitive type
+escfiles.datatype		#       test of not yet implemented recursive data types (cf. Java records also)
+escfiles.modelImport5 		#	static model import needs implementation
+escfiles.modelImport6           #	static model import needs implementation
+escfiles.modelImport7           #	static model import needs implementation
+escfiles3.sfbug420X
+#escfiles3.sfbug420e
+escfiles3.sfbug420eOK
+escfiles.valuestrings           # string specs
+escfiles2.escRawding2
+escfiles2.escRawdingA
+escfiles2.escRawdingB
+escfiles2.gitbug450b		#	ArrayList contains
+escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
+escfiles2.gitbug876     # PrimeChecker timeout
+escfileslist1.test[choose-repeat]
+escfileslist1.test[dynamicFrames]
+escfileslist2.test[escConstructor5]	# Feasibility problem or invariant problem
+escfileslist2.test[choose-repeat]
+escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
+escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
+escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
+escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
+runscripts1.gitbug784            #   apache commons library
+escfileslist3.test[gitbug785]   #   Google guava library
+escfileslist3.test[gitbug878]             #   problem with type inference
+#escfileslist3.test[gitbug882]	#	Java complaint about uninitialized variable
+escfileslist3.test[gitbug897]   # substring and loop
+escfileslist3.test[listNullity]
+escfileslist3.test[locsetTests]
+escfileslist3.test[record2]
+escfileslist3.test[staticInit]  #       Needs implementation of static initialization
+escfileslist3.test[gitbug908]   # THe weird OJ= problem
+escfileslist3.test[gitbug883bad]  # Not sure what happened with this test
+
+escgeneric.testGenericType1
+escgeneric.testTypeOf
+escgeneric.testTypeParameter2d
+esclambdas.testIdentity
+esclambdas.testIdentity2
+
+# escnew3.testCast1       # m7 reports a verification error sometimes and sometimes does not
+
+racfiles.gitbug861		#	missing check in compiler constant static initializer
+racfiles.racbug1		#	stack overflow because of missing 'helper' on methods with invariants
+
+bugs.testMiscBug4      # deferred attribution problem
+escfiles2.gitbug812a
+
+SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
+## Issue 842 -- specs for 812 and 814
+
+primesc2.jmlreal                 # feasibility check times out
+escwebexamples.HeapSort
+
+SFBugs.gitbug712                      # String literal ("Alice") problem
+
+escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
+escfiles2.gitbug726                   # OLList problem
+escfiles2.gitbug880                   # Helloworld infeasible
+escfiles2.gitbug903                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+escfiles3.gitbug814                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+escfileslist1.test[escDoubleArith]    # feasibility problem with real arithmetic
+escfileslist3.test[gitbug944]         # bad translation for \seq<\bigint>
+runscripts2.apiASTCrash               # CRASH in Attr
+

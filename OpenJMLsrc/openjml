@@ -1,0 +1,33 @@
+#! /usr/bin/env bash
+
+## This script runs the basic openjml compilation/esc/rac tool. It is analogous to javac.
+
+## This script may be executed in either the development environment or in a release
+## openjml is the embellished version of javac
+## If the PROF env var is set to something, then profiling is enabled
+
+## The definition of BIN in setup-vars presumes that only one development target (for one OS) has been built
+## $BASH_SOURCE is the path to the executable as it is written in the command-line that launched the script
+
+FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the absolute path to this script file
+INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file
+
+# mac-setup is needed to fix Mac security complaints, though it is only needed the first time this binary is executed
+# mac-setup is in the release files; it must be executed manually for the development environment
+if [ "$( uname )" = "Darwin" ] ; then
+  "${INSTALL}/mac-setup" > /dev/null 2>&1 ;
+fi
+
+## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BINJAVAC PR
+. "${INSTALL}/setup-vars"
+
+## Run the executable for openjml (the javac equivalent)
+## The following line fixes issue #876, but is a hack because the root problem and this solution are not understood, as documented in #908
+if [ -z "${OJ++}" ]; then export OJ= ; fi
+
+## Uses OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS OPENJML_JVM OPENJML_EXPORTS
+if [ -z "$OPENJML_JVM" ]; then
+  "$BINJAVAC" "$@"
+else
+  "$BINJAVA" $OPENJML_JVM -cp ".:$INSTALL" org.openjml.RunOpenJML "$@" $OPENJML_EXPORTS
+fi

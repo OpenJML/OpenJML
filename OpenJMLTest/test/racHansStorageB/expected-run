@@ -1,12 +1,18 @@
 OUT:
+test/racHansStorageB/StorageParameters.java:24: verify: JML precondition is false
+        new StorageParameters(1L,null);
+        ^
+test/racHansStorageB/StorageParameters.jml:16: verify: Associated declaration: test/racHansStorageB/StorageParameters.java:24:
+    public StorageParameters(long totalBackingStore, long[] sizes );
+           ^
+test/racHansStorageB/StorageParameters.jml:6: verify: JML precondition is false
+      public behavior
+             ^
+test/racHansStorageB/StorageParameters.java:9: verify: JML assignment of null to a non_null variable
+        this.configurationSizes = sizes;
+                                ^
+test/racHansStorageB/StorageParameters.java:4: verify: JML non-null field is null
+    private long[] configurationSizes;
+                   ^
 
 ERR:
-Exception in thread "main" org.jmlspecs.runtime.JmlAssertionError: test/racHansStorageB/StorageParameters.java:24: verify: JML formal argument may be null: sizes in StorageParameters(long,long[])
-		new StorageParameters(1L,null);
-		                         ^
-test/racHansStorageB/StorageParameters.jml:16: verify: Associated declaration: test/racHansStorageB/StorageParameters.java:24:
-	public StorageParameters(long totalBackingStore, long[] sizes );
-	                                                 ^
-	at java.base/org.jmlspecs.runtime.Utils.createException(Utils.java:143)
-	at java.base/org.jmlspecs.runtime.Utils.assertionFailureL(Utils.java:94)
-	at StorageParameters.main(StorageParameters.java:1)

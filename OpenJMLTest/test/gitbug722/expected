@@ -18,15 +18,15 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FreshBugs.ok_test0() with prover !!!! - no warnings
 Starting proof of FreshBugs.fail_test0() with prover !!!!
-test/gitbug722/FreshBugs.java:43: warning: The prover cannot establish an assertion (Postcondition) in method fail_test0
+test/gitbug722/FreshBugs.java:43: verify: The prover cannot establish an assertion (Postcondition) in method fail_test0
        return n;
        ^
-test/gitbug722/FreshBugs.java:39: warning: Associated declaration
+test/gitbug722/FreshBugs.java:39: verify: Associated declaration
      ensures \fresh(\result.payload_); // ERROR
      ^
 Completed proof of FreshBugs.fail_test0() with prover !!!! - with warnings
 Starting proof of FreshBugs.fresh_bug() with prover !!!!
-test/gitbug722/FreshBugs.java:25: warning: The prover cannot establish an assertion (NullField) in method fresh_bug
+test/gitbug722/FreshBugs.java:25: verify: The prover cannot establish an assertion (NullField) in method fresh_bug
     Object oo = new Object(); // oo is non_null
            ^
 Completed proof of FreshBugs.fresh_bug() with prover !!!! - with warnings
@@ -53,4 +53,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FreshBugs.fail_test4() with prover !!!! - no warnings
 Completed proving methods in FreshBugs
-3 warnings
+3 verification failures

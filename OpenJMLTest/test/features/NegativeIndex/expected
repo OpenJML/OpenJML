@@ -8,7 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of features.NegativeIndex.main(String...) with prover !!!! - no warnings
 Starting proof of features.NegativeIndex.test(int) with prover !!!!
-#DEMO/src/features/NegativeIndex.java:15: warning: The prover cannot establish an assertion (PossiblyNegativeIndex) in method test
+#DEMO/src/features/NegativeIndex.java:15: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method test
         return array[i];
                     ^
 Completed proof of features.NegativeIndex.test(int) with prover !!!! - with warnings

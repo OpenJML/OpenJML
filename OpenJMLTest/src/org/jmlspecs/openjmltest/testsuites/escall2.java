@@ -1,9 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -22,7 +20,7 @@ public class escall2 extends EscBase {
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-nullableByDefault"); // Tests were written this way
+        addOptions("--nullable-by-default"); // Tests were written this way
     }
     
     // @Parameters
@@ -30,7 +28,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testNNParam() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -65,18 +63,22 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Precondition) in method m8", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:26: verify: Precondition conjunct is false: _JML__tmp`47 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
     @Test
     public void testNN2Param() {
-//    	addOptions("-show","-method=m2");
-//        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -111,17 +113,22 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Precondition) in method m8", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:26: verify: Precondition conjunct is false: _JML__tmp`47 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: oooo in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: oooo in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
     @Test
     public void testNN3Param() {
-//        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -156,16 +163,22 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2",8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Precondition) in method m3", 8
+        ,"/tt/TestJava.java:33: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: _JML__tmp`15 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+//        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
     @Test
     public void testNN4Param() {
-        addOptions("-nonnullByDefault");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--nonnull-by-default");
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -200,17 +213,24 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Precondition) in method m3", 8
+        ,"/tt/TestJava.java:33: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: _JML__tmp`15 != null", 9
+
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+//        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
 
     @Test
     public void testNN5Param() {
-        addOptions("-nonnullByDefault");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--nonnull-by-default");
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NullableByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -245,17 +265,23 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Precondition) in method m8", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:26: verify: Precondition conjunct is false: _JML__tmp`47 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (NullFormal) in method m8: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
         );
     }
 
     @Test
     public void testNN6Param() {
-        addOptions("-nonnullByDefault");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--nonnull-by-default");
+        helpEsc("tt.TestJava","package tt; \n"
         +" import org.jmlspecs.annotation.*; \n"
         +"@NonNullByDefault public class TestJava { \n"
         +" public void m1(@Nullable Object o, @NonNull Object oo, Object ooo) { \n"
@@ -290,10 +316,16 @@ public class escall2 extends EscBase {
         +" public void n3(Object s) {} \n"    // Line 33
         +" public TestJava() {}\n"
         +" } \n"
-        ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
-        ,"/tt/TestJava.java:32: warning: Associated declaration",17
-        ,"/tt/TestJava.java:11: warning: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
-        ,"/tt/TestJava.java:33: warning: Associated declaration",17
+        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Precondition) in method m2", 8
+        ,"/tt/TestJava.java:32: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:8: verify: Precondition conjunct is false: _JML__tmp`7 != null", 9
+        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Precondition) in method m3", 8
+        ,"/tt/TestJava.java:33: verify: Associated declaration", 14
+        ,"/tt/TestJava.java:11: verify: Precondition conjunct is false: _JML__tmp`15 != null", 9
+//        ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (NullFormal) in method m2: s in n2(@NonNull Object)",9
+//        ,"/tt/TestJava.java:32: verify: Associated declaration",17
+//        ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (NullFormal) in method m3: s in n3(Object)",9
+//        ,"/tt/TestJava.java:33: verify: Associated declaration",17
         );
     }
     
@@ -301,8 +333,8 @@ public class escall2 extends EscBase {
     public void testNNAssign() {
 //        Assume.assumeTrue(runLongTests);
         // Use noInternalSpecs to help yices, which cannot handle the quantified statements in String specs
-        addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("-no-internalSpecs");  // FIXME
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -361,10 +393,10 @@ public class escall2 extends EscBase {
                 
                 +"  public TestJava() { f = ff = \"\"; }\n"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:39: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
@@ -372,8 +404,8 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign2() {
 //        Assume.assumeTrue(runLongTests);
-        addOptions("-no-internalSpecs");
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("-no-internalSpecs"); // F(XME
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -432,14 +464,14 @@ public class escall2 extends EscBase {
                 
                 +"  public TestJava() { f = ff = new String(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:5: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1: s",12
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",7
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
-                ,"/tt/TestJava.java:27: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
-                ,"/tt/TestJava.java:36: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4",7
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1: s",12
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",7
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4",7
+                ,"/tt/TestJava.java:39: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
@@ -447,8 +479,8 @@ public class escall2 extends EscBase {
     @Test
     public void testNNAssign3() {
 //        Assume.assumeTrue(runLongTests);
-        addOptions("-internalSpecs=false"); // Part of test
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("-internalSpecs=false"); // Part of test // FIXME
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
@@ -507,17 +539,17 @@ public class escall2 extends EscBase {
                 
                 +"  public TestJava() { f = ff = new String(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:8: warning: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
-                ,"/tt/TestJava.java:39: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m1a: s",21
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m3a",8
+                ,"/tt/TestJava.java:39: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m4a",7
                 );
     }
     
     @Test
     public void testNNAssignB() {
 //        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -554,15 +586,15 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
         
     @Test
     public void testNNAssignB1() {
 //        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -600,17 +632,17 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1",9
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",9
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1",9
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2",9
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
     
     @Test
     public void testNNAssignB2() {
 //        Assume.assumeTrue(runLongTests);
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NullableByDefault public class TestJava { \n"
                 
@@ -647,14 +679,14 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
-                ,"/tt/TestJava.java:24: warning: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m1a",10
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2a",10
                 );
     }
     
     @Test
     public void testTypeCast() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -668,7 +700,7 @@ public class escall2 extends EscBase {
     @Test
     public void testInvariantForOK() {
     	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -685,8 +717,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForVisibility() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -703,8 +735,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantForVisibility2() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -721,8 +753,8 @@ public class escall2 extends EscBase {
     
     @Test
     public void testInvariantFor() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -734,15 +766,14 @@ public class escall2 extends EscBase {
                 
                 +"} class P { public int f; //@ public invariant f >= 0; \n"
                 +"}\n"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m", 10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m", 10
                 );
     }
     
     @Test
     public void testInvariantForSeeStatic() {
-    	Assume.assumeTrue(!solver.startsWith("cvc4"));
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -754,14 +785,14 @@ public class escall2 extends EscBase {
                 
                 +"} class P { static public int f; //@ static public invariant f >= 0; \n"
                 +"}\n"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (Assert) in method m", 10
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m", 10
                 );
     }
     
     @Test
     public void testInvariantForStatic() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 
@@ -778,8 +809,8 @@ public class escall2 extends EscBase {
 
     @Test
     public void testInvariantForStatic1() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 +"  static public int f; //@ static public invariant f >= 0; \n"
@@ -791,14 +822,14 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"} class P { }\n "
-                ,"/tt/TestJava.java:7: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
     
     @Test
     public void testInvariantForStatic2() {
-    	addOptions("-method=m"); // Part of test - don't test constructor
-        helpTCX("tt.TestJava","package tt; \n"
+    	addOptions("--method=m"); // Part of test - don't test constructor
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava extends P { \n"
                 +"  static public int f; //@ static public invariant f >= 0; \n"
@@ -816,11 +847,7 @@ public class escall2 extends EscBase {
 
     @Test
     public void testDZero() {
-//        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-//        Assume.assumeTrue(false); // SKIPPING because CVC4 does not handle integer division
-
-        addOptions("-logic=AUFNIRA");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -865,19 +892,18 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:14: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1a",14
-                ,"/tt/TestJava.java:22: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",17
-                ,"/tt/TestJava.java:26: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2a",17
-                ,"/tt/TestJava.java:30: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3",7
-                ,"/tt/TestJava.java:34: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3a",7
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1a",14
+                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",17
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2a",17
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3",7
+                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m3a",7
                 );
     }
     
     @Test
     public void testDZero2() {
-        addOptions("-logic=AUFNIRA");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -892,15 +918,15 @@ public class escall2 extends EscBase {
                 +"  }\n"
                 
                 +"}"
-                ,"/tt/TestJava.java:6: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
-                ,"/tt/TestJava.java:10: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",14
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1",14
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2",14
                 );
     }
 
     @Test  // Sometimes times out
     public void testInvariant1() {
-        addOptions("-code-math=java","-spec-math=java","-solver-seed=42"); // Just to avoid overflow warnings; the seed attempts to avoid timeouts
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=java","--spec-math=java","--solver-seed=42"); // Just to avoid overflow warnings; the seed attempts to avoid timeouts
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -945,19 +971,19 @@ public class escall2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (InvariantExit) in method m1bad",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",14
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (InvariantExit) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",21
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (InvariantExit) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",21
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (InvariantExit) in method m1bad",15
+                ,"/tt/TestJava.java:6: verify: Associated declaration",14
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (InvariantExit) in method m2bad",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration",21
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (InvariantExit) in method m3bad",22
+                ,"/tt/TestJava.java:7: verify: Associated declaration",21
                 );
     }
     
     @Test
     public void testConstraint1() {
-        addOptions("-code-math=java","-spec-math=java"); // Just to avoid overflow warnings
-        helpTCX("tt.TestJava","package tt; \n"
+        addOptions("--code-math=java","--spec-math=java"); // Just to avoid overflow warnings
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava {\n"
                 
@@ -1002,18 +1028,18 @@ public class escall2 extends EscBase {
                 
                 
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Constraint) in method m1bad",15
-                ,"/tt/TestJava.java:6: warning: Associated declaration",14
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Constraint) in method m2bad",15
-                ,"/tt/TestJava.java:7: warning: Associated declaration",21
-                ,"/tt/TestJava.java:17: warning: The prover cannot establish an assertion (Constraint) in method m3bad",22
-                ,"/tt/TestJava.java:7: warning: Associated declaration",21
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Constraint) in method m1bad",15
+                ,"/tt/TestJava.java:6: verify: Associated declaration",14
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Constraint) in method m2bad",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration",21
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Constraint) in method m3bad",22
+                ,"/tt/TestJava.java:7: verify: Associated declaration",21
                 );
     }
     
     @Test
     public void testAxiom1() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -1034,8 +1060,7 @@ public class escall2 extends EscBase {
     
     @Test
     public void testAxiom2() {
-        if ("yices2".equals(solver)) return; // TODO: yices2 does not handle quantifiers
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"public class TestJava { \n"
                 
@@ -1053,11 +1078,11 @@ public class escall2 extends EscBase {
                 );
     }
     
-    @Test
-    public void testAssignable() {
+    @Test // @Ignore // FIXME - long running or a loop?
+    public void testAssignable1() { // FIXME - which of these methods here or in testAssignables2 takes so long? and why?
 //        Assume.assumeTrue(runLongTests);
 
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
                 
@@ -1106,7 +1131,32 @@ public class escall2 extends EscBase {
                 +"    o.a = 0;\n"  // OK
                 +"  }\n"
                 
-                +"  //@ assignable this.a;\n" // Line 40
+                +"  //@ public normal_behavior ensures t != null;\n"
+                +"  public TestJava() { t = new TestJava(); }\n"
+                +"}"
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assignable) in method m1: o.a",9
+                ,"/tt/TestJava.java:7: verify: Associated declaration",7
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assignable) in method m2: o.a",9
+                ,"/tt/TestJava.java:11: verify: Associated declaration",7
+                ,"/tt/TestJava.java:33: verify: The prover cannot establish an assertion (Assignable) in method m4a: o.a",9
+                ,"/tt/TestJava.java:31: verify: Associated declaration",7
+                );
+    }
+   
+    @Test // @Ignore // FIXME - long running or a loop?
+    public void testAssignable2() {
+//        Assume.assumeTrue(runLongTests);
+
+        helpEsc("tt.TestJava","package tt; \n"
+                +" import org.jmlspecs.annotation.*; \n"
+                +"@NonNullByDefault public class TestJava { \n"
+                
+                +"  public TestJava t;\n"
+                +"  public int a;\n"
+                +"  public static int b;\n"
+                
+                
+                +"  //@ assignable this.a;\n" // Line 7
                 +"  public void m5(TestJava o) {\n"
                 +"    a = 0;\n"  // OK
                 +"  }\n"
@@ -1118,7 +1168,7 @@ public class escall2 extends EscBase {
                 
                 +"  //@ assignable \\nothing;\n"
                 +"  public void m7(TestJava o) {\n"
-                +"    a = 0;\n"  // BAD // Line 50
+                +"    a = 0;\n"  // BAD // Line 17
                 +"  }\n"
                 
                 +"  //@ assignable \\nothing;\n"
@@ -1136,25 +1186,170 @@ public class escall2 extends EscBase {
                 +"  public void m9b(TestJava o) {\n"
                 +"    o.a = 0;\n"  // BAD
                 +"  }\n"
-                
+                +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }\n"
                 +"}"
-                ,"/tt/TestJava.java:9: warning: The prover cannot establish an assertion (Assignable) in method m1: o.a",9
-                ,"/tt/TestJava.java:7: warning: Associated declaration",7
-                ,"/tt/TestJava.java:13: warning: The prover cannot establish an assertion (Assignable) in method m2: o.a",9
-                ,"/tt/TestJava.java:11: warning: Associated declaration",7
-                ,"/tt/TestJava.java:33: warning: The prover cannot establish an assertion (Assignable) in method m4a: o.a",9
-                ,"/tt/TestJava.java:31: warning: Associated declaration",7
-                ,"/tt/TestJava.java:50: warning: The prover cannot establish an assertion (Assignable) in method m7: a",7
-                ,"/tt/TestJava.java:48: warning: Associated declaration",7
-                ,"/tt/TestJava.java:63: warning: The prover cannot establish an assertion (Assignable) in method m9b: o.a",9
-                ,"/tt/TestJava.java:61: warning: Associated declaration",7
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m7: a",7
+                ,"/tt/TestJava.java:15: verify: Associated declaration",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Assignable) in method m9b: o.a",9
+                ,"/tt/TestJava.java:28: verify: Associated declaration",7
                 );
     }
-   
+
     @Test
-    public void testPureMethod() {
-        helpTCX("tt.TestJava","package tt; \n"
+    public void testLoopWrites1() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\nothing;
+              public void m1(int k) {
+                int j;
+                //@ loop_writes n, i, j;
+                for (int n=0; n<10; n++) {
+                  int m;
+                  m = 9;
+                  i = 1;
+                }
+              }
+            }
+            """
+            ,"/A.java:6: verify: The prover cannot establish an assertion (Assignable) in method m1: `THIS.i", 24
+            ,"/A.java:3: verify: Associated declaration", 7
+        );
+    }
+
+    @Test
+    public void testLoopWrites2() {
+        expectedExit = 1;
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m2(int k) {
+                int j;
+                //@ loop_writes n;
+                for (int n=0; n<10; n++) {
+                  int m;
+                  m = 9;
+                  i = 1; // ERROR - fails but not reported since the error on j is reported before running smt
+                  j = 2; // ERROR - fails before running smt
+                }
+              }
+            }
+            """
+            ,"/A.java:11: error: Local variable is assigned but not present in loop frame clause: j not in //@ loop_writes n, \\count;", 7
+        );
+    }
+
+    /** Tests a loop index declared in the loop initialization and an explicit loop_writes clause;
+     * also checking a local variable not within the loop body */
+    @Test
+    public void testLoopWrites3() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m3(int k) {
+                int j;
+                //@ loop_writes j;
+                for (int n=0; n<10; n++) { // OK
+                  int m;
+                  m = 9;
+                  i = 1; // ERROR
+                  j = 2;
+                }
+              }
+            }
+            """
+            ,"/A.java:10: verify: The prover cannot establish an assertion (Assignable) in method m3: i", 9
+            ,"/A.java:6: verify: Associated declaration", 9
+        );
+    }
+
+    /** Tests a loop index not declared in the loop initialization and an explicit loop_writes clause */
+    @Test
+    public void testLoopWrites6() {
+        expectedExit = 1;
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m6(int k) {
+                int n, j;
+                //@ loop_writes j;
+                for (n=0; n<10; n++) { // ERROR
+                  int m;
+                  m = 9;
+                  j = 1;
+                }
+              }
+            }
+            """
+            ,"/A.java:7: error: Local variable is assigned but not present in loop frame clause: n not in //@ loop_writes j, \\count;", 21
+        );
+    }
+
+    /** Tests that a loop variable not declared in the loop initialization is in the default loop_writes clause */
+    @Test
+    public void testLoopWrites4() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m4(int k) {
+                int n;
+                for (n=0; n<10; n++) { // OK
+                }
+              }
+            }
+            """
+        );
+    }
+
+    /** Tests that the declared loop variable is automatically in the default loop_writes clause */
+    @Test
+    public void testLoopWrites5() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m5(int k) {
+                for (int n=0; n<10; n++) { // OK
+                }
+              }
+            }
+            """
+        );
+    }
+
+    /** Tests that multiple local to the loop variables are OK */
+    @Test
+    public void testLoopWrites7() {
+        helpEsc("A",
+            """
+            public class A {
+              int i;
+              //@ writes \\everything;
+              public void m7() {
+                for (int n=0; n<10; n++) {
+                  int j,k;
+                  j = k = 1;
+                }
+              }
+            }
+            """
+        );
+    }
+
+    @Test
+    public void testPureMethod1() {
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +" public class TestJava { \n"
                 
@@ -1182,13 +1377,13 @@ public class escall2 extends EscBase {
                 
                 
                 +"}" 
-                ,"/tt/TestJava.java:19: warning: The prover cannot establish an assertion (Assert) in method m1a",9
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Assert) in method m1a",9
                 );
     }
    
     @Test
     public void testPureMethod2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +" public class TestJava { \n"
                 
@@ -1219,20 +1414,19 @@ public class escall2 extends EscBase {
         
         
                 +"}"
-                ,"/tt/TestJava.java:15: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
-                ,"/tt/TestJava.java:8: warning: Associated declaration",20
-                ,optional("/tt/TestJava.java:7: warning: Precondition conjunct is false: b",39)
-                ,"/tt/TestJava.java:18: warning: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
-                ,"/tt/TestJava.java:8: warning: Associated declaration",20
-                ,optional("/tt/TestJava.java:7: warning: Precondition conjunct is false: b",39)
-                ,"/tt/TestJava.java:21: warning: The prover cannot establish an assertion (Assert) in method m1b",9
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m2",17
+                ,"/tt/TestJava.java:8: verify: Associated declaration",20
+                ,optional("/tt/TestJava.java:7: verify: Precondition conjunct is false: b",39)
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1a",17
+                ,"/tt/TestJava.java:8: verify: Associated declaration",20
+                ,optional("/tt/TestJava.java:7: verify: Precondition conjunct is false: b",39)
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m1b",9
                  );
     }
    
     @Test
-    public void testKeys() {
-        addOptions("--esc");
-        helpTCX("tt.TestJava",
+    public void testKeysOK() {
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -1268,7 +1462,7 @@ public class escall2 extends EscBase {
     @Test
     public void testKeysBad() {
         expectedExit = 1;
-        helpTCX("tt.TestJava",
+        helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -1280,5 +1474,4 @@ public class escall2 extends EscBase {
                 ,"/tt/TestJava.java:4: error: An argument to \\key must be an identifier or a string literal: 0", 21
                 );
     }
-
 }

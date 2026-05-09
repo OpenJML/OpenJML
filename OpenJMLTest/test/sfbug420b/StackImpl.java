@@ -9,7 +9,7 @@ public class StackImpl implements Stack {
 	//@ public invariant 0 <= stackCounter < maxSize;
 	//@ public invariant internalStack.length == maxSize;
 	
-	@SuppressWarnings("unchecked")
+    //@ ensures count() == 0; pure
 	public StackImpl() {
 		internalStack = new int[maxSize];
 		stackCounter = 0;

@@ -14,9 +14,9 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m0() with prover !!!! - no warnings
 Starting proof of Test.m1() with prover !!!!
-test/enums2/Test.java:28: warning: The prover cannot establish an assertion (Assert) in method m1
+test/enums2/Test.java:28: verify: The prover cannot establish an assertion (Assert) in method m1
         //@ assert EEE.AA.code == 9; // Expected failure
             ^
 Completed proof of Test.m1() with prover !!!! - with warnings
 Completed proving methods in Test
-1 warning
+1 verification failure

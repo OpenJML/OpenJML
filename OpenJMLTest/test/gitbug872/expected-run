@@ -1,0 +1,7 @@
+OUT:
+LABEL JMLSHOW_1 = 0
+test/gitbug872/BitRotator.java:8: verify: JML undefined unsigned right shift on negative bigint value
+        //@ ghost var z = ((\bigint)x) >>> 3;
+                                       ^
+
+ERR:

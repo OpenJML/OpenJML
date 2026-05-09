@@ -1,0 +1,115 @@
+TEST-A
+Proving methods in Test
+Skipping proof of Test.mok(boolean) (because the method has no body)
+Skipping proof of Test.mbad(boolean) (because the method has no body)
+Completed proving methods in Test
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Completed proof of T.T() with prover !!!! - no warnings
+Skipping proof of T.qbad() (because the method has no body)
+Skipping proof of T.qok() (because the method has no body)
+Skipping proof of T.rok() (because the method has no body)
+Skipping proof of T.rr() (because the method has no body)
+Starting proof of T.rrr() with prover !!!!
+Completed proof of T.rrr() with prover !!!! - no warnings
+Completed proving methods in T
+TEST-B
+Proving methods in Test
+Starting proof of Test.mok(boolean) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test.mok(boolean) with prover !!!! - no warnings
+Starting proof of Test.mbad(boolean) with prover !!!!
+Feasibility check - end of preconditions : infeasible
+Test.java:8: verify: Invariants+Preconditions appear to be contradictory in method Test.mbad(boolean)
+  public void mbad(boolean b);
+              ^
+Completed proof of Test.mbad(boolean) with prover !!!! - INFEASIBLE
+Completed proving methods in Test
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.qbad() with prover !!!!
+Feasibility check - end of preconditions : infeasible
+Test.java:14: verify: Invariants+Preconditions appear to be contradictory in method T.qbad()
+  //@ model void qbad();
+                 ^
+Completed proof of T.qbad() with prover !!!! - INFEASIBLE
+Starting proof of T.qok() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.qok() with prover !!!! - no warnings
+Starting proof of T.rok() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.rok() with prover !!!! - no warnings
+Starting proof of T.rr() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.rr() with prover !!!! - no warnings
+Starting proof of T.rrr() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.rrr() with prover !!!! - no warnings
+Completed proving methods in T
+2 verification failures
+TEST-C
+Proving methods in Test
+Starting proof of Test.mok(boolean) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Test.mok(boolean) with prover !!!! - no warnings
+Starting proof of Test.mbad(boolean) with prover !!!!
+Feasibility check - end of preconditions : infeasible
+Test.java:8: verify: Invariants+Preconditions appear to be contradictory in method Test.mbad(boolean)
+  public void mbad(boolean b);
+              ^
+Completed proof of Test.mbad(boolean) with prover !!!! - INFEASIBLE
+Completed proving methods in Test
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.qbad() with prover !!!!
+Feasibility check - end of preconditions : infeasible
+Test.java:14: verify: Invariants+Preconditions appear to be contradictory in method T.qbad()
+  //@ model void qbad();
+                 ^
+Completed proof of T.qbad() with prover !!!! - INFEASIBLE
+Starting proof of T.qok() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.qok() with prover !!!! - no warnings
+Starting proof of T.rok() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.rok() with prover !!!! - no warnings
+Starting proof of T.rr() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.rr() with prover !!!! - no warnings
+Starting proof of T.rrr() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of T.rrr() with prover !!!! - no warnings
+Completed proving methods in T
+2 verification failures
+TEST-D
+Proving methods in Test
+Starting proof of Test.mok(boolean) with prover !!!!
+Completed proof of Test.mok(boolean) with prover !!!! - no warnings
+Starting proof of Test.mbad(boolean) with prover !!!!
+Completed proof of Test.mbad(boolean) with prover !!!! - no warnings
+Completed proving methods in Test
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.qbad() with prover !!!!
+Completed proof of T.qbad() with prover !!!! - no warnings
+Starting proof of T.qok() with prover !!!!
+Completed proof of T.qok() with prover !!!! - no warnings
+Starting proof of T.rok() with prover !!!!
+Completed proof of T.rok() with prover !!!! - no warnings
+Starting proof of T.rr() with prover !!!!
+Completed proof of T.rr() with prover !!!! - no warnings
+Starting proof of T.rrr() with prover !!!!
+Feasibility check - at program exit : infeasible
+Test.java:27: verify: There is no feasible path to program point at program exit in method T.rrr()
+  //@ }
+      ^
+Completed proof of T.rrr() with prover !!!! - INFEASIBLE
+Completed proving methods in T
+1 verification failure
+TEST-X

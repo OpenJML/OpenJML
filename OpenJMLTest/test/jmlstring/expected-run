@@ -1,0 +1,12 @@
+OUT:
+java.lang.StringIndexOutOfBoundsException: index -1 is not in 0 .. 3 in call of get
+java.lang.StringIndexOutOfBoundsException: index 4 is not in 0 .. 3 in call of get
+java.lang.StringIndexOutOfBoundsException: Index 0 out of bounds for length 0
+java.lang.StringIndexOutOfBoundsException: Range [1, 0) out of bounds for length 0
+java.lang.StringIndexOutOfBoundsException: Range [0, -1) out of bounds for length 4
+java.lang.StringIndexOutOfBoundsException: Range [0, 5) out of bounds for length 4
+java.lang.StringIndexOutOfBoundsException: Range [-1, 4) out of bounds for length 4
+java.lang.StringIndexOutOfBoundsException: Range [5, 4) out of bounds for length 4
+END
+
+ERR:

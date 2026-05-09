@@ -2,7 +2,7 @@ Proving methods in trace
 Skipping proof of trace.trace() (excluded by -method)
 Skipping proof of trace.mgood() (excluded by -method)
 Starting proof of trace.m1() with prover !!!!
-test\escTraceLoops\trace.java:16: warning: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m1
+test\escTraceLoops\trace.java:16: verify: The prover cannot establish an assertion (LoopInvariantBeforeLoop) in method m1
         //@ loop_invariant j == i && 0 <= i && i <= k;
             ^
 

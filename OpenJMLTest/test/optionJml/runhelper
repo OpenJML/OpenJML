@@ -1,26 +1,26 @@
 
 
 echo Test1a
-$OJA A.java
+openjml A.java
 echo Test1b
-$OJA -java A.java && rm -rf A.class
+openjml -java A.java && rm -rf A.class
 echo Test1c
-$OJA -jml A.java
+openjml -jml A.java
 echo Test1d
-$OJA -no-jml A.java
+openjml -no-jml A.java
 
 echo Test2a
-$OJA -jml --esc B.java
+openjml -jml --esc B.java
 echo Test2b
-$OJA -no-jml --esc B.java
+openjml -no-jml --esc B.java
 
 echo Test3a
-$OJA -java -verbose C.java
+openjml -java -verbose C.java
 echo Test3b
-$OJA --check -verbose C.java
+openjml --check -verbose C.java
 
 echo Test4a
-$OJA --check C.jml B.java
+openjml --check C.jml B.java
 
 echo Test4b
-$OJA --check D.jml B.java
+openjml --check D.jml B.java

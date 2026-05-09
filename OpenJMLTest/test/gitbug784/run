@@ -1,0 +1,15 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+CP=.:commons-collections4-4.5.0.jar
+
+rm -rf actual
+
+for f in src/*.java ; do 
+echo FILE $f >> actual 2>&1
+openjml --esc -cp $CP --progress --nullable-by-default $f >> actual 2>&1
+done
+
+diff actual expected && rm -rf actual

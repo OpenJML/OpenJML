@@ -4,7 +4,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of trace.trace() with prover !!!! - no warnings
 Starting proof of trace.mnonnullelements(int[]) with prover !!!!
-test\escTraceBS\trace.java:5: warning: The prover cannot establish an assertion (Assert) in method mnonnullelements
+test\escTraceBS\trace.java:5: verify: The prover cannot establish an assertion (Assert) in method mnonnullelements
         //@ assert i == 0 && \nonnullelements(a);
             ^
 
@@ -89,7 +89,7 @@ test\escTraceBS\trace.java:5:  Invalid assertion (Assert)
 
 Completed proof of trace.mnonnullelements(int[]) with prover !!!! - with warnings
 Starting proof of trace.mnotmodified(int) with prover !!!!
-test\escTraceBS\trace.java:12: warning: The prover cannot establish an assertion (Assert) in method mnotmodified
+test\escTraceBS\trace.java:12: verify: The prover cannot establish an assertion (Assert) in method mnotmodified
         //@ assert i == 4 && \not_modified(i);
             ^
 
@@ -168,4 +168,4 @@ test\escTraceBS\trace.java:12:  Invalid assertion (Assert)
 
 Completed proof of trace.mnotmodified(int) with prover !!!! - with warnings
 Completed proving methods in trace
-2 warnings
+2 verification failures

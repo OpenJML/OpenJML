@@ -7,10 +7,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of xATransport.xATransport() with prover !!!! - no warnings
 Starting proof of xATransport.send3(int) with prover !!!!
-test/gitbug480/Bug.java:14: warning: The prover cannot establish an assertion (Postcondition) in method send3
+test/gitbug480/Bug.java:14: verify: The prover cannot establish an assertion (Postcondition) in method send3
     return new BitSet();
     ^
-test/gitbug480/Bug.java:11: warning: Associated declaration
+test/gitbug480/Bug.java:11: verify: Associated declaration
   ensures  Crypto.encrypt(this.Na).equals(\result);  pure // - won't be provable in this simplified example
   ^
 Completed proof of xATransport.send3(int) with prover !!!! - with warnings
@@ -25,4 +25,5 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Crypto.encrypt(Object) with prover !!!! - no warnings
 Completed proving methods in Crypto
-3 warnings
+1 warning
+2 verification failures

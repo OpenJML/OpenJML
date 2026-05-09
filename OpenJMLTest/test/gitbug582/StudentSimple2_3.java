@@ -3,7 +3,7 @@ package courseman.baderrs;
 import java.util.ArrayList;
 import java.util.List;
 
-//  @ model import org.jmlspecs.models.*;
+
 
 /**
  * 
@@ -35,7 +35,7 @@ public class StudentSimple2_3 {
   /*@
     @ requires e != null;
     @ ensures !\old(enrolments.contains(e)) ==> 
-    @            enrolments.values == \old(enrolments.values).add(e);
+    @            enrolments.values == \old(enrolments.values).append(e);
     @*/
   public void addEnrolment(Object e) { 
     if (!enrolments.contains(e))
@@ -44,9 +44,10 @@ public class StudentSimple2_3 {
   
   /*@
     @ requires e != null;
-    @ ensures !enrolments.contains(e);
+    @ ensures !enrolments.values.containsEquals(e);
     @*/
   public void removeEnrolmentBad(Object e) {
+    //@ loop_assigns enrolments.values;
     while (enrolments.contains(e)) // remove all
       enrolments.remove(e);
   }

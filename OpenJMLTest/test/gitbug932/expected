@@ -1,0 +1,38 @@
+Proving methods in M
+Starting proof of M.M() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.M() with prover !!!! - no warnings
+Starting proof of M.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : infeasible
+test/gitbug932/M.java:6: verify: There is no feasible path to program point at program exit in method M.main(java.lang.String...)
+  }
+  ^
+Completed proof of M.main(String...) with prover !!!! - INFEASIBLE
+Completed proving methods in M
+Proving methods in Super
+Starting proof of Super.Super() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Super.Super() with prover !!!! - no warnings
+Starting proof of Super.m() with prover !!!!
+test/gitbug932/M.java:15: verify: The prover cannot establish an assertion (Postcondition) in method m
+    return super.m();
+    ^
+test/gitbug932/M.java:12: verify: Associated declaration
+  //@ ensures \result == 43; // ERROR
+      ^
+Completed proof of Super.m() with prover !!!! - with warnings
+Completed proving methods in Super
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.m() with prover !!!! - no warnings
+Completed proving methods in A
+3 verification failures

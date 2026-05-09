@@ -1,0 +1,5 @@
+OUT:
+
+ERR:
+Error: LinkageError occurred while loading main class Test547
+	java.lang.ClassFormatError: Illegal field modifiers in class I: 0x1

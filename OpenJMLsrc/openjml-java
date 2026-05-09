@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+
+## This is a convenience script to run the version of 'java' embellished with openjml's runtime libraries.
+## If an openjml program, compiled with 'openjml', is executed with just 'java', then the jmlruntime.jar runtime library will be needed.
+## That library is automatically included when using 'openjml-java' instead of 'java'.
+
+## The OPENJML_ environment variables (initialized in setup-vars) are needed when this script is run from openjml-run
+## If the PROF env var is set to something, then profiling is enabled
+
+FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks; result is the absolute path to this script file
+INSTALL=$(dirname "$FILE") # absolute path of the folder containing this file, which should be either .../OpenJMLsrc or the release folder
+
+
+# mac-setup is needed to fix Mac security complaints, though it is only needed the first time
+if [ "$( uname )" = "Darwin" ] ; then
+  "${INSTALL}/mac-setup" > /dev/null 2>&1 ;
+fi
+
+## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BINJAVA
+. "${INSTALL}/setup-vars"
+
+## Run the executable for openjml-java (the java equivalent in openjml)
+"$BINJAVA" $OPENJML_JVM "$@"

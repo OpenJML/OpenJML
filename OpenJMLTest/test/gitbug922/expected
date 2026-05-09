@@ -1,0 +1,43 @@
+error: Parsing failed because there is an attempt to parse the file test/gitbug922/PolygonMM.java twice, likely indicating that the file does not actually declare the desired class
+test/gitbug922/PolygonMM.java:25: error: cannot access PolygonMM
+class Square implements PolygonMM {
+                        ^
+  bad source file: test/gitbug922/PolygonMM.java
+    file does not contain class PolygonMM
+    Please remove or make sure it appears in the correct subdirectory of the sourcepath.
+test/gitbug922/PolygonMM.java:21: error: cannot find symbol
+  //@ ensures longestSide == \old(longestSide) + \old(longestSide);
+              ^
+  symbol:   variable longestSide
+  location: interface Polygon3
+test/gitbug922/PolygonMM.java:21: error: cannot find symbol
+  //@ ensures longestSide == \old(longestSide) + \old(longestSide);
+                                  ^
+  symbol:   variable longestSide
+  location: interface Polygon3
+test/gitbug922/PolygonMM.java:21: error: cannot find symbol
+  //@ ensures longestSide == \old(longestSide) + \old(longestSide);
+                                                      ^
+  symbol:   variable longestSide
+  location: interface Polygon3
+test/gitbug922/PolygonMM.java:26: error: cannot find symbol
+  public int side; //@ in longestSide;
+                          ^
+  symbol:   variable longestSide
+  location: class Square
+test/gitbug922/PolygonMM.java:28: error: cannot find symbol
+  //@ public represents sides = 4;
+                        ^
+  symbol:   variable sides
+  location: class Square
+test/gitbug922/PolygonMM.java:29: error: cannot find symbol
+  //@ public represents longestSide = side;
+                        ^
+  symbol:   variable longestSide
+  location: class Square
+test/gitbug922/PolygonMM.java:38: warning: [strict-jml] Method sides does not override parent class methods and so its specification may not begin with 'also'
+  //@ also public normal_behavior
+      ^
+Operation not performed because of parse or type errors
+8 errors
+1 warning

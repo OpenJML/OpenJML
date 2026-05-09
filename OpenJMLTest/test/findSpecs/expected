@@ -1,23 +1,36 @@
+parser: About to parse: SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/A.java]
 parser: Seeking specfile for name: A
+parser:     Found null
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/A.java] null  Classes: A
+parser: About to parse: SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/B.java]
 parser: Seeking specfile for name: B
+parser:     Found null
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/B.java] null  Classes: B
+parser: About to parse: SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/C.java]
 parser: Seeking specfile for name: C
+parser:     Found null
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/C.java] null  Classes: 
+parser: About to parse: SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/D.java]
 parser: Seeking specfile for name: D
+parser:     Found SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/D.jml]
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/D.java] SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/D.jml]  Classes: D
+parser: About to parse: SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/E.java]
 E.java:1: error: <identifier> expected
 package ;
        ^
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/E.java] null  Classes: E
+parser: About to parse: SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/F.java]
 F.java:1: error: ';' expected
 package a b;
          ^
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/F.java] null  Classes: F
+parser: About to parse: SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/G.java]
 G.java:1: error: <identifier> expected
 package a.;
           ^
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/G.java] null  Classes: G
+parser: About to parse: SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/H.java]
 parser: Seeking specfile for name: a.b.H
+parser:     Found null
 parser: Parsed SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/findSpecs/H.java] null  Classes: H
 3 errors

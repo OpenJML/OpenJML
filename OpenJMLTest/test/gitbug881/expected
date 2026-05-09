@@ -1,0 +1,12 @@
+Proving methods in Test881
+Starting proof of Test881.Test881() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test881.Test881() with prover !!!! - no warnings
+Starting proof of Test881.m() with prover !!!!
+test/gitbug881/Test881.java:3: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert \exists int i, j; 0 < i < j < 5; i + j == 2;
+        ^
+Completed proof of Test881.m() with prover !!!! - with warnings
+Completed proving methods in Test881
+1 verification failure

@@ -1,0 +1,92 @@
+Proving methods in TSet
+Starting proof of TSet.TSet() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.TSet() with prover !!!! - no warnings
+Starting proof of TSet.test2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test2() with prover !!!! - no warnings
+Starting proof of TSet.test3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test3() with prover !!!! - no warnings
+Starting proof of TSet.test4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test4() with prover !!!! - no warnings
+Starting proof of TSet.test5() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test5() with prover !!!! - no warnings
+Starting proof of TSet.test6() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test6() with prover !!!! - no warnings
+Starting proof of TSet.test7() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test7() with prover !!!! - no warnings
+Starting proof of TSet.test8() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test8() with prover !!!! - no warnings
+Starting proof of TSet.test9() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.test9() with prover !!!! - no warnings
+Starting proof of TSet.misc() with prover !!!!
+test/jmlset/TSet.java:129: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method misc
+        //@ check !s1.equals(o);
+                            ^
+$SPECS/org/jmlspecs/lang/internal/set.jml:88: verify: Associated declaration
+    public boolean equals(Object o);
+                   ^
+$SPECS/org/jmlspecs/lang/internal/set.jml:86: verify: Precondition conjunct is false: false
+    //@   requires false;
+                   ^
+Completed proof of TSet.misc() with prover !!!! - with warnings
+Proving methods in TSet.Axioms
+Starting proof of TSet.Axioms.Axioms() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.Axioms() with prover !!!! - no warnings
+Starting proof of TSet.Axioms.<T>newSetIsEmpty() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.<T>newSetIsEmpty() with prover !!!! - no warnings
+Starting proof of TSet.Axioms.<T>singleton(T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.<T>singleton(T) with prover !!!! - no warnings
+Starting proof of TSet.Axioms.<T>addBumpsSetSize(\set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.<T>addBumpsSetSize(\set<T>,T) with prover !!!! - no warnings
+Starting proof of TSet.Axioms.<T>addDoesNotChangeSize(\set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.<T>addDoesNotChangeSize(\set<T>,T) with prover !!!! - no warnings
+Starting proof of TSet.Axioms.<T>addRemove(\set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.<T>addRemove(\set<T>,T) with prover !!!! - no warnings
+Starting proof of TSet.Axioms.<T>addNoChange(\set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.<T>addNoChange(\set<T>,T) with prover !!!! - no warnings
+Starting proof of TSet.Axioms.<T>addRemoveA(\set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.<T>addRemoveA(\set<T>,T) with prover !!!! - no warnings
+Starting proof of TSet.Axioms.<T>addRemoveB(\set<T>,T) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.Axioms.<T>addRemoveB(\set<T>,T) with prover !!!! - no warnings
+Completed proving methods in TSet.Axioms
+Starting proof of TSet.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TSet.main(String...) with prover !!!! - no warnings
+Completed proving methods in TSet
+3 verification failures

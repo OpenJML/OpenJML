@@ -3,7 +3,7 @@ Skipping proof of trace.trace() (excluded by -method)
 Skipping proof of trace.mm(int,boolean) (excluded by -method)
 Skipping proof of trace.mmm(int) (excluded by -method)
 Starting proof of trace.m(int) with prover !!!!
-test\escTrace4\trace.java:16: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  overflow in int sum
+test\escTrace4\trace.java:16: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  overflow in int sum
         mm(k+k,k==0);
             ^
 
@@ -222,7 +222,7 @@ test\escTrace4\trace.java:16:  	ArithmeticOperationRange assertion: !(0 < k && 0
 			VALUE: !(0 < k_302 && 0 < k_302) || k_302 <= 2147483647 - k_302	 === false
 test\escTrace4\trace.java:16:  Invalid assertion (ArithmeticOperationRange)
 
-test\escTrace4\trace.java:16: warning: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  underflow in int sum
+test\escTrace4\trace.java:16: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m:  underflow in int sum
         mm(k+k,k==0);
             ^
 
@@ -448,10 +448,10 @@ test\escTrace4\trace.java:16:  	ArithmeticOperationRange assertion: !(k < 0 && k
 			VALUE: !(k_302 < 0 && k_302 < 0) || -2147483648 - k_302 <= k_302	 === false
 test\escTrace4\trace.java:16:  Invalid assertion (ArithmeticOperationRange)
 
-test\escTrace4\trace.java:19: warning: The prover cannot establish an assertion (Postcondition) in method m
+test\escTrace4\trace.java:19: verify: The prover cannot establish an assertion (Postcondition) in method m
         return 0;
         ^
-test\escTrace4\trace.java:13: warning: Associated declaration
+test\escTrace4\trace.java:13: verify: Associated declaration
     //@ ensures \result != 0;
         ^
 
@@ -1016,4 +1016,4 @@ test\escTrace4\trace.java:19:  Invalid assertion (Postcondition)
 
 Completed proof of trace.m(int) with prover !!!! - with warnings
 Completed proving methods in trace
-4 warnings
+4 verification failures

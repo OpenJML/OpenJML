@@ -14,25 +14,19 @@ public class escvisibility1 extends EscBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
         String z = java.io.File.pathSeparator;
         String testspecpath = "$A"+z+"$B";
         addOptions("-classpath",   testspecpath);
         addOptions("-sourcepath",   testspecpath);
         addOptions("-specspath",   testspecpath);
-        addOptions("-quiet");
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
-        //print = true;
-        addOptions("-jmltesting");
+        addOptions("--normal");
     }
 
-   
     @Test
     public void testInvariant() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  public int pb;\n"
@@ -78,7 +72,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testInvariantM() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  /*@ pure */public int pb(){return 0; };\n"
@@ -118,7 +112,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testInvariant2() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  /*@ spec_public */ protected int pt;\n"
@@ -179,7 +173,7 @@ public class escvisibility1 extends EscBase {
     public void testInClause() {
         expectedExit = 1;
         addOptions("-check");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  //@ model public int pb;\n"
@@ -220,7 +214,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testRequires1() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  public boolean pb;\n"
@@ -265,7 +259,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testRequires2() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  public boolean pb;\n"
@@ -296,7 +290,7 @@ public class escvisibility1 extends EscBase {
                 ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
                 ,"/tt/TestJava.java:18: error: An identifier with package visibility may not be used in a requires clause with protected visibility",28
                 ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a requires clause with protected visibility",34
-                ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
+                ,"/tt/TestJava.java:19: warning: [jml-lint] There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",22
                 ,"/tt/TestJava.java:20: error: An identifier with package visibility may not be used in a requires clause with public visibility",28
                 ,"/tt/TestJava.java:20: error: An identifier with private visibility may not be used in a requires clause with public visibility",34
@@ -308,7 +302,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testRequires3() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  public boolean pb;\n"
@@ -336,10 +330,10 @@ public class escvisibility1 extends EscBase {
                 +"}"
                 ,"/tt/TestJava.java:12: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
                 ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
-                ,"/tt/TestJava.java:17: warning: There is no point to a specification case having more visibility than its method",12
+                ,"/tt/TestJava.java:17: warning: [jml-lint] There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:18: error: An identifier with package visibility may not be used in a requires clause with protected visibility",28
                 ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a requires clause with protected visibility",34
-                ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
+                ,"/tt/TestJava.java:19: warning: [jml-lint] There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",22
                 ,"/tt/TestJava.java:20: error: An identifier with package visibility may not be used in a requires clause with public visibility",28
                 ,"/tt/TestJava.java:20: error: An identifier with private visibility may not be used in a requires clause with public visibility",34
@@ -351,7 +345,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testRequires4() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"class B { \n"
                 
                 +"  public boolean pb;\n"
@@ -377,12 +371,12 @@ public class escvisibility1 extends EscBase {
                 +"  //@ requires pb && pt && pa && pv && ptb && pab && pvb && pat && pvt;\n"
                 +"  private void m(){}\n"
                 +"}"
-                ,"/tt/TestJava.java:12: warning: There is no point to a specification case having more visibility than its method",7
+                ,"/tt/TestJava.java:12: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
                 ,"/tt/TestJava.java:14: error: An identifier with private visibility may not be used in a requires clause with package visibility",34
-                ,"/tt/TestJava.java:17: warning: There is no point to a specification case having more visibility than its method",12
+                ,"/tt/TestJava.java:17: warning: [jml-lint] There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:18: error: An identifier with package visibility may not be used in a requires clause with protected visibility",28
                 ,"/tt/TestJava.java:18: error: An identifier with private visibility may not be used in a requires clause with protected visibility",34
-                ,"/tt/TestJava.java:19: warning: There is no point to a specification case having more visibility than its method",12
+                ,"/tt/TestJava.java:19: warning: [jml-lint] There is no point to a specification case having more visibility than its method",12
                 ,"/tt/TestJava.java:20: error: An identifier with protected visibility may not be used in a requires clause with public visibility",22
                 ,"/tt/TestJava.java:20: error: An identifier with package visibility may not be used in a requires clause with public visibility",28
                 ,"/tt/TestJava.java:20: error: An identifier with private visibility may not be used in a requires clause with public visibility",34
@@ -394,39 +388,33 @@ public class escvisibility1 extends EscBase {
 
     @Test
     public void testThisStarDefault() {
-        helpTCX("tt.A","package tt; public class A {\n" +
+        helpEsc("tt.A","package tt; public class A {\n" +
                 "int i; \n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:3: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",8
                 );
     }
 
     @Test
     public void testThisStarDefault1() {
-        helpTCX("tt.A","package tt; public class A {\n" +
+        helpEsc("tt.A","package tt; public class A {\n" +
                 "int i; \n" +
                 "//@ requires true;\n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
     @Test
     public void testThisStar0() {
-        helpTCX("tt.A","package tt; public class A {\n" +
+        helpEsc("tt.A","package tt; public class A {\n" +
                 "int i; \n" +
                 "//@ pure\n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
     @Test
     public void testThisStar1() {
-        helpTCX("tt.A","package tt; public class A {\n public int i; \n" +
+        helpEsc("tt.A","package tt; public class A {\n public int i; \n" +
                 "//@ pure\n" +
                 "public A() { i = 0; } \n}"
                 );
@@ -434,27 +422,23 @@ public class escvisibility1 extends EscBase {
 
     @Test
     public void testThisStar2() {
-        helpTCX("tt.A","package tt; public class A {\n private int i; \n" +
+        helpEsc("tt.A","package tt; public class A {\n private int i; \n" +
                 "//@ pure\n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
     @Test
     public void testThisStar3() {
-        helpTCX("tt.A","package tt; public class A {\n protected int i; \n" +
+        helpEsc("tt.A","package tt; public class A {\n protected int i; \n" +
                 "//@ pure\n" +
                 "public A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",16
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
     @Test
     public void testThisStar4() {
-        helpTCX("tt.A","package tt; public class A {\n public int i; \n" +
+        helpEsc("tt.A","package tt; public class A {\n public int i; \n" +
                 "//@ pure\n" +
                 "private A() { i = 0; } \n}"
                 );
@@ -462,7 +446,7 @@ public class escvisibility1 extends EscBase {
 
     @Test
     public void testThisStar5() {
-        helpTCX("tt.A","package tt; public class A {\n private int i; \n" +
+        helpEsc("tt.A","package tt; public class A {\n private int i; \n" +
                 "//@ pure\n" +
                 "private A() { i = 0; } \n}"
                 );
@@ -470,7 +454,7 @@ public class escvisibility1 extends EscBase {
 
     @Test
     public void testThisStar6() {
-        helpTCX("tt.A","package tt; public class A {\n protected int i; \n" +
+        helpEsc("tt.A","package tt; public class A {\n protected int i; \n" +
                 "//@ pure\n" +
                 "private A() { i = 0; } \n}"
                 );
@@ -478,7 +462,7 @@ public class escvisibility1 extends EscBase {
 
     @Test
     public void testThisStar7() {
-        helpTCX("tt.A","package tt; public class A {\n  int i; \n" +
+        helpEsc("tt.A","package tt; public class A {\n  int i; \n" +
                 "//@ pure\n" +
                 "private A() { i = 0; } \n}"
                 );
@@ -486,18 +470,16 @@ public class escvisibility1 extends EscBase {
 
     @Test
     public void testThisStar8() {
-        helpTCX2("tx.B","package tx; public class B {\n protected int i;\n}",
+        helpEsc("tx.B","package tx; public class B {\n protected int i;\n}",
                 "tt.A","package tt; public class A extends tx.B {\n \n" +
                 "//@ pure\n" +
                 " A() { i = 0; } \n}"
-//                ,"/tt/A.java:4: warning: The prover cannot establish an assertion (Assignable) in method A:  i",10
-//                ,"/tt/A.java:3: warning: Associated declaration",5
                 );
     }
 
     @Test
     public void testThisStar9() {
-        helpTCX2("tx.B","package tx; public class B {\n protected int i;\n}",
+        helpEsc("tx.B","package tx; public class B {\n protected int i;\n}",
                 "tt.A","package tt; public class A extends tx.B {\n \n" +
                 "//@ pure\n" +
                 "protected A() { i = 0; } \n}"
@@ -510,7 +492,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testNestedPrivate() {
         expectedExit = 1;
-        helpTCX2("tt.B","package tt; public class B {\n static tt.A.P pp = A.Q.q; }\n", // No tt.A.P, No A.Q.q
+        helpEsc("tt.B","package tt; public class B {\n static tt.A.P pp = A.Q.q; }\n", // No tt.A.P, No A.Q.q
                 "tt.A","package tt; public class A  {\n \n" +
                        "static private class P { static private int p; }\n" +
                        "static private class Q { static public int q = A.P.p ; }}\n" +  // OK
@@ -529,7 +511,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testNestedProtected() {
         expectedExit = 1;
-        helpTCX2("tt.B","package tx; public class B {\n static tt.A.P pp = tt.A.Q.q; }\n", // No tt.A.P, No A.Q.q
+        helpEsc("tt.B","package tx; public class B {\n static tt.A.P pp = tt.A.Q.q; }\n", // No tt.A.P, No A.Q.q
                 "tt.A","package tt; public class A  {\n \n" +
                        "static protected class P { static private int p; }\n" +
                        "static protected class Q { static public int q = A.P.p ; }}\n" +  // OK
@@ -541,6 +523,4 @@ public class escvisibility1 extends EscBase {
                 ,"/tt/A.java:5: error: p has private access in tt.A.P",30
                 );
     }
-    
-
 }

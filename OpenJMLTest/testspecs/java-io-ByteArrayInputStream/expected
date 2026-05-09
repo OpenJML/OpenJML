@@ -1,0 +1,50 @@
+Proving methods in TestByteArrayInputStream
+Starting proof of TestByteArrayInputStream.t1() with prover !!!!
+$ROOT/OpenJML/OpenJMLTest/testspecs/java-io-ByteArrayInputStream/TestByteArrayInputStream.java:27: verify: The prover cannot establish an assertion (Precondition) in method t1
+        var st = new ByteArrayInputStream(null);
+                 ^
+$SPECS/java/io/ByteArrayInputStream.jml:54: verify: Associated declaration
+    public ByteArrayInputStream(byte[] buf);
+           ^
+$SPECS/java/io/ByteArrayInputStream.jml:40: verify: Precondition conjunct is false: buf != null
+      @    requires buf != null;
+                        ^
+Completed proof of TestByteArrayInputStream.t1() with prover !!!! - with warnings
+Starting proof of TestByteArrayInputStream.t2() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t2() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t2b() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t2b() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t3() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t3() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t3a() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t3a() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t3b() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t3b() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t3c() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t3c() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t5() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t5() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t6() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t6() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t7() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t7() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t8() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t8() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t9() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t9() with prover !!!! - no warnings
+Starting proof of TestByteArrayInputStream.t10() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestByteArrayInputStream.t10() with prover !!!! - no warnings
+Completed proving methods in TestByteArrayInputStream
+3 verification failures

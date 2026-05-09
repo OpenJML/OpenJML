@@ -80,7 +80,7 @@ public class SimpleString {
         //@ assert the_array.length >= 0;
         //@ assert the_array instanceof Object[];
         //@ assert my_Objects instanceof Object[];
-        //@ assert \elemtype(\typeof(the_array)) <: \elemtype(\typeof(my_Objects));
+        //@ assert \elemtype(\typeof(the_array)) <:= \elemtype(\typeof(my_Objects));
         //@ assert 0 + the_array.length <= ((Object[])the_array).length; 
         //@ assert 0 + the_array.length <= ((Object[])my_Objects).length; 
         System.arraycopy(the_array, 0, my_Objects, 0, the_array.length);

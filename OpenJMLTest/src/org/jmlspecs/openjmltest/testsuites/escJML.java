@@ -1,9 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Assume;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.openjml.runners.ParameterizedWithNames;
@@ -24,92 +22,90 @@ public class escJML extends EscBase {
         super.tearDown();
     }
     
+    // FIXME - the JML.lbl functions should report output just like the \lbl version do
+    
     @Test
     public void testLBLObject() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(String i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == null; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
     @Test
     public void testLBL2() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(Integer i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == null; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
     @Test
     public void testLBLint() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(int i) { \n"
-                +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
+                +"     //@ assert \\lbl(AL,i) != 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: Label AL has value 0", 22
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
     @Test
     public void testLBLshort() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(short i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
     @Test
     public void testLBLboolean() { 
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(boolean i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i); \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
     @Test
     public void testLBLdouble() {
-        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        main.addOptions("-logic=AUFLIRA");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(double i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
 
     @Test
     public void testLBLfloat() {
-        Assume.assumeTrue(runLongTests || !"z3_4_3".equals(solver));
-        main.addOptions("-logic=AUFLIRA");
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
                 +"  public void m(float i) { \n"
                 +"     //@ assert JML.lbl(\"AL\",i) == 0; \n"
                 +"  }\n"
                 +"}"
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m",10
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
     }
-
 }

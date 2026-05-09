@@ -8,10 +8,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of trace.mm() with prover !!!! - no warnings
 Starting proof of trace.m() with prover !!!!
-test\escTrace6\trace.java:12: warning: The prover cannot establish an assertion (Assignable) in method m:  \everything
+test\escTrace6\trace.java:12: verify: The prover cannot establish an assertion (Assignable) in method m:  \everything
         mm();
           ^
-test\escTrace6\trace.java:7: warning: Associated declaration
+test\escTrace6\trace.java:7: verify: Associated declaration
     //@ requires true;
         ^
 
@@ -99,10 +99,10 @@ test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp7 || (!_JML__tmp6 
 test\escTrace6\trace.java:12:  Invalid assertion (Assignable)
  Associated location
 
-test\escTrace6\trace.java:12: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m
+test\escTrace6\trace.java:12: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m
         mm();
           ^
-test\escTrace6\trace.java:9: warning: Associated declaration
+test\escTrace6\trace.java:9: verify: Associated declaration
     //@ signals (Exception e) false;
         ^
 
@@ -219,10 +219,10 @@ test\escTrace6\trace.java:12:  Invalid assertion (ExceptionalPostcondition)
 
 Completed proof of trace.m() with prover !!!! - with warnings
 Starting proof of trace.m2() with prover !!!!
-test\escTrace6\trace.java:24: warning: The prover cannot establish an assertion (Assignable) in method m2:  \everything
+test\escTrace6\trace.java:24: verify: The prover cannot establish an assertion (Assignable) in method m2:  \everything
             mm();
               ^
-test\escTrace6\trace.java:17: warning: Associated declaration
+test\escTrace6\trace.java:17: verify: Associated declaration
     //@ requires true;
         ^
 
@@ -312,10 +312,10 @@ test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp12 || (!_JML__tmp1
 test\escTrace6\trace.java:24:  Invalid assertion (Assignable)
  Associated location
 
-test\escTrace6\trace.java:24: warning: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2
+test\escTrace6\trace.java:24: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2
             mm();
               ^
-test\escTrace6\trace.java:20: warning: Associated declaration
+test\escTrace6\trace.java:20: verify: Associated declaration
     //@ signals (Exception e) k == 1;
         ^
 
@@ -438,10 +438,10 @@ test\escTrace6\trace.java:24:  Invalid assertion (ExceptionalPostcondition)
 
 Completed proof of trace.m2() with prover !!!! - with warnings
 Starting proof of trace.m3() with prover !!!!
-test\escTrace6\trace.java:37: warning: The prover cannot establish an assertion (Assignable) in method m3:  \everything
+test\escTrace6\trace.java:37: verify: The prover cannot establish an assertion (Assignable) in method m3:  \everything
             mm();
               ^
-test\escTrace6\trace.java:29: warning: Associated declaration
+test\escTrace6\trace.java:29: verify: Associated declaration
     //@ requires true;
         ^
 
@@ -531,10 +531,10 @@ test\escTrace6\trace.java:5:  	Assignable assertion: _JML__tmp17 || (!_JML__tmp1
 test\escTrace6\trace.java:37:  Invalid assertion (Assignable)
  Associated location
 
-test\escTrace6\trace.java:37: warning: The prover cannot establish an assertion (Postcondition) in method m3
+test\escTrace6\trace.java:37: verify: The prover cannot establish an assertion (Postcondition) in method m3
             mm();
               ^
-test\escTrace6\trace.java:31: warning: Associated declaration
+test\escTrace6\trace.java:31: verify: Associated declaration
     //@ ensures k == 2;
         ^
 
@@ -990,4 +990,4 @@ test\escTrace6\trace.java:37:  Invalid assertion (Postcondition)
 
 Completed proof of trace.m3() with prover !!!! - with warnings
 Completed proving methods in trace
-12 warnings
+12 verification failures

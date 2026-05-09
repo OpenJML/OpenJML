@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+rm -f actual
+touch actual
+(openjml --esc -jmltesting --progress -Xlint:exports DD.java && openjml --esc -jmltesting --progress -Xlint:all DD.java) >> actual
+Z=$?
+cat expected | sed -e "s^\$SPECS^$SPECS^" -e "s^\$ROOT^$ROOT^" | diff actual -  && rm actual
+if [ "$?" != 0 -o "$Z" != 0 ]; then exit 1; else exit 0; fi

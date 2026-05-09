@@ -1,0 +1,27 @@
+OUT:
+test/terminationBad/Test.java:7: verify: JML the termination metric does not decrease
+  //@ measured_by 0;
+                  ^
+test/terminationBad/Test.java:9: verify: Associated declaration: test/terminationBad/Test.java:7:
+    if (i > 0) q(i-1);
+                ^
+test/terminationBad/Test.java:7: verify: JML the termination metric does not decrease
+  //@ measured_by 0;
+                  ^
+test/terminationBad/Test.java:9: verify: Associated declaration: test/terminationBad/Test.java:7:
+    if (i > 0) q(i-1);
+                ^
+test/terminationBad/Test.java:13: verify: JML the termination metric becomes negative
+  //@ measured_by i;
+                  ^
+test/terminationBad/Test.java:15: verify: Associated declaration: test/terminationBad/Test.java:13:
+    if (i > -2) p(i-1);
+                 ^
+test/terminationBad/Test.java:13: verify: JML the termination metric becomes negative
+  //@ measured_by i;
+                  ^
+test/terminationBad/Test.java:15: verify: Associated declaration: test/terminationBad/Test.java:13:
+    if (i > -2) p(i-1);
+                 ^
+
+ERR:

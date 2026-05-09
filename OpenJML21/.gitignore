@@ -1,7 +1,0 @@
-/bin/
-build
-release-temp
-temp-release
-temp
-jmlruntime.jar
-!*.pdf

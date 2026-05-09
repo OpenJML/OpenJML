@@ -3,6 +3,9 @@ Starting proof of FindMaxElem.FindMaxElem() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FindMaxElem.FindMaxElem() with prover !!!! - no warnings
+Starting proof of FindMaxElem.maxElem(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of FindMaxElem.maxElem(int[]) with prover !!!! - no warnings
 Completed proving methods in FindMaxElem
 Proving methods in FindMaxElemImpl
 Starting proof of FindMaxElemImpl.FindMaxElemImpl() with prover !!!!

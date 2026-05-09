@@ -48,6 +48,7 @@ public class error{
 
 			//@ loop_invariant 0 <= i <= lengthBalance;
 			//@ loop_invariant \forall int k; 0 <= k < i; res[k] == (byte)(byteArray1[k]^ byteArray2[k]);
+			//@ loop_assigns res[*], i;
 			//@ loop_decreases lengthBalance-i;
 			for (int i = 0; i < lengthBalance; i++) {
 				res[i] = (byte)(byteArray1[i] ^ byteArray2[i]);

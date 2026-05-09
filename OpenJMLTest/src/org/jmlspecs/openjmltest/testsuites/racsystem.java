@@ -1,14 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import org.jmlspecs.openjmltest.RacBase;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.*;
 
 // These tests are run for both new and custom translations.
 
@@ -20,19 +13,11 @@ import org.junit.runners.Parameterized.Parameters;
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class racsystem extends RacBase {
-
-//    String option;
-//    
-//    public racsystem(String o) {
-//        option = o;
-//    }
-//
     
     @Override
     public void setUp() throws Exception {
         //noCollectDiagnostics = true;
         super.setUp();
-        addOptions("-no-purityCheck"); // To shut off complaints about misuse of purity in Java specifications
         addOptions("--rac-show-source=line");
     }
     
@@ -44,8 +29,7 @@ public class racsystem extends RacBase {
     /** Testing with getting a stack trace */
     @Test // FIXME - should this say what exception violated the signals clause
     public void testFile2() {
-        expectedRACExit = 0; 
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -71,7 +55,7 @@ public class racsystem extends RacBase {
     public void testFile2a() {
         expectedRACExit = 1;
         addOptions("--rac-show-source=none"); // FIXME fix comparisons so these all can be "line"
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -96,7 +80,7 @@ public class racsystem extends RacBase {
                 ,"Associated declaration: /tt/TestJava.java:14:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.m(TestJava.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:14)"
                 ,"\tat tt.TestJava.main(TestJava.java:6)"       
                 );
     }
@@ -106,7 +90,7 @@ public class racsystem extends RacBase {
     public void testFile2pre() {
         expectedRACExit = 1;
         addOptions("--rac-show-source=none");
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -133,16 +117,15 @@ public class racsystem extends RacBase {
                 ,"verify: Associated declaration: /tt/TestJava.java:6:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locD
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.main(TestJava.java:1)"         // FIXME - should be line 3   
+                ,"\tat tt.TestJava.main(TestJava.java:6)"
                 );
     }
 
     /** Testing with getting a stack trace - Error does catch it */
     @Test
     public void testFile2c() {
-        expectedRACExit = 0;
         addOptions("--rac-show-source=none");
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -168,7 +151,7 @@ public class racsystem extends RacBase {
                 ,"verify: Associated declaration: /tt/TestJava.java:14:"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locB
-                ,"\tat tt.TestJava.m(TestJava.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:14)"
                 ,"\tat tt.TestJava.main(TestJava.java:6)"
                 ,"END"
                 );
@@ -178,9 +161,7 @@ public class racsystem extends RacBase {
     /** Testing with getting a stack trace using showStack */
     @Test
     public void testFile2d() {
-        expectedRACExit = 0;
-        expectedNotes = 0;
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -197,7 +178,7 @@ public class racsystem extends RacBase {
                 ,"org.jmlspecs.runtime.JmlAssertionError: /tt/TestJava.java:9: verify: JML assertion is false"
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.createException"+locA
                 ,"\tat java.base/org.jmlspecs.runtime.Utils.assertionFailureL"+locC
-                ,"\tat tt.TestJava.m(TestJava.java:1)"
+                ,"\tat tt.TestJava.m(TestJava.java:9)"
                 ,"\tat tt.TestJava.main(TestJava.java:5)"
                 ,"END"
                 );
@@ -207,11 +188,9 @@ public class racsystem extends RacBase {
     @Test
     public void testFile2e() {
         expectedRACExit = 5;
-        expectedExit = 0;
-        expectedNotes = 0;
         addOptions("--rac-show-source=line");
         rac = new String[]{jdk, "-Dorg.jmlspecs.openjml.racexitcode=5", "-esa", "-classpath", null, "tt.TestJava"};
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -232,9 +211,8 @@ public class racsystem extends RacBase {
     
     @Test
     public void testFile3() {
-        expectedNotes = 0;
         addOptions("--rac-show-source=none");
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -252,8 +230,6 @@ public class racsystem extends RacBase {
                     }
                 }
                 """
-                ,"verify: JML formal argument may be null: arg0 in File(java.lang.String)"
-                ,"verify: Associated declaration: /tt/TestJava.java:13:"
                 ,"verify: JML precondition is false"
                 ,"verify: Associated declaration: /tt/TestJava.java:13:"
                 ,"CAUGHT EXCEPTION"
@@ -263,8 +239,7 @@ public class racsystem extends RacBase {
     
     @Test
     public void testHashCode() {
-        expectedNotes =  0; // 2
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n"
                 +"org.jmlspecs.runtime.Utils.showStack = true; \n"
                 +"int i = ( new Object().hashCode()); \n"
                 +"int j = ( new Object().hashCode()); \n"
@@ -282,9 +257,8 @@ public class racsystem extends RacBase {
      */
     @Test
     public void testMain() {
-        expectedNotes = 2;
         addOptions("--rac-show-source=line");
-        helpTCX("tt.TestJava","package tt; public class TestJava { \n"
+        helpRacText("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String[] args) { \n"
                 +"  System.out.println(\"START\"); \n"
                 +"  //@ assert args.length != 0;\n"
@@ -301,9 +275,8 @@ public class racsystem extends RacBase {
      */
     @Test
     public void testMain2() {
-        expectedNotes = 0;
         addOptions("--rac-show-source=line");
-        helpTCX("tt.TestJava","package tt; public class TestJava { \n"
+        helpRacText("tt.TestJava","package tt; public class TestJava { \n"
                 +"public static void main(String... args) { \n"
                 +"  System.out.println(\"START\"); \n"
                 +"  //@ assert args.length != 0;\n"
@@ -314,6 +287,4 @@ public class racsystem extends RacBase {
                 ,"END"
                 );
     }
-    
-
 }

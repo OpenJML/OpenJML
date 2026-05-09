@@ -1,0 +1,9 @@
+
+## This file should be sourced, not executed
+## as a helper to run files in the OpenJML tests
+
+cd "$LOCAL"
+BIN=../../../OpenJMLsrc
+PATH=$BIN:$PATH
+export ROOT=`(cd ../../../.. ; pwd)`
+export SPECS=`(cd $ROOT/Specs/specs; pwd)`

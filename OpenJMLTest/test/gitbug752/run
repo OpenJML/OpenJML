@@ -1,0 +1,16 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+( \
+echo PLAIN ; \
+openjml --esc A.java --progress --method=z --no-show-summary ;\
+echo USING PROPERTIES ;\
+openjml --properties=z.properties --esc A.java --progress --method=z --no-show-summary ;\
+echo USING ENV VAR ; \
+OPENJML_command=esc openjml A.java --progress --method=z --no-show-summary ;\
+echo USING ENV VAR ; \
+OPENJML_show_skipped=false openjml A.java --esc --progress --method=z --no-show-summary ;\
+) 2>&1 > actual
+diff actual expected && rm -rf actual

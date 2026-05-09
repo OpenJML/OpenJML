@@ -104,7 +104,7 @@ also
  */
 
 {
-  int[] a = new int[10];
+  int[] a = new @org.jmlspecs.annotation.Nullable int[10];
   o.f = a[i];
 }
 Feasibility check - end of preconditions : OK
@@ -126,13 +126,13 @@ STARTING PROOF OF Test.m3c()
 {
   m3(null, 0);
 }
-test/recommends/Test.java:24: warning: The prover cannot establish an assertion (Precondition) in method m3c
+test/recommends/Test.java:24: verify: The prover cannot establish an assertion (Precondition) in method m3c
         m3(null, 0);
           ^
-test/recommends/Test.java:18: warning: Associated declaration
+test/recommends/Test.java:18: verify: Associated declaration
     public void m3(Test o, int i) {
                 ^
-test/recommends/Test.java:16: warning: Precondition conjunct is false: o != null
+test/recommends/Test.java:16: verify: Precondition conjunct is false: o != null
     //@ recommends o != null else NullPointerException;
                      ^
 Completed proof of Test.m3c() with prover !!!! - with warnings
@@ -319,4 +319,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m9(Test,Test) with prover !!!! - no warnings
 Completed proving methods in Test
-3 warnings
+3 verification failures

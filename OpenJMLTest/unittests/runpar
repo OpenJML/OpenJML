@@ -5,9 +5,9 @@
 ## executing the script as 'JOBS=n ./runpar' for a particular number 'n' (default is 5)
 ## If there are command-line arguments, they must be a list of
 ## specific testsuites to run. If the number of permitted JOBS is 0, then the testsuites are run
-## sequentially, without spwaning any subprocesses.
+## sequentially, without spawning any subprocesses.
 
-## The tests within a test suite are run sequentially (controlled by THREADS, but see comments in OpenJMLTestRUnner).
+## The tests within a test suite are run sequentially (controlled by THREADS, but see comments in OpenJMLTestRunner).
 
 ## If the environmental variable COV is set, then coverage measurements are reported
 
@@ -25,6 +25,8 @@ function ctrl_c() {
     exit 1
 }
 
+echo START `date`
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 rm -f the.jml.lock unittestframework
 
 shopt -s expand_aliases
@@ -35,41 +37,77 @@ else
     numjobs=$JOBS
 fi
 
+if [ "$1" == "-retrylog" ]; then OPT=$1 ; shift; fi
 
-cd $(dirname "$BASH_SOURCE")
 make -C .. prep
 
 alias lsc="jobs | wc -l"
-alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 20; done; echo proceeding \$(lsc)"
-alias wt="while [ \$(lsc) -ge $numjobs ]; do sleep 20; done"
+alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 10; done; echo proceeding \$(lsc)"
+alias wt="while [ \$(lsc) -ge $numjobs ]; do sleep 10; done"
 
 if [ -z "$*" ]; then
-    testlist=`(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/.java//')`
-    rm -rf log-*
+    if [ -n "$START" ]; then
+        testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | tail -n +$START | head -n $LINES | sed -e 's/\.java//')
+    else 
+        testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/\.java//')
+    fi
 else
     testlist=$@
-    for d in $testlist; do rm -f log-${d%.java}; done
 fi
 
+for d in $testlist; do rm -f log-${d%.java}; done
+
+RUNERR=0
 if [ $numjobs -eq 0 ]; then
     echo Running $(echo $testlist | wc -w) testsuites sequentially
     sync
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
-        ./run-summary log-$nm $nm
+        ./run-summary log-$nm $nm || RUNERR=1
     done
 else
     echo Running $(echo $testlist | wc -w) testsuites with $numjobs concurrent jobs
     sync
+    pids=()
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
-        ./run-summary log-$nm $nm & 
+        ./run-summary log-$nm $nm &
+        pids+=($!)
         sleep 1
         wt
     done
-    wait
-
+    for pid in "${pids[@]}"; do
+        wait "$pid" || RUNERR=1
+    done
 fi
 echo Completed
+sync
+set -o pipefail
+echo MID `date`
+./retry -run  2>&1 | tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
+ERR=$?
+if [ $ERR -eq 0 ]; then 
+    echo Completed all retrys successfully
+else
+    echo Completed retrys with remaining failures
+    if [ -n "$OPT" ]; then cat logretry ; fi
+    grep -E 'FAILED' logretry
+    FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
+    echo "LIST:" $FAILURES
+    echo "Second round retrys"
+    runtests $FAILURES 2>&1 | tee logretry | grep  --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout'
+    ERR=$?
+    if [ $ERR -eq 0 ]; then 
+        echo Completed all retrys successfully
+    else
+        echo Completed retrys with remaining failures
+        if [ -n "$OPT" ]; then cat logretry ; fi
+        grep -E 'FAILED' logretry
+        FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
+        echo "LIST:" $FAILURES
+    fi
+fi
+echo END `date`
+exit $(( ERR || RUNERR ))

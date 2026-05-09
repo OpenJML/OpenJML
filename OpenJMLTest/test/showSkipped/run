@@ -1,8 +1,18 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
-cd $(dirname "$BASH_SOURCE[0]" )
-BIN=../../../OpenJML21
-if [ -z "$OJA" ]; then OJA=$BIN/openjml ; fi
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
 
-. ./runhelper >& actual
+(\
+echo Test 0 ;\
+openjml -jmltesting --esc --normal Test.java ;\
+echo Test 1 ;\
+openjml -jmltesting --esc --progress Test.java ;\
+echo Test 2 ;\
+openjml -jmltesting --esc --progress --method=m,n,z --exclude=z --show-skipped Test.java ;\
+echo Test 3 ;\
+openjml -jmltesting --esc --progress --no-show-skipped Test.java ;\
+) >& actual 
+
 diff expected actual && rm -rf actual
+exit $?

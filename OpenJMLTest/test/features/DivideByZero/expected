@@ -8,7 +8,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of features.DivideByZero.main(String...) with prover !!!! - no warnings
 Starting proof of features.DivideByZero.test(int) with prover !!!!
-#DEMO/src/features/DivideByZero.java:11: warning: The prover cannot establish an assertion (PossiblyDivideByZero) in method test
+#DEMO/src/features/DivideByZero.java:11: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method test
         return 1/i;
                 ^
 Completed proof of features.DivideByZero.test(int) with prover !!!! - with warnings

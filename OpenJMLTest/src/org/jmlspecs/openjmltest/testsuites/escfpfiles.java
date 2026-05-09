@@ -2,23 +2,13 @@ package org.jmlspecs.openjmltest.testsuites;
 
 import static org.junit.Assert.fail;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjmltest.EscBase;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.junit.Assume;
-import org.junit.FixMethodOrder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -41,53 +31,53 @@ public class escfpfiles extends EscBaseFiles {
 
     @Test @Ignore
     public void gitbug732() {
-        helpTCG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void gitbug735() {
         expectedExit = 0;
-        helpTCG("--show","--method=impl"); // For debugging
+        helpEscSimple();
     }
     
     @Test @Ignore
     public void escDouble() {
-        helpTCG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void escDouble1() {
-        helpTCG();
+        helpEscSimple();
     }
 
     @Test @Ignore // timesout
     public void escDouble2() {
-        helpTF("escDouble2","--exclude=clone,remainderBy,toString");
+        helpEscSimple("--exclude=clone,remainderBy,toString");
     }
 
     @Test @Ignore
     public void escDouble2a() {
-        helpTF("escDouble2","--esc-max-warnings=1","--show","--method=remainderBy","--subexpressions");
+        helpEscName("escDouble2","--esc-max-warnings=1","--show","--method=remainderBy","--subexpressions");
     }
     
     @Test @Ignore
     public void escDouble3() {
-        helpTF("escDouble3","--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
+        helpEscSimple("--method=remainderBy","--no-show-skipped","--esc-max-warnings=1");
     }
     
     @Test @Ignore
     public void escFloat() {
-        helpTCG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void escfpMath() {
-        helpTCG();
+        helpEscSimple();
     }
 
     @Test @Ignore
     public void escfpPrimitiveOps() {
-        helpTCG();
+        helpEscSimple();
     }
 
 
@@ -95,30 +85,38 @@ public class escfpfiles extends EscBaseFiles {
     @Ignore // FIXME -  Needs more double specs
     @Test public void gitbug580() {
         expectedExit = 0;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Ignore // FIXME - times out -- double arithmetic?
     @Test
     public void gitbug601() {
         expectedExit = 0;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Ignore // FIXME -  double arithmetic?
     @Test
     public void gitbug633() {
         expectedExit = 0;
-        helpTCG();
+        helpEscSimple();
     }
     
     @Ignore // FIXME 
     @Test
     public void gitbug751() {
         expectedExit = 0;
-        helpTCG();
+        helpEscSimple();
     }
     
 
+    @Test public void sfbug414() { // FIXME - is the code-math option needed? Why?
+        expectedExit = 0;
+        helpEscFile("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5", "--code-math=bigint");
+    }
 
+    @Test public void sfbug414n() { // FIXME - is the code-math option needed? Why?
+        expectedExit = 0;
+        helpEscFile("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=AUFNIRA","--esc-max-warnings=5", "--code-math=bigint");
+    }
 }

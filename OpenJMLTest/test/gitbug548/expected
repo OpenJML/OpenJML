@@ -9,4 +9,10 @@ Feasibility check - at program exit : OK
 Completed proof of Test.m() with prover !!!! - no warnings
 Completed proving methods in Test
 Proving methods in IFace
+Starting proof of IFace.get() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IFace.get() with prover !!!! - no warnings
+Starting proof of IFace.getd() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IFace.getd() with prover !!!! - no warnings
 Completed proving methods in IFace

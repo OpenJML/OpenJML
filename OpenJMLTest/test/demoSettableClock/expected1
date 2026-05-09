@@ -1,4 +1,10 @@
 Proving methods in Clock
+Starting proof of Clock.legalTime(int,int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Clock.legalTime(int,int,int) with prover !!!! - no warnings
+Starting proof of Clock.totalSeconds() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Clock.totalSeconds() with prover !!!! - no warnings
 Starting proof of Clock.Clock(int,int,int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
@@ -24,11 +30,11 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Clock.earlier(Clock) with prover !!!! - no warnings
 Starting proof of Clock.difference(Clock) with prover !!!!
-../../OpenJMLDemo/src/openjml/settableClock/Clock.java:137: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+../../OpenJMLDemo/src/openjml/settableClock/Clock.java:137: verify: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
   public /*@ pure */ int difference(final Clock the_other_clock) {
                          ^
 Method assertions are validatedtimeout
-../../OpenJMLDemo/src/openjml/settableClock/Clock.java:137: warning: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+../../OpenJMLDemo/src/openjml/settableClock/Clock.java:137: verify: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
   public /*@ pure */ int difference(final Clock the_other_clock) {
                          ^
 Method assertions are validatedtimeout
@@ -60,4 +66,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of SettableClock.set(int,int,int) with prover !!!! - no warnings
 Completed proving methods in SettableClock
-2 warnings
+2 verification failures

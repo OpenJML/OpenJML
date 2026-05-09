@@ -1,0 +1,16 @@
+Proving methods in DD
+Starting proof of DD.DD() with prover !!!!
+Completed proof of DD.DD() with prover !!!! - no warnings
+Starting proof of DD.m(int) with prover !!!!
+Completed proof of DD.m(int) with prover !!!! - no warnings
+Completed proving methods in DD
+$SPECS/java/lang/Throwable.jml:57: warning: [serial] non-transient instance field of a serializable class declared with a non-serializable type
+    private java.util.List<Throwable> suppressedExceptions;
+                                      ^
+Proving methods in DD
+Starting proof of DD.DD() with prover !!!!
+Completed proof of DD.DD() with prover !!!! - no warnings
+Starting proof of DD.m(int) with prover !!!!
+Completed proof of DD.m(int) with prover !!!! - no warnings
+Completed proving methods in DD
+1 warning

@@ -1,0 +1,19 @@
+Proving methods in Calculator1
+Starting proof of Calculator1.Calculator1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Calculator1.Calculator1() with prover !!!! - no warnings
+Starting proof of Calculator1.calculate(int,int,char) with prover !!!!
+Proof attempt for split A
+Feasibility check - end of preconditions : OK
+Feasibility check - at statement spec (after using summary) : OK
+Feasibility check - at program exit : OK
+Result of split A is Verified
+Proof attempt for split B
+Feasibility check - end of preconditions : OK
+Feasibility check - at end of refining statement block : OK
+Feasibility check - at program exit : OK
+Result of split B is Verified
+Composite result Verified
+Completed proof of Calculator1.calculate(int,int,char) with prover !!!! - no warnings
+Completed proving methods in Calculator1

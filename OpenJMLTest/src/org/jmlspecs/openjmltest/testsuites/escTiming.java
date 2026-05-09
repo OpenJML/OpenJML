@@ -1,25 +1,22 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.EscBase;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 // FIXME- should these report untaken branches?
+// FIXME - why are these timing tests?
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class escTiming extends EscBase {
 
     @Override
     public void setUp() throws Exception {
-        //noCollectDiagnostics = true;
         super.setUp();
-        main.addOptions("-nullableByDefault"); // Because the tests were written this way
-        //JmlEsc.escdebug = true;
-        //org.jmlspecs.openjml.provers.YicesProver.showCommunication = 3;
+        addOptions("--nullable-by-default"); // Because the tests were written this way
     }
 
     @Test
     public void testTimingIf() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
                 
                 +"  //@ requires 0<=i && i <10;\n"
@@ -163,7 +160,7 @@ public class escTiming extends EscBase {
 
     @Test
     public void testTimingSwitch() {
-        helpTCX("tt.TestJava","package tt; \n"
+        helpEsc("tt.TestJava","package tt; \n"
                 +"public abstract class TestJava { \n"
                 
                 +"  //@ requires 0<=i && i <10;\n"

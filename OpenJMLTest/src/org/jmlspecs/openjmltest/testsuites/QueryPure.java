@@ -6,16 +6,11 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class QueryPure extends TCBase {
 
-    @Override
-    public void setUp() throws Exception {
-//        noCollectDiagnostics = true;
-//        jmldebug = true;
-        super.setUp();
-    }
+    // FIXME - missing the 'error' in error mesages
     
     @Test
     public void testClass1() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "//@ pure\n" +  // OK
                 "public class A { } \n"
         );
@@ -23,7 +18,7 @@ public class QueryPure extends TCBase {
     
     @Test
     public void testClass2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "//@ query\n" +   // OK
                 "public class A { } \n"
         );
@@ -31,7 +26,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testClass3() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Query\n" +  // OK
                 "public class A { } \n"
@@ -40,7 +35,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testClass4() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Pure\n" +  // OK
                 "public class A { } \n"
@@ -49,7 +44,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testClass5() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Pure @Query\n" +   // BAD
                 "public class A { } \n"
@@ -59,27 +54,27 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testClass6() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "//@ pure query\n" +  // BAD
                 "public class A { } \n"
-                ,"/A.java:2: A declaration may not be both pure and query",10
+                ,"/A.java:2: error: A declaration may not be both pure and query",10
         );
     }
 
     @Test
     public void testClass7() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Pure //@ query\n" +  // BAD
                 "public class A { } \n"
-                ,"/A.java:2: A declaration may not be both pure and query",11
+                ,"/A.java:2: error: A declaration may not be both pure and query",11
         );
     }
 
     @Test
     public void testClass8() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Pure //@ pure\n" +  // BAD
                 "public class A { } \n"
@@ -89,7 +84,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testClass9() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "@Query //@ query\n" +  // BAD
                 "public class A { } \n"
@@ -99,7 +94,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod1() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Query\n" +  // OK
@@ -110,7 +105,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ query\n" +  // OK
@@ -121,7 +116,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod3() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Pure\n" +  // OK
@@ -132,7 +127,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod4() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@pure\n" +  // OK
@@ -143,7 +138,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod5() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ pure query\n" +  // BAD
@@ -155,7 +150,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod6() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Query @Pure\n" +  // BAD
@@ -167,7 +162,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod7() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Pure //@ query\n" +  // BAD
@@ -179,7 +174,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod8() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Query //@ query\n" +  // BAD
@@ -191,7 +186,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testMethod9() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Pure //@ pure\n" +  // BAD
@@ -203,7 +198,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testCacheExample() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ secret public model \\datagroup value;\n" +
@@ -218,7 +213,7 @@ public class QueryPure extends TCBase {
         
     @Test
     public void testSimplerCacheExample() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ model public secret Object value;\n" +
@@ -233,7 +228,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testAnotherCacheExample() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Secret Integer cache = null; \n" + // Requires allowing non-model fields to be datagroups
@@ -247,7 +242,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testAnotherValidExample() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Pure public int compute() { return 0; }\n" +
@@ -261,7 +256,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testInvariant() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Pure public int compute() { return 0; }\n" +
@@ -276,7 +271,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testForwardRef() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Secret Integer cache = null; //@ in value; \n" + 
@@ -287,21 +282,21 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testCircular() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ secret model Integer cache ; //@ in value; \n" + 
                 "  //@ secret model Object value; in cache; \n" + // error - circular
                 "} \n"
-                ,"/A.java:3: This field participates in a circular datagroup inclusion chain: cache -> value -> cache",28
-                ,"/A.java:4: This field participates in a circular datagroup inclusion chain: value -> cache -> value",27
+                ,"/A.java:3: error: This field participates in a circular datagroup inclusion chain: cache -> value -> cache",28
+                ,"/A.java:4: error: This field participates in a circular datagroup inclusion chain: value -> cache -> value",27
         );
     }
 
     @Test
     public void testCircularSelf() {
         expectedExit = 0;
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ secret model Object value; in value; \n" + // warning - circular
@@ -312,7 +307,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery0() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Secret Integer cache = null; //@ in value; \n" +
@@ -326,7 +321,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery1() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ model secret public Object value;\n" +
@@ -342,7 +337,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery2() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ model secret Object value;\n" +
@@ -358,7 +353,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery3() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Pure public int compute() { return 0; }\n" +
@@ -374,7 +369,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery4() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object o;\n " +
@@ -393,7 +388,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery5() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object o;\n " +
@@ -411,7 +406,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery6() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object value;\n" +
@@ -429,7 +424,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery7() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object o;\n " +
@@ -450,7 +445,7 @@ public class QueryPure extends TCBase {
     // processed before the datagroup 'value' is created
     @Test
     public void testQuery8() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Secret public Object o; //@ in value; \n " +
@@ -467,7 +462,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery8c() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  @Secret public int q = 5; //@ in o;\n" +
@@ -487,7 +482,7 @@ public class QueryPure extends TCBase {
     // resolved - particularly value(), which will create the datagroup named value
     @Test
     public void testQuery8b() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object o; in value; \n " +
@@ -505,7 +500,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery8OK() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object value;\n" +
@@ -524,7 +519,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery8a() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model Object value;\n" +
@@ -553,7 +548,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery9() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret public model int value;\n" +
@@ -570,7 +565,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery10() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret model int value;\n" +
@@ -588,7 +583,7 @@ public class QueryPure extends TCBase {
 
     @Test
     public void testQuery11() {
-        helpTCF("A.java",
+        helpTCText("A.java",
                 "import org.jmlspecs.annotation.*;\n" +
                 "public class A { \n" +
                 "  //@ @Secret model int value;\n" +

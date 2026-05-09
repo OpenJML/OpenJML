@@ -63,7 +63,7 @@ test\escTraceLoops\trace.java:197:  	//@ loop_invariant j == \count && 0 <= \cou
 			VALUE: j == \count && 0 <= \count && \count <= a.length	 === true
 test\escTraceLoops\trace.java:198:  	//@ decreases j;
 			VALUE: j	 === 2438
-test\escTraceLoops\trace.java:198: warning: The prover cannot establish an assertion (LoopDecreases) in method mforeach4
+test\escTraceLoops\trace.java:198: verify: The prover cannot establish an assertion (LoopDecreases) in method mforeach4
         //@ decreases j;
             ^
 Completed proof of trace.mforeach4(int[]) with prover z3_4_3 - with warnings

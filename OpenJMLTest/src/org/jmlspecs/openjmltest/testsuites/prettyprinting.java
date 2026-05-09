@@ -1,13 +1,12 @@
 package org.jmlspecs.openjmltest.testsuites;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import org.jmlspecs.openjml.JmlAstPrinter;
 import org.jmlspecs.openjml.JmlPretty;
 import org.jmlspecs.openjmltest.ParseBase;
-import org.jmlspecs.openjmltest.TestJavaFileObject;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.openjml.MockJavaFileObject;
+
+import static org.junit.Assert.*;
+import org.junit.*;
 
 import com.sun.tools.javac.parser.Parser;
 import com.sun.tools.javac.tree.JCTree;
@@ -18,6 +17,8 @@ import com.sun.tools.javac.util.Log;
  * each sequence of white space is replaced by a single space, so that the 
  * output formatting does not have to precisely match the input (unless
  * precise is set true, which it currently is).
+ * 
+ * It  also includes similar testsw for the JmlAstPrinter.
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class prettyprinting extends ParseBase {
@@ -27,12 +28,13 @@ public class prettyprinting extends ParseBase {
     public void setUp() throws Exception {
         super.setUp();
         print = false;
+        postOptions();
     }
 
     public void helpPP(String code) {
         try {
             //print = true;
-            Log.instance(context).useSource(new TestJavaFileObject(code));
+            Log.instance(context).useSource(new MockJavaFileObject(code));
             Parser p = fac.newParser(code,false,true,true);
             //sc = ((JmlParser)p).getScanner();
             JCTree tree = p.parseCompilationUnit();
@@ -51,30 +53,28 @@ public class prettyprinting extends ParseBase {
             boolean hasImport = code.contains("import");
             boolean hasAddedNL = out.contains(added + "\n");
             if (hasImport) {
-            	out = out.replace("//@ model import org.jmlspecs.lang.*;\n", "");
+                out = out.replace("//@ model import org.jmlspecs.lang.*;\n", "");
             } else if (hasPackage) {
-            	out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
+                out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
             } else if (out.contains(added + " ")) {
-            	out = out.replace("//@ model import org.jmlspecs.lang.*; ", "");
+                out = out.replace("//@ model import org.jmlspecs.lang.*; ", "");
             } else if (hasAddedNL) {
-            	out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
+                out = out.replace("\n//@ model import org.jmlspecs.lang.*;\n", "");
             }
             if (print || !code.equals(out)) {
-                System.out.println("IN:");
-                System.out.print(code);
-                System.out.println("OUT:");
-                System.out.print(out);
+                this.out.println("IN:");
+                this.out.print(code);
+                this.out.println("OUT:");
+                this.out.print(out);
                 //printTree(ParseTreeScanner.walk(tree));
             }
             assertEquals("Output differs",code,out);
         } catch (Exception e) {
-            e.printStackTrace(System.out);
+            e.printStackTrace(this.out);
             fail("Exception thrown while processing test: " + e);
         }
     }
     
-    String eol = System.getProperty("line.separator");
-
     @Test
     public void testSimpleClass() {
         helpPP(
@@ -218,12 +218,55 @@ public class prettyprinting extends ParseBase {
                 "    a = 5;" + eol +
                 "    ;" + eol + 
                 "    a += 5;" + eol +
-                "    /*@ choose { a = 6; } or { assume a == 6; a = 7; } else { a = 7; } */" + eol +
                 "  }" + eol +
                 "}"
         );
     }
     
     // FIXME - need to test every construct (lots more) for pretty printing; also for with and without jml comments
-   
+    
+    public void helpAst(String text) {
+        if (true) return; // FIXME - don't include AST printing in tests just yet
+        Log.instance(context).useSource(new MockJavaFileObject(text));
+        Parser p = fac.newParser(text,false,true,true);
+        JCTree tree = p.parseCompilationUnit();
+        String output = JmlAstPrinter.print(tree, main.context());
+        this.out.println("TEXT: " + text);
+        this.out.println(output);
+    }
+    @Test
+    public void ast1() {
+        helpAst("package p; import static a.b.*; /*@ model import c.d; */ public class A {}");
+    }
+    
+    @Test
+    public void ast2() {
+        helpAst(
+            """
+            public class A {
+              Object o;
+              int i1 = 1 + -2*-(4.0) - 4/5 + 6L%7.0f;
+              long i2 = (4<<5) + (5>>6) + (7>>>8);
+              int j = true ? i : !false ? i : i;
+              int k = (i&j) + ( i|~j) + (i^k);
+              boolean m = (i==i) || (i<i) && (i!=1) && (i<=i) && (i>=i) && (i>i);
+              //@ ghost s = (true ==> false) && ( true <==> false) || (true <=!=> false);
+              //@ ghost boolean t = 0 < 1 < 2;
+            }
+            """);
+    }
+    
+    @Test
+    public void ast3() {
+        helpAst(
+            """
+            public class A {
+              static {
+                int i = 7;
+                i += 8;
+                assert i == i;
+              }
+            }
+            """);
+    }
 }

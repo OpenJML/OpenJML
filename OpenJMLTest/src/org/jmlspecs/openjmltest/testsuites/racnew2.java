@@ -1,8 +1,7 @@
 package org.jmlspecs.openjmltest.testsuites;
 
 import org.jmlspecs.openjmltest.RacBase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.*;
 
 /** These tests exercise the RAC checking.  They compile a test class 
  * using RAC and then execute the resulting program, catching that
@@ -17,16 +16,15 @@ public class racnew2 extends RacBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        addOptions("-code-math=java","-spec-math=java");;
+        addOptions("--code-math=java","--spec-math=java");;
         addOptions("--rac-show-source=line");
-        expectedNotes = 0;
         // Tests presume --nonnull-by-default
     }
     
     /** Tests a copying modifiers and annotations */
     // We really need to inspect the output to see that the result is OK. But at least this tests that it does not crash
     @Test public void testMods() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
+        helpRacText("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
                 " @Retention(RetentionPolicy.RUNTIME)  \n" +
                 "  @interface A { }\n" +
                 " public class TestJava { public static void main(String... args) {}" +
@@ -36,7 +34,7 @@ public class racnew2 extends RacBase {
 
     @Test public void testMods2() {
         expectedExit = 1;
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*;
                 public class TestJava {
@@ -50,7 +48,7 @@ public class racnew2 extends RacBase {
     }
     
     @Test public void testMethodCall() {
-        helpTCX("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
+        helpRacText("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
                 " public class TestJava { \n" +
                 "   //@ ensures \\result > 0; \n" +
                 "   public static int m(int i) {return i;} \n" +
@@ -74,7 +72,7 @@ public class racnew2 extends RacBase {
     
     /** Tests new array */
     @Test public void testNewArray() {  // FIXME - improve error message when String.equals includes its model methods for RAC
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  String[] a = new String[]{\"abc\",\"def\"};\n" +
                 "  int i = a.length; \n" +
                 "  //@ assert i == 2; \n" +
@@ -99,7 +97,7 @@ public class racnew2 extends RacBase {
 
     /** Tests new array */
     @Test public void testNewArray2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int[] x = new int[3]; \n" +
                 "  //@ assert x.length == 3; \n" +
                 "  //@ assert x[0] == 0; \n" +
@@ -125,7 +123,7 @@ public class racnew2 extends RacBase {
 
     /** Tests new object */
     @Test public void testNewObject() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  TestJava a = new TestJava();\n" +
                 "  int i = a.m(10); \n" +
                 "  //@ assert i == 11; \n" +
@@ -144,7 +142,7 @@ public class racnew2 extends RacBase {
     /** Tests new object in JML */
     @Test public void testNewObject2() {
         expectedExit = 1;
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  // @ assert (new TestJava()).m(15) == 16;\n" +
                 "  //@ assert (new TestJava() { public pure int m(int i) { return i + 2; } }).m(15) == 17;\n" +
                 "  System.out.println(\"END\"); \n" +
@@ -156,50 +154,9 @@ public class racnew2 extends RacBase {
         );        
     }
 
-//    /** Tests new object in JML */
-//    @Test public void testNewObject3() {
-//        helpTCX("tt.TestJava",
-//                """
-//                package tt; public class TestJava {
-//                  public int k;
-//                  //@requires i > 0; ensures k == i;
-//                  public /*@ pure */ TestJava(int i) { k = i < 2 ? i : 5; }
-//                  public static void main(String[] args) {
-//                    System.out.println(\"TestJava - 1\");
-//                    TestJava t = new TestJava(1);
-//                    System.out.println(\"TestJava - 0\");
-//                    t = new TestJava(0);
-//                    System.out.println(\"TestJava - 2\");
-//                    //@ assert (new TestJava(2)).k == 2;
-//                    System.out.println(\"TestJava - 0\");
-//                    //@ assert (new TestJava(0)).k == 0;
-//                    System.out.println(\"END\");
-//                  }
-//                }
-//                """
-//                ,"TestJava - 1"
-//                ,"TestJava - 0"
-//                ,"/tt/TestJava.java:9: JML precondition is false" // caller check -- TestJava(0)
-//                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:9:"
-//                ,"/tt/TestJava.java:3: JML precondition is false" // callee check
-//                ,"TestJava - 2"
-//                ,"/tt/TestJava.java:4: JML postcondition is false" // callee check
-//                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:4:"
-//                ,"/tt/TestJava.java:11: JML postcondition is false" // caller check
-//                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:11:"
-//                ,"/tt/TestJava.java:11: JML assertion is false"
-//                ,"TestJava - 0"
-//                ,"/tt/TestJava.java:13: JML a method called in a JML expression is undefined because its precondition is false"
-//                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:13:"
-//                ,"/tt/TestJava.java:3: JML precondition is false"
-//                ,"END"
-//        );        
-//    }
-
-
     /** Tests a simple try-finally block */
     @Test public void testTry() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int i; try { i = 0; } finally { i = 1; } //@ assert i == 1; \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -208,23 +165,22 @@ public class racnew2 extends RacBase {
         );        
     }
 
-
     /** Test skip statement */
     @Test public void testSkip() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { int i ;;; i = 9;;;; //@ assert i == 9; \n }\n  \n}"
+        helpRacText("tt.A","package tt; class A { public static void main(String[] args) { int i ;;; i = 9;;;; //@ assert i == 9; \n }\n  \n}"
                 );
     }
 
     /** Test synchronized statement with this */
     @Test public void testSynchronized() {
-        helpTCX("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
+        helpRacText("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
                 );
     }
 
     /** Test synchronized statement with null lock */
     @Test public void testSynchronized2() {
         expectedRACExit = 1;
-        helpTCX("tt.A",
+        helpRacText("tt.A",
                 """
                 package tt;
                 class A {
@@ -248,7 +204,7 @@ public class racnew2 extends RacBase {
 
     /** Tests a simple try-throw-catch block */
     @Test public void testThrow() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int i; try { i = 0; throw new RuntimeException(); } catch (RuntimeException e) { i = 1; } //@ assert i == 1; \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -260,7 +216,7 @@ public class racnew2 extends RacBase {
 
     /** Tests binary operators */
     @Test public void testBinary() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int a=5,b=6,c; boolean f, e= true,d=false; \n" +
                 "  c = a + b; \n" +
                 "  //@ assert c == a + 6; \n" +
@@ -294,7 +250,7 @@ public class racnew2 extends RacBase {
     /** Tests binary operators */
     @Test public void testShift() {
         addOptions("--code-math=safe");
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int a=5,b=6,c=100;  \n" +
                 "  int d = a << b; \n" +
                 "  d = a << c; \n" +  // ERROR
@@ -318,7 +274,7 @@ public class racnew2 extends RacBase {
 
     /** Tests binary operators */
     @Test public void testConditional() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int a=5,b=6,c=100;  \n" +
                 "  int d = a < 10 ? b + 3 : c-40; \n" +
                 "  System.out.println(d); \n" +
@@ -334,7 +290,7 @@ public class racnew2 extends RacBase {
 
     /** Tests unary operators */ // FIXME - test unary with expressions in ++ -- 
     @Test public void testUnary() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int a=5,b=0,c=0; boolean e=true,d=false; \n" +
                 "  b = a++; \n" +
                 "  //@ assert b+1 == a; \n" +
@@ -357,7 +313,7 @@ public class racnew2 extends RacBase {
 
     /** Tests parens operators */ 
     @Test public void testParens() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  int a=5,b=6,c=0; boolean e=true,d=false; \n" +
                 "  c = (a*b)+3*b-2*(a-(((b)))); \n" +
                 "  //@ assert ((((c) == 50))); \n" +
@@ -373,7 +329,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testBreak() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m(0);  m(2); m(3);  m(5); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -402,7 +358,7 @@ public class racnew2 extends RacBase {
     }
     
     @Test public void testSimpleBreak() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                                 "  m(0);  m(2);  \n" +
                                 "  System.out.println(\"END\"); \n" +
                                 "  } \n" + 
@@ -424,7 +380,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitch() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m(0); m(1); m(2); m(3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -444,7 +400,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement with declaration in a case*/
     @Test public void testSwitch2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m(0); m(1); m(2); m(3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -464,7 +420,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement with block breaks */
     @Test public void testSwitch3() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m(0); m(1); m(2); m(3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -485,7 +441,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchShort() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m((short)0); m((short)1); m((short)2); m((short)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -505,7 +461,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchShort2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m((short)0); m((short)1); m((short)2); m((short)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -525,7 +481,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchByte() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -545,7 +501,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchByte2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -565,7 +521,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchInteger2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m(0); m(1); m(2); m(3); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -585,7 +541,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchInteger2Null() {
-        helpTCX("tt.TestJava","package tt; /*@ nullable_by_default*/public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; /*@ nullable_by_default*/public class TestJava { public static void main(String[] args) { \n" +
                 "  try { m(0); } catch (Exception e) { System.out.println(\"EXCEPTION THROWN\"); } \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -605,7 +561,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchChar() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m('a'); m('b'); m('c'); m('d'); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -625,7 +581,7 @@ public class racnew2 extends RacBase {
 
     /** Tests switch statement */
     @Test public void testSwitchChar2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  m('a'); m('b'); m('c'); m('d'); \n" +
                 "  System.out.println(\"END\"); \n" +
                 "  } \n" + 
@@ -646,7 +602,7 @@ public class racnew2 extends RacBase {
 
     /** Tests type test and type cast expressions */
     @Test public void testTypeCast() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Integer i = Integer.valueOf(10); \n" +
                 "  Object o = i; \n" +
                 "  Integer ii = (Integer)o; \n" +
@@ -663,7 +619,7 @@ public class racnew2 extends RacBase {
     @Test public void testTypeCast2() {
         expectedRACExit = 1;
         addOptions("--rac-show-source=source");
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean i = Boolean.TRUE; \n" +
                 "  Object o = i; \n" +
                 "  Integer ii = (Integer)o;\n" +
@@ -681,7 +637,7 @@ public class racnew2 extends RacBase {
 
     /** Tests a type test with a cast */
     @Test public void testTypeCast3() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
                 "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
@@ -699,7 +655,7 @@ public class racnew2 extends RacBase {
 
     /** Test a type tests and casts in JML */
     @Test public void testTypeTest4() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
                 "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
@@ -718,7 +674,7 @@ public class racnew2 extends RacBase {
     @Test public void testTypeCast5() {
         expectedRACExit = 1;
         addOptions("--rac-show-source=line");
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
                 "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
@@ -736,7 +692,7 @@ public class racnew2 extends RacBase {
 
     /** Test a type tests and casts in JML */
     @Test public void testTypeCast6() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "  Boolean b = Boolean.TRUE; \n" +
                 "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
                 "  Object o = i; \n" +
@@ -754,8 +710,8 @@ public class racnew2 extends RacBase {
 
     /** Tests the JML lbl lblpos and lblneg expressions */
     @Test public void testLbl() {
-        addOptions("-spec-math=math");
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        addOptions("--spec-math=math");
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } \n" +
                 "static int i = 0; static String n = \"asd\";\n" +
@@ -806,20 +762,20 @@ public class racnew2 extends RacBase {
     
     /** Tests the JML lbl expression when the argument is a literal */
     @Test public void testLblConst() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 "m(null); \n" +
                 "System.out.println(\"END\"); } static int i = 0; \n" +
                 " static void m(/*@nullable*/ Object o) { \n" +
-                "//@ assert (\\lbl OBJECT null) == null; \n" +
-                "//@ assert (\\lbl INT 4) != 0; \n" +
-                "//@ assert (\\lbl SHORT (short)(1)) != 0; \n" +
-                "//@ assert (\\lbl LONG 2L) != 0; \n" +
-                "//@ assert (\\lbl BYTE (byte)(3)) != 0; \n" +
-                "//@ assert (\\lbl FLOAT 5.0f) != 0; \n" + // Line 10
-                "//@ assert (\\lbl DOUBLE 6.0) != 0; \n" +
-                "//@ assert (\\lbl CHAR 'a') != 0; \n" +
-                "//@ assert (\\lbl BOOLEAN true) ; \n" +
-                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
+                "//@ check (\\lbl OBJECT null) == null; \n" +
+                "//@ check (\\lbl INT 4) != 0; \n" +
+                "//@ check (\\lbl SHORT (short)(1)) != 0; \n" +
+                "//@ check (\\lbl LONG 2L) != 0; \n" +
+                "//@ check (\\lbl BYTE (byte)(3)) != 0; \n" +
+                "//@ check (\\lbl FLOAT 5.0f) != 0; \n" + // Line 10
+                "//@ check (\\lbl DOUBLE 6.0) != 0; \n" +
+                "//@ check (\\lbl CHAR 'a') != 0; \n" +
+                "//@ check (\\lbl BOOLEAN true) ; \n" +
+                "//@ check (\\lbl STRING \"abc\") != null; \n" +
                 "} " +
                 "}"
                 ,"LABEL OBJECT = null"
@@ -840,7 +796,7 @@ public class racnew2 extends RacBase {
     /** A misc early test case for lbl expressions */
     @Test public void testLabel() {
         addOptions("--rac-show-source=source");
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
                 "package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
                 " System.out.println(\"END\"); } static public int k = 0; \n" +
@@ -871,7 +827,7 @@ public class racnew2 extends RacBase {
     
     /** A misc early test case for lbl expressions */
     @Test public void testLabel2() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
                 " m(1); m(0); \n" +
                 " System.out.println(\"END\"); } static public int k = 0; \n" +
                 " /*@ assignable \\everything; ensures (\\lblneg ENS (\\lbl RES k) == 1); */ \n" +
@@ -893,7 +849,7 @@ public class racnew2 extends RacBase {
     
     /** Checks one can do assignments in a model method. */
     @Test public void testModelMethod() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " //@ ghost boolean k; set k = m(); assert k; \n" +
                 " //@                  set k = m(); assert k; \n" +
                 " System.out.println(\"END\"); } \n" +
@@ -909,7 +865,7 @@ public class racnew2 extends RacBase {
     /** Checks select expressions. */
     @Test public void testSelect() {
         expectedRACExit = 1;
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
             """
             package tt;
                 public class TestJava {
@@ -933,7 +889,7 @@ public class racnew2 extends RacBase {
     /** Checks select expressions. */
     @Test public void testSelect2() {
         expectedRACExit = 1;
-        helpTCX("tt.TestJava",
+        helpRacText("tt.TestJava",
             """
             package tt;
             public class TestJava {
@@ -955,7 +911,7 @@ public class racnew2 extends RacBase {
     
     /** Checks a model class. */
     @Test public void testModelClass() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +
                 " //@ set System.out.println(p(new G())); \n" +
                 " System.out.println(\"END\"); } \n" +
@@ -971,7 +927,7 @@ public class racnew2 extends RacBase {
     
     /** Checks generic method. */
     @Test public void testGenMethod() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +
                 " System.out.println(\"END\"); } \n" +
                 " static <T> T m(T i) { return i; } \n" +
@@ -983,7 +939,7 @@ public class racnew2 extends RacBase {
     
     /** Checks generic method. */
     @Test public void testGenMethod2() {  // FIXME - this needs more investigation -- the type int seems to be used (e.g. in addImplicitCOnversion) in an expression i != null where I would expect it to have been converted to T
-        helpTCX("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +
                 " System.out.println(\"END\"); } \n" +
                 " static /*@nullable*/ <T> List<?> m(T i) { return null; } \n" +
@@ -995,7 +951,7 @@ public class racnew2 extends RacBase {
     
     /** Checks generic classes. */
     @Test public void testGenClass() {
-        helpTCX("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
+        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
                 " System.out.println(m(1)); \n" +
                 " System.out.println(p(new G<Integer>())); \n" +
                 " System.out.println(\"END\"); } \n" +
@@ -1008,9 +964,10 @@ public class racnew2 extends RacBase {
                 ,"END"
         );        
     }
-    
+
+    // FIXME - uncomment or delete the following material
 //    @Test public void testNoWarn() { 
-//        helpTCX("tt.A","package tt; public class A { \n"
+//        helpRacText("tt.A","package tt; public class A { \n"
 //                +"static public int i = 0;  \n "
 //                +"//@ ensures i == 0; \n "
 //                +"static public void m(int j) { i = j; }  \n "
@@ -1050,7 +1007,7 @@ public class racnew2 extends RacBase {
 //
 //
 //    @Test public void testNoWarn1() { 
-//        helpTCX("tt.A","package tt; public class A { \n"
+//        helpRacText("tt.A","package tt; public class A { \n"
 //                +"//@ public invariant i == 0; \n "
 //                +"public int i = 0;  \n "
 //                +"void m(int j) { i = j; }  //@ nowarn InvariantExit; \n "
@@ -1063,7 +1020,7 @@ public class racnew2 extends RacBase {
 //    }
 //
 //    @Test public void testNoWarn2() { 
-//        helpTCX("tt.A","package tt; public class A { \n"
+//        helpRacText("tt.A","package tt; public class A { \n"
 //                +"//@ public invariant i == 0; \n"
 //                +"public int i = 0;  \n"
 //                +"void m(int j) { i = j; }  //@ nowarn ; \n"
@@ -1076,7 +1033,7 @@ public class racnew2 extends RacBase {
 //    }
 //
 //    @Test public void testNoWarn3() { 
-//        helpTCX("tt.A","package tt; public class A { \n"
+//        helpRacText("tt.A","package tt; public class A { \n"
 //                +"//@ public invariant i == 0; \n "
 //                +"public int i = 0;  \n "
 //                +"void m(int j) { i = j; }  //@ nowarn Precondition ; \n "
@@ -1095,7 +1052,7 @@ public class racnew2 extends RacBase {
 //    }
 //
 //    @Test public void testNoWarn4() { 
-//        helpTCX("tt.A","package tt; public class A { \n"
+//        helpRacText("tt.A","package tt; public class A { \n"
 //                +"//@ invariant i == 0; \n "
 //                +"int i = 0;  \n "
 //                +"void m(int j) { i = j; }  //@ nowarn Precondition, InvariantExit; \n "
@@ -1108,7 +1065,7 @@ public class racnew2 extends RacBase {
 //    }
 
     @Test public void testReceiver1() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"public A(int k) { i = k; } \n "
                 +"public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -1128,7 +1085,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testReceiver2() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"/*@ assignable i; */ public A(int k) { i = k; } \n "
                 +"static public int i;  \n "
                 +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
@@ -1148,7 +1105,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testReceiver3() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"/*@ assignable i; */ public A(int k) { i = k; } \n "
                 +"static public int i; \n "
                 +"/*@ requires i == j; ensures \\result; */ static public boolean m(int j) { return true; }\n "
@@ -1169,7 +1126,7 @@ public class racnew2 extends RacBase {
 
 
     @Test public void testReceiver4() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == k; \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -1184,7 +1141,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testReceiver4bad() { 
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"//@ ensures i == 1; \n "
                 +"public A(int k) { i = k; } \n"
                 
@@ -1204,7 +1161,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testLet() {
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"//@ ensures (\\let int k = 1; \\result == k + i) ; \n "
                 +"public static int m(int i) { return i + 1; } \n"
                 +"//@ ensures (\\let int k = 1; \\result == k - i) ; \n "
@@ -1223,7 +1180,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testLet2() {
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"//@ ensures (\\let int k = 1, int j = k; \\result == j + i) ; \n "
                 +"public static int m(int i) { return i + 1; } \n"
                 +"//@ ensures (\\let int k = 1, int j = k; \\result == j - i) ; \n "
@@ -1242,7 +1199,7 @@ public class racnew2 extends RacBase {
     }
     
     @Test public void testBoxingOnDeclaration() {
-        helpTCX("tt.A","package tt; public class A { \n"
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"{ Integer i = 6;\n"
                 +"int k = i;\n"
@@ -1280,7 +1237,7 @@ public class racnew2 extends RacBase {
     }
         
     @Test public void testBoxingOnNullDeclaration() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"try { Integer i = null;\n"
                 +"int k = i; //@ forbid\n"
@@ -1322,8 +1279,8 @@ public class racnew2 extends RacBase {
     }       
 
     @Test public void testBoxingOnAssignment() {  // In Java mode
-        main.addOptions("-code-math=java");
-        helpTCX("tt.A","package tt; public class A { \n"
+        addOptions("--code-math=java");
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"{ Integer i; int k; i = 6;\n"
                 +" k = i;\n"
@@ -1361,8 +1318,8 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxingOnAssignmentMathMode() {
-        addOptions("-code-math=math");
-        helpTCX("tt.A","package tt; public class A { \n"
+        addOptions("--code-math=math");
+        helpRacText("tt.A","package tt; public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"{ Integer i; int k; i = 6;\n"
                 +" k = i;\n"
@@ -1400,7 +1357,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxingOnAssignmentOp() {
-        helpTCX("tt.A",
+        helpRacText("tt.A",
                 """
                 package tt; /*@ nullable_by_default*/ public class A {
                   public static void main(String[] args) {
@@ -1446,7 +1403,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxingOnNullAsssignment() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"try { Integer i = null;\n"
                 +"int k; k = i; //@ forbid\n"
@@ -1489,7 +1446,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testBoxing() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static int unbox(int i) { return i;}  \n"
                 +"public static Integer box(Integer i) { return i;}  \n"
                 +"public static void main(String[] args) {  \n"
@@ -1567,7 +1524,7 @@ public class racnew2 extends RacBase {
 
     @Test public void testBoxingClass() {
         expectedRACExit = 1;
-        helpTCX("tt.A",
+        helpRacText("tt.A",
                 """
                 package tt; /*@ nullable_by_default*/ public class A {
                   public static int unbox(int i) { return i;}
@@ -1593,12 +1550,11 @@ public class racnew2 extends RacBase {
                     ,"java.lang.ExceptionInInitializerError"
                     ,"Caused by: java.lang.NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\" because \"tt.A.ii\" is null"
                     ,"\tat tt.A.<clinit>(A.java:13)"
-                    ,"Exception in thread \"main\" "
                 );
     }
 
     @Test public void testBoxingString() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static int unbox(int i) { return i;}  \n"
                 +"public static Integer box(Integer i) { return i;}  \n"
                 +"public static void main(String[] args) {  \n"
@@ -1613,7 +1569,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testStringSwitch() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"String s = \"abc\"; int k;\n"
                 +"switch (s) {\n"
@@ -1630,7 +1586,7 @@ public class racnew2 extends RacBase {
 
     @Test public void testStringSwitchNull() {
         expectedRACExit = 1;
-        helpTCX("tt.A",
+        helpRacText("tt.A",
                  "package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"String s = null; int k = 0;\n"
@@ -1643,13 +1599,13 @@ public class racnew2 extends RacBase {
                 +"System.out.println(\"END \" + k); \n"
                     +"}}"
                 ,"/tt/A.java:4: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local9>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local7>\" is null"
                 ,"\tat tt.A.main(A.java:4)"
                 );
     }
 
     @Test public void testStringSwitchNullCatch() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"public static void main(String[] args) {  \n"
                 +"String s = null; int k = 0;\n"
                 +"try { switch (s) {\n"
@@ -1666,7 +1622,7 @@ public class racnew2 extends RacBase {
     }
 
     @Test public void testEnumSwitch() {
-        helpTCX("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
+        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
                 +"enum E { A,B,C}; public static void main(String[] args) {  \n"
                 +"E e = E.B; int k = 0;\n"
                 +"switch (e) {\n"
@@ -1684,7 +1640,7 @@ public class racnew2 extends RacBase {
 
     @Test public void testEnumSwitchNull() {
         expectedRACExit = 1;
-        helpTCX("tt.A",
+        helpRacText("tt.A",
                 """
                 package tt; /*@ nullable_by_default*/ public class A {
                     enum E { A,B,C};
@@ -1702,14 +1658,14 @@ public class racnew2 extends RacBase {
                  }
                 """
                 ,"/tt/A.java:5: verify: JML An object may be illegally null"
-                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local6>\" is null"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local4>\" is null"
                 ,"\tat tt.A.main(A.java:5)"
                 );
     }
 
 
     @Test public void testEnumSwitchNullCatch() {
-        helpTCX("tt.A",
+        helpRacText("tt.A",
                 """
                 package tt; /*@ nullable_by_default*/ public class A {
                     enum E { A,B,C};
@@ -1730,6 +1686,4 @@ public class racnew2 extends RacBase {
                 ,"END 0"
                 );
     }
-
-
 }

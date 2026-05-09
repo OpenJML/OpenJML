@@ -9,7 +9,7 @@
 ## are stored in the one coverage data file 'unit-$1' where $1 is the name of the first testsuite listed in the command-line
 
 ## $R is the location of the directory containing this script, with
-## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJML21
+## $R/.. expected to be OpenJMLTest, which should be a sibling of OpenJMLsrc
 
 trap ctrl_c INT
 
@@ -19,45 +19,51 @@ function ctrl_c() {
     exit 1
 }
 
-R=$( cd $(dirname "$BASH_SOURCE") && pwd)
-export ROOT=$R/../../OpenJML21
-TEST=$R/../../OpenJMLTest
-SOLVERS=$ROOT/../../Solvers
-JROOT=$R/../libs
-export JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar:$JROOT/opentest4j-1.3.0.jar"
-export NJAVAC=$ROOT/build/*/jdk/bin/javac
-NJAVA=$ROOT/build/*/jdk/bin/java
+F=$(realpath "$BASH_SOURCE")
+R=$(dirname "$F")
+export ROOT=$(cd "$R/../../OpenJMLsrc" && pwd -P)
+JROOT="$R/../libs"
+JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar:$JROOT/opentest4j-1.3.0.jar"
+export NJAVAC=$(echo "$ROOT"/build/*/jdk/bin/javac)
+NJAVA=$(echo "$ROOT"/build/*/jdk/bin/java)
 
-. $TEST/setup-coverage unit-$1
+if [ $# -lt 1 ]; then
+    echo "error: runtests requires at least one testsuite name"
+    exit 1
+fi
 
-. $ROOT/setup-exports
+cd "$R"
+## Now in OpenJMLTest/unittests
 
-cd $R
+. "../setup-coverage" "unit-$1"
+
+. "$ROOT/setup-exports"
+
 rm -f *.class
-CL=`echo $ROOT/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g"`
+CL=$(echo "$ROOT"/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g")
 export CP=".:../src:$JUNIT:$CL"
-
-export OPTIONS="-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks"
 
 while true; do
   if make -q unittestframework ; then break; fi  ## make is up to date so go on to execute the compiled program
 
-  if ! ((set -o noclobber;echo x > the.jml.lock) &>/dev/null) ; then echo "Waiting for the.jml.lock" ; sleep 3; continue; fi ## Check until the temp file does not exist
+  if ! (( set -o noclobber; echo x > the.jml.lock ) &> /dev/null ) ; then echo "Waiting for the.jml.lock" ; sleep 3; continue; fi ## Check until the temp file does not exist
 
   ## Have the lock and last I checked the make was not up to date, so do the compile
 
   ## Use make instead of the explicit compile to use make's up-to-date-ness checking
+  ## Make needs NJAVAC CP OPENJML_EXPORTS ROOT (hence these are exported)
   echo Compiling for $@
   make unittestframework
-  #NOJML= $NJAVAC $OPTIONS -cp $CP -p $ROOT/build/*-release/jdk/modules $EXPORTS OpenJMLTestRunner.java  ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testcases/*.java
 
   rm -f the.jml.lock ## Release the lock
-  if [ ! -e OpenJMLTestRunner.class ]; then echo Missing OpenJMLTestRunner.class $@; continue; fi ## Unexpectedly missing the compile result, so try all over again 
 
   echo Compilation complete
   break
 done
 
+SPECS=$(cd "$ROOT/../../Specs/specs" && pwd -P)
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
+## This almost duplicates running openjml-java in the development environment, except for the addition of AGENT and the specific classpath
 ## echo Running $@
-( cd ..; OPENJML_ROOT="$SOLVERS" $NJAVA $AGENT -cp unittests:src:$JUNIT $EXPORTS OpenJMLTestRunner $@ 2>&1 )
+#( "$ROOT"/openjml-java $AGENT  -cp "unittests:src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )
+( cd ..; OPENJML_INSTALL="$ROOT" OPENJML_SOLVERS="$ROOT/../../Solvers" OPENJML_SPECS="$SPECS" "$NJAVA" $OPENJML_JVM -cp "src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )

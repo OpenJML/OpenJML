@@ -1,0 +1,21 @@
+test/gitbug898/Calculator1.java:28: warning: A refining statement is required for statement specifications
+                //@ requires num2 != 0;
+                    ^
+test/gitbug898/Calculator1.java:30: warning: A refining statement is required for statement specifications
+                //@ ensures \result == num1 / num2;
+                    ^
+test/gitbug898/Calculator1.java:31: error: A statement specification cannot be applied to this statement: break;
+                break;
+                ^
+test/gitbug898/Calculator1.java:34: warning: A refining statement is required for statement specifications
+                //@ requires num2 != 0;
+                    ^
+test/gitbug898/Calculator1.java:36: warning: A refining statement is required for statement specifications
+                //@ ensures \result == num1 % num2;
+                    ^
+test/gitbug898/Calculator1.java:37: error: A statement specification cannot be applied to this statement: break;
+                break;
+                ^
+Operation not performed because of parse or type errors
+2 errors
+4 warnings

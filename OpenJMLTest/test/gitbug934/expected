@@ -1,0 +1,18 @@
+Proving methods in Mul
+Starting proof of Mul.Mul() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Mul.Mul() with prover !!!! - no warnings
+Starting proof of Mul.Mul(int,int) with prover !!!!
+test/gitbug934/Mul.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method Mul: int multiply out of range
+        return x * y;
+                 ^
+test/gitbug934/Mul.java:5: verify: The prover cannot establish an assertion (Postcondition) in method Mul
+        return x * y;
+        ^
+test/gitbug934/Mul.java:3: verify: Associated declaration
+    //@ ensures \result == x * y;
+        ^
+Completed proof of Mul.Mul(int,int) with prover !!!! - with warnings
+Completed proving methods in Mul
+3 verification failures

@@ -10,10 +10,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.mnosplit(int) with prover !!!!
-test/splits/Test.java:8: warning: The prover cannot establish an assertion (Postcondition) in method mnosplit
+test/splits/Test.java:8: verify: The prover cannot establish an assertion (Postcondition) in method mnosplit
             return i > 0; // ERROR
             ^
-test/splits/Test.java:3: warning: Associated declaration
+test/splits/Test.java:3: verify: Associated declaration
     //@ ensures \result;
         ^
 Completed proof of Test.mnosplit(int) with prover !!!! - with warnings
@@ -23,10 +23,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split A is Verified
 Proof attempt for split B
-test/splits/Test.java:18: warning: The prover cannot establish an assertion (Postcondition) in method m1
+test/splits/Test.java:18: verify: The prover cannot establish an assertion (Postcondition) in method m1
             return i > 0; // ERROR
             ^
-test/splits/Test.java:12: warning: Associated declaration
+test/splits/Test.java:12: verify: Associated declaration
     //@ ensures \result;
         ^
 Result of split B is Not verified
@@ -34,10 +34,10 @@ Composite result Not verified
 Completed proof of Test.m1(int) with prover !!!! - with warnings
 Starting proof of Test.m2(int) with prover !!!!
 Proof attempt for split A
-test/splits/Test.java:26: warning: The prover cannot establish an assertion (Postcondition) in method m2
+test/splits/Test.java:26: verify: The prover cannot establish an assertion (Postcondition) in method m2
             return i < 0; // ERROR
             ^
-test/splits/Test.java:22: warning: Associated declaration
+test/splits/Test.java:22: verify: Associated declaration
     //@ ensures \result;
         ^
 Result of split A is Not verified
@@ -53,10 +53,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split A is Verified
 Proof attempt for split B
-test/splits/Test.java:38: warning: The prover cannot establish an assertion (Postcondition) in method m3
+test/splits/Test.java:38: verify: The prover cannot establish an assertion (Postcondition) in method m3
         case 2: return i == 10; // ERROR - split B
                 ^
-test/splits/Test.java:33: warning: Associated declaration
+test/splits/Test.java:33: verify: Associated declaration
     //@ ensures \result;
         ^
 Result of split B is Not verified
@@ -65,10 +65,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split C is Verified
 Proof attempt for split D
-test/splits/Test.java:40: warning: The prover cannot establish an assertion (Postcondition) in method m3
+test/splits/Test.java:40: verify: The prover cannot establish an assertion (Postcondition) in method m3
         default: return i < 0;
                  ^
-test/splits/Test.java:33: warning: Associated declaration
+test/splits/Test.java:33: verify: Associated declaration
     //@ ensures \result;
         ^
 Result of split D is Not verified
@@ -88,10 +88,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Result of split A is Verified
 Proof attempt for split B
-test/splits/Test.java:57: warning: The prover cannot establish an assertion (Postcondition) in method mbool
+test/splits/Test.java:57: verify: The prover cannot establish an assertion (Postcondition) in method mbool
         return i > 0;  // Split A OK; Split B is ERROR
         ^
-test/splits/Test.java:54: warning: Associated declaration
+test/splits/Test.java:54: verify: Associated declaration
     //@ ensures \result;
         ^
 Result of split B is Not verified
@@ -105,9 +105,9 @@ Result of split AA is Verified
 Proof attempt for split AB
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits/Test.java:61: warning: There is no feasible path to program point at program exit in method Test.mcombined(int)
-    public boolean mcombined(int i) { // ERROR - split AB, BB infeasible
-                   ^
+test/splits/Test.java:74: verify: There is no feasible path to program point at program exit in method Test.mcombined(int)
+    }
+    ^
 Result of split AB is INFEASIBLE
 Proof attempt for split BA
 Feasibility check - end of preconditions : OK
@@ -116,15 +116,15 @@ Result of split BA is Verified
 Proof attempt for split BB
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits/Test.java:61: warning: There is no feasible path to program point at program exit in method Test.mcombined(int)
-    public boolean mcombined(int i) { // ERROR - split AB, BB infeasible
-                   ^
+test/splits/Test.java:74: verify: There is no feasible path to program point at program exit in method Test.mcombined(int)
+    }
+    ^
 Result of split BB is INFEASIBLE
 Proof attempt for split BC
-test/splits/Test.java:71: warning: The prover cannot establish an assertion (Postcondition) in method mcombined
+test/splits/Test.java:71: verify: The prover cannot establish an assertion (Postcondition) in method mcombined
             default: return i < 0;
                      ^
-test/splits/Test.java:60: warning: Associated declaration
+test/splits/Test.java:60: verify: Associated declaration
     //@ ensures \result;
         ^
 Result of split BC is Not verified
@@ -141,10 +141,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.msw(int) with prover !!!! - no warnings
 Starting proof of Test.mswa(int) with prover !!!!
-test/splits/Test.java:100: warning: The prover cannot establish an assertion (Postcondition) in method mswa
+test/splits/Test.java:100: verify: The prover cannot establish an assertion (Postcondition) in method mswa
     public void mswa(int i) {  // ERROR - case 1
                 ^
-test/splits/Test.java:99: warning: Associated declaration
+test/splits/Test.java:99: verify: Associated declaration
     //@ ensures j == i + 1;
         ^
 Completed proof of Test.mswa(int) with prover !!!! - with warnings
@@ -153,15 +153,15 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mswb(int) with prover !!!! - no warnings
 Starting proof of Test.mswc(int) with prover !!!!
-test/splits/Test.java:122: warning: The prover cannot establish an assertion (Postcondition) in method mswc
+test/splits/Test.java:122: verify: The prover cannot establish an assertion (Postcondition) in method mswc
     public void mswc(int i) {
                 ^
-test/splits/Test.java:121: warning: Associated declaration
+test/splits/Test.java:121: verify: Associated declaration
     //@ ensures j == i + 1; // ERROR on default
         ^
 Completed proof of Test.mswc(int) with prover !!!! - with warnings
 Starting proof of Test.halt1(int) with prover !!!!
-test/splits/Test.java:136: warning: The prover cannot establish an assertion (Assert) in method halt1
+test/splits/Test.java:136: verify: The prover cannot establish an assertion (Assert) in method halt1
         //@ assert i < 0; // FAILS
             ^
 Completed proof of Test.halt1(int) with prover !!!! - with warnings
@@ -176,9 +176,9 @@ Starting proof of Test.dowhile() with prover !!!!
 Proof attempt for split A
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : infeasible
-test/splits/Test.java:161: warning: There is no feasible path to program point at program exit in method Test.dowhile()
-    public void dowhile() {
-                ^
+test/splits/Test.java:166: verify: There is no feasible path to program point at program exit in method Test.dowhile()
+    }
+    ^
 Result of split A is INFEASIBLE
 Proof attempt for split B
 Feasibility check - end of preconditions : OK
@@ -187,4 +187,5 @@ Result of split B is Verified
 Composite result INFEASIBLE
 Completed proof of Test.dowhile() with prover !!!! - INFEASIBLE
 Completed proving methods in Test
-24 warnings
+2 warnings
+22 verification failures

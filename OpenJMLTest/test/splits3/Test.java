@@ -1,4 +1,4 @@
-public class Test {
+public class Test { // Test run with a --no-split command-line option
 
     static public void dowhile() {
         int i = 2;
@@ -12,7 +12,7 @@ public class Test {
         //@ assert i == 0;
     }
 
-    //@ @org.jmlspecs.annotation.Options("--split=")
+    //@ @org.jmlspecs.annotation.Options("--split=") // Overrides the command-line option
     static public void boolsplitB(int i) {
         //@ split i == 0;
         //@ assert i == 0;

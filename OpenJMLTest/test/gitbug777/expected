@@ -1,0 +1,25 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.test(int) with prover !!!!
+Proof attempt for split A
+test/gitbug777/Test.java:7: verify: The prover cannot establish an assertion (Assert) in method test
+        //@ assert i > 0; // FAILS
+            ^
+Result of split A is Not verified
+Proof attempt for split B
+test/gitbug777/Test.java:11: verify: The prover cannot establish an assertion (Assert) in method test
+        //@ assert i < 0; // FAILS
+            ^
+Result of split B is Not verified
+Proof attempt for split C
+test/gitbug777/Test.java:11: verify: The prover cannot establish an assertion (Assert) in method test
+        //@ assert i < 0; // FAILS
+            ^
+Result of split C is Not verified
+Composite result Not verified
+Completed proof of Test.test(int) with prover !!!! - with warnings
+Completed proving methods in Test
+3 verification failures

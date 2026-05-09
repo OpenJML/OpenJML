@@ -1,0 +1,40 @@
+Proving methods in Tmap
+Starting proof of Tmap.Tmap() with prover !!!!
+Completed proof of Tmap.Tmap() with prover !!!! - no warnings
+Starting proof of Tmap.test2() with prover !!!!
+Completed proof of Tmap.test2() with prover !!!! - no warnings
+Starting proof of Tmap.test3() with prover !!!!
+Completed proof of Tmap.test3() with prover !!!! - no warnings
+Starting proof of Tmap.test3a() with prover !!!!
+Completed proof of Tmap.test3a() with prover !!!! - no warnings
+Starting proof of Tmap.test4() with prover !!!!
+Completed proof of Tmap.test4() with prover !!!! - no warnings
+Starting proof of Tmap.test5() with prover !!!!
+Completed proof of Tmap.test5() with prover !!!! - no warnings
+Starting proof of Tmap.test6() with prover !!!!
+Completed proof of Tmap.test6() with prover !!!! - no warnings
+Starting proof of Tmap.errors5() with prover !!!!
+test/jmlmap/Tmap.java:91: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
+            //@ check !s.equals(o);
+                               ^
+$SPECS/org/jmlspecs/lang/internal/map.jml:127: verify: Associated declaration
+    public boolean equals(Object o);
+                   ^
+$SPECS/org/jmlspecs/lang/internal/map.jml:125: verify: Precondition conjunct is false: false
+    //@  requires false; // Use equals(\map) or eq(\map)
+                  ^
+Completed proof of Tmap.errors5() with prover !!!! - with warnings
+Proving methods in Tmap.Axioms
+Starting proof of Tmap.Axioms.Axioms() with prover !!!!
+Completed proof of Tmap.Axioms.Axioms() with prover !!!! - no warnings
+Starting proof of Tmap.Axioms.<K,V>newMapIsEmpty(K) with prover !!!!
+Completed proof of Tmap.Axioms.<K,V>newMapIsEmpty(K) with prover !!!! - no warnings
+Starting proof of Tmap.Axioms.<K,V>putGet(\map<K,V>,K,V) with prover !!!!
+Completed proof of Tmap.Axioms.<K,V>putGet(\map<K,V>,K,V) with prover !!!! - no warnings
+Starting proof of Tmap.Axioms.<K,V>putGet2(\map<K,V>,K,V,K) with prover !!!!
+Completed proof of Tmap.Axioms.<K,V>putGet2(\map<K,V>,K,V,K) with prover !!!! - no warnings
+Completed proving methods in Tmap.Axioms
+Starting proof of Tmap.main(String...) with prover !!!!
+Completed proof of Tmap.main(String...) with prover !!!! - no warnings
+Completed proving methods in Tmap
+3 verification failures

@@ -1,0 +1,36 @@
+name: 'OpenJML Download Build'
+description: 'Downloads a previously uploaded OpenJML build artifact and overlays it into the checked-out repository'
+
+## Presumes OpenJML has been checked out via openjml-checkout (so OpenJML/OpenJMLsrc/ exists).
+## Downloads artifact openjml-build-<os-label> and extracts it into the workspace root,
+## recreating OpenJML/OpenJMLsrc/build/*/jdk/ and OpenJML/OpenJMLsrc/jmlruntime.jar
+## in place — no build step required in the test job.
+
+inputs:
+  os-label:
+    description: 'Unique OS label matching the one used when uploading (pass matrix.os)'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download build artifact
+      uses: actions/download-artifact@v8
+      with:
+        name: openjml-build-${{ inputs.os-label }}
+        path: .
+    - name: Extract build artifact
+      shell: bash
+      run: tar -xzf openjml-build.tar.gz
+    - name: Diagnose extraction (debug)
+      shell: bash
+      run: |
+        echo "=== Archive size ==="
+        ls -lh openjml-build.tar.gz
+        tar -tzf openjml-build.tar.gz > /tmp/archive-contents.txt
+        echo "=== First 30 archive entries ==="
+        head -30 /tmp/archive-contents.txt
+        echo "=== jvm.cfg in archive? ==="
+        grep jvm.cfg /tmp/archive-contents.txt || echo "NOT FOUND IN ARCHIVE"
+        echo "=== jvm.cfg on filesystem? ==="
+        find . -name jvm.cfg 2>/dev/null || echo "NOT FOUND ON FILESYSTEM"

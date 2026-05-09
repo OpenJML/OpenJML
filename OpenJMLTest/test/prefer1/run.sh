@@ -1,4 +1,4 @@
-#! /bin/bash
+## This script is sourced
 
 rm -f src/A.class A.class
 ## Using src/A.java
@@ -11,7 +11,9 @@ openjml --rac src/A.java
 cp src/A.class .
 
 ## Using ./A.class, from src/A.java
-openjml -Xprefer:newer Test.java
+openjml -cp . -Xprefer:newer Test.java
 
 ## Using ./A.java
-openjml -Xprefer:source Test.java
+openjml -cp . -Xprefer:source Test.java
+
+rm -f src/A.class A.class

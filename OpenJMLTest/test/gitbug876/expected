@@ -1,0 +1,10 @@
+test/gitbug876/PrimeChecker.java:11: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method isNonPrime
+            if (n % i == 0) {
+                  ^
+test/gitbug876/PrimeChecker.java:17: verify: The prover cannot establish an assertion (Postcondition) in method isNonPrime
+        return result;
+        ^
+test/gitbug876/PrimeChecker.java:3: verify: Associated declaration
+    /*@ ensures \result <==> (\exists int k; 2 <= k && k < n; n % k == 0); @*/
+        ^
+3 verification failures

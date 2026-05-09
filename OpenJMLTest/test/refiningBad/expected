@@ -7,6 +7,9 @@ test/refiningBad/TestRefinesBad.java:14: error: Improperly nested spec-end pair
 test/refiningBad/TestRefinesBad.java:23: error: Expected an 'end' statement to match the begin statement before the end of block
         //@ begin
             ^
+test/refiningBad/TestRefinesBad.java:24: error: A statement specification cannot be applied to this statement: return j;
+        return j;
+        ^
 test/refiningBad/TestRefinesBad.java:32: error: Improperly nested spec-end pair
         //@ end
             ^
@@ -14,4 +17,4 @@ test/refiningBad/TestRefinesBad.java:39: error: Statement specs found at the end
         //@ refining ensures true;
             ^
 Operation not performed because of parse or type errors
-5 errors
+6 errors

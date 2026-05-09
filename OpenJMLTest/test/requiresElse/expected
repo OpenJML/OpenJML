@@ -97,4 +97,155 @@ also
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mtest2(int) with prover !!!! - no warnings
+Starting proof of Test.mtest3(int) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.mtest3(int)
+/*@
+  public exceptional_behavior
+    requires true; 
+    requires !(i < 10); 
+    assignable \nothing; 
+    ensures false; 
+    signals_only IllegalArgumentException; 
+    accessible \everything; 
+also
+  public exceptional_behavior
+    requires true; 
+    requires i < 10; 
+    requires !(i > 0); 
+    assignable \nothing; 
+    ensures false; 
+    signals_only NullPointerException; 
+    accessible \everything; 
+also
+  public 
+    requires true; 
+    requires i < 10; 
+    requires i > 0; 
+    assignable j; 
+    ensures \result == 0; 
+    signals_only java.lang.RuntimeException; 
+    accessible \everything; 
+ */
+
+{
+  if (i >= 10) throw new IllegalArgumentException();
+  if (i <= 0) throw new NullPointerException();
+  j = 1;
+  return 0;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mtest3(int) with prover !!!! - no warnings
+Starting proof of Test.mtest4(int) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.mtest4(int)
+/*@
+  public 
+    requires true; 
+    requires i > 10; 
+    requires i > 11; 
+    requires i > 20; 
+    ensures \result == 0; 
+    signals_only java.lang.RuntimeException; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires true; 
+    requires i > 10; 
+    requires i > 12; 
+    requires i > 20; 
+    ensures \result == 0; 
+    signals_only java.lang.RuntimeException; 
+    assignable \nothing; 
+    accessible \everything; 
+ */
+
+{
+  return 0;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mtest4(int) with prover !!!! - no warnings
+Starting proof of Test.mtest5(int) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.mtest5(int)
+/*@
+  public 
+    requires true; 
+    requires i > 10; 
+    requires i > 11; 
+    requires i > 20; 
+    signals_only \nothing; 
+    ensures \result == 0; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires true; 
+    requires i > 10; 
+    requires i > 12; 
+    requires i > 20; 
+    signals_only \nothing; 
+    ensures \result == 0; 
+    assignable \nothing; 
+    accessible \everything; 
+ */
+
+{
+  return 0;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mtest5(int) with prover !!!! - no warnings
+Starting proof of Test.mtest6(int) with prover !!!!
+
+--------------------------------------
+
+STARTING PROOF OF Test.mtest6(int)
+/*@
+  public exceptional_behavior
+    requires true; 
+    requires !(i < 10); 
+    assignable \nothing; 
+    ensures false; 
+    signals_only IllegalArgumentException; 
+    accessible \everything; 
+also
+  public behavior
+    requires true; 
+    requires i < 10; 
+    requires !(i > 0); 
+    signals_only NullPointerException; 
+    signals (java.lang.Exception) \exception instanceof NullPointerException && !(i > 0); 
+    ensures false; 
+    assignable \nothing; 
+    accessible \everything; 
+also
+  public 
+    requires true; 
+    requires i < 10; 
+    requires i > 0; 
+    assignable j; 
+    ensures \result == 0; 
+    signals_only java.lang.RuntimeException; 
+    accessible \everything; 
+ */
+
+{
+  if (i >= 10) throw new IllegalArgumentException();
+  if (i <= 0) throw new NullPointerException();
+  j = 1;
+  return 0;
+}
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.mtest6(int) with prover !!!! - no warnings
 Completed proving methods in Test

@@ -1,0 +1,569 @@
+{
+  "@class": "org.jmlspecs.openjml.JmlTree$JmlCompilationUnit",
+  "@id": "1",
+  "sourcefile": {
+    "@class": "javax.tools.JavaFileObject",
+    "@id": "2",
+    "primitive": "modules/module-info.java"
+  },
+  "pid": null,
+  "defs": [
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "3",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "4",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "5",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "6",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "7",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "8",
+                "primitive": "org"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "9",
+              "primitive": "jmlspecs"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "10",
+            "primitive": "lang"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "11",
+          "primitive": "*"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "true"
+      }
+    },
+    {
+      "@class": "com.sun.tools.javac.tree.JCTree$JCModuleDecl",
+      "@id": "12",
+      "mods": {
+        "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+        "@id": "13",
+        "annotations": [],
+        "flags": {
+          "@class": "long",
+          "primitive": "0"
+        },
+        "jmlmods": []
+      },
+      "kind": {
+        "@class": "com.sun.source.tree.ModuleTree$ModuleKind",
+        "@id": "14",
+        "primitive": "STRONG"
+      },
+      "qualId": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "15",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+          "@id": "16",
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "17",
+            "primitive": "java"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "18",
+          "primitive": "base"
+        }
+      },
+      "directives": [
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCRequires",
+          "@id": "19",
+          "isTransitive": {
+            "@class": "boolean",
+            "primitive": "true"
+          },
+          "isStaticPhase": {
+            "@class": "boolean",
+            "primitive": "false"
+          },
+          "moduleName": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "20",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "21",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "17",
+                "primitive": "java"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "22",
+              "primitive": "logging"
+            }
+          }
+        },
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCRequires",
+          "@id": "23",
+          "isTransitive": {
+            "@class": "boolean",
+            "primitive": "false"
+          },
+          "isStaticPhase": {
+            "@class": "boolean",
+            "primitive": "false"
+          },
+          "moduleName": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "24",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "25",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "17",
+                "primitive": "java"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "26",
+              "primitive": "xml"
+            }
+          }
+        },
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCOpens",
+          "@id": "27",
+          "qualid": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "28",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "29",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "17",
+                "primitive": "java"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "30",
+              "primitive": "io"
+            }
+          },
+          "moduleNames": null
+        },
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCExports",
+          "@id": "31",
+          "qualid": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "32",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "33",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "17",
+                "primitive": "java"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "10",
+              "primitive": "lang"
+            }
+          },
+          "moduleNames": null
+        },
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCExports",
+          "@id": "34",
+          "qualid": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "35",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "36",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "37",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "38",
+                  "primitive": "jdk"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "39",
+                "primitive": "internal"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "40",
+              "primitive": "javac"
+            }
+          },
+          "moduleNames": [
+            {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "41",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "42",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "17",
+                  "primitive": "java"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "43",
+                "primitive": "compiler"
+              }
+            },
+            {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "44",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "45",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "38",
+                  "primitive": "jdk"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "43",
+                "primitive": "compiler"
+              }
+            },
+            {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "46",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "47",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "48",
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "38",
+                    "primitive": "jdk"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "49",
+                  "primitive": "incubator"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "50",
+                "primitive": "vector"
+              }
+            },
+            {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "51",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                "@id": "52",
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "38",
+                  "primitive": "jdk"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "53",
+                "primitive": "jshell"
+              }
+            }
+          ]
+        },
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCUses",
+          "@id": "54",
+          "qualid": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "55",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "56",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "57",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "58",
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "17",
+                    "primitive": "java"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "10",
+                  "primitive": "lang"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "59",
+                "primitive": "System"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "60",
+              "primitive": "LoggerFinder"
+            }
+          }
+        },
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCProvides",
+          "@id": "61",
+          "serviceName": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "62",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "63",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "64",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                  "@id": "65",
+                  "selected": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "66",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "17",
+                      "primitive": "java"
+                    }
+                  },
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@id": "67",
+                    "primitive": "nio"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "68",
+                  "primitive": "file"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "69",
+                "primitive": "spi"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "70",
+              "primitive": "FileSystemProvider"
+            }
+          },
+          "implNames": [
+            {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "71",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "72",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                  "@id": "73",
+                  "selected": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "74",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "38",
+                      "primitive": "jdk"
+                    }
+                  },
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "39",
+                    "primitive": "internal"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "75",
+                  "primitive": "jrtfs"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "76",
+                "primitive": "JrtFileSystemProvider"
+              }
+            }
+          ]
+        },
+        {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCProvides",
+          "@id": "77",
+          "serviceName": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "78",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "79",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "80",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "81",
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "17",
+                    "primitive": "java"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "82",
+                  "primitive": "util"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "83",
+                "primitive": "random"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "84",
+              "primitive": "RandomGenerator"
+            }
+          },
+          "implNames": [
+            {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "85",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "86",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "87",
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "17",
+                    "primitive": "java"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "88",
+                  "primitive": "security"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "89",
+                "primitive": "SecureRandom"
+              }
+            },
+            {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "90",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "91",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "92",
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "17",
+                    "primitive": "java"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "82",
+                  "primitive": "util"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "93",
+                "primitive": "Random"
+              }
+            },
+            {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+              "@id": "94",
+              "selected": {
+                "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+                "@id": "95",
+                "selected": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                  "@id": "96",
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "17",
+                    "primitive": "java"
+                  }
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@ref": "82",
+                  "primitive": "util"
+                }
+              },
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "97",
+                "primitive": "SplittableRandom"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

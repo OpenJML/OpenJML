@@ -64,9 +64,13 @@ public /*@ nullable_by_default @*/ class BinaryTree {
 
     private @NonNullByDefault
     class Interval {
-        int min;
-        int max;
+        //@ public invariant min <= max + 1;
+        /*@ spec_public */ int min;
+        /*@ spec_public */ int max;
 
+        //@ public normal_behavior
+        //@   requires i <= j+1;
+        //@   ensures min == i & max == j;
         //@ pure
         public Interval(int i, int j) {
             min = i;
@@ -74,7 +78,6 @@ public /*@ nullable_by_default @*/ class BinaryTree {
         }
         // min > max means an empty interval. We suggest to normalize it to 1,0.
         //@ pure
-
         public int size() {
             if(max >= min) return max-min+1;
             return 0;
