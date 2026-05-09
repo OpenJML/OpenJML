@@ -9212,13 +9212,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 //System.out.println("ARGCONVERSION " + a.type + " " + currentArgType);
                 // The 'rac' disjunct is needed for tests like racHans4c/d/e
                 // The other disjunct is needed for test implicitIterationA
-                var convtype = rac ? currentArgType : convertType(currentArgType);
-                if (rac || (a.type.isPrimitive() || types.isNumeric(a.type) 
-                        || currentArgType.isPrimitive() || types.isNumeric(currentArgType) || types.isJmlType(convtype))) {
-                    //System.out.println("ADDING IMPLICIT-A " + currentArgType + " " + convtype + " " + a + " " + a.type);
-                    a = addImplicitConversion(a, convtype, a);
-                    //System.out.println("   CONVERTED " + a);
-                }
+                var convtype = currentArgType == null ? null : (rac ? currentArgType : convertType(currentArgType));
+                if (convtype == null || a == null || a.type == null) {                                                                                                      
+                    utils.warning(a == null ? Position.NOPOS : a.pos, "jml.internal.notsobad",                                                                                
+                            "Unexpected null in convertArgs: convtype=" + convtype + " a=" + a);
+                } else if (rac || (a.type.isPrimitive() || types.isNumeric(a.type)                                                                                          
+                        || currentArgType.isPrimitive() || types.isNumeric(currentArgType) || types.isJmlType(convtype))) {                                                 
+                    a = addImplicitConversion(a, convtype, a);                                                                                                              
+                }                                                                                                                                                           
             }
 			if (useMethodAxioms && translatingJML) {
 			} else if ((a instanceof JCIdent) && ((JCIdent) a).name.toString().startsWith(Strings.tmpVarString)) {
