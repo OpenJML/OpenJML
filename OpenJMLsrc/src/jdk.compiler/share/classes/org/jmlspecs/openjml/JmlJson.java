@@ -78,16 +78,15 @@ import java.io.IOException;
  *  This would require a lot of source code changes to OpenJDK, but might be more maintainable than the current design.
  *  <p>
  *  Deserialization: AST class creation uses factory methods in JCTree.Factory and JmlTree.JmlFactory, so custom deserializers are needed
- *  for each AST class. A typical such deserializer uses a common method (getFieldValues) that obtains the value (as Object instances) of
- *  each field in the 'fields' array, and then calls the relevant factory method to create the AST node.
+ *  for each AST class. Each deserializer calls jsonField(jo, "fieldName", Type.class) to read individual fields by name, then passes
+ *  the results to the relevant factory method to create the AST node.
  *  <P>
- *  THERE ARE SOME CRUCIALLY IMPORTANT INVARIANTS:
- *  <ul
- *  <li> The 'fields' array for each AST node must contain all the fields that are needed to reconstruct a source code representation of the 
- *  node. If a field name is changed in the source code, it must correspondingly be changed in 'fields', or a runtime crash will happen when writing out such a node.
- *  <li> The order of field names in 'fields' is the order of Object instances returned by getFieldValues() -- the correct element of the returned
- *  array must be cast to the type expected by the node's factory method. So changing the order in 'fields' requires corresponding changes
- *  in the arguments to the factory method.
+ *  THERE IS ONE CRUCIALLY IMPORTANT INVARIANT:
+ *  <ul>
+ *  <li> The 'fields' array for each AST node must contain all the fields that are needed to reconstruct a source code representation of the
+ *  node. If a field name is changed in the source code, it must correspondingly be changed in 'fields', or a runtime crash will happen when
+ *  writing out such a node. The jsonField() helper validates field names against 'fields' when a null result is returned, catching typos
+ *  and missing declarations at the first deserialization.
  *  </ul>
   */
 
@@ -375,8 +374,11 @@ public class JmlJson {
             }
         }
         
-        /** Returns an array of values, the same length as the 'fields' array, where each returned element is the 
-         * Object produced by deserializing the corresponding element of the input json object */
+        /** Returns an array of values, the same length as the 'fields' array, where each returned element is the
+         * Object produced by deserializing the corresponding element of the input json object.
+         * Most deserializers now use jsonField() instead; this method is retained for JCNewArrayAdapter
+         * which needs to loop over the dimAnnotations entries (a List<List<JCAnnotation>>) that cannot
+         * be cleanly expressed with a single typed jsonField() call. */
         public Object[] getFieldValues(JsonObject json) {
             var fields = fields();
             var values = new Object[fields.length];
@@ -538,8 +540,7 @@ public class JmlJson {
         @Override
         public JCAnyPattern deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            // This is a preview feature not yet turned on for V21
-            //var values = getFieldValues(json.getAsJsonObject());
+            // JCAnyPattern has no fields; it is a preview feature not yet enabled in V21.
             var result = M.AnyPattern();
             common(json, result, context);
             return result;
@@ -814,7 +815,6 @@ public class JmlJson {
         @Override
         public JCDefaultCaseLabel deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
-            //var values = getFieldValues(json.getAsJsonObject());
             var result = M.DefaultCaseLabel();
             common(json, result, context);
             return result;
