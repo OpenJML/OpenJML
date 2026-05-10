@@ -6965,40 +6965,175 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	
 	@Override
 	public void visitSwitchExpression(JCSwitchExpression that) {
-        addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
-        currentEnv = currentEnv.pushEnvCopy();
-        try {
-            currentEnv.yieldIdent = treeutils.makeIdent(that.pos,  "`switchResult_"+nextUnique(), that.type);
-            if (splitExpressions) {
-                addStat(switchHelper(that, true, that.selector, that.cases).setType(that.type));
-                result = eresult = currentEnv.yieldIdent;
-            } else {
-                notImplemented(that,  "Switch expression in a quantified expression");
-            }
-        } finally {
-            currentEnv = currentEnv.popEnv();
-        }
-    }
-	
-	public JCExpression switchCheck(JCExpression switchExpr) {
-        JCExpression selector = convertExpr(switchExpr);
-        // FIXME - will need fixing for pattern matching
-        if (selector.type.equals(syms.stringType)) {
-            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
-            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
-                                    "java.lang.NullPointerException");
-        } else if ((switchExpr.type.tsym.flags_field & Flags.ENUM) != 0) {
-            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
-            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
-                                    "java.lang.NullPointerException");
-        } else {
-            selector = addImplicitConversion(switchExpr, syms.intType, selector);
-        }
-        return selector;
+	    addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
+	    currentEnv = currentEnv.pushEnvCopy();
+	    try {
+	        currentEnv.yieldIdent = treeutils.makeIdent(that.pos,  "`switchResult_"+nextUnique(), that.type);
+	        if (splitExpressions) {
+	            addStat(switchHelper(that, that.isExhaustive, that.selector, that.cases).setType(that.type));
+	            result = eresult = currentEnv.yieldIdent;
+	        } else {
+	            notImplemented(that,  "Switch expression in a quantified expression");
+	        }
+	    } finally {
+	        currentEnv = currentEnv.popEnv();
+	    }
 	}
-	
+
+	protected boolean hasNullCase(List<JCCase> cases) {
+	    for (JCCase c: cases) {
+	        for (JCCaseLabel l: c.labels) {
+	            if (TreeInfo.isNullCaseLabel(l)) return true;
+	        }
+	    }
+	    return false;
+	}
+
+	public JCExpression switchCheck(JCExpression switchExpr, List<JCCase> cases) {
+	    JCExpression selector = convertExpr(switchExpr);
+	    boolean hasNullCase = hasNullCase(cases);
+	    if (selector.type.equals(syms.stringType)) {
+	        if (!hasNullCase) {
+	            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+	            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
+	                                    "java.lang.NullPointerException");
+	        }
+	    } else if ((switchExpr.type.tsym.flags_field & Flags.ENUM) != 0) {
+	        if (!hasNullCase) {
+	            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+	            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
+	                                    "java.lang.NullPointerException");
+	        }
+	    } else if (!switchExpr.type.isPrimitive()) {
+	        if (!hasNullCase) {
+	            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+	            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
+	                                    "java.lang.NullPointerException");
+	        }
+	    } else {
+	        selector = addImplicitConversion(switchExpr, syms.intType, selector);
+	    }
+	    return selector;
+	}
+
+	protected void translatePatternBindings(JCCase caze, JCExpression selector) {
+	    for (JCCaseLabel label: caze.labels) {
+	        if (label instanceof JCPatternCaseLabel patLabel) {
+	            translatePattern(patLabel.pat, selector);
+	        }
+	    }
+	}
+
+	protected void translatePatternLabels(JCCase caze, JCExpression selector) {
+	    translatePatternBindings(caze, selector);
+	    if (caze.guard != null) {
+	        JCExpression guardExpr = addImplicitConversion(caze.guard, syms.booleanType, convertExpr(caze.guard));
+	        addAssume(caze.guard, Label.IMPLICIT_ASSUME, guardExpr);
+	    }
+	}
+
+	protected void translatePattern(JCPattern pattern, JCExpression expr) {
+	    if (pattern instanceof JCBindingPattern bpat) {
+	        if (bpat.var.sym != null && bpat.var.sym.isUnnamedVariable()) return;
+	        if (!splitExpressions) {
+	            notImplementedW(pattern, "binding pattern in this location");
+	            return;
+	        }
+	        var stat = convert(bpat.var);
+	        JCTree clazz = treeutils.makeType(pattern.pos, types.erasure(bpat.type));
+	        JCExpression typeTest = M.at(pattern).TypeTest(copy(expr), clazz);
+	        typeTest.setType(syms.booleanType);
+	        addAssume(pattern, Label.IMPLICIT_ASSUME, typeTest);
+	        JCIdent id = M.at(stat).Ident(bpat.var.sym);
+	        JCExpression eq = treeutils.makeEquality(pattern.getPreferredPosition(), id, expr);
+	        addAssume(pattern, Label.IMPLICIT_ASSUME, eq);
+	    } else if (pattern instanceof JCRecordPattern recPat) {
+	        if (rac) {
+	            notImplemented(pattern, "record pattern in RAC");
+	            return;
+	        }
+	        translateRecordPattern(recPat, expr);
+	    } else if (pattern instanceof JCAnyPattern) {
+	        return;
+	    } else {
+	        notImplemented(pattern, "unsupported pattern kind: " + pattern.getClass().getSimpleName());
+	    }
+	}
+
+	protected void translateRecordPattern(JCRecordPattern recPat, JCExpression expr) {
+	    Type recordType = types.erasure(recPat.record.type);
+	    JCTree clazz = treeutils.makeType(recPat.pos, recordType);
+	    JCExpression typeTest = M.at(recPat).TypeTest(copy(expr), clazz);
+	    typeTest.setType(syms.booleanType);
+	    addAssume(recPat, Label.IMPLICIT_ASSUME, typeTest);
+
+	    JCExpression castExpr = M.at(recPat).TypeCast(recordType, copy(expr));
+	    castExpr.setType(recordType);
+	    JCIdent recTemp = newTemp(castExpr);
+
+	    List<? extends RecordComponent> components = recPat.record.getRecordComponents();
+	    List<JCPattern> nestedPatterns = recPat.nested;
+
+	    while (components.nonEmpty() && nestedPatterns.nonEmpty()) {
+	        RecordComponent component = components.head;
+	        JCPattern nestedPattern = nestedPatterns.head;
+	        JCExpression accessorCall = createAccessorCall(recPat, recTemp, component);
+	        JCIdent compTemp = newTemp(accessorCall);
+	        translatePattern(nestedPattern, compTemp);
+	        components = components.tail;
+	        nestedPatterns = nestedPatterns.tail;
+	    }
+	}
+
+	protected JCExpression createAccessorCall(DiagnosticPosition pos, JCExpression receiver,
+	        RecordComponent component) {
+	    MethodSymbol accessor = component.accessor;
+	    JCFieldAccess select = M.at(pos).Select(copy(receiver), accessor.name);
+	    select.type = accessor.type;
+	    select.sym = accessor;
+	    JCMethodInvocation call = M.at(pos).Apply(List.<JCExpression>nil(), select, List.<JCExpression>nil());
+	    call.setType(types.erasure(accessor.getReturnType()));
+	    return call;
+	}
+
+	protected JCExpression buildPatternCondition(JCPattern pattern, JCExpression expr) {
+	    if (pattern instanceof JCBindingPattern bpat) {
+	        JCTree clazz = treeutils.makeType(pattern.pos, types.erasure(bpat.type));
+	        JCExpression typeTest = M.at(pattern).TypeTest(copy(expr), clazz);
+	        typeTest.setType(syms.booleanType);
+	        return typeTest;
+	    } else if (pattern instanceof JCRecordPattern recPat) {
+	        Type recordType = types.erasure(recPat.record.type);
+	        JCTree clazz = treeutils.makeType(pattern.pos, recordType);
+	        JCExpression condition = M.at(pattern).TypeTest(copy(expr), clazz);
+	        condition.setType(syms.booleanType);
+	        List<? extends RecordComponent> components = recPat.record.getRecordComponents();
+	        List<JCPattern> nestedPatterns = recPat.nested;
+	        JCExpression castExpr = M.at(recPat).TypeCast(recordType, copy(expr));
+	        castExpr.setType(recordType);
+	        JCIdent recTemp = newTemp(castExpr);
+	        while (components.nonEmpty() && nestedPatterns.nonEmpty()) {
+	            RecordComponent component = components.head;
+	            JCPattern nested = nestedPatterns.head;
+	            if (!(nested instanceof JCAnyPattern)) {
+	                JCExpression accessorCall = createAccessorCall(recPat, recTemp, component);
+	                JCExpression nestedCond = buildPatternCondition(nested, accessorCall);
+	                condition = treeutils.makeAnd(pattern, condition, nestedCond);
+	            }
+	            components = components.tail;
+	            nestedPatterns = nestedPatterns.tail;
+	        }
+	        return condition;
+	    } else if (pattern instanceof JCAnyPattern) {
+	        return treeutils.makeBooleanLiteral(pattern, true);
+	    } else {
+	        notImplemented(pattern, "pattern condition for: " + pattern.getClass().getSimpleName());
+	        return treeutils.makeBooleanLiteral(pattern, true);
+	    }
+	}
+
 	public JCSwitch switchHelper(DiagnosticPosition pos, boolean isExhaustive, JCExpression switchExpr, List<JCCase> cases) {
-	    JCExpression selector = switchCheck(switchExpr);
+	    JCExpression selector = switchCheck(switchExpr, cases);
 	    JCSwitch newswitch = M.at(pos).Switch(selector, null); // cases filled in later, but we need the new tree reference now
 	    // treeMap is used to map break statements to their target statements
         treeMap.put((JCTree)pos, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
@@ -7017,6 +7152,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            boolean isArrow = _case.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
 
 	            pushBlock();
+	            if (((JCTree)pos instanceof JCSwitch sw && sw.patternSwitch)
+	                    || ((JCTree)pos instanceof JCSwitchExpression swexpr && swexpr.patternSwitch)
+	                    || _case.labels.stream().anyMatch(l -> l instanceof JCPatternCaseLabel)) {
+	                translatePatternLabels(_case, selector);
+	            }
 	            addFeasibilityCheck(_case, currentStatements, Strings.feas_switch, "after case condition");
 	            convert(_case.stats); // This might change 'continuation'
 	            if (isArrow && _case.completesNormally) {
@@ -7072,14 +7212,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    // record the translation from old to new AST  // FIXME - this used to be before trabnslating the body. Does it matter?
 		    result = addStat(newSwitch.setType(that.type)); // But actually, statements do not have a type
 		} else {
-	        JCExpression selector = switchCheck(that.selector);
+	        JCExpression selector = switchCheck(that.selector, that.cases);
 	        JCSwitch newswitch = M.at(that).Switch(selector, null); // cases filled in later, but we need the new tree reference now
 	        // treeMap is used to map break statements to their target statements
 	        treeMap.put(that, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
 	        pushBlock();
 		    boolean hasDefault = that.cases.stream().anyMatch(cs -> cs.labels.isEmpty()|| cs.labels.head instanceof JCDefaultCaseLabel);
-		    
-		    
+
 		    int doCase = 0;
 		    if (currentSplit.isEmpty()) {
 		        adjustSplit(that.cases.size() + (hasDefault ? 0 : 1));
@@ -7089,15 +7228,36 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    }
 
 		    JCCase caseToDo = doCase < that.cases.size() ? that.cases.get(doCase) : null;
-		    // caseToDo == null when the original switch has no default case -- so skip everything if no case condition matches
-		    // FIXME - only works for traditional enums or ints, not strings or patterns
+		    if (caseToDo == null && that.cases.stream().anyMatch(c -> c.guard != null
+		            && c.labels.stream().anyMatch(l -> l instanceof JCPatternCaseLabel))) {
+		        popBlock(that);
+		        treeMap.remove(that);
+		        notImplementedW(that, "split switch translation for default with guarded pattern cases");
+		        JCSwitch newSwitch = switchHelper(that, that.isExhaustive, that.selector, that.cases);
+		        ((JmlSwitchStatement) newSwitch).split = ((JmlSwitchStatement) that).split;
+		        result = addStat(newSwitch.setType(that.type));
+		        return;
+		    }
+		    // caseToDo == null when the original switch has no default case -- skip if no case condition matches
 		    JCExpression caseCondition = null;
+		    boolean translatedSelectedBindings = false;
 		    if (caseToDo != null && !caseToDo.labels.isEmpty()) {
+		        if (caseToDo.guard != null && caseToDo.labels.stream().anyMatch(l -> l instanceof JCPatternCaseLabel)) {
+		            translatePatternBindings(caseToDo, selector);
+		            translatedSelectedBindings = true;
+		        }
 		        for (JCCaseLabel pat : caseToDo.labels) {
 	        		if (pat instanceof JCConstantCaseLabel patc) {
 	        			JCExpression e = treeutils.makeEquality(pat.pos, selector, convertExpr(patc.expr));
 	        			caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
+	        		} else if (pat instanceof JCPatternCaseLabel patLabel) {
+	        			JCExpression e = buildPatternCondition(patLabel.pat, selector);
+	        			caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
 	        		}
+		        }
+		        if (caseToDo.guard != null) {
+		            JCExpression guardExpr = addImplicitConversion(caseToDo.guard, syms.booleanType, convertExpr(caseToDo.guard));
+		            caseCondition = caseCondition == null ? guardExpr : treeutils.makeAnd(that, caseCondition, guardExpr);
 		        }
 		    } else {
 		        // default
@@ -7105,11 +7265,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        	for (var pat : c.labels) {
 		        		if (pat instanceof JCConstantCaseLabel patc) {
 		                    JCExpression e = treeutils.makeEquality(pat.pos, copy(selector), convertExpr(patc.expr));
+		                    if (c.guard != null) {
+		                        JCExpression guardExpr = addImplicitConversion(c.guard, syms.booleanType, convertExpr(c.guard));
+		                        e = treeutils.makeAnd(that, e, guardExpr);
+		                    }
 		                    caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
+		        		} else if (pat instanceof JCPatternCaseLabel patLabel) {
+		        			JCExpression e = buildPatternCondition(patLabel.pat, copy(selector));
+		        			if (c.guard != null) {
+		        			    JCExpression guardExpr = addImplicitConversion(c.guard, syms.booleanType, convertExpr(c.guard));
+		        			    e = treeutils.makeAnd(that, e, guardExpr);
+		        			}
+		        			caseCondition = caseCondition == null ? e : treeutils.makeOr(that, caseCondition, e);
 		        		}
 		            }
 		        }
-		        caseCondition = treeutils.makeNot(that, caseCondition);
+		        if (caseCondition != null) caseCondition = treeutils.makeNot(that, caseCondition);
 		    }
 
 		    if (caseCondition != null) {
@@ -7117,6 +7288,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            addFeasibilityCheck(caseToDo, currentStatements, Strings.feas_switch, "after case condition");
 		    }
 		    if (caseToDo != null) {
+		        if (!translatedSelectedBindings && (that.patternSwitch || caseToDo.labels.stream().anyMatch(l -> l instanceof JCPatternCaseLabel))) {
+		            translatePatternLabels(caseToDo, selector);
+		        }
 		        convert(caseToDo.stats);
 		        doCase++;
 		        while (doCase < that.cases.size() && caseToDo.completesNormally) {
