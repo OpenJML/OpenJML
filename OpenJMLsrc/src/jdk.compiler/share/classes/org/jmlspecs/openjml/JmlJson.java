@@ -392,6 +392,36 @@ public class JmlJson {
             return values;
         }
         
+        /** Deserializes a single named field from the JSON object.
+         *  If the result is null (field absent or JSON null), checks that the name is
+         *  listed in fields[] to distinguish a typo or forgotten field from a legitimate
+         *  null value. */
+        public Object getField(JsonObject json, String name) {
+            var value = fromJsonElement(json.get(name));
+            if (value == null) {
+                boolean found = false;
+                for (var f : fields()) {
+                    if (f.equals(name)) { found = true; break; }
+                }
+                if (!found) log.error("jml.internal",
+                        "Field '" + name + "' is not listed in fields[] of " + this.getClass().getSimpleName());
+            }
+            return value;
+        }
+
+        /** Type-safe variant of getField: eliminates the unsafe cast at the call site and
+         *  reports a clear error if the deserialized value has the wrong type. */
+        public <F> F getField(JsonObject json, String name, Class<F> type) {
+            var value = getField(json, name);
+            if (value == null) return null;
+            if (!type.isInstance(value)) {
+                log.error("jml.internal", "Field '" + name + "' in " + this.getClass().getSimpleName()
+                        + ": expected " + type.getSimpleName() + " but got " + value.getClass().getSimpleName());
+                return null;
+            }
+            return type.cast(value);
+        }
+
         public void common(JsonElement json, JCTree tree, JsonDeserializationContext context) {
             if (tree instanceof JmlSource ast) {
                 JavaFileObject jfo = (JavaFileObject)fromJsonElement(json.getAsJsonObject().get("sourcefile"));
