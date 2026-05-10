@@ -387,7 +387,7 @@ public class Pretty extends JCTree.Visitor {
     }
 
     /** Is the given tree an enumerator definition? */
-    boolean isEnumerator(JCTree t) {
+    protected boolean isEnumerator(JCTree t) {  // OPENJML - changed from package to protected
         return t.hasTag(VARDEF) && (((JCVariableDecl) t).mods.flags & ENUM) != 0;
     }
 
@@ -908,7 +908,16 @@ public class Pretty extends JCTree.Visitor {
             } else {
                 print(" -> ");
                 if (tree.stats.size() == 1) {
-                    printStat(tree.stats.head);
+                    JCTree stat = tree.stats.head;
+                    if (stat instanceof JCYield jcYield) {
+                        // OPENJML -- this branch is a bug fix
+                        // Arrow-case expressions are stored as JCYield internally;
+                        // print only the value expression, not the 'yield' keyword.
+                        printExpr(jcYield.value);
+                        print(';');
+                    } else {
+                        printStat(stat);
+                    }
                 } else {
                     printBlock(tree.stats);
                 }
@@ -1015,15 +1024,25 @@ public class Pretty extends JCTree.Visitor {
             print("try ");
             if (tree.resources.nonEmpty()) {
                 print('(');
-                boolean first = true;
+                JCTree prev = null;
+                int extraIndents = 0;
                 for (JCTree var : tree.resources) {
-                    if (!first) {
-                        println();
-                        indent();
+                    if (prev != null) {
+                        // OPENJML - various edits to put semicolons as separators, not terminators
+                        if (prev instanceof JCVariableDecl) {
+                            // Declaration resource: printStat already added ';', just newline+indent.
+                            println();
+                            indent();
+                            extraIndents++;
+                        } else {
+                            // Expression resource: printStat emits no ';', so supply the separator.
+                            print("; ");
+                        }
                     }
                     printStat(var);
-                    first = false;
+                    prev = var;
                 }
+                for (int i = 0; i < extraIndents; i++) undent(); // balance indent() calls
                 print(") ");
             }
             printStat(tree.body);
