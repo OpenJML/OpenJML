@@ -1,0 +1,759 @@
+{
+  "@class": "org.jmlspecs.openjml.JmlTree$JmlCompilationUnit",
+  "@id": "1",
+  "sourcefile": {
+    "@class": "javax.tools.JavaFileObject",
+    "@id": "2",
+    "primitive": "jmlnew/NewArrayDim.java"
+  },
+  "pid": null,
+  "defs": [
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "3",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "4",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "5",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "6",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "7",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@id": "8",
+                "primitive": "org"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@id": "9",
+              "primitive": "jmlspecs"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "10",
+            "primitive": "lang"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@id": "11",
+          "primitive": "*"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "true"
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlImport",
+      "@id": "12",
+      "qualid": {
+        "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+        "@id": "13",
+        "selected": {
+          "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+          "@id": "14",
+          "selected": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCFieldAccess",
+            "@id": "15",
+            "selected": {
+              "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+              "@id": "16",
+              "name": {
+                "@class": "com.sun.tools.javac.util.Name",
+                "@ref": "8",
+                "primitive": "org"
+              }
+            },
+            "name": {
+              "@class": "com.sun.tools.javac.util.Name",
+              "@ref": "9",
+              "primitive": "jmlspecs"
+            }
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "17",
+            "primitive": "annotation"
+          }
+        },
+        "name": {
+          "@class": "com.sun.tools.javac.util.Name",
+          "@ref": "11",
+          "primitive": "*"
+        }
+      },
+      "staticImport": {
+        "@class": "boolean",
+        "primitive": "false"
+      },
+      "isModel": {
+        "@class": "boolean",
+        "primitive": "false"
+      }
+    },
+    {
+      "@class": "org.jmlspecs.openjml.JmlTree$JmlClassDecl",
+      "@id": "18",
+      "sourcefile": {
+        "@class": "javax.tools.JavaFileObject",
+        "@ref": "2",
+        "primitive": "jmlnew/NewArrayDim.java"
+      },
+      "mods": {
+        "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+        "@id": "19",
+        "annotations": [],
+        "flags": {
+          "@class": "long",
+          "primitive": "1"
+        },
+        "jmlmods": []
+      },
+      "name": {
+        "@class": "com.sun.tools.javac.util.Name",
+        "@id": "20",
+        "primitive": "NewArrayDim"
+      },
+      "typarams": [],
+      "extending": null,
+      "implementing": [],
+      "permitting": [],
+      "defs": [
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "21",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "jmlnew/NewArrayDim.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "22",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "23",
+            "primitive": "single"
+          },
+          "restype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@id": "24",
+            "typetag": {
+              "@class": "com.sun.tools.javac.code.TypeTag",
+              "@id": "25",
+              "primitive": "VOID"
+            }
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [],
+          "thrown": [],
+          "methodSpecs": null,
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "26",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                "@id": "27",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "jmlnew/NewArrayDim.java"
+                },
+                "mods": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "28",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "0"
+                  },
+                  "jmlmods": []
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "29",
+                  "primitive": "a"
+                },
+                "vartype": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCAnnotatedType",
+                  "@id": "30",
+                  "annotations": [
+                    {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                      "@id": "31",
+                      "annotationType": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "32",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@id": "33",
+                          "primitive": "NonNull"
+                        }
+                      },
+                      "token": null,
+                      "kind": {
+                        "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                        "@id": "34",
+                        "primitive": "non_null"
+                      },
+                      "args": []
+                    }
+                  ],
+                  "underlyingType": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCArrayTypeTree",
+                    "@id": "35",
+                    "elemtype": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                      "@id": "36",
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@id": "37",
+                        "primitive": "Object"
+                      }
+                    }
+                  }
+                },
+                "init": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCNewArray",
+                  "@id": "38",
+                  "annotations": [],
+                  "dimAnnotations": [
+                    [
+                      {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                        "@id": "39",
+                        "annotationType": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "40",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "33",
+                            "primitive": "NonNull"
+                          }
+                        },
+                        "token": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "34",
+                          "primitive": "non_null"
+                        },
+                        "args": []
+                      }
+                    ]
+                  ],
+                  "elemtype": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "41",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "37",
+                      "primitive": "Object"
+                    }
+                  },
+                  "dims": [
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "42",
+                      "typetag": {
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@id": "43",
+                        "primitive": "INT"
+                      },
+                      "value": 3
+                    }
+                  ],
+                  "elems": null
+                }
+              }
+            ]
+          },
+          "defaultValue": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "44",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "jmlnew/NewArrayDim.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "45",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "46",
+            "primitive": "multi"
+          },
+          "restype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@id": "47",
+            "typetag": {
+              "@class": "com.sun.tools.javac.code.TypeTag",
+              "@ref": "25",
+              "primitive": "VOID"
+            }
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [],
+          "thrown": [],
+          "methodSpecs": null,
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "48",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                "@id": "49",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "jmlnew/NewArrayDim.java"
+                },
+                "mods": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "50",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "0"
+                  },
+                  "jmlmods": []
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "51",
+                  "primitive": "b"
+                },
+                "vartype": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCAnnotatedType",
+                  "@id": "52",
+                  "annotations": [
+                    {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                      "@id": "53",
+                      "annotationType": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "54",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "33",
+                          "primitive": "NonNull"
+                        }
+                      },
+                      "token": null,
+                      "kind": {
+                        "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                        "@ref": "34",
+                        "primitive": "non_null"
+                      },
+                      "args": []
+                    }
+                  ],
+                  "underlyingType": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCArrayTypeTree",
+                    "@id": "55",
+                    "elemtype": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCAnnotatedType",
+                      "@id": "56",
+                      "annotations": [
+                        {
+                          "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                          "@id": "57",
+                          "annotationType": {
+                            "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                            "@id": "58",
+                            "name": {
+                              "@class": "com.sun.tools.javac.util.Name",
+                              "@id": "59",
+                              "primitive": "Nullable"
+                            }
+                          },
+                          "token": null,
+                          "kind": {
+                            "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                            "@id": "60",
+                            "primitive": "nullable"
+                          },
+                          "args": []
+                        }
+                      ],
+                      "underlyingType": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCArrayTypeTree",
+                        "@id": "61",
+                        "elemtype": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "62",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "37",
+                            "primitive": "Object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "init": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCNewArray",
+                  "@id": "63",
+                  "annotations": [],
+                  "dimAnnotations": [
+                    [
+                      {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                        "@id": "64",
+                        "annotationType": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "65",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "33",
+                            "primitive": "NonNull"
+                          }
+                        },
+                        "token": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "34",
+                          "primitive": "non_null"
+                        },
+                        "args": []
+                      }
+                    ],
+                    [
+                      {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                        "@id": "66",
+                        "annotationType": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "67",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "59",
+                            "primitive": "Nullable"
+                          }
+                        },
+                        "token": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "60",
+                          "primitive": "nullable"
+                        },
+                        "args": []
+                      }
+                    ]
+                  ],
+                  "elemtype": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "68",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "37",
+                      "primitive": "Object"
+                    }
+                  },
+                  "dims": [
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "69",
+                      "typetag": {
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "43",
+                        "primitive": "INT"
+                      },
+                      "value": 3
+                    },
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "70",
+                      "typetag": {
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "43",
+                        "primitive": "INT"
+                      },
+                      "value": 2
+                    }
+                  ],
+                  "elems": null
+                }
+              }
+            ]
+          },
+          "defaultValue": null
+        },
+        {
+          "@class": "org.jmlspecs.openjml.JmlTree$JmlMethodDecl",
+          "@id": "71",
+          "sourcefile": {
+            "@class": "javax.tools.JavaFileObject",
+            "@ref": "2",
+            "primitive": "jmlnew/NewArrayDim.java"
+          },
+          "mods": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+            "@id": "72",
+            "annotations": [],
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "jmlmods": []
+          },
+          "name": {
+            "@class": "com.sun.tools.javac.util.Name",
+            "@id": "73",
+            "primitive": "mixed"
+          },
+          "restype": {
+            "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+            "@id": "74",
+            "typetag": {
+              "@class": "com.sun.tools.javac.code.TypeTag",
+              "@ref": "25",
+              "primitive": "VOID"
+            }
+          },
+          "typarams": [],
+          "recvparam": null,
+          "params": [],
+          "thrown": [],
+          "methodSpecs": null,
+          "body": {
+            "@class": "org.jmlspecs.openjml.JmlTree$JmlBlock",
+            "@id": "75",
+            "sourcefile": null,
+            "flags": {
+              "@class": "long",
+              "primitive": "0"
+            },
+            "stats": [
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                "@id": "76",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "jmlnew/NewArrayDim.java"
+                },
+                "mods": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "77",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "0"
+                  },
+                  "jmlmods": []
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "78",
+                  "primitive": "c"
+                },
+                "vartype": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCArrayTypeTree",
+                  "@id": "79",
+                  "elemtype": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                    "@id": "80",
+                    "typetag": {
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@ref": "43",
+                      "primitive": "INT"
+                    }
+                  }
+                },
+                "init": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCNewArray",
+                  "@id": "81",
+                  "annotations": [],
+                  "dimAnnotations": [
+                    []
+                  ],
+                  "elemtype": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
+                    "@id": "82",
+                    "typetag": {
+                      "@class": "com.sun.tools.javac.code.TypeTag",
+                      "@ref": "43",
+                      "primitive": "INT"
+                    }
+                  },
+                  "dims": [
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "83",
+                      "typetag": {
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "43",
+                        "primitive": "INT"
+                      },
+                      "value": 5
+                    }
+                  ],
+                  "elems": null
+                }
+              },
+              {
+                "@class": "org.jmlspecs.openjml.JmlTree$JmlVariableDecl",
+                "@id": "84",
+                "sourcefile": {
+                  "@class": "javax.tools.JavaFileObject",
+                  "@ref": "2",
+                  "primitive": "jmlnew/NewArrayDim.java"
+                },
+                "mods": {
+                  "@class": "org.jmlspecs.openjml.JmlTree$JmlModifiers",
+                  "@id": "85",
+                  "annotations": [],
+                  "flags": {
+                    "@class": "long",
+                    "primitive": "0"
+                  },
+                  "jmlmods": []
+                },
+                "name": {
+                  "@class": "com.sun.tools.javac.util.Name",
+                  "@id": "86",
+                  "primitive": "d"
+                },
+                "vartype": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCAnnotatedType",
+                  "@id": "87",
+                  "annotations": [
+                    {
+                      "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                      "@id": "88",
+                      "annotationType": {
+                        "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                        "@id": "89",
+                        "name": {
+                          "@class": "com.sun.tools.javac.util.Name",
+                          "@ref": "33",
+                          "primitive": "NonNull"
+                        }
+                      },
+                      "token": null,
+                      "kind": {
+                        "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                        "@ref": "34",
+                        "primitive": "non_null"
+                      },
+                      "args": []
+                    }
+                  ],
+                  "underlyingType": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCArrayTypeTree",
+                    "@id": "90",
+                    "elemtype": {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                      "@id": "91",
+                      "name": {
+                        "@class": "com.sun.tools.javac.util.Name",
+                        "@ref": "37",
+                        "primitive": "Object"
+                      }
+                    }
+                  }
+                },
+                "init": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCNewArray",
+                  "@id": "92",
+                  "annotations": [],
+                  "dimAnnotations": [
+                    [
+                      {
+                        "@class": "org.jmlspecs.openjml.JmlTree$JmlAnnotation",
+                        "@id": "93",
+                        "annotationType": {
+                          "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                          "@id": "94",
+                          "name": {
+                            "@class": "com.sun.tools.javac.util.Name",
+                            "@ref": "33",
+                            "primitive": "NonNull"
+                          }
+                        },
+                        "token": null,
+                        "kind": {
+                          "@class": "org.jmlspecs.openjml.IJmlClauseKind",
+                          "@ref": "34",
+                          "primitive": "non_null"
+                        },
+                        "args": []
+                      }
+                    ]
+                  ],
+                  "elemtype": {
+                    "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
+                    "@id": "95",
+                    "name": {
+                      "@class": "com.sun.tools.javac.util.Name",
+                      "@ref": "37",
+                      "primitive": "Object"
+                    }
+                  },
+                  "dims": [
+                    {
+                      "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                      "@id": "96",
+                      "typetag": {
+                        "@class": "com.sun.tools.javac.code.TypeTag",
+                        "@ref": "43",
+                        "primitive": "INT"
+                      },
+                      "value": 5
+                    }
+                  ],
+                  "elems": null
+                }
+              }
+            ]
+          },
+          "defaultValue": null
+        }
+      ]
+    }
+  ]
+}

@@ -1068,7 +1068,42 @@ public class JmlJson {
         }
     }
     
-    // TODO: JmlMatchExpression
+    class JmlMatchExpressionAdapter extends Adapter<JmlMatchExpression> {
+        public static final String[] fields = { "expression", "cases" };
+
+        // MatchCase is not a JCTree subtype, so handle its serialization inline.
+        @Override
+        public JsonElement serialize(JmlMatchExpression src, java.lang.reflect.Type type, JsonSerializationContext context) {
+            var obj = newgson(src, context);
+            obj.add("expression", context.serialize(src.expression));
+            var casesArray = new JsonArray();
+            for (var mc : src.cases) {
+                var caseObj = new JsonObject();
+                caseObj.add("caseExpression", context.serialize(mc.caseExpression));
+                caseObj.add("value", context.serialize(mc.value));
+                casesArray.add(caseObj);
+            }
+            obj.add("cases", casesArray);
+            return obj;
+        }
+
+        @Override
+        public JmlMatchExpression deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var obj = json.getAsJsonObject();
+            JCExpression expression = (JCExpression)fromJsonElement(obj.get("expression"));
+            ListBuffer<JmlMatchExpression.MatchCase> cases = new ListBuffer<>();
+            for (var elem : obj.get("cases").getAsJsonArray()) {
+                var caseObj = elem.getAsJsonObject();
+                var caseExpr = (JCExpression)fromJsonElement(caseObj.get("caseExpression"));
+                var value    = (JCExpression)fromJsonElement(caseObj.get("value"));
+                cases.add(new JmlMatchExpression.MatchCase(caseExpr, value));
+            }
+            var result = M.JmlMatchExpression(expression, cases.toList());
+            common(json, result, context);
+            return result;
+        }
+    }
 
     class JCMemberReferenceAdapter extends Adapter<JCMemberReference> {
         public static final String[] fields = { "mode", "typeargs", "expr", "name" };
@@ -1189,7 +1224,21 @@ public class JmlJson {
         }
     }
 
-    // TODO: JmlMethodClauseInvariants
+    class JmlMethodClauseInvariantsAdapter extends Adapter<JmlMethodClauseInvariants> {
+        // keyword and clauseKind are fixed by the constructor; include them for round-trip fidelity.
+        public static final String[] fields = { "name", "keyword", "clauseKind", "expressions" };
+        @Override
+        public JmlMethodClauseInvariants deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlMethodClauseInvariants(
+                    JmlJson.<JCExpression>toList(values[3])
+                    );
+            result.name = (Name)values[0];
+            common(json, result, context);
+            return result;
+        }
+    }
 
     class JmlMethodClauseSignalsAdapter extends Adapter<JmlMethodClauseSignals> {
         public static final String[] fields = { "name", "keyword", "clauseKind", "vardef", "expression" };
@@ -1267,7 +1316,8 @@ public class JmlJson {
     }
     
     class JCMethodInvocationAdapter extends Adapter<JCMethodInvocation> {
-        String[]fields = { "typeargs", "meth", "args" }; // FIXME - varargs? polyKind
+        // varargs (MethodSymbol) and polyKind (PolyKind) are post-attribution; excluded from AST-only output.
+        String[]fields = { "typeargs", "meth", "args" };
         @Override
         public JCMethodInvocation deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
@@ -1323,7 +1373,17 @@ public class JmlJson {
         }
     }
         
-// TODO: JmlModelProgramStatement
+    class JmlModelProgramStatementAdapter extends Adapter<JmlModelProgramStatement> {
+        public static final String[] fields = { "item" };
+        @Override
+        public JmlModelProgramStatement deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlModelProgramStatement((JCTree)values[0]);
+            common(json, result, context);
+            return result;
+        }
+    }
 
     class JmlModifiersAdapter extends Adapter<JmlModifiers> {
         public static final String[] fields = { "annotations", "flags", "jmlmods" };
@@ -1370,17 +1430,25 @@ public class JmlJson {
     }
 
     class JCNewArrayAdapter extends Adapter<JCNewArray> {
-        public static final String[] fields = { "annotations", "elemtype", "dims", "elems" }; // FIXME - dimAnnotations?
+        public static final String[] fields = { "annotations", "dimAnnotations", "elemtype", "dims", "elems" };
         @Override
+        @SuppressWarnings("unchecked")
         public JCNewArray deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
                 throws JsonParseException {
             var values = getFieldValues(json.getAsJsonObject());
             var result = M.NewArray(
-                    (JCExpression)values[1],
-                    JmlJson.<JCExpression>toList(values[2]),
-                    JmlJson.<JCExpression>toList(values[3]));
+                    (JCExpression)values[2],
+                    JmlJson.<JCExpression>toList(values[3]),
+                    JmlJson.<JCExpression>toList(values[4]));
             result.annotations = JmlJson.<JCAnnotation>toList(values[0]);
-            // result.dimAnnotations = JmlJson.<List<JCAnnotation>>toList(values[1]); // FIXME - this needs implementation
+            // dimAnnotations is List<List<JCAnnotation>>: one inner list per dimension.
+            if (values[1] != null) {
+                ListBuffer<List<JCAnnotation>> outer = new ListBuffer<>();
+                for (Object inner : (List<Object>)values[1]) {
+                    outer.add(JmlJson.<JCAnnotation>toList(inner));
+                }
+                result.dimAnnotations = outer.toList();
+            }
             common(json, result, context);
             return result;
         }
@@ -1763,10 +1831,73 @@ public class JmlJson {
         }
     }
 
-    // TODO: JmlStoreRef
-    // TODO: JmlStoreRefArrayRange
-    // TODO: JmlStoreRefKeyword
-    // TODO: JmlStoreRefListExpression
+    class JmlStoreRefAdapter extends Adapter<JmlStoreRef> {
+        // Symbol fields (local, field) are post-attribution; omit from AST-only output.
+        public static final String[] fields = { "isEverything", "expression", "receiver", "id", "range", "originalStoreRef" };
+        @Override
+        public JmlStoreRef deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlStoreRef(
+                    (boolean)values[0],          // isEverything
+                    null,                         // local (Symbol -- not serialized)
+                    (JCExpression)values[1],      // expression
+                    (JCExpression)values[2],      // receiver
+                    (JmlRange)values[4],          // range
+                    null,                         // field (VarSymbol -- not serialized)
+                    (JCExpression)values[5]       // originalStoreRef
+                    );
+            result.id = (JCIdent)values[3];
+            common(json, result, context);
+            return result;
+        }
+    }
+
+    class JmlStoreRefArrayRangeAdapter extends Adapter<JmlStoreRefArrayRange> {
+        public static final String[] fields = { "expression", "lo", "hi" };
+        @Override
+        public JmlStoreRefArrayRange deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            // No factory method exists; use constructor directly (same pattern as JCMemberReference).
+            var result = new JmlStoreRefArrayRange(
+                    0,
+                    (JCExpression)values[0],
+                    (JCExpression)values[1],
+                    (JCExpression)values[2]
+                    );
+            common(json, result, context);
+            return result;
+        }
+    }
+
+    class JmlStoreRefKeywordAdapter extends Adapter<JmlStoreRefKeyword> {
+        public static final String[] fields = { "kind" };
+        @Override
+        public JmlStoreRefKeyword deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            // No factory method exists; use constructor directly.
+            var result = new JmlStoreRefKeyword(0, (IJmlClauseKind)values[0]);
+            common(json, result, context);
+            return result;
+        }
+    }
+
+    class JmlStoreRefListExpressionAdapter extends Adapter<JmlStoreRefListExpression> {
+        public static final String[] fields = { "token", "list" };
+        @Override
+        public JmlStoreRefListExpression deserialize(JsonElement json, java.lang.reflect.Type typeOfT, JsonDeserializationContext context)
+                throws JsonParseException {
+            var values = getFieldValues(json.getAsJsonObject());
+            var result = M.JmlStoreRefListExpression(
+                    (IJmlClauseKind)values[0],
+                    JmlJson.<JCExpression>toList(values[1])
+                    );
+            common(json, result, context);
+            return result;
+        }
+    }
     
 // Java String templates are a preview feature in Java V21 that is removed in Java 23ff for future redesign.
 //    class JCStringTemplateAdapter extends Adapter<JCStringTemplate> {
