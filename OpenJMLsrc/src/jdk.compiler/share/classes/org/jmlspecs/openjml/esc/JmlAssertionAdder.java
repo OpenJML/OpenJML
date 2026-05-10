@@ -279,6 +279,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final public Type RANGE = JmlPrimitiveTypes.rangeTypeKind.getType(context);
     final public Type LOCSET = JmlPrimitiveTypes.locsetTypeKind.getType(context);
 
+    final public Type closeableType;
 
     /**
      * The Name used for holding the location at which the final return or throw
@@ -659,6 +660,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.copier = new Copier(context,M);
 		// this.reader.init(syms); // FIXME?
 		this.utilsClass = !rac ? null : reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
+		this.closeableType = syms.enterClass("java.io.Closeable");
 
 		initialize();
 
@@ -7172,11 +7174,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCTree resource = that.resources.head;
 		List<JCTree> resourceRest = that.resources.tail;
 		int pos = resource.pos;
-		JCVariableDecl decl = (JCVariableDecl) resource;
-		decl.mods.flags |= Flags.FINAL; // implicitly final
-
-		ListBuffer<JCStatement> stats = new ListBuffer<>();
-		stats.add((JCStatement) resource);
+		VarSymbol resourceSym = null;
+        ListBuffer<JCStatement> stats = new ListBuffer<>();
+		if (resource instanceof JCVariableDecl decl) {
+		    decl.mods.flags |= Flags.FINAL; // implicitly final
+		    resourceSym = decl.sym;
+	        stats.add(decl);
+		} else if (resource instanceof JCIdent id) {
+		    resourceSym = (VarSymbol)id.sym;
+		}
 
 		Name throwableName = names.fromString("__JMLthrowableException_" + resource.pos);
 		JCVariableDecl throwableDecl = treeutils.makeVarDef(syms.throwableType, throwableName,
@@ -7205,8 +7211,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		JCCatch newCatch = M.at(pos).Catch(catchDecl, M.at(pos).Block(0L, List.<JCStatement>of(exStat, exThrow)));
 
-		JCIdent id = treeutils.makeIdent(pos, decl.sym);
-		MethodSymbol msym = findCloseMethod((ClassSymbol) resource.type.tsym);
+		JCIdent id = treeutils.makeIdent(pos, resourceSym);
+		Type ts = resource.type;
+		while (ts instanceof Type.TypeVar tvs) {
+		    // Which super interface/class is found makes a difference in which kind of exception might be thrown from close().
+		    // FIXME - do we have to look at the nearest super-interface that has a close() method?
+            ts = types.asSuper(tvs, closeableType.tsym);
+            if (ts == null) ts = types.asSuper(tvs, syms.autoCloseableType.tsym);
+		}
+		MethodSymbol msym = findCloseMethod((ClassSymbol) ts.tsym);
 		M.at(pos);
 		JCExpression fcn1 = M.Select(id, msym);
 		fcn1.type = msym.type;
@@ -7238,7 +7251,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCStatement thenpart = M.at(pos).Block(0L, List.<JCStatement>of(
 				M.If(comp, M.at(pos).Block(0L, List.<JCStatement>of(closetry)), closeCall2).setType(syms.booleanType)));
 
-		comp = newTempIfNeeded(treeutils.makeNotNull(pos, treeutils.makeIdent(pos, decl.sym)));
+		comp = newTempIfNeeded(treeutils.makeNotNull(pos, treeutils.makeIdent(pos, resourceSym)));
 		addStat(M.at(pos).If(comp, thenpart, null).setType(syms.booleanType));
 		popBlock();
         JCBlock finalBlock = M.at(pos).Block(0L, finalstats.toList());

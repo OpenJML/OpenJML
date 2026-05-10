@@ -330,4 +330,57 @@ public class escswitch extends EscBase {
                 }
                 """);
     }
+
+    /** Switch expression with a throw arm — yield arm should not crash visitYield. */
+    @Test
+    public void testSwitchExprThrowArm() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    //@ ensures \\result != null;
+                    public static /*@ pure */ String describe(int n) {
+                        return switch (n) {
+                            case 1 -> "one";
+                            default -> throw new RuntimeException("unexpected: " + n);
+                        };
+                    }
+                }
+                """);
+    }
+
+    /** Switch expression where throw arm has concatenation — exercises both bugs together. */
+    @Test
+    public void testSwitchExprThrowArmWithConcat() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    //@ ensures \\result != null;
+                    public static /*@ pure */ String label(int n) {
+                        return switch (n) {
+                            case 0 -> "zero";
+                            case 1 -> "one";
+                            default -> throw new IllegalArgumentException("bad value: " + n);
+                        };
+                    }
+                }
+                """);
+    }
+
+    /** Multi-type switch expression yield with throw arm (annotation mismatch path). */
+    @Test
+    public void testSwitchExprObjectYieldThrowArm() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    public static Object coerce(int n) {
+                        return switch (n) {
+                            case 0 -> "zero";
+                            case 1 -> 1;
+                            default -> throw new IllegalArgumentException();
+                        };
+                    }
+                }
+                """);
+    }
+
 }
