@@ -752,4 +752,93 @@ public class escTryWithResources extends EscBase {
                 }
                 """);
     }
+
+    // -----------------------------------------------------------------------
+    // Additional scenarios from PR#951
+    // -----------------------------------------------------------------------
+
+    /** Field access expression resource: try (this.stream) */
+    @Test public void testTryResourcesFieldAccess() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    final InputStream stream;
+                    A(InputStream s) throws IOException { this.stream = s; }
+                    void process() throws IOException {
+                        try (this.stream) {
+                            stream.read();
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** Mixed declaration and expression resources in one try statement. */
+    @Test public void testTryResourcesMixed() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    void process(/*@ non_null */ InputStream existing) throws IOException {
+                        try (existing;
+                             BufferedReader br = new BufferedReader(new InputStreamReader(existing))) {
+                            System.out.println(br.readLine());
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** Mixed expression and generic declaration resources. */
+    @Test public void testTryResourcesMixedGeneric() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    static <R extends Closeable> void process(/*@ non_null */ R resource,
+                            /*@ non_null */ InputStream extra) throws IOException {
+                        try (R r = resource;
+                             extra) {
+                            System.out.println(r);
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** TWR nested inside a try-catch block. */
+    @Test public void testTryResourcesNestedInTryCatch() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    void process(/*@ non_null */ InputStream in) {
+                        try {
+                            try (in) {
+                                in.read();
+                            }
+                        } catch (IOException e) {
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** Nested try-with-resources statements. */
+    @Test public void testTryResourcesNestedTwr() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    void process(/*@ non_null */ String path) throws IOException {
+                        try (FileInputStream fis = new FileInputStream(path)) {
+                            try (BufferedInputStream bis = new BufferedInputStream(fis)) {
+                                bis.read();
+                            }
+                        }
+                    }
+                }
+                """);
+    }
 }
