@@ -1281,6 +1281,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCStatement s = iter.next();
 					convert(s);
 				} // TODO: Warn if continuation is EXIT and there are remaining statements?
+
+				// Record compact constructors: the compiler (Lower.java) appends
+				// this.field = param for each record component AFTER the user body.
+				// Lower runs after ESC, so synthesize assume this.field == param here.
+				if (isConstructor && esc
+						&& ((methodDecl.sym.flags() & Flags.COMPACT_RECORD_CONSTRUCTOR) != 0
+							|| ((methodDecl.sym.flags() & (Flags.GENERATEDCONSTR | Flags.RECORD))
+									== (Flags.GENERATEDCONSTR | Flags.RECORD)))) {
+				    try {
+					addStat(comment(methodDecl,
+							"Record component field assignments (implicit)", null));
+					var fa = treeutils.makeSelect(pmethodDecl.pos, currentEnv.currentReceiver, (Name)null);
+					havocHelper(pmethodDecl, List.<JCExpression>of(fa), false);
+					for (Symbol sym : classDecl.sym.getEnclosedElements()) {
+						if (sym.kind == Kinds.Kind.VAR
+								&& (sym.flags() & Flags.RECORD) != 0) {
+							for (JCVariableDecl param : methodDecl.params) {
+								if (param.name == sym.name) {
+									JCExpression field =
+											treeutils.makeSelect(param.pos, currentEnv.currentReceiver, sym);
+									JCExpression paramExpr =
+											treeutils.makeIdent(param.pos, param.sym);
+									addAssumeEqual(param.pos(),
+											Label.IMPLICIT_ASSUME, field, paramExpr);
+									break;
+								}
+							}
+						}
+					}
+				    } catch (Throwable t) {
+				        System.out.println("EXCEPTION " + t);
+				        t.printStackTrace(System.out);
+				    }
+				}
+
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
 				if (continuation == Continuation.CONTINUE) {
@@ -8879,6 +8914,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			that.args.forEach(a-> System.out.println("  ARG " + a + " " + a.type));
 			return;
 		}
+	    if (esc && that.meth instanceof JCIdent id && id.name == names._super && id.sym.owner == syms.recordType.tsym) {
+	        // Calling the constructor of java.lang.Record has no effect. If we did process this call, we would
+	        // have to be sure that the constructor was properly specified as pure and normal_behavior.
+	        return;
+	    }
 
         var savedTypevarMapping = typevarMapping;
         typevarMapping = new HashMap<>();
@@ -10995,6 +11035,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                                         if (clause.clauseKind == accessibleClauseKind) {
                                             anyReads = true;
+                                            System.out.println("DEBUG " + that + " " + clause);
                                             readsListsBuffer.add(convertFrameConditionList(clause, copy(pre), cst.list));
                                         } else if (clause.clauseKind == assignableClauseKind) {
                                             anyAssigns = true;
