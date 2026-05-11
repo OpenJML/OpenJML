@@ -10,7 +10,7 @@ public class typecheckswitch extends TCBase {
     public void setUp() throws Exception {
         super.setUp();
         addOptions("--source", "21");
-        addOptions("--enable-preview"); // To allow unnamed vars
+        addOptions("--enable-preview"); // Needed to allow unnamed vars in patterns
         addOptions("--check");
         expectedExit = 0;
     }

@@ -1066,4 +1066,171 @@ public class racnew3 extends RacBase {
                 );
     }
 
+    // -----------------------------------------------------------------------
+    // Pattern-matching switch tests
+    // -----------------------------------------------------------------------
+
+    /** Binding pattern: case String s matches a String and binds it. */
+    @Test
+    public void testPatternSwitchBindingPattern() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public static int classify(Object o) {
+                        return switch (o) {
+                            case String s -> s.length();
+                            case Integer i -> i;
+                            default -> -1;
+                        };
+                    }
+                    public static void main(String... args) {
+                        //@ assert classify("hello") == 5;
+                        //@ assert classify(42) == 42;
+                        //@ assert classify(3.14) == -1;
+                        //@ assert classify("hello") == 99;  // ERROR - line 13
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                );
+    }
+
+    /** Guarded pattern: when clause further constrains the match. */
+    @Test
+    public void testPatternSwitchGuardedPattern() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public static String size(Object o) {
+                        return switch (o) {
+                            case Integer i when i > 100 -> "large";
+                            case Integer i when i > 10  -> "medium";
+                            case Integer i              -> "small";
+                            default                     -> "other";
+                        };
+                    }
+                    public static void main(String... args) {
+                        //@ assert size(200).equals("large");
+                        //@ assert size(50).equals("medium");
+                        //@ assert size(5).equals("small");
+                        //@ assert size("x").equals("other");
+                        //@ assert size(50).equals("large");  // ERROR - line 15
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:15: JML assertion is false"
+                );
+    }
+
+    /** Null case label: explicit null matching in switch. */
+    @Test
+    public void testPatternSwitchNullCase() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public static String describe(Object o) {
+                        return switch (o) {
+                            case null    -> "nothing";
+                            case String s -> "string:" + s;
+                            default      -> "other";
+                        };
+                    }
+                    public static void main(String... args) {
+                        //@ assert describe(null).equals("nothing");
+                        //@ assert describe("hi").equals("string:hi");
+                        //@ assert describe(42).equals("other");
+                        //@ assert describe(null).equals("something");  // ERROR - line 13
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                );
+    }
+
+    /** Sealed interface with binding patterns — exhaustive switch. */
+    @Test
+    public void testPatternSwitchSealedInterface() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    sealed interface Shape permits Circle, Rect {}
+                    record Circle(double r) implements Shape {}
+                    record Rect(double w, double h) implements Shape {}
+                    public static String name(Shape s) {
+                        return switch (s) {
+                            case Circle c -> "circle";
+                            case Rect r   -> "rect";
+                        };
+                    }
+                    public static void main(String... args) {
+                        //@ assert name(new Circle(1.0)).equals("circle");
+                        //@ assert name(new Rect(2.0, 3.0)).equals("rect");
+                        //@ assert name(new Circle(1.0)).equals("rect");  // ERROR - line 15
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:15: JML assertion is false"
+                );
+    }
+
+    /** Nested record patterns: matching Add(Lit(a), Lit(b)) requires two levels
+     *  of destructuring — the outer Add and the inner Lit components. */
+    @Test
+    public void testPatternSwitchNestedRecordPattern() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    sealed interface Expr permits Lit, Add {}
+                    record Lit(int v) implements Expr {}
+                    record Add(Expr left, Expr right) implements Expr {}
+                    public static int eval(Expr e) {
+                        return switch (e) {
+                            case Add(Lit(int a), Lit(int b)) -> a + b;
+                            case Add(Lit(int a), Add(Lit(int b), Lit(int c))) -> a + b + c;
+                            case Lit(int v) -> v;
+                            default -> -1;
+                        };
+                    }
+                    public static void main(String... args) {
+                        //@ assert eval(new Lit(7)) == 7;
+                        //@ assert eval(new Add(new Lit(3), new Lit(4))) == 7;
+                        //@ assert eval(new Add(new Lit(1), new Add(new Lit(2), new Lit(3)))) == 6;
+                        //@ assert eval(new Add(new Lit(3), new Lit(4))) == 10;  // ERROR - line 19
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:19: JML assertion is false"
+                );
+    }
+
+    /** Record pattern destructuring in switch expression. */
+    @Test
+    public void testPatternSwitchRecordPattern() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    record Point(int x, int y) {}
+                    public static int sum(Object o) {
+                        return switch (o) {
+                            case Point(int x, int y) -> x + y;
+                            default -> -1;
+                        };
+                    }
+                    public static void main(String... args) {
+                        //@ assert sum(new Point(3, 4)) == 7;
+                        //@ assert sum(new Point(0, 0)) == 0;
+                        //@ assert sum("not a point") == -1;
+                        //@ assert sum(new Point(3, 4)) == 10;  // ERROR - line 13
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:13: JML assertion is false"
+                );
+    }
 }
