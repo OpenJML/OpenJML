@@ -1051,6 +1051,12 @@ public class JmlSpecs {
         } else if ((sym.owner.flags() & Flags.RECORD) != 0) { // Only generate default record specs for esc
             if (utils.esc && sym.isConstructor() && (sym.flags() & Flags.GENERATEDCONSTR) != 0) {
                 ListBuffer<JmlMethodClause> clauses = new ListBuffer<>();
+                if (decl != null) for (JCVariableDecl param: decl.params) {
+                    VarSymbol field = (VarSymbol)sym.owner.members().findFirst(param.name, s->(s instanceof VarSymbol));
+                    var fieldSpecs = new FieldSpecs((JmlVariableDecl)param);
+                    fieldSpecs.mods.jmlmods.add(new JmlToken(Modifiers.SPEC_PUBLIC, param.pos, param.pos+1)); // FIXME - actually would like the token corresponding to the name, or at least its positions
+                    putSpecs(field, fieldSpecs);
+                }
                 for (VarSymbol param: sym.params) { 
                     Symbol field = sym.owner.members().findFirst(param.name, s->!(s instanceof MethodSymbol));
                     // At this point thisSymbol is not yet available, so we can't make the expression this.x == x
@@ -1078,21 +1084,19 @@ public class JmlSpecs {
                     var thissym = cspecs.javaDecl.thisSymbol;
                     ListBuffer<JmlMethodClause> clauses = new ListBuffer<>();
                     if (utils.esc) { 
+                        // Note: This code is executed before the record class is attributed and thissym computed and stored
                         JmlMethodClause clp = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind,
                                 com.sun.tools.javac.util.List.<JCExpression>of(new JmlTree.JmlStoreRefKeyword(pos,nothingKind)));
                         clauses.add(clp);
                         var nm = sym.name;
                         var res = M.at(pos).JmlSingleton(SingletonExpressions.resultKind);
                         res.type = field.type;
-                        var id = M.at(pos).Ident(names._this);
-                        id.sym = thissym;
-                        id.type = sym.owner.type;
-                        var fa = M.at(pos).Select(id, nm);
-                        fa.type = field.type;
-                        fa.sym = field;
-                        var eq = treeutils.makeEqObject(pos, res, fa);
+                        var idd = M.at(pos).Ident(nm);
+                        idd.sym = field;
+                        idd.type = field.type;
+                        var eq = treeutils.makeEqObject(pos, res, idd);
                         JmlMethodClause reads = M.at(pos).JmlMethodClauseStoreRef(readsID, accessibleClauseKind, 
-                                com.sun.tools.javac.util.List.<JCExpression>of(fa));
+                                com.sun.tools.javac.util.List.<JCExpression>of(idd));
                         clauses.add(reads);
                         JmlMethodClause ens = M.at(pos).JmlMethodClauseExpr(ensuresID, ensuresClauseKind, eq);
                         clauses.add(ens);
@@ -1101,6 +1105,7 @@ public class JmlSpecs {
                     JmlSpecificationCase cs = M.at(pos).JmlSpecificationCase( csm, false, MethodSimpleClauseExtensions.normalBehaviorClause,null,clauses.toList(),null);
                     mspecs.cases.cases = com.sun.tools.javac.util.List.<JmlSpecificationCase>of(cs);
                     addModifier(pos, Modifiers.STRICTLY_PURE, mods);
+                    addModifier(pos, Modifiers.HELPER, mods);
                     JmlSpecs.instance(context).putSpecs(sym, mspecs);
                     return mspecs;
 

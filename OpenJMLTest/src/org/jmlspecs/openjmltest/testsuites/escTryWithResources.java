@@ -251,7 +251,7 @@ public class escTryWithResources extends EscBase {
     }
 
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
-     public void testTryResources2a() {
+    @Test public void testTryResources2a() {
         addOptions("--check-feasibility=assert","--defaults=constructor:pure");
         helpEsc("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -466,7 +466,7 @@ public class escTryWithResources extends EscBase {
     }
 
     // -----------------------------------------------------------------------
-    // Java 9+ expression resources — flag-based verification with RR/RR2
+    // Java 9+ expression resources -- flag-based verification with RR/RR2
     // These use the same pattern as the declaration tests above but pass an
     // already-declared variable as the resource: try (r) or try (r2; r).
     // -----------------------------------------------------------------------
@@ -680,6 +680,162 @@ public class escTryWithResources extends EscBase {
                             throws Exception {
                         try (resource) {
                             resource.toString();
+                        }
+                    }
+                }
+                """);
+    }
+
+    // -----------------------------------------------------------------------
+    // TypeVar resolution for signals_only: verifies that close() is resolved
+    // to the most specific bound, preserving its declared throws clause.
+    // With Closeable as the bound, close() declares only IOException.
+    // If the resolver falls back to AutoCloseable, close() declares Exception,
+    // and signals_only IOException would be incorrectly flagged as a violation.
+    // -----------------------------------------------------------------------
+
+    /** Chained type variables: R extends S, S extends Closeable.
+     *  The resolver walks R -> S -> Closeable, finding close() throws IOException. */
+    @Test public void testTryResourcesChainedTypeVar() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    //@ requires resource != null;
+                    //@ signals_only IOException;
+                    public static <S extends Closeable, R extends S> void use(R resource)
+                            throws IOException {
+                        try (resource) {
+                            resource.toString();
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** Intersection bound: R extends Closeable & Serializable.
+     *  Closeable is the most specific AutoCloseable component, so
+     *  close() is resolved as throwing IOException. */
+    @Test public void testTryResourcesIntersectionBoundCloseable() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    //@ requires resource != null;
+                    //@ signals_only IOException;
+                    public static <R extends Closeable & Serializable> void use(R resource)
+                            throws IOException {
+                        try (resource) {
+                            var r = resource;
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** Intersection bound with a concrete class: R extends InputStream & Serializable.
+     *  InputStream extends Closeable, so close() throws IOException -- more specific
+     *  than if we had fallen back to AutoCloseable. */
+    @Test public void testTryResourcesIntersectionBoundConcreteClass() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    //@ requires resource != null;
+                    //@ signals_only IOException, RuntimeException;
+                    public static <R extends InputStream & Serializable> void use(R resource)
+                            throws IOException {
+                        try (resource) {
+                            resource.read();
+                        }
+                    }
+                }
+                """);
+    }
+
+    // -----------------------------------------------------------------------
+    // Additional scenarios from PR#951
+    // -----------------------------------------------------------------------
+
+    /** Field access expression resource: try (this.stream) */
+    @Test public void testTryResourcesFieldAccess() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    final InputStream stream;
+                    A(InputStream s) throws IOException { this.stream = s; }
+                    void process() throws IOException {
+                        try (this.stream) {
+                            stream.read();
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** Mixed declaration and expression resources in one try statement. */
+    @Test public void testTryResourcesMixed() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    void process(/*@ non_null */ InputStream existing) throws IOException {
+                        try (existing;
+                             BufferedReader br = new BufferedReader(new InputStreamReader(existing))) {
+                            System.out.println(br.readLine());
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** Mixed expression and generic declaration resources. */
+    @Test public void testTryResourcesMixedGeneric() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    static <R extends Closeable> void process(/*@ non_null */ R resource,
+                            /*@ non_null */ InputStream extra) throws IOException {
+                        try (R r = resource;
+                             extra) {
+                            System.out.println(r);
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** TWR nested inside a try-catch block. */
+    @Test public void testTryResourcesNestedInTryCatch() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    void process(/*@ non_null */ InputStream in) {
+                        try {
+                            try (in) {
+                                in.read();
+                            }
+                        } catch (IOException e) {
+                        }
+                    }
+                }
+                """);
+    }
+
+    /** Nested try-with-resources statements. */
+    @Test public void testTryResourcesNestedTwr() {
+        helpEsc("tt.A", """
+                package tt;
+                import java.io.*;
+                public class A {
+                    void process(/*@ non_null */ String path) throws IOException {
+                        try (FileInputStream fis = new FileInputStream(path)) {
+                            try (BufferedInputStream bis = new BufferedInputStream(fis)) {
+                                bis.read();
+                            }
                         }
                     }
                 }

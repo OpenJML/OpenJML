@@ -1281,6 +1281,41 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCStatement s = iter.next();
 					convert(s);
 				} // TODO: Warn if continuation is EXIT and there are remaining statements?
+
+				// Record compact constructors: the compiler (Lower.java) appends
+				// this.field = param for each record component AFTER the user body.
+				// Lower runs after ESC, so synthesize assume this.field == param here.
+				if (isConstructor && esc
+						&& ((methodDecl.sym.flags() & Flags.COMPACT_RECORD_CONSTRUCTOR) != 0
+							|| ((methodDecl.sym.flags() & (Flags.GENERATEDCONSTR | Flags.RECORD))
+									== (Flags.GENERATEDCONSTR | Flags.RECORD)))) {
+				    try {
+					addStat(comment(methodDecl,
+							"Record component field assignments (implicit)", null));
+					var fa = treeutils.makeSelect(pmethodDecl.pos, currentEnv.currentReceiver, (Name)null);
+					havocHelper(pmethodDecl, List.<JCExpression>of(fa), false);
+					for (Symbol sym : classDecl.sym.getEnclosedElements()) {
+						if (sym.kind == Kinds.Kind.VAR
+								&& (sym.flags() & Flags.RECORD) != 0) {
+							for (JCVariableDecl param : methodDecl.params) {
+								if (param.name == sym.name) {
+									JCExpression field =
+											treeutils.makeSelect(param.pos, currentEnv.currentReceiver, sym);
+									JCExpression paramExpr =
+											treeutils.makeIdent(param.pos, param.sym);
+									addAssumeEqual(param.pos(),
+											Label.IMPLICIT_ASSUME, field, paramExpr);
+									break;
+								}
+							}
+						}
+					}
+				    } catch (Throwable t) {
+				        System.out.println("EXCEPTION " + t);
+				        t.printStackTrace(System.out);
+				    }
+				}
+
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
 				if (continuation == Continuation.CONTINUE) {
@@ -7387,11 +7422,47 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		JCIdent id = treeutils.makeIdent(pos, resourceSym);
 		Type ts = resource.type;
+		// Walk the TypeVar chain to find the most specific declared class bound,
+		// preserving its close() declaration and thus the exceptions it may throw.
+		//   <R extends Closeable>      -> Closeable.close()  throws IOException
+		//   <R extends SomeStream>     -> SomeStream.close() with its declared throws
+		//   <R extends AutoCloseable>  -> AutoCloseable.close() throws Exception
+		//   <R extends A & B>         -> most specific AutoCloseable component of A, B
 		while (ts instanceof Type.TypeVar tvs) {
-		    // Which super interface/class is found makes a difference in which kind of exception might be thrown from close().
-		    // FIXME - do we have to look at the nearest super-interface that has a close() method?
-            ts = types.asSuper(tvs, closeableType.tsym);
-            if (ts == null) ts = types.asSuper(tvs, syms.autoCloseableType.tsym);
+		    Type bound = tvs.getUpperBound();
+		    if (bound != null && !bound.isCompound() && bound.tsym instanceof ClassSymbol) {
+		        // Single concrete class or interface bound -- use directly.
+		        ts = bound;
+		    } else if (bound instanceof Type.TypeVar) {
+		        // Chained type variable -- continue walking.
+		        ts = bound;
+		    } else if (bound != null && bound.isCompound()) {
+		        // Intersection bound (e.g. <R extends A & B>):
+		        // Find the most specific component that is a subtype of AutoCloseable.
+		        // A more specific component has a more constrained close() signature
+		        // (e.g. Closeable.close() throws IOException rather than Exception).
+		        Type best = null;
+		        for (Type component : types.directSupertypes(bound)) {
+		            if (!types.isSubtype(component, syms.autoCloseableType)) continue;
+		            if (best == null || types.isSubtype(component, best)) {
+		                best = component; // component is more specific than current best
+		            }
+		        }
+		        ts = best != null ? best : syms.autoCloseableType;
+		        break;
+		    } else {
+		        // No recognizable bound -- this should not happen if the Java type
+		        // checker accepted the resource as AutoCloseable-compatible.
+		        utils.warning(resource, "jml.message",
+		            "Could not determine specific AutoCloseable bound for type variable "
+		            + tvs + "; falling back to AutoCloseable.close() which declares "
+		            + "'throws Exception'. This may cause spurious signals_only failures.");
+		        Type closeableBound = types.asSuper(tvs, closeableType.tsym);
+		        ts = closeableBound != null ? closeableBound
+		                                    : types.asSuper(tvs, syms.autoCloseableType.tsym);
+		        if (ts == null) ts = syms.autoCloseableType;
+		        break;
+		    }
 		}
 		MethodSymbol msym = findCloseMethod((ClassSymbol) ts.tsym);
 		M.at(pos);
@@ -9017,6 +9088,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			that.args.forEach(a-> System.out.println("  ARG " + a + " " + a.type));
 			return;
 		}
+	    if (esc && that.meth instanceof JCIdent id && id.name == names._super && id.sym.owner == syms.recordType.tsym) {
+	        // Calling the constructor of java.lang.Record has no effect. If we did process this call, we would
+	        // have to be sure that the constructor was properly specified as pure and normal_behavior.
+	        return;
+	    }
 
         var savedTypevarMapping = typevarMapping;
         typevarMapping = new HashMap<>();

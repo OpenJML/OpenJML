@@ -512,6 +512,12 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
+    public void record1() {
+        expectedExit = 6;
+        helpEscSimple();
+    }
+
+    @Test
     public void refining() {
         expectedExit = 6;
         helpEscSimple();

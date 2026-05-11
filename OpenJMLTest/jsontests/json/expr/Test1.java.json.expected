@@ -580,6 +580,7 @@
             "@class": "com.sun.tools.javac.tree.JCTree$JCNewArray",
             "@id": "88",
             "annotations": [],
+            "dimAnnotations": [],
             "elemtype": {
               "@class": "com.sun.tools.javac.tree.JCTree$JCPrimitiveTypeTree",
               "@id": "89",
@@ -644,6 +645,9 @@
             "@class": "com.sun.tools.javac.tree.JCTree$JCNewArray",
             "@id": "95",
             "annotations": [],
+            "dimAnnotations": [
+              []
+            ],
             "elemtype": {
               "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
               "@id": "96",

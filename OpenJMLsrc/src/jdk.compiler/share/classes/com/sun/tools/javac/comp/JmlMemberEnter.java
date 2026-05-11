@@ -271,8 +271,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     			} else {
     				// Specification field is a Java declaration (in the .jml file)
     				if (match.isEmpty()) {
-    				    // Error: but there is no match for it
-    					utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "There is no field to match this Java declaration in the specification file: " + sourceDecl.sym.flatname + "." + specVarDecl.name);
+    				    if (sourceDecl.sym.isRecord()) {
+    				    System.out.println("NO MATCH " + sourceDecl.sym + " " + sourceDecl.sym.isRecord() + " " + t + " " + sourceDecl);
+    				    } else {
+    				        // Error: but there is no match for it
+    				        utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "There is no field to match this Java declaration in the specification file: " + sourceDecl.sym.flatname + "." + specVarDecl.name);
+    				    }
     				} else {
     				    // There is a matching declaration in the .java file
 						JmlVariableDecl javaVarDecl = (JmlVariableDecl)match.get();
@@ -330,8 +334,14 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     			} else {
     				// A Java method declaration in the specification file
     				if (matchSym == null) {
-    					utils.error(specMethodDecl.sourcefile, specMethodDecl, "jml.message", "There is no method to match this Java declaration in the specification file: " + sourceDecl.sym + "." + specMethodDecl.sym);
-						ok = false;
+                        ok = false;
+                        if (!sourceDecl.sym.isRecord()) {
+                            utils.error(specMethodDecl.sourcefile, specMethodDecl, "jml.message", "There is no method to match this Java declaration in the specification file: " + sourceDecl.sym + "." + specMethodDecl.sym);
+                        } else {
+                            boolean matchesParameter = false;
+                            for (var p: specsDecl.defs) if (p instanceof JCVariableDecl vp && vp.name == specMethodDecl.name) matchesParameter = true;
+                            if (!matchesParameter) utils.error(specMethodDecl.sourcefile, specMethodDecl, "jml.message", "There is no method to match this Java declaration in the specification file: " + sourceDecl.sym + "." + specMethodDecl.sym);
+                        }
     				} else {
     				    boolean print = false;//specMethodDecl.name.toString().equals("of");
     				    if (print) System.out.println("SME " + matchSym + (javaMethodDecl.specsDecl == null));

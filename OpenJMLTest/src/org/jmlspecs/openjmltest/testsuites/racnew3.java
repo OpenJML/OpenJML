@@ -1015,4 +1015,55 @@ public class racnew3 extends RacBase {
                 );
     }
 
+    // -----------------------------------------------------------------------
+    // Record constructor tests
+    // -----------------------------------------------------------------------
+
+    // Default (generated) canonical constructor: confirms fields equal the
+    // constructor arguments at runtime.
+    @Test
+    public void testRecordDefaultConstructor() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    record Point(int x, int y) {}
+                    public static void main(String... args) {
+                        Point p = new Point(3, 4);
+                        //@ assert p.x() == 3;
+                        //@ assert p.y() == 4;
+                        //@ assert p.x() == 100;  // ERROR - line 8
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:8: JML assertion is false"
+                );
+    }
+
+    // Compact constructor that reassigns x = 10 in the body.
+    // Confirms that Lower.java assigns this.x = x (the new value 10)
+    // and this.y = y (unchanged as 4) after the body runs.
+    @Test
+    public void testRecordCompactConstructorWithReassignment() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    record Point(int x, int y) {
+                        Point {
+                            x = 10;  // reassign x in compact body
+                        }
+                    }
+                    public static void main(String... args) {
+                        Point p = new Point(3, 4);
+                        //@ assert p.x() == 10;  // body set x=10, so field is 10
+                        //@ assert p.y() == 4;   // y unchanged
+                        //@ assert p.x() == 100;  // ERROR - line 12
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:12: JML assertion is false"
+                );
+    }
+
 }
