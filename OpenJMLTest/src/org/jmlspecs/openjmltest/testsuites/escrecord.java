@@ -257,7 +257,7 @@ public class escrecord extends EscBase {
                 import org.jmlspecs.annotation.*;
                 public class A {
                     record NonEmpty(int kkk, int mmm) {
-                        //@ public normal_behavior
+                        //@ normal_behavior
                         //@ ensures this.kkk == 10;
                         //@ ensures this.mmm == mmm;
                         //@ pure
@@ -277,7 +277,7 @@ public class escrecord extends EscBase {
                 import org.jmlspecs.annotation.*;
                 public class A {
                     record NonEmpty(int kkk, int mmm) {
-                        //@ public normal_behavior
+                        //@ normal_behavior
                         //@ ensures this.kkk == 10;
                         //@ ensures this.mmm == 100;
                         //@ pure
@@ -286,7 +286,10 @@ public class escrecord extends EscBase {
                         }
                     }
                 }
-                """);
+                """
+                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition) in method NonEmpty", 9
+                ,"/tt/A.java:7: verify: Associated declaration", 13
+                );
     }
 
     /** Pure record method. */
@@ -301,6 +304,35 @@ public class escrecord extends EscBase {
                     }
                 }
                 """);
+    }
+
+    @Test
+    public void testRecordCustomGetter() {
+        helpEsc("A", """
+                import org.jmlspecs.annotation.*;
+                class A {
+                    record IntPair(int x, int y) {
+                        //@ ensures \\result == 10;
+                        /*@ pure */ public int x() { return 10; }
+                    }
+                }
+                """);
+    }
+
+    @Test
+    public void testRecordCustomGetterError() {
+        helpEsc("A", """
+                import org.jmlspecs.annotation.*;
+                class A {
+                    record IntPair(int x, int y) {
+                        //@ ensures \\result == x; // ERROR
+                        /*@ pure */ public int x() { return 10; }
+                    }
+                }
+                """
+                ,"/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method x", 38
+                ,"/A.java:4: verify: Associated declaration", 13
+                );
     }
 
     // =======================================================================

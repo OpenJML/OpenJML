@@ -11035,7 +11035,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                                         if (clause.clauseKind == accessibleClauseKind) {
                                             anyReads = true;
-                                            System.out.println("DEBUG " + that + " " + clause);
                                             readsListsBuffer.add(convertFrameConditionList(clause, copy(pre), cst.list));
                                         } else if (clause.clauseKind == assignableClauseKind) {
                                             anyAssigns = true;
