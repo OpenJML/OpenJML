@@ -1795,6 +1795,9 @@ public class JmlEnter extends Enter {
 	 * @param csymbol the class whose specs are wanted
 	 */
 	public boolean requestSpecs(ClassSymbol csymbol) {
+	    // Synthetic intersection class symbols (e.g. from <R extends A & B>) have no
+	    // source or spec file; there is nothing to load and they must not enter the queue.
+	    if (csymbol.type instanceof Type.IntersectionClassType) return true;
 	    // Requests for nested classes are changed to a request for their outermost class
 		while (csymbol.owner instanceof ClassSymbol)
 			csymbol = (ClassSymbol) csymbol.owner;
@@ -1875,6 +1878,11 @@ public class JmlEnter extends Enter {
 		JmlSpecs specs = JmlSpecs.instance(context);
 		while (!binaryEnterTodo.isEmpty()) {
 			ClassSymbol csymbol = binaryEnterTodo.remove();
+			if (csymbol.type instanceof Type.IntersectionClassType) {
+			    // Synthetic intersection class symbols (e.g. from <R extends A & B>) have no
+			    // spec file and carry the source env of their enclosing class.  Skip them.
+			    continue;
+			}
 			var sourceEnv = getEnv(csymbol);
 			if (sourceEnv != null) {
 			    // This is fairly drastic violation of understood invariants.

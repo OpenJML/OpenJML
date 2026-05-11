@@ -7213,11 +7213,47 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		JCIdent id = treeutils.makeIdent(pos, resourceSym);
 		Type ts = resource.type;
+		// Walk the TypeVar chain to find the most specific declared class bound,
+		// preserving its close() declaration and thus the exceptions it may throw.
+		//   <R extends Closeable>      -> Closeable.close()  throws IOException
+		//   <R extends SomeStream>     -> SomeStream.close() with its declared throws
+		//   <R extends AutoCloseable>  -> AutoCloseable.close() throws Exception
+		//   <R extends A & B>         -> most specific AutoCloseable component of A, B
 		while (ts instanceof Type.TypeVar tvs) {
-		    // Which super interface/class is found makes a difference in which kind of exception might be thrown from close().
-		    // FIXME - do we have to look at the nearest super-interface that has a close() method?
-            ts = types.asSuper(tvs, closeableType.tsym);
-            if (ts == null) ts = types.asSuper(tvs, syms.autoCloseableType.tsym);
+		    Type bound = tvs.getUpperBound();
+		    if (bound != null && !bound.isCompound() && bound.tsym instanceof ClassSymbol) {
+		        // Single concrete class or interface bound -- use directly.
+		        ts = bound;
+		    } else if (bound instanceof Type.TypeVar) {
+		        // Chained type variable -- continue walking.
+		        ts = bound;
+		    } else if (bound != null && bound.isCompound()) {
+		        // Intersection bound (e.g. <R extends A & B>):
+		        // Find the most specific component that is a subtype of AutoCloseable.
+		        // A more specific component has a more constrained close() signature
+		        // (e.g. Closeable.close() throws IOException rather than Exception).
+		        Type best = null;
+		        for (Type component : types.directSupertypes(bound)) {
+		            if (!types.isSubtype(component, syms.autoCloseableType)) continue;
+		            if (best == null || types.isSubtype(component, best)) {
+		                best = component; // component is more specific than current best
+		            }
+		        }
+		        ts = best != null ? best : syms.autoCloseableType;
+		        break;
+		    } else {
+		        // No recognizable bound -- this should not happen if the Java type
+		        // checker accepted the resource as AutoCloseable-compatible.
+		        utils.warning(resource, "jml.message",
+		            "Could not determine specific AutoCloseable bound for type variable "
+		            + tvs + "; falling back to AutoCloseable.close() which declares "
+		            + "'throws Exception'. This may cause spurious signals_only failures.");
+		        Type closeableBound = types.asSuper(tvs, closeableType.tsym);
+		        ts = closeableBound != null ? closeableBound
+		                                    : types.asSuper(tvs, syms.autoCloseableType.tsym);
+		        if (ts == null) ts = syms.autoCloseableType;
+		        break;
+		    }
 		}
 		MethodSymbol msym = findCloseMethod((ClassSymbol) ts.tsym);
 		M.at(pos);
