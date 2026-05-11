@@ -8,18 +8,18 @@ import org.openjml.runners.ParameterizedWithNames;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
 public class escstrings extends EscBase {
-    
+
     /** This String declaration and assignment */
     @Test
     public void testSimpleString() {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public TestJava t;\n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m1(String s) {\n"
                 +"       String ss = s;\n"
                 +"       //@ assert s != null;\n"
@@ -30,7 +30,7 @@ public class escstrings extends EscBase {
                 +"}"
                 );
     }
-    
+
     /** Tests String equality  */
     @Test
     public void testStringEquals() {
@@ -38,11 +38,11 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public TestJava t;\n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s) {\n"
                 +"       String ss = s;\n"
                 +"       /*@ nullable */ String sss = null;\n"
@@ -50,32 +50,32 @@ public class escstrings extends EscBase {
                 +"       //@ assert !s.equals(sss);\n"
                 +"       //@ assert !sss.equals(ss);\n" // Null error
                 +"  }\n"
-                
+
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m",23
-                
+
                 );
     }
-    
+
     /** Tests String concatenation - whether the result in Java is non-null. */
     @Test
     public void testStringConcat1() {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public TestJava t;\n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       String sss =  (s + ss);\n"
                 +"       //@ assert sss != null;\n"
                 +"  }\n"
-                
+
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
@@ -88,19 +88,19 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public TestJava t;\n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       //@ assert (s + ss) != null;\n"
                 +"  }\n"
-                
+
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +" public TestJava() { t = new TestJava(); }\n"
-                
+
                 +"}"
                 );
     }
@@ -111,15 +111,15 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       String sss = s + ss;\n"
                 +"       String s4 = s + ss;\n"
                 +"       //@ assert sss.equals(s4);\n"
                 +"  }\n"
-                
-                +"}" 
+
+                +"}"
                 );
     }
 
@@ -129,14 +129,14 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       // @ assert s.concat(ss).equals(s.concat(ss));\n"  // FIXME - not allowed by purity
                 +"       //@ assert (s+ss).equals(s+ss);\n"                 // but then, why is this one
                 +"  }\n"
-                
-                +"}" 
+
+                +"}"
                 );
     }
 
@@ -148,16 +148,16 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  \n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       boolean b = (s + ss) == (s + ss); //@ assert b;\n" // Should not hold necessarily
                 +"  }\n"
-                
+
                 +"}"
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m",46
                 );
@@ -170,16 +170,16 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public TestJava t;\n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assume s.length() + ss.length() <= Integer.MAX_VALUE;\n"
                 +"       //@ assert (s + ss) == (s + ss);\n" // Should not hold necessarily
                 +"  }\n"
-                
+
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
@@ -193,31 +193,31 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                                
+
                 +"  //@ requires s.length() > 0; \n"
                 +"  public void m(String s) {\n"
                 +"       //@ assert s.charAt(0) == s.charAt(0);\n"
                 +"  }\n"
-                
+
                 +"}"
                 );
     }
-    
+
     /** Tests String charAt operation */
     @Test
     public void testStringCharAt1() {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public TestJava t;\n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s) {\n"
                 +"       //@ assert s.charAt(0) == s.charAt(0);\n"
                 +"  }\n"
-                
+
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
@@ -233,17 +233,17 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public TestJava t;\n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  //@ requires s.length() > 0; \n"
                 +"  public void m(String s) {\n"
                 +"       String ss = s;\n"
                 +"       //@ assert s.charAt(0) == ss.charAt(0);\n"
                 +"  }\n"
-                
+
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
@@ -256,12 +256,12 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  //@ requires s.length() > 0;\n"
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assert s.charAt(0) == ss.charAt(0);\n"  // should not hold since s != ss
                 +"  }\n"
-                
+
                 +"}"
                 ,anyorder(
                         seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m",12)
@@ -280,16 +280,16 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public TestJava t;\n"
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  //@ requires s.length() > 0 && ss.length() > 0;\n"
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assert s.charAt(0) == ss.charAt(0);\n"  // should not hold since s != ss
                 +"  }\n"
-                
+
                 +"  //@ public normal_behavior ensures t != null;\n"
                 +"  public TestJava() { t = new TestJava(); }"
                 +"}"
@@ -304,14 +304,14 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s) {\n"
                 +"       boolean b = s.length() >= 0; //@ assert b;\n"
                 +"  }\n"
-                
+
                 +"}"
                 );
     }
@@ -322,14 +322,14 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s) {\n"
                 +"       //@ assert s.length() >= 0;\n"
                 +"  }\n"
-                
+
                 +"}"
                 );
     }
@@ -340,15 +340,15 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s) {\n"
                 +"       String ss = s;\n"
                 +"       boolean b = s.length() == ss.length(); //@ assert b;\n"
                 +"  }\n"
-                
+
                 +"}"
                 );
     }
@@ -359,15 +359,15 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s) {\n"
                 +"       String ss = s;\n"
                 +"       //@ assert s.length() == ss.length(); \n"
                 +"  }\n"
-                
+
                 +"}"
                 );
     }
@@ -378,14 +378,14 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s, String ss) {\n"
                 +"       boolean b = s.length() == ss.length(); //@ assert b;\n" // should not hold
                 +"  }\n"
-                
+
                 +"}"
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",51
                 );
@@ -397,17 +397,95 @@ public class escstrings extends EscBase {
         helpEsc("tt.TestJava","package tt; \n"
                 +" import org.jmlspecs.annotation.*; \n"
                 +"@NonNullByDefault public class TestJava { \n"
-                
+
                 +"  public int a;\n"
                 +"  public static int b;\n"
-                
+
                 +"  public void m(String s, String ss) {\n"
                 +"       //@ assert s.length() == ss.length(); \n" // ERROR - not necessarily same length
                 +"  }\n"
-                
+
                 +"}"
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m",12
                 );
+    }
+
+    /** String + int — lhs is String, rhs is not; exercises valueOf branch then concat.
+     *  In dev-21, findStaticMember("concat") returns null (concat is not static),
+     *  emitting an internal error "Could not find the concat method". */
+    @Test
+    public void testStringConcatNonStringRhs() {
+        helpEsc("tt.A", """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                public class A {
+                    //@ ensures \\result != null;
+                    public static /*@ pure */ String label(/*@ non_null */ String prefix, int n) {
+                        return prefix + n;
+                    }
+                }
+                """);
+    }
+
+    /** int + String — lhs is not String; exercises valueOf branch for lhs. */
+    @Test
+    public void testStringConcatNonStringLhs() {
+        helpEsc("tt.A", """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                public class A {
+                    //@ ensures \\result != null;
+                    public static /*@ pure */ String numbered(int n, /*@ non_null */ String suffix) {
+                        return n + suffix;
+                    }
+                }
+                """);
+    }
+
+    /** String + String literal — simplest possible concat; checks no internal error. */
+    @Test
+    public void testStringConcatBothStrings() {
+        helpEsc("tt.A", """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                public class A {
+                    //@ ensures \\result != null;
+                    public static /*@ pure */ String greet(/*@ non_null */ String name) {
+                        return "Hello, " + name;
+                    }
+                }
+                """);
+    }
+
+    /** Nullable String + nullable String — result type is unannotated String,
+     *  so that.type.equals(syms.stringType) is true and the concat encoding path
+     *  is entered. In dev-21 findStaticMember("concat") returns null (concat is
+     *  not static), emitting an internal error. */
+    @Test
+    public void testStringConcatNullableInputs() {
+        helpEsc("tt.A", """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                public class A {
+                    public static String concat(/*@ nullable */ String a, /*@ nullable */ String b) {
+                        return a + b;
+                    }
+                }
+                """);
+    }
+
+    /** Nullable String + int — lhs is nullable, result type is unannotated String. */
+    @Test
+    public void testStringConcatNullableStringPlusInt() {
+        helpEsc("tt.A", """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                public class A {
+                    public static String label(/*@ nullable */ String prefix, int n) {
+                        return prefix + n;
+                    }
+                }
+                """);
     }
 
     // FIXME - also test interning

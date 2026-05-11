@@ -3,7 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.Test;
 
-/** These tests exercise the RAC checking.  They compile a test class 
+/** These tests exercise the RAC checking.  They compile a test class
  * using RAC and then execute the resulting program, catching that
  * programs output.  All the tests here have valid JML - they are testing
  * whether the RAC translations work correctly.
@@ -18,7 +18,7 @@ public class racnew3 extends RacBase {
         super.setUp();
         addOptions("--rac-show-source=line");
     }
-    
+
     /** Tests not_modified */
     @Test public void testNotModified1() {
         helpRacText("tt.TestJava","package tt; import org.jmlspecs.annotation.*;  \n" +
@@ -34,7 +34,7 @@ public class racnew3 extends RacBase {
                 "    }" +
                 "}"
                 ,"/tt/TestJava.java:9: JML assertion is false"
-        );        
+        );
     }
 
     /** Tests not_modified */
@@ -55,7 +55,7 @@ public class racnew3 extends RacBase {
                 "}"
                 ,"/tt/TestJava.java:10: JML assertion is false"
 
-        );        
+        );
     }
 
     /** Tests not_modified */
@@ -76,7 +76,7 @@ public class racnew3 extends RacBase {
                 "}"
                 ,"/tt/TestJava.java:10: JML assertion is false"
 
-        );        
+        );
     }
 
     /** Tests not_modified */
@@ -96,19 +96,19 @@ public class racnew3 extends RacBase {
                 "    }" +
                 "}"
                 ,"/tt/TestJava.java:10: JML assertion is false"
-        );        
+        );
     }
 
- 
+
     // FIXME - need tests for X.f X.* o.* a[*] a[1..3] a[1..]
-    
+
     @Test
     public void testCast() {
         addOptions("--code-math=safe","--spec-math=safe");
         helpRacText("tt.TestJava",
                 "package tt; \n"
                 +"public class TestJava { \n"
-                
+
                 +"  public static double d;\n"
                 +"  public static float f;\n"
                 +"  public static long l;\n"
@@ -116,12 +116,12 @@ public class racnew3 extends RacBase {
                 +"  public static short s;\n"
                 +"  public static char c;\n"
                 +"  public static byte b;\n"
-                
-                +"    public static void main(String... args) {\n" 
-                +"       i = 6; m0(); \n" 
-                +"       i = 100000; m0bad(); \n" 
-                +"    }\n" 
-                
+
+                +"    public static void main(String... args) {\n"
+                +"       i = 6; m0(); \n"
+                +"       i = 100000; m0bad(); \n"
+                +"    }\n"
+
                 +"  //@ requires i == 6;\n"
                 +"  //@ modifies \\everything;\n"
                 +"  public static void m0() {\n"
@@ -142,7 +142,7 @@ public class racnew3 extends RacBase {
                 +"    //@ assert i == (byte)i;\n"
                 +"    //@ assert i == (int)i;\n"
                 +"  }\n"
-                 
+
                 +"  //@ requires i == 100000;\n"
                 +"  //@ modifies \\everything;\n"
                 +"  public static void m0bad() {\n"
@@ -163,7 +163,7 @@ public class racnew3 extends RacBase {
                 +"    //@ assert i == (byte)i;\n"
                 +"    //@ assert i == (int)i;\n"
                 +"  }\n"
-                 
+
                 +"}"
                 ,"/tt/TestJava.java:36: JML argument to numeric cast is out of range of the target type"
                 ,"/tt/TestJava.java:37: JML assertion is false"
@@ -179,41 +179,41 @@ public class racnew3 extends RacBase {
                 ,"/tt/TestJava.java:49: JML assertion is false"
                 );
     }
-    
+
 
     @Test
     public void testCast1() {
         helpRacText("tt.TestJava",
                 "package tt; \n"
                 +"public class TestJava { \n"
-                
-                +"    public static void main(String... args) {\n" 
-                +"       m0(); \n" 
-                +"    }\n" 
-                
+
+                +"    public static void main(String... args) {\n"
+                +"       m0(); \n"
+                +"    }\n"
+
                 +"  public static void m0() {\n"
                 +"    {/*@ nullable */ Short s = null;\n"
-                +"    try { //@ assert 0 == (short)s; \n} catch (NullPointerException e) {}\n" 
+                +"    try { //@ assert 0 == (short)s; \n} catch (NullPointerException e) {}\n"
                 +"    try { short d = (Short)null; //@ forbid \n} catch (NullPointerException e) {} \n" // Lines 10-11
                 +"    }\n"
                 +"    {/*@ nullable */ Long s = null;\n"
-                +"    try { //@ assert 0 == (long)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { //@ assert 0 == (long)s;\n} catch (NullPointerException e) {}\n"
                 +"    try { long d = (Long)null; //@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Byte s = null;\n"
-                +"    try { //@ assert 0 == (byte)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { //@ assert 0 == (byte)s;\n} catch (NullPointerException e) {}\n"
                 +"    try { byte d = (Byte)null; //@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Integer s = null;\n"
-                +"    try { //@ assert 0 == (int)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { //@ assert 0 == (int)s;\n} catch (NullPointerException e) {}\n"
                 +"    try { int d = (Integer)null; //@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Character s = null;\n"
-                +"    try { //@ assert 0 == (char)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { //@ assert 0 == (char)s;\n} catch (NullPointerException e) {}\n"
                 +"    try { char d = (Character)null; //@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Float s = null;\n"
-                +"    try { //@ assert 0 == (float)s;\n} catch (NullPointerException e) {}\n" 
+                +"    try { //@ assert 0 == (float)s;\n} catch (NullPointerException e) {}\n"
                 +"    try { float d = (Float)null; //@ forbid \n} catch (NullPointerException e) {}   \n"
                 +"    }\n"
                 +"    {/*@ nullable */ Double s = null;\n"
@@ -224,9 +224,9 @@ public class racnew3 extends RacBase {
                 +"    try { //@ assert (boolean)s;\n} catch (NullPointerException e) {}\n"
                 +"    try { boolean d = (Boolean)null;//@ forbid \n} catch (NullPointerException e) {}  \n"
                 +"    }\n"
-                
+
                 +"  }\n"
-                 
+
                 +"}"
                 ,"/tt/TestJava.java:8: JML Attempt to unbox a null object within a JML expression"
                 ,"/tt/TestJava.java:10: JML Attempt to unbox a null object"
@@ -246,48 +246,48 @@ public class racnew3 extends RacBase {
                 ,"/tt/TestJava.java:52: JML Attempt to unbox a null object"
                 );
     }
-    
+
 
     @Test
     public void testCast2() {
         helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                
-                +"    public static void main(String... args) {\n" 
-                +"       m1(); \n" 
-                +"    }\n" 
-                
+
+                +"    public static void main(String... args) {\n"
+                +"       m1(); \n"
+                +"    }\n"
+
                 +"  public static void m1() {\n"
                 +"    short s = (short)9;\n"
-                +"    //@ assert 9 == (Short)s;\n" 
+                +"    //@ assert 9 == (Short)s;\n"
                 +"  }\n"
-                 
+
                 +"}"
                 );
     }
-    
+
     @Test
     public void testVarargs() {
         helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
-                
-                +"    public static void main(String... args) {\n" 
-                +"       m1(args); \n" 
-                +"       m1(); \n" 
-                +"       m1(\"a\"); \n" 
-                +"       m1(\"a\",\"b\"); \n" 
-                +"    }\n" 
-                
+
+                +"    public static void main(String... args) {\n"
+                +"       m1(args); \n"
+                +"       m1(); \n"
+                +"       m1(\"a\"); \n"
+                +"       m1(\"a\",\"b\"); \n"
+                +"    }\n"
+
                 +"  //@ requires args.length >= 0; \n"
                 +"  //@ ensures args.length == \\result; \n"
                 +"  public static int m1(String ... args) {\n"
-                +"    return args.length;\n" 
+                +"    return args.length;\n"
                 +"  }\n"
-                 
+
                 +"}"
                 );
     }
-    
+
     @Test
     public void testTryResources1() {
         helpRacText("tt.TestJava","package tt; \n"
@@ -298,7 +298,7 @@ public class racnew3 extends RacBase {
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -311,14 +311,14 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
-                 
+
                 +"}"
                 );
 
     }
-    
+
     // If RR() throws an exception, flag == 0
     // If close exits normally, flag == 1
     // If close throws an exception, flag == 10
@@ -335,7 +335,7 @@ public class racnew3 extends RacBase {
                        //@ signals (Exception e) TestJava.flag == 10;
                        public void close() { TestJava.flag = 1; }
                     }
-                
+
                    //@ requires flag == 0;
                    //@ assignable flag;
                    public static void mmm() {
@@ -357,7 +357,7 @@ public class racnew3 extends RacBase {
                 """
                 );
     }
-    
+
     // If RR() throws an exception, mmm exits exceptionally
     @Test public void testTryResources1a() {
         helpRacText("tt.TestJava","package tt; \n"
@@ -369,7 +369,7 @@ public class racnew3 extends RacBase {
                 +"       //@ signals (Exception e) TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -383,14 +383,14 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
-                 
+
                 +"}"
                 ,"/tt/TestJava.java:19: JML assertion is false"
                 );
     }
-    
+
     // Checks that close calls execute in reverse order
     @Test public void testTryResources2() {
         addOptions("--rac-check-assumptions");
@@ -409,7 +409,7 @@ public class racnew3 extends RacBase {
                 +"       //@ ensures TestJava.flag == 2;\n"
                 +"       public void close() { TestJava.flag = 2; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -423,14 +423,14 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
-                 
+
                 +"}"
                 ,"/tt/TestJava.java:25: JML assertion is false"
                 );
     }
-    
+
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2b() {
         addOptions("--rac-check-assumptions");
@@ -457,7 +457,7 @@ public class racnew3 extends RacBase {
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
                 +"       public void close() throws EE { TestJava.flag = 2; throw new EE2(); }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm(boolean b) {\n"  // Line 26
@@ -470,21 +470,21 @@ public class racnew3 extends RacBase {
                 +"      }\n"
                 +"      //@ assert TestJava.flag == 111;\n" // not feasible - so not checked in RAC
                 +"    } catch (EE e) {\n"
-                +"      //@ assert TestJava.flag == 1;\n" 
+                +"      //@ assert TestJava.flag == 1;\n"
                 +"       //@ assert e instanceof EE3 ;\n" // Line 37
-                +"      //@ assert TestJava.flag == 100;\n" 
+                +"      //@ assert TestJava.flag == 100;\n"
                 +"    }\n"
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm(true);\n" 
+                +"    mmm(true);\n"
                 +"  }\n"
-                 
+
                 +"}"
                 ,"/tt/TestJava.java:38: JML assertion is false"
                 );
     }
-    
+
     // Checks the class of the resulting exception when try body and close calls throw exceptions
     @Test public void testTryResources2c() {
         addOptions("--rac-check-assumptions");
@@ -511,7 +511,7 @@ public class racnew3 extends RacBase {
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
                 +"       public void close() { TestJava.flag = 2; throw new EE2(); }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm(boolean b) {\n"  // Line 26
@@ -531,14 +531,14 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm(true);\n" 
+                +"    mmm(true);\n"
                 +"  }\n"
-                 
+
                 +"}"
                 ,"/tt/TestJava.java:38: JML assertion is false"
                 );
     }
-    
+
     // Checks the class of the resulting exception when close calls throw exceptions, but not the try body
     @Test public void testTryResources2a() {
         helpRacText("tt.TestJava","package tt; \n"
@@ -563,7 +563,7 @@ public class racnew3 extends RacBase {
                 +"       //@ signals (Exception e) TestJava.flag == 2;\n"
                 +"       public void close() throws EE2 { TestJava.flag = 2; throw new EE2(); }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n" // Line 23
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"  // Line 25
@@ -583,11 +583,11 @@ public class racnew3 extends RacBase {
                 +"  public static void main(String ... args) {\n"
                 +"    mmm();\n"
                 +"  }\n"
-                 
+
                 +"}"
                 );
     }
-    
+
     // Check that finally block of try encloses declarations and calls to close
     @Test public void testTryResources3() {
         helpRacText("tt.TestJava","package tt; \n"
@@ -599,7 +599,7 @@ public class racnew3 extends RacBase {
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -616,11 +616,11 @@ public class racnew3 extends RacBase {
                 +"  public static void main(String ... args) {\n"
                 +"    mmm();\n"
                 +"  }\n"
-                
+
                 +"}"
                 );
     }
-    
+
     // If RR() throws an exception, then catch block will execute
     @Test public void testTryResources4() {
         helpRacText("tt.TestJava","package tt; \n"
@@ -632,7 +632,7 @@ public class racnew3 extends RacBase {
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -652,11 +652,11 @@ public class racnew3 extends RacBase {
                 +"  public static void main(String ... args) {\n"
                 +"    mmm();\n"
                 +"  }\n"
-                 
+
                 +"}"
                 );
     }
-    
+
     @Test public void testTryResources4a() {
         helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -667,7 +667,7 @@ public class racnew3 extends RacBase {
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -683,13 +683,13 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
-                 
+
                 +"}"
                 );
     }
-    
+
     @Test public void testTryResources4b() {
         helpRacText("tt.TestJava","package tt; \n"
                 +"public class TestJava { \n"
@@ -699,7 +699,7 @@ public class racnew3 extends RacBase {
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -715,13 +715,13 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
-                 
+
                 +"}"
                 );
     }
-    
+
     // No resource - executes the catch block
     @Test public void testTryResources4c() {
         helpRacText("tt.TestJava","package tt; \n"
@@ -733,7 +733,7 @@ public class racnew3 extends RacBase {
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -749,13 +749,13 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
-                 
+
                 +"}"
                 );
     }
-    
+
     // Checks that the outer finally block is last to execute
     @Test public void testTryResources5() {
         helpRacText("tt.TestJava","package tt; \n"
@@ -766,7 +766,7 @@ public class racnew3 extends RacBase {
                 +"       //@ ensures TestJava.flag == 1;\n"
                 +"       public void close() { TestJava.flag = 1; }\n"
                 +"    }\n"
-                
+
                 +"  //@ requires flag == 0;\n"
                 +"  //@ assignable flag;\n"
                 +"  public static void mmm() {\n"
@@ -783,9 +783,149 @@ public class racnew3 extends RacBase {
                 +"  }\n"
 
                 +"  public static void main(String ... args) {\n"
-                +"    mmm();\n" 
+                +"    mmm();\n"
                 +"  }\n"
-                 
+
+                +"}"
+                );
+    }
+
+    // Java 9+ expression resource: single variable passed as resource.
+    // Verifies that close() is called after normal exit from the try body.
+    @Test public void testTryResourcesIdentifier1() {
+        helpRacText("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ also assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public static void mmm() {\n"
+                +"    RR r = new RR();\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (r) {\n"
+                +"       flag = 2;\n"
+                +"       //@ assert TestJava.flag == 2;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 1;\n"
+                +"    //@ assert TestJava.flag == 100;\n" // ERROR
+                +"  }\n"
+                +"  public static void main(String ... args) {\n"
+                +"    mmm();\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:19: JML assertion is false"
+                );
+    }
+
+    // Java 9+ expression resource: two variables listed in one try statement.
+    // Verifies that both close() calls execute in reverse declaration order.
+    @Test public void testTryResourcesIdentifierMultiple() {
+        helpRacText("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                +"    public static class RR2 implements AutoCloseable {\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 2;\n"
+                +"       public void close() { TestJava.flag = 2; }\n"
+                +"    }\n"
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public static void mmm() {\n"
+                +"    RR2 r2 = new RR2();\n"
+                +"    RR r = new RR();\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (r2; r) {\n"
+                +"       flag = 3;\n"
+                +"       //@ assert TestJava.flag == 3;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 2;\n"
+                +"    //@ assert TestJava.flag == 200;\n" // ERROR
+                +"  }\n"
+                +"  public static void main(String ... args) {\n"
+                +"    mmm();\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:27: JML assertion is false"
+                );
+    }
+
+    // Two identifier resources; the second (first to close) throws.
+    // In try(r2; r): r closes first (throws), r2 closes second (sets flag=2).
+    // Confirms the first resource (r2) is still closed despite r throwing.
+    @Test public void testTryResourcesIdentifierSecondCloseThrows() {
+        helpRacText("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       public void close() { throw new RuntimeException(); }\n"
+                +"    }\n"
+                +"    public static class RR2 implements AutoCloseable {\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 2;\n"
+                +"       public void close() { TestJava.flag = 2; }\n"
+                +"    }\n"
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public static void mmm() {\n"
+                +"    RR r = new RR();\n"
+                +"    RR2 r2 = new RR2();\n"
+                +"    try {\n"
+                +"      try (r2; r) {\n"
+                +"         flag = 3;\n"
+                +"         //@ assert TestJava.flag == 3;\n"
+                +"      }\n"
+                +"    } catch (Exception e) {\n"
+                +"      //@ assert TestJava.flag == 2;\n"
+                +"      //@ assert TestJava.flag == 100;\n" // ERROR - confirms we reached catch with flag==2
+                +"    }\n"
+                +"  }\n"
+                +"  public static void main(String ... args) {\n"
+                +"    mmm();\n"
+                +"  }\n"
+                +"}"
+                ,"/tt/TestJava.java:25: JML assertion is false"
+                );
+    }
+
+    // Java 9+ expression resource: close() is still called when the body throws.
+    @Test public void testTryResourcesIdentifierException() {
+        helpRacText("tt.TestJava","package tt; \n"
+                +"public class TestJava { \n"
+                +"    static public int flag = 0;\n"
+                +"    public static class RR implements AutoCloseable {\n"
+                +"       //@ also public normal_behavior\n"
+                +"       //@ assignable TestJava.flag;\n"
+                +"       //@ ensures TestJava.flag == 1;\n"
+                +"       public void close() { TestJava.flag = 1; }\n"
+                +"    }\n"
+                +"  //@ requires flag == 0;\n"
+                +"  //@ assignable flag;\n"
+                +"  public static void mmm() {\n"
+                +"    RR r = new RR();\n"
+                +"    //@ assert TestJava.flag == 0;\n"
+                +"    try (r) {\n"
+                +"       flag = 3;\n"
+                +"       throw new Exception();\n"
+                +"    } catch (Exception e) {\n"
+                +"       flag = 2;\n"
+                +"    }\n"
+                +"    //@ assert TestJava.flag == 2;\n"
+                +"  }\n"
+                +"  public static void main(String ... args) {\n"
+                +"    mmm();\n"
+                +"  }\n"
                 +"}"
                 );
     }
@@ -811,7 +951,7 @@ public class racnew3 extends RacBase {
                 ,"/tt/TestJava.java:9: verify: JML assertion is false"
                 );
     }
-    
+
     @Test
     public void testInstanceOfB() {
         helpRacText("tt.TestJava",
@@ -833,7 +973,7 @@ public class racnew3 extends RacBase {
                 ,"/tt/TestJava.java:9: verify: JML assertion is false"
                 );
     }
-    
+
     @Test
     public void testInstanceOfC() {
         helpRacText("tt.TestJava",
@@ -856,7 +996,7 @@ public class racnew3 extends RacBase {
                 ,"/tt/TestJava.java:8: verify: JML unreachable statement reached"
                 );
     }
-    
+
     @Test
     public void testInstanceOfD() {
         helpRacText("tt.TestJava",
@@ -874,5 +1014,5 @@ public class racnew3 extends RacBase {
                 ,"/tt/TestJava.java:6: verify: JML assertion is false"
                 );
     }
-   
+
 }

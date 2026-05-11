@@ -279,6 +279,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     final public Type RANGE = JmlPrimitiveTypes.rangeTypeKind.getType(context);
     final public Type LOCSET = JmlPrimitiveTypes.locsetTypeKind.getType(context);
 
+    final public Type closeableType;
 
     /**
      * The Name used for holding the location at which the final return or throw
@@ -659,6 +660,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		this.copier = new Copier(context,M);
 		// this.reader.init(syms); // FIXME?
 		this.utilsClass = !rac ? null : reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
+		this.closeableType = syms.enterClass("java.io.Closeable");
 
 		initialize();
 
@@ -7172,11 +7174,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCTree resource = that.resources.head;
 		List<JCTree> resourceRest = that.resources.tail;
 		int pos = resource.pos;
-		JCVariableDecl decl = (JCVariableDecl) resource;
-		decl.mods.flags |= Flags.FINAL; // implicitly final
-
-		ListBuffer<JCStatement> stats = new ListBuffer<>();
-		stats.add((JCStatement) resource);
+		VarSymbol resourceSym = null;
+        ListBuffer<JCStatement> stats = new ListBuffer<>();
+		if (resource instanceof JCVariableDecl decl) {
+		    decl.mods.flags |= Flags.FINAL; // implicitly final
+		    resourceSym = decl.sym;
+	        stats.add(decl);
+		} else if (resource instanceof JCIdent id) {
+		    resourceSym = (VarSymbol)id.sym;
+		}
 
 		Name throwableName = names.fromString("__JMLthrowableException_" + resource.pos);
 		JCVariableDecl throwableDecl = treeutils.makeVarDef(syms.throwableType, throwableName,
@@ -7205,8 +7211,51 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		JCCatch newCatch = M.at(pos).Catch(catchDecl, M.at(pos).Block(0L, List.<JCStatement>of(exStat, exThrow)));
 
-		JCIdent id = treeutils.makeIdent(pos, decl.sym);
-		MethodSymbol msym = findCloseMethod((ClassSymbol) resource.type.tsym);
+		JCIdent id = treeutils.makeIdent(pos, resourceSym);
+		Type ts = resource.type;
+		// Walk the TypeVar chain to find the most specific declared class bound,
+		// preserving its close() declaration and thus the exceptions it may throw.
+		//   <R extends Closeable>      -> Closeable.close()  throws IOException
+		//   <R extends SomeStream>     -> SomeStream.close() with its declared throws
+		//   <R extends AutoCloseable>  -> AutoCloseable.close() throws Exception
+		//   <R extends A & B>         -> most specific AutoCloseable component of A, B
+		while (ts instanceof Type.TypeVar tvs) {
+		    Type bound = tvs.getUpperBound();
+		    if (bound != null && !bound.isCompound() && bound.tsym instanceof ClassSymbol) {
+		        // Single concrete class or interface bound -- use directly.
+		        ts = bound;
+		    } else if (bound instanceof Type.TypeVar) {
+		        // Chained type variable -- continue walking.
+		        ts = bound;
+		    } else if (bound != null && bound.isCompound()) {
+		        // Intersection bound (e.g. <R extends A & B>):
+		        // Find the most specific component that is a subtype of AutoCloseable.
+		        // A more specific component has a more constrained close() signature
+		        // (e.g. Closeable.close() throws IOException rather than Exception).
+		        Type best = null;
+		        for (Type component : types.directSupertypes(bound)) {
+		            if (!types.isSubtype(component, syms.autoCloseableType)) continue;
+		            if (best == null || types.isSubtype(component, best)) {
+		                best = component; // component is more specific than current best
+		            }
+		        }
+		        ts = best != null ? best : syms.autoCloseableType;
+		        break;
+		    } else {
+		        // No recognizable bound -- this should not happen if the Java type
+		        // checker accepted the resource as AutoCloseable-compatible.
+		        utils.warning(resource, "jml.message",
+		            "Could not determine specific AutoCloseable bound for type variable "
+		            + tvs + "; falling back to AutoCloseable.close() which declares "
+		            + "'throws Exception'. This may cause spurious signals_only failures.");
+		        Type closeableBound = types.asSuper(tvs, closeableType.tsym);
+		        ts = closeableBound != null ? closeableBound
+		                                    : types.asSuper(tvs, syms.autoCloseableType.tsym);
+		        if (ts == null) ts = syms.autoCloseableType;
+		        break;
+		    }
+		}
+		MethodSymbol msym = findCloseMethod((ClassSymbol) ts.tsym);
 		M.at(pos);
 		JCExpression fcn1 = M.Select(id, msym);
 		fcn1.type = msym.type;
@@ -7238,7 +7287,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		JCStatement thenpart = M.at(pos).Block(0L, List.<JCStatement>of(
 				M.If(comp, M.at(pos).Block(0L, List.<JCStatement>of(closetry)), closeCall2).setType(syms.booleanType)));
 
-		comp = newTempIfNeeded(treeutils.makeNotNull(pos, treeutils.makeIdent(pos, decl.sym)));
+		comp = newTempIfNeeded(treeutils.makeNotNull(pos, treeutils.makeIdent(pos, resourceSym)));
 		addStat(M.at(pos).If(comp, thenpart, null).setType(syms.booleanType));
 		popBlock();
         JCBlock finalBlock = M.at(pos).Block(0L, finalstats.toList());
@@ -9212,13 +9261,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 //System.out.println("ARGCONVERSION " + a.type + " " + currentArgType);
                 // The 'rac' disjunct is needed for tests like racHans4c/d/e
                 // The other disjunct is needed for test implicitIterationA
-                var convtype = rac ? currentArgType : convertType(currentArgType);
-                if (rac || (a.type.isPrimitive() || types.isNumeric(a.type) 
-                        || currentArgType.isPrimitive() || types.isNumeric(currentArgType) || types.isJmlType(convtype))) {
-                    //System.out.println("ADDING IMPLICIT-A " + currentArgType + " " + convtype + " " + a + " " + a.type);
-                    a = addImplicitConversion(a, convtype, a);
-                    //System.out.println("   CONVERTED " + a);
-                }
+                var convtype = currentArgType == null ? null : (rac ? currentArgType : convertType(currentArgType));
+                if (convtype == null || a == null || a.type == null) {                                                                                                      
+                    utils.warning(a == null ? Position.NOPOS : a.pos, "jml.internal.notsobad",                                                                                
+                            "Unexpected null in convertArgs: convtype=" + convtype + " a=" + a);
+                } else if (rac || (a.type.isPrimitive() || types.isNumeric(a.type)                                                                                          
+                        || currentArgType.isPrimitive() || types.isNumeric(currentArgType) || types.isJmlType(convtype))) {                                                 
+                    a = addImplicitConversion(a, convtype, a);                                                                                                              
+                }                                                                                                                                                           
             }
 			if (useMethodAxioms && translatingJML) {
 			} else if ((a instanceof JCIdent) && ((JCIdent) a).name.toString().startsWith(Strings.tmpVarString)) {
@@ -15053,10 +15103,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
             result = eresult = e;
             return;
-        } else if (optag == JCTree.Tag.PLUS && that.type.equals(syms.stringType)) {
+        } else if (optag == JCTree.Tag.PLUS && jmltypes.isSameTypeWithoutAnnotations(that.type, syms.stringType)) {
 			if ((infer || esc)) {
 				Symbol s = utils.findStaticMember(syms.stringType.tsym, "concat");
 				if (s == null) {
+				    // This may happen if (1) a mismatched set of Specs (for java.langString) is used
+				    // or something happened in maintenance that introduced a bug.
 					utils.error(that, "jml.internal", "Could not find the concat method");
 				} else {
 					JCIdent id = M.Ident("String");

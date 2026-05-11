@@ -1304,13 +1304,53 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
 
     @Override
     public void printEnumBody(List<JCTree> stats) throws IOException {
-        if(specOnly){
+        if (specOnly) {
             print("{}");
             return;
         }
+        print('{');
+        println();
+        indent();
+        boolean first = true;
+        // Print enumerators as just their name (without the /*public static final*/ /*enum*/
+        // comment wrappers that visitVarDef would add for synthesized flags).
+        for (JCTree t : stats) {
+            if (isEnumerator(t)) {
+                if (!first) {
+                    print(',');
+                    println();
+                }
+                align();
+                JCVariableDecl vd = (JCVariableDecl) t;
+                print(vd.name);
+                if (vd.init instanceof JCNewClass nc) {
+                    if (nc.args.nonEmpty()) {
+                        print('(');
+                        printExprs(nc.args);
+                        print(')');
+                    }
+                    if (nc.def != null) {
+                        print(' ');
+                        printBlock(nc.def.defs);
+                    }
+                }
+                first = false;
+            }
+        }
+        print(';');
+        println();
+        // Print non-enumerator members (methods, fields, JML clauses).
+        for (JCTree t : stats) {
+            if (!isEnumerator(t)) {
+                align();
+                printStat(t);
+                println();
+            }
+        }
+        undent();
+        align();
+        print('}');
     }
-
-
 
     public void printStats(List<? extends JCTree> stats) throws IOException {
         JmlSpecs.TypeSpecs toPrint = specsToPrint;
@@ -1373,26 +1413,31 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     }
 
     public void visitMethodDef(JCMethodDecl jcthat) {
-        var that = (JmlMethodDecl)jcthat;
-        // FIXME //@? model?
-//        if (that.methodSpecsCombined != null) {
-//            that.methodSpecsCombined.cases.accept(this);
-//        }
-//        else 
-        if (that.methodSpecs != null) that.methodSpecs.accept(this);
-        // FIXME - visitMethodDef will print the Java modifiers
-        // and annotations that are on the Java declaration
-        // We need the following to get the combined annotations
-        // but we don't want both?
-        // if (that.methodSpecsCombined != null) that.methodSpecsCombined.mods.accept(this);
+        try {
+            var that = (JmlMethodDecl)jcthat;
+            // FIXME //@? model?
+            //        if (that.methodSpecsCombined != null) {
+            //            that.methodSpecsCombined.cases.accept(this);
+            //        }
+            //        else 
+            if (that.methodSpecs != null) that.methodSpecs.accept(this);
+            // FIXME - visitMethodDef will print the Java modifiers
+            // and annotations that are on the Java declaration
+            // We need the following to get the combined annotations
+            // but we don't want both?
+            // if (that.methodSpecsCombined != null) that.methodSpecsCombined.mods.accept(this);
 
-        // Do some shenanigans with sourceOuput to get default constructors printed
-        boolean wasSourceOutput = sourceOutput;
-        if (that.name == that.name.table.names.init &&
-                sourceOutput) sourceOutput = false;
+            // Do some shenanigans with sourceOuput to get default constructors printed
+            boolean wasSourceOutput = sourceOutput;
+            if (that.name == that.name.table.names.init &&
+                    sourceOutput) sourceOutput = false;
 
-        super.visitMethodDef(that);
-        sourceOutput = wasSourceOutput;
+            if (isJML(that.mods) && that.body == null) print("//@ ");
+            super.visitMethodDef(that);
+            sourceOutput = wasSourceOutput;
+        } catch (Exception e) {
+            perr(jcthat,e);
+        }
     }
     
     boolean isJML(JCModifiers mods) {

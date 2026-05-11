@@ -126,7 +126,15 @@ public class JmlTypes extends Types {
         }
         return super.isSameType(t, s);
     }
-    
+
+    /** Returns true if t1, after stripping type-use annotations, is the same type as t2.
+     *  Useful when t1 may be an annotated variant (e.g. @NonNull String) and t2 is the
+     *  bare type (e.g. syms.stringType), and the caller wants to match regardless of
+     *  annotation metadata. */
+    public boolean isSameTypeWithoutAnnotations(Type t1, Type t2) {
+        return isSameType(t1.stripMetadata(), t2);
+    }
+
     /** Overrides Types.disjointType with functionality for JML primitive types. */
     // FIXME - this is not a correct implementation given the comment on the overridden method
     @Override

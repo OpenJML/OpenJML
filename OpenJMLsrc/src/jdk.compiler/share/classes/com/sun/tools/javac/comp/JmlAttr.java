@@ -409,11 +409,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     public void attribClass(ClassSymbol c) throws CompletionFailure {
         if (c == null) return; // Defensive. Should actually not get this case, but appears to result from previous errors sometimes.
         
-//    	if (c.type instanceof Type.IntersectionClassType) {
-//    		// FIXME - what should we do in this case?
-//    		super.attribClass(c);
-//    		return;
-//    	}
+    	if (c.type instanceof Type.IntersectionClassType) {
+    		// Synthetic class symbols for intersection type bounds (e.g. <R extends A & B>)
+    		// have no source file, no JmlClassDecl, and no TypeSpecs.  Calling super
+    		// causes JML's binary-enter queue to receive a symbol that also has a source
+    		// environment, triggering an invariant violation.  There is nothing for JML
+    		// to attribute here; javac has already set up the intersection type fully.
+    		return;
+    	}
     	boolean print = c.toString().contains("Enum");
     	if (debugAttr) System.out.println("Attributing class " + c + " " + level + " " + ((c.flags_field & UNATTRIBUTED) != 0));
     	if (!(c.owner instanceof ClassSymbol || c.owner instanceof PackageSymbol)) {
@@ -544,6 +547,12 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     /** Overrides in order to attribute class specs appropriately. */
     @Override
     protected void attribClassBody(Env<AttrContext> env, ClassSymbol c) {
+        if (c.type instanceof Type.IntersectionClassType) {
+            // Synthetic intersection class symbols (e.g. from <R extends A & B>)
+            // have no compilation unit, so skip JML-specific body attribution.
+            super.attribClassBody(env, c);
+            return;
+        }
         Env<AttrContext> prevClassEnv = enclosingClassEnv;
         enclosingClassEnv = env;
 

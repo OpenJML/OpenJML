@@ -794,11 +794,17 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 List<JCStatement> stats = caseItem.stats;
                 int casepos = caseItem.getStartPosition();
                 
+                // Determine whether this is a true default case (not a pattern case).
+                // caseValues.isEmpty() is wrong for pattern cases because getExpressions()
+                // returns empty for JCPatternCaseLabel even though it is not a default.
+                boolean isDefault = caseItem.getLabels().stream()
+                        .allMatch(l -> l instanceof JCTree.JCDefaultCaseLabel);
+
                 // create a block for this case test
-                T blockForTest = newBlock(caseValues.isEmpty() ? CASEDEFAULT : CASETEST , casepos);
+                T blockForTest = newBlock(isDefault ? CASEDEFAULT : CASETEST , casepos);
                 blocks.add(blockForTest);
                 follows(switchStart,blockForTest);
-                
+
                 // create the case test, or null if this is the default case
                 JCExpression eqq = null;
                 if (switchExpression.type == syms.stringType) {
@@ -811,11 +817,17 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 		JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
                 		eqq = eqq == null ? eq : treeutils.makeOr(casepos, eqq, eq);
                 	}
+                	// For pattern case labels, getExpressions() returns empty so eqq stays null.
+                	// Use trueLit so addAssume gets a valid expression; the real pattern guard
+                	// is injected into the case body by JmlAssertionAdder.translatePatternLabels().
+                	if (eqq == null && !isDefault) {
+                		eqq = treeutils.trueLit;
+                	}
                 }
                 JmlStatementExpr asm = addAssume(caseItem.pos,Label.CASECONDITION,eqq,blockForTest.statements);
-                
+
                 // continue to build up the default case test
-                if (caseValues.isEmpty()) defaultAsm = asm; // remember the assumption for the default case
+                if (isDefault) defaultAsm = asm; // remember the assumption for the default case
                 else defaultCond = treeutils.makeOr(caseItem.getStartPosition(),eqq,defaultCond);
 
                 // It is always safe for the value of 'fallthrough' to be true, 
