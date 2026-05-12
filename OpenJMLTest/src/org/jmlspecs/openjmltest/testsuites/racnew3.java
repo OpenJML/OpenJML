@@ -1077,6 +1077,7 @@ public class racnew3 extends RacBase {
                 """
                 package tt;
                 public class TestJava {
+                    //@ spec_pure
                     public static int classify(Object o) {
                         return switch (o) {
                             case String s -> s.length();
@@ -1088,11 +1089,11 @@ public class racnew3 extends RacBase {
                         //@ assert classify("hello") == 5;
                         //@ assert classify(42) == 42;
                         //@ assert classify(3.14) == -1;
-                        //@ assert classify("hello") == 99;  // ERROR - line 13
+                        //@ assert classify("hello") == 99;  // ERROR - line 15
                     }
                 }
                 """
-                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"/tt/TestJava.java:15: JML assertion is false"
                 );
     }
 
@@ -1103,6 +1104,7 @@ public class racnew3 extends RacBase {
                 """
                 package tt;
                 public class TestJava {
+                    //@ spec_pure
                     public static String size(Object o) {
                         return switch (o) {
                             case Integer i when i > 100 -> "large";
@@ -1116,11 +1118,11 @@ public class racnew3 extends RacBase {
                         //@ assert size(50).equals("medium");
                         //@ assert size(5).equals("small");
                         //@ assert size("x").equals("other");
-                        //@ assert size(50).equals("large");  // ERROR - line 15
+                        //@ assert size(50).equals("large");  // ERROR - line 17
                     }
                 }
                 """
-                ,"/tt/TestJava.java:15: JML assertion is false"
+                ,"/tt/TestJava.java:17: JML assertion is false"
                 );
     }
 
@@ -1131,22 +1133,23 @@ public class racnew3 extends RacBase {
                 """
                 package tt;
                 public class TestJava {
-                    public static String describe(Object o) {
+                    //@ spec_pure
+                    public static String describe(/*@ nullable */Object o) {
                         return switch (o) {
                             case null    -> "nothing";
-                            case String s -> "string:" + s;
+                            case String s -> s;
                             default      -> "other";
                         };
                     }
                     public static void main(String... args) {
                         //@ assert describe(null).equals("nothing");
-                        //@ assert describe("hi").equals("string:hi");
+                        //@ assert describe("hi").equals("hi");
                         //@ assert describe(42).equals("other");
-                        //@ assert describe(null).equals("something");  // ERROR - line 13
+                        //@ assert describe(null).equals("something");  // ERROR - line 15
                     }
                 }
                 """
-                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"/tt/TestJava.java:15: JML assertion is false"
                 );
     }
 
@@ -1160,6 +1163,7 @@ public class racnew3 extends RacBase {
                     sealed interface Shape permits Circle, Rect {}
                     record Circle(double r) implements Shape {}
                     record Rect(double w, double h) implements Shape {}
+                    //@ spec_pure
                     public static String name(Shape s) {
                         return switch (s) {
                             case Circle c -> "circle";
@@ -1167,13 +1171,16 @@ public class racnew3 extends RacBase {
                         };
                     }
                     public static void main(String... args) {
-                        //@ assert name(new Circle(1.0)).equals("circle");
-                        //@ assert name(new Rect(2.0, 3.0)).equals("rect");
-                        //@ assert name(new Circle(1.0)).equals("rect");  // ERROR - line 15
+                        var s = new Circle(1.0);
+                        //@ assert name(s).equals("circle");
+                        var r = new Rect(2.0, 3.0);
+                        //@ assert name(r).equals("rect");
+                        var c = new Circle(1.0);
+                        //@ assert name(c).equals("rect");  // ERROR - line 19
                     }
                 }
                 """
-                ,"/tt/TestJava.java:15: JML assertion is false"
+                ,"/tt/TestJava.java:19: JML assertion is false"
                 );
     }
 
@@ -1188,6 +1195,7 @@ public class racnew3 extends RacBase {
                     sealed interface Expr permits Lit, Add {}
                     record Lit(int v) implements Expr {}
                     record Add(Expr left, Expr right) implements Expr {}
+                    //@ spec_pure
                     public static int eval(Expr e) {
                         return switch (e) {
                             case Add(Lit(int a), Lit(int b)) -> a + b;
@@ -1197,14 +1205,18 @@ public class racnew3 extends RacBase {
                         };
                     }
                     public static void main(String... args) {
-                        //@ assert eval(new Lit(7)) == 7;
-                        //@ assert eval(new Add(new Lit(3), new Lit(4))) == 7;
-                        //@ assert eval(new Add(new Lit(1), new Add(new Lit(2), new Lit(3)))) == 6;
-                        //@ assert eval(new Add(new Lit(3), new Lit(4))) == 10;  // ERROR - line 19
+                        var v = eval(new Lit(7));
+                        //@ assert v == 7;
+                        var a = eval(new Add(new Lit(3), new Lit(4)));
+                        //@ assert a == 7;
+                        var b = eval(new Add(new Lit(1), new Add(new Lit(2), new Lit(3))));
+                        //@ assert b == 6;
+                        var c = eval(new Add(new Lit(3), new Lit(4)));
+                        //@ assert c == 10;  // ERROR - line 23
                     }
                 }
                 """
-                ,"/tt/TestJava.java:19: JML assertion is false"
+                ,"/tt/TestJava.java:23: JML assertion is false"
                 );
     }
 
@@ -1216,6 +1228,7 @@ public class racnew3 extends RacBase {
                 package tt;
                 public class TestJava {
                     record Point(int x, int y) {}
+                    //@ pure
                     public static int sum(Object o) {
                         return switch (o) {
                             case Point(int x, int y) -> x + y;
@@ -1223,14 +1236,18 @@ public class racnew3 extends RacBase {
                         };
                     }
                     public static void main(String... args) {
-                        //@ assert sum(new Point(3, 4)) == 7;
-                        //@ assert sum(new Point(0, 0)) == 0;
-                        //@ assert sum("not a point") == -1;
-                        //@ assert sum(new Point(3, 4)) == 10;  // ERROR - line 13
+                        int k = sum(new Point(3, 4));
+                        //@ assert k == 7;
+                        k = sum(new Point(0, 0));
+                        //@ assert k == 0;
+                        k = sum("not a point");
+                        //@ assert k == -1;
+                        k = sum(new Point(3, 4));
+                        //@ assert k == 10;  // ERROR - line 19
                     }
                 }
                 """
-                ,"/tt/TestJava.java:13: JML assertion is false"
+                ,"/tt/TestJava.java:19: JML assertion is false"
                 );
     }
 }

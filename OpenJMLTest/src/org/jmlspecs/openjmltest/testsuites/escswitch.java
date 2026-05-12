@@ -265,7 +265,7 @@ public class escswitch extends EscBase {
         helpEsc("A", """
                 class A {
                     //@ ensures \\result == null;
-                    String describe(Object o) {
+                    /*@ nullable */ String describe(Object o) {
                         return switch (o) {
                             case Integer i -> "int: " + i;
                             case String s  -> "str: " + s;
@@ -295,11 +295,26 @@ public class escswitch extends EscBase {
 
                     //@ requires a != null;
                     void greet(Animal a) {
-                        // @ assert a instanceof Dog || a instanceof Cat;
                         switch (a) {
                             case Dog d -> System.out.println("Woof, " + d.name());
                             case Cat c -> System.out.println("Meow, " + c.name());
                         }
+                    }
+                }
+                """);
+    }
+
+    @Test
+    public void testSealed() {
+        helpEsc("A", """
+                class A {
+                    sealed interface Animal permits Dog, Cat {}
+                    record Dog(String name) implements Animal {}
+                    record Cat(String name) implements Animal {}
+
+                    //@ requires a != null;
+                    void greet(Animal a) {
+                        //@ assert a instanceof Dog || a instanceof Cat;
                     }
                 }
                 """);
