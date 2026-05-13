@@ -20,7 +20,8 @@ public class escnew3 extends EscBase {
                 """
                 package tt;
                 public class TestJava {
-                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
+                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object);
+                  //@ modifies \\everything;
                   public void m5b(Object[] a) {
                     //@ assume a != null && a.length == 3;
                     //@ assume \\nonnullelements(a);
@@ -34,9 +35,9 @@ public class escnew3 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m4a",9
-                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Assert) in method m5a",9
-                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assert) in method m5b",9
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m4a",9
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (Assert) in method m5a",9
+                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Assert) in method m5b",9
                 );
     }
 
@@ -92,7 +93,8 @@ public class escnew3 extends EscBase {
                     //@ assume a != null && a.length == 0;
                     //@ assert (\\forall int i; 0<=i && i<a.length; a[i] != null); // OK
                   }
-                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
+                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object);
+                  //@ modifies \\everything;
                   public void m3(Object[] a) {
                     //@ assume a != null && a.length == 1;
                     a[0] = new Object();    //@ assert a[0] != null;
@@ -104,7 +106,8 @@ public class escnew3 extends EscBase {
                     //@ assume a[0] != null;
                     //@ assert \\nonnullelements(a); // OK
                   }
-                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
+                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object);
+                  //@ modifies \\everything;
                   public void m4(Object[] a) {
                     //@ assume a != null && a.length == 2;
                     a[0] = new Object();
@@ -502,7 +505,8 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   private int i;
-                  //@ requires true; pure // default assignable
+                  //@ requires true;
+                  //@ pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -582,7 +586,8 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava { //@ public model nullable Object state;
                   private int i; //@ in state;
-                  //@ requires true; pure // default assignable
+                  //@ requires true;
+                  //@ pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -678,7 +683,8 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   /*@ spec_public */ private int i;
-                  //@ requires true; pure // default assignable
+                  //@ requires true;
+                  //@ pure // default assignable
                   public TestJava() { i = 0; }
                   //@ assignable \\everything;
                   public static void m() { new TestJava(); }
@@ -907,9 +913,17 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   static public int k = 5;
-                  //@ old int kk = k; requires k == 5 && i > kk && i < 100 && i > -100; assignable k; ensures k == i+1; ensures kk == 5;
+                  //@ old int kk = k;
+                  //@ requires k == 5 && i > kk && i < 100 && i > -100;
+                  //@ assignable k;
+                  //@ ensures k == i+1;
+                  //@ ensures kk == 5;
                   //@ also
-                  //@ old int kk = k+1; requires k == 5 && i < kk && i < 100 && i > -100; assignable k; ensures k == i-1; ensures kk == 6;
+                  //@ old int kk = k+1;
+                  //@ requires k == 5 && i < kk && i < 100 && i > -100;
+                  //@ assignable k;
+                  //@ ensures k == i-1;
+                  //@ ensures kk == 6;
                   static public void m(int i) {
                      if (i>k) k = i+1; else k = i-1;
                   }
@@ -1076,9 +1090,13 @@ public class escnew3 extends EscBase {
                 public class TestJava {
                   static public int k = 5;
                   //@ old int kk = k;
-                  //@ {| requires i < 10 && i > kk; assignable k; ensures k == i+1;
+                  //@ {| requires i < 10 && i > kk;
+                  //@    assignable k;
+                  //@    ensures k == i+1;
                   //@ also
-                  //@    requires i > -10 && i < kk; assignable k; ensures k == i-1;
+                  //@    requires i > -10 && i < kk;
+                  //@    assignable k;
+                  //@    ensures k == i-1;
                   //@ |}
                   static public void m(int i) {
                      if (i>k) k = i+1; else k = i-1;
@@ -1188,14 +1206,20 @@ public class escnew3 extends EscBase {
                      try { int j = a[0]; } catch (NullPointerException e) {}
                      int j = a[i]; // Old error
                   }
-                  //@ public normal_behavior requires i >= -1;
-                  //@ also public exceptional_behavior requires i < -1; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires i >= -1;
+                  //@ also public exceptional_behavior
+                  //@   requires i < -1;
+                  //@   signals_only RuntimeException;
                   public void fooE(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
                      int j = a[i];  } // New error
-                  //@ public normal_behavior requires i >= 0;
-                  //@ also public exceptional_behavior requires i < 0; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires i >= 0;
+                  //@ also public exceptional_behavior
+                  //@   requires i < 0;
+                  //@   signals_only RuntimeException;
                   public void fooF(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
@@ -1205,7 +1229,7 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",15
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",15
                 ,"/tt/TestJava.java:35: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",15
-                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",15
+                ,"/tt/TestJava.java:45: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",15
                 ,"/tt/TestJava.java:37: verify: Associated declaration",14
                 );
     }
@@ -1250,14 +1274,20 @@ public class escnew3 extends EscBase {
                      try { a[i] = 0; } catch (NullPointerException e) {}
                      a[i] = 0; // Old error
                   }
-                  //@ public normal_behavior requires i >= -1;
-                  //@ also public exceptional_behavior requires i < -1; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires i >= -1;
+                  //@ also public exceptional_behavior
+                  //@   requires i < -1;
+                  //@   signals_only RuntimeException;
                   public void fooE(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
                      a[i] = 0;  } // New error
-                  //@ public normal_behavior requires i >= 0;
-                  //@ also public exceptional_behavior requires i < 0; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires i >= 0;
+                  //@ also public exceptional_behavior
+                  //@   requires i < 0;
+                  //@   signals_only RuntimeException;
                   public void fooF(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
@@ -1267,7 +1297,7 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",7
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",7
                 ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",13
-                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
+                ,"/tt/TestJava.java:45: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
                 ,"/tt/TestJava.java:37: verify: Associated declaration",14
                 );
     }
@@ -1312,14 +1342,20 @@ public class escnew3 extends EscBase {
                      try { a[i] += 0; } catch (NullPointerException e) {}
                      a[i] += 0; // Old error
                   }
-                  //@ public normal_behavior requires i >= -1;
-                  //@ also public exceptional_behavior requires i < -1; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires i >= -1;
+                  //@ also public exceptional_behavior
+                  //@   requires i < -1;
+                  //@   signals_only RuntimeException;
                   public void fooE(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
                      a[i] += 0;  } // New error
-                  //@ public normal_behavior requires i >= 0;
-                  //@ also public exceptional_behavior requires i < 0; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires i >= 0;
+                  //@ also public exceptional_behavior
+                  //@   requires i < 0;
+                  //@   signals_only RuntimeException;
                   public void fooF(int[] a, int i) {
                      //@ assume a != null;
                      //@ assume i < a.length;
@@ -1329,7 +1365,7 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method foo",7
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooB",7
                 ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method fooD",13
-                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
+                ,"/tt/TestJava.java:45: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooE",7
                 ,"/tt/TestJava.java:37: verify: Associated declaration",14
                 );
     }
@@ -1351,20 +1387,26 @@ public class escnew3 extends EscBase {
                      //@ assume a != null;
                      //@ assume i >= 0;
                      try { int j = a[i]; } catch (ArrayIndexOutOfBoundsException e) {}  }
-                  //@ public normal_behavior requires 0 <= i && i <= a.length;
-                  //@ also public exceptional_behavior requires i > a.length+1; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires 0 <= i && i <= a.length;
+                  //@ also public exceptional_behavior
+                  //@   requires i > a.length+1;
+                  //@   signals_only RuntimeException;
                   public void fooB(int[] a, int i) {
                      int j = a[i];
                   }
-                  //@ public normal_behavior requires 0 <= i && i < a.length;
-                  //@ also public exceptional_behavior requires i < 0; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires 0 <= i && i < a.length;
+                  //@ also public exceptional_behavior
+                  //@   requires i < 0;
+                  //@   signals_only RuntimeException;
                   public void fooC(int[] a, int i) {
                      int j = a[i];
                   }
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",15
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
                 ,"/tt/TestJava.java:14: verify: Associated declaration",14
                 );
     }
@@ -1385,20 +1427,26 @@ public class escnew3 extends EscBase {
                      //@ assume a != null;
                      //@ assume i >= 0;
                      try { a[i] = 0; } catch (ArrayIndexOutOfBoundsException e) {}  }
-                  //@ public normal_behavior requires 0 <= i && i <= a.length;
-                  //@ also public exceptional_behavior requires i > a.length+1; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires 0 <= i && i <= a.length;
+                  //@ also public exceptional_behavior
+                  //@   requires i > a.length+1;
+                  //@   signals_only RuntimeException;
                   public void fooB(int[] a, int i) {
                      a[i] = 0;
                   }
-                  //@ public normal_behavior requires 0 <= i && i < a.length;
-                  //@ also public exceptional_behavior requires i < 0; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires 0 <= i && i < a.length;
+                  //@ also public exceptional_behavior
+                  //@   requires i < 0;
+                  //@   signals_only RuntimeException;
                   public void fooC(int[] a, int i) {
                      a[i] = 0;
                   }
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",7
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
                 ,"/tt/TestJava.java:14: verify: Associated declaration",14
                 );
     }
@@ -1419,20 +1467,26 @@ public class escnew3 extends EscBase {
                      //@ assume a != null;
                      //@ assume i >= 0;
                      try { a[i]+= 0; } catch (ArrayIndexOutOfBoundsException e) {}  }
-                  //@ public normal_behavior requires 0 <= i && i <= a.length;
-                  //@ also public exceptional_behavior requires i > a.length+1; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires 0 <= i && i <= a.length;
+                  //@ also public exceptional_behavior
+                  //@   requires i > a.length+1;
+                  //@   signals_only RuntimeException;
                   public void fooB(int[] a, int i) {
                      a[i]+= 0;
                   }
-                  //@ public normal_behavior requires 0 <= i && i < a.length;
-                  //@ also public exceptional_behavior requires i < 0; signals_only RuntimeException;
+                  //@ public normal_behavior
+                  //@   requires 0 <= i && i < a.length;
+                  //@ also public exceptional_behavior
+                  //@   requires i < 0;
+                  //@   signals_only RuntimeException;
                   public void fooC(int[] a, int i) {
                      a[i]+= 0;
                   }
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method foo",7
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
                 ,"/tt/TestJava.java:14: verify: Associated declaration",14
                 );
     }
@@ -1451,20 +1505,26 @@ public class escnew3 extends EscBase {
                   public void fooA(int a) {
                      try { int j = 1/a; } catch (ArithmeticException e) {}
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only ArithmeticException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only ArithmeticException;
                   public void fooB(int a) {
                      int j = 1/a;
                   }
-                  //@ public normal_behavior requires a != 0;
-                  //@ also public exceptional_behavior requires a == 0; signals_only ArithmeticException;
+                  //@ public normal_behavior
+                  //@   requires a != 0;
+                  //@ also public exceptional_behavior
+                  //@   requires a == 0;
+                  //@   signals_only ArithmeticException;
                   public void fooC(int a) {
                      int j = 1/a;
                   }
                 }
                 """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method foo",15
-                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
                 ,"/tt/TestJava.java:11: verify: Associated declaration",14
                 );
     }
@@ -1484,13 +1544,19 @@ public class escnew3 extends EscBase {
                   public void fooA(int a) {
                      try { oo[0] = 1; } catch (ArrayStoreException e) {}
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only ArrayStoreException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only ArrayStoreException;
                   public void fooB(int a) {
                      oo[0] = 1;
                   }
-                  //@ public normal_behavior requires \\type(Integer) <:= \\elemtype(\\typeof(ooo)) ;
-                  //@ also public exceptional_behavior requires !(\\type(Integer) <:= \\elemtype(\\typeof(ooo))); signals_only ArrayStoreException;
+                  //@ public normal_behavior
+                  //@   requires \\type(Integer) <:= \\elemtype(\\typeof(ooo)) ;
+                  //@ also public exceptional_behavior
+                  //@   requires !(\\type(Integer) <:= \\elemtype(\\typeof(ooo)));
+                  //@   signals_only ArrayStoreException;
                   public void fooC(Object[] ooo, int a) {
                      //@ assume ooo.length > 1 ;
                      ooo[0] = 1;
@@ -1498,7 +1564,7 @@ public class escnew3 extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method foo",12
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",12
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",12
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1517,20 +1583,26 @@ public class escnew3 extends EscBase {
                   //@ public normal_behavior
                   public void fooA(/*@ nullable */ TestJava a) {
                      try { int j = a.m(); } catch (NullPointerException e) {}  }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ TestJava a) {
                      int j = a.m();
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ TestJava a) {
                      int j = a.m();
                   }
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
-                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
                 ,"/tt/TestJava.java:11: verify: Associated declaration",14
                 );
     }
@@ -1550,20 +1622,26 @@ public class escnew3 extends EscBase {
                   public void fooA(/*@ nullable */ TestJava a) {
                      try { A j = a.new A(); } catch (NullPointerException e) {}
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ TestJava a) {
                      A j = a.new A();
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ TestJava a) {
                      A j = a.new A();
                   }
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",12
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",12
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",12
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1583,20 +1661,26 @@ public class escnew3 extends EscBase {
                   public void fooA(/*@ nullable */ Integer a) {
                      try { int j = (int)a; } catch (NullPointerException e) {}
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ Integer a) {
                      int j = (int)a;
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ Integer a) {
                      int j = (int)a;
                   }
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method foo",19
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",19
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",19
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1616,20 +1700,26 @@ public class escnew3 extends EscBase {
                   public void fooA(/*@ nullable */ Integer a) {
                      try { int j = a; } catch (NullPointerException e) {}
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ Integer a) {
                      int j = a;
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ Integer a) {
                      int j = a;
                   }
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method foo",14
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",14
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",14
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1649,20 +1739,26 @@ public class escnew3 extends EscBase {
                   public void fooA(/*@ nullable */ A a) {
                      try { a.x = 1; } catch (NullPointerException e) {}
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ A a) {
                      a.x = 1;
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ A a) {
                      a.x = 1;
                   }
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1682,20 +1778,26 @@ public class escnew3 extends EscBase {
                   public void fooA(/*@ nullable */ A a) {
                      try { a.x += 0; } catch (NullPointerException e) {}
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ A a) {
                      a.x += 0;
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ A a) {
                      a.x += 0;
                   }
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1715,20 +1817,26 @@ public class escnew3 extends EscBase {
                   public void fooA(/*@ nullable */ A a) {
                      try { switch (a) {}; } catch (NullPointerException e) {} // OK - possibly null is caught
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ A a) {
                      switch (a) {}; // ERROR - possibly null is not expected because of null precondition
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ A a) {
                      switch(a) {}; // OK - possibly null is expected
                   }
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullValue) in method foo",13
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",13
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",13
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1748,20 +1856,26 @@ public class escnew3 extends EscBase {
                   public void fooA(/*@ nullable */ A a) {
                      try { synchronized (a) {}; } catch (NullPointerException e) {}
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ A a) {
                      synchronized (a) {};
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ A a) {
                      synchronized(a) {};
                   }
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullValue) in method foo",19
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",19
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",19
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1773,29 +1887,38 @@ public class escnew3 extends EscBase {
                 package tt;
                 public class TestJava {
                   class A extends RuntimeException {}
-                  //@ public behavior signals_only A;
+                  //@ public behavior
+                  //@   signals_only A;
                   public void foo(/*@ nullable */ A a) {
                      throw a;
                   }
-                  //@ public behavior signals_only A;
+                  //@ public behavior
+                  //@   signals_only A;
                   public void fooA(/*@ nullable */ A a) {
                      try { throw a; } catch (NullPointerException e) {}
                   }
-                  //@ public behavior signals_only A;
-                  //@ also public exceptional_behavior requires false; signals_only A, NullPointerException;
+                  //@ public behavior
+                  //@   signals_only A;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only A, NullPointerException;
                   public void fooB(/*@ nullable */ A a) {
                      throw a ;
                   }
-                  //@ public behavior requires a != null; signals_only A;
-                  //@ also public exceptional_behavior requires a == null; signals_only A, NullPointerException;
+                  //@ public behavior
+                  //@   requires a != null;
+                  //@   signals_only A;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only A, NullPointerException;
                   public void fooC(/*@ nullable */ A a) {
                      throw a;
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullValue) in method foo",12
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ExceptionList) in method fooB",12
-                ,"/tt/TestJava.java:12: verify: Associated declaration",23
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullValue) in method foo",12
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (ExceptionList) in method fooB",12
+                ,"/tt/TestJava.java:15: verify: Associated declaration",9
                 );
     }
 
@@ -1814,14 +1937,20 @@ public class escnew3 extends EscBase {
                   public void fooA( int/*@ nullable */[] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      try { int j = a[0]; } catch (NullPointerException e) {}  }
-                  //@ public normal_behavior requires i>0;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires i>0;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(int/*@ nullable */[] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      int j = a[0];
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(int/*@ nullable */ [] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      int j = a[0];
@@ -1829,7 +1958,7 @@ public class escnew3 extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1849,14 +1978,20 @@ public class escnew3 extends EscBase {
                   public void fooA(int /*@ nullable */ [] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      try { a[0] = 0; } catch (NullPointerException e) {}  }
-                  //@ public normal_behavior requires i>0;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires i>0;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(int /*@ nullable */ [] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      a[0] = 0;
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(int /*@ nullable */ [] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      a[0] = 0;
@@ -1864,7 +1999,7 @@ public class escnew3 extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1884,14 +2019,20 @@ public class escnew3 extends EscBase {
                   public void fooA(int /*@ nullable */ [] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      try { a[0] = 0; } catch (NullPointerException e) {}  }
-                  //@ public normal_behavior requires i>0;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires i>0;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(int /*@ nullable */ [] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      a[0] = 0;
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(int /*@ nullable */ [] a, int i) {
                      //@ assume a != null ==> a.length > 1;
                      a[0] = 0;
@@ -1899,7 +2040,7 @@ public class escnew3 extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",7
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",7
                 ,"/tt/TestJava.java:12: verify: Associated declaration",14
                 );
     }
@@ -1923,13 +2064,19 @@ public class escnew3 extends EscBase {
                      try { int j = a.x; } catch (NullPointerException e) {/*@ assert a == null; */ }
                      int k = a.x;
                   }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NullPointerException;
                   public void fooB(/*@ nullable */ A a) {
                      int j = a.x;
                   }
-                  //@ public normal_behavior requires a != null;
-                  //@ also public exceptional_behavior requires a == null; signals_only NullPointerException;
+                  //@ public normal_behavior
+                  //@   requires a != null;
+                  //@ also public exceptional_behavior
+                  //@   requires a == null;
+                  //@   signals_only NullPointerException;
                   public void fooC(/*@ nullable */ A a) {
                      int j = a.x;
                   }
@@ -1937,7 +2084,7 @@ public class escnew3 extends EscBase {
                 """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method foo",15
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method fooAA",15
-                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
+                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",15
                 ,"/tt/TestJava.java:16: verify: Associated declaration",14
                 );
     }
@@ -1955,20 +2102,26 @@ public class escnew3 extends EscBase {
                   //@ public normal_behavior
                   public void fooA(int n) {
                      try { int[] j = new int[n]; } catch (NegativeArraySizeException e) {}  }
-                  //@ public normal_behavior requires true;
-                  //@ also public exceptional_behavior requires false; signals_only NegativeArraySizeException;
+                  //@ public normal_behavior
+                  //@   requires true;
+                  //@ also public exceptional_behavior
+                  //@   requires false;
+                  //@   signals_only NegativeArraySizeException;
                   public void fooB(int n) {
                      int[] j = new int[n];
                   }
-                  //@ public normal_behavior requires n >= 0;
-                  //@ also public exceptional_behavior requires n < 0; signals_only NegativeArraySizeException;
+                  //@ public normal_behavior
+                  //@   requires n >= 0;
+                  //@ also public exceptional_behavior
+                  //@   requires n < 0;
+                  //@   signals_only NegativeArraySizeException;
                   public void fooC(int n) {
                      int[] j = new int[n];
                   }
                 }
                 """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNegativeSize) in method foo",24
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",24
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method fooB",24
                 ,"/tt/TestJava.java:10: verify: Associated declaration",14
                 );
     }

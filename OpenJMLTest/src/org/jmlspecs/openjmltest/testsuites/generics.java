@@ -92,11 +92,15 @@ public class generics extends TCBase {
     
     @Test
     public void testMethod() {
-        helpTCText("A.java","public class A<X> {\n  <T>T doit(T t) { return t; } }"
+        helpTCText("A.java",
+                """
+                public class A<X> {
+                  <T>T doit(T t) { return t; } }
+                """
                 );
-        
+
     }
-    
+
     @Test
     public void testMethod2() {
         addMockFile("$A/java/util/Vector.jml","package java.util;\npublic class Vector<E> extends java.util.AbstractList<E> implements java.util.List<E>, java.util.RandomAccess, java.lang.Cloneable, java.io.Serializable { \npublic <T> T[] toArray(T[] t); }");
@@ -108,40 +112,51 @@ public class generics extends TCBase {
     
     @Test
     public void testForEach1() {
-        helpTCText("A.java"," class A { void m(java.util.List<Integer> list) {\n" +
-                " //@ loop_invariant o != null; decreasing 6; \n" +
-                " for (Integer o: list) {}  \n" +
-                "}}"
+        helpTCText("A.java",
+                """
+                 class A { void m(java.util.List<Integer> list) {
+                 //@ loop_invariant o != null; decreasing 6;
+                 for (Integer o: list) {}
+                }}
+                """
                 );
     }
 
 
     @Test
     public void testForEach2() {
-        helpTCText("A.java"," class A { void m(Integer[] list) { \n" +
-                " //@ loop_invariant o != 0; decreasing 6; \n" +
-                " for (Integer o: list) {}  \n" +
-                "}}"
+        helpTCText("A.java",
+                """
+                 class A { void m(Integer[] list) {
+                 //@ loop_invariant o != 0; decreasing 6;
+                 for (Integer o: list) {}
+                }}
+                """
                 );
     }
 
 
     @Test
     public void testForEach3() {
-        helpTCText("A.java"," class A { void m(java.util.List<Integer> list) { \n" +
-                " //@ loop_invariant o != 0; decreasing 6; \n" +
-                " for (int o: list) {}  \n" +
-                "}}"
+        helpTCText("A.java",
+                """
+                 class A { void m(java.util.List<Integer> list) {
+                 //@ loop_invariant o != 0; decreasing 6;
+                 for (int o: list) {}
+                }}
+                """
                 );
     }
 
     @Test
     public void testForEach4() {
         helpTCText("A.java",
-                " class A { void m(Integer[] list) { \n" +
-                " //@ loop_invariant o != 0; decreasing 6; \n" +
-                " for (int o: list) {}  \n" +
-                "}}"
+                """
+                 class A { void m(Integer[] list) {
+                 //@ loop_invariant o != 0; decreasing 6;
+                 for (int o: list) {}
+                }}
+                """
                 );
     }
 }

@@ -175,7 +175,9 @@ public class bugs extends TCBase {
                     boolean bb = b instanceof Double ;
                     Object o = (Class<?>)v.getClass();
 
-                  } /*@ pure */ boolean mm() { return true; }
+                  }
+                  /*@ pure */
+                  boolean mm() { return true; }
                 }
                 """
                 ,"/A.java:3: error: cannot find symbol\n  symbol:   variable Short\n  location: class A",37
@@ -201,7 +203,8 @@ public class bugs extends TCBase {
 
                 public abstract class A extends java.io.InputStream implements Comparable<A> {
                   public boolean mm() { return m(java.lang.Long.TYPE) && m(java.lang.Long);}
-                  public /*@ pure */ boolean m(Object i) {
+                  /*@ pure */
+                  public boolean m(Object i) {
                   }
                 }
                 """
@@ -221,7 +224,8 @@ public class bugs extends TCBase {
 
                 public abstract class A extends java.io.InputStream implements Comparable<A> {
                   //@ public invariant m(java.lang.Long.TYPE) && m(java.lang.Long);
-                  public /*@ pure */ boolean m(Object i) {
+                  /*@ pure */
+                  public boolean m(Object i) {
                   }
                 }
                 """

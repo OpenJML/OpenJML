@@ -3,7 +3,7 @@ package org.jmlspecs.openjmltest.testsuites;
 import org.jmlspecs.openjmltest.RacBase;
 import org.junit.*;
 
-/** These tests exercise the RAC checking.  They compile a test class 
+/** These tests exercise the RAC checking.  They compile a test class
  * using RAC and then execute the resulting program, catching that
  * programs output.  All the tests here have valid JML - they are testing
  * whether the RAC translations work correctly.
@@ -20,160 +20,215 @@ public class racnew2 extends RacBase {
         addOptions("--rac-show-source=line");
         // Tests presume --nonnull-by-default
     }
-    
+
     /** Tests a copying modifiers and annotations */
     // We really need to inspect the output to see that the result is OK. But at least this tests that it does not crash
     @Test public void testMods() {
-        helpRacText("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
-                " @Retention(RetentionPolicy.RUNTIME)  \n" +
-                "  @interface A { }\n" +
-                " public class TestJava { public static void main(String... args) {}" +
-                "}"
-        );        
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                import java.lang.annotation.*;
+                @Retention(RetentionPolicy.RUNTIME)
+                @interface A { }
+                public class TestJava {
+                  public static void main(String... args) {}
+                }
+                """
+        );
     }
 
     @Test public void testMods2() {
         expectedExit = 1;
         helpRacText("tt.TestJava",
                 """
-                package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*;
+                package tt;
+                import org.jmlspecs.annotation.*;
+                import java.lang.annotation.*;
                 public class TestJava {
                     @NonNull  protected void m() {}
                     public static void main(String... args) {}
                 }
                 """
-                //,"/tt/TestJava.java:3: error: annotation interface not applicable to this kind of declaration",5
-                ,"/tt/TestJava.java:3: error: the type modifier/annotation is not permitted on a primitive type: void",5
-        );        
+                //,"/tt/TestJava.java:5: error: annotation interface not applicable to this kind of declaration",5
+                ,"/tt/TestJava.java:5: error: the type modifier/annotation is not permitted on a primitive type: void",5
+        );
     }
-    
+
     @Test public void testMethodCall() {
-        helpRacText("tt.TestJava","package tt; import org.jmlspecs.annotation.*; import java.lang.annotation.*; \n" +
-                " public class TestJava { \n" +
-                "   //@ ensures \\result > 0; \n" +
-                "   public static int m(int i) {return i;} \n" +
-                "   public static void main(String... args) {\n" +
-                "     System.out.println(\"START\"); \n" +
-                "     int k = m(1);\n" +
-                "     System.out.println(\"MID\"); \n" +
-                "     k += 5 + m(-1);\n" +
-                "     System.out.println(\"END\"); \n" +
-                "   }" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                import java.lang.annotation.*;
+                public class TestJava {
+                  //@ ensures \\result > 0;
+                  public static int m(int i) { return i; }
+                  public static void main(String... args) {
+                    System.out.println("START");
+                    int k = m(1);
+                    System.out.println("MID");
+                    k += 5 + m(-1);
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"START"
                 ,"MID"
-                ,"/tt/TestJava.java:4: verify: JML postcondition is false"
-                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:"
-                ,"/tt/TestJava.java:9: verify: JML postcondition is false"
-                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:9:"
+                ,"/tt/TestJava.java:6: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:6:"
+                ,"/tt/TestJava.java:11: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:11:"
                 ,"END"
-        );        
+        );
     }
-    
+
     /** Tests new array */
     @Test public void testNewArray() {  // FIXME - improve error message when String.equals includes its model methods for RAC
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  String[] a = new String[]{\"abc\",\"def\"};\n" +
-                "  int i = a.length; \n" +
-                "  //@ assert i == 2; \n" +
-                "  String[][] aa = new String[][]{{\"abc\",\"defz\"},{\"g\",\"h\",\"i\"}};\n" +
-                "  i = aa.length; \n" +
-                "  boolean b = aa[1][0].equals(\"g\"); \n" +
-                "  //@ assert i == 2; \n" +
-                "  //@ assert aa[1].length == 3; \n" +
-                "  //@ assert (new int[]{1,2,3}).length == 3; \n" +
-                "  //@ assert (new int[]{1,2,3})[1] == 2; \n" +
-                "  String[][] aaa = new String[1][2]; \n" +
-                "  //@ assert aaa.length == 1; \n" +
-                "  //@ assert aaa[0].length == 2; \n" +
-                "  //@ assert aaa[0][0] == null; \n" +
-                
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    String[] a = new String[]{"abc","def"};
+                    int i = a.length;
+                    //@ assert i == 2;
+                    String[][] aa = new String[][]{{"abc","defz"},{"g","h","i"}};
+                    i = aa.length;
+                    boolean b = aa[1][0].equals("g");
+                    //@ assert i == 2;
+                    //@ assert aa[1].length == 3;
+                    //@ assert (new int[]{1,2,3}).length == 3;
+                    //@ assert (new int[]{1,2,3})[1] == 2;
+                    String[][] aaa = new String[1][2];
+                    //@ assert aaa.length == 1;
+                    //@ assert aaa[0].length == 2;
+                    //@ assert aaa[0][0] == null;
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"END"
-        );        
+        );
     }
 
     /** Tests new array */
     @Test public void testNewArray2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  int[] x = new int[3]; \n" +
-                "  //@ assert x.length == 3; \n" +
-                "  //@ assert x[0] == 0; \n" +
-                "  String[] a = {\"abc\",\"def\"};\n" +
-                "  int i = a.length; \n" +
-                "  //@ assert i == 2; \n" +
-                "  String[][] aa = {{\"abc\",\"defz\"},{\"g\",\"h\",\"i\"}};\n" +
-                "  i = aa.length; \n" +
-                "  boolean b = aa[1][0].equals(\"g\"); \n" +
-                "  //@ assert i == 2; \n" +
-                "  //@ assert aa[1].length == 3; \n" +
-                "  String[][] aaa = new String[1][2]; \n" +
-                "  //@ assert aaa.length == 1; \n" +
-                "  //@ assert aaa[0].length == 2; \n" +
-                "  //@ assert aaa[0][0] == null; \n" +
-                
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int[] x = new int[3];
+                    //@ assert x.length == 3;
+                    //@ assert x[0] == 0;
+                    String[] a = {"abc","def"};
+                    int i = a.length;
+                    //@ assert i == 2;
+                    String[][] aa = {{"abc","defz"},{"g","h","i"}};
+                    i = aa.length;
+                    boolean b = aa[1][0].equals("g");
+                    //@ assert i == 2;
+                    //@ assert aa[1].length == 3;
+                    String[][] aaa = new String[1][2];
+                    //@ assert aaa.length == 1;
+                    //@ assert aaa[0].length == 2;
+                    //@ assert aaa[0][0] == null;
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"END"
-        );        
+        );
     }
 
     /** Tests new object */
     @Test public void testNewObject() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  TestJava a = new TestJava();\n" +
-                "  int i = a.m(10); \n" +
-                "  //@ assert i == 11; \n" +
-                "  TestJava aa = new TestJava() { public int m(int i) { return i + 2; } } ;\n" +
-                "  i = aa.m(10); \n" +
-                "  //@ assert i == 12; \n" +
-                
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  public int m(int i) { return i + 1; } \n" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    TestJava a = new TestJava();
+                    int i = a.m(10);
+                    //@ assert i == 11;
+                    TestJava aa = new TestJava() { public int m(int i) { return i + 2; } } ;
+                    i = aa.m(10);
+                    //@ assert i == 12;
+                    System.out.println("END");
+                  }
+                  public int m(int i) { return i + 1; }
+                }
+                """
                 ,"END"
-        );        
+        );
     }
 
     /** Tests new object in JML */
     @Test public void testNewObject2() {
         expectedExit = 1;
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  // @ assert (new TestJava()).m(15) == 16;\n" +
-                "  //@ assert (new TestJava() { public pure int m(int i) { return i + 2; } }).m(15) == 17;\n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  /*@ pure */ public int m(int i) { return i + 1; } \n" +
-                "}"
-                ,"/tt/TestJava.java:3: error: Object allocation is not permitted in specification expressions",15
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    // @ assert (new TestJava()).m(15) == 16;
+                    //@ assert (new TestJava() { public pure int m(int i) { return i + 2; } }).m(15) == 17;
+                    System.out.println("END");
+                  }
+                  /*@ pure */ public int m(int i) { return i + 1; }
+                }
+                """
+                ,"/tt/TestJava.java:5: error: Object allocation is not permitted in specification expressions",17
                 ,"END"
-        );        
+        );
     }
 
     /** Tests a simple try-finally block */
     @Test public void testTry() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  int i; try { i = 0; } finally { i = 1; } //@ assert i == 1; \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int i;
+                    try { i = 0; } finally { i = 1; }
+                    //@ assert i == 1;
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"END"
-        );        
+        );
     }
 
     /** Test skip statement */
     @Test public void testSkip() {
-        helpRacText("tt.A","package tt; class A { public static void main(String[] args) { int i ;;; i = 9;;;; //@ assert i == 9; \n }\n  \n}"
+        helpRacText("tt.A",
+                """
+                package tt;
+                class A {
+                  public static void main(String[] args) {
+                    int i ;;; i = 9;;;; //@ assert i == 9;
+                  }
+                }
+                """
                 );
     }
 
     /** Test synchronized statement with this */
     @Test public void testSynchronized() {
-        helpRacText("tt.A","package tt; class A { public static void main(String[] args) { new A().m(); }\n public void m() { int i; \n synchronized (this) { i = 0; } \n}}"
+        helpRacText("tt.A",
+                """
+                package tt;
+                class A {
+                  public static void main(String[] args) { new A().m(); }
+                  public void m() {
+                    int i;
+                    synchronized (this) { i = 0; }
+                  }
+                }
+                """
                 );
     }
 
@@ -194,7 +249,7 @@ public class racnew2 extends RacBase {
                     }
                 }
                 """
-                ,"/tt/A.java:9: verify: JML An object may be illegally null"
+                ,"/tt/A.java:9: verify: JML An object is unexpectedly null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot enter synchronized block because \"<local4>\" is null"
                 ,"\tat tt.A.m(A.java:9)"
                 ,"\tat tt.A.main(A.java:4)"
@@ -204,538 +259,768 @@ public class racnew2 extends RacBase {
 
     /** Tests a simple try-throw-catch block */
     @Test public void testThrow() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  int i; try { i = 0; throw new RuntimeException(); } catch (RuntimeException e) { i = 1; } //@ assert i == 1; \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int i;
+                    try { i = 0; throw new RuntimeException(); } catch (RuntimeException e) { i = 1; }
+                    //@ assert i == 1;
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"END"
-        );        
+        );
     }
 
 
     /** Tests binary operators */
+    // FIXME - add equalities among various types, && || & ^ | logical and bit
+    // FIXME - test JML binary
     @Test public void testBinary() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  int a=5,b=6,c; boolean f, e= true,d=false; \n" +
-                "  c = a + b; \n" +
-                "  //@ assert c == a + 6; \n" +
-                "  c = a - b; \n" +
-                "  //@ assert a - c == 6; \n" +
-                "  c = a * b; \n" +
-                "  //@ assert b == c / 5; \n" +
-                "  c = b / (a - 3); \n" +
-                "  //@ assert b == c * 2; \n" +
-                "  c = b % a; \n" +
-                "  //@ assert a % b == a && c == 1; \n" +
-                "  f = a < b ; \n" +                    // FIXME - this line causes a problem
-                "  //@ assert  f && a <= b; \n" +
-                "  f = a <= b ; \n" +  
-                "  //@ assert  f && a < b; \n" +
-                "  f = a > b ; \n" +  
-                "  //@ assert  !f && a >= b; \n" +
-                "  f = a >= b ; \n" +  
-                "  //@ assert  !f && a > b; \n" +
-                // FIXME - add equalities among various types, && || & ^ | logical and bit
-                // FIXME - test JML binary
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
-                ,"/tt/TestJava.java:18: JML assertion is false"
-                ,"/tt/TestJava.java:20: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int a=5,b=6,c;
+                    boolean f, e= true,d=false;
+                    c = a + b;
+                    //@ assert c == a + 6;
+                    c = a - b;
+                    //@ assert a - c == 6;
+                    c = a * b;
+                    //@ assert b == c / 5;
+                    c = b / (a - 3);
+                    //@ assert b == c * 2;
+                    c = b % a;
+                    //@ assert a % b == a && c == 1;
+                    f = a < b ; // FIXME - this line causes a problem
+                    //@ assert  f && a <= b;
+                    f = a <= b ;
+                    //@ assert  f && a < b;
+                    f = a > b ;
+                    //@ assert  !f && a >= b;
+                    f = a >= b ;
+                    //@ assert  !f && a > b;
+                    System.out.println("END");
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:21: JML assertion is false"
+                ,"/tt/TestJava.java:23: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests binary operators */
     @Test public void testShift() {
         addOptions("--code-math=safe");
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  int a=5,b=6,c=100;  \n" +
-                "  int d = a << b; \n" +
-                "  d = a << c; \n" +  // ERROR
-                "  d = a >> b; \n" +
-                "  d = a >> c; \n" + // ERROR
-                "  d = a >>> b; \n" +
-                "  d = a >>> c; \n" + // ERROR
-                "  long e = 20L << b; \n" +
-                "  e = 20L << (b+40); \n" + // OK
-                "  e = 20L << c; \n" + // ERROR
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
-                ,"/tt/TestJava.java:4: JML shift amount is out of expected range"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int a=5,b=6,c=100;
+                    int d = a << b;
+                    d = a << c; // ERROR
+                    d = a >> b;
+                    d = a >> c; // ERROR
+                    d = a >>> b;
+                    d = a >>> c; // ERROR
+                    long e = 20L << b;
+                    e = 20L << (b+40); // OK
+                    e = 20L << c; // ERROR
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: JML shift amount is out of expected range"
                 ,"/tt/TestJava.java:8: JML shift amount is out of expected range"
-                ,"/tt/TestJava.java:11: JML shift amount is out of expected range"
+                ,"/tt/TestJava.java:10: JML shift amount is out of expected range"
+                ,"/tt/TestJava.java:13: JML shift amount is out of expected range"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests binary operators */
     @Test public void testConditional() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  int a=5,b=6,c=100;  \n" +
-                "  int d = a < 10 ? b + 3 : c-40; \n" +
-                "  System.out.println(d); \n" +
-                "  //@ assert (c > 4? a + 3 : b + 3) == 9; \n" +   // ERROR
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int a=5,b=6,c=100;
+                    int d = a < 10 ? b + 3 : c-40;
+                    System.out.println(d);
+                    //@ assert (c > 4? a + 3 : b + 3) == 9; // ERROR
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"9"
-                ,"/tt/TestJava.java:5: JML assertion is false"
+                ,"/tt/TestJava.java:7: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
-    /** Tests unary operators */ // FIXME - test unary with expressions in ++ -- 
+    /** Tests unary operators */ // FIXME - test unary with expressions in ++ --
     @Test public void testUnary() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  int a=5,b=0,c=0; boolean e=true,d=false; \n" +
-                "  b = a++; \n" +
-                "  //@ assert b+1 == a; \n" +
-                "  b = a--; \n" +
-                "  //@ assert b-1 == a; \n" +
-                "  c = a; b = ++a; \n" +
-                "  //@ assert b == a && c+1 == b; \n" +
-                "  b = --a; \n" +
-                "  //@ assert b == a && c == b; \n" +
-                "  b = -a; \n" +
-                "  //@ assert b == -5; \n" +
-                "  e = d ; \n" + 
-                "  //@ assert  !d; \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int a=5,b=0,c=0;
+                    boolean e=true,d=false;
+                    b = a++;
+                    //@ assert b+1 == a;
+                    b = a--;
+                    //@ assert b-1 == a;
+                    c = a; b = ++a;
+                    //@ assert b == a && c+1 == b;
+                    b = --a;
+                    //@ assert b == a && c == b;
+                    b = -a;
+                    //@ assert b == -5;
+                    e = d ;
+                    //@ assert  !d;
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"END"
-        );        
+        );
     }
 
-    /** Tests parens operators */ 
+    /** Tests parens operators */
     @Test public void testParens() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  int a=5,b=6,c=0; boolean e=true,d=false; \n" +
-                "  c = (a*b)+3*b-2*(a-(((b)))); \n" +
-                "  //@ assert ((((c) == 50))); \n" +
-                "  c = b / (((a))); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int a=5,b=6,c=0;
+                    boolean e=true,d=false;
+                    c = (a*b)+3*b-2*(a-(((b))));
+                    //@ assert ((((c) == 50)));
+                    c = b / (((a)));
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"END"
-        );        
+        );
     }
 
 
 
     /** Tests switch statement */
+    // Unlabelled breaks are not allowed for blocks
     @Test public void testBreak() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m(0);  m(2); m(3);  m(5); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(int i) { \n" +
-                "    out: { \n" +
-                "       in: { \n" +
-                "            System.out.print(i + \"A\");\n" +
-                // Unlabelled breaks are not allowed for blocks
-                "            if (i == 2) break in;\n" +
-                "            if (i == 3) break out;\n" +
-                "            System.out.print(\"B\");\n" +
-                "           }\n" +
-                "            System.out.print(\"C\");\n" +
-                "            if (i == 5) break out;\n" +
-                "            System.out.print(\"D\");\n" +
-                "        }\n" +
-                "            System.out.println(\"Z\");\n" +
-                "  } \n" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m(0);
+                    m(2);
+                    m(3);
+                    m(5);
+                    System.out.println("END");
+                  }
+                  static void m(int i) {
+                    out: {
+                       in: {
+                            System.out.print(i + "A");
+                            if (i == 2) break in;
+                            if (i == 3) break out;
+                            System.out.print("B");
+                           }
+                            System.out.print("C");
+                            if (i == 5) break out;
+                            System.out.print("D");
+                        }
+                            System.out.println("Z");
+                  }
+                }
+                """
                 ,"0ABCDZ"
                 ,"2ACDZ"
                 ,"3AZ"
                 ,"5ABCZ"
                 ,"END"
-        );        
+        );
     }
-    
+
+    // Unlabelled breaks are not allowed for blocks
     @Test public void testSimpleBreak() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                                "  m(0);  m(2);  \n" +
-                                "  System.out.println(\"END\"); \n" +
-                                "  } \n" + 
-                                "  static void m(int i) { \n" +
-                                "       in: { \n" +
-                                "            System.out.print(i + \"A\");\n" +
-                                // Unlabelled breaks are not allowed for blocks
-                                "            if (i == 2) break in;\n" +
-                                "            System.out.print(\"B\");\n" +
-                                "           }\n" +
-                                "            System.out.println(\"C\");\n" +
-                                "        }\n" +
-                                "}"
-                                ,"0ABC"
-                                ,"2AC"
-                                ,"END"
-                        );        
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m(0);
+                    m(2);
+                    System.out.println("END");
+                  }
+                  static void m(int i) {
+                       in: {
+                            System.out.print(i + "A");
+                            if (i == 2) break in;
+                            System.out.print("B");
+                           }
+                            System.out.println("C");
+                        }
+                }
+                """
+                ,"0ABC"
+                ,"2AC"
+                ,"END"
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitch() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m(0); m(1); m(2); m(3); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(int i) { \n" +
-                "  switch (i) { \n" +
-                "  case 0: //@ assert i == 0; \n break; \n" +
-                "  case 1: //@ assert i == 0; \n break; \n" +
-                "  case 2: //@ assert i == 2; \n break; \n" +
-                "  default: //@ assert i == 0; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false"
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m(0);
+                    m(1);
+                    m(2);
+                    m(3);
+                    System.out.println("END");
+                  }
+                  static void m(int i) {
+                  switch (i) {
+                  case 0: //@ assert i == 0;
+                 break;
+                  case 1: //@ assert i == 0;
+                 break;
+                  case 2: //@ assert i == 2;
+                 break;
+                  default: //@ assert i == 0;
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:14: JML assertion is false"
+                ,"/tt/TestJava.java:18: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement with declaration in a case*/
     @Test public void testSwitch2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m(0); m(1); m(2); m(3); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(int i) { \n" +
-                "  switch (i) { \n" +
-                "  case 0: int k = 0; //@ assert i == k; \n  \n" +
-                "  case 1: k=1;       //@ assert i == k; \n break; \n" +
-                "  case 2: k=2;       //@ assert i == k; \n break; \n" +
-                "  default: //@ assert i == 0; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false" // case 0 falls through
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m(0);
+                    m(1);
+                    m(2);
+                    m(3);
+                    System.out.println("END");
+                  }
+                  static void m(int i) {
+                  switch (i) {
+                  case 0: int k = 0; //@ assert i == k;
+                  case 1: k=1;       //@ assert i == k;
+                 break;
+                  case 2: k=2;       //@ assert i == k;
+                 break;
+                  default: //@ assert i == 0;
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:13: JML assertion is false" // case 0 falls through
+                ,"/tt/TestJava.java:17: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement with block breaks */
     @Test public void testSwitch3() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m(0); m(1); m(2); m(3); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(int i) { \n" +
-                "  System.out.print(i);  \n" +
-                "  out: { switch (i) { \n" +
-                "  case 0: break; \n" +
-                "  case 1: break out; \n" +
-                "  case 2: in: { break in; } System.out.print(\"X\"); break; \n" +
-                "  default: in: { if (i == 3)  break; } System.out.print(\"Y\"); break; \n" +
-                "  }\n" +
-                "  System.out.print(\"Z\"); }\n" +
-                "  }\n" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m(0);
+                    m(1);
+                    m(2);
+                    m(3);
+                    System.out.println("END");
+                  }
+                  static void m(int i) {
+                  System.out.print(i);
+                  out: { switch (i) {
+                  case 0: break;
+                  case 1: break out;
+                  case 2: in: { break in; } System.out.print("X"); break;
+                  default: in: { if (i == 3)  break; } System.out.print("Y"); break;
+                  }
+                  System.out.print("Z"); }
+                  }
+                }
+                """
                 ,"0Z12XZ3ZEND"
-        );        
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitchShort() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m((short)0); m((short)1); m((short)2); m((short)3); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(short i) { \n" +
-                "  switch (i) { \n" +
-                "  case 0: //@ assert i == 0; \n break; \n" +
-                "  case 1: //@ assert i == 0; \n break; \n" +
-                "  case 2: //@ assert i == 2; \n break; \n" +
-                "  default: //@ assert i == 0; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false"
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m((short)0);
+                    m((short)1);
+                    m((short)2);
+                    m((short)3);
+                    System.out.println("END");
+                  }
+                  static void m(short i) {
+                  switch (i) {
+                  case 0: //@ assert i == 0;
+                 break;
+                  case 1: //@ assert i == 0;
+                 break;
+                  case 2: //@ assert i == 2;
+                 break;
+                  default: //@ assert i == 0;
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:14: JML assertion is false"
+                ,"/tt/TestJava.java:18: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitchShort2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m((short)0); m((short)1); m((short)2); m((short)3); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(short s) { Short i = Short.valueOf(s); \n" +
-                "  switch (i) { \n" +
-                "  case 0: //@ assert i == 0; \n break; \n" +
-                "  case 1: //@ assert i == 0; \n break; \n" +
-                "  case 2: //@ assert i == 2; \n break; \n" +
-                "  default: //@ assert i == 0; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false"
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m((short)0);
+                    m((short)1);
+                    m((short)2);
+                    m((short)3);
+                    System.out.println("END");
+                  }
+                  static void m(short s) {
+                    Short i = Short.valueOf(s);
+                  switch (i) {
+                  case 0: //@ assert i == 0;
+                 break;
+                  case 1: //@ assert i == 0;
+                 break;
+                  case 2: //@ assert i == 2;
+                 break;
+                  default: //@ assert i == 0;
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:15: JML assertion is false"
+                ,"/tt/TestJava.java:19: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitchByte() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(byte i) { \n" +
-                "  switch (i) { \n" +
-                "  case 0: //@ assert i == 0; \n break; \n" +
-                "  case 1: //@ assert i == 0; \n break; \n" +
-                "  case 2: //@ assert i == 2; \n break; \n" +
-                "  default: //@ assert i == 0; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false"
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m((byte)0);
+                    m((byte)1);
+                    m((byte)2);
+                    m((byte)3);
+                    System.out.println("END");
+                  }
+                  static void m(byte i) {
+                  switch (i) {
+                  case 0: //@ assert i == 0;
+                 break;
+                  case 1: //@ assert i == 0;
+                 break;
+                  case 2: //@ assert i == 2;
+                 break;
+                  default: //@ assert i == 0;
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:14: JML assertion is false"
+                ,"/tt/TestJava.java:18: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitchByte2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m((byte)0); m((byte)1); m((byte)2); m((byte)3); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(byte s) { Byte i = Byte.valueOf(s); \n" +
-                "  switch (i) { \n" +
-                "  case 0: //@ assert i == 0; \n break; \n" +
-                "  case 1: //@ assert i == 0; \n break; \n" +
-                "  case 2: //@ assert i == 2; \n break; \n" +
-                "  default: //@ assert i == 0; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false"
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m((byte)0);
+                    m((byte)1);
+                    m((byte)2);
+                    m((byte)3);
+                    System.out.println("END");
+                  }
+                  static void m(byte s) {
+                    Byte i = Byte.valueOf(s);
+                  switch (i) {
+                  case 0: //@ assert i == 0;
+                 break;
+                  case 1: //@ assert i == 0;
+                 break;
+                  case 2: //@ assert i == 2;
+                 break;
+                  default: //@ assert i == 0;
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:15: JML assertion is false"
+                ,"/tt/TestJava.java:19: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitchInteger2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m(0); m(1); m(2); m(3); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(int s) { Integer i = Integer.valueOf(s); \n" +
-                "  switch (i) { \n" +
-                "  case 0: //@ assert i == 0; \n break; \n" +
-                "  case 1: //@ assert i == 0; \n break; \n" +
-                "  case 2: //@ assert i == 2; \n break; \n" +
-                "  default: //@ assert i == 0; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false"
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m(0);
+                    m(1);
+                    m(2);
+                    m(3);
+                    System.out.println("END");
+                  }
+                  static void m(int s) {
+                    Integer i = Integer.valueOf(s);
+                  switch (i) {
+                  case 0: //@ assert i == 0;
+                 break;
+                  case 1: //@ assert i == 0;
+                 break;
+                  case 2: //@ assert i == 2;
+                 break;
+                  default: //@ assert i == 0;
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:15: JML assertion is false"
+                ,"/tt/TestJava.java:19: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitchInteger2Null() {
-        helpRacText("tt.TestJava","package tt; /*@ nullable_by_default*/public class TestJava { public static void main(String[] args) { \n" +
-                "  try { m(0); } catch (Exception e) { System.out.println(\"EXCEPTION THROWN\"); } \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(int s) { Integer i = null; \n" +
-                "  switch (i) { \n" +
-                "  case 0: //@ assert i == 0; \n break; \n" +
-                "  case 1: //@ assert i == 0; \n break; \n" +
-                "  case 2: //@ assert i == 2; \n break; \n" +
-                "  default: //@ assert i == 0; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:6: JML Attempt to unbox a null object"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class TestJava {
+                  public static void main(String[] args) {
+                    try { m(0); } catch (Exception e) { System.out.println("EXCEPTION THROWN"); }
+                    System.out.println("END");
+                  }
+                  static void m(int s) {
+                    Integer i = null;
+                  switch (i) {
+                  case 0: //@ assert i == 0;
+                 break;
+                  case 1: //@ assert i == 0;
+                 break;
+                  case 2: //@ assert i == 2;
+                 break;
+                  default: //@ assert i == 0;
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:10: JML Attempt to unbox a null object"
                 ,"EXCEPTION THROWN"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitchChar() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m('a'); m('b'); m('c'); m('d'); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(char i) { \n" +
-                "  switch (i) { \n" +
-                "  case 'a': //@ assert i == 'a'; \n break; \n" +
-                "  case 'b': //@ assert i == 'a'; \n break; \n" +
-                "  case 'c': //@ assert i == 'c'; \n break; \n" +
-                "  default: //@ assert i == 'a'; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false"
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m('a');
+                    m('b');
+                    m('c');
+                    m('d');
+                    System.out.println("END");
+                  }
+                  static void m(char i) {
+                  switch (i) {
+                  case 'a': //@ assert i == 'a';
+                 break;
+                  case 'b': //@ assert i == 'a';
+                 break;
+                  case 'c': //@ assert i == 'c';
+                 break;
+                  default: //@ assert i == 'a';
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:14: JML assertion is false"
+                ,"/tt/TestJava.java:18: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests switch statement */
     @Test public void testSwitchChar2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  m('a'); m('b'); m('c'); m('d'); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "  static void m(char s) { Character i = Character.valueOf(s);\n" +
-                "  switch (i) { \n" +
-                "  case 'a': //@ assert i == 'a'; \n break; \n" +
-                "  case 'b': //@ assert i == 'a'; \n break; \n" +
-                "  case 'c': //@ assert i == 'c'; \n break; \n" +
-                "  default: //@ assert i == 'a'; \n break; \n" +
-                "  }}\n" +
-                "}"
-                ,"/tt/TestJava.java:9: JML assertion is false"
-                ,"/tt/TestJava.java:13: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m('a');
+                    m('b');
+                    m('c');
+                    m('d');
+                    System.out.println("END");
+                  }
+                  static void m(char s) {
+                    Character i = Character.valueOf(s);
+                  switch (i) {
+                  case 'a': //@ assert i == 'a';
+                 break;
+                  case 'b': //@ assert i == 'a';
+                 break;
+                  case 'c': //@ assert i == 'c';
+                 break;
+                  default: //@ assert i == 'a';
+                 break;
+                  }
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:15: JML assertion is false"
+                ,"/tt/TestJava.java:19: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
 
     /** Tests type test and type cast expressions */
     @Test public void testTypeCast() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  Integer i = Integer.valueOf(10); \n" +
-                "  Object o = i; \n" +
-                "  Integer ii = (Integer)o; \n" +
-                "  System.out.println(ii); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Integer i = Integer.valueOf(10);
+                    Object o = i;
+                    Integer ii = (Integer)o;
+                    System.out.println(ii);
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"10"
                 ,"END"
-        );        
+        );
     }
 
     /** Tests a bad cast */
     @Test public void testTypeCast2() {
         expectedRACExit = 1;
         addOptions("--rac-show-source=source");
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  Boolean i = Boolean.TRUE; \n" +
-                "  Object o = i; \n" +
-                "  Integer ii = (Integer)o;\n" +
-                "  System.out.println(ii); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
-                ,"/tt/TestJava.java:4: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
-                ,"  Integer ii = (Integer)o;"
-                ,"               ^"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Boolean i = Boolean.TRUE;
+                    Object o = i;
+                    Integer ii = (Integer)o;
+                    System.out.println(ii);
+                    System.out.println("END");
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
+                ,"    Integer ii = (Integer)o;"
+                ,"                 ^"
                 ,"Exception in thread \"main\" java.lang.ClassCastException: class java.lang.Boolean cannot be cast to class java.lang.Integer (java.lang.Boolean and java.lang.Integer are in module java.base of loader 'bootstrap')"
-                ,"\tat tt.TestJava.main(TestJava.java:4)"
-        );        
+                ,"\tat tt.TestJava.main(TestJava.java:6)"
+        );
     }
 
     /** Tests a type test with a cast */
     @Test public void testTypeCast3() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
-                "  Object o = i; \n" +
-                "  if (o instanceof Integer) { ii = (Integer)o; }\n" +
-                "  o = b; \n" +
-                "  if (o instanceof Integer) { ii = (Integer)o; }\n" +
-                "  System.out.println(ii); \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Boolean b = Boolean.TRUE;
+                    Integer i = Integer.valueOf(10);
+                    /*@ nullable */ Integer ii = null;
+                    Object o = i;
+                    if (o instanceof Integer) { ii = (Integer)o; }
+                    o = b;
+                    if (o instanceof Integer) { ii = (Integer)o; }
+                    System.out.println(ii);
+                    System.out.println("END");
+                  }
+                }
+                """
                 ,"10"
                 ,"END"
-        );        
+        );
     }
 
     /** Test a type tests and casts in JML */
     @Test public void testTypeTest4() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
-                "  Object o = i; \n" +
-                "  //@ assert o instanceof Integer; \n" +
-                "  o = b; \n" +
-                "  //@ assert o instanceof Integer; \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
-                ,"/tt/TestJava.java:7: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Boolean b = Boolean.TRUE;
+                    Integer i = Integer.valueOf(10);
+                    /*@ nullable */ Integer ii = null;
+                    Object o = i;
+                    //@ assert o instanceof Integer;
+                    o = b;
+                    //@ assert o instanceof Integer;
+                    System.out.println("END");
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:10: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
     /** Test a type tests and casts in JML */
     @Test public void testTypeCast5() {
         expectedRACExit = 1;
         addOptions("--rac-show-source=line");
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
-                "  Object o = i; \n" +
-                "  //@ assert (Integer)o != null; \n" +
-                "  o = b; \n" +
-                "  //@ assert (Integer)o != null; \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
-                ,"/tt/TestJava.java:7: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Boolean b = Boolean.TRUE;
+                    Integer i = Integer.valueOf(10);
+                    /*@ nullable */ Integer ii = null;
+                    Object o = i;
+                    //@ assert (Integer)o != null;
+                    o = b;
+                    //@ assert (Integer)o != null;
+                    System.out.println("END");
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:10: JML A cast is invalid - from java.lang.Object to java.lang.Integer"
                 ,"Exception in thread \"main\" java.lang.ClassCastException: class java.lang.Boolean cannot be cast to class java.lang.Integer (java.lang.Boolean and java.lang.Integer are in module java.base of loader 'bootstrap')"
-                ,"\tat tt.TestJava.main(TestJava.java:7)"
-        );        
+                ,"\tat tt.TestJava.main(TestJava.java:10)"
+        );
     }
 
     /** Test a type tests and casts in JML */
     @Test public void testTypeCast6() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "  Boolean b = Boolean.TRUE; \n" +
-                "  Integer i = Integer.valueOf(10); /*@ nullable */Integer ii = null; \n" +
-                "  Object o = i; \n" +
-                "  //@ assert o instanceof Integer && (Integer)o != null; \n" +
-                "  o = b; \n" +
-                "  //@ assert o instanceof Integer && (Integer)o != null; \n" +
-                "  System.out.println(\"END\"); \n" +
-                "  } \n" + 
-                "}"
-                ,"/tt/TestJava.java:7: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    Boolean b = Boolean.TRUE;
+                    Integer i = Integer.valueOf(10);
+                    /*@ nullable */ Integer ii = null;
+                    Object o = i;
+                    //@ assert o instanceof Integer && (Integer)o != null;
+                    o = b;
+                    //@ assert o instanceof Integer && (Integer)o != null;
+                    System.out.println("END");
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:10: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
 
 
     /** Tests the JML lbl lblpos and lblneg expressions */
     @Test public void testLbl() {
         addOptions("--spec-math=math");
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(null); \n" +
-                "System.out.println(\"END\"); } \n" +
-                "static int i = 0; static String n = \"asd\";\n" +
-                " static void m(/*@nullable*/ Object o) { \n" +
-                "//@ assert (\\lbl STRING \"def\") != null; \n" +
-                "++i; //@ assert (\\lbl SHORT (short)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl LONG (long)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl BYTE (byte)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl INT (int)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl FLOAT (float)(i)) != 0; \n" +
-                "++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0; \n" +
-                "//@ assert (\\lbl CHAR (char)(i+60) ) != 0; \n" +
-                "//@ assert (\\lbl BOOLEAN (i == 0)) ; \n" +
-                "//@ assert (\\lbl OBJECT o) == null; \n" +
-                "//@ assert (\\lbl NULL null) == null; \n" +
-                "//@ assert (\\lbl STRING \"abc\") != null; \n" +
-                "//@ assert (\\lblpos POST (i!=0)); \n" +
-                "//@ assert !(\\lblpos POSF (i==0)); \n" +
-                "//@ assert (\\lblneg NEGT (i!=0)); \n" +
-                "//@ assert !(\\lblneg NEGF (i==0)); \n" +
-                "//@ assert !(\\lblpos POST (i!=0)); \n" +
-                "//@ assert (\\lblneg NEGF (i==0)); \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m(null);
+                    System.out.println("END");
+                  }
+                  static int i = 0;
+                  static String n = "asd";
+                  static void m(/*@nullable*/ Object o) {
+                //@ assert (\\lbl STRING "def") != null;
+                ++i; //@ assert (\\lbl SHORT (short)(i)) != 0;
+                ++i; //@ assert (\\lbl LONG (long)(i)) != 0;
+                ++i; //@ assert (\\lbl BYTE (byte)(i)) != 0;
+                ++i; //@ assert (\\lbl INT (int)(i)) != 0;
+                ++i; //@ assert (\\lbl FLOAT (float)(i)) != 0;
+                ++i; //@ assert (\\lbl DOUBLE (double)(i)) != 0;
+                //@ assert (\\lbl CHAR (char)(i+60) ) != 0;
+                //@ assert (\\lbl BOOLEAN (i == 0)) ;
+                //@ assert (\\lbl OBJECT o) == null;
+                //@ assert (\\lbl NULL null) == null;
+                //@ assert (\\lbl STRING "abc") != null;
+                //@ assert (\\lblpos POST (i!=0));
+                //@ assert !(\\lblpos POSF (i==0));
+                //@ assert (\\lblneg NEGT (i!=0));
+                //@ assert !(\\lblneg NEGF (i==0));
+                //@ assert !(\\lblpos POST (i!=0));
+                //@ assert (\\lblneg NEGF (i==0));
+                  }
+                }
+                """
                 ,"LABEL STRING = def"
                 ,"LABEL SHORT = 1"
                 ,"LABEL LONG = 2"
@@ -745,39 +1030,46 @@ public class racnew2 extends RacBase {
                 ,"LABEL DOUBLE = 6.0"
                 ,"LABEL CHAR = B"
                 ,"LABEL BOOLEAN = false"
-                ,"/tt/TestJava.java:14: JML assertion is false"
+                ,"/tt/TestJava.java:18: JML assertion is false"
                 ,"LABEL OBJECT = null"
                 ,"LABEL NULL = null"
                 ,"LABEL STRING = abc"
                 ,"LABEL POST = true"
                 ,"LABEL NEGF = false"
                 ,"LABEL POST = true"
-                ,"/tt/TestJava.java:22: JML assertion is false"
+                ,"/tt/TestJava.java:26: JML assertion is false"
                 ,"LABEL NEGF = false"
-                ,"/tt/TestJava.java:23: JML assertion is false"
+                ,"/tt/TestJava.java:27: JML assertion is false"
                 ,"END"
                 );
-        
+
     }
-    
+
     /** Tests the JML lbl expression when the argument is a literal */
     @Test public void testLblConst() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                "m(null); \n" +
-                "System.out.println(\"END\"); } static int i = 0; \n" +
-                " static void m(/*@nullable*/ Object o) { \n" +
-                "//@ check (\\lbl OBJECT null) == null; \n" +
-                "//@ check (\\lbl INT 4) != 0; \n" +
-                "//@ check (\\lbl SHORT (short)(1)) != 0; \n" +
-                "//@ check (\\lbl LONG 2L) != 0; \n" +
-                "//@ check (\\lbl BYTE (byte)(3)) != 0; \n" +
-                "//@ check (\\lbl FLOAT 5.0f) != 0; \n" + // Line 10
-                "//@ check (\\lbl DOUBLE 6.0) != 0; \n" +
-                "//@ check (\\lbl CHAR 'a') != 0; \n" +
-                "//@ check (\\lbl BOOLEAN true) ; \n" +
-                "//@ check (\\lbl STRING \"abc\") != null; \n" +
-                "} " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    m(null);
+                    System.out.println("END");
+                  }
+                  static int i = 0;
+                  static void m(/*@nullable*/ Object o) {
+                //@ check (\\lbl OBJECT null) == null;
+                //@ check (\\lbl INT 4) != 0;
+                //@ check (\\lbl SHORT (short)(1)) != 0;
+                //@ check (\\lbl LONG 2L) != 0;
+                //@ check (\\lbl BYTE (byte)(3)) != 0;
+                //@ check (\\lbl FLOAT 5.0f) != 0; // Line 10
+                //@ check (\\lbl DOUBLE 6.0) != 0;
+                //@ check (\\lbl CHAR 'a') != 0;
+                //@ check (\\lbl BOOLEAN true) ;
+                //@ check (\\lbl STRING "abc") != null;
+                  }
+                }
+                """
                 ,"LABEL OBJECT = null"
                 ,"LABEL INT = 4"
                 ,"LABEL SHORT = 1"
@@ -790,78 +1082,107 @@ public class racnew2 extends RacBase {
                 ,"LABEL STRING = abc"
                 ,"END"
                 );
-        
+
     }
-    
+
     /** A misc early test case for lbl expressions */
     @Test public void testLabel() {
         addOptions("--rac-show-source=source");
         helpRacText("tt.TestJava",
-                "package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
-                " m(1); m(0); \n" +
-                " System.out.println(\"END\"); } static public int k = 0; \n" +
-                " /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ \n" +
-                " static public void m(int i) { System.out.println(\"i = \" + i ); k = i; } " +
-                "}"
+                """
+                package tt;
+                public class TestJava {
+                  /*@ assignable \\everything; */
+                  public static void main(String[] args) {
+                    m(1);
+                    m(0);
+                    System.out.println("END");
+                  }
+                  static public int k = 0;
+                  /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */
+                  static public void m(int i) {
+                    System.out.println("i = " + i);
+                    k = i;
+                  }
+                }
+                """
                 ,"i = 1"
                 ,"LABEL ENS = true"
                 ,"LABEL ENS = true"
                 ,"i = 0"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:5: JML postcondition is false"
-                ," static public void m(int i) { System.out.println(\"i = \" + i ); k = i; } }"
-                ,"                    ^"
-                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:5:"
-                ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
-                ,"                             ^"
+                ,"/tt/TestJava.java:11: JML postcondition is false"
+                ,"  static public void m(int i) {"
+                ,"                     ^"
+                ,"/tt/TestJava.java:10: Associated declaration: /tt/TestJava.java:11:"
+                ,"  /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */"
+                ,"                              ^"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:2: JML postcondition is false"
-                ," m(1); m(0); "
-                ,"        ^"
-                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:2:"
-                ," /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */ "
-                ,"                             ^"
+                ,"/tt/TestJava.java:6: JML postcondition is false"
+                ,"    m(0);"
+                ,"     ^"
+                ,"/tt/TestJava.java:10: Associated declaration: /tt/TestJava.java:6:"
+                ,"  /*@ assignable \\everything; ensures (\\lbl ENS k == 1); */"
+                ,"                              ^"
                 ,"END"
-        );        
+        );
     }
-    
+
     /** A misc early test case for lbl expressions */
     @Test public void testLabel2() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { /*@ assignable \\everything; */ public static void main(String[] args) { \n" +
-                " m(1); m(0); \n" +
-                " System.out.println(\"END\"); } static public int k = 0; \n" +
-                " /*@ assignable \\everything; ensures (\\lblneg ENS (\\lbl RES k) == 1); */ \n" +
-                " static public void m(int i) { k = i; return; } " +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  /*@ assignable \\everything; */
+                  public static void main(String[] args) {
+                    m(1);
+                    m(0);
+                    System.out.println("END");
+                  }
+                  static public int k = 0;
+                  /*@ assignable \\everything; ensures (\\lblneg ENS (\\lbl RES k) == 1); */
+                  static public void m(int i) {
+                    k = i;
+                    return;
+                  }
+                }
+                """
                 ,"LABEL RES = 1"
                 ,"LABEL RES = 1"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:5: verify: JML postcondition is false"
-                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:5:"
+                ,"/tt/TestJava.java:11: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:10: verify: Associated declaration: /tt/TestJava.java:11:"
                 ,"LABEL RES = 0"
                 ,"LABEL ENS = false"
-                ,"/tt/TestJava.java:2: verify: JML postcondition is false"
-                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:2:"
+                ,"/tt/TestJava.java:6: verify: JML postcondition is false"
+                ,"/tt/TestJava.java:10: verify: Associated declaration: /tt/TestJava.java:6:"
                 ,"END"
-        );        
+        );
     }
-    
+
     /** Checks one can do assignments in a model method. */
     @Test public void testModelMethod() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " //@ ghost boolean k; set k = m(); assert k; \n" +
-                " //@                  set k = m(); assert k; \n" +
-                " System.out.println(\"END\"); } \n" +
-                " //@ ghost static int i = 0; \n" +
-                " //@ ghost static int j = 0; \n" +
-                " //@ model static boolean m() { j = 1; i+= 1; int k = 2; return i == 1; } " +
-                "}"
-                ,"/tt/TestJava.java:3: JML assertion is false"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                   //@ ghost boolean k; set k = m(); assert k;
+                   //@                  set k = m(); assert k;
+                   System.out.println("END");
+                  }
+                  //@ ghost static int i = 0;
+                  //@ ghost static int j = 0;
+                  //@ model static boolean m() { j = 1; i+= 1; int k = 2; return i == 1; }
+                }
+                """
+                ,"/tt/TestJava.java:5: JML assertion is false"
                 ,"END"
-        );        
+        );
     }
-    
+
     /** Checks select expressions. */
     @Test public void testSelect() {
         expectedRACExit = 1;
@@ -883,9 +1204,9 @@ public class racnew2 extends RacBase {
             ,"/tt/TestJava.java:6: JML A null object is dereferenced within a JML expression"
             ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot read the array length because \"tt.TestJava.b\" is null"
             ,"\tat tt.TestJava.main(TestJava.java:6)"
-        );        
+        );
     }
-    
+
     /** Checks select expressions. */
     @Test public void testSelect2() {
         expectedRACExit = 1;
@@ -908,65 +1229,90 @@ public class racnew2 extends RacBase {
             ,"\tat tt.TestJava.main(TestJava.java:5)"
         );
     }
-    
+
     /** Checks a model class. */
     @Test public void testModelClass() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " System.out.println(m(1)); \n" +
-                " //@ set System.out.println(p(new G())); \n" +
-                " System.out.println(\"END\"); } \n" +
-                " static <T> T m(T i) { return i; } \n" +
-                " //@ model static public class G {} \n" +
-                " //@ model static int p(G i) { return 5; } \n" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                   System.out.println(m(1));
+                   //@ set System.out.println(p(new G()));
+                   System.out.println("END");
+                  }
+                  static <T> T m(T i) { return i; }
+                  //@ model static public class G {}
+                  //@ model static int p(G i) { return 5; }
+                }
+                """
                 ,"1"
                 ,"5"
                 ,"END"
-        );        
+        );
     }
-    
+
     /** Checks generic method. */
     @Test public void testGenMethod() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " System.out.println(m(1)); \n" +
-                " System.out.println(\"END\"); } \n" +
-                " static <T> T m(T i) { return i; } \n" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                   System.out.println(m(1));
+                   System.out.println("END");
+                  }
+                  static <T> T m(T i) { return i; }
+                }
+                """
                 ,"1"
                 ,"END"
-        );        
+        );
     }
-    
+
     /** Checks generic method. */
     @Test public void testGenMethod2() {  // FIXME - this needs more investigation -- the type int seems to be used (e.g. in addImplicitCOnversion) in an expression i != null where I would expect it to have been converted to T
-        helpRacText("tt.TestJava","package tt; import java.util.*; public class TestJava { public static void main(String[] args) { \n" +
-                " System.out.println(m(1)); \n" +
-                " System.out.println(\"END\"); } \n" +
-                " static /*@nullable*/ <T> List<?> m(T i) { return null; } \n" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                import java.util.*;
+                public class TestJava {
+                  public static void main(String[] args) {
+                   System.out.println(m(1));
+                   System.out.println("END");
+                  }
+                  static /*@nullable*/ <T> List<?> m(T i) { return null; }
+                }
+                """
                 ,"null"
                 ,"END"
-        );        
+        );
     }
-    
+
     /** Checks generic classes. */
     @Test public void testGenClass() {
-        helpRacText("tt.TestJava","package tt; public class TestJava { public static void main(String[] args) { \n" +
-                " System.out.println(m(1)); \n" +
-                " System.out.println(p(new G<Integer>())); \n" +
-                " System.out.println(\"END\"); } \n" +
-                " static <T> T m(T i) { return i; } \n" +
-                " static public class G<T> {} \n" +
-                " static <T> int p(G<?> i) { return 5; } \n" +
-                "}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                   System.out.println(m(1));
+                   System.out.println(p(new G<Integer>()));
+                   System.out.println("END");
+                  }
+                  static <T> T m(T i) { return i; }
+                  static public class G<T> {}
+                  static <T> int p(G<?> i) { return 5; }
+                }
+                """
                 ,"1"
                 ,"5"
                 ,"END"
-        );        
+        );
     }
 
     // FIXME - uncomment or delete the following material
-//    @Test public void testNoWarn() { 
+//    @Test public void testNoWarn() {
 //        helpRacText("tt.A","package tt; public class A { \n"
 //                +"static public int i = 0;  \n "
 //                +"//@ ensures i == 0; \n "
@@ -1006,7 +1352,7 @@ public class racnew2 extends RacBase {
 //    }
 //
 //
-//    @Test public void testNoWarn1() { 
+//    @Test public void testNoWarn1() {
 //        helpRacText("tt.A","package tt; public class A { \n"
 //                +"//@ public invariant i == 0; \n "
 //                +"public int i = 0;  \n "
@@ -1019,7 +1365,7 @@ public class racnew2 extends RacBase {
 //                );
 //    }
 //
-//    @Test public void testNoWarn2() { 
+//    @Test public void testNoWarn2() {
 //        helpRacText("tt.A","package tt; public class A { \n"
 //                +"//@ public invariant i == 0; \n"
 //                +"public int i = 0;  \n"
@@ -1032,7 +1378,7 @@ public class racnew2 extends RacBase {
 //                );
 //    }
 //
-//    @Test public void testNoWarn3() { 
+//    @Test public void testNoWarn3() {
 //        helpRacText("tt.A","package tt; public class A { \n"
 //                +"//@ public invariant i == 0; \n "
 //                +"public int i = 0;  \n "
@@ -1051,7 +1397,7 @@ public class racnew2 extends RacBase {
 //                );
 //    }
 //
-//    @Test public void testNoWarn4() { 
+//    @Test public void testNoWarn4() {
 //        helpRacText("tt.A","package tt; public class A { \n"
 //                +"//@ invariant i == 0; \n "
 //                +"int i = 0;  \n "
@@ -1064,302 +1410,392 @@ public class racnew2 extends RacBase {
 //                );
 //    }
 
-    @Test public void testReceiver1() { 
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"public A(int k) { i = k; } \n "
-                +"public int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
-                +"public static void main(String[] args) { boolean z; \n"
-                +"A a = new A(1);\n"
-                +"A b = new A(2);\n"
-                +"z = a.m(1); \n"
-                +"z = b.m(2) && z; \n"
-                +"z = a.m(2) && z; \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
+    @Test public void testReceiver1() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                public A(int k) { i = k; }
+                 public int i;
+                 /*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }
+                 public static void main(String[] args) {
+                   boolean z;
+                A a = new A(1);
+                A b = new A(2);
+                z = a.m(1);
+                z = b.m(2) && z;
+                z = a.m(2) && z;
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:12: JML precondition is false"
+                ,"/tt/A.java:5: Associated declaration: /tt/A.java:12:"
+                ,"/tt/A.java:5: JML precondition is false"
+                ,"END"
+                );
+    }
+
+    @Test public void testReceiver2() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                /*@ assignable i; */ public A(int k) { i = k; }
+                 static public int i;
+                 /*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }
+                 public static void main(String[] args) {
+                   boolean z;
+                A a = new A(1);
+                A b = new A(2);
+                a.m(1);
+                b.m(2);
+                a.m(2);
+                System.out.println("END");
+                }
+                }
+                """
                 ,"/tt/A.java:10: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration: /tt/A.java:10:"
-                ,"/tt/A.java:4: JML precondition is false"
+                ,"/tt/A.java:5: Associated declaration: /tt/A.java:10:"
+                ,"/tt/A.java:5: JML precondition is false"
                 ,"END"
                 );
     }
 
-    @Test public void testReceiver2() { 
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"/*@ assignable i; */ public A(int k) { i = k; } \n "
-                +"static public int i;  \n "
-                +"/*@ requires i == j; ensures \\result; */ public boolean m(int j) { return true; }\n "
-                +"public static void main(String[] args) { boolean z; \n"
-                +"A a = new A(1);\n"
-                +"A b = new A(2);\n"
-                +"a.m(1); \n"
-                +"b.m(2); \n"
-                +"a.m(2); \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:8: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
-                ,"/tt/A.java:4: JML precondition is false"
-                ,"END"
-                );
-    }
-
-    @Test public void testReceiver3() { 
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"/*@ assignable i; */ public A(int k) { i = k; } \n "
-                +"static public int i; \n "
-                +"/*@ requires i == j; ensures \\result; */ static public boolean m(int j) { return true; }\n "
-                +"public static void main(String[] args) { boolean z; \n"
-                +"A a = new A(1);\n"
-                +"A b = new A(2);\n"
-                +"z = A.m(1); \n"
-                +"z = A.m(2); \n"
-                +"z = A.m(2); \n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:8: JML precondition is false"
-                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
-                ,"/tt/A.java:4: JML precondition is false"
+    @Test public void testReceiver3() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                /*@ assignable i; */ public A(int k) { i = k; }
+                 static public int i;
+                 /*@ requires i == j; ensures \\result; */ static public boolean m(int j) { return true; }
+                 public static void main(String[] args) {
+                   boolean z;
+                A a = new A(1);
+                A b = new A(2);
+                z = A.m(1);
+                z = A.m(2);
+                z = A.m(2);
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:10: JML precondition is false"
+                ,"/tt/A.java:5: Associated declaration: /tt/A.java:10:"
+                ,"/tt/A.java:5: JML precondition is false"
                 ,"END"
                 );
     }
 
 
-    @Test public void testReceiver4() { 
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"//@ ensures i == k; \n "
-                +"public A(int k) { i = k; } \n"
-                
-                +" public int i; \n"
-                
-                +"public static void main(String[] args) { boolean z; \n"
-                +"A a = new A(1);\n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
+    @Test public void testReceiver4() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                //@ ensures i == k;
+                 public A(int k) { i = k; }
+                 public int i;
+                public static void main(String[] args) {
+                  boolean z;
+                A a = new A(1);
+                System.out.println("END");
+                }
+                }
+                """
                 ,"END"
                 );
     }
 
-    @Test public void testReceiver4bad() { 
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"//@ ensures i == 1; \n "
-                +"public A(int k) { i = k; } \n"
-                
-                +" public int i; \n"
-                
-                +"public static void main(String[] args) { boolean z; \n"
-                +"A a = new A(1);\n"
-                +"A b = new A(2);\n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:3: JML postcondition is false"
-                ,"/tt/A.java:2: Associated declaration: /tt/A.java:3:"
-                ,"/tt/A.java:7: JML postcondition is false"
-                ,"/tt/A.java:2: Associated declaration: /tt/A.java:7:"
+    @Test public void testReceiver4bad() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                //@ ensures i == 1;
+                 public A(int k) { i = k; }
+                 public int i;
+                public static void main(String[] args) {
+                  boolean z;
+                A a = new A(1);
+                A b = new A(2);
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:4: JML postcondition is false"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:4:"
+                ,"/tt/A.java:9: JML postcondition is false"
+                ,"/tt/A.java:3: Associated declaration: /tt/A.java:9:"
                 ,"END"
                 );
     }
 
     @Test public void testLet() {
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"//@ ensures (\\let int k = 1; \\result == k + i) ; \n "
-                +"public static int m(int i) { return i + 1; } \n"
-                +"//@ ensures (\\let int k = 1; \\result == k - i) ; \n "
-                +"public static int mm(int i) { return i + 1; } \n"
-                +"public static void main(String[] args) {  \n"
-                +"m(1);\n"
-                +"mm(1);\n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:5: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration: /tt/A.java:5:"
-                ,"/tt/A.java:8: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                //@ ensures (\\let int k = 1; \\result == k + i) ;
+                 public static int m(int i) { return i + 1; }
+                //@ ensures (\\let int k = 1; \\result == k - i) ;
+                 public static int mm(int i) { return i + 1; }
+                public static void main(String[] args) {
+                m(1);
+                mm(1);
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/tt/A.java:5: Associated declaration: /tt/A.java:6:"
+                ,"/tt/A.java:9: JML postcondition is false"
+                ,"/tt/A.java:5: Associated declaration: /tt/A.java:9:"
                 ,"END"
                 );
     }
 
     @Test public void testLet2() {
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"//@ ensures (\\let int k = 1, int j = k; \\result == j + i) ; \n "
-                +"public static int m(int i) { return i + 1; } \n"
-                +"//@ ensures (\\let int k = 1, int j = k; \\result == j - i) ; \n "
-                +"public static int mm(int i) { return i + 1; } \n"
-                +"public static void main(String[] args) {  \n"
-                +"m(1);\n"
-                +"mm(1);\n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:5: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration: /tt/A.java:5:"
-                ,"/tt/A.java:8: JML postcondition is false"
-                ,"/tt/A.java:4: Associated declaration: /tt/A.java:8:"
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                //@ ensures (\\let int k = 1, int j = k; \\result == j + i) ;
+                 public static int m(int i) { return i + 1; }
+                //@ ensures (\\let int k = 1, int j = k; \\result == j - i) ;
+                 public static int mm(int i) { return i + 1; }
+                public static void main(String[] args) {
+                m(1);
+                mm(1);
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:6: JML postcondition is false"
+                ,"/tt/A.java:5: Associated declaration: /tt/A.java:6:"
+                ,"/tt/A.java:9: JML postcondition is false"
+                ,"/tt/A.java:5: Associated declaration: /tt/A.java:9:"
                 ,"END"
                 );
     }
-    
-    @Test public void testBoxingOnDeclaration() {
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"public static void main(String[] args) {  \n"
-                +"{ Integer i = 6;\n"
-                +"int k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Boolean i = true;\n"
-                +"boolean k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Short i = 6;\n"
-                +"short k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Long i = 6L;\n"
-                +"long k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Byte i = 6;\n"
-                +"byte k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Double i = 6.0;\n"
-                +"double k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Float i = 6.0f;\n"
-                +"float k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Character i = 6;\n"
-                +"char k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                
-                +"{ Integer i = 6;\n"
-                +"int k = i;\n"
-                +"//@ assert k == i+1;\n}\n"
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:37: JML assertion is false"
-                ,"END"
-                );
-    }
-        
-    @Test public void testBoxingOnNullDeclaration() {
-        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static void main(String[] args) {  \n"
-                +"try { Integer i = null;\n"
-                +"int k = i; //@ forbid\n"
-                +"//@ assert k == i; \n} catch (Exception e) {}\n"
-                +"try { Boolean i = null;\n"
-                +"boolean k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Short i = null;\n"
-                +"short k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Long i = null;\n"
-                +"long k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Byte i = null;\n"
-                +"byte k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Double i = null;\n"
-                +"double k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Float i = null;\n"
-                +"float k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Character i = null;\n"
-                +"char k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
 
-                +"System.out.println(\"END\"); \n"
-                +"}}"
-                ,"/tt/A.java:4: JML Attempt to unbox a null object"
-                ,"/tt/A.java:8: JML Attempt to unbox a null object"
-                ,"/tt/A.java:12: JML Attempt to unbox a null object"
-                ,"/tt/A.java:16: JML Attempt to unbox a null object"
-                ,"/tt/A.java:20: JML Attempt to unbox a null object"
-                ,"/tt/A.java:24: JML Attempt to unbox a null object"
-                ,"/tt/A.java:28: JML Attempt to unbox a null object"
-                ,"/tt/A.java:32: JML Attempt to unbox a null object"
+    @Test public void testBoxingOnDeclaration() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                public static void main(String[] args) {
+                { Integer i = 6;
+                int k = i;
+                //@ assert k == i;
+                }
+                { Boolean i = true;
+                boolean k = i;
+                //@ assert k == i;
+                }
+                { Short i = 6;
+                short k = i;
+                //@ assert k == i;
+                }
+                { Long i = 6L;
+                long k = i;
+                //@ assert k == i;
+                }
+                { Byte i = 6;
+                byte k = i;
+                //@ assert k == i;
+                }
+                { Double i = 6.0;
+                double k = i;
+                //@ assert k == i;
+                }
+                { Float i = 6.0f;
+                float k = i;
+                //@ assert k == i;
+                }
+                { Character i = 6;
+                char k = i;
+                //@ assert k == i;
+                }
+                { Integer i = 6;
+                int k = i;
+                //@ assert k == i+1;
+                }
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:38: JML assertion is false"
                 ,"END"
                 );
-    }       
+    }
+
+    @Test public void testBoxingOnNullDeclaration() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                public static void main(String[] args) {
+                try { Integer i = null;
+                int k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Boolean i = null;
+                boolean k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Short i = null;
+                short k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Long i = null;
+                long k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Byte i = null;
+                byte k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Double i = null;
+                double k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Float i = null;
+                float k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Character i = null;
+                char k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:6: JML Attempt to unbox a null object"
+                ,"/tt/A.java:10: JML Attempt to unbox a null object"
+                ,"/tt/A.java:14: JML Attempt to unbox a null object"
+                ,"/tt/A.java:18: JML Attempt to unbox a null object"
+                ,"/tt/A.java:22: JML Attempt to unbox a null object"
+                ,"/tt/A.java:26: JML Attempt to unbox a null object"
+                ,"/tt/A.java:30: JML Attempt to unbox a null object"
+                ,"/tt/A.java:34: JML Attempt to unbox a null object"
+                ,"END"
+                );
+    }
 
     @Test public void testBoxingOnAssignment() {  // In Java mode
         addOptions("--code-math=java");
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"public static void main(String[] args) {  \n"
-                +"{ Integer i; int k; i = 6;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Boolean i; boolean k; i = true;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Short i; short k; i = 6;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Long i; long k; i = 6L;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Byte i; byte k; i = 6;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Double i; double k; i = 6.0;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Float i; float k; i = 6.0f;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Character i; char k; i = 6;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-
-                    +"{ Integer i = 6;\n"
-                    +"int k = i;\n"
-                    +"//@ assert k == i+1;\n}\n"
-                    +"System.out.println(\"END\"); \n"
-                    +"}}"
-                    ,"/tt/A.java:37: JML assertion is false"
-                    ,"END"
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                public static void main(String[] args) {
+                { Integer i; int k; i = 6;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Boolean i; boolean k; i = true;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Short i; short k; i = 6;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Long i; long k; i = 6L;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Byte i; byte k; i = 6;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Double i; double k; i = 6.0;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Float i; float k; i = 6.0f;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Character i; char k; i = 6;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Integer i = 6;
+                int k = i;
+                //@ assert k == i+1;
+                }
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:38: JML assertion is false"
+                ,"END"
                 );
     }
 
     @Test public void testBoxingOnAssignmentMathMode() {
         addOptions("--code-math=math");
-        helpRacText("tt.A","package tt; public class A { \n"
-                +"public static void main(String[] args) {  \n"
-                +"{ Integer i; int k; i = 6;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Boolean i; boolean k; i = true;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Short i; short k; i = 6;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Long i; long k; i = 6L;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Byte i; byte k; i = 6;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Double i; double k; i = 6.0;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Float i; float k; i = 6.0f;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-                +"{ Character i; char k; i = 6;\n"
-                +" k = i;\n"
-                +"//@ assert k == i;\n}\n"
-
-                    +"{ Integer i = 6;\n"
-                    +"int k = i;\n"
-                    +"//@ assert k == i+1;\n}\n"
-                    +"System.out.println(\"END\"); \n"
-                    +"}}"
-                    ,"/tt/A.java:37: JML assertion is false"
-                    ,"END"
+        helpRacText("tt.A",
+                """
+                package tt;
+                public class A {
+                public static void main(String[] args) {
+                { Integer i; int k; i = 6;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Boolean i; boolean k; i = true;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Short i; short k; i = 6;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Long i; long k; i = 6L;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Byte i; byte k; i = 6;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Double i; double k; i = 6.0;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Float i; float k; i = 6.0f;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Character i; char k; i = 6;
+                 k = i;
+                //@ assert k == i;
+                }
+                { Integer i = 6;
+                int k = i;
+                //@ assert k == i+1;
+                }
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:38: JML assertion is false"
+                ,"END"
                 );
     }
 
     @Test public void testBoxingOnAssignmentOp() {
         helpRacText("tt.A",
                 """
-                package tt; /*@ nullable_by_default*/ public class A {
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
                   public static void main(String[] args) {
                     try { Integer i = null; int k = 6;
                       k += i; //@ forbid // FIXME - why duplicate messages
@@ -1392,130 +1828,161 @@ public class racnew2 extends RacBase {
                   }
                 }
                 """
-                ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:4: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:8: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:17: verify: JML Attempt to unbox a null object"
-                ,"/tt/A.java:21: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:6: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:6: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:10: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:10: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:19: verify: JML Attempt to unbox a null object"
+                ,"/tt/A.java:23: verify: JML Attempt to unbox a null object"
                 ,"END"
                 );
     }
 
     @Test public void testBoxingOnNullAsssignment() {
-        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static void main(String[] args) {  \n"
-                +"try { Integer i = null;\n"
-                +"int k; k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Boolean i = null;\n"
-                +"boolean k; k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Short i = null;\n"
-                +"short k; k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Long i = null;\n"
-                +"long k; k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Byte i = null;\n"
-                +"byte k; k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Double i = null;\n"
-                +"double k; k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Float i = null;\n"
-                +"float k; k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Character i = null;\n"
-                +"char k; k = i; //@ forbid\n"
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-
-                    +"System.out.println(\"END\"); \n"
-                    +"}}"
-                    ,"/tt/A.java:4: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:8: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:12: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:16: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:20: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:24: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:28: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:32: JML Attempt to unbox a null object"
-                    ,"END"
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                public static void main(String[] args) {
+                try { Integer i = null;
+                int k; k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Boolean i = null;
+                boolean k; k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Short i = null;
+                short k; k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Long i = null;
+                long k; k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Byte i = null;
+                byte k; k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Double i = null;
+                double k; k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Float i = null;
+                float k; k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Character i = null;
+                char k; k = i; //@ forbid
+                //@ assert k == i;
+                } catch (Exception e) {}
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:6: JML Attempt to unbox a null object"
+                ,"/tt/A.java:10: JML Attempt to unbox a null object"
+                ,"/tt/A.java:14: JML Attempt to unbox a null object"
+                ,"/tt/A.java:18: JML Attempt to unbox a null object"
+                ,"/tt/A.java:22: JML Attempt to unbox a null object"
+                ,"/tt/A.java:26: JML Attempt to unbox a null object"
+                ,"/tt/A.java:30: JML Attempt to unbox a null object"
+                ,"/tt/A.java:34: JML Attempt to unbox a null object"
+                ,"END"
                 );
 
     }
 
     @Test public void testBoxing() {
-        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static int unbox(int i) { return i;}  \n"
-                +"public static Integer box(Integer i) { return i;}  \n"
-                +"public static void main(String[] args) {  \n"
-                +"try { Boolean i = null;\n"
-                +"boolean k = true && i; //@ forbid \n"   // Null problem
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Boolean i = false;\n"
-                +"boolean k = true && i;\n"
-                +"//@ assert k == false;\n} catch (Exception e) {}\n"
-                +"try { Boolean i = null;\n"
-                +"boolean k = i && true; //@ forbid \n" // Null problem
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Boolean i = false;\n"
-                +"boolean k = i && true;\n"
-                +"//@ assert k == false;\n} catch (Exception e) {}\n"
-                
-                +"try { Integer i = null;\n"
-                +"int k = 0 + i; //@ forbid \n"  // Null problem - 22
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Integer i = 6;\n"
-                +"int k = 0 + i;\n"
-                +"//@ assert k == 6;\n} catch (Exception e) {}\n"
-                +"try { Integer i = null;\n"
-                +"int k = i + 0; //@ forbid \n" // Null problem - 30
-                +"//@ assert k == i;\n} catch (Exception e) {}\n"
-                +"try { Integer i = 6;\n"
-                +"int k = i + 0;\n"
-                +"//@ assert k == 6;\n} catch (Exception e) {}\n"
-                +"try { Integer i = null;\n"
-                +"int k = - i; //@ forbid \n" // Null problem -- 38
-                +"//@ assert k == -i;\n} catch (Exception e) {}\n"
-                +"try { Integer i = 6;\n"
-                +"int k = - i;\n"
-                +"//@ assert k == -6;\n} catch (Exception e) {}\n"
-                +"try { Integer i = null;\n"
-                +"unbox(i);  \n"  // Null problem -- 46
-                +"} catch (Exception e) { System.out.println(\"CAUGHT 46\"); }\n"
-                +"try { Integer i = 6;\n"
-                +"int k = unbox(i);\n"
-                +"//@ assert k == 6;\n} catch (Exception e) {}\n"
-                +"try { int i = 6;\n"
-                +"Integer k = box(i); int ii = k;\n"
-                +"//@ assert ii == 6;\n} catch (Exception e) {}\n"
-
-                +"try { Boolean b = null;\n"
-                +"int i = b ? 4 : 5; //@ forbid \n" // Null problem - 57
-                +"//@ assert i == 6;\n} catch (Exception e) {}\n"
-                +"try { Boolean b = false;\n"
-                +"int i = b ? 4 : 5;\n"
-                +"//@ assert i == 5;\n} catch (Exception e) {}\n"
-
-                +"try { Boolean b = null;\n"
-                +"int i; if (b) i = 4; else i = 5; //@ forbid \n" // Null problem 65
-                +"//@ assert i == 6;\n} catch (Exception e) {}\n"
-                +"try { Boolean b = false;\n"
-                +"int i; if (b) i = 4; else i = 5;\n"
-                +"//@ assert i == 5;\n} catch (Exception e) {}\n"
-                
-                +"System.out.println(\"END\"); \n"
-                    +"}}"
-                    ,"/tt/A.java:6: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:14: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:22: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:30: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:38: JML Attempt to unbox a null object"
-                    ,"CAUGHT 46"
-                    ,"/tt/A.java:57: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:65: JML Attempt to unbox a null object"
-                    ,"END"
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                public static int unbox(int i) { return i;}
+                public static Integer box(Integer i) { return i;}
+                public static void main(String[] args) {
+                try { Boolean i = null;
+                boolean k = true && i; //@ forbid // Null problem
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Boolean i = false;
+                boolean k = true && i;
+                //@ assert k == false;
+                } catch (Exception e) {}
+                try { Boolean i = null;
+                boolean k = i && true; //@ forbid // Null problem
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Boolean i = false;
+                boolean k = i && true;
+                //@ assert k == false;
+                } catch (Exception e) {}
+                try { Integer i = null;
+                int k = 0 + i; //@ forbid // Null problem - 22
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Integer i = 6;
+                int k = 0 + i;
+                //@ assert k == 6;
+                } catch (Exception e) {}
+                try { Integer i = null;
+                int k = i + 0; //@ forbid // Null problem - 30
+                //@ assert k == i;
+                } catch (Exception e) {}
+                try { Integer i = 6;
+                int k = i + 0;
+                //@ assert k == 6;
+                } catch (Exception e) {}
+                try { Integer i = null;
+                int k = - i; //@ forbid // Null problem -- 38
+                //@ assert k == -i;
+                } catch (Exception e) {}
+                try { Integer i = 6;
+                int k = - i;
+                //@ assert k == -6;
+                } catch (Exception e) {}
+                try { Integer i = null;
+                unbox(i); // Null problem -- 46
+                } catch (Exception e) { System.out.println("CAUGHT 46"); }
+                try { Integer i = 6;
+                int k = unbox(i);
+                //@ assert k == 6;
+                } catch (Exception e) {}
+                try { int i = 6;
+                Integer k = box(i); int ii = k;
+                //@ assert ii == 6;
+                } catch (Exception e) {}
+                try { Boolean b = null;
+                int i = b ? 4 : 5; //@ forbid // Null problem - 57
+                //@ assert i == 6;
+                } catch (Exception e) {}
+                try { Boolean b = false;
+                int i = b ? 4 : 5;
+                //@ assert i == 5;
+                } catch (Exception e) {}
+                try { Boolean b = null;
+                int i; if (b) i = 4; else i = 5; //@ forbid // Null problem 65
+                //@ assert i == 6;
+                } catch (Exception e) {}
+                try { Boolean b = false;
+                int i; if (b) i = 4; else i = 5;
+                //@ assert i == 5;
+                } catch (Exception e) {}
+                System.out.println("END");
+                }
+                }
+                """
+                ,"/tt/A.java:8: JML Attempt to unbox a null object"
+                ,"/tt/A.java:16: JML Attempt to unbox a null object"
+                ,"/tt/A.java:24: JML Attempt to unbox a null object"
+                ,"/tt/A.java:32: JML Attempt to unbox a null object"
+                ,"/tt/A.java:40: JML Attempt to unbox a null object"
+                ,"CAUGHT 46"
+                ,"/tt/A.java:59: JML Attempt to unbox a null object"
+                ,"/tt/A.java:67: JML Attempt to unbox a null object"
+                ,"END"
                 );
 
         // FIXME: Also synchronized expression, switch expression, not on String, conditional, assignop, array index
@@ -1526,7 +1993,9 @@ public class racnew2 extends RacBase {
         expectedRACExit = 1;
         helpRacText("tt.A",
                 """
-                package tt; /*@ nullable_by_default*/ public class A {
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
                   public static int unbox(int i) { return i;}
                   public static Integer box(Integer i) { return i;}
                   public static Integer i = 6;
@@ -1545,95 +2014,129 @@ public class racnew2 extends RacBase {
                   }
                 }
                 """
-                    ,"/tt/A.java:10: verify: JML Attempt to unbox a null object"
-                    ,"/tt/A.java:13: verify: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:12: verify: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:15: verify: JML Attempt to unbox a null object"
                     ,"java.lang.ExceptionInInitializerError"
                     ,"Caused by: java.lang.NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\" because \"tt.A.ii\" is null"
-                    ,"\tat tt.A.<clinit>(A.java:13)"
+                    ,"\tat tt.A.<clinit>(A.java:15)"
                 );
     }
 
     @Test public void testBoxingString() {
-        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static int unbox(int i) { return i;}  \n"
-                +"public static Integer box(Integer i) { return i;}  \n"
-                +"public static void main(String[] args) {  \n"
-                +"try { String s = null;\n"
-                +"String ss = \"a\" + s; ss += s; \n" // No null problem // FIXME - crashes on the +=
-                +"\n} catch (Exception e) {}\n"
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                public static int unbox(int i) { return i;}
+                public static Integer box(Integer i) { return i;}
+                public static void main(String[] args) {
+                try { String s = null;
+                String ss = "a" + s; ss += s; // No null problem // FIXME - crashes on the +=
 
-                +"System.out.println(\"END\"); \n"
-                    +"}}"
-                    ,"END"
+                } catch (Exception e) {}
+                System.out.println("END");
+                }
+                }
+                """
+                ,"END"
                 );
     }
 
     @Test public void testStringSwitch() {
-        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static void main(String[] args) {  \n"
-                +"String s = \"abc\"; int k;\n"
-                +"switch (s) {\n"
-                +"  case \"asd\": k = 1; break;\n"
-                +"  case \"abc\": k = 2; break;\n"
-                +"  case \"def\": k = 3; break;\n"
-                +"  default: k = 4; break;\n"
-                +"}\n"
-                +"System.out.println(\"END \" + k); \n"
-                    +"}}"
-                    ,"END 2"
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                public static void main(String[] args) {
+                String s = "abc";
+                int k;
+                switch (s) {
+                  case "asd": k = 1; break;
+                  case "abc": k = 2; break;
+                  case "def": k = 3; break;
+                  default: k = 4; break;
+                }
+                System.out.println("END " + k);
+                }
+                }
+                """
+                ,"END 2"
                 );
     }
 
     @Test public void testStringSwitchNull() {
         expectedRACExit = 1;
         helpRacText("tt.A",
-                 "package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static void main(String[] args) {  \n"
-                +"String s = null; int k = 0;\n"
-                +"{ switch (s) {\n"
-                +"  case \"asd\": k = 1; break;\n"
-                +"  case \"abc\": k = 2; break;\n"
-                +"  case \"def\": k = 3; break;\n"
-                +"  default: k = 4; break;\n"
-                +"} }\n"
-                +"System.out.println(\"END \" + k); \n"
-                    +"}}"
-                ,"/tt/A.java:4: verify: JML An object may be illegally null"
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                public static void main(String[] args) {
+                String s = null;
+                int k = 0;
+                { switch (s) {
+                  case "asd": k = 1; break;
+                  case "abc": k = 2; break;
+                  case "def": k = 3; break;
+                  default: k = 4; break;
+                } }
+                System.out.println("END " + k);
+                }
+                }
+                """
+                ,"/tt/A.java:7: verify: JML An object is unexpectedly null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local7>\" is null"
-                ,"\tat tt.A.main(A.java:4)"
+                ,"\tat tt.A.main(A.java:7)"
                 );
     }
 
     @Test public void testStringSwitchNullCatch() {
-        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"public static void main(String[] args) {  \n"
-                +"String s = null; int k = 0;\n"
-                +"try { switch (s) {\n"
-                +"  case \"asd\": k = 1; break;\n"
-                +"  case \"abc\": k = 2; break;\n"
-                +"  case \"def\": k = 3; break;\n"
-                +"  default: k = 4; break;\n"
-                +"} } catch (Exception e) { System.out.println(\"CAUGHT\"); }\n" 
-                +"System.out.println(\"END \" + k); \n"
-                    +"}}"
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                public static void main(String[] args) {
+                String s = null;
+                int k = 0;
+                try { switch (s) {
+                  case "asd": k = 1; break;
+                  case "abc": k = 2; break;
+                  case "def": k = 3; break;
+                  default: k = 4; break;
+                } } catch (Exception e) { System.out.println("CAUGHT"); }
+                System.out.println("END " + k);
+                }
+                }
+                """
                 ,"CAUGHT"
                 ,"END 0"
                 );
     }
 
     @Test public void testEnumSwitch() {
-        helpRacText("tt.A","package tt; /*@ nullable_by_default*/ public class A { \n"
-                +"enum E { A,B,C}; public static void main(String[] args) {  \n"
-                +"E e = E.B; int k = 0;\n"
-                +"switch (e) {\n"
-                +"  case A: k = 1; break;\n"
-                +"  case B: k = 2; break;\n"
-                +"  case C: k = 3; break;\n"
-                +"  default: k = 4; break;\n"
-                +"}\n"
-                +"System.out.println(\"END \" + k); \n"
-                    +"}}"
-                    ,"END 2"
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                enum E { A,B,C};
+                public static void main(String[] args) {
+                E e = E.B;
+                int k = 0;
+                switch (e) {
+                  case A: k = 1; break;
+                  case B: k = 2; break;
+                  case C: k = 3; break;
+                  default: k = 4; break;
+                }
+                System.out.println("END " + k);
+                }
+                }
+                """
+                ,"END 2"
                 );
     }
 
@@ -1642,10 +2145,13 @@ public class racnew2 extends RacBase {
         expectedRACExit = 1;
         helpRacText("tt.A",
                 """
-                package tt; /*@ nullable_by_default*/ public class A {
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
                     enum E { A,B,C};
                     public static void main(String[] args) {
-                      E e = null; int k = 0;
+                      E e = null;
+                      int k = 0;
                       { switch (e) {
                         case A: k = 1; break;
                         case B: k = 2; break;
@@ -1657,9 +2163,9 @@ public class racnew2 extends RacBase {
                    }
                  }
                 """
-                ,"/tt/A.java:5: verify: JML An object may be illegally null"
+                ,"/tt/A.java:8: verify: JML An object is unexpectedly null"
                 ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"tt.A$E.ordinal()\" because \"<local4>\" is null"
-                ,"\tat tt.A.main(A.java:5)"
+                ,"\tat tt.A.main(A.java:8)"
                 );
     }
 
@@ -1667,10 +2173,13 @@ public class racnew2 extends RacBase {
     @Test public void testEnumSwitchNullCatch() {
         helpRacText("tt.A",
                 """
-                package tt; /*@ nullable_by_default*/ public class A {
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
                     enum E { A,B,C};
                     public static void main(String[] args) {
-                      E e = null; int k = 0;
+                      E e = null;
+                      int k = 0;
                       try { switch (e) {
                         case A: k = 1; break;
                         case B: k = 2; break;

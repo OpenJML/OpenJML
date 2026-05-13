@@ -52,7 +52,8 @@ public class esc2 extends EscBase {
                     Integer k = Integer.valueOf(1);
                     values.add(k);
                   }
-                  public TestJava() {}}
+                  public TestJava() {}
+                }
                 """
                 );
     }
@@ -69,7 +70,8 @@ public class esc2 extends EscBase {
                     Integer k = 0;
                     values.add(k);
                   }
-                  public TestJava() {}}
+                  public TestJava() {}
+                }
                 """
                 );
     }
@@ -239,7 +241,8 @@ public class esc2 extends EscBase {
                 package tt;
                 public class TestJava {
                   //@ requires a != null && a.length == 1;
-                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
+                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object);
+                  //@ modifies \\everything;
                   public void m3(Object[] a) {
                     a[0] = new Object();
                     //@ assert \\nonnullelements(a); // OK
@@ -251,7 +254,8 @@ public class esc2 extends EscBase {
                     //@ assert \\nonnullelements(a);  // OK
                   }
                   //@ requires a != null && a.length == 2;
-                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
+                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object);
+                  //@ modifies \\everything;
                   public void m4(Object[] a) {
                     a[0] = new Object();
                     a[1] = new Object();
@@ -275,14 +279,16 @@ public class esc2 extends EscBase {
                     //@ assume a[1] != null;
                     //@ assert \\nonnullelements(a); // OK
                   }
-                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
+                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object);
+                  //@ modifies \\everything;
                   public void m4a(Object[] a) {
                     //@ assume a != null && a.length == 3;
                     a[0] = new Object();
                     a[1] = new Object();
                     //@ assert \\nonnullelements(a); // BAD -- FIXME cannot infer a forall quantifier from the individual statements
                   }
-                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object); modifies \\everything;
+                  //@ requires \\elemtype(\\typeof(a)) == \\type(Object);
+                  //@ modifies \\everything;
                   public void m5(Object[] a) {
                     //@ assume \\nonnullelements(a) && a.length == 3;
                     a[0] = new Object();
@@ -297,10 +303,10 @@ public class esc2 extends EscBase {
                 }
                 """
                 ,anyorder(
-                seq("/tt/TestJava.java:10: verify: The prover cannot establish an assertion (NullArgument) in method m4a", 34)
-                ,seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method m4a", 9)
-                ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (NullArgument) in method m5", 34)
-                ,seq("/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Assert) in method m5a", 9)
+                 seq("/tt/TestJava.java:10: verify: The prover cannot establish an assertion (NullArgument) in method m4a", 34)
+                ,seq("/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method m4a", 9)
+                ,seq("/tt/TestJava.java:18: verify: The prover cannot establish an assertion (NullArgument) in method m5", 34)
+                ,seq("/tt/TestJava.java:29: verify: The prover cannot establish an assertion (Assert) in method m5a", 9)
                 )
                 );
     }
@@ -415,7 +421,8 @@ public class esc2 extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt;
-                /*@ code_java_math*/ public class TestJava {
+                /*@ code_java_math */
+                public class TestJava {
                   static public  int i;
                   //@ static public constraint i > \\old(i);
                   //@ assigns i;
@@ -423,10 +430,10 @@ public class esc2 extends EscBase {
                   public static void bok() { i = i - 1; }
                 }
                 """
-                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Constraint) in method TestJava", 29
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 21
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Constraint) in method bok", 22
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 21
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Constraint) in method TestJava", 8
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 21
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Constraint) in method bok", 22
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 21
                 );
     }
 
@@ -437,18 +444,22 @@ public class esc2 extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt;
-                /*@ code_bigint_math*/ public class TestJava {
+                /*@ code_bigint_math */
+                public class TestJava {
                   static public int i;
                   //@ assigns i;
                   //@ ensures i == \\old(i)+2;
-                  public static void bok() { i = i + 1; i = i + 1;}
+                  public static void bok() {
+                    i = i + 1;
+                    i = i + 1;
+                  }
                   //@ assigns i;
                   //@ ensures i == \\old(i+1);
                   public static void bbad() { i = i - 1; }
                 }
                 """
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method bbad", 22
-                ,"/tt/TestJava.java:8: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method bbad", 22
+                ,"/tt/TestJava.java:12: verify: Associated declaration", 7
                 );
     }
 
@@ -457,18 +468,22 @@ public class esc2 extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt;
-                /*@ code_java_math spec_java_math*/ public class TestJava {
+                /*@ code_java_math spec_java_math */
+                public class TestJava {
                   static public int i;
                   //@ assigns i;
                   //@ ensures i == \\old(i)+2;
-                  public static void bok() { i = i + 1; i = i + 1;}
+                  public static void bok() {
+                    i = i + 1;
+                    i = i + 1;
+                  }
                   //@ assigns i;
                   //@ ensures i == \\old(i+1);
                   public static void bbad() { i = i - 1; }
                 }
                 """
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method bbad", 22
-                ,"/tt/TestJava.java:8: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method bbad", 22
+                ,"/tt/TestJava.java:12: verify: Associated declaration", 7
                 );
     }
 
@@ -477,22 +492,43 @@ public class esc2 extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
-                /*@ code_bigint_math*/ public class TestJava {
-                  public void insta() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }
-                  public void instb() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i-2; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }
-                  public void instc() { int i = 5; /*@ loop_invariant i<=5 && i>=0; decreases i; */ while (i>0) { i = i+1; } /*@ assert i == 0; */ }
-                  public void instd() { int i = 5; /*@ loop_invariant i<=5 && i>0; decreases i; */ while (i>0) { i = i-1; } /*@ assert i == 0; */ }
+                /*@ code_bigint_math */
+                public class TestJava {
+                  public void insta() {
+                    int i = 5;
+                    /*@ loop_invariant i<=5 && i>=0; decreases i; */
+                    while (i>0) { i = i-1; }
+                    /*@ assert i == 0; */
+                  }
+                  public void instb() {
+                    int i = 5;
+                    /*@ loop_invariant i<=5 && i>=0; decreases i-2; */
+                    while (i>0) { i = i-1; }
+                    /*@ assert i == 0; */
+                  }
+                  public void instc() {
+                    int i = 5;
+                    /*@ loop_invariant i<=5 && i>=0; decreases i; */
+                    while (i>0) { i = i+1; }
+                    /*@ assert i == 0; */
+                  }
+                  public void instd() {
+                    int i = 5;
+                    /*@ loop_invariant i<=5 && i>0; decreases i; */
+                    while (i>0) { i = i-1; }
+                    /*@ assert i == 0; */
+                  }
                 }
                 """
                 ,anyorder(
-                seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",69)
-                // ,"/tt/TestJava.java:4: verify: Associated declaration",69
-                ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (LoopDecreases) in method instc",69)
-                // ,"/tt/TestJava.java:5: verify: Associated declaration",69                
-                ,seq("/tt/TestJava.java:5: verify: The prover cannot establish an assertion (LoopInvariant) in method instc",40)
-                ,seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (LoopInvariant) in method instd",40)
+                seq("/tt/TestJava.java:12: verify: The prover cannot establish an assertion (LoopDecreasesNonNegative) in method instb",38)
+                // ,"/tt/TestJava.java:12: verify: Associated declaration",38
+                ,seq("/tt/TestJava.java:18: verify: The prover cannot establish an assertion (LoopDecreases) in method instc",38)
+                // ,"/tt/TestJava.java:18: verify: Associated declaration",38
+                ,seq("/tt/TestJava.java:18: verify: The prover cannot establish an assertion (LoopInvariant) in method instc",9)
+                ,seq("/tt/TestJava.java:24: verify: The prover cannot establish an assertion (LoopInvariant) in method instd",9)
                 )
-                // ,"/tt/TestJava.java:6: verify: Associated declaration",40
+                // ,"/tt/TestJava.java:24: verify: Associated declaration",9
                 // FIXME - adjust to have the location + associated declaration
                 );
     }
@@ -566,8 +602,10 @@ public class esc2 extends EscBase {
                 """
                 package tt; import org.jmlspecs.annotation.*;/*@ nullable_by_default */
                 public class TestJava {
-                  int f; static int sf;
-                  int g; static int sg;
+                  int f;
+                  static int sf;
+                  int g;
+                  static int sg;
                   public static TestJava t;  //@ public static invariant t != null;
                   public void inst2(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  /*@ assert t.f == 2; */ } // OK
                   public void inst2a(int/*@non_null*/[] a) { /*@ assume t.f == 2; */  /*@ assert t.f == 3; */ } // BAD
@@ -590,18 +628,18 @@ public class esc2 extends EscBase {
                   public void inst11(/*@non_null*/TestJava a) { /*@ assert sf == this.sf; */ /*@ assert a.sf == sf; */} // OK
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method inst2a", 75
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method inst3a", 84
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method inst4a", 84
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method inst5a", 118
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method inst6a", 85
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method inst7a", 103
-                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Assert) in method inst8a", 78
-                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method inst9a", 88
-                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Assert) in method inst10a", 81
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method inst2a", 75
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method inst3a", 84
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method inst4a", 84
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method inst5a", 118
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method inst6a", 85
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Assert) in method inst7a", 103
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method inst8a", 78
+                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Assert) in method inst9a", 88
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Assert) in method inst10a", 81
                 );
     }
-    
+
     @Test
     public void testFieldsErr() {
         expectedExit = 1;
@@ -628,8 +666,10 @@ public class esc2 extends EscBase {
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
-                  int f; static int sf;
-                  int g; static int sg;
+                  int f;
+                  static int sf;
+                  int g;
+                  static int sg;
                   static TestJava t;
                   public void inst1a(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; break; case 2: j = 2; } /*@ assert j!=0; */ } // OK
                   public void inst1b(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: j=1; break; default: j=-1; break; case 2: j = 2; } /*@ assert j==1; */ } // BAD
@@ -640,9 +680,9 @@ public class esc2 extends EscBase {
                   public void inst4(int i) { /*@ assume i>=-1 && i <=1; */ int j=0; switch (i+1) { case 1: switch(i) {} break; default: j=-1; case 2: j = 2; } /*@ assert j>=0; */ } // OK
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method inst1b", 148
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method inst2a", 141
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method inst3a", 170
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method inst1b", 148
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method inst2a", 141
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method inst3a", 170
                 );
     }
 
@@ -671,13 +711,19 @@ public class esc2 extends EscBase {
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava  {
-                //@ public exceptional_behavior requires b;  signals (Exception e) true; signals (RuntimeException e) true;
+                //@ public exceptional_behavior
+                //@   requires b;
+                //@   signals (Exception e) true;
+                //@   signals (RuntimeException e) true;
                 //@ also
-                //@ public normal_behavior requires !b; ensures true;
+                //@ public normal_behavior
+                //@   requires !b;
+                //@   ensures true;
                 public static void ex(boolean b) throws RuntimeException {
                     if (b) throw new RuntimeException();
                 }
-                public static int sk; public int k;
+                public static int sk;
+                public int k;
                 
                 //@ requires k < 0;
                 //@ ensures true;
@@ -714,10 +760,10 @@ public class esc2 extends EscBase {
                 }
                 }
                 """
-                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Postcondition) in method m1", 5
-                ,"/tt/TestJava.java:15: verify: Associated declaration", 5
-                ,"/tt/TestJava.java:42: verify: The prover cannot establish an assertion (Postcondition) in method m2", 5
-                ,"/tt/TestJava.java:32: verify: Associated declaration", 5
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Postcondition) in method m1", 5
+                ,"/tt/TestJava.java:21: verify: Associated declaration", 5
+                ,"/tt/TestJava.java:48: verify: The prover cannot establish an assertion (Postcondition) in method m2", 5
+                ,"/tt/TestJava.java:38: verify: Associated declaration", 5
                 );
     }
 
@@ -768,7 +814,8 @@ public class esc2 extends EscBase {
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
-                  //@ requires i < 1000; ensures \\result == i+1;
+                  //@ requires i < 1000;
+                  //@ ensures \\result == i+1;
                   //@ pure
                   public static int m(int i) { return i+1; }
                   public static void m1(int a, int b) { /*@ assume a < 100; */ int k = a+1; /*@ assert k == m(a); */ }
@@ -779,9 +826,9 @@ public class esc2 extends EscBase {
                   public static void m3a(int a, int b) { /*@ assume a < 100; */ int k = a+2; /*@ assert k == m(m(a+1)); */ }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m1a", 82
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m2a", 84
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m3a", 82
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m1a", 82
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m2a", 84
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method m3a", 82
                 );
     }
 
@@ -791,7 +838,8 @@ public class esc2 extends EscBase {
                 """
                 package tt; import org.jmlspecs.annotation.*;
                 public class TestJava {
-                  //@ requires i < 1000; ensures \\result == i+1;
+                  //@ requires i < 1000;
+                  //@ ensures \\result == i+1;
                   //@ pure
                   public int m(int i) { return i+1; }
                   public void m1(int a, int b) { /*@ assume a < 100; */ int k = a+1; /*@ assert k == m(a); */ }
@@ -802,9 +850,9 @@ public class esc2 extends EscBase {
                   public void m3a(int a, int b) { /*@ assume a < 100; */ int k = a+2; /*@ assert k == m(m(a+1)); */ }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m1a", 75
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m2a", 77
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m3a", 75
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m1a", 75
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m2a", 77
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method m3a", 75
                 );
     }
 
@@ -813,7 +861,8 @@ public class esc2 extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
-                /*@ code_bigint_math*/ public class TestJava {
+                /*@ code_bigint_math */
+                public class TestJava {
                   public int z;
                   //@ ensures \\result == z+1;
                   //@ pure
@@ -826,9 +875,9 @@ public class esc2 extends EscBase {
                   public void m3a(int a, int b) { z = 7; int k = z+2; /*@ assert k == m(); */ }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m1a", 52
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m2a", 54
-                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method m3a", 59
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m1a", 52
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m2a", 54
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method m3a", 59
                 );
     }
 
@@ -837,7 +886,8 @@ public class esc2 extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
-                /*@ code_bigint_math*/ public class TestJava {
+                /*@ code_bigint_math */
+                public class TestJava {
                   public static int z;
                   //@ ensures \\result == z+1;
                   //@ pure
@@ -848,8 +898,8 @@ public class esc2 extends EscBase {
                   public void m2a(int a, int b) { int k = 2*z+2; /*@ assert k == 1 + m() + m(); */ }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method m1a", 52
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m2a", 54
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m1a", 52
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m2a", 54
                 );
     }
 
@@ -869,7 +919,8 @@ public class esc2 extends EscBase {
                   //@ ensures \\result > ii;
                   abstract public int m(int ii);
                 }
-                /*@ code_bigint_math*/ public class TestJava extends TestJavaB {
+                /*@ code_bigint_math */
+                public class TestJava extends TestJavaB {
                   //@ also public normal_behavior
                   //@ ensures \\result == i+1;
                   //@ pure
@@ -880,9 +931,9 @@ public class esc2 extends EscBase {
                   public int n1a(int a) { return m(-1); }
                 }
                 """
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m", 25
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Postcondition) in method m", 25
                 ,"/tt/TestJava.java:4: verify: Associated declaration", 7
-                ,"/tt/TestJava.java:20: verify: There is no feasible path to program point at program exit in method tt.TestJava.n1a(int)", 41
+                ,"/tt/TestJava.java:21: verify: There is no feasible path to program point at program exit in method tt.TestJava.n1a(int)", 41
                 );
     }
 
@@ -890,7 +941,8 @@ public class esc2 extends EscBase {
     public void testInheritedPostA() {
         helpEsc("tt.TestJava",
                 """
-                package tt; import org.jmlspecs.annotation.*;
+                package tt;
+                import org.jmlspecs.annotation.*;
                 abstract class TestJavaA {
                   //@ requires iii > 0;
                   //@ ensures \\result > 0;
@@ -901,7 +953,8 @@ public class esc2 extends EscBase {
                   //@ ensures \\result > ii;
                   abstract public int m(int ii);
                 }
-                /*@ code_bigint_math*/ public class TestJava extends TestJavaB {
+                /*@ code_bigint_math */
+                public class TestJava extends TestJavaB {
                   //@ also
                   //@ ensures \\result == i+1;
                   //@ pure
@@ -930,7 +983,8 @@ public class esc2 extends EscBase {
                   //@ ensures \\result > ii;
                   abstract public int m(int ii);
                 }
-                /*@ code_bigint_math*/ public class TestJava extends TestJavaB {
+                /*@ code_bigint_math */
+                public class TestJava extends TestJavaB {
                   //@ also
                   //@ requires i > 0;
                   //@ ensures \\result == i+1;
@@ -945,7 +999,8 @@ public class esc2 extends EscBase {
     public void testInheritedPre() {
         helpEsc("tt.TestJava",
                 """
-                package tt; import org.jmlspecs.annotation.*;
+                package tt;
+                import org.jmlspecs.annotation.*;
                 abstract class TestJavaA {
                   //@ requires iii == 1;
                   //@ ensures \\result == iii;
@@ -957,7 +1012,8 @@ public class esc2 extends EscBase {
                   //@ ensures \\result == ii;
                   abstract public int m(int ii);
                 }
-                /*@ code_bigint_math*/ public class TestJava extends TestJavaB {
+                /*@ code_bigint_math */
+                public class TestJava extends TestJavaB {
                   //@ also
                   //@ requires i == 3;
                   //@ ensures \\result == i;
@@ -970,11 +1026,11 @@ public class esc2 extends EscBase {
                   public int m1a(int a) { return m(-1); } // Precondition ERROR
                 }
                 """
-                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Precondition) in method m1a", 35
-                ,"/tt/TestJava.java:18: verify: Associated declaration", 14
-                ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: iii == 1", 20
-                ,"/tt/TestJava.java:9: verify: Precondition conjunct is false: ii == 2", 19
-                ,"/tt/TestJava.java:15: verify: Precondition conjunct is false: i == 3", 18
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Precondition) in method m1a", 35
+                ,"/tt/TestJava.java:20: verify: Associated declaration", 14
+                ,"/tt/TestJava.java:4: verify: Precondition conjunct is false: iii == 1", 20
+                ,"/tt/TestJava.java:10: verify: Precondition conjunct is false: ii == 2", 19
+                ,"/tt/TestJava.java:17: verify: Precondition conjunct is false: i == 3", 18
                 );
     }
 
@@ -1480,7 +1536,7 @@ public class esc2 extends EscBase {
                     public static void m6(TestJava o) { // ERROR
                     //@ ghost int i; set i = o.j;
                   }
-                  }
+                }
                 """    // FIXME - all of these should be PossiblylNullDereference
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m", 17
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1", 17
@@ -2501,9 +2557,9 @@ public class esc2 extends EscBase {
                   private /*@ spec_public */ char[] o;
                 
                   //@ assignable \\everything;
-                   public TestJava(final char  /*@ non_null */[] the_array) {
+                  public TestJava(final char  /*@ non_null */[] the_array) {
                       o = new char[the_array.length]; //@ assert o != null;
-                  //@ show the_array instanceof char[], o instanceof char[], the_array.length;
+                      //@ show the_array instanceof char[], o instanceof char[], the_array.length;
                       System.arraycopy(the_array, 0, o, 0, the_array.length);
                   }
                 }
@@ -2522,7 +2578,7 @@ public class esc2 extends EscBase {
                   private /*@ spec_public */ int[] oo;
                 
                   //@ assignable \\everything;
-                   public TestJava(final char /*@ non_null */ [] the_array) {
+                  public TestJava(final char /*@ non_null */ [] the_array) {
                       o = the_array;
                   }
                 }
@@ -2652,7 +2708,8 @@ public class esc2 extends EscBase {
                 """
                 package tt;
                 public abstract class TestJava  {
-                  //@ requires (\\forall int i; 0 <= i && i < args.length; args[i] >= 0); requires n == -2;
+                  //@ requires (\\forall int i; 0 <= i && i < args.length; args[i] >= 0);
+                  //@ requires n == -2;
                   public void mm(int n, int... args) {  }
                   public void m0() {
                       mm(-2);
@@ -2677,14 +2734,14 @@ public class esc2 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Precondition) in method m1b", 9
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 15
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Precondition) in method m1b", 9
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 15
                 ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)", 16
-                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Precondition) in method m2b", 9
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 15
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Precondition) in method m2b", 9
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 15
                 ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)", 16
-                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (Precondition) in method m3b", 9
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 15
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Precondition) in method m3b", 9
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 15
                 ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)", 16
                 );
     }
@@ -2740,7 +2797,8 @@ public class esc2 extends EscBase {
                 """
                 package tt;
                 public abstract class TestJava  {
-                  //@ requires (\\forall int i; 0 <= i && i < args.length; args[i] >= 0);      requires n == -2;
+                  //@ requires (\\forall int i; 0 <= i && i < args.length; args[i] >= 0);
+                  //@ requires n == -2;
                   public void mm(int n, Integer... args) {  }
                   public void m0() {
                       mm(-2);
@@ -2765,14 +2823,14 @@ public class esc2 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Precondition) in method m1b", 9
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 15
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Precondition) in method m1b", 9
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 15
                 ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)", 16
-                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Precondition) in method m2b", 9
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 15
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Precondition) in method m2b", 9
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 15
                 ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)", 16
-                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (Precondition) in method m3b", 9
-                ,"/tt/TestJava.java:4: verify: Associated declaration", 15
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Precondition) in method m3b", 9
+                ,"/tt/TestJava.java:5: verify: Associated declaration", 15
                 ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: (\\forall int i; 0 <= i && i < args.length; args[i] >= 0)", 16
                 );
     }
@@ -2819,22 +2877,22 @@ public class esc2 extends EscBase {
         expectedExit = 0;
         addOptions("--esc-max-warnings=10");
         helpEsc("tt.TestJava",
-                        """
-                        package tt; //@ nullable_by_default
-                        public class TestJava  {
-                          /*@ requires o != null;
-                              ensures \\result == (j>=0);
-                             spec_pure */ public static boolean positive(Object o, int j) {
-                                 return j >= 0; }
-                          public int j;
-                          //@ signals (NullPointerException e) positive(null,j);
-                          //@ signals (NegativeArraySizeException e) positive(null,j);
-                          public void m0(int i, Object o) {
-                              if (i == 1) { j = -2; throw new NullPointerException(); }
-                              if (i == 2) { j = -1; throw new NegativeArraySizeException(); }
-                          }
-                        }
-                        """
+                """
+                package tt; //@ nullable_by_default
+                public class TestJava  {
+                  /*@ requires o != null;
+                      ensures \\result == (j>=0);
+                     spec_pure */ public static boolean positive(Object o, int j) {
+                         return j >= 0; }
+                  public int j;
+                  //@ signals (NullPointerException e) positive(null,j);
+                  //@ signals (NegativeArraySizeException e) positive(null,j);
+                  public void m0(int i, Object o) {
+                      if (i == 1) { j = -2; throw new NullPointerException(); }
+                      if (i == 2) { j = -1; throw new NegativeArraySizeException(); }
+                  }
+                }
+                """
                 ,anyorder(seq(
                  "/tt/TestJava.java:9: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m0",54
                 ,"/tt/TestJava.java:5: verify: Associated declaration",41
@@ -2877,9 +2935,12 @@ public class esc2 extends EscBase {
                 public class TestJava  {
                   public static final int ii = mm();
                  //@ ensures ii == 19; static_initializer   //@ public final invariant ii == 19;
-                  //@ public normal_behavior ensures \\result == 10 + 9; pure
+                  //@ public normal_behavior
+                  //@   ensures \\result == 10 + 9;
+                  //@   pure
                   public static int mm() { return 19; }  //@ public normal_behavior ensures \\result == 19; pure
-                  public int mmm() { return ii; }}
+                  public int mmm() { return ii; }
+                }
                 """
                 );
     }
@@ -2894,9 +2955,12 @@ public class esc2 extends EscBase {
                   public static final int jj = 21;
                   public static final int ii = mm();
                  //@ ensures ii == 19 && jj == 21; static_initializer   //@ public final invariant ii == 19;
-                  //@ public normal_behavior ensures \\result == 10 + 9; pure
+                  //@ public normal_behavior
+                  //@   ensures \\result == 10 + 9;
+                  //@   pure
                   public static int mm() { return 19; }  //@ public normal_behavior ensures \\result == 21; pure
-                  public int mmm() { return jj; }}
+                  public int mmm() { return jj; }
+                }
                 """
                 );
     }
@@ -2911,9 +2975,12 @@ public class esc2 extends EscBase {
                 public class TestJava  {
                   public static final int ii = mm();
                  //@ ensures ii == mm(); static_initializer   //@ public final invariant ii == 19;
-                  //@ public normal_behavior ensures \\result == 10 + 9; pure
+                  //@ public normal_behavior
+                  //@   ensures \\result == 10 + 9;
+                  //@   pure
                   public static int mm() { return 19; }  //@ public normal_behavior ensures \\result == 19; pure
-                  public int mmm() { return ii; }}
+                  public int mmm() { return ii; }
+                }
                 """
                 );
     }
@@ -2927,8 +2994,11 @@ public class esc2 extends EscBase {
                 public class TestJava  {
                   public static final int ii = mm();
                   //@ public final invariant ii == 19;
-                  //@ public normal_behavior ensures \\result == 10 + 9; pure
-                  public static int mm() { return 19; }}
+                  //@ public normal_behavior
+                  //@   ensures \\result == 10 + 9;
+                  //@   pure
+                  public static int mm() { return 19; }
+                }
                 """
                 ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii (translating tt.TestJava.TestJava())", 27
                 ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.ii (translating tt.TestJava.mm())", 27
@@ -2952,7 +3022,8 @@ public class esc2 extends EscBase {
                   //@   ensures A.bit == 1;
                   //@   ensures B.bit == 2;
                   //@ static_initializer
-                  public void m() {}}
+                  public void m() {}
+                }
                 """
                 ,"/tt/TestJava.java:8: error: An identifier with private visibility may not be used in a ensures clause with public visibility", 18
                 ,"/tt/TestJava.java:9: error: An identifier with private visibility may not be used in a ensures clause with public visibility", 18
@@ -2974,7 +3045,8 @@ public class esc2 extends EscBase {
                   //@   ensures A.bit == 1;
                   //@   ensures B.bit == 2;
                   //@ static_initializer
-                  public void m() {}}
+                  public void m() {}
+                }
                 """
                 );
     }
@@ -3299,7 +3371,7 @@ public class esc2 extends EscBase {
                     try {
                       int i = t.iii;    // OK NullPointerException permitted
                       i = t.iii;
-                 } catch (NullPointerException e) {}
+                    } catch (NullPointerException e) {}
                   }
                 }
                 """
@@ -3315,9 +3387,10 @@ public class esc2 extends EscBase {
                 public class TestJava  {
                   public int iii;
                   public void m(/*@ nullable */ TestJava t, /*@ nullable */ TestJava tt) {
-                     //@ assume t == null;
+                    //@ assume t == null;
                     int i = t.iii; //@ ignore NullPointerException;
-                    //@ reachable; // ERROR    i = t.iii;
+                    //@ reachable; // ERROR
+                    i = t.iii;
                   }
                 }
                 """
@@ -3352,22 +3425,23 @@ public class esc2 extends EscBase {
                   }
                 }
                 """
-                        ,"/tt/TestJava.java:17: error: Expected an identifier here in the line annotation",36
-                        // When there is an error, no attribution is performed
-                        );
+                ,"/tt/TestJava.java:17: error: Expected an identifier here in the line annotation",36
+                // When there is an error, no attribution is performed
+                );
     }
     
     @Test
     public void testdatagroup() {
-    	helpEsc("tt.C",
-    	        """
-    	        package tt; /*@ non_null_by_default */ public class C {
-    	            //@ public model \\datagroup g;
-    	        }
-    	        """
-    	        );
+        helpEsc("tt.C",
+                """
+                package tt;
+                /*@ non_null_by_default */ public class C {
+                    //@ public model \\datagroup g;
+                }
+                """
+                );
     }
-    
+
     @Test
     public void testBRC() {
         helpEsc("tt.TestJava",
@@ -3417,7 +3491,7 @@ public class esc2 extends EscBase {
               }
             }
             """
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
+            ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
         );
     }
 
@@ -3434,7 +3508,7 @@ public class esc2 extends EscBase {
               }
             }
             """
-                ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m", 9
+            ,"/tt/TestJava.java:4: warning: The prover cannot establish an assertion (Assert) in method m", 9
         );
     }
 
@@ -3451,7 +3525,7 @@ public class esc2 extends EscBase {
               }
             }
             """
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
+            ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
         );
     }
     
@@ -3468,8 +3542,8 @@ public class esc2 extends EscBase {
               }
             }
             """
-                ,"/tt/TestJava.java:4: warning: Inserting missing semicolon at the end of a assert statement", 21
-                ,"error: warnings found and -Werror specified"
+            ,"/tt/TestJava.java:4: warning: Inserting missing semicolon at the end of a assert statement", 21
+            ,"error: warnings found and -Werror specified"
         );
     }
     
@@ -3486,7 +3560,7 @@ public class esc2 extends EscBase {
               }
             }
             """
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
+            ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
         );
     }
 
@@ -3503,7 +3577,7 @@ public class esc2 extends EscBase {
               }
             }
             """
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
+            ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m", 9
         );
     }
 

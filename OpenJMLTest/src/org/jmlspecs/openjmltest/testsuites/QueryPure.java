@@ -7,47 +7,57 @@ import org.junit.Test;
 public class QueryPure extends TCBase {
 
     // FIXME - missing the 'error' in error mesages
-    
+
     @Test
     public void testClass1() {
         helpTCText("A.java",
-                "//@ pure\n" +  // OK
-                "public class A { } \n"
+                """
+                //@ pure // OK
+                public class A { }
+                """
         );
     }
-    
+
     @Test
     public void testClass2() {
         helpTCText("A.java",
-                "//@ query\n" +   // OK
-                "public class A { } \n"
+                """
+                //@ query // OK
+                public class A { }
+                """
         );
     }
 
     @Test
     public void testClass3() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "@Query\n" +  // OK
-                "public class A { } \n"
+                """
+                import org.jmlspecs.annotation.*;
+                @Query // OK
+                public class A { }
+                """
         );
     }
 
     @Test
     public void testClass4() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "@Pure\n" +  // OK
-                "public class A { } \n"
+                """
+                import org.jmlspecs.annotation.*;
+                @Pure // OK
+                public class A { }
+                """
         );
     }
 
     @Test
     public void testClass5() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "@Pure @Query\n" +   // BAD
-                "public class A { } \n"
+                """
+                import org.jmlspecs.annotation.*;
+                @Pure @Query // BAD
+                public class A { }
+                """
                 ,"/A.java:2: A declaration may not be both pure and query",7
         );
     }
@@ -55,9 +65,11 @@ public class QueryPure extends TCBase {
     @Test
     public void testClass6() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "//@ pure query\n" +  // BAD
-                "public class A { } \n"
+                """
+                import org.jmlspecs.annotation.*;
+                //@ pure query // BAD
+                public class A { }
+                """
                 ,"/A.java:2: error: A declaration may not be both pure and query",10
         );
     }
@@ -65,9 +77,11 @@ public class QueryPure extends TCBase {
     @Test
     public void testClass7() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "@Pure //@ query\n" +  // BAD
-                "public class A { } \n"
+                """
+                import org.jmlspecs.annotation.*;
+                @Pure //@ query // BAD
+                public class A { }
+                """
                 ,"/A.java:2: error: A declaration may not be both pure and query",11
         );
     }
@@ -75,9 +89,11 @@ public class QueryPure extends TCBase {
     @Test
     public void testClass8() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "@Pure //@ pure\n" +  // BAD
-                "public class A { } \n"
+                """
+                import org.jmlspecs.annotation.*;
+                @Pure //@ pure // BAD
+                public class A { }
+                """
                 ,"/A.java:2: org.jmlspecs.annotation.Pure is not a repeatable annotation type",11 // Changed location in Java8
         );
     }
@@ -85,9 +101,11 @@ public class QueryPure extends TCBase {
     @Test
     public void testClass9() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "@Query //@ query\n" +  // BAD
-                "public class A { } \n"
+                """
+                import org.jmlspecs.annotation.*;
+                @Query //@ query // BAD
+                public class A { }
+                """
                 ,"/A.java:2: org.jmlspecs.annotation.Query is not a repeatable annotation type",12 // CHanged location in Java8
         );
     }
@@ -95,55 +113,65 @@ public class QueryPure extends TCBase {
     @Test
     public void testMethod1() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Query\n" +  // OK
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Query // OK
+                  public void v() {}
+                }
+                """
         );
     }
 
     @Test
     public void testMethod2() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ query\n" +  // OK
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ query // OK
+                  public void v() {}
+                }
+                """
         );
     }
 
     @Test
     public void testMethod3() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Pure\n" +  // OK
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Pure // OK
+                  public void v() {}
+                }
+                """
         );
     }
 
     @Test
     public void testMethod4() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@pure\n" +  // OK
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@pure // OK
+                  public void v() {}
+                }
+                """
         );
     }
 
     @Test
     public void testMethod5() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ pure query\n" +  // BAD
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ pure query // BAD
+                  public void v() {}
+                }
+                """
                 ,"/A.java:3: A declaration may not be both pure and query",12
         );
     }
@@ -151,11 +179,13 @@ public class QueryPure extends TCBase {
     @Test
     public void testMethod6() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Query @Pure\n" +  // BAD
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Query @Pure // BAD
+                  public void v() {}
+                }
+                """
                 ,"/A.java:3: A declaration may not be both pure and query",3
         );
     }
@@ -163,11 +193,13 @@ public class QueryPure extends TCBase {
     @Test
     public void testMethod7() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Pure //@ query\n" +  // BAD
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Pure //@ query // BAD
+                  public void v() {}
+                }
+                """
                 ,"/A.java:3: A declaration may not be both pure and query",13
         );
     }
@@ -175,11 +207,13 @@ public class QueryPure extends TCBase {
     @Test
     public void testMethod8() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Query //@ query\n" +  // BAD
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Query //@ query // BAD
+                  public void v() {}
+                }
+                """
                 ,"/A.java:3: org.jmlspecs.annotation.Query is not a repeatable annotation type",14
         );
     }
@@ -187,11 +221,13 @@ public class QueryPure extends TCBase {
     @Test
     public void testMethod9() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Pure //@ pure\n" +  // BAD
-                "  public void v() {}" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Pure //@ pure // BAD
+                  public void v() {}
+                }
+                """
                 ,"/A.java:3: org.jmlspecs.annotation.Pure is not a repeatable annotation type",13
         );
     }
@@ -199,95 +235,140 @@ public class QueryPure extends TCBase {
     @Test
     public void testCacheExample() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ secret public model \\datagroup value;\n" +
-                "  @Secret protected Integer cache = null; //@ in value; \n" + 
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query(\"value\") public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ secret public model \\datagroup value;
+                  @Secret
+                  protected Integer cache = null; //@ in value;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query("value")
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                }
+                """
         );
     }
-        
+
     @Test
     public void testSimplerCacheExample() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ model public secret Object value;\n" +
-                "  @Secret protected Integer cache = null; //@ in value; \n" + 
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ model public secret Object value;
+                  @Secret
+                  protected Integer cache = null; //@ in value;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                }
+                """
         );
     }
 
     @Test
     public void testAnotherCacheExample() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Secret Integer cache = null; \n" + // Requires allowing non-model fields to be datagroups
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query(\"cache\") public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Secret
+                  Integer cache = null; // Requires allowing non-model fields to be datagroups
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query("cache")
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                }
+                """
         );
     }
 
     @Test
     public void testAnotherValidExample() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" + 
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + // To use the implicit declaration, value here must be after the Query
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  @Secret
+                  Integer cache = null; //@ in value; // To use the implicit declaration, value here must be after the Query
+                }
+                """
         );
     }
 
     @Test
     public void testInvariant() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" + 
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "  @Secret public Integer cache = null; //@ in value; \n" + // To use the implicit declaration, value here must be after the Query
-                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute();\n" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  @Secret
+                  public Integer cache = null; //@ in value; // To use the implicit declaration, value here must be after the Query
+                  //@ @Secret("value") public invariant cache != null ==> cache == compute();
+                }
+                """
         );
     }
 
     @Test
     public void testForwardRef() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "  //@ secret model Object value;\n" + // we're allowing forward reference
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Secret
+                  Integer cache = null; //@ in value;
+                  //@ secret model Object value; // we're allowing forward reference
+                }
+                """
         );
     }
 
     @Test
     public void testCircular() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ secret model Integer cache ; //@ in value; \n" + 
-                "  //@ secret model Object value; in cache; \n" + // error - circular
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ secret model Integer cache ; //@ in value;
+                  //@ secret model Object value; in cache; // error - circular
+                }
+                """
                 ,"/A.java:3: error: This field participates in a circular datagroup inclusion chain: cache -> value -> cache",28
                 ,"/A.java:4: error: This field participates in a circular datagroup inclusion chain: value -> cache -> value",27
         );
@@ -297,10 +378,12 @@ public class QueryPure extends TCBase {
     public void testCircularSelf() {
         expectedExit = 0;
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ secret model Object value; in value; \n" + // warning - circular
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ secret model Object value; in value; // warning - circular
+                }
+                """
                 ,"/A.java:3: warning: Do not include a datagroup in itself: value",37
         );
     }
@@ -308,173 +391,261 @@ public class QueryPure extends TCBase {
     @Test
     public void testQuery0() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Secret Integer cache = null; //@ in value; \n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" + 
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Secret
+                  Integer cache = null; //@ in value;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                }
+                """
         );
     }
 
     @Test
     public void testQuery1() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ model secret public Object value;\n" +
-                "  @Secret public Integer cache = null; //@ in value; \n" + 
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == cache;\n" +  // ERROR - no use of secret in specs
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "} \n"
-                ,"/A.java:6: Secret fields may not be read in non-secret context: cache",26
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ model secret public Object value;
+                  @Secret
+                  public Integer cache = null; //@ in value;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == cache; // ERROR - no use of secret in specs
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                }
+                """
+                ,"/A.java:8: Secret fields may not be read in non-secret context: cache",26
         );
     }
 
     @Test
     public void testQuery2() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ model secret Object value;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" + 
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return cache; }\n" + // ERROR - no use of secret in open method
-                "} \n"
-                ,"/A.java:8: Secret fields may not be read in non-secret context: cache",29
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ model secret Object value;
+                  @Secret
+                  Integer cache = null; //@ in value;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return cache; } // ERROR - no use of secret in open method
+                }
+                """
+                ,"/A.java:14: Secret fields may not be read in non-secret context: cache",29
         );
     }
 
     @Test
     public void testQuery3() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { f = 0; if (cache == null) cache = compute(); return cache; }\n" + // ERROR - no assignment except to secret
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "} \n"
-                ,"/A.java:5: The field f is not writable since it is not in the value secret datagroup",31
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    f = 0; // ERROR - no assignment except to secret
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  Integer cache = null; //@ in value;
+                }
+                """
+                ,"/A.java:8: The field f is not writable since it is not in the value secret datagroup",5
         );
     }
 
     @Test
     public void testQuery4() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret public model Object o;\n " +
-                "  @Secret int q; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { q = 0; if (cache == null) cache = compute(); return cache; }\n" + // ERROR - no assignment except to own secret
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "} \n"
-                ,"/A.java:7: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",31
-                ,"/A.java:7: The field q is not writable since it is not in the value secret datagroup",31
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret public model Object o;
+                   @Secret
+                   int q; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    q = 0; // ERROR - no assignment except to own secret
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  Integer cache = null; //@ in value;
+                }
+                """
+                ,"/A.java:11: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",5
+                ,"/A.java:11: The field q is not writable since it is not in the value secret datagroup",5
         );
     }
 
     @Test
     public void testQuery5() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret public model Object o;\n " +
-                "  @Secret int q; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute() + q; return cache; }\n" + // ERROR - no reading other secret
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "} \n"
-                ,"/A.java:7: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",70
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret public model Object o;
+                   @Secret
+                   int q; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute() + q; // ERROR - no reading other secret
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  Integer cache = null; //@ in value;
+                }
+                """
+                ,"/A.java:11: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",43
         );
     }
 
     @Test
     public void testQuery6() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret public model Object value;\n" +
-                "  //@ @Secret public model Object o; in value; \n " +
-                "  @Secret int q = 5; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute() + q; return cache; }\n" + // OK - q is nested in value
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret public model Object value;
+                  //@ @Secret public model Object o; in value;
+                   @Secret
+                   int q = 5; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute() + q; // OK - q is nested in value
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  Integer cache = null; //@ in value;
+                }
+                """
         );
     }
 
     @Test
     public void testQuery7() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret public model Object o;\n " +
-                "  @Secret public int q; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + 
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret public Integer cache = null; //@ in value; \n" + 
-                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" +// ERROR - no reading other secret
-                "} \n"
-                ,"/A.java:11: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",80
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret public model Object o;
+                   @Secret
+                   public int q; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  public Integer cache = null; //@ in value;
+                  //@ @Secret("value") public invariant cache != null ==> cache == compute() + q; // ERROR - no reading other secret
+                }
+                """
+                ,"/A.java:18: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",80
         );
     }
 
-    // Note the difference between this test and the one below - here the attempt to resolve value on line 3 used to fail because it is 
+    // Note the difference between this test and the one below - here the attempt to resolve value on line 3 used to fail because it is
     // processed before the datagroup 'value' is created
     @Test
     public void testQuery8() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Secret public Object o; //@ in value; \n " +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret public Integer cache = null; //@ in value; \n" + 
-                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + 0;\n" + 
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Secret
+                  public Object o; //@ in value;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() { // creates a datagroup named 'value'
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  public Integer cache = null; //@ in value;
+                  //@ @Secret("value") public invariant cache != null ==> cache == compute() + 0;
+                }
+                """
         );
     }
 
     @Test
     public void testQuery8c() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  @Secret public int q = 5; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret public Integer cache = null; //@ in value; \n" + 
-                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" + // OK - q is nested in value
-                "  //@ @Secret public model Object o; in value; \n " +
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  @Secret
+                  public int q = 5; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() { // creates a datagroup named 'value'
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  public Integer cache = null; //@ in value;
+                  //@ @Secret("value") public invariant cache != null ==> cache == compute() + q; // OK - q is nested in value
+                  //@ @Secret public model Object o; in value;
+                 }
+                """
         );
     }
 
@@ -483,118 +654,170 @@ public class QueryPure extends TCBase {
     @Test
     public void testQuery8b() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret public model Object o; in value; \n " +
-                "  @Secret public int q = 5; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" + // creates a datagroup named 'value'
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret public Integer cache = null; //@ in value; \n" + 
-                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" + // OK - q is nested in value
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret public model Object o; in value;
+                   @Secret
+                   public int q = 5; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() { // creates a datagroup named 'value'
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  public Integer cache = null; //@ in value;
+                  //@ @Secret("value") public invariant cache != null ==> cache == compute() + q; // OK - q is nested in value
+                }
+                """
         );
     }
 
     @Test
     public void testQuery8OK() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret public model Object value;\n" +
-                "  //@ @Secret public model Object o; in value; \n " +
-                "  @Secret public int q = 5; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "  int f;\n" +
-                "  @Secret public Integer cache = null; //@ in value; \n" + 
-                "  //@ @Secret(\"value\") public invariant cache != null ==> cache == compute() + q;\n" + // OK - q is nested in value
-                "} \n"
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret public model Object value;
+                  //@ @Secret public model Object o; in value;
+                   @Secret
+                   public int q = 5; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  int f;
+                  @Secret
+                  public Integer cache = null; //@ in value;
+                  //@ @Secret("value") public invariant cache != null ==> cache == compute() + q; // OK - q is nested in value
+                }
+                """
         );
     }
 
     @Test
     public void testQuery8a() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret public model Object value;\n" +
-                "  //@ @Secret public model Object o; in value; \n " +
-                "  int f; @Secret int q = 5; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  //@ ensures \\result == compute();\n" +
-                "  @Query public int value() { if (cache == null) cache = compute(); return cache; }\n" +
-                "  public int use() { return value(); }\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "  //@ @Secret public invariant true;\n" + // BAD SYNTAX
-                "  //@ @Secret(0) public invariant true;\n" + // BAD SYNTAX
-                "  //@ @Secret(\"org\") public invariant true;\n" + // BAD SYNTAX
-                "  //@ @Secret(\"value\",\"value\") public invariant true;\n" + // BAD SYNTAX
-                "  //@ @Secret(\"v\") public invariant true;\n" + // ERROR - not found
-                "} \n"
-                ,"/A.java:11: A secret annotation on an invariant must have exactly one argument",22
-                ,"/A.java:12: incompatible types: int cannot be converted to java.lang.String",15
-                ,"/A.java:13: cannot find symbol\n  symbol:   variable org\n  location: class A",15
-                ,"/A.java:14: annotation values must be of the form 'name=value'",15
-                ,"/A.java:14: annotation values must be of the form 'name=value'",23
-                ,"/A.java:14: A secret annotation on an invariant must have exactly one argument",39
-                ,"/A.java:15: cannot find symbol\n  symbol:   variable v\n  location: class A",15
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret public model Object value;
+                  //@ @Secret public model Object o; in value;
+                   int f;
+                   @Secret
+                   int q = 5; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  //@ ensures \\result == compute();
+                  @Query
+                  public int value() {
+                    if (cache == null) cache = compute();
+                    return cache;
+                  }
+                  public int use() { return value(); }
+                  @Secret
+                  Integer cache = null; //@ in value;
+                  //@ @Secret public invariant true; // BAD SYNTAX
+                  //@ @Secret(0) public invariant true; // BAD SYNTAX
+                  //@ @Secret("org") public invariant true; // BAD SYNTAX
+                  //@ @Secret("value","value") public invariant true; // BAD SYNTAX
+                  //@ @Secret("v") public invariant true; // ERROR - not found
+                }
+                """
+                ,"/A.java:19: A secret annotation on an invariant must have exactly one argument",22
+                ,"/A.java:20: incompatible types: int cannot be converted to java.lang.String",15
+                ,"/A.java:21: cannot find symbol\n  symbol:   variable org\n  location: class A",15
+                ,"/A.java:22: annotation values must be of the form 'name=value'",15
+                ,"/A.java:22: annotation values must be of the form 'name=value'",23
+                ,"/A.java:22: A secret annotation on an invariant must have exactly one argument",39
+                ,"/A.java:23: cannot find symbol\n  symbol:   variable v\n  location: class A",15
         );
     }
 
     @Test
     public void testQuery9() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret public model int value;\n" +
-                "  //@ @Secret public model Object o; in value; \n " +
-                "  @Secret int q = 5; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "  @Secret(\"value\") public int mm() { cache = null; q = 0; f = 0; }\n" +  // ERROR - can't write f; 
-                "} \n"
-                ,"/A.java:9: The field f is not writable since it is not in the value secret datagroup",59
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret public model int value;
+                  //@ @Secret public model Object o; in value;
+                   @Secret
+                   int q = 5; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  int f;
+                  @Secret
+                  Integer cache = null; //@ in value;
+                  @Secret("value")
+                  public int mm() {
+                    cache = null;
+                    q = 0;
+                    f = 0; // ERROR - can't write f
+                  }
+                }
+                """
+                ,"/A.java:17: The field f is not writable since it is not in the value secret datagroup",5
         );
     }
 
     @Test
     public void testQuery10() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret model int value;\n" +
-                "  //@ @Secret public model Object o; \n " +
-                "  @Secret int q = 5; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "  @Secret(\"value\") public int mm() {  q = 0;  }\n" +  // ERROR - can't read or write q
-                "} \n"
-                ,"/A.java:9: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",39
-                ,"/A.java:9: The field q is not writable since it is not in the value secret datagroup",39
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret model int value;
+                  //@ @Secret public model Object o;
+                   @Secret
+                   int q = 5; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  int f;
+                  @Secret
+                  Integer cache = null; //@ in value;
+                  @Secret("value")
+                  public int mm() {
+                    q = 0; // ERROR - can't read or write q
+                  }
+                }
+                """
+                ,"/A.java:14: A field may not be read in a secret context unless it is in the same secret datagroup: q not in value",5
+                ,"/A.java:14: The field q is not writable since it is not in the value secret datagroup",5
         );
     }
 
     @Test
     public void testQuery11() {
         helpTCText("A.java",
-                "import org.jmlspecs.annotation.*;\n" +
-                "public class A { \n" +
-                "  //@ @Secret model int value;\n" +
-                "  //@ @Secret public model Object o; \n " +
-                "  @Secret int q = 5; //@ in o;\n" +
-                "  @Pure public int compute() { return 0; }\n" +
-                "  int f;\n" +
-                "  @Secret Integer cache = null; //@ in value; \n" + 
-                "  @Secret public void mm() {  }\n" +  // ERROR - methods must have a argument to @Secret
-                "} \n"
-                ,"/A.java:9: A secret annotation on a method must have exactly one argument",3
+                """
+                import org.jmlspecs.annotation.*;
+                public class A {
+                  //@ @Secret model int value;
+                  //@ @Secret public model Object o;
+                   @Secret
+                   int q = 5; //@ in o;
+                  @Pure
+                  public int compute() { return 0; }
+                  int f;
+                  @Secret
+                  Integer cache = null; //@ in value;
+                  @Secret
+                  public void mm() { } // ERROR - methods must have a argument to @Secret
+                }
+                """
+                ,"/A.java:12: A secret annotation on a method must have exactly one argument",3
         );
     }
 

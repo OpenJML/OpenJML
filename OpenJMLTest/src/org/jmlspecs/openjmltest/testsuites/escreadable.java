@@ -11,7 +11,7 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escreadable extends EscBase {
 
-    
+
     // FIXME - needs writable checks for assignables in method calls?
     // FIXME - what about assignments to arrays elements
     // FIXME - what about references in type decl initializations
@@ -20,74 +20,63 @@ public class escreadable extends EscBase {
 
     @Test
     public void testReadable() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"/*@ code_java_math*/ public class TestJava { \n"
-                +"  public static boolean b; public boolean bb; int z; //@ readable z if bb; \n"
-                +"  int x; //@ readable x if b; \n"
-                +"  static int y; //@ readable y if b; \n"
-
-                +"  //@ requires b; \n"
-                +"  public int m1(int i) { int j = 0; \n"
-                +"    return x + this.x + i + j;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public int m1b() {\n"
-                +"    return x;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public int m1c() {\n"
-                +"    return this.x ;\n"
-                +"  }\n"
-
-                +"  //@ requires b; \n"
-                +"  public int m2() {\n"
-                +"    return y + TestJava.y ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public int m2b() {\n"
-                +"    return y;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public int m2c() {\n"
-                +"    return TestJava.y ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public int m3(TestJava a) {\n"
-                +"    return a.z ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public int m3b(TestJava a) {\n"
-                +"    return a.z ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public int m3c(TestJava a) {\n"
-                +"    return this.z ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public int m3d(TestJava a) {\n"
-                +"    return this.z ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public int m3e(TestJava a) {\n"
-                +"    return z ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public int m3f(TestJava a) {\n"
-                +"    return z ;\n"
-                +"  }\n"
-
-
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ code_java_math*/ public class TestJava {
+                  public static boolean b; public boolean bb; int z; //@ readable z if bb;
+                  int x; //@ readable x if b;
+                  static int y; //@ readable y if b;
+                  //@ requires b;
+                  public int m1(int i) { int j = 0;
+                    return x + this.x + i + j;
+                  }
+                  //@ requires !b;
+                  public int m1b() {
+                    return x;
+                  }
+                  //@ requires !b;
+                  public int m1c() {
+                    return this.x ;
+                  }
+                  //@ requires b;
+                  public int m2() {
+                    return y + TestJava.y ;
+                  }
+                  //@ requires !b;
+                  public int m2b() {
+                    return y;
+                  }
+                  //@ requires !b;
+                  public int m2c() {
+                    return TestJava.y ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public int m3(TestJava a) {
+                    return a.z ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public int m3b(TestJava a) {
+                    return a.z ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public int m3c(TestJava a) {
+                    return this.z ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public int m3d(TestJava a) {
+                    return this.z ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public int m3e(TestJava a) {
+                    return z ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public int m3f(TestJava a) {
+                    return z ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Readable-if) in method m1b: tt.TestJava.x",12
                 ,"/tt/TestJava.java:4: verify: Associated declaration",14
                 ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Readable-if) in method m1c: tt.TestJava.x",16
@@ -108,75 +97,65 @@ public class escreadable extends EscBase {
 
     @Test
     public void testWritable() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"/*@ code_java_math*/ public class TestJava { \n"
-                +"  public static boolean b; public boolean bb; int z; //@ writable z if bb; \n"
-                +"  int x; //@ writable x if b; \n"
-                +"  static int y; //@ writable y if b; \n"
-
-                +"  //@ requires b; \n"
-                +"  public void m1(int i) {\n"
-                +"    x = 0 ; i = 0; int j; j = 0;\n"
-                +"    this.x = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m1b() {\n"
-                +"    x = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m1c() {\n"
-                +"    this.x = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires b; \n"
-                +"  public void m2() {\n"
-                +"    y = 0;\n"
-                +"    TestJava.y = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m2b() {\n"
-                +"    y = 0;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m2c() {\n"
-                +"    TestJava.y = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3(TestJava a) {\n"
-                +"    a.z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3b(TestJava a) {\n"
-                +"    a.z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3c(TestJava a) {\n"
-                +"    z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3d(TestJava a) {\n"
-                +"    z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3e(TestJava a) {\n"
-                +"    this.z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3f(TestJava a) {\n"
-                +"    this.z = 0 ;\n"
-                +"  }\n"
-
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ code_java_math*/ public class TestJava {
+                  public static boolean b; public boolean bb; int z; //@ writable z if bb;
+                  int x; //@ writable x if b;
+                  static int y; //@ writable y if b;
+                  //@ requires b;
+                  public void m1(int i) {
+                    x = 0 ; i = 0; int j; j = 0;
+                    this.x = 0 ;
+                  }
+                  //@ requires !b;
+                  public void m1b() {
+                    x = 0 ;
+                  }
+                  //@ requires !b;
+                  public void m1c() {
+                    this.x = 0 ;
+                  }
+                  //@ requires b;
+                  public void m2() {
+                    y = 0;
+                    TestJava.y = 0 ;
+                  }
+                  //@ requires !b;
+                  public void m2b() {
+                    y = 0;
+                  }
+                  //@ requires !b;
+                  public void m2c() {
+                    TestJava.y = 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3(TestJava a) {
+                    a.z = 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3b(TestJava a) {
+                    a.z = 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3c(TestJava a) {
+                    z = 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3d(TestJava a) {
+                    z = 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3e(TestJava a) {
+                    this.z = 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3f(TestJava a) {
+                    this.z = 0 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Writable-if) in method m1b: tt.TestJava.x",5
                 ,"/tt/TestJava.java:4: verify: Associated declaration",14
                 ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Writable-if) in method m1c: tt.TestJava.x",9
@@ -196,75 +175,65 @@ public class escreadable extends EscBase {
 
     @Test
     public void testWritable2() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"/*@ code_java_math*/ public class TestJava { \n"
-                +"  public static boolean b; public boolean bb; int z; //@ writable z if bb; \n"
-                +"  int x; //@ writable x if b; \n"
-                +"  static int y; //@ writable y if b; \n"
-
-                +"  //@ requires b; \n"
-                +"  public void m1(int i) {\n"
-                +"    x += 0 ; i += 0; int j = 0; j += 0;\n"
-                +"    this.x += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m1b() {\n"
-                +"    x += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m1c() {\n"
-                +"    this.x += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires b; \n"
-                +"  public void m2() {\n"
-                +"    y += 0;\n"
-                +"    TestJava.y += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m2b() {\n"
-                +"    y += 0;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m2c() {\n"
-                +"    TestJava.y += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3(TestJava a) {\n"
-                +"    a.z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3b(TestJava a) {\n"
-                +"    a.z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3c(TestJava a) {\n"
-                +"    z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3d(TestJava a) {\n"
-                +"    z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3e(TestJava a) {\n"
-                +"    this.z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3f(TestJava a) {\n"
-                +"    this.z += 0 ;\n"
-                +"  }\n"
-
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ code_java_math*/ public class TestJava {
+                  public static boolean b; public boolean bb; int z; //@ writable z if bb;
+                  int x; //@ writable x if b;
+                  static int y; //@ writable y if b;
+                  //@ requires b;
+                  public void m1(int i) {
+                    x += 0 ; i += 0; int j = 0; j += 0;
+                    this.x += 0 ;
+                  }
+                  //@ requires !b;
+                  public void m1b() {
+                    x += 0 ;
+                  }
+                  //@ requires !b;
+                  public void m1c() {
+                    this.x += 0 ;
+                  }
+                  //@ requires b;
+                  public void m2() {
+                    y += 0;
+                    TestJava.y += 0 ;
+                  }
+                  //@ requires !b;
+                  public void m2b() {
+                    y += 0;
+                  }
+                  //@ requires !b;
+                  public void m2c() {
+                    TestJava.y += 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3(TestJava a) {
+                    a.z += 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3b(TestJava a) {
+                    a.z += 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3c(TestJava a) {
+                    z += 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3d(TestJava a) {
+                    z += 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3e(TestJava a) {
+                    this.z += 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3f(TestJava a) {
+                    this.z += 0 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Writable-if) in method m1b: tt.TestJava.x",5
                 ,"/tt/TestJava.java:4: verify: Associated declaration",14
                 ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Writable-if) in method m1c: tt.TestJava.x",9
@@ -284,149 +253,129 @@ public class escreadable extends EscBase {
 
     @Test
     public void testReadableA() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"/*@ code_java_math*/ public class TestJava { \n"
-                +"  public static boolean b; public boolean bb; int z; //@ readable z if bb; \n"
-                +"  int x; //@ readable x if b; \n"
-                +"  static int y; //@ readable y if b; \n"
-
-                +"  //@ requires b; \n"
-                +"  public void m1(int i) {\n"
-                +"    x = 0 ; i = 0; int j; j = 0;\n"
-                +"    this.x = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m1b() {\n"
-                +"    x = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m1c() {\n"
-                +"    this.x = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires b; \n"
-                +"  public void m2() {\n"
-                +"    y = 0;\n"
-                +"    TestJava.y = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m2b() {\n"
-                +"    y = 0;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m2c() {\n"
-                +"    TestJava.y = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3(TestJava a) {\n"
-                +"    a.z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3b(TestJava a) {\n"
-                +"    a.z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3c(TestJava a) {\n"
-                +"    z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3d(TestJava a) {\n"
-                +"    z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3e(TestJava a) {\n"
-                +"    this.z = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3f(TestJava a) {\n"
-                +"    this.z = 0 ;\n"
-                +"  }\n"
-
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ code_java_math*/ public class TestJava {
+                  public static boolean b; public boolean bb; int z; //@ readable z if bb;
+                  int x; //@ readable x if b;
+                  static int y; //@ readable y if b;
+                  //@ requires b;
+                  public void m1(int i) {
+                    x = 0 ; i = 0; int j; j = 0;
+                    this.x = 0 ;
+                  }
+                  //@ requires !b;
+                  public void m1b() {
+                    x = 0 ;
+                  }
+                  //@ requires !b;
+                  public void m1c() {
+                    this.x = 0 ;
+                  }
+                  //@ requires b;
+                  public void m2() {
+                    y = 0;
+                    TestJava.y = 0 ;
+                  }
+                  //@ requires !b;
+                  public void m2b() {
+                    y = 0;
+                  }
+                  //@ requires !b;
+                  public void m2c() {
+                    TestJava.y = 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3(TestJava a) {
+                    a.z = 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3b(TestJava a) {
+                    a.z = 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3c(TestJava a) {
+                    z = 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3d(TestJava a) {
+                    z = 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3e(TestJava a) {
+                    this.z = 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3f(TestJava a) {
+                    this.z = 0 ;
+                  }
+                }
+                """
                 );
     }
 
     @Test
     public void testReadableB() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"/*@ code_java_math*/ public class TestJava { \n"
-                +"  public static boolean b; public boolean bb; int z; //@ readable z if bb; \n"
-                +"  int x; //@ readable x if b; \n"
-                +"  static int y; //@ readable y if b; \n"
-
-                +"  //@ requires b; \n"
-                +"  public void m1(int i) {\n"
-                +"    x += 0 ; i += 0; int j = 0; j += 0;\n"
-                +"    this.x += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m1b() {\n"
-                +"    x += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m1c() {\n"
-                +"    this.x += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires b; \n"
-                +"  public void m2() {\n"
-                +"    y += 0;\n"
-                +"    TestJava.y += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m2b() {\n"
-                +"    y += 0;\n"
-                +"  }\n"
-
-                +"  //@ requires !b; \n"
-                +"  public void m2c() {\n"
-                +"    TestJava.y += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3(TestJava a) {\n"
-                +"    a.z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3b(TestJava a) {\n"
-                +"    a.z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3c(TestJava a) {\n"
-                +"    z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3d(TestJava a) {\n"
-                +"    z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires !bb && a.bb; \n"
-                +"  public void m3e(TestJava a) {\n"
-                +"    this.z += 0 ;\n"
-                +"  }\n"
-
-                +"  //@ requires bb && !a.bb; \n"
-                +"  public void m3f(TestJava a) {\n"
-                +"    this.z += 0 ;\n"
-                +"  }\n"
-
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ code_java_math*/ public class TestJava {
+                  public static boolean b; public boolean bb; int z; //@ readable z if bb;
+                  int x; //@ readable x if b;
+                  static int y; //@ readable y if b;
+                  //@ requires b;
+                  public void m1(int i) {
+                    x += 0 ; i += 0; int j = 0; j += 0;
+                    this.x += 0 ;
+                  }
+                  //@ requires !b;
+                  public void m1b() {
+                    x += 0 ;
+                  }
+                  //@ requires !b;
+                  public void m1c() {
+                    this.x += 0 ;
+                  }
+                  //@ requires b;
+                  public void m2() {
+                    y += 0;
+                    TestJava.y += 0 ;
+                  }
+                  //@ requires !b;
+                  public void m2b() {
+                    y += 0;
+                  }
+                  //@ requires !b;
+                  public void m2c() {
+                    TestJava.y += 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3(TestJava a) {
+                    a.z += 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3b(TestJava a) {
+                    a.z += 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3c(TestJava a) {
+                    z += 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3d(TestJava a) {
+                    z += 0 ;
+                  }
+                  //@ requires !bb && a.bb;
+                  public void m3e(TestJava a) {
+                    this.z += 0 ;
+                  }
+                  //@ requires bb && !a.bb;
+                  public void m3f(TestJava a) {
+                    this.z += 0 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Readable-if) in method m1b: tt.TestJava.x",5
                 ,"/tt/TestJava.java:4: verify: Associated declaration",14
                 ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Readable-if) in method m1c: tt.TestJava.x",9
@@ -447,28 +396,29 @@ public class escreadable extends EscBase {
     @Test
     public void testVisibility() {
         expectedExit = 1;
-        helpEsc("tt.TestJava","package tt; \n"
-                +"/*@ code_java_math*/ public class TestJava { \n"
-                +"  public static boolean bs1;\n"
-                +"  protected static boolean bs2;\n"
-                +"   static boolean bs3;\n"
-                +"  private static boolean bs4;\n"
-                +"  public boolean b1;\n"
-                +"  protected boolean b2;\n"
-                +"   boolean b3;\n"
-                +"  private boolean b4;\n"
-                
-                +"  static public int z1; //@ readable z1 if b1; \n"
-                +"  public int x1; //@ readable x1 if b1 || b2 || b3 || b4; \n"
-                +"  static public int y1; //@ readable y1 if bs1 || bs2 || bs3 || bs4; \n"
-                +"  protected int x2; //@ readable x2 if b1 || b2 || b3 || b4; \n"
-                +"  static protected int y2; //@ readable y2 if bs1 || bs2 || bs3 || bs4; \n"
-                +"   int x3; //@ readable x3 if b1 || b2 || b3 || b4; \n"
-                +"  static  int y3; //@ readable y3 if bs1 || bs2 || bs3 || bs4; \n"
-                +"  private int x4; //@ readable x4 if b1 || b2 || b3 || b4; \n"
-                +"  static private int y4; //@ readable y4 if bs1 || bs2 || bs3 || bs4; \n"
-
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ code_java_math*/ public class TestJava {
+                  public static boolean bs1;
+                  protected static boolean bs2;
+                   static boolean bs3;
+                  private static boolean bs4;
+                  public boolean b1;
+                  protected boolean b2;
+                   boolean b3;
+                  private boolean b4;
+                  static public int z1; //@ readable z1 if b1;
+                  public int x1; //@ readable x1 if b1 || b2 || b3 || b4;
+                  static public int y1; //@ readable y1 if bs1 || bs2 || bs3 || bs4;
+                  protected int x2; //@ readable x2 if b1 || b2 || b3 || b4;
+                  static protected int y2; //@ readable y2 if bs1 || bs2 || bs3 || bs4;
+                   int x3; //@ readable x3 if b1 || b2 || b3 || b4;
+                  static  int y3; //@ readable y3 if bs1 || bs2 || bs3 || bs4;
+                  private int x4; //@ readable x4 if b1 || b2 || b3 || b4;
+                  static private int y4; //@ readable y4 if bs1 || bs2 || bs3 || bs4;
+                }
+                """
                 ,"/tt/TestJava.java:11: error: non-static variable b1 cannot be referenced from a static context",44
                 ,"/tt/TestJava.java:12: error: An identifier with protected visibility may not be used in a readable clause with public visibility",43
                 ,"/tt/TestJava.java:12: error: An identifier with package visibility may not be used in a readable clause with public visibility",49

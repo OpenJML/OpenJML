@@ -27,78 +27,86 @@ public class escfunction extends EscBase {
     
     @Test // FIXME - for reasons unknown, this test appears to be non-deterministic - sometimes succeeding sometimes failing
     public void testMethodAxioms() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +" //@ code_java_math spec_java_math \n"
-                +"public class TestJava  { \n"
-                +"  //@ normal_behavior \n"
-                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ pure\n"
-                +"  //@ model public boolean m(int i);\n"
-                
-                +"  public void mm() {\n"
-                +"  //@ assert (\\forall int k; 3<k && k <7; m(k));\n"
-                +"  //@ assert (\\forall int k; 3<k && k <7; m(k-1));\n"
-                +"  //@ assert !(\\forall int k; -3<k && k <7; m(k));\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                 //@ code_java_math spec_java_math
+                public class TestJava  {
+                  //@ normal_behavior
+                  //@ ensures \\result == (i > 0 && i < 10);
+                  //@ pure
+                  //@ model public boolean m(int i);
+                  public void mm() {
+                  //@ assert (\\forall int k; 3<k && k <7; m(k));
+                  //@ assert (\\forall int k; 3<k && k <7; m(k-1));
+                  //@ assert !(\\forall int k; -3<k && k <7; m(k));
+                  }
+                }
+                """
                 );
     }
 
     
     @Test
-    public void testMethodAxioms2() { 
-        helpEsc("tt.TestJava","package tt; \n"
-                +" //@ code_java_math spec_java_math \n"
-                +"public class TestJava  { \n"
-                +"  //@ normal_behavior \n"
-                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ pure\n"
-                +"  //@ model public boolean m(int i);\n"
-                
-                +"  //@ pure\n"
-                +"  public void mm() {\n"
-                +"  //@ assert !(\\forall int k; 3<k && k <11; m(k));\n"
-                +"  }\n"
-                +"}"
+    public void testMethodAxioms2() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                 //@ code_java_math spec_java_math
+                public class TestJava  {
+                  //@ normal_behavior
+                  //@ ensures \\result == (i > 0 && i < 10);
+                  //@ pure
+                  //@ model public boolean m(int i);
+                  //@ pure
+                  public void mm() {
+                  //@ assert !(\\forall int k; 3<k && k <11; m(k));
+                  }
+                }
+                """
                 );
     }
 
     @Test
-    public void testFunction() { 
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
-                +"public @Immutable class TestJava  { \n"
-                +"  //@ normal_behavior \n"
-                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @NoState  \n"
-                +"  //@ model public boolean mfunc(int i);\n"
-                
-                +"  int n; \n"
-                +"  public void mm() {\n"
-                +"  //@ assert mfunc(5);\n"
-                +"  //@ assert !mfunc(0);\n"
-                +"  }\n"
-                +"}"
+    public void testFunction() {
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.* ;
+                public @Immutable class TestJava  {
+                  //@ normal_behavior
+                  //@ ensures \\result == (i > 0 && i < 10);
+                  //@ @NoState
+                  //@ model public boolean mfunc(int i);
+                  int n;
+                  public void mm() {
+                  //@ assert mfunc(5);
+                  //@ assert !mfunc(0);
+                  }
+                }
+                """
                 );
     }
 
     @Test
-    public void testFunctionError3() { 
+    public void testFunctionError3() {
         expectedExit = 1;
         addOptions("-check");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
-                +"public class TestJava  { \n"
-                +"  //@ normal_behavior \n"
-                +"  //@ assignable n; \n"
-                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @NoState  \n"
-                +"  //@ model public boolean mfunc(int i);\n"
-                
-                +"  int n; \n"
-                +"  public void mm() {\n"
-                +"  //@ assert mfunc(5);\n"
-                +"  //@ assert !mfunc(0);\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.* ;
+                public class TestJava  {
+                  //@ normal_behavior
+                  //@ assignable n;
+                  //@ ensures \\result == (i > 0 && i < 10);
+                  //@ @NoState
+                  //@ model public boolean mfunc(int i);
+                  int n;
+                  public void mm() {
+                  //@ assert mfunc(5);
+                  //@ assert !mfunc(0);
+                  }
+                }
+                """
                 //,"/tt/TestJava.java:6: error: A non-static function method must be a member of a Immutable class", 7 // FIXME
                 ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
@@ -106,45 +114,49 @@ public class escfunction extends EscBase {
     }
 
     @Test
-    public void testFunctionError2() { 
+    public void testFunctionError2() {
     	expectedExit = 1;
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
-                +"public @Immutable class TestJava  { \n"
-                +"  //@ normal_behavior \n"
-                +"  //@ assignable n; \n"
-                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @NoState  \n"
-                +"  //@ model public boolean mfunc(int i);\n"
-                
-                +"  int n; \n"
-                +"  public void mm() {\n"
-                +"  //@ assert mfunc(5);\n"
-                +"  //@ assert !mfunc(0);\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.* ;
+                public @Immutable class TestJava  {
+                  //@ normal_behavior
+                  //@ assignable n;
+                  //@ ensures \\result == (i > 0 && i < 10);
+                  //@ @NoState
+                  //@ model public boolean mfunc(int i);
+                  int n;
+                  public void mm() {
+                  //@ assert mfunc(5);
+                  //@ assert !mfunc(0);
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
     }
 
     @Test
-    public void testFunctionError() { 
+    public void testFunctionError() {
     	expectedExit = 1;
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
-                +"public @Immutable class TestJava  { \n"
-                +"  //@ normal_behavior \n"
-                +"  //@ assignable n; \n"
-                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"   \n"
-                +"  //@ model no_state public boolean mfunc(int i);\n"
-                
-                +"  int n; \n"
-                +"  public void mm() {\n"
-                +"  //@ assert mfunc(5);\n"
-                +"  n = 0;\n"
-                +"  //@ assert !mfunc(n);\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.* ;
+                public @Immutable class TestJava  {
+                  //@ normal_behavior
+                  //@ assignable n;
+                  //@ ensures \\result == (i > 0 && i < 10);
+
+                  //@ model no_state public boolean mfunc(int i);
+                  int n;
+                  public void mm() {
+                  //@ assert mfunc(5);
+                  n = 0;
+                  //@ assert !mfunc(n);
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: error: A no_state method may not read class fields: n", 18
                 ,"/tt/TestJava.java:4: error: no_state methods are implicitly pure and may not assign to any fields: n",18
                 );
@@ -152,21 +164,23 @@ public class escfunction extends EscBase {
 
     
     @Test
-    public void testStaticFunction() { 
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.* ; \n"
-                +"public class TestJava  { \n"
-                +"  //@ normal_behavior \n"
-                +"  //@ ensures \\result == (i > 0 && i < 10);\n"
-                +"  //@ @NoState  \n"
-                +"  //@ static model public boolean mfunc(int i);\n"
-                
-                +"  int n; \n"
-                +"  public void mm() {\n"
-                +"  //@ assert mfunc(5);\n"
-                +"  n = 0;\n"
-                +"  //@ assert !mfunc(n);\n"
-                +"  }\n"
-                +"}"
+    public void testStaticFunction() {
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.* ;
+                public class TestJava  {
+                  //@ normal_behavior
+                  //@ ensures \\result == (i > 0 && i < 10);
+                  //@ @NoState
+                  //@ static model public boolean mfunc(int i);
+                  int n;
+                  public void mm() {
+                  //@ assert mfunc(5);
+                  n = 0;
+                  //@ assert !mfunc(n);
+                  }
+                }
+                """
                 );
     }
 }

@@ -15,23 +15,23 @@ public class escinclause extends EscBase {
 
     @Test
     public void testInClause1() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  //@ model public int mx;\n"
-                +"  int x; //@ in mx; \n"
-                +"  int y;\n"
-
-                +"  //@ assignable mx; \n"
-                +"  public void m1bad(int i) {\n"
-                +"    y = 0 ;\n"
-                +"  }\n"
-
-                +"  //@ assignable mx; \n"
-                +"  public void m1good(int i) {\n"
-                +"    x = 0 ;\n"
-                +"  }\n"
-
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ model public int mx;
+                  int x; //@ in mx;
+                  int y;
+                  //@ assignable mx;
+                  public void m1bad(int i) {
+                    y = 0 ;
+                  }
+                  //@ assignable mx;
+                  public void m1good(int i) {
+                    x = 0 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method m1bad: y",7
                 ,"/tt/TestJava.java:6: verify: Associated declaration",7
                 );

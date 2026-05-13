@@ -16,116 +16,111 @@ public class escTiming extends EscBase {
 
     @Test
     public void testTimingIf() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public abstract class TestJava { \n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void f1(int i) {\n"
-                +"    int sum = 0; int j = 0;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=4; else sum +=7;\n"
-                +"    //@ assert sum < 1000;\n"
-                +"  }\n "
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void f1a(int i) {\n"
-                +"    int sum = 0; int j = 0;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=4; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=5; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=6; else sum +=7;\n"
-                +"    //@ assert sum < 1000;\n"
-                +"  }\n "
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void f2(int i) {\n"
-                +"    int sum = 0; int j = 0;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=4; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=5; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=6; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=9; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=2; else sum +=7;\n"
-                +"    //@ assert sum < 1000;\n"
-                +"  }\n "
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void f2a(int i) {\n"
-                +"    int sum = 0; int j = 0;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=4; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=5; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=6; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=9; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=2; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    //@ assert sum < 1000;\n"
-                +"  }\n "
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void f3(int i) {\n"
-                +"    int sum = 0; int j = 0;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=4; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=5; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=6; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=9; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=2; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    //@ assert sum < 1000;\n"
-                +"  }\n "
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void f3a(int i) {\n"
-                +"    int sum = 0; int j = 0;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=4; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=5; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=6; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=9; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=2; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    //@ assert sum < 1000;\n"
-                +"  }\n "
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void f4(int i) {\n"
-                +"    int sum = 0; int j = 0;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=4; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=5; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=6; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=9; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=2; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=3; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (p(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    if (q(i,j++) == 0) sum+=8; else sum +=7;\n"
-                +"    //@ assert sum < 1000;\n"
-                +"  }\n "
-                
-                +"  //@ ensures \\result >= 0 && \\result < 10;\n"
-                +"  abstract int p(int i, int j);\n"
-                +"  //@ ensures \\result == 0 ;\n"
-                +"  abstract int q(int i, int j);\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public abstract class TestJava {
+                  //@ requires 0<=i && i <10;
+                  public void f1(int i) {
+                    int sum = 0; int j = 0;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=4; else sum +=7;
+                    //@ assert sum < 1000;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void f1a(int i) {
+                    int sum = 0; int j = 0;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=4; else sum +=7;
+                    if (p(i,j++) == 0) sum+=5; else sum +=7;
+                    if (q(i,j++) == 0) sum+=6; else sum +=7;
+                    //@ assert sum < 1000;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void f2(int i) {
+                    int sum = 0; int j = 0;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=4; else sum +=7;
+                    if (p(i,j++) == 0) sum+=5; else sum +=7;
+                    if (q(i,j++) == 0) sum+=6; else sum +=7;
+                    if (p(i,j++) == 0) sum+=9; else sum +=7;
+                    if (q(i,j++) == 0) sum+=2; else sum +=7;
+                    //@ assert sum < 1000;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void f2a(int i) {
+                    int sum = 0; int j = 0;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=4; else sum +=7;
+                    if (p(i,j++) == 0) sum+=5; else sum +=7;
+                    if (q(i,j++) == 0) sum+=6; else sum +=7;
+                    if (p(i,j++) == 0) sum+=9; else sum +=7;
+                    if (q(i,j++) == 0) sum+=2; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    //@ assert sum < 1000;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void f3(int i) {
+                    int sum = 0; int j = 0;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=4; else sum +=7;
+                    if (p(i,j++) == 0) sum+=5; else sum +=7;
+                    if (q(i,j++) == 0) sum+=6; else sum +=7;
+                    if (p(i,j++) == 0) sum+=9; else sum +=7;
+                    if (q(i,j++) == 0) sum+=2; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    //@ assert sum < 1000;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void f3a(int i) {
+                    int sum = 0; int j = 0;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=4; else sum +=7;
+                    if (p(i,j++) == 0) sum+=5; else sum +=7;
+                    if (q(i,j++) == 0) sum+=6; else sum +=7;
+                    if (p(i,j++) == 0) sum+=9; else sum +=7;
+                    if (q(i,j++) == 0) sum+=2; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    //@ assert sum < 1000;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void f4(int i) {
+                    int sum = 0; int j = 0;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=4; else sum +=7;
+                    if (p(i,j++) == 0) sum+=5; else sum +=7;
+                    if (q(i,j++) == 0) sum+=6; else sum +=7;
+                    if (p(i,j++) == 0) sum+=9; else sum +=7;
+                    if (q(i,j++) == 0) sum+=2; else sum +=7;
+                    if (p(i,j++) == 0) sum+=3; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    if (p(i,j++) == 0) sum+=8; else sum +=7;
+                    if (q(i,j++) == 0) sum+=8; else sum +=7;
+                    //@ assert sum < 1000;
+                  }
+                  //@ ensures \\result >= 0 && \\result < 10;
+                  abstract int p(int i, int j);
+                  //@ ensures \\result == 0 ;
+                  abstract int q(int i, int j);
+                }
+                """
 //                ,"/tt/TestJava.java:7: warning: else branch apparently never taken in method f1(int)",9
 //                ,"/tt/TestJava.java:9: warning: else branch apparently never taken in method f1(int)",9
 //                ,"/tt/TestJava.java:16: warning: else branch apparently never taken in method f1a(int)",9
@@ -160,855 +155,698 @@ public class escTiming extends EscBase {
 
     @Test
     public void testTimingSwitch() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public abstract class TestJava { \n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m1(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    //@ assert sum < 100;\n"
-                +"  }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m2(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    //@ assert sum < 100;\n"
-                +"  }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m3(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    //@ assert sum < 100;\n"
-                +"  }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m4(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    //@ assert sum < 100;\n"
-                +"  }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m4a(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,3)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    //@ assert sum < 100;\n"
-                +"   }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m4b(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,3)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    //@ assert sum < 100;\n"
-                +"   }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m4c(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,3)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    //@ assert sum < 100;\n"
-                +"   }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m4d(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,3)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-
-                +"    //@ assert sum < 100;\n"
-                +"  }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m5(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,3)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-
-                +"    //@ assert sum < 100;\n"
-                +"  }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m5a(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,3)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-p(i,4)) {\n"
-                +"      case 0: sum += 8; break;\n"
-//                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    //@ assert sum < 100;\n"
-                +"  }\n"
-                
-                +"  //@ requires 0<=i && i <10;\n"
-                +"  public void m5b(int i) {\n"
-                +"    int sum = 0;\n"
-                +"    switch (i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 100; break;\n"
-                +"     }\n  //@ assume i < 10;\n"
-
-                +"    switch (p(i,1)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,2)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-i) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (p(i,3)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-                +"      case 2: sum += 1; break;\n"
-                +"      case 3: sum += 4; break;\n"
-                +"      case 4: sum += 2; break;\n"
-                +"      case 5: sum += 9; break;\n"
-                +"      case 6: sum += 0; break;\n"
-                +"      case 7: sum += 7; break;\n"
-                +"      case 8: sum += 3; break;\n"
-                +"      case 9: sum += 5; break;\n"
-                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    switch (10-p(i,4)) {\n"
-                +"      case 0: sum += 8; break;\n"
-                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-                +"      default: sum += 0; break;\n"
-                +"     }\n"
-                +"    //@ assert sum < 100;\n"
-                +"  }\n"
-                
-//                +"  //@ requires 0<=i && i <10;\n"
-//                +"  public void m6(int i) {\n"
-//                +"    int sum = 0;\n"
-//                +"    switch (i) {\n"
-//                +"      case 0: sum += 8; break;\n"
-//                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-//                +"      default: sum += 100; break;\n"
-//                +"     }\n  //@ assume i < 10;\n"
-//
-//                +"    switch (p(i,1)) {\n"
-//                +"      case 0: sum += 8; break;\n"
-//                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-//                +"      default: sum += 0; break;\n"
-//                +"     }\n"
-//                +"    switch (p(i,2)) {\n"
-//                +"      case 0: sum += 8; break;\n"
-//                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-//                +"      default: sum += 0; break;\n"
-//                +"     }\n"
-//                +"    switch (10-i) {\n"
-//                +"      case 0: sum += 8; break;\n"
-//                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-//                +"      default: sum += 0; break;\n"
-//                +"     }\n"
-//                +"    switch (p(i,3)) {\n"
-//                +"      case 0: sum += 8; break;\n"
-//                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-//                +"      default: sum += 0; break;\n"
-//                +"     }\n"
-//                +"    switch (10-p(i,4)) {\n"
-//                +"      case 0: sum += 8; break;\n"
-//                +"      case 1: sum += 6; break;\n"
-//                +"      case 2: sum += 1; break;\n"
-//                +"      case 3: sum += 4; break;\n"
-//                +"      case 4: sum += 2; break;\n"
-//                +"      case 5: sum += 9; break;\n"
-//                +"      case 6: sum += 0; break;\n"
-//                +"      case 7: sum += 7; break;\n"
-//                +"      case 8: sum += 3; break;\n"
-//                +"      case 9: sum += 5; break;\n"
-//                +"      case 10: sum += 5; break;\n"
-//                +"      default: sum += 0; break;\n"
-//                +"     }\n"
-////                +"    switch (10-p(i,5)) {\n"
-////                +"      case 0: sum += 8; break;\n"
-////                +"      case 1: sum += 6; break;\n"
-////                +"      case 2: sum += 1; break;\n"
-////                +"      case 3: sum += 4; break;\n"
-////                +"      case 4: sum += 2; break;\n"
-////                +"      case 5: sum += 9; break;\n"
-////                +"      case 6: sum += 0; break;\n"
-////                +"      case 7: sum += 7; break;\n"
-////                +"      case 8: sum += 3; break;\n"
-////                +"      case 9: sum += 5; break;\n"
-////                +"      case 10: sum += 5; break;\n"
-////                +"      default: sum += 0; break;\n"
-////                +"     }\n"
-//                +"    //@ assert sum < 100;\n"
-//                +"  }\n"
-                
-                
-                +"  //@ ensures \\result >= 0 && \\result < 10;\n"
-                +"  abstract int p(int i, int j);\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public abstract class TestJava {
+                  //@ requires 0<=i && i <10;
+                  public void m1(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    //@ assert sum < 100;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void m2(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void m3(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void m4(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void m4a(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,3)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                   }
+                  //@ requires 0<=i && i <10;
+                  public void m4b(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,3)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                   }
+                  //@ requires 0<=i && i <10;
+                  public void m4c(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,3)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                   }
+                  //@ requires 0<=i && i <10;
+                  public void m4d(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,3)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void m5(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,3)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void m5a(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,3)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-p(i,4)) {
+                      case 0: sum += 8; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                  }
+                  //@ requires 0<=i && i <10;
+                  public void m5b(int i) {
+                    int sum = 0;
+                    switch (i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 100; break;
+                     }
+                  //@ assume i < 10;
+                    switch (p(i,1)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,2)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-i) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (p(i,3)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      case 2: sum += 1; break;
+                      case 3: sum += 4; break;
+                      case 4: sum += 2; break;
+                      case 5: sum += 9; break;
+                      case 6: sum += 0; break;
+                      case 7: sum += 7; break;
+                      case 8: sum += 3; break;
+                      case 9: sum += 5; break;
+                      case 10: sum += 5; break;
+                      default: sum += 0; break;
+                     }
+                    switch (10-p(i,4)) {
+                      case 0: sum += 8; break;
+                      case 1: sum += 6; break;
+                      default: sum += 0; break;
+                     }
+                    //@ assert sum < 100;
+                  }
+                  //@ ensures \\result >= 0 && \\result < 10;
+                  abstract int p(int i, int j);
+                }
+                """
 //                ,"/tt/TestJava.java:17: warning: Switch case apparently never taken in method m1(int)",7
 //                ,"/tt/TestJava.java:18: warning: Switch case apparently never taken in method m1(int)",7
 //                ,"/tt/TestJava.java:37: warning: Switch case apparently never taken in method m2(int)",7

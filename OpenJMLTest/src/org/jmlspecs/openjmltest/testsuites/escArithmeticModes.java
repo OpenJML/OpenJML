@@ -38,69 +38,81 @@ public class escArithmeticModes extends EscBase {
     
     @Test @Ignore // Times out in BV mode
     public void testNegNeg() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  //@ requires i >= 0;\n"
-                +"  //@ ensures \\result == i;\n"
-                +"  public int m(int i) {\n"
-                +"    int k = -(-i);\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires i >= 0;
+                  //@ ensures \\result == i;
+                  public int m(int i) {
+                    int k = -(-i);
+                    return k;
+                  }
+                }
+                """
               );
     }
 
     @Test
     public void testNegJavaInt() {
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*;\n"
-                +"public class TestJava { \n"
-                +"  //@ ensures i != 0x80000000 ==> \\safe_math(\\result + i) == 0;\n"                
-                +"  //@ ensures i == 0x80000000 ==> \\result == i;\n"                
-                +"  /*@ code_java_math spec_bigint_math */ public int m(int i) {\n"
-                +"    int k = -i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ ensures i != 0x80000000 ==> \\safe_math(\\result + i) == 0;
+                  //@ ensures i == 0x80000000 ==> \\result == i;
+                  /*@ code_java_math spec_bigint_math */ public int m(int i) {
+                    int k = -i;
+                    return k;
+                  }
+                }
+                """
               );
     }
 
     @Test
     public void testNegJavaLong() {  // Takes about 5 min in BV mode
         Assume.assumeTrue(runLongArithmetic || bvCheck());
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*;\n"
-                +"public class TestJava { \n"
-                +"  //@ ensures i != 0x8000000000000000L ==> \\safe_math(\\result + i) == 0;\n"                
-                +"  //@ ensures i == 0x8000000000000000L ==> \\result == i;\n"                
-                +"  /*@ code_java_math */ public long ml(long i) {\n"
-                +"    long k = -i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ ensures i != 0x8000000000000000L ==> \\safe_math(\\result + i) == 0;
+                  //@ ensures i == 0x8000000000000000L ==> \\result == i;
+                  /*@ code_java_math */ public long ml(long i) {
+                    long k = -i;
+                    return k;
+                  }
+                }
+                """
               );
     }
 
     @Test
     public void testNegSafe() {
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeSafeMath @SpecBigintMath public class TestJava { \n"
-                +"  //@ ensures i != 0x80000000 ==> \\safe_math(\\result + i) == 0;\n"                
-                +"  //@ ensures i == 0x80000000 ==> \\result == i;\n"                
-                +"  public int m(int i) {\n"
-                +"    int k = -i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ ensures i != 0x8000000000000000L ==> \\safe_math(\\result + i) == 0;\n"                
-                +"  //@ ensures i == 0x8000000000000000L ==> \\result == i;\n"                
-                +"  public long ml(long i) {\n"
-                +"    long k = -i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ ensures \\safe_math(\\result + i) == 0;\n"                
-                +"  public int mm(short i) {\n"
-                +"    int k = -i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeSafeMath @SpecBigintMath public class TestJava {
+                  //@ ensures i != 0x80000000 ==> \\safe_math(\\result + i) == 0;
+                  //@ ensures i == 0x80000000 ==> \\result == i;
+                  public int m(int i) {
+                    int k = -i;
+                    return k;
+                  }
+                  //@ ensures i != 0x8000000000000000L ==> \\safe_math(\\result + i) == 0;
+                  //@ ensures i == 0x8000000000000000L ==> \\result == i;
+                  public long ml(long i) {
+                    long k = -i;
+                    return k;
+                  }
+                  //@ ensures \\safe_math(\\result + i) == 0;
+                  public int mm(short i) {
+                    int k = -i;
+                    return k;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int negation",13
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ml: long negation",14
               );
@@ -109,24 +121,27 @@ public class escArithmeticModes extends EscBase {
     @Test
     public void testNegMath() { // FIXME - review this one
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*;\n"
-                +"@CodeBigintMath @SpecBigintMath public class TestJava { \n"
-                +"  //@ ensures \\safe_math(\\result + i) == 0;\n"                
-                +"  public int m(int i) {\n"
-                +"    int k = -i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ ensures \\safe_math(\\result + i) == 0;\n"                
-                +"  public long ml(long i) {\n"
-                +"    long k = -i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ ensures \\safe_math(\\result + i) == 0;\n"                
-                +"  public int ms(short i) {\n"
-                +"    int k = -i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeBigintMath @SpecBigintMath public class TestJava {
+                  //@ ensures \\safe_math(\\result + i) == 0;
+                  public int m(int i) {
+                    int k = -i;
+                    return k;
+                  }
+                  //@ ensures \\safe_math(\\result + i) == 0;
+                  public long ml(long i) {
+                    long k = -i;
+                    return k;
+                  }
+                  //@ ensures \\safe_math(\\result + i) == 0;
+                  public int ms(short i) {
+                    int k = -i;
+                    return k;
+                  }
+                }
+                """
 //                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m: int overflow",13
 //                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method ml: long overflow",14
               );
@@ -134,13 +149,16 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testSumSafe1() {
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeSafeMath public class TestJava { \n"
-                +"  public int m(int i) {\n"
-                +"    int k = i + i;\n"   // ERROR
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeSafeMath public class TestJava {
+                  public int m(int i) {
+                    int k = i + i;
+                    return k;
+                  }
+                }
+                """
                 ,anyorder(seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: underflow in int sum",15)
                          ,seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: overflow in int sum",15))
               );
@@ -148,14 +166,17 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testSumSafe2() {
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeSafeMath public class TestJava { \n"
-                +"  public int ma(int i) {\n"
-                +"    //@ assume i <= 0x3FFFFFFF;\n"
-                +"    int k = i + i;\n"   // ERROR
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeSafeMath public class TestJava {
+                  public int ma(int i) {
+                    //@ assume i <= 0x3FFFFFFF;
+                    int k = i + i;
+                    return k;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ma: underflow in int sum",15
               );
     }
@@ -163,14 +184,17 @@ public class escArithmeticModes extends EscBase {
     @Test
     public void testSumSafe3() {
         Assume.assumeTrue(runLongArithmetic || bvCheck());
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeSafeMath public class TestJava { \n"
-                +"  public int mb(int i) {\n"
-                +"    //@ assume i >= (int)(0xC0000000);\n"
-                +"    int k = i + i;\n"    // ERROR
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeSafeMath public class TestJava {
+                  public int mb(int i) {
+                    //@ assume i >= (int)(0xC0000000);
+                    int k = i + i;
+                    return k;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method mb: overflow in int sum",15
               );
     }
@@ -178,42 +202,48 @@ public class escArithmeticModes extends EscBase {
     @Test @Ignore // FIXME - TIME OUT
     public void testSumSafe4() {
         Assume.assumeTrue(runLongArithmetic || bvCheck());
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeSafeMath public class TestJava { \n"
-                +"  public int mc(int i) {\n"
-                +"    //@ assume i <= 0x3FFFFFFF;\n"
-                +"    //@ assume i >= (int)(0xC0000000);\n"
-                +"    int k = i + i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  public int mm(int i, int j) {\n"
-                +"    //@ assume (i < 0) != (j < 0);\n"
-                +"    int k = i + j;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeSafeMath public class TestJava {
+                  public int mc(int i) {
+                    //@ assume i <= 0x3FFFFFFF;
+                    //@ assume i >= (int)(0xC0000000);
+                    int k = i + i;
+                    return k;
+                  }
+                  public int mm(int i, int j) {
+                    //@ assume (i < 0) != (j < 0);
+                    int k = i + j;
+                    return k;
+                  }
+                }
+                """
               );
     }
 
     @Test
     public void testSumJava() {
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeJavaMath public class TestJava { \n"
-                +"  public int m(int i) {\n"
-                +"    int k = i + i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  public int mb(int i) {\n"
-                +"    //@ assume i >= 0;\n"
-                +"    int k = i + i;\n"
-                +"    //@ check k >= 0;\n" // Error
-                +"    return k; \n"
-                +"  }\n"
-                +"  public int mm(int i, int j) {\n"
-                +"    int k = i + j;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeJavaMath public class TestJava {
+                  public int m(int i) {
+                    int k = i + i;
+                    return k;
+                  }
+                  public int mb(int i) {
+                    //@ assume i >= 0;
+                    int k = i + i;
+                    //@ check k >= 0;
+                    return k;
+                  }
+                  public int mm(int i, int j) {
+                    int k = i + j;
+                    return k;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method mb",9
               );
     }
@@ -221,23 +251,26 @@ public class escArithmeticModes extends EscBase {
     @Test
     public void testSumMath() { // FIXME _ review this one
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeBigintMath public class TestJava { \n"
-                +"  public int m(int i) {\n"
-                +"    int k = i + i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  public long mb(int i) {\n"
-                +"    //@ assume i >= 0;\n"
-                +"    long k = i + i;\n"  // OK
-                +"    //@ check k >= 0;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  public int mm(int i, int j) {\n"
-                +"    int k = i + j;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeBigintMath public class TestJava {
+                  public int m(int i) {
+                    int k = i + i;
+                    return k;
+                  }
+                  public long mb(int i) {
+                    //@ assume i >= 0;
+                    long k = i + i;
+                    //@ check k >= 0;
+                    return k;
+                  }
+                  public int mm(int i, int j) {
+                    int k = i + j;
+                    return k;
+                  }
+                }
+                """
 //                ,seq(
 //                anyorder(
 //                 seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
@@ -252,19 +285,22 @@ public class escArithmeticModes extends EscBase {
     @Test @Ignore // FIXME - still have to sort out how assignments are handled in Math mode
     public void testSumMathArg() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeBigintMath public class TestJava { \n"
-                +"  @SkipEsc public long mb(int i) {\n"
-                +"    //@ assume i >= 0;\n"
-                +"    long k = i + i;\n"  // OK
-                +"    //@ check k >= 0;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  public long mq(int i, int j) {\n"
-                +"    long k = mb(i + j);\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeBigintMath public class TestJava {
+                  @SkipEsc public long mb(int i) {
+                    //@ assume i >= 0;
+                    long k = i + i;
+                    //@ check k >= 0;
+                    return k;
+                  }
+                  public long mq(int i, int j) {
+                    long k = mb(i + j);
+                    return k;
+                  }
+                }
+                """
                 ,seq(
                 anyorder(
                  seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
@@ -279,19 +315,22 @@ public class escArithmeticModes extends EscBase {
     @Test
     public void testSumMathB() { // FIXME _ review this one
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeBigintMath public class TestJava { \n"
-                +"  public int m(int i) {\n"
-                +"    int k = i + i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  public int mb(int i) {\n"
-                +"    //@ assume i >= 0;\n"
-                +"    int k = (int)(i + i);\n"
-                +"    //@ check k >= 0;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeBigintMath public class TestJava {
+                  public int m(int i) {
+                    int k = i + i;
+                    return k;
+                  }
+                  public int mb(int i) {
+                    //@ assume i >= 0;
+                    int k = (int)(i + i);
+                    //@ check k >= 0;
+                    return k;
+                  }
+                }
+                """
 //                ,anyorder(
 //                  seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int overflow",13)
 //                 ,seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m:  int underflow",13)
@@ -303,27 +342,33 @@ public class escArithmeticModes extends EscBase {
     @Test
     public void testDivJava() {
         Assume.assumeTrue(runLongArithmetic);
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeJavaMath public class TestJava { //@ requires j !=0 ; \n"
-                +"  public int m(int i, int j) {\n"
-                +"    int k = i/j;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeJavaMath public class TestJava { //@ requires j !=0 ;
+                  public int m(int i, int j) {
+                    int k = i/j;
+                    return k;
+                  }
+                }
+                """
               );
     }
 
     @Test
     public void testDivSafe() {
         Assume.assumeTrue(runLongArithmetic);
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeSafeMath public class TestJava { \n"
-                +"  //@ requires j !=0;\n"
-                +"  public int m(int i, int j) {\n"
-                +"    int k = i/j;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeSafeMath public class TestJava {
+                  //@ requires j !=0;
+                  public int m(int i, int j) {
+                    int k = i/j;
+                    return k;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: overflow in int divide",14
               );
     }
@@ -332,14 +377,17 @@ public class escArithmeticModes extends EscBase {
     public void testDivMath() {// FIXME _ review this one
         Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeBigintMath public class TestJava { \n "
-                +"  //@ requires j !=0;\n"
-                +"  public long m(int i, int j) {\n"
-                +"    long k = i/j;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeBigintMath public class TestJava {
+                  //@ requires j !=0;
+                  public long m(int i, int j) {
+                    long k = i/j;
+                    return k;
+                  }
+                }
+                """
               );
     }
     
@@ -348,30 +396,33 @@ public class escArithmeticModes extends EscBase {
     @Test
     public void testMultSafe() {
         Assume.assumeTrue(runLongArithmetic || bvCheck());
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeSafeMath @SpecSafeMath public class TestJava { \n"
-                +"  public int m(int i) {\n"
-                +"    int k = i * i;\n"   // ERROR
-                +"    return k; \n"
-                +"  }\n"
-                +"  public int ma(int i) {\n"
-                +"    //@ assume i <= 30000 && i >= -30000;\n"
-                +"    int k = i * i;\n"  // OK
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 70000;\n"
-                +"  //@ ensures \\result == 605032704;\n"
-                +"  public int mc(int i) {\n"
-                +"    int k = i * i;\n"   // ERROR
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 30000;\n"
-                +"  //@ ensures \\result == 900000000L;\n"
-                +"  public long me(int i) {\n"
-                +"    long k = i * i;\n"   
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeSafeMath @SpecSafeMath public class TestJava {
+                  public int m(int i) {
+                    int k = i * i;
+                    return k;
+                  }
+                  public int ma(int i) {
+                    //@ assume i <= 30000 && i >= -30000;
+                    int k = i * i;
+                    return k;
+                  }
+                  //@ requires i == 70000;
+                  //@ ensures \\result == 605032704;
+                  public int mc(int i) {
+                    int k = i * i;
+                    return k;
+                  }
+                  //@ requires i == 30000;
+                  //@ ensures \\result == 900000000L;
+                  public long me(int i) {
+                    long k = i * i;
+                    return k;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: int multiply out of range",15
                 ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method mc: int multiply out of range",15
               );
@@ -379,78 +430,84 @@ public class escArithmeticModes extends EscBase {
 
     @Test
     public void testMultJava() {
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeJavaMath @SpecSafeMath public class TestJava { \n"
-                +"  public long m(int i) {\n"
-                +"    long k = i * i;\n"   
-                +"    return k; \n"
-                +"  }\n"
-                +"  public int ma(int i) {\n"
-                +"    //@ assume i <= 30000 && i >= -30000;\n"
-                +"    int k = i * i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 70000;\n"
-                +"  //@ ensures \\result == 605032704L;\n"
-                +"  public int mc(int i) {\n"
-                +"    int k = i * i;\n"   
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 70000;\n"
-                +"  //@ ensures \\result == -605032704L;\n"
-                +"  public int md(int i) {\n"
-                +"    int k = -i * i;\n"   
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 70000;\n"
-                +"  //@ ensures \\result == -605032704L;\n"
-                +"  public long mdd(int i) {\n"
-                +"    long k = -i * i;\n" //  multiplication is just 32 bit, but no overflow warning  
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 30000;\n"
-                +"  //@ ensures \\result == 900000000L;\n"
-                +"  public long me(int i) {\n"
-                +"    long k = i * i;\n"   
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeJavaMath @SpecSafeMath public class TestJava {
+                  public long m(int i) {
+                    long k = i * i;
+                    return k;
+                  }
+                  public int ma(int i) {
+                    //@ assume i <= 30000 && i >= -30000;
+                    int k = i * i;
+                    return k;
+                  }
+                  //@ requires i == 70000;
+                  //@ ensures \\result == 605032704L;
+                  public int mc(int i) {
+                    int k = i * i;
+                    return k;
+                  }
+                  //@ requires i == 70000;
+                  //@ ensures \\result == -605032704L;
+                  public int md(int i) {
+                    int k = -i * i;
+                    return k;
+                  }
+                  //@ requires i == 70000;
+                  //@ ensures \\result == -605032704L;
+                  public long mdd(int i) {
+                    long k = -i * i;
+                    return k;
+                  }
+                  //@ requires i == 30000;
+                  //@ ensures \\result == 900000000L;
+                  public long me(int i) {
+                    long k = i * i;
+                    return k;
+                  }
+                }
+                """
               );
     }
 
     @Test
     public void testMultMath() {// FIXME _ review this one
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"@CodeBigintMath public class TestJava { \n"
-                +"  public long m(int i) {\n"
-                +"    long k = i * i;\n" 
-                +"    return k; \n"
-                +"  }\n"
-                +"  public int ma(int i) {\n"
-                +"    //@ assume i <= 30000 && i >= -30000;\n"
-                +"    int k = i * i;\n"
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 70000;\n"
-                +"  //@ ensures \\result == 4900000000L;\n"
-                +"  public int mc(int i) {\n"
-                +"    int k = i * i;\n"   
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 70000;\n"
-                +"  //@ ensures \\result == -4900000000L;\n"
-                +"  public int md(int i) {\n"
-                +"    int k = -i * i;\n"   
-                +"    return k; \n"
-                +"  }\n"
-                +"  //@ requires i == 70000;\n"
-                +"  //@ ensures \\result == 4900000000L;\n"
-                +"  public long me(int i) {\n"
-                +"    long k = i * i;\n"   
-                +"    return k; \n"
-                +"  }\n"
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeBigintMath public class TestJava {
+                  public long m(int i) {
+                    long k = i * i;
+                    return k;
+                  }
+                  public int ma(int i) {
+                    //@ assume i <= 30000 && i >= -30000;
+                    int k = i * i;
+                    return k;
+                  }
+                  //@ requires i == 70000;
+                  //@ ensures \\result == 4900000000L;
+                  public int mc(int i) {
+                    int k = i * i;
+                    return k;
+                  }
+                  //@ requires i == 70000;
+                  //@ ensures \\result == -4900000000L;
+                  public int md(int i) {
+                    int k = -i * i;
+                    return k;
+                  }
+                  //@ requires i == 70000;
+                  //@ ensures \\result == 4900000000L;
+                  public long me(int i) {
+                    long k = i * i;
+                    return k;
+                  }
+                }
+                """
 //                ,anyorder(seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method mc:  int overflow",13)
 //                ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method md:  int underflow",21)
 //                )

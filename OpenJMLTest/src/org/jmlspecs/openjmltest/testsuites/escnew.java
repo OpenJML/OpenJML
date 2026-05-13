@@ -293,25 +293,29 @@ public class escnew extends EscBase {
                 package tt;
                 public class TestJava {
                   public static int iii;
-                  //@ public normal_behavior ensures iii == \\old(iii) + 3;
+                  //@ public normal_behavior
+                  //@   ensures iii == \\old(iii) + 3;
                   public void m1() {
                          inc();
                          inc();
                          inc();
                   }
-                  //@ public normal_behavior ensures iii == \\old(iii) + 3;
+                  //@ public normal_behavior
+                  //@   ensures iii == \\old(iii) + 3;
                   public void m1bad() {
                          inc();
                          inc();
                   }
-                  //@ public normal_behavior assignable iii; ensures iii == \\old(iii) + 1;
+                  //@ public normal_behavior
+                  //@   assignable iii;
+                  //@   ensures iii == \\old(iii) + 1;
                   public void inc()  {
                          ++iii;
                   }
                 }
                 """
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                ,"/tt/TestJava.java:10: verify: Associated declaration",30
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration",9
                 );
     }
 
@@ -324,26 +328,29 @@ public class escnew extends EscBase {
                 package tt;
                 public class TestJava {
                   public static int i;
-                  //@ public normal_behavior ensures i == \\old(i) + 3;
+                  //@ public normal_behavior
+                  //@   ensures i == \\old(i) + 3;
                   public void m1() {
                          inc();
                          inc();
                          inc();
                   }
-                  //@ public normal_behavior ensures i == \\old(i) + 3;
+                  //@ public normal_behavior
+                  //@   ensures i == \\old(i) + 3;
                   public void m1bad() {
                          inc();
                          inc();
                   }
                   // Default is assignable \\everything
-                  //@ public normal_behavior ensures i == \\old(i) + 1;
+                  //@ public normal_behavior
+                  //@   ensures i == \\old(i) + 1;
                   public void inc()  {
                          ++i;
                   }
                 }
                 """
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                ,"/tt/TestJava.java:10: verify: Associated declaration",30
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration",9
                 );
     }
 
@@ -356,25 +363,29 @@ public class escnew extends EscBase {
                 package tt;
                 public class TestJava {
                   public static int iii;
-                  //@ public normal_behavior ensures iii == \\old(iii) + 3;
+                  //@ public normal_behavior
+                  //@   ensures iii == \\old(iii) + 3;
                   public void m1() {
                          inc();
                          inc();
                          inc();
                   }
-                  //@ public normal_behavior ensures iii == \\old(iii) + 3;
+                  //@ public normal_behavior
+                  //@   ensures iii == \\old(iii) + 3;
                   public void m1bad() {
                          inc();
                          inc();
                   }
-                  //@ public normal_behavior assignable iii; ensures iii == \\old(iii) + 1;
+                  //@ public normal_behavior
+                  //@   assignable iii;
+                  //@   ensures iii == \\old(iii) + 1;
                   public void inc()  {
                          ++iii;
                   }
                 }
                 """
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                ,"/tt/TestJava.java:10: verify: Associated declaration",30
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration",9
                 );
     }
     // Tests use of \old token in called methods
@@ -386,26 +397,29 @@ public class escnew extends EscBase {
                 package tt;
                 public class TestJava {
                   public static int i;
-                  //@ public normal_behavior ensures i == \\old(i) + 3;
+                  //@ public normal_behavior
+                  //@   ensures i == \\old(i) + 3;
                   public void m1() {
                          inc();
                          inc();
                          inc();
                   }
-                  //@ public normal_behavior ensures i == \\old(i) + 3;
+                  //@ public normal_behavior
+                  //@   ensures i == \\old(i) + 3;
                   public void m1bad() {
                          inc();
                          inc();
                   }
                   // Default is assignable \\everything
-                  //@ public normal_behavior ensures i == \\old(i) + 1;
+                  //@ public normal_behavior
+                  //@   ensures i == \\old(i) + 1;
                   public void inc()  {
                          ++i;
                   }
                 }
                 """
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                ,"/tt/TestJava.java:10: verify: Associated declaration",30
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration",9
                 );
     }
 
@@ -603,7 +617,8 @@ public class escnew extends EscBase {
                   }
                   static public int kk;
                   //@ assignable kk;
-                  //@ ensures \\result == 3; signals (Exception e)  false;
+                  //@ ensures \\result == 3;
+                  //@ signals (Exception e)  false;
                   public int m4good(int i ) throws Exception {
                        try {
                         kk=1; if (i == 0) throw new RuntimeException();
@@ -614,7 +629,8 @@ public class escnew extends EscBase {
                        return kk;
                   }
                   //@ assignable kk;
-                  //@ ensures \\result == 3; signals (Exception e)  kk == 1;
+                  //@ ensures \\result == 3;
+                  //@ signals (Exception e)  kk == 1;
                   public int m5good(int i) throws Exception {
                        try {
                         kk=1; if (i == 0) throw new RuntimeException();
@@ -623,14 +639,16 @@ public class escnew extends EscBase {
                        return kk;
                   }
                   //@ assignable kk;
-                  //@ ensures \\result == 3; signals (Exception e)  kk == 1;
+                  //@ ensures \\result == 3;
+                  //@ signals (Exception e)  kk == 1;
                   public int m6good(int i) throws Exception {
                         kk=1; if (i == 0) throw new RuntimeException();
                        kk = 3;
                        return kk;
                   }
                   //@ assignable kk;
-                  //@ ensures \\result == 3; signals (Exception e) kk == 4;
+                  //@ ensures \\result == 3;
+                  //@ signals (Exception e) kk == 4;
                   public int m7good(int i) throws Exception {
                        try {
                            kk=1; if (i == 0) throw new RuntimeException();
@@ -642,7 +660,8 @@ public class escnew extends EscBase {
                        return kk;
                   }
                   //@ assignable kk;
-                  //@ ensures i==0 ==> \\result == 4; signals (Exception e) false;
+                  //@ ensures i==0 ==> \\result == 4;
+                  //@ signals (Exception e) false;
                   public int m8good(int i) throws Exception {
                        try {
                            kk=1; if (i == 0) throw new RuntimeException();
@@ -670,7 +689,8 @@ public class escnew extends EscBase {
                 public class TestJava {
                   static public int kk;
                   //@ assignable kk;
-                  //@ ensures \\result == 3; signals (Exception e)  false;
+                  //@ ensures \\result == 3;
+                  //@ signals (Exception e)  false;
                   public int m4agood(int i ) throws Exception {
                        try {
                         kk=1; if (i == 0) throw new RuntimeException();
@@ -1547,7 +1567,8 @@ public class escnew extends EscBase {
                   public boolean m5ok(boolean a, boolean b) {
                     return a && b ;
                   }
-                  //@ requires i < 2 && i > -2; ensures \\result;
+                  //@ requires i < 2 && i > -2;
+                  //@ ensures \\result;
                   public boolean m1bugOK(int i) {
                     return i == 0 || (20/i <= 20 ? true : true) ;
                   }
@@ -1555,7 +1576,8 @@ public class escnew extends EscBase {
                   public boolean m1bug(int i) {
                     return i == 0 || (20/i <= 20 ? true : true) ;
                   }
-                  //@ requires i < 30 && i > -30; ensures \\result;
+                  //@ requires i < 30 && i > -30;
+                  //@ ensures \\result;
                   public boolean m1bugOK2(int i) {
                     return i == 0 || (20/i <= 20 ? true : true) ;
                   }
@@ -1623,7 +1645,8 @@ public class escnew extends EscBase {
                   public boolean m5ok(boolean a, boolean b) {
                     return a && b ;
                   }
-                  //@ requires i < 2 && i > -2; ensures \\result;
+                  //@ requires i < 2 && i > -2;
+                  //@ ensures \\result;
                   public boolean m1bugOK(int i) {
                     return i == 0 || (20/i <= 20) ;
                   }
@@ -1631,7 +1654,8 @@ public class escnew extends EscBase {
                   public boolean m1bug(int i) {
                     return i == 0 || (20/i <= 20) ;
                   }
-                  //@ requires i < 30 && i > -30; ensures \\result;
+                  //@ requires i < 30 && i > -30;
+                  //@ ensures \\result;
                   public boolean m1bugOK2(int i) {
                     return i == 0 || (20/i <= 20) ;
                   }
@@ -1935,7 +1959,9 @@ public class escnew extends EscBase {
                 public class TestJava  {
                   public final static int CHILD; static { CHILD = 3; }
                   //@ static final public invariant CHILD == 3;
-                  //@ public normal_behavior ensures true; static_initializer
+                  //@ public normal_behavior
+                  //@   ensures true;
+                  //@   static_initializer
                   //@ helper pure
                   public static void m1() {
                     //@ assert CHILD == 3 ;
@@ -1968,7 +1994,9 @@ public class escnew extends EscBase {
                 public class TestJava  {
                   public /*@ final */ static int[] FIELD = new int[]{1,2,3,4,5};
                   public /*@ final */ static int[] FIELD2 = {1,2,3,4,5,6};
-                  //@ public normal_behavior ensures true; static_initializer
+                  //@ public normal_behavior
+                  //@   ensures true;
+                  //@   static_initializer
                   //@  pure
                   public static void m1() {
                     //@ assert H.ZZZZ == 79 ;
@@ -1982,7 +2010,9 @@ public class escnew extends EscBase {
                   public /*@ final */ static int ZZZZ = 79;
                   public /*@ final */ static int[] CHILD = new int[]{1,2,3,4,5};
                   public /*@ final */ static int[] CHILD2 = {1,2,3,4,5,6};
-                  //@ public normal_behavior ensures true; static_initializer
+                  //@ public normal_behavior
+                  //@   ensures true;
+                  //@   static_initializer
                 }
                 """
                 );
@@ -1997,11 +2027,14 @@ public class escnew extends EscBase {
                 public class TestJava<T> {
                   //@ ensures true;
                   //@ model pure public int mm(int i);
-                  //@ ensures true; pure
+                  //@ ensures true;
+                  //@ pure
                   public int mmr(int i) { return 0; };
-                  //@ ensures !\\fresh(\\result); spec_pure
+                  //@ ensures !\\fresh(\\result);
+                  //@ spec_pure
                   //@ model public <TT> TT mt(int i);
-                  //@ ensures !\\fresh(\\result); spec_pure
+                  //@ ensures !\\fresh(\\result);
+                  //@ spec_pure
                   public /*@ nullable */ <TT> TT mtr(int i) { return null; };
                   //@ ensures true;
                   //@ model no_state public static int mf(int i);
@@ -2041,11 +2074,14 @@ public class escnew extends EscBase {
                 package tt;
                 public class TestJava<T> {
                   public /*@ nullable */ Object o;
-                  //@ ensures \\fresh(\\result); pure
+                  //@ ensures \\fresh(\\result);
+                  //@ pure
                   public Object mm(int i) { return new Object(); }
-                  //@ ensures \\result == o; pure
+                  //@ ensures \\result == o;
+                  //@ pure
                   public /*@ nullable */ Object mm2(int i) { return o; } // Line 7
-                  //@ ensures true; pure
+                  //@ ensures true;
+                  //@ pure
                   public Object mm3(int i) { return new Object(); }
                   //@ ensures \\fresh(\\result); // Line 10
                   //@ ensures mm(i) == \\result; // ERROR - not necessarily the case
@@ -2063,13 +2099,13 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:11: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm(int)", 17
-                ,"/tt/TestJava.java:16: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm2(int)", 18
-                ,"/tt/TestJava.java:20: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm3(int)", 18
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1",7
-                ,"/tt/TestJava.java:11: verify: Associated declaration",7
-                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (Postcondition) in method m3",7
-                ,"/tt/TestJava.java:20: verify: Associated declaration",7
+                ,"/tt/TestJava.java:14: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm(int)", 17
+                ,"/tt/TestJava.java:19: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm2(int)", 18
+                ,"/tt/TestJava.java:23: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm3(int)", 18
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m1",7
+                ,"/tt/TestJava.java:14: verify: Associated declaration",7
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Postcondition) in method m3",7
+                ,"/tt/TestJava.java:23: verify: Associated declaration",7
                 );
     }
 
@@ -2081,7 +2117,8 @@ public class escnew extends EscBase {
                 package tt;
                 public class TestJava<T> {
                    int k;
-                  //@ ensures true; pure
+                  //@ ensures true;
+                  //@ pure
                   public int mpure(int i) { return i+17; }
                   public void mm(int i) {
                      int j = 0;
@@ -2096,8 +2133,8 @@ public class escnew extends EscBase {
                 }
                 """
                 ,anyorder(
-                 seq("/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method mm",10)
-                ,seq("/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method mm",10)
+                 seq("/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method mm",10)
                 )
                 );
     }
@@ -2110,7 +2147,8 @@ public class escnew extends EscBase {
                 package tt;
                 public class TestJava<T> {
                    int k;
-                  //@ ensures true; pure
+                  //@ ensures true;
+                  //@ pure
                   public int mpure(int i) { return i+17; }
                   public void mm(int i) {
                      int j = 0;
@@ -2125,10 +2163,10 @@ public class escnew extends EscBase {
                 }
                 """
                 ,anyorder(
-              //   seq("/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method mm",10)  // FIXME - review
-                 seq("/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method mm",10) // FIXME - review -- why not prove this like the i == 1 case
-                ,seq("/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method mm",10)
+              //   seq("/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method mm",10)  // FIXME - review
+                 seq("/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method mm",10) // FIXME - review -- why not prove this like the i == 1 case
                 ,seq("/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method mm",10)
+                ,seq("/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method mm",10)
                 )
                 );
     }

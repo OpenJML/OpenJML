@@ -42,7 +42,8 @@ public class esc1 extends EscBase {
                 """
                 package tt; import java.util.*;
                 public abstract class TestJava extends java.io.InputStream implements Comparable<TestJava> {
-                  /*@ pure */ public String m(Integer i, Number b) {
+                  /*@ pure */
+                  public String m(Integer i, Number b) {
                     Vector<Integer> v = new Vector<Integer>();
 
                     boolean bb = v.elements().hasMoreElements();
@@ -50,9 +51,9 @@ public class esc1 extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method m", 22
-                ,"/tt/TestJava.java:3: verify: Associated declaration", 29
-                ,"/tt/TestJava.java:7: verify: Associated method exit", 5);
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method m", 10
+                ,"/tt/TestJava.java:4: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:8: verify: Associated method exit", 5);
     }
 
     @Test @Ignore // timesout
@@ -493,18 +494,22 @@ public class esc1 extends EscBase {
                   public TestJava() {}
                 }
                 """
-                ,"/tt/TestJava.java:8: error: cannot find symbol\n"
-                        + "  symbol:   class NonNull\n"
-                        + "  location: class tt.TestJava", 57
-                ,"/tt/TestJava.java:8: error: cannot find symbol\n"
-                        + "  symbol:   class NonNull\n"
-                        + "  location: class tt.TestJava", 10
-                ,"/tt/TestJava.java:9: error: cannot find symbol\n"
-                        + "  symbol:   class NonNull\n"
-                        + "  location: class tt.TestJava", 15
-                ,"/tt/TestJava.java:10: error: cannot find symbol\n"
-                        + "  symbol:   class NonNull\n"
-                        + "  location: class tt.TestJava", 6
+                ,"""
+                /tt/TestJava.java:8: error: cannot find symbol
+                  symbol:   class NonNull
+                  location: class tt.TestJava""", 57
+                ,"""
+                /tt/TestJava.java:8: error: cannot find symbol
+                  symbol:   class NonNull
+                  location: class tt.TestJava""", 10
+                ,"""
+                /tt/TestJava.java:9: error: cannot find symbol
+                  symbol:   class NonNull
+                  location: class tt.TestJava""", 15
+                ,"""
+                /tt/TestJava.java:10: error: cannot find symbol
+                  symbol:   class NonNull
+                  location: class tt.TestJava""", 6
         );
     }
     
@@ -1504,7 +1509,8 @@ public class esc1 extends EscBase {
                   //@ requires i >= 0;
                   //@ assigns k;
                   //@ ensures k == 10;
-                  //@ signals (Exception e) k<0; signals_only Exception;
+                  //@ signals (Exception e) k<0;
+                  //@ signals_only Exception;
                   public void m1(int i) throws RuntimeException {
                     m(i);
                     k = 10;
@@ -1582,8 +1588,8 @@ public class esc1 extends EscBase {
                   }
                 }
                 """,
-                "/tt/TestJava.java:39: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",
-                6, "/tt/TestJava.java:35: verify: Associated declaration", 7);
+                "/tt/TestJava.java:40: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m3a",
+                6, "/tt/TestJava.java:36: verify: Associated declaration", 7);
     }
 
     @Test
@@ -2246,7 +2252,8 @@ public class esc1 extends EscBase {
                   public static TestJava o;
                   public static TestJava p;
                   public int j; static public int sj;
-                  //@ assignable \\nothing; ensures \\result == j;
+                  //@ assignable \\nothing;
+                  //@ ensures \\result == j;
                   public int m() { return j; }
                   //@ assigns j,sj;
                   //@ ensures \\result == \\old(j);
@@ -2278,12 +2285,12 @@ public class esc1 extends EscBase {
                   public int instbad2() { return o.sn() + p.sn() + sj; }
                 }
                 """
-                ,"/tt/TestJava.java:28: verify: The prover cannot establish an assertion (Postcondition) in method instbadx",27
-                ,"/tt/TestJava.java:27: verify: Associated declaration", 7
-                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Postcondition) in method instbad",26
-                ,"/tt/TestJava.java:30: verify: Associated declaration", 7
-                ,"/tt/TestJava.java:35: verify: The prover cannot establish an assertion (Postcondition) in method instbad2",27
-                ,"/tt/TestJava.java:34: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:29: verify: The prover cannot establish an assertion (Postcondition) in method instbadx",27
+                ,"/tt/TestJava.java:28: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:32: verify: The prover cannot establish an assertion (Postcondition) in method instbad",26
+                ,"/tt/TestJava.java:31: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Postcondition) in method instbad2",27
+                ,"/tt/TestJava.java:35: verify: Associated declaration", 7
                 );
     }
 

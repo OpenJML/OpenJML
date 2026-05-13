@@ -12,21 +12,24 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode1() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ also public normal_behavior\n"
-                +"  //@    ensures \\result > 0;\n"
-                +"  public int m() {\n"
-                +"    return 5;\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ also public normal_behavior
+                  //@    ensures \\result > 0;
+                  public int m() {
+                    return 5;
+                  }
+                }
+                 class A {
+                  //@ public normal_behavior
+                  //@    ensures \\result > 10;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m",5
                 ,"/tt/TestJava.java:11: verify: Associated declaration",10
                 );
@@ -34,41 +37,47 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode2() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ also public normal_behavior\n"
-                +"  //@    ensures \\result > 0;\n"
-                +"  public int m() {\n"
-                +"    return 5;\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ also public normal_behavior
+                  //@    ensures \\result > 0;
+                  public int m() {
+                    return 5;
+                  }
+                }
+                 class A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result > 10;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 );
     }
 
     @Test
     public void testCode3() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ also public normal_behavior\n"
-                +"  //@    ensures \\result > 0;\n"
-                +"  public int m() {\n"
-                +"    return 0;\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ also public normal_behavior
+                  //@    ensures \\result > 0;
+                  public int m() {
+                    return 0;
+                  }
+                }
+                 class A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result > 10;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m",5
                 ,"/tt/TestJava.java:4: verify: Associated declaration",10
                 );
@@ -76,21 +85,24 @@ public class esccode extends EscBase {
 
     @Test
     public void testCode4() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ also public code normal_behavior\n"
-                +"  //@    ensures \\result > 0;\n"
-                +"  public int m() {\n"
-                +"    return 0;\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ also public code normal_behavior
+                  //@    ensures \\result > 0;
+                  public int m() {
+                    return 0;
+                  }
+                }
+                 class A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result > 10;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m",5
                 ,"/tt/TestJava.java:4: verify: Associated declaration",10
                 );
@@ -99,26 +111,29 @@ public class esccode extends EscBase {
     @Test
     public void testCode5() {
         main.addOptions("--method=n"); // This is part of the test, not debugging
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int n() {\n"
-                +"    return m();\n"
-                +"  }\n"
-                +"  //@ also public code normal_behavior\n"
-                +"  //@    ensures true;\n"
-                +"  public int m() {\n"
-                +"    return 0;\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result > 10;
+                  public int n() {
+                    return m();
+                  }
+                  //@ also public code normal_behavior
+                  //@    ensures true;
+                  public int m() {
+                    return 0;
+                  }
+                }
+                 class A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result > 10;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method n",5
                 ,"/tt/TestJava.java:4: verify: Associated declaration",10
                 );
@@ -127,24 +142,27 @@ public class esccode extends EscBase {
     @Test
     public void testCode6() {
         main.addOptions("--method=n"); // This is part of the test, not debugging
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int n() {\n"
-                +"    return m();\n"
-                +"  }\n"
-                +"  public int m() {\n"
-                +"    return 0;\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result > 10;
+                  public int n() {
+                    return m();
+                  }
+                  public int m() {
+                    return 0;
+                  }
+                }
+                 class A {
+                  //@ public normal_behavior
+                  //@    ensures \\result > 10;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 );
     }
 
@@ -152,52 +170,58 @@ public class esccode extends EscBase {
     @Test
     public void testCode7() {
         main.addOptions("--method=n"); // This is part of the test, not debugging
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result >= 10;\n"
-                +"  public int n() {\n"
-                +"    return m();\n"
-                +"  }\n"
-                +"  //@ also public code normal_behavior\n"
-                +"  //@    ensures \\result >= 10;\n"
-                +"  public int m() {\n"
-                +"    return 0;\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures true;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result >= 10;
+                  public int n() {
+                    return m();
+                  }
+                  //@ also public code normal_behavior
+                  //@    ensures \\result >= 10;
+                  public int m() {
+                    return 0;
+                  }
+                }
+                 class A {
+                  //@ public code normal_behavior
+                  //@    ensures true;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 );
     }
 
     @Test
     public void testCode8() {
         main.addOptions("--method=n"); // This is part of the test, not debugging
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result >= 10;\n"
-                +"  public int n() {\n"
-                +"    return m();\n"
-                +"  }\n"
-                +"  //@ also public normal_behavior\n"
-                +"  //@    ensures \\result >= 10;\n"
-                +"  public int m() {\n"
-                +"    return 0;\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures true;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result >= 10;
+                  public int n() {
+                    return m();
+                  }
+                  //@ also public normal_behavior
+                  //@    ensures \\result >= 10;
+                  public int m() {
+                    return 0;
+                  }
+                }
+                 class A {
+                  //@ public code normal_behavior
+                  //@    ensures true;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 );
     }
     
@@ -205,21 +229,24 @@ public class esccode extends EscBase {
     @Test
     public void testCode9() {
         main.addOptions("--method=n"); // This is part of the test, not debugging
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava extends A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int n() {\n"
-                +"    return m();\n"
-                +"  }\n"
-                +"}\n"
-                +" class A { \n"
-                +"  //@ public code normal_behavior\n"
-                +"  //@    ensures \\result > 10;\n"
-                +"  public int m() {\n"
-                +"    return 20;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava extends A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result > 10;
+                  public int n() {
+                    return m();
+                  }
+                }
+                 class A {
+                  //@ public code normal_behavior
+                  //@    ensures \\result > 10;
+                  public int m() {
+                    return 20;
+                  }
+                }
+                """
                 );
     }
 }

@@ -21,108 +21,135 @@ public class racJML extends RacBase {
         // FIXME - why are there no reports of failed assertions
     @Test
     public void testLBLObject() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",\"Z\") != null; \n"
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ assert JML.lbl("AL","Z") != null;
+                  }
+                }
+                """
                 ,"LABEL AL = Z"
                 );
     }
 
     @Test
     public void testLBLString() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ ghost nullable String x = JML.lbl(\"AL\",\"XYZ\"); assert x.equals(\"XYZ\"); \n" // using ghost decl to avoid duplicate evaluation
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ ghost nullable String x = JML.lbl("AL","XYZ"); assert x.equals("XYZ");
+                  }
+                }
+                """
                 ,"LABEL AL = XYZ"
                 );
     }
 
     @Test // Test to check that we have one evaluation
     public void testLBLStringDup() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",\"XYZ\").equals(\"XYZ\"); \n"
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ assert JML.lbl("AL","XYZ").equals("XYZ");
+                  }
+                }
+                """
                 ,"LABEL AL = XYZ"
                 );
     }
 
     @Test
     public void testLBLboolean() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",args.length == 0); \n"
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ assert JML.lbl("AL",args.length == 0);
+                  }
+                }
+                """
                 ,"LABEL AL = true"
                 );
     }
 
     @Test
     public void testLBLint() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ assert \\lbl(AL,args.length) == 0; \n"
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ assert \\lbl(AL,args.length) == 0;
+                  }
+                }
+                """
                 ,"LABEL AL = 0"
                 );
     }
 
     @Test
     public void testLBLlong() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",(long)args.length) == 0; \n"
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ assert JML.lbl("AL",(long)args.length) == 0;
+                  }
+                }
+                """
                 ,"LABEL AL = 0"
                 );
     }
 
     @Test
     public void testLBLshort() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",(short)args.length) == 0; \n"
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ assert JML.lbl("AL",(short)args.length) == 0;
+                  }
+                }
+                """
                 ,"LABEL AL = 0"
                 );
     }
 
     @Test
     public void testLBLbyte() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",(byte)args.length) == 0; \n"
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ assert JML.lbl("AL",(byte)args.length) == 0;
+                  }
+                }
+                """
                 ,"LABEL AL = 0"
                 );
     }
 
     @Test
     public void testLBLchar() {
-        helpRacText("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public static void main(String... args) { \n"
-                +"     //@ assert JML.lbl(\"AL\",'Z') == 'Z'; \n"
-                +"  }\n"
-                +"}"
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String... args) {
+                     //@ assert JML.lbl("AL",'Z') == 'Z';
+                  }
+                }
+                """
                 ,"LABEL AL = Z"
                 );
     }

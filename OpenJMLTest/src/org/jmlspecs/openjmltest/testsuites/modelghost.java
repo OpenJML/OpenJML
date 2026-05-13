@@ -18,77 +18,80 @@ public class modelghost extends TCBase {
     @Test
     public void testClassSimple() {
         helpTCText("A.java",
-                "public class A { /*@ model int m() { return B.n; } */ C mm() { return C.nn; }}\n" +
-                        "/*@ model class B { public static int n; } */\n" +
-                        "class C { public static C nn; }"
+                """
+                public class A { /*@ model int m() { return B.n; } */ C mm() { return C.nn; }}
+                /*@ model class B { public static int n; } */
+                class C { public static C nn; }
+                """
                 );
     }
 
     @Test
     public void testClassSimple2() {
         helpTCText("A.java",
-                "public class A { /*@ model int m() { return B.n; } */ B mm() { return B.nn; }}\n" +
-                        "/*@ model class B { public static int n; } */\n"
-                        ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class A",55
-                        ,"/A.java:1: error: cannot find symbol\n  symbol:   variable B\n  location: class A",71
+                """
+                public class A { /*@ model int m() { return B.n; } */ B mm() { return B.nn; }}
+                /*@ model class B { public static int n; } */
+                """
+                ,"/A.java:1: error: cannot find symbol\n  symbol:   class B\n  location: class A",55
+                ,"/A.java:1: error: cannot find symbol\n  symbol:   variable B\n  location: class A",71
                 );
     }
 
     @Test
     public void testClassSimple3() {
         helpTCText("A.java",
-                "public class A { /*@ model B m() { return B.n; }  */ }\n" +
-                        "/*@ model class B { public static B n; } */\n"
+                """
+                public class A { /*@ model B m() { return B.n; }  */ }
+                /*@ model class B { public static B n; } */
+                """
                 );
     }
 
     @Test
     public void testMethod() {
         helpTCText("A.java",
-                "public class A { \n" +
-                "  void m() {}\n" +  // OK
-                "  //@ model int m1() { return 0; }\n" + // OK
-                "  /*@ model */ int m2() { return 9; }\n" + // BAD
-                "  void p() {}\n" + 
-                "  //@ model int p1();\n" +  // OK
-                "  /*@ model */ int p2() {}\n" + // BAD
-                "  //@ int q(){}\n" +  // BAD
-                
-                "  static public class II {\n" +  // Line 9
-                "  void m() {}\n" +  // OK
-                "  //@ model int m1() { return 0; }\n" + // OK
-                "  /*@ model */ int m2() { return 9; }\n" + // BAD
-                "  void p() {}\n" +  // BAD
-                "  //@ model int p1();\n" +  // OK
-                "  /*@ model */ int p2(){}\n" +  // BAD
-                "  //@ int q();\n" +  // BAD
-                "  }\n" +
-                
-                "  /*@ static model public class III {\n" +  // Line 18
-                "  void m() {}\n" +  // OK
-                "  model int m1() { return 0; }\n" + // NO NESTING
-                "  void p();\n" +  // OK - FIXME - resolve the rules about model methods and embedded model declarations
-                "  model int p1();\n" +  // NO NESTING
-                "  }*/\n" +
-                
-                "}\n" +
-                
-                "/*@ model class B { \n" +  // Line 25
-                "  void m() {}\n" +  // OK
-                "   model int m1() { return 0; }\n" + // NO NESTING
-                "  void p();\n" +  // OK -- FIXME - as above
-                "   model int p1();\n" +  // NO NESTING
-                "}\n*/" +
-                
-                " class C { \n" +  // Line 31
-                "  void m() {}\n" +  // OK
-                "  //@ model int m1() { return 0; }\n" + // OK
-                "  /*@ model */ int m2() { return 9; }\n" + // BAD
-                "  void p() {}\n" + 
-                "  //@ model int p1();\n" +  // OK
-                "  /*@ model */ int p2() {}\n" +  // BAD
-                "  //@ int q();\n" +  // BAD
-                "}"
+                """
+                public class A {
+                  void m() {} // OK
+                  //@ model int m1() { return 0; } // OK
+                  /*@ model */ int m2() { return 9; } // BAD
+                  void p() {}
+                  //@ model int p1(); // OK
+                  /*@ model */ int p2() {} // BAD
+                  //@ int q(){} // BAD
+                  static public class II { // Line 9
+                  void m() {} // OK
+                  //@ model int m1() { return 0; } // OK
+                  /*@ model */ int m2() { return 9; } // BAD
+                  void p() {} // BAD
+                  //@ model int p1(); // OK
+                  /*@ model */ int p2(){} // BAD
+                  //@ int q(); // BAD
+                  }
+                  /*@ static model public class III { // Line 18
+                  void m() {} // OK
+                  model int m1() { return 0; } // NO NESTING
+                  void p(); // OK - FIXME - resolve the rules about model methods and embedded model declarations
+                  model int p1(); // NO NESTING
+                  }*/
+                }
+                /*@ model class B { // Line 25
+                  void m() {} // OK
+                   model int m1() { return 0; } // NO NESTING
+                  void p(); // OK -- FIXME - as above
+                   model int p1(); // NO NESTING
+                }
+                */ class C { // Line 31
+                  void m() {} // OK
+                  //@ model int m1() { return 0; } // OK
+                  /*@ model */ int m2() { return 9; } // BAD
+                  void p() {}
+                  //@ model int p1(); // OK
+                  /*@ model */ int p2() {} // BAD
+                  //@ int q(); // BAD
+                }
+                """
                 ,"/A.java:4: error: A Java method declaration must not be marked model: A.m2()",7
                 ,"/A.java:7: error: A Java method declaration must not be marked model: A.p2()",7
                 ,"/A.java:8: error: A JML method declaration must be marked model: A.q()",11
@@ -104,123 +107,121 @@ public class modelghost extends TCBase {
                 ,"/A.java:38: error: A JML method declaration must be marked model: C.q()",11
                 );
     }
-    
+
     @Test
     public void testMethodBody() {
         helpTCText("A.java",
-                "public class A { \n" +
-                "  void m() {}\n" +  // OK
-                "  //@ model int m1() { return 0; }\n" + // OK
-                "  void p();\n" +  // BAD
-                "  //@ model int p1();\n" +  // OK
-                "}"
+                """
+                public class A {
+                  void m() {} // OK
+                  //@ model int m1() { return 0; } // OK
+                  void p(); // BAD
+                  //@ model int p1(); // OK
+                }
+                """
                 ,"/A.java:4: error: missing method body, or declare abstract",8
                 );
     }
-    
+
     @Test
     public void testMethodBody2() {
         addMockFile("$A/A.jml","public class A { void m();\n void mm(){} /*@ model void mmm(); */ }");
         helpTCText("A.java",
-                "public class A { \n" +
-                "  void m() {}\n" +  // OK
-                "  void mm() {}\n" +  // OK
-                "}"
+                """
+                public class A {
+                  void m() {} // OK
+                  void mm() {} // OK
+                }
+                """
                 ,"/$A/A.jml:2: error: The specification of the method A.mm() must not have a body",11
                 );
     }
-    
+
     @Test
     public void testUseMethod() {
         helpTCText("A.java",
-                "public class A { \n" +
-                "  /*@ pure */ boolean m() {}\n" +  // OK
-                "  //@ model pure boolean m1() { return true; }\n" + // OK
-                
-                "  //@ invariant m() && m1();\n" +
-                
-                "  //@ requires m() && m1();\n" +
-                "  void p() {} ;\n" +
-                
-                "  //@ requires m() && m1();\n" + // BAD - VISIBILITY PROBLEMS
-                "  public void pp() {} ;\n" +
-                
-                "}\n"
+                """
+                public class A {
+                  /*@ pure */ boolean m() {} // OK
+                  //@ model pure boolean m1() { return true; } // OK
+                  //@ invariant m() && m1();
+                  //@ requires m() && m1();
+                  void p() {} ;
+                  //@ requires m() && m1(); // BAD - VISIBILITY PROBLEMS
+                  public void pp() {} ;
+                }
+                """
                 ,"/A.java:7: error: An identifier with package visibility may not be used in a requires clause with public visibility",16
                 ,"/A.java:7: error: An identifier with package visibility may not be used in a requires clause with public visibility",23
                 );
-        
+
     }
 
     @Test
     public void testUseMethod2() {
         helpTCText("A.java",
-                "public class A { \n" +
-                
-                "  //@ requires B.m() && B.m1();\n" +
-                "  static void p() {};\n" +
-                
-                "  //@ requires B.m() && B.m1();\n" + // BAD - VISIBILITY PROBLEMS
-                "  public static void pp() {} ;\n" +
-                
-                "}\n" +
-                "class B { \n" +
-                "  static /*@ pure */ boolean m() {}\n" +  // OK
-                "  //@ model pure static boolean m1() { return true; }\n" + // OK
-                
-                "  //@ static invariant m() && m1();\n" +
-                
-                "}\n"
+                """
+                public class A {
+                  //@ requires B.m() && B.m1();
+                  static void p() {};
+                  //@ requires B.m() && B.m1(); // BAD - VISIBILITY PROBLEMS
+                  public static void pp() {} ;
+                }
+                class B {
+                  static /*@ pure */ boolean m() {} // OK
+                  //@ model pure static boolean m1() { return true; } // OK
+                  //@ static invariant m() && m1();
+                }
+                """
                 ,"/A.java:4: error: An identifier with package visibility may not be used in a requires clause with public visibility",17
                 ,"/A.java:4: error: An identifier with package visibility may not be used in a requires clause with public visibility",26
                 );
-        
+
     }
 
     @Test
     public void testUseJML() {
         helpTCText("A.java",
-                "import org.jmlspecs.lang.JML; public class A { \n" +
-                
-                "  //@ requires JML.erasure(\\typeof(this)) == JML.erasure(\\type(A));\n" +
-                "  void p() {};\n" +
-                
-                "}\n"
+                """
+                import org.jmlspecs.lang.JML; public class A {
+                  //@ requires JML.erasure(\\typeof(this)) == JML.erasure(\\type(A));
+                  void p() {};
+                }
+                """
                 );
-        
+
     }
 
     @Test
     public void testClass() {
         helpTCText("A.java",
-                "public class A { \n" +
-                "  //@ model static public class B{}\n" +
-                "  /*@ model */ static public class C{}\n" +  // NOT MODEL
-                "  //@ static public class D{}\n" + // SHOULD BE MODEL
-                "  public class AA { \n" +
-                "    //@ model  public class B{}\n" +
-                "    /*@ model */  public class C{}\n" +  // NOT MODEL
-                "    //@  public class D{}\n" +  // SHOULD BE MODEL
-                "  }\n" +
-                "  /*@ model public class M { \n" +                  // Line 10
-                "    model  public class B{}\n" +  // NO POINT
-                "     public class C{}\n" +
-                "  }*/\n" +
-                "}\n" +
-
-                "/*@ model */ class Y { \n" + // BAD
-                "}\n" +
-
-                "/*@ model class Q { \n" +
-                "  model  public class C{}\n" + // NO POINT
-                "   public class D{}\n" + 
-                "}*/\n" +                                       // Line 20
-
-                "class Z { \n" +
-                "  //@ model  public class B{}\n" +
-                "  /*@ model */  public class C{}\n" + // BAD
-                "  //@  public class D{}\n" + // BAD
-                "}\n"
+                """
+                public class A {
+                  //@ model static public class B{}
+                  /*@ model */ static public class C{} // NOT MODEL
+                  //@ static public class D{} // SHOULD BE MODEL
+                  public class AA {
+                    //@ model  public class B{}
+                    /*@ model */  public class C{} // NOT MODEL
+                    //@  public class D{} // SHOULD BE MODEL
+                  }
+                  /*@ model public class M { // Line 10
+                    model  public class B{} // NO POINT
+                     public class C{}
+                  }*/
+                }
+                /*@ model */ class Y { // BAD
+                }
+                /*@ model class Q {
+                  model  public class C{} // NO POINT
+                   public class D{}
+                }*/
+                class Z {
+                  //@ model  public class B{}
+                  /*@ model */  public class C{} // BAD
+                  //@  public class D{} // BAD
+                }
+                """
                 // Java 21
                 ,"/A.java:3: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.C",7
                 ,"/A.java:4: error: A method or type declaration within a JML annotation must be model: A.D", 21
@@ -232,51 +233,48 @@ public class modelghost extends TCBase {
                 ,"/A.java:23: error: A Java declaration (not within a JML annotation) may not be either ghost or model: Z.C",7
                 ,"/A.java:24: error: A method or type declaration within a JML annotation must be model: Z.D", 15
         );
-                
+
     }
-    
+
     @Test
     public void testField() {
         helpTCText("A.java",
-                "public class A { \n" +
-                "  int m;\n" +  // OK
-                "  //@ model int m1;\n" + // OK
-                "  //@ ghost int m1a;\n" + // OK
-                "  /*@ model */ int m2;\n" + // BAD
-                "  /*@ ghost */ int m2a;\n" + // BAD
-                "  //@ int q;\n" +  // BAD
-                
-                "  static public class II {\n" +  // Line 8
-                "  int m;\n" +  // OK
-                "  //@ model int m1;\n" + // OK
-                "  //@ ghost int m1a;\n" + // OK
-                "  /*@ model */ int m2;\n" + // BAD
-                "  /*@ ghost */ int m2a;\n" + // BAD
-                "  //@ int q;\n" +  // BAD
-                "  }\n" +
-                
-                "  /*@ static model public class III {\n" +  // Line 16
-                "    int m;\n" +  // OK
-                "    model int m1;\n" + // NO NESTING
-                "    ghost int m1a;\n" + // NO NESTING
-                "    \n" +  
-                "  }*/\n" +
-                
-                "}\n" +
-                
-                "/*@ model class B { \n" +  // Line 23
-                "  int m;\n" +  // OK
-                "   model int m1; ghost int m2; \n" + // NO NESTING
-                "}\n*/" +
-                
-                " class C { \n" +  // Line 31
-                "  int m;\n" +  // OK
-                "  //@ model int m1;\n" + // OK
-                "  //@ ghost int m1a;\n" + // OK
-                "  /*@ model */ int m2;\n" + // BAD
-                "  /*@ ghost */ int m2a;\n" + // BAD
-                "  //@ int q;\n" +  // BAD
-                "}"
+                """
+                public class A {
+                  int m; // OK
+                  //@ model int m1; // OK
+                  //@ ghost int m1a; // OK
+                  /*@ model */ int m2; // BAD
+                  /*@ ghost */ int m2a; // BAD
+                  //@ int q; // BAD
+                  static public class II { // Line 8
+                  int m; // OK
+                  //@ model int m1; // OK
+                  //@ ghost int m1a; // OK
+                  /*@ model */ int m2; // BAD
+                  /*@ ghost */ int m2a; // BAD
+                  //@ int q; // BAD
+                  }
+                  /*@ static model public class III { // Line 16
+                    int m; // OK
+                    model int m1; // NO NESTING
+                    ghost int m1a; // NO NESTING
+                \s
+                  }*/
+                }
+                /*@ model class B { // Line 23
+                  int m; // OK
+                   model int m1; ghost int m2; // NO NESTING
+                }
+                */ class C {
+                  int m; // OK
+                  //@ model int m1; // OK
+                  //@ ghost int m1a; // OK
+                  /*@ model */ int m2; // BAD
+                  /*@ ghost */ int m2a; // BAD
+                  //@ int q; // BAD
+                }
+                """
                 // Order changed for Java8
                 ,"/A.java:5: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.m2",7
                 ,"/A.java:6: error: A Java declaration (not within a JML annotation) may not be either ghost or model: A.m2a",7
@@ -293,7 +291,7 @@ public class modelghost extends TCBase {
                 ,"/A.java:33: error: A declaration within a JML annotation must be either ghost or model: C.q",11
                 );
     }
-    
+
     @Test
     public void testInitializer() {
         addMockFile("$A/A.jml","public class A { { i = 2; } }");
@@ -313,7 +311,7 @@ public class modelghost extends TCBase {
     public void testInitializer2a() {
         addMockFile("$A/A.jml","public class A { } /*@ model public class B { int i;   } */ ");
         helpTCText("A.java","public class A { int i; { i = 1; } } "
-        		,"/$A/A.jml:1: error: class B is public, should be declared in a file named B.java",37
+                ,"/$A/A.jml:1: error: class B is public, should be declared in a file named B.java",37
         );
     }
 
@@ -339,12 +337,15 @@ public class modelghost extends TCBase {
     }
 
     @Test public void testInterface() {
-        helpTCText("TestJava.java","package tt; \n"
-                +"public interface TestJava { \n"
-                +"  //@ public model instance int z;\n"
-                +"  //@ static model int z2;\n"
-                +"  public static int zz = 0;\n"
-                +"}"
+        helpTCText("TestJava.java",
+                """
+                package tt;
+                public interface TestJava {
+                  //@ public model instance int z;
+                  //@ static model int z2;
+                  public static int zz = 0;
+                }
+                """
                 );
     }
 }

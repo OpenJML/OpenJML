@@ -1759,61 +1759,77 @@ public class typechecking extends TCBase {
                 """
                 package tt;
                 public class TestJava {
-                  //@ public behavior requires true;
+                  //@ public behavior
+                  //@   requires true;
                   public void m1p() {
                   }
-                  //@ protected behavior requires true;
+                  //@ protected behavior
+                  //@   requires true;
                   public void m1r() {
                   }
-                  //@ behavior requires true;
+                  //@ behavior
+                  //@   requires true;
                   public void m1k() {
                   }
-                  //@ private behavior requires true;
+                  //@ private behavior
+                  //@   requires true;
                   public void m1v() {
                   }
                   //@ requires true;
                   public void m1() {
                   }
-                  //@ public behavior requires true; // Warning
+                  //@ public behavior // Warning
+                  //@   requires true;
                   protected void m2p() {
                   }
-                  //@ protected behavior requires true;
+                  //@ protected behavior
+                  //@   requires true;
                   protected void m2r() {
                   }
-                  //@ behavior requires true;
+                  //@ behavior
+                  //@   requires true;
                   protected void m2k() {
                   }
-                  //@ private behavior requires true;
+                  //@ private behavior
+                  //@   requires true;
                   protected void m2v() {
                   }
                   //@ requires true;
                   protected void m2() {
                   }
-                  //@ public behavior requires true; // Warning
+                  //@ public behavior // Warning
+                  //@   requires true;
                   private void m3p() {
                   }
-                  //@ protected behavior requires true; // Warning
+                  //@ protected behavior // Warning
+                  //@   requires true;
                   private void m3r() {
                   }
-                  //@ behavior requires true; // Warning
+                  //@ behavior // Warning
+                  //@   requires true;
                   private void m3k() {
                   }
-                  //@ private behavior requires true;
+                  //@ private behavior
+                  //@   requires true;
                   private void m3v() {
                   }
                   //@ requires true;
                   private void m3() {
                   }
-                  //@ public behavior requires true; // Warning
+                  //@ public behavior // Warning
+                  //@   requires true;
                   void m4p() {
                   }
-                  //@ protected behavior requires true; // Warning
+                  //@ protected behavior // Warning
+                  //@   requires true;
                   void m4r() {
                   }
-                  //@ behavior requires true;
+                  //@ behavior
+                  //@   requires true;
                   void m4k() {
                   }
-                  //@ private behavior requires true;
+                  //@ private behavior
+                  //@   requires true;
                   void m4v() {
                   }
                   //@ requires true;
@@ -1821,12 +1837,12 @@ public class typechecking extends TCBase {
                   }
                 }
                 """
-                ,"/TestJava.java:18: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:33: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:36: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:39: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:48: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
-                ,"/TestJava.java:51: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:22: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:41: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:45: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:49: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:60: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
+                ,"/TestJava.java:64: warning: [jml-lint] There is no point to a specification case having more visibility than its method",7
                 );
     }
     

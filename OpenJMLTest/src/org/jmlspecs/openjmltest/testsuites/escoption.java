@@ -66,19 +66,22 @@ public class escoption extends EscBase {
     @Test
     public void testOption() {
         addOptions("--normal");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@assert false;*/   }\n" // Should fail because of the explicit assert false
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  @Options(\"-progress\") \n"
-                +"  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@assert !bb;*/   }\n" // Should fail because of the tautologically false assert
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@assert b;*/   }\n" // Should fail because of the unprovable assert
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@assert false;*/   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  @Options("-progress")
+                  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@assert !bb;*/   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@assert b;*/   }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method bassert",75
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method bassert2",76
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method bassert3",77
@@ -93,20 +96,22 @@ public class escoption extends EscBase {
     
     @Test
     public void testOption2() {
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
-                +"public class TestJava { \n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@assert false;*/   }\n" // Should fail because of the explicit assert false
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  @Options(\"--normal\") \n"
-                +"  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@assert !bb;*/   }\n" // Should fail because of the tautologically false assert
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@assert b;*/   }\n" // Should fail because of the unprovable assert
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                  @Options({"--progress","--check-feasibility=none"}) public class TestJava {
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@assert false;*/   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  @Options("--normal")
+                  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@assert !bb;*/   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@assert b;*/   }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method bassert",75
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method bassert2",76
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method bassert3",77
@@ -127,25 +132,27 @@ public class escoption extends EscBase {
     
     @Test
     public void testOption3() {
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"  @Options({\"--progress\",\"--check-feasibility=none\"}) "
-                +"public class TestJava { \n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@ assert false;*/   }\n" // Should fail because of the explicit assert false
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  @Options(\"--normal\") \n"
-                +"  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@ assert !bb;*/   }\n" // Should fail because of the tautologically false assert
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@ assert b;*/   }\n" // Should fail because of the unprovable assert
-                +"}\n"
-                +"class A { \n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@ assert false;*/   }\n" // Should fail because of the explicit assert false
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                  @Options({"--progress","--check-feasibility=none"}) public class TestJava {
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@ assert false;*/   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  @Options("--normal")
+                  public static void bassert2(boolean bb, boolean b) { /*@ assume b; */ /*@ assert !bb;*/   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert3(boolean bb, boolean b) { /*@ assume bb; */ /*@ assert b;*/   }
+                }
+                class A {
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert(boolean bb, boolean b) { /*@ assume b; */ /*@ assert false;*/   }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method bassert",76
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method bassert2",77
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Assert) in method bassert3",78
@@ -168,22 +175,25 @@ public class escoption extends EscBase {
     @Test
     public void testSkipped() {
     	main.addOptions("--progress","--show-skipped","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert(boolean bb, boolean b) {   }\n"
-                +"  //@ requires true;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert() {   }\n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert2(boolean bb, boolean b) {    }\n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  //@ skipesc \n"
-                +"  public static void bassert3(boolean bb, boolean b) {  }\n" 
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert(boolean bb, boolean b) {   }
+                  //@ requires true;
+                  //@ ensures true;
+                  public static void bassert() {   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert2(boolean bb, boolean b) {    }
+                  //@ requires bb;
+                  //@ ensures true;
+                  //@ skipesc
+                  public static void bassert3(boolean bb, boolean b) {  }
+                }
+                """
         );
         String out = output();
         org.junit.Assert.assertEquals(
@@ -202,22 +212,25 @@ public class escoption extends EscBase {
     @Test
     public void testNoSkipped() {
     	main.addOptions("-progress","--no-show-skipped","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert(boolean bb, boolean b) {   }\n"
-                +"  //@ requires true;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert() {   }\n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert2(boolean bb, boolean b) {    }\n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  //@ skipesc \n"
-                +"  public static void bassert3(boolean bb, boolean b) {  }\n" 
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert(boolean bb, boolean b) {   }
+                  //@ requires true;
+                  //@ ensures true;
+                  public static void bassert() {   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert2(boolean bb, boolean b) {    }
+                  //@ requires bb;
+                  //@ ensures true;
+                  //@ skipesc
+                  public static void bassert3(boolean bb, boolean b) {  }
+                }
+                """
         );
         String out = output();
         org.junit.Assert.assertEquals(
@@ -232,22 +245,25 @@ public class escoption extends EscBase {
     @Test
     public void testSkippedDefault() {
     	main.addOptions("--progress","--method=bassert","--exclude=tt.TestJava.bassert(boolean,boolean)","--check-feasibility=none");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert(boolean bb, boolean b) {   }\n"
-                +"  //@ requires true;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert() {   }\n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  public static void bassert2(boolean bb, boolean b) {    }\n"
-                +"  //@ requires bb;\n"
-                +"  //@ ensures true;\n"
-                +"  //@ skipesc \n"
-                +"  public static void bassert3(boolean bb, boolean b) {  }\n" 
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert(boolean bb, boolean b) {   }
+                  //@ requires true;
+                  //@ ensures true;
+                  public static void bassert() {   }
+                  //@ requires bb;
+                  //@ ensures true;
+                  public static void bassert2(boolean bb, boolean b) {    }
+                  //@ requires bb;
+                  //@ ensures true;
+                  //@ skipesc
+                  public static void bassert3(boolean bb, boolean b) {  }
+                }
+                """
         );
         String out = output();
         org.junit.Assert.assertEquals(

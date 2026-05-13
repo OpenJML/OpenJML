@@ -19,8 +19,11 @@ public class escall3 extends EscBase {
     public void testNoProver() {
         expectedExit=1;
         addOptions("--prover=Z");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { }\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
                 ,oneof(
                         seq("/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-macos/Z.X",-1)
                         ,seq("/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-linux/Z.X",-1)
@@ -33,8 +36,11 @@ public class escall3 extends EscBase {
     public void testNoExec() {
         expectedExit=1;
         addOptions("--exec= ");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { }\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
                 ,"/tt/TestJava.java: error: The executable for prover z3_4_3 is not specified - use -exec or define an openjml.prover.... property",-1
                 );
     }
@@ -43,8 +49,11 @@ public class escall3 extends EscBase {
     public void testTimeoutBad() {
         expectedExit=0;
         addOptions("--timeout=ZZ");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { }\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
                 ,"/tt/TestJava.java: warning: Timeout value cannot be parsed as a double: ZZ",-1
                 );
     }
@@ -53,8 +62,11 @@ public class escall3 extends EscBase {
     public void testTimeoutOK() {
         expectedExit=0;
         addOptions("--timeout", "");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { }\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
                 );
     }
     
@@ -62,8 +74,11 @@ public class escall3 extends EscBase {
     public void testDebugOK() { // Test is noisy because debug feasibility turns on progress // FIXME - capture/redirect the output to stdout
         expectedExit=0;
         addOptions("--check-feasibility", "debug:");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { }\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
                 );
@@ -73,8 +88,11 @@ public class escall3 extends EscBase {
     public void testDebugBad() { // Test is noisy because debug feasibility turns on progress // FIXME - capture/redirect the output to stdout
         expectedExit=0;
         addOptions("--check-feasibility", "debug:zzz");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { }\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
                 ,"/tt/TestJava.java: warning: debug feasibility starting number has bad format: zzz", -1
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
                 ,"/tt/TestJava.java:2: verify: There is no feasible path to program point FeasibilityDebugAssert in method tt.TestJava.TestJava()", 8 // Exception checking is dead code
@@ -183,18 +201,23 @@ public class escall3 extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt;
-                public class TestJava { /*@ requires i > 0; pure */ public void m(int i) {} public int k; }
+                public class TestJava {
+                  //@ requires i > 0;
+                  //@ pure
+                  public void m(int i) {}
+                  public int k;
+                }
                 class A extends TestJava {
                     public void p() { m(0); }
                     //@ pure
                     public void m(int i) { k = 0; }
                 }
                 """
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method p", 24
-                ,"/tt/TestJava.java:6: verify: Associated declaration", 17
-                ,"/tt/TestJava.java:2: verify: Precondition conjunct is false: i > 0", 40
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m: k", 30
-                ,"/tt/TestJava.java:2: verify: Associated declaration", 45
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Precondition) in method p", 24
+                ,"/tt/TestJava.java:11: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: i > 0", 18
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assignable) in method m: k", 30
+                ,"/tt/TestJava.java:4: verify: Associated declaration", 7
                 );
     }
     
@@ -202,57 +225,55 @@ public class escall3 extends EscBase {
     public void testSMTout() {
         expectedExit=0;
         addOptions("--smt=smt/testSMToutZ.smt");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { }\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
                 );
         new java.io.File("smt/testSMToutZ.smt").delete();
     }
     
     @Test
     public void testSimple() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  \n"
-                +"  public void m1bad(int i) {\n"
-                +"    //@ assert i>0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i>=0;\n"
-                +"  public void m2bad(int i) {\n"
-                +"    //@ assert i>0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i>=0;\n"
-                +"  //@ ensures \\result>0;\n"
-                +"  public int m3bad(int i) {\n"
-                +"    return i ;\n"
-                +"  }\n"
-                
-                +"  public void m1good(int i) {\n"
-                +"    //@ assume i>0 ;\n"
-                +"    //@ assert i>0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i>0;\n"
-                +"  public void m2good(int i) {\n"
-                +"    //@ assert i>=0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i>=0;\n"
-                +"  //@ ensures \\result>=0;\n"
-                +"  public int m3good(int i) {\n"
-                +"    return i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i>0;\n"
-                +"  //@ also\n"
-                +"  //@ requires i==0;\n"
-                +"  public void m4good(int i) {\n"
-                +"    //@ assert i>=0 ;\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+
+                  public void m1bad(int i) {
+                    //@ assert i>0 ;
+                  }
+                  //@ requires i>=0;
+                  public void m2bad(int i) {
+                    //@ assert i>0 ;
+                  }
+                  //@ requires i>=0;
+                  //@ ensures \\result>0;
+                  public int m3bad(int i) {
+                    return i ;
+                  }
+                  public void m1good(int i) {
+                    //@ assume i>0 ;
+                    //@ assert i>0 ;
+                  }
+                  //@ requires i>0;
+                  public void m2good(int i) {
+                    //@ assert i>=0 ;
+                  }
+                  //@ requires i>=0;
+                  //@ ensures \\result>=0;
+                  public int m3good(int i) {
+                    return i ;
+                  }
+                  //@ requires i>0;
+                  //@ also
+                  //@ requires i==0;
+                  public void m4good(int i) {
+                    //@ assert i>=0 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m2bad",9
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",5
@@ -263,28 +284,25 @@ public class escall3 extends EscBase {
     @Test
     public void testFieldAccess() {
         addOptions("--check-feasibility=none"); // Part of test
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                 
-                +"  int f; \n"
-                
-                +"  public void m1bad(TestJava o) {\n"
-                +"    //@ assume o.f >0 ;\n"
-                +"    //@ assert f > 0 ;\n"
-                +"  }\n"
-                
-                +"  public void m2bad(@Nullable TestJava o) {\n"
-                +"    //@ assume o.f >0 ;\n"
-                +"  }\n"
-                
-                +"  public void m1good(TestJava o) {\n"
-                +"    //@ assume o.f >0 ;\n"
-                +"    //@ assume o == this ;\n"
-                +"    //@ assert f > 0 ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  int f;
+                  public void m1bad(TestJava o) {
+                    //@ assume o.f >0 ;
+                    //@ assert f > 0 ;
+                  }
+                  public void m2bad(@Nullable TestJava o) {
+                    //@ assume o.f >0 ;
+                  }
+                  public void m1good(TestJava o) {
+                    //@ assume o.f >0 ;
+                    //@ assume o == this ;
+                    //@ assert f > 0 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m2bad",17
                 );
@@ -292,44 +310,40 @@ public class escall3 extends EscBase {
     
     @Test
     public void testArrayAccess() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  //@ requires a.length > 5; \n"
-                +"  public void m1bad(int @Nullable [] a) {\n"
-                +"    //@ assume a[1] == 0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  public void m2bad(int[] a) {\n"
-                +"    //@ assume a[1] == 0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  //@ requires a.length > 5; \n"
-                +"  public void m3bad(int[] a) {\n"
-                +"    //@ assume a[-1] == 0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  //@ requires a.length > 5; \n"
-                +"  //@ requires b.length > 5; \n"
-                +"  public void m4bad(int[] a, int[] b) {\n"
-                +"    //@ assume a[1] == 5 ;\n"
-                +"    //@ assert b[1] == 5 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  //@ requires a.length > 5; \n"
-                +"  public void m1good(int[] a, int[] b) {\n"
-                +"    //@ assume a[1] == 5 ;\n"
-                +"    //@ assume a == b ;\n"
-                +"    //@ assert b[1] ==5 ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires a.length > 5;
+                  public void m1bad(int @Nullable [] a) {
+                    //@ assume a[1] == 0 ;
+                  }
+                  //@ requires a != null;
+                  public void m2bad(int[] a) {
+                    //@ assume a[1] == 0 ;
+                  }
+                  //@ requires a != null;
+                  //@ requires a.length > 5;
+                  public void m3bad(int[] a) {
+                    //@ assume a[-1] == 0 ;
+                  }
+                  //@ requires a != null;
+                  //@ requires a.length > 5;
+                  //@ requires b.length > 5;
+                  public void m4bad(int[] a, int[] b) {
+                    //@ assume a[1] == 5 ;
+                    //@ assert b[1] == 5 ;
+                  }
+                  //@ requires a != null;
+                  //@ requires a.length > 5;
+                  public void m1good(int[] a, int[] b) {
+                    //@ assume a[1] == 5 ;
+                    //@ assume a == b ;
+                    //@ assert b[1] ==5 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1bad",17
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m2bad",17
                 ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (UndefinedNegativeIndex) in method m3bad",17
@@ -339,21 +353,21 @@ public class escall3 extends EscBase {
     
     @Test
     public void testArrayAccess1() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NullableByDefault public class TestJava { \n"
-                
-                +"  public void m1() {\n"
-                +"    int[] a = null;\n"
-                +"    a[0] = 0;\n" // ERROR 
-                +"  }\n"
-                
-                +"  public void m2() {\n"
-                +"    int[] a = null;\n"
-                +"    int i = (a)[0];\n" // ERROR 
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                 import org.jmlspecs.annotation.*;
+                @NullableByDefault public class TestJava {
+                  public void m1() {
+                    int[] a = null;
+                    a[0] = 0;
+                  }
+                  public void m2() {
+                    int[] a = null;
+                    int i = (a)[0];
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1",6
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2",16
                 );
@@ -361,59 +375,56 @@ public class escall3 extends EscBase {
    
     @Test
     public void testArrayLength() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NonNullByDefault public class TestJava { \n"
-                
-                +"  public void m1(int[] c) {\n"
-                +"    //@ assert c != null;\n"
-                +"    //@ assert c.length >= 0; \n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                 import org.jmlspecs.annotation.*;
+                @NonNullByDefault public class TestJava {
+                  public void m1(int[] c) {
+                    //@ assert c != null;
+                    //@ assert c.length >= 0;
+                  }
+                }
+                """
                 );
     }
    
     @Test
     public void testArrayAssign() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  //@ requires a.length > 5; \n"
-                +"  public void m1bad(int @Nullable [] a) {\n"
-                +"    a[1] = 0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  public void m2bad(int[] a) {\n"
-                +"    a[1] = 0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  //@ requires a.length > 5; \n"
-                +"  public void m3bad(int[] a) {\n"
-                +"    a[-1] = 0 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  //@ requires a.length > 5; \n"
-                +"  //@ requires b.length > 5; \n"
-                +"  public void m4bad(int[] a, int[] b) {\n"
-                +"    a[1] = 5 ;\n"
-                +"    //@ assert b[1] ==5 ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  //@ requires a.length > 5; \n" // Line 25
-                +"  public void m1good(int[] a, int[] b) {\n"
-                +"    a[1] = 5;\n"
-                +"    //@ assume a == b ;\n"
-                +"    //@ assert b[1] ==5 ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  //@ requires a.length > 5;
+                  public void m1bad(int @Nullable [] a) {
+                    a[1] = 0 ;
+                  }
+                  //@ requires a != null;
+                  public void m2bad(int[] a) {
+                    a[1] = 0 ;
+                  }
+                  //@ requires a != null;
+                  //@ requires a.length > 5;
+                  public void m3bad(int[] a) {
+                    a[-1] = 0 ;
+                  }
+                  //@ requires a != null;
+                  //@ requires a.length > 5;
+                  //@ requires b.length > 5;
+                  public void m4bad(int[] a, int[] b) {
+                    a[1] = 5 ;
+                    //@ assert b[1] ==5 ;
+                  }
+                  //@ requires a != null;
+                  //@ requires a.length > 5;
+                  public void m1good(int[] a, int[] b) {
+                    a[1] = 5;
+                    //@ assume a == b ;
+                    //@ assert b[1] ==5 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m1bad",17
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m2bad",6
                 ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m3bad",6
@@ -423,51 +434,47 @@ public class escall3 extends EscBase {
 
     @Test
     public void testArrayAssign1() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"@NullableByDefault public class TestJava { \n"
-                
-                +"  int i; static int j[];\n"
-                
-                +"  //@ requires a.length > 3; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  public int m0bada(int[] a) {\n"
-                +"    a[1] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  public int m0badb(int[] a) {\n"
-                +"    a[1] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null && a.length > 3; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == \\old(a[0]); \n"
-                +"  public int m0badc(int[] a) {\n"
-                +"    a[-1] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null && a.length > 3; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == \\old(a[0]); \n" // Line 26
-                +"  public int m1good(int[] a) {\n"
-                +"    a[1] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"  //@ requires a != null && a.length > 3 && i >= 0 && i <= 1; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == \\old(a[0]); \n"
-                +"  public int m1bad(int[] a, int i) {\n"
-                +"    a[i] = 1;\n"
-                +"    return a[0];\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                 import org.jmlspecs.annotation.*;
+                @NullableByDefault public class TestJava {
+                  int i; static int j[];
+                  //@ requires a.length > 3;
+                  //@ assignable \\everything;
+                  public int m0bada(int[] a) {
+                    a[1] = 1;
+                    return a[0];
+                  }
+                  //@ requires a != null;
+                  //@ assignable \\everything;
+                  public int m0badb(int[] a) {
+                    a[1] = 1;
+                    return a[0];
+                  }
+                  //@ requires a != null && a.length > 3;
+                  //@ assignable \\everything;
+                  //@ ensures \\result == \\old(a[0]);
+                  public int m0badc(int[] a) {
+                    a[-1] = 1;
+                    return a[0];
+                  }
+                  //@ requires a != null && a.length > 3;
+                  //@ assignable \\everything;
+                  //@ ensures \\result == \\old(a[0]);
+                  public int m1good(int[] a) {
+                    a[1] = 1;
+                    return a[0];
+                  }
+                  //@ requires a != null && a.length > 3 && i >= 0 && i <= 1;
+                  //@ assignable \\everything;
+                  //@ ensures \\result == \\old(a[0]);
+                  public int m1bad(int[] a, int i) {
+                    a[i] = 1;
+                    return a[0];
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method m0bada",17
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m0badb",6
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m0badc",6
@@ -480,29 +487,26 @@ public class escall3 extends EscBase {
     @Test
     public void testFieldAssign() {
         addOptions("--check-feasibility=none"); // Part of test
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                 
-                +"  int f; \n"
-                
-                +"  public void m1bad(TestJava o) {\n"
-                +"    o.f = 1 ;\n"
-                +"    //@ assert f > 0 ;\n"
-                +"  }\n"
-                
-                +"  public void m2bad(@Nullable TestJava o) {\n"
-                +"    o.f = 1 ;\n"
-                +"    // @ assert f > 0 ;\n"
-                +"  }\n"
-                
-                +"  public void m1good(TestJava o) {\n"
-                +"    o.f = 1 ;\n"
-                +"    //@ assume o == this ;\n"
-                +"    //@ assert f > 0 ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  int f;
+                  public void m1bad(TestJava o) {
+                    o.f = 1 ;
+                    //@ assert f > 0 ;
+                  }
+                  public void m2bad(@Nullable TestJava o) {
+                    o.f = 1 ;
+                    // @ assert f > 0 ;
+                  }
+                  public void m1good(TestJava o) {
+                    o.f = 1 ;
+                    //@ assume o == this ;
+                    //@ assert f > 0 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m2bad",6
                 );
@@ -510,41 +514,38 @@ public class escall3 extends EscBase {
     
     @Test 
     public void testFieldAssign1() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  int i; static int j;\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == 2; \n"
-                +"  public int m1bad(boolean b) {\n"
-                +"    i = 1;\n"
-                +"    if (b) i = 2;\n"
-                +"    return i;\n"
-                +"  }\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == 10; \n"
-                +"  public int m2bad(boolean b) {\n"
-                +"    j = 1;\n"
-                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) this.j = j + 1;\n"
-                +"    return tt.TestJava.j;\n"
-                +"  }\n"
-                
-                +"  //@ requires o != null; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == 1; \n"
-                +"  public int m3bad(TestJava o) {\n"
-                +"    o.i = 1;\n"
-                +"    i = 2;\n"
-                +"    return o.i;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                 import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  int i; static int j;
+                  //@ assignable \\everything;
+                  //@ ensures \\result == 2;
+                  public int m1bad(boolean b) {
+                    i = 1;
+                    if (b) i = 2;
+                    return i;
+                  }
+                  //@ assignable \\everything;
+                  //@ ensures \\result == 10;
+                  public int m2bad(boolean b) {
+                    j = 1;
+                    if (b) TestJava.j = TestJava.j + this.j + j;
+                    if (b) tt.TestJava.j = TestJava.j + this.j + j;
+                    if (b) this.j = j + 1;
+                    return tt.TestJava.j;
+                  }
+                  //@ requires o != null;
+                  //@ assignable \\everything;
+                  //@ ensures \\result == 1;
+                  public int m3bad(TestJava o) {
+                    o.i = 1;
+                    i = 2;
+                    return o.i;
+                  }
+                }
+                """
                     ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                     ,"/tt/TestJava.java:6: verify: Associated declaration",7
                     ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",5
@@ -556,60 +557,57 @@ public class escall3 extends EscBase {
     
     @Test 
     public void testFieldAssign2() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +" import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  int i; static int j;\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures b ==> \\result == 2; \n"
-                +"  public int m1good(boolean b) {\n"
-                +"    i = 1;\n"
-                +"    if (b) i = 2;\n"
-                +"    return i;\n"
-                +"  }\n"
-                
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures b ==> \\result == 10; \n"
-                +"  public int m2good(boolean b) {\n"
-                +"    j = 1;\n"
-                +"    if (b) TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) tt.TestJava.j = TestJava.j + this.j + j;\n"
-                +"    if (b) this.j = j + 1;\n"
-                +"    return tt.TestJava.j;\n"
-                +"  }\n"
-                
-                +"  //@ requires this != o && o != null; \n"
-                +"  //@ assignable \\everything; \n"
-                +"  //@ ensures \\result == 1; \n"
-                +"  public int m3good(TestJava o) {\n"
-                +"    o.i = 1;\n"
-                +"    i = 2;\n"
-                +"    return o.i;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                 import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  int i; static int j;
+                  //@ assignable \\everything;
+                  //@ ensures b ==> \\result == 2;
+                  public int m1good(boolean b) {
+                    i = 1;
+                    if (b) i = 2;
+                    return i;
+                  }
+                  //@ assignable \\everything;
+                  //@ ensures b ==> \\result == 10;
+                  public int m2good(boolean b) {
+                    j = 1;
+                    if (b) TestJava.j = TestJava.j + this.j + j;
+                    if (b) tt.TestJava.j = TestJava.j + this.j + j;
+                    if (b) this.j = j + 1;
+                    return tt.TestJava.j;
+                  }
+                  //@ requires this != o && o != null;
+                  //@ assignable \\everything;
+                  //@ ensures \\result == 1;
+                  public int m3good(TestJava o) {
+                    o.i = 1;
+                    i = 2;
+                    return o.i;
+                  }
+                }
+                """
                 );
     }
     
     @Test
     public void testLet() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  //@ ensures (\\let int k = i; \\result == k);\n"
-                +"  public int m1(int i) {\n"
-                +"     return i;\n"
-                +"  }\n"
-                
-                +"  //@ ensures (\\let int k = 1; \\result == k);\n"
-                +"  public int m1bad(int i) {\n"
-                +"     return 2;\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ ensures (\\let int k = i; \\result == k);
+                  public int m1(int i) {
+                     return i;
+                  }
+                  //@ ensures (\\let int k = 1; \\result == k);
+                  public int m1bad(int i) {
+                     return 2;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",6
                 ,"/tt/TestJava.java:7: verify: Associated declaration",7
                 );
@@ -617,28 +615,26 @@ public class escall3 extends EscBase {
     
     @Test
     public void testAssertionError() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1(int i) {\n"
-                +"     if (i < 0) assert false;\n"
-                +"  }\n"
-                
-                +"  //@ requires i >= 0;\n"
-                +"  public void m1ok(int i) {\n"
-                +"     if (i < 0) assert false;\n"
-                +"  }\n"
-                
-                +"  public void m2(int i) {\n"
-                +"     if (i < 0) throw new AssertionError();\n"
-                +"  }\n"
-                
-                +"  //@ requires i >= 0;\n"
-                +"  public void m2ok(int i) {\n"
-                +"     if (i < 0) throw new AssertionError();\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1(int i) {
+                     if (i < 0) assert false;
+                  }
+                  //@ requires i >= 0;
+                  public void m1ok(int i) {
+                     if (i < 0) assert false;
+                  }
+                  public void m2(int i) {
+                     if (i < 0) throw new AssertionError();
+                  }
+                  //@ requires i >= 0;
+                  public void m2ok(int i) {
+                     if (i < 0) throw new AssertionError();
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m1",17
                 ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m2",17
                 );
@@ -646,20 +642,20 @@ public class escall3 extends EscBase {
     
     @Test
     public void testLet2() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  //@ ensures (\\let int k = i, int j = k; \\result == j);\n"
-                +"  public int m1(int i) {\n"
-                +"     return i;\n"
-                +"  }\n"
-                
-                +"  //@ ensures (\\let int k = 1, int j = k; \\result == j);\n"
-                +"  public int m1bad(int i) {\n"
-                +"     return 2;\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ ensures (\\let int k = i, int j = k; \\result == j);
+                  public int m1(int i) {
+                     return i;
+                  }
+                  //@ ensures (\\let int k = 1, int j = k; \\result == j);
+                  public int m1bad(int i) {
+                     return 2;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",6
                 ,"/tt/TestJava.java:7: verify: Associated declaration",7
                 );
@@ -670,20 +666,20 @@ public class escall3 extends EscBase {
     
     @Test
     public void testNullThrow1() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1bad(int i) throws Exception {\n"
-                +"      if (i == 0) \n"
-                +"         throw null;\n"
-                +"  }\n"
-                
-                +"  public void m2bad(int i, /*@ nullable */ Exception e) throws Exception {\n"
-                +"      if (i == 0) \n"
-                +"         throw e;\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1bad(int i) throws Exception {
+                      if (i == 0)
+                         throw null;
+                  }
+                  public void m2bad(int i, /*@ nullable */ Exception e) throws Exception {
+                      if (i == 0)
+                         throw e;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",16
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m2bad",16
                 );
@@ -691,62 +687,61 @@ public class escall3 extends EscBase {
     
     @Test
     public void testNullThrow2() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  //@ requires i != 0; \n"
-                +"  public void m1good(int i) throws Exception {\n"
-                +"      if (i == 0) \n"
-                +"         throw null;\n"
-                +"  }\n"
-                
-                +"  //@ requires i != 0; \n"
-                +"  public void m2good(int i, Exception e) throws Exception {\n"
-                +"      if (i == 0) \n"
-                +"         throw e;\n"
-                +"  }\n"
-                
-                +"  public void m3good(int i, Exception e) throws Exception {\n"
-                +"      if (i == 0) \n"
-                +"         throw e;\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires i != 0;
+                  public void m1good(int i) throws Exception {
+                      if (i == 0)
+                         throw null;
+                  }
+                  //@ requires i != 0;
+                  public void m2good(int i, Exception e) throws Exception {
+                      if (i == 0)
+                         throw e;
+                  }
+                  public void m3good(int i, Exception e) throws Exception {
+                      if (i == 0)
+                         throw e;
+                  }
+                }
+                """
                 );
     }
     
     @Test public void testNullSynchronized1() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1bad(/*@ nullable */ Object o) throws Exception {\n"
-                +"       synchronized (o) {};\n"
-                +"  }\n"
-                
-                +"  public void m2bad( Object o) throws Exception {\n"
-                +"       synchronized (o) {\n"
-                +"          o = null; };\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1bad(/*@ nullable */ Object o) throws Exception {
+                       synchronized (o) {};
+                  }
+                  public void m2bad( Object o) throws Exception {
+                       synchronized (o) {
+                          o = null; };
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m1bad",21
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",13
                 );
     }
 
     @Test public void testNullSynchronized2() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1good(Object o) throws Exception {\n"
-                +"       synchronized (o) {};\n"
-                +"  }\n"
-                
-                +"  public void m2good(Object o) throws Exception {\n"
-                +"       synchronized (this) {};\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1good(Object o) throws Exception {
+                       synchronized (o) {};
+                  }
+                  public void m2good(Object o) throws Exception {
+                       synchronized (this) {};
+                  }
+                }
+                """
                 );
     }
 
@@ -778,45 +773,39 @@ public class escall3 extends EscBase {
     // FIXME - almost duplicat ewith escnew
     @Test public void testArrayIndex() {
         addOptions("--esc-max-warnings=1");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int f;\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  public int m1bad(int[] a) {\n"
-                +"    return a[10] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  public int m1bada(int[] a) {\n"
-                +"    return a[-1] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10 && i >= 0;\n"
-                +"  public int m1badb(int[] a, int i) {\n"
-                +"    return a[i] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  public int m1good(int[] a) {\n"
-                +"    return a[0] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  public int m1gooda(int[] a) {\n"
-                +"    return a[9] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  //@ requires i >= 3;\n"
-                +"  //@ requires i <= 8;\n"
-                +"  public int m1goodb(int[] a, int i) {\n"
-                +"    return a[i] ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int f;
+                  //@ requires a.length == 10;
+                  public int m1bad(int[] a) {
+                    return a[10] ;
+                  }
+                  //@ requires a.length == 10;
+                  public int m1bada(int[] a) {
+                    return a[-1] ;
+                  }
+                  //@ requires a.length == 10 && i >= 0;
+                  public int m1badb(int[] a, int i) {
+                    return a[i] ;
+                  }
+                  //@ requires a.length == 10;
+                  public int m1good(int[] a) {
+                    return a[0] ;
+                  }
+                  //@ requires a.length == 10;
+                  public int m1gooda(int[] a) {
+                    return a[9] ;
+                  }
+                  //@ requires a.length == 10;
+                  //@ requires i >= 3;
+                  //@ requires i <= 8;
+                  public int m1goodb(int[] a, int i) {
+                    return a[i] ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
@@ -826,50 +815,43 @@ public class escall3 extends EscBase {
 
     @Test
     public void testArrayIndex1() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int f;\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  public int m1bad(int[] a) {\n"
-                +"    return a[10] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  public int m1bada(int[] a) {\n"
-                +"    return a[-1] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i > 1 && a.length == 10;\n"
-                +"  public int m1badb(int[] a, int i) {\n"
-                +"    return a[i] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i < 5 && a.length == 10;\n"
-                +"  public int m1badc(int[] a, int i) {\n"
-                +"    return a[i] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  public int m1good(int[] a) {\n"
-                +"    return a[0] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  public int m1gooda(int[] a) {\n"
-                +"    return a[9] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  //@ requires i >= 3;\n"
-                +"  //@ requires i <= 8;\n"
-                +"  public int m1goodb(int[] a, int i) {\n"
-                +"    return a[i] ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int f;
+                  //@ requires a.length == 10;
+                  public int m1bad(int[] a) {
+                    return a[10] ;
+                  }
+                  //@ requires a.length == 10;
+                  public int m1bada(int[] a) {
+                    return a[-1] ;
+                  }
+                  //@ requires i > 1 && a.length == 10;
+                  public int m1badb(int[] a, int i) {
+                    return a[i] ;
+                  }
+                  //@ requires i < 5 && a.length == 10;
+                  public int m1badc(int[] a, int i) {
+                    return a[i] ;
+                  }
+                  //@ requires a.length == 10;
+                  public int m1good(int[] a) {
+                    return a[0] ;
+                  }
+                  //@ requires a.length == 10;
+                  public int m1gooda(int[] a) {
+                    return a[9] ;
+                  }
+                  //@ requires a.length == 10;
+                  //@ requires i >= 3;
+                  //@ requires i <= 8;
+                  public int m1goodb(int[] a, int i) {
+                    return a[i] ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",13
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method m1bada",13
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1badb",13
@@ -879,25 +861,23 @@ public class escall3 extends EscBase {
 
     @Test
     public void testArrayValue() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int f;\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  //@ ensures \\result == a[1];\n"
-                +"  public int m1bad(int[] a) {\n"
-                +"    return a[0] ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 10;\n"
-                +"  //@ ensures \\result == a[0];\n"
-                +"  public int m1good(int[] a) {\n"
-                +"    return a[0] ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int f;
+                  //@ requires a.length == 10;
+                  //@ ensures \\result == a[1];
+                  public int m1bad(int[] a) {
+                    return a[0] ;
+                  }
+                  //@ requires a.length == 10;
+                  //@ ensures \\result == a[0];
+                  public int m1good(int[] a) {
+                    return a[0] ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:5: verify: Associated declaration",7
                 );
@@ -908,22 +888,22 @@ public class escall3 extends EscBase {
     @Test
     public void testHavocB() {
     	addOptions("--method=m1");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"/*@ nullable_by_default*/ public class TestJava { \n"
-                +"  /*@ non_null */ public TestJava ooo;\n"
-                +"  /*@ non_null */ public static TestJava sooo;\n"
-                
-                +"  public void m1(boolean b, /*@ non_null */ TestJava o) {\n"
-                +"    ooo = o; sooo = o;\n"
-                +"    if (b) meverything();\n"
-                +"    //@ assert ooo != null;\n"
-                +"    //@ assert ooo instanceof TestJava;\n"
-                +"  }\n"
-                
-                +"  public void meverything() {\n"
-                +"  }\n"
-                                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ nullable_by_default*/ public class TestJava {
+                  /*@ non_null */ public TestJava ooo;
+                  /*@ non_null */ public static TestJava sooo;
+                  public void m1(boolean b, /*@ non_null */ TestJava o) {
+                    ooo = o; sooo = o;
+                    if (b) meverything();
+                    //@ assert ooo != null;
+                    //@ assert ooo instanceof TestJava;
+                  }
+                  public void meverything() {
+                  }
+                }
+                """
                 );
         }
 
@@ -948,55 +928,53 @@ public class escall3 extends EscBase {
     @Test
     public void testHavocA() {
     	addOptions("--exclude=TestJava");
-        helpEsc("tt.TestJava","package tt; \n"
-                +"/*@ nullable_by_default*/ public class TestJava { \n"
-                +"  /*@ non_null */ public TestJava ooo;\n"
-                +"  /*@ non_null */ public static TestJava sooo;\n"
-                
-                +"  public void m1(boolean b, /*@ non_null */ TestJava o) {\n"
-                +"    ooo = o; sooo = o;\n"
-                +"    if (b) meverything();\n"
-                +"    //@ assert ooo != null;\n"
-                +"    //@ assert ooo instanceof TestJava;\n"
-                +"  }\n"
-                
-                +"  //@ assignable ooo;\n"
-                +"  public void meverything() {\n"
-                +"  }\n"
-                                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ nullable_by_default*/ public class TestJava {
+                  /*@ non_null */ public TestJava ooo;
+                  /*@ non_null */ public static TestJava sooo;
+                  public void m1(boolean b, /*@ non_null */ TestJava o) {
+                    ooo = o; sooo = o;
+                    if (b) meverything();
+                    //@ assert ooo != null;
+                    //@ assert ooo instanceof TestJava;
+                  }
+                  //@ assignable ooo;
+                  public void meverything() {
+                  }
+                }
+                """
                 );
         }
 
     @Test
     public void testAssignment() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1bad(boolean i) {\n"
-                +"    int x = 0 ;\n"
-                +"    if (i) x = 1; else x = 2; ;\n"
-                +"    x = x + 1 ;\n"
-                +"    //@ assert x < 3 ;\n"
-                +"  }\n"
-                
-                +"  public void m1ok(boolean i) {\n"
-                +"    int x = 0 ;\n"
-                +"    if (i) x = 1; else x = 2; ;\n"
-                +"    x = x + 1 ;\n"
-                +"    //@ assert x < 4 ;\n"
-                +"  }\n"
-                
-                +"  public void m2ok(boolean i) {\n"
-                +"    int x = 10 ;\n"
-                +"    int y ;\n"
-                +"    x = (y = x + 1) + 2 ;\n"
-                +"    //@ assert x == 13 ;\n"
-                +"    //@ assert y == 11 ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1bad(boolean i) {
+                    int x = 0 ;
+                    if (i) x = 1; else x = 2; ;
+                    x = x + 1 ;
+                    //@ assert x < 3 ;
+                  }
+                  public void m1ok(boolean i) {
+                    int x = 0 ;
+                    if (i) x = 1; else x = 2; ;
+                    x = x + 1 ;
+                    //@ assert x < 4 ;
+                  }
+                  public void m2ok(boolean i) {
+                    int x = 10 ;
+                    int y ;
+                    x = (y = x + 1) + 2 ;
+                    //@ assert x == 13 ;
+                    //@ assert y == 11 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m1bad",9
                 );
         }
@@ -1004,87 +982,80 @@ public class escall3 extends EscBase {
 
     @Test public void testAssignOp1() {
         addOptions("--esc-max-warnings=1");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int f;\n"
-                
-                +"  //@ requires j < 1000 && -1000 < j; ensures \\result == j+j+1;\n"
-                +"  public int m1good(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i+=j+1) ;\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  public int f;
+                  //@ requires j < 1000 && -1000 < j;
+                  //@ ensures \\result == j+j+1;
+                  public int m1good(int j) {
+                    int i = j ;
+                    return (i+=j+1) ;
+                  }
+                }
+                """
                 );
     }
 
     @Test public void testAssignOp1Div() {
         Assume.assumeTrue(runLongTests);
         addOptions("--esc-max-warnings=1");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int f;\n"
-                
-                +"  //@ requires j != 0;\n"
-                +"  public int m2good(int j) {\n"
-                +"    int i = j ;\n"  // Line 20
-                +"    return (i/=j) ;\n"
-                +"  }\n"
-                
-                +"  //@ requires t != null;\n"
-                +"  //@ requires i != 0 && i != -1;\n"
-                +"  public void m3(TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
-
-                +"  //@ requires t != null;\n"
-                +"  //@ requires i != 0 && i != -1;\n"
-                +"  //@ assignable \\everything;\n" 
-                +"  public void m3good(TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
-                
-
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  public int f;
+                  //@ requires j != 0;
+                  public int m2good(int j) {
+                    int i = j ;
+                    return (i/=j) ;
+                  }
+                  //@ requires t != null;
+                  //@ requires i != 0 && i != -1;
+                  public void m3(TestJava t, int i) {
+                    t.f /= i ;
+                  }
+                  //@ requires t != null;
+                  //@ requires i != 0 && i != -1;
+                  //@ assignable \\everything;
+                  public void m3good(TestJava t, int i) {
+                    t.f /= i ;
+                  }
+                }
+                """
                 );
     }
 
     @Ignore // takes a long time
     @Test public void testAssignOp2() {
         addOptions("--esc-max-warnings=1");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int f;\n"
-                
-                +"  //@ ensures \\result == j;\n"
-                +"  public int m1bad(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i+=1) ;\n"
-                +"  }\n"
-                
-                +"  public int m2bad(int j) {\n"
-                +"    int i = j ;\n"
-                +"    return (i/=j) ;\n"
-                +"  }\n"
-                
-                +"  //@ assignable t.f;\n"
-                +"  //@ requires t != null;\n"
-                +"  public void m3badb(TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m3badc(@Nullable TestJava t, int i) {\n"
-                +"    t.f /= i ;\n"
-                +"  }\n"
-
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  public int f;
+                  //@ ensures \\result == j;
+                  public int m1bad(int j) {
+                    int i = j ;
+                    return (i+=1) ;
+                  }
+                  public int m2bad(int j) {
+                    int i = j ;
+                    return (i/=j) ;
+                  }
+                  //@ assignable t.f;
+                  //@ requires t != null;
+                  public void m3badb(TestJava t, int i) {
+                    t.f /= i ;
+                  }
+                  //@ requires i != 0;
+                  //@ assignable \\everything;
+                  public void m3badc(@Nullable TestJava t, int i) {
+                    t.f /= i ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
                 ,"/tt/TestJava.java:4: verify: Associated declaration",7
                 ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",14
@@ -1096,54 +1067,48 @@ public class escall3 extends EscBase {
     @Ignore // takes a long time
     @Test public void testAssignOp3() {
         addOptions("--esc-max-warnings=1");
-        helpEsc("tt.TestJava","package tt; import org.jmlspecs.annotation.*; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int f;\n"
-                                
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4bad(@Nullable int[] a, int i) {\n"
-                +"    a[0] /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 4;\n"
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4badb(@NonNull int[] a, int i) {\n"
-                +"    a[-1] /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 4;\n"
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4badc(@NonNull int[] a, int i) {\n"
-                +"    a[4] /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 4;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4badd(@NonNull int[] a, int i) {\n"
-                +"    a[0] /= i ;\n"
-                +"  }\n"
-                
-                +"  //@ requires a.length == 4;\n"
-                +"  //@ requires i != 0;\n"
-                +"  //@ assignable \\everything;\n"
-                +"  public void m4good(@NonNull int[] a, int i) {\n"
-                +"    a[0] /= i ;\n"
-                +"  }\n"
-                
-                +"  public void m10ok(boolean i) {\n"
-                +"    int x = 10 ;\n"
-                +"    int y = 20 ;\n"
-                +"    x = (y += x + 1) + 2 ;\n"
-                +"    //@ assert x == 33 ;\n"
-                +"    //@ assert y == 31 ;\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                public class TestJava {
+                  public int f;
+                  //@ requires i != 0;
+                  //@ assignable \\everything;
+                  public void m4bad(@Nullable int[] a, int i) {
+                    a[0] /= i ;
+                  }
+                  //@ requires a.length == 4;
+                  //@ requires i != 0;
+                  //@ assignable \\everything;
+                  public void m4badb(@NonNull int[] a, int i) {
+                    a[-1] /= i ;
+                  }
+                  //@ requires a.length == 4;
+                  //@ requires i != 0;
+                  //@ assignable \\everything;
+                  public void m4badc(@NonNull int[] a, int i) {
+                    a[4] /= i ;
+                  }
+                  //@ requires a.length == 4;
+                  //@ assignable \\everything;
+                  public void m4badd(@NonNull int[] a, int i) {
+                    a[0] /= i ;
+                  }
+                  //@ requires a.length == 4;
+                  //@ requires i != 0;
+                  //@ assignable \\everything;
+                  public void m4good(@NonNull int[] a, int i) {
+                    a[0] /= i ;
+                  }
+                  public void m10ok(boolean i) {
+                    int x = 10 ;
+                    int y = 20 ;
+                    x = (y += x + 1) + 2 ;
+                    //@ assert x == 33 ;
+                    //@ assert y == 31 ;
+                  }
+                }
+                """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-9
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m4bad",-6
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m4bad",-6
@@ -1155,29 +1120,27 @@ public class escall3 extends EscBase {
 
   
     @Test public void testArrays() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1bad( int /*@ nullable*/[] a, int i) {\n"
-                +"      a[1] = 9;\n"
-                +"  }\n"
-                
-                +"  //@ requires i < a.length; \n"
-                +"  public void m2bad(int[] a, int i) {\n"
-                +"      a[i] = 9;\n"
-                +"  }\n"
-                
-                +"  //@ requires i >= 0; \n"
-                +"  public void m3bad(int[] a, int i) {\n"
-                +"      a[i] = 9;\n"
-                +"  }\n"
-                
-                +"  //@ requires i >= 0 && i < a.length; \n"
-                +"  public void m1good(int[] a, int i) {\n"
-                +"      a[i] = 9;\n"
-                +"  }\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1bad( int /*@ nullable*/[] a, int i) {
+                      a[1] = 9;
+                  }
+                  //@ requires i < a.length;
+                  public void m2bad(int[] a, int i) {
+                      a[i] = 9;
+                  }
+                  //@ requires i >= 0;
+                  public void m3bad(int[] a, int i) {
+                      a[i] = 9;
+                  }
+                  //@ requires i >= 0 && i < a.length;
+                  public void m1good(int[] a, int i) {
+                      a[i] = 9;
+                  }
+                }
+                """
                 ,anyorder(
                         seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m1bad",8),
                         seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method m1bad",8)
@@ -1188,206 +1151,201 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1(int[] a) {\n"
-                +"      //@ assume a != null && a.length > 1;\n"
-                +"      a[0] = 9;\n"
-                +"  }\n"
-                
-                +"  public void m2(Integer[] a, Integer i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-                
-                +"  public void m3(Integer[] a, Integer i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      //@ assume \\elemtype(\\typeof(a)) == \\type(Integer);\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-                
-                +"  public void m4bad(Integer[] a, Object i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-                
-                +"  static class A {}\n"
-                +"  static class B extends A {}\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1(int[] a) {
+                      //@ assume a != null && a.length > 1;
+                      a[0] = 9;
+                  }
+                  public void m2(Integer[] a, Integer i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  public void m3(Integer[] a, Integer i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      //@ assume \\elemtype(\\typeof(a)) == \\type(Integer);
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  public void m4bad(Integer[] a, Object i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  static class A {}
+                  static class B extends A {}
+                }
+                """
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
                 );
     }
 
     @Test public void testArrayType1Bug() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m1(int[] a) {\n"
-                +"      //@ assume a != null && a.length > 1;\n"
-                +"      a[0] = 9;\n"
-                +"  }\n"
-                
-                +"  public void m2bad(String[] a, Integer i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-                
-                +"  public void m3(String[] a, String i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      //@ assume \\elemtype(\\typeof(a)) == \\type(String);\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-                
-                +"  public void m4bad(String[] a, Object i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-                
-                +"  static class A {}\n"
-                +"  static class B extends A {}\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1(int[] a) {
+                      //@ assume a != null && a.length > 1;
+                      a[0] = 9;
+                  }
+                  public void m2bad(String[] a, Integer i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  public void m3(String[] a, String i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      //@ assume \\elemtype(\\typeof(a)) == \\type(String);
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  public void m4bad(String[] a, Object i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  static class A {}
+                  static class B extends A {}
+                }
+                """
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m2bad",12
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m4bad",12
                 );
     }
     
     @Test public void testArrayType2() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m3a(Integer[] a, Integer i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-
-                +"  public void m5bad(A[] a, B i) {\n" // FAILS because 'a' might have a dynamic type that does not hold a B
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-
-                +"  public void m5(A[] a, B i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      //@ assume \\type(B) <:= \\elemtype(\\typeof(a));\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-
-                +"  static class A {}\n"
-                +"  static class B extends A {}\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m3a(Integer[] a, Integer i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  public void m5bad(A[] a, B i) { // FAILS because 'a' might have a dynamic type that does not hold a B
+                      //@ assume a != null && a.length > 1 && i != null;
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  public void m5(A[] a, B i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      //@ assume \\type(B) <:= \\elemtype(\\typeof(a));
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  static class A {}
+                  static class B extends A {}
+                }
+                """
                 ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyBadArrayAssignment) in method m5bad",12
                 );
     }
     
     @Test public void testArrayType2Bug() { // TODO: CVC4 takes 186 sec
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public void m3a(String[] a, String i) {\n"
-                +"      //@ assume a != null && a.length > 1 && i != null;\n"
-                +"      Object[] o = a;\n"
-                +"      o[0] = i;\n"
-                +"  }\n"
-
-                +"  static class A {}\n"
-                +"  static class B extends A {}\n"
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m3a(String[] a, String i) {
+                      //@ assume a != null && a.length > 1 && i != null;
+                      Object[] o = a;
+                      o[0] = i;
+                  }
+                  static class A {}
+                  static class B extends A {}
+                }
+                """
                 );
     }
     
     
     @Test public void testMethodWithConstructorNameFixed() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public byte[] b;\n"
-                +"  //@ public invariant b != null && b.length == 20;\n"
-                
-                +"  public TestJava(int i) {\n"
-                +"      b = new byte[20];\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public byte[] b;
+                  //@ public invariant b != null && b.length == 20;
+                  public TestJava(int i) {
+                      b = new byte[20];
+                  }
+                }
+                """
                 );
     }
     
     @Test public void testMultiException() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public void m() {}\n"
-                +"  public void mm() {\n"
-                +"  try {\n"
-                +"    m();\n"
-                +"  } catch (NullPointerException|ArithmeticException e) {\n"
-                +"     //@ assert e instanceof NullPointerException || e instanceof ArithmeticException;\n"
-                +"  }}\n"
-                
-                
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {}
+                  public void mm() {
+                  try {
+                    m();
+                  } catch (NullPointerException|ArithmeticException e) {
+                     //@ assert e instanceof NullPointerException || e instanceof ArithmeticException;
+                  }}
+                }
+                """
                 );
     }
     
     @Test public void testExceptionTypeC() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public void mm(int i) throws ClassNotFoundException, NoSuchMethodException {\n"
-                +"  try {\n"
-                +"    if (i == 0) throw new ClassNotFoundException();\n"
-                +"    if (i == 1) throw new NoSuchMethodException();\n"
-                +"  } catch (Exception e) {\n"
-                +"     throw e;\n"
-                +"  }}\n"
-                
-                
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void mm(int i) throws ClassNotFoundException, NoSuchMethodException {
+                  try {
+                    if (i == 0) throw new ClassNotFoundException();
+                    if (i == 1) throw new NoSuchMethodException();
+                  } catch (Exception e) {
+                     throw e;
+                  }}
+                }
+                """
                 );
     }
     
     @Test public void testExceptionType() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-        		+"  //@ signals_only NullPointerException, ArithmeticException;\n"
-                +"  public void mm(int i) throws NullPointerException, ArithmeticException {\n"
-                +"  try {\n"
-                +"    if (i == 0) throw new NullPointerException();\n"
-                +"    if (i == 1) throw new ArithmeticException();\n"
-                +"  } catch (Exception e) {\n"
-                +"     throw e;\n"
-                +"  }}\n"
-                
-                
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ signals_only NullPointerException, ArithmeticException;
+                  public void mm(int i) throws NullPointerException, ArithmeticException {
+                  try {
+                    if (i == 0) throw new NullPointerException();
+                    if (i == 1) throw new ArithmeticException();
+                  } catch (Exception e) {
+                     throw e;
+                  }}
+                }
+                """
                 );
     }
     
     @Test public void testExceptionTypeB() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-        		+"  //@ signals_only NullPointerException;\n"
-                +"  public void mm(int i) throws NullPointerException {\n"
-                +"  try {\n"
-                +"    if (i == 0) throw new NullPointerException();\n"
-                +"    if (i == 1) throw new ArithmeticException();\n"
-                +"  } catch (Exception e) {\n"
-                +"     throw e;\n"
-                +"  }}\n"
-                
-                
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ signals_only NullPointerException;
+                  public void mm(int i) throws NullPointerException {
+                  try {
+                    if (i == 0) throw new NullPointerException();
+                    if (i == 1) throw new ArithmeticException();
+                  } catch (Exception e) {
+                     throw e;
+                  }}
+                }
+                """
                 ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (ExceptionList) in method mm",6
                 ,"/tt/TestJava.java:3: verify: Associated declaration",7
                 );
@@ -1395,18 +1353,19 @@ public class escall3 extends EscBase {
     
     @Test public void testExceptionType2() {
     	expectedExit = 1;
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                +"  public void mm(int i) throws ClassNotFoundException {\n"
-                +"  try {\n"
-                +"    if (i == 0) throw new ClassNotFoundException();\n"
-                +"    if (i == 1) throw new NoSuchMethodException();\n"
-                +"  } catch (Exception e) {\n"
-                +"     throw e;\n"
-                +"  }}\n"
-                
-                
-                +"}\n"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void mm(int i) throws ClassNotFoundException {
+                  try {
+                    if (i == 0) throw new ClassNotFoundException();
+                    if (i == 1) throw new NoSuchMethodException();
+                  } catch (Exception e) {
+                     throw e;
+                  }}
+                }
+                """
                 ,"/tt/TestJava.java:8: error: unreported exception java.lang.NoSuchMethodException; must be caught or declared to be thrown", 6
                 ,optional("/tt/TestJava.java:8: verify: The prover cannot establish an assertion (ExceptionList) in method mm",6)
                 );
@@ -1414,24 +1373,22 @@ public class escall3 extends EscBase {
     }
     
     @Test public void testMethodWithConstructorNameOK() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public byte[] b;\n"
-                +"  //@ public invariant b != null && b.length == 20;\n"
-
-                +"  public TestJava(int i) {\n"
-                +"      b = new byte[20];\n"
-                +"  }\n"
-
-                // The following method - not constructor - note the return type
-                // appears to be legal Java
-                +"  public void TestJava(int i) {\n"
-                +"      b = new byte[20];\n"
-                +"  }\n"
-                
-                
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public byte[] b;
+                  //@ public invariant b != null && b.length == 20;
+                  public TestJava(int i) {
+                      b = new byte[20];
+                  }
+                  // The following method - not constructor - note the return type
+                  // appears to be legal Java
+                  public void TestJava(int i) {
+                      b = new byte[20];
+                  }
+                }
+                """
                 );
     }
     
@@ -1459,31 +1416,33 @@ public class escall3 extends EscBase {
     
     // Checks boxing conversion on assignment to a field
     @Test public void testBoxingOnAssignment() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public int b;\n"
-                +"  public Integer bb;\n"
-
-                +"  public TestJava(Integer b, int bb) {\n"
-                +"    this.b = b;\n"
-                +"    this.bb = bb;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int b;
+                  public Integer bb;
+                  public TestJava(Integer b, int bb) {
+                    this.b = b;
+                    this.bb = bb;
+                  }
+                }
+                """
                 );
     }
     
     // A problem from MHuisman, with String initialization and invariants
     @Test public void testStringInitialization() {
-        helpEsc("tt.TestJava","package tt; \n"
-                +"public class TestJava { \n"
-                
-                +"  public String x = new String();\n"
-
-                +"  public TestJava(String xx) {\n"
-                +"    this.x = xx;\n"
-                +"  }\n"
-                +"}"
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public String x = new String();
+                  public TestJava(String xx) {
+                    this.x = xx;
+                  }
+                }
+                """
                 );
     }
     
