@@ -96,9 +96,13 @@ ZIPCMD := zip
 ## OS name used to select the correct Solvers subfolder
 UNAME := $(shell uname)
 ANAME := $(shell uname -m)
+## Under WSL, uname returns Linux but /proc/version contains "microsoft"
+IS_WSL := $(shell grep -si microsoft /proc/version 2>/dev/null)
 ifeq ($(UNAME),Darwin)
   OS_NAME := macos
 else ifeq ($(UNAME),Windows)
+  OS_NAME := windows
+else ifneq ($(IS_WSL),)
   OS_NAME := windows
 else ifeq ($(ANAME),aarch64)
   OS_NAME := linux-arm64

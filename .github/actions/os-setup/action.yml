@@ -37,11 +37,12 @@ runs:
       uses: Vampire/setup-wsl@v6
       with:
         distribution: Ubuntu-24.04
-        additional-packages: autoconf
-      ##uses: egor-tensin/setup-cygwin@v3
-      ##with:
-      ##  platform: x64
-      ##  packages: cmake python3 autoconf make zip unzip ar m4 free file gawk cpio
+        additional-packages: autoconf make zip unzip file cpio m4
+    - name: Set up MSVC environment for Windows
+      if: runner.os == 'Windows'
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
     - name: WSL additions
       if: runner.os == 'Windows'
       shell: wsl-bash

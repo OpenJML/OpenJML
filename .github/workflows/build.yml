@@ -35,7 +35,7 @@ jobs:
         ## Each entry: os = GitHub runner, label = artifact/zip name suffix.
         ## Two macOS entries share the macos-14 (ARM) runner; the x86_64 build
         ## runs under arch -x86_64 (Rosetta 2) to produce an Intel binary.
-        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"} ]' >> "$GITHUB_OUTPUT"
+        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-latest","label":"windows"} ]' >> "$GITHUB_OUTPUT"
 
   prepare:
     runs-on: ubuntu-24.04
@@ -107,6 +107,7 @@ jobs:
         arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
 
     - name: Check current GitHub release number against version.txt
+      shell: bash
       run: |
         export ver=`cat OpenJML/version.txt`
         export tag=$(curl --silent --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
@@ -114,6 +115,7 @@ jobs:
         test "$ver" = "$tag" || echo "Version $ver from version.txt does not match the release tag, which is $tag"
 
     - name: Copy zip for upload
+      shell: bash
       run: |
         export ver=`cat OpenJML/version.txt`
         export f=openjml-${{ matrix.label }}-${ver}.zip
@@ -150,6 +152,7 @@ jobs:
       with:
         name: openjml-release-${{ matrix.label }}-${{ github.run_id }}
     - name: Copy OpenJML build into GitHub release
+      shell: bash
       run: |
         export ver=${{ needs.prepare.outputs.version }}
         export f=openjml-${{ matrix.label }}-${ver}.zip
