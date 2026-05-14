@@ -27,10 +27,17 @@ runs:
       if: runner.os == 'Windows'
       shell: wsl-bash {0}
       run: |
-        cd OpenJML/OpenJMLsrc
+        # OpenJDK configure fails when TOPDIR is on a Windows mount (/mnt/...).
+        # Copy everything to the WSL-native filesystem first.
+        src=$(pwd)
+        mkdir -p ~/openjml
+        cp -rp "$src/OpenJML" "$src/Specs" "$src/Solvers" "$src/JMLAnnotations" "$src/openjml.github.io" "$src/OpenJMLDemo" ~/openjml/
+        cd ~/openjml/OpenJML/OpenJMLsrc
         ./configure
         make release
-        cd ..
+        # Copy the zip back to the Windows-side path that the upload step expects
+        mkdir -p "$src/OpenJML/OpenJMLsrc/release-temp"
+        cp release-temp/openjml.zip "$src/OpenJML/OpenJMLsrc/release-temp/"
     - name: Build OpenJML release on non-Windows (native)
       if: runner.os != 'Windows' && inputs.arch != 'x86_64'
       shell: bash
