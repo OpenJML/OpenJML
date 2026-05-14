@@ -33,10 +33,12 @@ runs:
         # toolchain_microsoft.m4 is patched to use VCINSTALLDIR/INCLUDE/LIB when
         # automatic VS detection via fixpath/cmd.exe fails (e.g. no 8.3 short names).
         echo "=== Windows build environment ==="
-        echo "VCINSTALLDIR=${VCINSTALLDIR}"
-        echo "VS170COMNTOOLS=${VS170COMNTOOLS}"
-        echo "INCLUDE (first 200): ${INCLUDE:0:200}"
-        echo "LIB (first 200): ${LIB:0:200}"
+        echo "VCINSTALLDIR=${VCINSTALLDIR:-<unset>}"
+        echo "VS170COMNTOOLS=${VS170COMNTOOLS:-<unset>}"
+        echo "INCLUDE (first 200): ${INCLUDE:-<unset>}"
+        echo "LIB (first 200): ${LIB:-<unset>}"
+        echo "=== MSVC-related env vars ==="
+        env | grep -iE 'vc|visual|msvc|include|lib|program|windows|sdk' | sort || true
         echo "=== cmd.exe test ==="
         /mnt/c/Windows/System32/cmd.exe /q /c echo "CMD_OK" 2>/dev/null || echo "cmd.exe not working"
         echo "=== 8.3 name test ==="
