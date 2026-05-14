@@ -45,7 +45,7 @@ runs:
         arch: x64
     - name: WSL additions
       if: runner.os == 'Windows'
-      shell: wsl-bash {0}
+      shell: bash
       run: |
         echo 'sep=:' >> $GITHUB_ENV
 
