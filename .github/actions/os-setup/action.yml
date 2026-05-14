@@ -37,7 +37,7 @@ runs:
       uses: Vampire/setup-wsl@v6
       with:
         distribution: Ubuntu-24.04
-        additional-packages: autoconf make zip unzip file cpio m4
+        additional-packages: autoconf make zip unzip file cpio m4 openjdk-21-jdk
     - name: Set up MSVC environment for Windows
       if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
