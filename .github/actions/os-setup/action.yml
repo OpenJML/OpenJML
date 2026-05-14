@@ -45,9 +45,9 @@ runs:
         arch: x64
     - name: WSL additions
       if: runner.os == 'Windows'
-      shell: bash
+      shell: pwsh
       run: |
-        echo 'sep=:' >> $GITHUB_ENV
+        echo 'sep=:' >> $env:GITHUB_ENV
 
     - name: setup python
       uses: actions/setup-python@v6
