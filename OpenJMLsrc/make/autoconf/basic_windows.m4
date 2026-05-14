@@ -86,7 +86,15 @@ AC_DEFUN([BASIC_SETUP_PATHS_WINDOWS],
   AC_SUBST(WINENV_ROOT)
 
   AC_MSG_CHECKING([$WINENV_VENDOR temp directory])
-  WINENV_TEMP_DIR=$($PATHTOOL -u $($CMD /q /c echo %TEMP% 2> /dev/null) | $TR -d '\r\n')
+  dnl OpenJML: quote the wslpath call and fall back to /tmp when cmd.exe is
+  dnl unavailable or TEMP cannot be converted (e.g. GitHub Actions WSL2 runners).
+  dnl Without this, wslpath prints its usage to stdout, which gets embedded in
+  dnl FIXPATH_ARGS and causes fixpath.sh to receive spurious options like -a.
+  [ wintemp_win="$($CMD /q /c echo %TEMP% 2>/dev/null | $TR -d '\r\n')"
+    if test "x$wintemp_win" != x; then
+      WINENV_TEMP_DIR="$($PATHTOOL -u "$wintemp_win" 2>/dev/null | $TR -d '\r\n')"
+    fi
+    test -d "$WINENV_TEMP_DIR" || WINENV_TEMP_DIR="/tmp" ]
   AC_MSG_RESULT([$WINENV_TEMP_DIR])
 
   if test "x$OPENJDK_BUILD_OS_ENV" = "xwindows.wsl2"; then
