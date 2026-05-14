@@ -17,21 +17,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout OpenJML repos (Windows - clone to WSL native filesystem)
-      if: runner.os == 'Windows'
-      shell: wsl-bash {0}
-      run: |
-        git config --global core.autocrlf input
-        mkdir -p /tmp/openjml
-        cd /tmp/openjml
-        git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/Specs
-        git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
-        git clone -b master --depth 1 https://github.com/OpenJML/Solvers
-        git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
-        git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
     - name: Checkout OpenJML repos
-      if: runner.os != 'Windows'
       shell: bash
       run: |
         git config --global core.autocrlf input
