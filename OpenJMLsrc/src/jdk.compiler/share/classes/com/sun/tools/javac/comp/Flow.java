@@ -1252,7 +1252,7 @@ public class Flow {
                 pendingExits = new ListBuffer<>();
                 alive = Liveness.ALIVE;
                 scan(tree);
-            } finally {
+           } finally {
                 pendingExits = null;
                 Flow.this.make = null;
             }

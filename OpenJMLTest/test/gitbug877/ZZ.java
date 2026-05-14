@@ -1,4 +1,4 @@
-// This crashes when compiled with --rac; an equivalent using old-style 'case ...:... break;' does not crash
+// This crashed when compiled with --rac; an equivalent using old-style 'case ...:... break;' does not crash
 public class ZZ {
   public static void main(String... args) {
     //@ ghost \bigint z = \bigint.one*10;

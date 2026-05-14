@@ -74,18 +74,22 @@ public class escnewBoxing extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt;
-                /*@ nullable_by_default*/ public class TestJava {
+                /*@ nullable_by_default*/
+                public class TestJava {
                   Integer i = 5;
                   int k = i;
-                  { //@ assert k == 5;
+                  { //@ assert k == 5; }
+                  { Integer j = 6;
+                    int m = j;
+                    //@ assert m == 6;
+                  }
+                  { Integer j = null;
+                    int m = j;
+                  }
                 }
-                  { Integer j = 6; int m = j; //@ assert m == 6;
-                }
-                  { Integer j = null; int m = j;
-                }
-                }"""
+                """
                 ,
-                "/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method TestJava",31
+                "/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method TestJava",13
                 );
     }
 
@@ -94,15 +98,19 @@ public class escnewBoxing extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt;
-                /*@ nullable_by_default*/ public class TestJava {
+                /*@ nullable_by_default*/
+                public class TestJava {
                   public void m(int i) {;
-                  Integer k = i ; int m = 0;
-                  switch (k) {
-                    case 1: m = 1; break;
-                    case 2: m = i; break;
-                    default: m = i; break;
-                  } //@ assert m == i;
-                }}
+                    Integer k = i;
+                    int m = 0;
+                    switch (k) {
+                      case 1: m = 1; break;
+                      case 2: m = i; break;
+                      default: m = i; break;
+                    }
+                    //@ assert m == i;
+                  }
+                }
                 """
                 );
     }
@@ -148,17 +156,43 @@ public class escnewBoxing extends EscBase {
         helpEsc("tt.TestJava",
                 """
                 package tt;
-                /*@ nullable_by_default*/ public class TestJava {
+                /*@ nullable_by_default*/
+                public class TestJava {
                   public void m(int i) {;
-                  Integer k = null ; int m = 0;
-                  switch (k) {
-                    case 1: m = 1; break;
-                    case 2: m = i; break;
-                    default: m = i; break;
-                  } //@ assert m == i;
-                }}
+                    Integer k = null;
+                    int m = 0;
+                    switch (k) {
+                      case 1: m = 1; break;
+                      case 2: m = i; break;
+                      default: m = i; break;
+                    }
+                    //@ assert m == i;
+                  }
+                }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",11
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m",12
+                );
+    }
+
+    @Test
+    public void testSwitchNullB() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class TestJava {
+                  public void m(int i) {;
+                    Integer k = null;
+                    int m = 0;
+                    switch (k) {
+                      case 1: m = 1; break;
+                      case 2: m = i; break;
+                      case null, default: m = i; break;
+                    }
+                    //@ assert m == i;
+                  }
+                }
+                """
                 );
     }
 

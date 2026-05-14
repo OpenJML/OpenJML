@@ -748,11 +748,10 @@ public class escTryWithResources extends EscBase {
                 import java.io.*;
                 public class A {
                     //@ requires resource != null;
-                    //@ signals_only IOException;
                     public static <S extends Closeable, R extends S> void use(R resource)
                             throws IOException {
                         try (resource) {
-                            resource.toString();
+                            var r = resource;
                         }
                     }
                 }
@@ -768,7 +767,6 @@ public class escTryWithResources extends EscBase {
                 import java.io.*;
                 public class A {
                     //@ requires resource != null;
-                    //@ signals_only IOException;
                     public static <R extends Closeable & Serializable> void use(R resource)
                             throws IOException {
                         try (resource) {
@@ -829,7 +827,7 @@ public class escTryWithResources extends EscBase {
                     void process(/*@ non_null */ InputStream existing) throws IOException {
                         try (existing;
                              BufferedReader br = new BufferedReader(new InputStreamReader(existing))) {
-                            System.out.println(br.readLine());
+                            ;
                         }
                     }
                 }
@@ -846,7 +844,7 @@ public class escTryWithResources extends EscBase {
                             /*@ non_null */ InputStream extra) throws IOException {
                         try (R r = resource;
                              extra) {
-                            System.out.println(r);
+                            ;
                         }
                     }
                 }

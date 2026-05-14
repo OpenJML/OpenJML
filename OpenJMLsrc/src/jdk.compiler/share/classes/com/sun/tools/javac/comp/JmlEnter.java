@@ -460,7 +460,7 @@ public class JmlEnter extends Enter {
 					//enterScope(specEnv).enter(sourceDecl.sym); // FIXME - review -= can occur for enums, anonymous classes
 					sourceDecl.specsDecl.sym = sourceDecl.sym; // sym will have the source classfile
 			        super.classEnter(sourceDecl.typarams, env); // Enter the already typed type-parameters from the source decl so we have the same symbols in source and specs // FIXME - was classTPEnter
-					postClassCreation(sourceDecl, env, env);
+					postClassCreation(sourceDecl, env, env); // This line is needed, but why?
 				} else if (env.tree instanceof JmlCompilationUnit sourceCU) { // enclosing env is a comp unit
 					sourceCU.specsCompilationUnit.packge = sourceCU.packge; // package symbol has a sourcefile, which is the
 					                                                        // source's, not the spec's
@@ -493,6 +493,28 @@ public class JmlEnter extends Enter {
 			utils.error(sourceDecl.sourcefile, sourceDecl, "jml.internal", "A source class that does not have a specs class: " + sourceDecl.sym);
 			sourceDecl.specsDecl = specDecl = sourceDecl; // Recovery from an error situation
 		}
+		
+		ClassSymbol csym = sourceDecl.sym;
+//		if (csym.isInterface() ) { // && csym.permitted != null && !csym.permitted.isEmpty() && csym.isSealed() ) {
+//		    try {
+//		    var p = sourceDecl.pos;
+//		    var tu = JmlTreeUtils.instance(context);
+//		    var decl = tu.makeVarDef(csym.type, Names.instance(context).fromString("z"), csym, p);
+//		    var id = tu.makeIdent(p, decl.sym);
+//		    id.type = csym.type;
+//		    JCExpression ex = tu.makeEqNull(p, id);
+//            ex.type = syms.booleanType;
+//		    for (var cl: csym.permitted) {
+//		        var inst = tu.makeInstanceOf(p, id, tu.makeType(p, csym.type));
+//		        ex = tu.makeOr(p, ex, inst);
+//		        ex.type = syms.booleanType;
+//		    }
+//		    System.out.println("AXIOM " + ex);
+//		    //var fr = JmlFactory.instance(context).QuantifiedExpression()
+//		    } catch (Exception e) {
+//		        e.printStackTrace(System.out);
+//		    }
+//		}
 
 		JmlSpecs.instance(context).putSpecs(sourceDecl.sym, new JmlSpecs.TypeSpecs(specDecl, sourceDecl, env));
 

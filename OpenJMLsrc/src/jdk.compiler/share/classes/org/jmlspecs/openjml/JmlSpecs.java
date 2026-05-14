@@ -721,6 +721,7 @@ public class JmlSpecs {
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
         if (utils.verbose()) System.out.println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec);
+        //if (type.toString().contains("Shape")) { System.out.println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec); Utils.dumpStack(); }
         spec.csymbol = type;
         specsTypes.put(type,spec);
         setStatus(type, SpecsStatus.SPECS_LOADED);

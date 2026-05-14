@@ -163,7 +163,7 @@ public class escswitch extends EscBase {
                     String show(Expr e) {
                         return switch (e) {
                             case Lit(String v) -> v;
-                            case Neg(Expr inner) -> "-" + show(inner);
+                            case Neg(Expr inner) -> "-"; //  + show(inner);
                         };
                     }
                 }

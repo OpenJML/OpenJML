@@ -1690,22 +1690,22 @@ public class escall3 extends EscBase {
               //@ ghost \\bigint z = \\bigint.one*10;
               for (int i = 0; i<5; i++) {
                   switch (i) {
-                      case 0 -> { /*@ show (byte)(z+Byte.MAX_VALUE); */}
-                      case 1 -> { /*@ show (short)(z+Short.MAX_VALUE); */}
-                      case 2 -> { /*@ show (char)(z+Character.MAX_VALUE); */}
-                      case 3 -> { /*@ show (int)(z+Integer.MAX_VALUE); */}
-                      default -> { /*@ show (long)(z+Long.MAX_VALUE); */}
+                      case 0 -> { /*@ ghost var x1 = (byte)(z+Byte.MAX_VALUE); */}
+                      case 1 -> { /*@ ghost var x2 = (short)(z+Short.MAX_VALUE); */}
+                      case 2 -> { /*@ ghost var x3 = (char)(z+Character.MAX_VALUE); */}
+                      case 3 -> { /*@ ghost var x4 = (int)(z+Integer.MAX_VALUE); */}
+                      default -> { /*@ ghost var x5 = (long)(z+Long.MAX_VALUE); */}
                    }
               }
             }
         }
         """
         ,anyorder(
-             seq("/tt/ZZ.java:6: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
-             ,seq("/tt/ZZ.java:7: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
-             ,seq("/tt/ZZ.java:8: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
-             ,seq("/tt/ZZ.java:9: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",36)
-             ,seq("/tt/ZZ.java:10: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",37)
+             seq("/tt/ZZ.java:6: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",46)
+             ,seq("/tt/ZZ.java:7: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",46)
+             ,seq("/tt/ZZ.java:8: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",46)
+             ,seq("/tt/ZZ.java:9: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",46)
+             ,seq("/tt/ZZ.java:10: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method main",47)
              )
         );
     }

@@ -1158,6 +1158,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					while (iter.hasNext()) {
 						convert(iter.next());
 					}
+					
+					// Need to set the fields before we evaluate the postconditions
+					// (Even though OpenJDK will set them again)
+					for (Symbol sym : classDecl.sym.getEnclosedElements()) {
+					    if (sym.kind == Kinds.Kind.VAR
+					            && (sym.flags() & Flags.RECORD) != 0) {
+					        for (JCVariableDecl param : methodDecl.params) {
+					            if (param.name == sym.name) {
+					                JCExpression field =
+					                        treeutils.makeSelect(param.pos, currentEnv.currentReceiver, sym);
+					                JCExpression paramExpr =
+					                        treeutils.makeIdent(param.pos, param.sym);
+					                addStat(treeutils.makeAssignStat(param.pos, field, paramExpr));
+					                break;
+					            }
+					        }
+					    }
+					}
+
 				} finally {
 				    // FIXME - don't know whether execution is still alive here
 					newMainBody = popBlock(methodDecl.body == null ? methodDecl : methodDecl.body, checkZ);
@@ -7009,7 +7028,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            var d = newTempDecl(that, uniqueTempString("switchResult_"), that.type);
 	            addStat(d);
 	            currentEnv.yieldIdent = treeutils.makeIdent(that.pos, d.sym);
-	            JCSwitch newSwitch = switchHelper(that, that.isExhaustive, that.selector, that.cases);
+	            JCSwitch newSwitch = switchHelper(that, that.isExhaustive, that.patternSwitch, that.selector, that.cases);
 	            newSwitch.setType(that.type);
 	            newSwitch.hasUnconditionalPattern = that.hasUnconditionalPattern;
 	            newSwitch.patternSwitch = that.patternSwitch;
@@ -7174,13 +7193,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    }
 	}
 
-	public JCSwitch switchHelper(DiagnosticPosition pos, boolean isExhaustive, JCExpression switchExpr, List<JCCase> cases) {
+	public JCSwitch switchHelper(DiagnosticPosition pos, boolean isExhaustive, boolean isPatternSwitch, JCExpression switchExpr, List<JCCase> cases) {
 	    JCExpression selector = switchCheck(switchExpr, cases);
+	    if (!isPatternSwitch && types.unboxedType(selector.type) != Type.noType) {
+	        selector = addImplicitConversion(selector, syms.intType, selector);
+	    }
 	    JCSwitch newswitch = M.at(pos).Switch(selector, null); // cases filled in later, but we need the new tree reference now
 	    newswitch.isExhaustive = isExhaustive;
 	    // treeMap is used to map break statements to their target statements
         treeMap.put((JCTree)pos, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
 	    try {
+	        // A JCCase with : just has a _case.stats statement list
+	        // A JCCase with -> has a body (with matches the source), but also a stats list, which is just the single statement from the body
 	        ListBuffer<JCCase> newcases = new ListBuffer<>();
 	        // The value of Continuation says whether it is possible for control flow to continue after the switch
 	        // CONTINUE if any branch is CONTINUE (not HALT or EXIT) -- does not consider whether the branch is feasible
@@ -7205,17 +7229,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            addFeasibilityCheck(_case, currentStatements, Strings.feas_switch, "after case condition");
 	            convert(_case.stats); // This might change 'continuation'
                 currentEnv.inArrowCase = prevArrow;
-//	            if (isArrow && _case.completesNormally) {
+//	            if (!rac && isArrow && _case.completesNormally) {
+//	                // For compilation, Lower.java inserts a break at the end of the stats list
 //	                JCBreak brk = M.at(_case).Break(null);
 //	                brk.target = newswitch;
 //	                addStat(brk);
 //	            }
 	            JCBlock bl = popBlock(_case);
+//                System.out.println("CASE " + isArrow + " " + _case.completesNormally + " " + bl);
 	            // Have to be careful about blocks
 	            // If the case had a block, it must still have a block
 	            // If the case did not have a block and is not an arrow case, then it must stay not a block // FIXME - not sure about this -- I think can always turn into a block
 	            // Otherwise it does not matter.
-	            var newcase = M.at(_case).Case(_case.caseKind, _case.labels, _case.guard, bl.stats, bl);
+	            JCCase newcase;
+	            if (rac) {
+	                newcase = M.at(_case).Case(_case.caseKind, _case.labels, _case.guard, bl.stats, _case.body);
+	            } else {
+                    newcase = M.at(_case).Case(JCCase.STATEMENT, _case.labels, _case.guard, bl.stats, null);
+	            }
+	            newcase.completesNormally = _case.completesNormally;
 	            newcases.add(newcase);
 	            combined = combined.combine(continuation); // FIXME - does this all work for fall-through cases
 	            if (continuation == Continuation.CONTINUE) collectedStates.add(saveState()); // FIXME - don't collect if we cannot continue
@@ -7253,7 +7285,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         addStat(traceableComment(that, that, "switch " + that.getExpression() + " ...", "Selection"));
 		boolean split = that instanceof JmlSwitchStatement && ((JmlSwitchStatement) that).split;
 		if (!split || currentSplit == null || rac || infer) {
-		    JCSwitch newSwitch = switchHelper(that, that.isExhaustive, that.selector, that.cases);
+		    JCSwitch newSwitch = switchHelper(that, that.isExhaustive, that.patternSwitch, that.selector, that.cases);
 		    newSwitch.hasUnconditionalPattern = that.hasUnconditionalPattern;
             newSwitch.patternSwitch = that.patternSwitch;
             newSwitch.wasEnumSelector = that.wasEnumSelector;
@@ -7282,7 +7314,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		        popBlock(that);
 		        treeMap.remove(that);
 		        notImplementedW(that, "split switch translation for default with guarded pattern cases");
-		        JCSwitch newSwitch = switchHelper(that, that.isExhaustive, that.selector, that.cases);
+		        JCSwitch newSwitch = switchHelper(that, that.isExhaustive, that.patternSwitch, that.selector, that.cases);
+	            newSwitch.hasUnconditionalPattern = that.hasUnconditionalPattern;
+	            newSwitch.patternSwitch = that.patternSwitch;
+	            newSwitch.wasEnumSelector = that.wasEnumSelector;
 		        ((JmlSwitchStatement) newSwitch).split = ((JmlSwitchStatement) that).split;
 		        result = addStat(newSwitch.setType(that.type));
 		        return;
@@ -7403,8 +7438,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    decl.mods.flags |= Flags.FINAL; // implicitly final
 		    resourceSym = decl.sym;
 	        stats.add(decl);
-		} else if (resource instanceof JCIdent id) {
-		    resourceSym = (VarSymbol)id.sym;
+        } else if (resource instanceof JCIdent id) {
+            resourceSym = (VarSymbol)id.sym;
+        } else if (resource instanceof JCFieldAccess fa) {
+            resourceSym = (VarSymbol)fa.sym;
+		} else {
+		    utils.error(that, "jml.internal", "Try expression has unexpected type: " + resource + " " + resource.getClass());
 		}
 
 		Name throwableName = names.fromString("__JMLthrowableException_" + resource.pos);
@@ -8104,10 +8143,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    if (currentEnv.yieldIdent != null) {
 	        var e = convertExpr(that.value);
             e = addImplicitConversion(that, currentEnv.yieldIdent.type, e);
-	        addStat(treeutils.makeAssignStat(that.pos, copy(currentEnv.yieldIdent), e));
-	        if (!currentEnv.inArrowCase) {
-	            addStat(M.at(that.pos).Break(null));
-	        }
+            addStat(treeutils.makeAssignStat(that.pos, copy(currentEnv.yieldIdent), e)); // FIXME - yeild not at end of block
+            if (esc) addStat(M.at(that.pos).Break(null));  // FIXME _ what if the yield is inside a loop inside a switch
+	        //}
 	    } else {
 	        // This error should always have been caught by JmlAttr
 	        utils.error(that, "jml.internal", "This yield statement is not inside a switch");
