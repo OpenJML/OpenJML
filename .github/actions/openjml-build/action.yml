@@ -27,15 +27,9 @@ runs:
       if: runner.os == 'Windows'
       shell: wsl-bash {0}
       run: |
-        # OpenJDK configure fails when TOPDIR is on a Windows mount (/mnt/...).
-        # Copy everything to the WSL-native filesystem first.
+        # Repos were cloned into ~/openjml (WSL-native filesystem) to avoid
+        # OpenJDK configure failures on Windows-mount paths (/mnt/...).
         src=$(pwd)
-        mkdir -p ~/openjml
-        for repo in OpenJML Specs Solvers JMLAnnotations openjml.github.io OpenJMLDemo; do
-          echo "Copying $repo ..."
-          cp -rp "$src/$repo" ~/openjml/
-          echo "Done copying $repo"
-        done
         cd ~/openjml/OpenJML/OpenJMLsrc
         ./configure
         make release

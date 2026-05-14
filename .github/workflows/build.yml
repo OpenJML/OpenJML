@@ -95,7 +95,15 @@ jobs:
     - name: OS setup
       uses: ./ACTIONS/.github/actions/os-setup/
 
+    - name: Checkout OpenJML (Windows - clone to WSL native filesystem)
+      if: runner.os == 'Windows'
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
+      with:
+        branch: ${{ env.BRANCH }}
+        folder: ~/openjml
+
     - name: Checkout OpenJML
+      if: runner.os != 'Windows'
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ env.BRANCH }}
