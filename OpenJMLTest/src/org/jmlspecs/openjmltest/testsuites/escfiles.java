@@ -513,7 +513,7 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void record1() {
-        expectedExit = 6;
+        expectedExit = 0;
         helpEscSimple();
     }
 

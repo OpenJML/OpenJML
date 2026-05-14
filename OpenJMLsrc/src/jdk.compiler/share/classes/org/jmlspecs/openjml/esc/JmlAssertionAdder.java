@@ -7041,7 +7041,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    }
 	}
 
-	protected boolean hasNullCase(List<JCCase> cases) {
+	protected static boolean hasNullCase(List<JCCase> cases) {
 	    for (JCCase c: cases) {
 	        for (JCCaseLabel l: c.labels) {
 	            if (TreeInfo.isNullCaseLabel(l)) return true;
@@ -7195,11 +7195,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public JCSwitch switchHelper(DiagnosticPosition pos, boolean isExhaustive, boolean isPatternSwitch, JCExpression switchExpr, List<JCCase> cases) {
 	    JCExpression selector = switchCheck(switchExpr, cases);
-	    if (!isPatternSwitch && types.unboxedType(selector.type) != Type.noType) {
-	        selector = addImplicitConversion(selector, syms.intType, selector);
+	    JCExpression nnull = null;
+	    if (selector.type.isReference()) {
+	        nnull = treeutils.makeNotNull(selector,selector);
 	    }
 	    JCSwitch newswitch = M.at(pos).Switch(selector, null); // cases filled in later, but we need the new tree reference now
 	    newswitch.isExhaustive = isExhaustive;
+	    if (selector.type.isPrimitive() || selector.type.tsym == syms.stringType.tsym || isPatternSwitch || selector.type.tsym.isEnum()) {
+	        newswitch.primitiveSelector = selector;
+	    } else {
+	        newswitch.primitiveSelector = createUnboxingExpr(selector);
+	    }
 	    // treeMap is used to map break statements to their target statements
         treeMap.put((JCTree)pos, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
 	    try {
@@ -7241,11 +7247,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            // If the case had a block, it must still have a block
 	            // If the case did not have a block and is not an arrow case, then it must stay not a block // FIXME - not sure about this -- I think can always turn into a block
 	            // Otherwise it does not matter.
+	            JCExpression guard = null; // convert(_case.guard);
 	            JCCase newcase;
 	            if (rac) {
 	                newcase = M.at(_case).Case(_case.caseKind, _case.labels, _case.guard, bl.stats, _case.body);
 	            } else {
-                    newcase = M.at(_case).Case(JCCase.STATEMENT, _case.labels, _case.guard, bl.stats, null);
+                    newcase = M.at(_case).Case(JCCase.STATEMENT, _case.labels, guard, bl.stats, null);
 	            }
 	            newcase.completesNormally = _case.completesNormally;
 	            newcases.add(newcase);
@@ -8143,7 +8150,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    if (currentEnv.yieldIdent != null) {
 	        var e = convertExpr(that.value);
             e = addImplicitConversion(that, currentEnv.yieldIdent.type, e);
-            addStat(treeutils.makeAssignStat(that.pos, copy(currentEnv.yieldIdent), e)); // FIXME - yeild not at end of block
+            addStat(treeutils.makeAssignStat(that.pos, copy(currentEnv.yieldIdent), e)); // FIXME - what if yield not at end of block
             if (esc) addStat(M.at(that.pos).Break(null));  // FIXME _ what if the yield is inside a loop inside a switch
 	        //}
 	    } else {
@@ -13921,7 +13928,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	protected boolean alreadyConverted = false;
 
-	// Presume exactly one element with thast name
+	// Presume exactly one element with that name
 	protected MethodSymbol getMethod(Type type, Name nm) {
 		Iterator<Symbol> iter = type.tsym.members().getSymbolsByName(nm).iterator();
 		if (iter.hasNext())

@@ -1280,4 +1280,40 @@ public class racnew3 extends RacBase {
                 ,"/tt/TestJava.java:19: JML assertion is false"
                 );
     }
+    
+    public void testSwitchPrimitiveWhen() {
+        helpRacText("tt.A", """
+                package tt;
+                public class A {
+                    //@ ensures (n == 0 && b) ==> \\result == 1;
+                    //@ ensures (n == 0 && !b) ==> \\result == -1;
+                    //@ ensures n != 0 ==> \\result == 0;
+                    public static int coerce(int n, boolean b) {
+                        return switch (n) {
+                            case 0 when b -> 1;
+                            case 0 when !b -> -1;
+                            default -> 0;
+                        };
+                    }
+                }
+                """);
+    }
+    
+    public void testSwitchPrimitiveWhenFail() {
+        helpRacText("tt.A", """
+                package tt;
+                public class A {
+                    //@ ensures (n == 0 && b) ==> \\result == 1;
+                    //@ ensures (n == 0 && !b) ==> \\result == -10;
+                    //@ ensures n != 0==> \\result == 0;
+                    public static int coerce(int n, boolean b) {
+                        return switch (n) {
+                            case 0 when b -> 1;
+                            case 0 when !b -> -1;
+                            default -> 0;
+                        };
+                    }
+                }
+                """);
+    }
 }

@@ -748,10 +748,15 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
     // FIXME - need to implement/test for switch expressions that are Strings or Enums
     @Override
     public void visitSwitch(JCSwitch that) { 
+        var hasNullCase = JmlAssertionAdder.hasNullCase(that.cases);
         currentBlock.statements.add(comment(that.pos(),"switch ..."));
+        JCExpression nn = null;
+        if (hasNullCase && that.selector.type.isReference()) {
+            nn = treeutils.makeNotNull(that.selector, that.selector);
+        }
         int pos = that.pos;
         int swpos = that.selector.getStartPosition();
-        scan(that.selector);
+        if (that.primitiveSelector != null) scan(that.primitiveSelector); else scan(that.selector);
         JCExpression switchExpression = result;
         List<JCCase> cases = that.cases;
         T previousBreakBlock = breakBlocks.get(names.empty);
@@ -773,6 +778,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
             program.declarations.add(vd);
 
             JCExpression newexpr = treeutils.makeBinary(swpos,JCTree.Tag.EQ,vd,switchExpression);
+            if (nn != null) newexpr = treeutils.makeImplies(newexpr, nn, newexpr);
             addAssume(swpos,switchExpression,Label.SWITCH_VALUE,newexpr,currentBlock.statements);
             T switchStart = currentBlock;
 
@@ -812,7 +818,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 	utils.error(casepos, "jml.message", "Switch on string is not yet implemented");
                 	eqq = treeutils.trueLit;
                 } else {
+                    boolean hasNull = false;
                 	for (JCExpression caseValue: caseValues) {
+                	    hasNull |= TreeInfo.isNullCaseLabel(caseItem.labels.get(0));
+                	    if (caseItem.labels.size() > 1) hasNull |= TreeInfo.isNullCaseLabel(caseItem.labels.get(1));
                 		JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
                 		JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
                 		eqq = eqq == null ? eq : treeutils.makeOr(casepos, eqq, eq);
@@ -823,8 +832,14 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 	if (eqq == null && !isDefault) {
                 		eqq = treeutils.trueLit;
                 	}
+                    if (nn != null && hasNull) eqq = treeutils.makeAnd(eqq, nn, eqq);
                 }
                 JmlStatementExpr asm = addAssume(caseItem.pos,Label.CASECONDITION,eqq,blockForTest.statements);
+                if (caseItem.guard != null) {
+                    // FIXME - use endpos
+                    //eqq = treeutils.makeAnd()
+//                    addAssume(caseItem.guard.pos, Label.CASECONDITION, caseItem.guard, blockForTest.statements);
+                }
 
                 // continue to build up the default case test
                 if (isDefault) defaultAsm = asm; // remember the assumption for the default case

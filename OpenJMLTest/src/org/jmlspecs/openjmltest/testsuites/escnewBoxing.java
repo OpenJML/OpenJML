@@ -176,6 +176,7 @@ public class escnewBoxing extends EscBase {
 
     @Test
     public void testSwitchNullB() {
+        //addOptions("--show","--method=m");
         helpEsc("tt.TestJava",
                 """
                 package tt;
