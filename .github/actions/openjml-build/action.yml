@@ -31,7 +31,11 @@ runs:
         # the path, but NTFS is case-insensitive so the lowercased path still works.
         # basic_windows.m4 is patched to provide a valid WINENV_TEMP_DIR fallback.
         cd OpenJML/OpenJMLsrc
-        ./configure
+        # /usr/bin/javac is a symlink; resolve it so configure gets a valid JDK home
+        # rather than incorrectly deducing /usr from the symlink's directory.
+        BOOT_JDK=$(readlink -f /usr/bin/javac | sed 's|/bin/javac||')
+        echo "Using Boot JDK: $BOOT_JDK"
+        ./configure --with-boot-jdk="$BOOT_JDK"
         make release
     - name: Build OpenJML release on non-Windows (native)
       if: runner.os != 'Windows' && inputs.arch != 'x86_64'
