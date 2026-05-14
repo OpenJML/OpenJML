@@ -31,7 +31,11 @@ runs:
         # Copy everything to the WSL-native filesystem first.
         src=$(pwd)
         mkdir -p ~/openjml
-        cp -rp "$src/OpenJML" "$src/Specs" "$src/Solvers" "$src/JMLAnnotations" "$src/openjml.github.io" "$src/OpenJMLDemo" ~/openjml/
+        for repo in OpenJML Specs Solvers JMLAnnotations openjml.github.io OpenJMLDemo; do
+          echo "Copying $repo ..."
+          cp -rp "$src/$repo" ~/openjml/
+          echo "Done copying $repo"
+        done
         cd ~/openjml/OpenJML/OpenJMLsrc
         ./configure
         make release
