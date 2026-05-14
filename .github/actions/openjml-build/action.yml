@@ -27,10 +27,10 @@ runs:
       if: runner.os == 'Windows'
       shell: wsl-bash {0}
       run: |
-        # Repos were cloned into ~/openjml (WSL-native filesystem) to avoid
+        # Repos were cloned into /tmp/openjml (WSL-native filesystem) to avoid
         # OpenJDK configure failures on Windows-mount paths (/mnt/...).
         src=$(pwd)
-        cd ~/openjml/OpenJML/OpenJMLsrc
+        cd /tmp/openjml/OpenJML/OpenJMLsrc
         ./configure
         make release
         # Copy the zip back to the Windows-side path that the upload step expects

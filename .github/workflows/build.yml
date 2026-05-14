@@ -100,7 +100,7 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ env.BRANCH }}
-        folder: ~/openjml
+        folder: /tmp/openjml
 
     - name: Checkout OpenJML
       if: runner.os != 'Windows'
