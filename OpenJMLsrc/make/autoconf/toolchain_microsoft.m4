@@ -389,6 +389,33 @@ AC_DEFUN([TOOLCHAIN_SETUP_VISUAL_STUDIO_ENV],
       # Now we have VS_PATH, VS_INCLUDE, VS_LIB. For further checking, we
       # also define VCINSTALLDIR and WINDOWSSDKDIR. All are in
       # unix style.
+    elif test "x$VCINSTALLDIR" != x && test "x$INCLUDE" != x && test "x$LIB" != x; then
+      dnl OpenJML: VS environment already configured by a preceding step (e.g.
+      dnl ilammy/msvc-dev-cmd in GitHub Actions CI). VCINSTALLDIR, INCLUDE, and
+      dnl LIB are set as Windows paths; convert them to Unix colon-separated
+      dnl paths using wslpath, bypassing the fixpath/cmd.exe dependency entirely.
+      dnl This handles GitHub Actions Windows runners where automatic VS detection
+      dnl fails because paths with spaces require 8.3 short-name conversion via
+      dnl cmd.exe (which may be unavailable or unreliable in WSL at configure time).
+      AC_MSG_NOTICE([OpenJML: using pre-configured Visual Studio environment (VCINSTALLDIR=$VCINSTALLDIR)])
+      TOOLCHAIN_VERSION=2022
+      eval VS_DESCRIPTION="\${VS_DESCRIPTION_2022}"
+      eval VS_VERSION_INTERNAL="\${VS_VERSION_INTERNAL_2022}"
+      eval MSVCR_NAME="\${VS_MSVCR_2022}"
+      eval VCRUNTIME_1_NAME="\${VS_VCRUNTIME_1_2022}"
+      eval MSVCP_NAME="\${VS_MSVCP_2022}"
+      eval USE_UCRT="\${VS_USE_UCRT_2022}"
+      eval VS_SUPPORTED="\${VS_SUPPORTED_2022}"
+      PLATFORM_TOOLSET=v143
+      [ VS_INCLUDE="$(printf '%s\n' "$INCLUDE" | $TR ';' '\n' | while IFS= read -r p; do
+          test -n "$p" || continue
+          u="$($PATHTOOL -u "$p" 2>/dev/null)" && test -n "$u" && printf '%s:' "$u"
+        done | $SED 's/:$//')"
+        VS_LIB="$(printf '%s\n' "$LIB" | $TR ';' '\n' | while IFS= read -r p; do
+          test -n "$p" || continue
+          u="$($PATHTOOL -u "$p" 2>/dev/null)" && test -n "$u" && printf '%s:' "$u"
+        done | $SED 's/:$//')"
+        VS_PATH="" ]
     else
       # We did not find a vsvars bat file.
       AC_MSG_ERROR([Cannot locate a valid Visual Studio installation])
