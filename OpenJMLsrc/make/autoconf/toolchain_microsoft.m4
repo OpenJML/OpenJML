@@ -415,7 +415,17 @@ AC_DEFUN([TOOLCHAIN_SETUP_VISUAL_STUDIO_ENV],
           test -n "$p" || continue
           u="$($PATHTOOL -u "$p" 2>/dev/null)" && test -n "$u" && printf '%s:' "$u"
         done | $SED 's/:$//')"
-        VS_PATH="" ]
+        # Derive VS_PATH (the MSVC compiler bin directory) from VCToolsInstallDir.
+        # An empty VS_PATH would cause TOOLCHAIN_PATH to gain a spurious leading
+        # colon, which adds "." (current dir) to PATH and confuses AC_PATH_PROG.
+        if test -n "$VCToolsInstallDir"; then
+          vc_tools_win="${VCToolsInstallDir%\\}"
+          vc_tools_win="${vc_tools_win%/}"
+          vc_tools_unix="$($PATHTOOL -u "$vc_tools_win" 2>/dev/null)"
+          VS_PATH="${vc_tools_unix}/bin/HostX64/x64"
+        else
+          VS_PATH=""
+        fi ]
     else
       # We did not find a vsvars bat file.
       AC_MSG_ERROR([Cannot locate a valid Visual Studio installation])

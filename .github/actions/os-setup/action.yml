@@ -38,6 +38,18 @@ runs:
       with:
         distribution: Ubuntu-24.04
         additional-packages: autoconf make zip unzip file cpio m4 openjdk-21-jdk
+    - name: Enable WSL interop
+      ## Ubuntu-24.04 starts systemd as PID 1 by default, which prevents the
+      ## WSL init from registering the binfmt_misc handler for Windows PE
+      ## executables.  Without that handler, cmd.exe and cl.exe cannot be run
+      ## from inside WSL (Exec format error).  Disable systemd so that the WSL
+      ## init process stays as PID 1 and interop works normally.  The distro
+      ## must be terminated so the next step picks up the new wsl.conf.
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        wsl.exe -d Ubuntu-24.04 -- bash -c "printf '[boot]\nsystemd=false\n[interop]\nenabled=true\nappendWindowsPath=true\n' | sudo tee /etc/wsl.conf > /dev/null"
+        wsl.exe --terminate Ubuntu-24.04
     - name: Set up MSVC environment for Windows
       if: runner.os == 'Windows'
       uses: ilammy/msvc-dev-cmd@v1
