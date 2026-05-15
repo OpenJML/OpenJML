@@ -11,6 +11,11 @@ BUILDJDK := $(firstword $(wildcard $(SRC)/build/*/jdk))
 NJAVAC   := $(or $(wildcard $(BUILDJDK)/bin/javac.exe),$(BUILDJDK)/bin/javac)
 NJAVA    := $(or $(wildcard $(BUILDJDK)/bin/java.exe),$(BUILDJDK)/bin/java)
 JAR      := jar
+## On Windows, javac.exe is a Windows PE process and does not understand WSL Unix paths.
+## The OpenJDK build produces a configured fixpath wrapper that translates Unix paths to
+## Windows format before exec-ing any Windows binary.  Use it when present (Windows only).
+FIXPATH  := $(wildcard $(dir $(BUILDJDK))fixpath)
+FIXPATH_EXEC := $(if $(FIXPATH),$(FIXPATH) exec)
 
 ## LSP4J jars (downloaded into libs/ on first build)
 LSP4J_VERSION := 1.0.0
@@ -90,7 +95,7 @@ compile: libs check-gson
 	@mkdir -p $(CLASSES)
 	@( . $(SRC)/setup-exports; \
 	   NOJML= \
-	   $(NJAVAC) $$OPENJML_EXPORTS \
+	   $(FIXPATH_EXEC) $(NJAVAC) $$OPENJML_EXPORTS \
 	     -cp $(LSP4J_CP) \
 	     -d $(CLASSES) \
 	     $(JAVASRC) )
