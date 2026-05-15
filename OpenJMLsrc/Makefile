@@ -242,11 +242,13 @@ release-test: .FORCE
 ## Development build targets
 
 ## Builds the openjml executable (without updating version, annotation and tutorial files)
-## NOJML= disables JML during the build of OpenJML itself (since the openjml executable is the javac executable)
+## NOJML=1 disables JML during the build of OpenJML itself (since the openjml executable is the javac executable).
+## A non-empty value is required: on Windows, setting an env var to empty string is equivalent to deleting it,
+## so NOJML= would be invisible to the Windows JVM process (java.exe) and Utils.isJML() would return true.
 ## On WSL, Windows PE binaries (java.exe) only inherit env vars listed in WSLENV; we add NOJML there so
-## the Windows JVM running the interim bootstrap compiler also sees NOJML and returns false from Utils.isJML().
+## the value reaches the Windows JVM running the interim bootstrap compiler.
 openjml: .FORCE
-	NOJML= WSLENV="$${WSLENV:+$$WSLENV:}NOJML" $(MAKE)
+	NOJML=1 WSLENV="$${WSLENV:+$$WSLENV:}NOJML" $(MAKE)
 
 ## Updates the smt code from the jSMTLIB repo 
 ## The repo must be cloned locally and resident at ../../../jSMTLIB relative to the folder holding this Makefile
