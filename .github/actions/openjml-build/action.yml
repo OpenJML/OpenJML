@@ -23,6 +23,14 @@ runs:
   using: 'composite'
   steps:
     ## The expected working directory is OpenJML, that is, the folder that holds OpenJMLsrc
+    - name: Set NOJML for Windows bootstrap build
+      ## NOJML=1 tells Utils.isJML() to return false during the OpenJDK bootstrap compilation.
+      ## Must be a Windows-native env var (set here via GITHUB_ENV) so that java.exe, which
+      ## runs as a Windows PE process, sees it.  Setting NOJML= (empty) does not work on Windows
+      ## because the Win32 API treats an empty-value env var as absent.
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: echo "NOJML=1" >> $env:GITHUB_ENV
     - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
       shell: wsl-bash {0}
