@@ -172,6 +172,7 @@ annotation: .FORCE
 ## Assembles all the components of a release into an openjml.zip file for the host OS. Presumes a build has been successful.
 ## (Could delete $(TEMP) when finished, but we don't to make it easier to check the contents of the result
 post: .FORCE
+	echo "Assembling release"
 	rm -rf $(TEMP)
 	mkdir $(TEMP)
 	cp -pRL jmlruntime.jar $(TEMP)
