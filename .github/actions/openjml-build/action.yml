@@ -32,17 +32,30 @@ runs:
         # basic_windows.m4 is patched to provide a valid WINENV_TEMP_DIR fallback.
         # toolchain_microsoft.m4 is patched to use VCINSTALLDIR/INCLUDE/LIB when
         # automatic VS detection via fixpath/cmd.exe fails (e.g. no 8.3 short names).
+        echo "=== Ensure WSL interop (binfmt_misc) is active ==="
+        # The binfmt_misc WSLInterop handler lets WSL exec Windows PE binaries.
+        # It is normally registered by the WSL init process at distro startup.
+        # If it is missing (e.g. because systemd took over PID 1 before our
+        # wsl.conf change took effect), register it explicitly here so that
+        # cl.exe, java.exe, cmd.exe etc. all work from within WSL.
+        if mountpoint -q /proc/sys/fs/binfmt_misc 2>/dev/null; then
+          if [ ! -e /proc/sys/fs/binfmt_misc/WSLInterop ]; then
+            echo ':WSLInterop:M::MZ::/init:PF' | sudo tee /proc/sys/fs/binfmt_misc/register > /dev/null \
+              && echo "WSLInterop registered" \
+              || echo "WARNING: WSLInterop registration failed"
+          else
+            echo "WSLInterop already registered"
+          fi
+        else
+          sudo mount binfmt_misc -t binfmt_misc /proc/sys/fs/binfmt_misc 2>/dev/null && \
+            echo ':WSLInterop:M::MZ::/init:PF' | sudo tee /proc/sys/fs/binfmt_misc/register > /dev/null \
+            && echo "WSLInterop registered after mounting binfmt_misc" \
+            || echo "WARNING: Could not mount binfmt_misc or register WSLInterop"
+        fi
         echo "=== Windows build environment ==="
         echo "VCINSTALLDIR=${VCINSTALLDIR:-<unset>}"
-        echo "VS170COMNTOOLS=${VS170COMNTOOLS:-<unset>}"
-        echo "INCLUDE (first 200): ${INCLUDE:-<unset>}"
-        echo "LIB (first 200): ${LIB:-<unset>}"
-        echo "=== MSVC-related env vars ==="
-        env | grep -iE 'vc|visual|msvc|include|lib|program|windows|sdk' | sort || true
         echo "=== cmd.exe test ==="
-        /mnt/c/Windows/System32/cmd.exe /q /c echo "CMD_OK" 2>/dev/null || echo "cmd.exe not working"
-        echo "=== 8.3 name test ==="
-        /mnt/c/Windows/System32/cmd.exe /q /c "for %I in (\"C:\\Program Files\") do echo 8DOT3=%~sI" 2>/dev/null || echo "8.3 name test failed"
+        /mnt/c/Windows/System32/cmd.exe /q /c echo "CMD_OK" 2>/dev/null && echo "cmd.exe OK" || echo "cmd.exe not working"
         echo "=== end diagnostics ==="
         cd OpenJML/OpenJMLsrc
         # Use the Windows JDK installed by setup-java as the boot JDK.
