@@ -184,11 +184,12 @@ DEF_Agent_OnLoad(JavaVM *vm, char *options, void *reserved)
     vmInitialized = JNI_FALSE;
     gdata->vmDead = JNI_FALSE;
 
-    jvmtiCompileTimeMajorVersion  = ( (int)JVMTI_VERSION & JVMTI_VERSION_MASK_MAJOR ) // OPENJML -- added casts (needed in Windows) here and following lines
+    // OPENJML -- cast both operands to int to silence MSVC C5287 (different anonymous enum types)
+    jvmtiCompileTimeMajorVersion  = ( (int)JVMTI_VERSION & (int)JVMTI_VERSION_MASK_MAJOR )
                                         >> JVMTI_VERSION_SHIFT_MAJOR;
-    jvmtiCompileTimeMinorVersion  = ( (int)JVMTI_VERSION & JVMTI_VERSION_MASK_MINOR )
+    jvmtiCompileTimeMinorVersion  = ( (int)JVMTI_VERSION & (int)JVMTI_VERSION_MASK_MINOR )
                                         >> JVMTI_VERSION_SHIFT_MINOR;
-    jvmtiCompileTimeMicroVersion  = ( (int)JVMTI_VERSION & JVMTI_VERSION_MASK_MICRO )
+    jvmtiCompileTimeMicroVersion  = ( (int)JVMTI_VERSION & (int)JVMTI_VERSION_MASK_MICRO )
                                         >> JVMTI_VERSION_SHIFT_MICRO;
 
     /* Get the JVMTI Env, IMPORTANT: Do this first! For jvmtiAllocate(). */
