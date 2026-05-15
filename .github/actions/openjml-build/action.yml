@@ -99,8 +99,13 @@ runs:
         arch -x86_64 bash -c "./configure && make release"
         cd ..
     - name: Test the build
-      if: inputs.test == 'true' && ( inputs.arch == 'x86_64' || inputs.os == 'macos-14' )
+      if: inputs.test == 'true' && runner.os != 'Windows' && ( inputs.arch == 'x86_64' || inputs.os == 'macos-14' )
       shell: bash
+      run: |
+        make -C OpenJML/OpenJMLsrc release-test
+    - name: Test the build on Windows
+      if: inputs.test == 'true' && runner.os == 'Windows'
+      shell: wsl-bash {0}
       run: |
         make -C OpenJML/OpenJMLsrc release-test
     - name: Archive build artifact

@@ -184,6 +184,7 @@ post: .FORCE
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* $(TEMP)
+	cp setup-exports.bat setup-vars.bat openjml.bat openjml-*.bat $(TEMP)
 	$(MAKE) openjml-lsp
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
