@@ -1848,6 +1848,7 @@ public class Utils {
     
     com.sun.tools.javac.util.BasicDiagnosticFormatter verifyDiagnosticFormatter = null;
     public void verify(DiagnosticPosition pos, String key, Object ... args) {
+        if (JmlOptions.instance(context).getBoolean(JmlOption.INFER_INVARIANTS.optionName())) return; // Silence verification errors when guessing invariants
     	var df = log().getDiagnosticFormatter();
     	if (verifyDiagnosticFormatter == null) 
     		verifyDiagnosticFormatter = new com.sun.tools.javac.util.BasicDiagnosticFormatter(Options.instance(context),JavacMessages.instance(context)) {

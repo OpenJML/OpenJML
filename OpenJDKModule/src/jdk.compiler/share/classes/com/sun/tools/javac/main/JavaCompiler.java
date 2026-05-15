@@ -1339,9 +1339,23 @@ public class JavaCompiler {
      * @return the list of attributed parse trees
      */
     public Queue<Env<AttrContext>> flow(Queue<Env<AttrContext>> envs) {
+        /* Senior Design Spring Fall 2023
+         * There are multiple ASTs but it seems that only the first one is
+         * for the file you put in. The other ASTs are for dependencies.
+         * So, only running our hook on the first iteration of this for loop
+         */
+        boolean ranLoopInvariantGenratorHook = false;
+        LoopInvariantGenerator loopInvariantGenerator = new LoopInvariantGenerator(this.context);
+
         ListBuffer<Env<AttrContext>> results = new ListBuffer<>();
         for (Env<AttrContext> env: envs) {
             flow(env, results);
+
+            // Senior Design Spring Fall 2023 - call our hook only on first iteration
+            if (!ranLoopInvariantGenratorHook) {
+                loopInvariantGenerator.generateInvariant(env);
+                ranLoopInvariantGenratorHook = true;
+            }
         }
         return stopIfError(CompileState.FLOW, results);
     }

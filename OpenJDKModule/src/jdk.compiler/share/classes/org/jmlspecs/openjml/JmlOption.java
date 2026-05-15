@@ -312,6 +312,9 @@ public class JmlOption {
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("--inline-function-literal",false,true,"Whether to inline function literals",null);
     public static final JmlOption REQUIRE_WS = new JmlOption("--require-white-space",false,!org.jmlspecs.openjml.Main.useJML, "Whether white space is required after the @ in a JML comment", null);
 
+    // Senior Design Spring Fall 2023 group work
+    public static final JmlOption INFER_INVARIANTS = new JmlOption("--infer-invariants",false,false,"experimental: Try to infer loop invariants (output written to '_generated/{filename}')",null);
+
 //    // Options Related to Specification Inference
 //    public static final JmlOption INFER = new JmlOption("-infer",true,"POSTCONDITIONS","Infer missing contracts (postconditions (default), preconditions)","-command=infer");
 //    public static final JmlOption INFER_DEBUG = new JmlOption("-infer-debug", false, false, "Enable debugging of contract inference", null);
