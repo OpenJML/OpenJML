@@ -88,7 +88,8 @@ RELFILES=release-files
 
 ## The built JDK bin tools (jar, java, javac) from the most recent build target
 BUILDJDK := $(firstword $(wildcard $(topdir)/build/*/jdk))
-JAR      := $(BUILDJDK)/bin/jar
+## Use the installed jar from PATH (the same one alongside javac)
+JAR      := jar
 
 ## The zip tool used to assemble the release archive; override on the command line if needed
 ZIPCMD := zip
