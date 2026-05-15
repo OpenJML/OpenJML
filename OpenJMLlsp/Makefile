@@ -5,9 +5,12 @@ LSPROOT     := $(patsubst %/,%,$(mkfile_dir))
 ## Sibling OpenJMLsrc directory
 SRC      := $(LSPROOT)/../OpenJMLsrc
 BUILDJDK := $(firstword $(wildcard $(SRC)/build/*/jdk))
-NJAVAC   := $(BUILDJDK)/bin/javac
-NJAVA    := $(BUILDJDK)/bin/java
-JAR      := $(BUILDJDK)/bin/jar
+## On Windows the built tools have .exe suffix; use wildcard to detect.
+## NJAVAC/NJAVA must be the built OpenJML JDK (contains org.jmlspecs.openjml etc.);
+## JAR can be the installed one from PATH since jar creation needs no OpenJML packages.
+NJAVAC   := $(or $(wildcard $(BUILDJDK)/bin/javac.exe),$(BUILDJDK)/bin/javac)
+NJAVA    := $(or $(wildcard $(BUILDJDK)/bin/java.exe),$(BUILDJDK)/bin/java)
+JAR      := jar
 
 ## LSP4J jars (downloaded into libs/ on first build)
 LSP4J_VERSION := 1.0.0
