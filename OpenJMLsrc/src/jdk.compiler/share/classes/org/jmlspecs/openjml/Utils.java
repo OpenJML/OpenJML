@@ -109,15 +109,6 @@ public class Utils {
     /** cf isJML() */
     static private boolean isjml = System.getenv("NOJML")==null;
 
-    static {
-        String nojml = System.getenv("NOJML");
-        System.err.println("[OpenJML] Utils static init: NOJML=" + (nojml == null ? "<not set>" : "'" + nojml + "'") + "  isjml=" + isjml);
-        System.err.println("[OpenJML] All environment variables:");
-        System.getenv().entrySet().stream()
-            .sorted(java.util.Map.Entry.comparingByKey())
-            .forEach(e -> System.err.println("[OpenJML]   " + e.getKey() + "=" + e.getValue()));
-    }
-
     /** true if openjml is set to process JML (rather than only java).
      * Recall that the openjdk/openjml has a bootstrap compilation cycle.
      * 'isjml' must be false for the bootstrap compilation and then 'true' to actually run openjml
