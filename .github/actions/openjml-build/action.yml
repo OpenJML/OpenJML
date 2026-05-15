@@ -45,9 +45,20 @@ runs:
         /mnt/c/Windows/System32/cmd.exe /q /c "for %I in (\"C:\\Program Files\") do echo 8DOT3=%~sI" 2>/dev/null || echo "8.3 name test failed"
         echo "=== end diagnostics ==="
         cd OpenJML/OpenJMLsrc
-        # /usr/bin/javac is a symlink; resolve it so configure gets a valid JDK home
-        # rather than incorrectly deducing /usr from the symlink's directory.
-        BOOT_JDK=$(readlink -f /usr/bin/javac | sed 's|/bin/javac||')
+        # Use the Windows JDK installed by setup-java as the boot JDK.
+        # The Linux JDK inside WSL cannot be used: during make the build
+        # invokes java as a Windows process via its UNC path
+        # (\\wsl.localhost\...) which fails because the Linux ELF binary is
+        # not a Windows PE executable.
+        # setup-java adds the Windows JDK bin dir to PATH (translated to
+        # /mnt/c/... by WSL), so javac.exe is directly visible here.
+        BOOT_JDK_BIN=$(which javac.exe 2>/dev/null)
+        if [ -n "$BOOT_JDK_BIN" ]; then
+          BOOT_JDK=$(dirname "$BOOT_JDK_BIN" | sed 's|/bin$||')
+        else
+          # Fallback if .exe not found: resolve Linux javac symlink
+          BOOT_JDK=$(readlink -f /usr/bin/javac | sed 's|/bin/javac||')
+        fi
         echo "Using Boot JDK: $BOOT_JDK"
         ./configure --with-boot-jdk="$BOOT_JDK"
         make release
