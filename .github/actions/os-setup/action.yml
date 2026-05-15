@@ -48,6 +48,14 @@ runs:
       shell: pwsh
       run: |
         echo 'sep=:' >> $env:GITHUB_ENV
+        # Forward MSVC variables (set by ilammy/msvc-dev-cmd) into subsequent
+        # wsl-bash steps.  WSLENV lists the Windows env-var names that WSL
+        # inherits when the step launches; without this, they are invisible
+        # inside WSL.  No /l flag: pass values unchanged (Windows format with
+        # backslashes / semicolons) so configure can convert them with wslpath.
+        $msvcVars = "VCINSTALLDIR:VCToolsInstallDir:INCLUDE:LIB:LIBPATH"
+        $current = if ($env:WSLENV) { "$env:WSLENV`:$msvcVars" } else { $msvcVars }
+        echo "WSLENV=$current" >> $env:GITHUB_ENV
 
     - name: setup python
       uses: actions/setup-python@v6
