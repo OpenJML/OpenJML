@@ -208,7 +208,7 @@ public class MethodProverSMT {
                         break;
                     }
                     if (new java.io.File(execi + ".exe").exists()) {
-                        exec = execi;
+                        exec = execi + ".exe";
                         break;
                     }
                 }
