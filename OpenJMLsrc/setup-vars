@@ -26,7 +26,7 @@ if [ -e "$INSTALL/version-info.txt" ]; then
   ## Set OPENJML_SPECS/OPENJML_SOLVERS here so they can be path-translated by WSLENV below.
   if [ -n "$EXE" ]; then
     if [ -z ${OPENJML_SPECS++} ];   then export OPENJML_SPECS="$INSTALL/specs"            ; fi
-    if [ -z ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS="$INSTALL/Solvers-windows" ; fi
+    if [ -z ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS="$INSTALL" ; fi
   fi
   BINJAVA="$INSTALL/jdk/bin/java$EXE"
   BINJAVAC="$INSTALL/jdk/bin/javac$EXE"

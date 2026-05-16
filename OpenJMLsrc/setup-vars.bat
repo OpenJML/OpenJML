@@ -8,7 +8,7 @@ if not defined OPENJML_INSTALL set "OPENJML_INSTALL=%INSTALL%"
 if exist "%INSTALL%\version-info.txt" (
     :: In a release
     if not defined OPENJML_SPECS   set "OPENJML_SPECS=%INSTALL%\specs"
-    if not defined OPENJML_SOLVERS set "OPENJML_SOLVERS=%INSTALL%\Solvers-windows"
+    if not defined OPENJML_SOLVERS set "OPENJML_SOLVERS=%INSTALL%"
     set "BINJAVA=%INSTALL%\jdk\bin\java.exe"
     set "BINJAVAC=%INSTALL%\jdk\bin\javac.exe"
 ) else (
