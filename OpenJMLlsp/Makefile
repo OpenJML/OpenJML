@@ -89,9 +89,10 @@ check-gson:
 	fi
 
 ## Compile the LSP server against the built OpenJML JDK.
-## NOJML=1 disables JML processing in the extended javac (same idiom as in
-## OpenJMLsrc/Makefile) so that JML processing is skipped during compilation.
-## WSLENV forwards NOJML to Windows PE processes (java.exe via binfmt_misc).
+## NOJML=1 disables JML processing in the extended javac so that JML processing
+## is skipped during compilation.  A non-empty value is required on Windows
+## (Win32 API treats an empty env var as absent).  WSLENV forwards NOJML to
+## Windows PE processes (java.exe/javac.exe via binfmt_misc).
 compile: libs check-gson
 	@mkdir -p $(CLASSES)
 	@( . $(SRC)/setup-exports; \

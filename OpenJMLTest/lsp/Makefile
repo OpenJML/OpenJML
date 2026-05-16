@@ -136,8 +136,9 @@ $(LSP_JAR) jar: $(LSP_SRCS)
 
 ## Compile test infrastructure and test cases.
 ## NOJML=1 disables JML processing in the extended javac so that spec-path
-## lookup is skipped during compilation.
-## WSLENV forwards NOJML to Windows PE processes (java.exe via binfmt_misc).
+## lookup is skipped during compilation.  A non-empty value is required on Windows
+## (Win32 API treats an empty env var as absent).  WSLENV forwards NOJML to
+## Windows PE processes (java.exe/javac.exe via binfmt_misc).
 compile: $(LSP_JAR)
 	@mkdir -p $(CLASSES)
 	@( . $(SRC)/setup-exports; \

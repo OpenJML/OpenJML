@@ -245,11 +245,9 @@ release-test: .FORCE
 ## Development build targets
 
 ## Builds the openjml executable (without updating version, annotation and tutorial files)
-## NOJML=1 disables JML during the build of OpenJML itself (since the openjml executable is the javac executable).
-## A non-empty value is required: on Windows the Win32 API treats an empty env var as absent.
-## WSLENV is updated so that WSL forwards NOJML to Windows PE processes (java.exe via binfmt_misc).
+## NOJML= disables JML during the build of OpenJML itself (since the openjml executable is the javac executable)
 openjml: .FORCE
-	NOJML=1 WSLENV="$${WSLENV:+$$WSLENV:}NOJML" $(MAKE)
+	NOJML= $(MAKE)
 
 ## Updates the smt code from the jSMTLIB repo 
 ## The repo must be cloned locally and resident at ../../../jSMTLIB relative to the folder holding this Makefile

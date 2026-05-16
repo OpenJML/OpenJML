@@ -22,6 +22,12 @@ if [ -e "$INSTALL/version-info.txt" ]; then
   ## In a release
   if [ -n ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS ; fi
   if [ -n ${OPENJML_SPECS++} ]; then export OPENJML_SPECS ; fi
+  ## On WSL, Windows PE java.exe cannot see Linux env vars directly.
+  ## Set OPENJML_SPECS/OPENJML_SOLVERS here so they can be path-translated by WSLENV below.
+  if [ -n "$EXE" ]; then
+    if [ -z ${OPENJML_SPECS++} ];   then export OPENJML_SPECS="$INSTALL/specs"            ; fi
+    if [ -z ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS="$INSTALL/Solvers-windows" ; fi
+  fi
   BINJAVA="$INSTALL/jdk/bin/java$EXE"
   BINJAVAC="$INSTALL/jdk/bin/javac$EXE"
 else
@@ -30,4 +36,11 @@ else
   if [ -z ${OPENJML_SPECS++} ]; then export OPENJML_SPECS=$(realpath "$INSTALL"/../../Specs/specs) ; else export OPENJML_SPECS ; fi
   BINJAVA=`echo "$INSTALL"/build/*/jdk/bin/java$EXE`
   BINJAVAC=`echo "$INSTALL"/build/*/jdk/bin/javac$EXE`
+fi
+
+## On WSL: forward OPENJML path vars to Windows PE processes (java.exe/javac.exe),
+## translating Unix paths to Windows format via the WSLENV /p flag.
+## Without this, System.getenv() returns null for these vars in Windows PE processes.
+if [ -n "$EXE" ]; then
+  export WSLENV="${WSLENV:+$WSLENV:}OPENJML_INSTALL/p:OPENJML_SPECS/p:OPENJML_SOLVERS/p"
 fi
