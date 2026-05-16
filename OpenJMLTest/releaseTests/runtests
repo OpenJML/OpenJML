@@ -10,10 +10,11 @@ LOCAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ## current working directory, but does its work in a temporary subdirectory
 
 Z=:
-if [[ "$COMSPEC" != "" ]] ; then
-Z=';'
-fi
-
+case "$(uname -s)" in
+      CYGWIN*|MINGW*|MSYS*) Z=";" ;;
+      *) Z=":" ;;
+esac
+  
 if [ -z "${ZIPARCHIVE+x}" ]; then
 ## Source the file that sets OPENJML_JVM, if requested because COV is set
   . $LOCAL/../setup-coverage releasetests
@@ -145,7 +146,7 @@ diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-EXC
 java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=exception A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
-diff racstderr ../releaseTests/testRac/expected-exceptions  || { RES=$(($RES+1)); }
+sed -e 'sx\\x/xg' < racstderr | diff - ../releaseTests/testRac/expected-exceptions  || { RES=$(($RES+1)); }
 echo RAC-JA
 java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=javaassert A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-javaassert || { RES=$(($RES+1)); }
@@ -153,11 +154,11 @@ diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-JA-ENABLED
 java -ea -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=javaassert A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
-diff racstderr ../releaseTests/testRac/expected-javaassertenabled  || { RES=$(($RES+1)); }
+sed -e 'sx\\x/xg' < racstderr | diff - ../releaseTests/testRac/expected-javaassertenabled  || { RES=$(($RES+1)); }
 echo RAC-AE
 java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=assertionerror A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
-diff racstderr ../releaseTests/testRac/expected-assertionerror  || { RES=$(($RES+1)); }
+sed -e 'sx\\x/xg' < racstderr | diff -  ../releaseTests/testRac/expected-assertionerror  || { RES=$(($RES+1)); }
 echo RAC-ST
 java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
