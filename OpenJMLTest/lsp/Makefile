@@ -135,12 +135,13 @@ $(LSP_JAR) jar: $(LSP_SRCS)
 	$(MAKE) -C $(LSPROOT) jar
 
 ## Compile test infrastructure and test cases.
-## NOJML= disables JML processing in the extended javac so that spec-path
+## NOJML=1 disables JML processing in the extended javac so that spec-path
 ## lookup is skipped during compilation.
+## WSLENV forwards NOJML to Windows PE processes (java.exe via binfmt_misc).
 compile: $(LSP_JAR)
 	@mkdir -p $(CLASSES)
 	@( . $(SRC)/setup-exports; \
-	   NOJML= \
+	   NOJML=1 WSLENV="$${WSLENV:+$$WSLENV:}NOJML" \
 	   $(NJAVAC) $$OPENJML_EXPORTS \
 	     -cp $(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP) \
 	     -d $(CLASSES) \

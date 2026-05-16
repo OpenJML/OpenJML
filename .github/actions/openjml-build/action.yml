@@ -25,13 +25,6 @@ runs:
     ## The expected working directory is OpenJML, that is, the folder that holds OpenJMLsrc
     - name: Build OpenJML release on Windows
       if: runner.os == 'Windows'
-      ## NOJML=1 tells Utils.isJML() to return false during the OpenJDK bootstrap compilation.
-      ## Scoped to this step only via env: so it does not affect the test step.
-      ## A non-empty value is required: the Win32 API treats an empty env var as absent.
-      ## Setting it here (Windows-native env) makes it visible to java.exe running as a
-      ## Windows PE process via binfmt_misc.
-      env:
-        NOJML: "1"
       shell: wsl-bash {0}
       run: |
         # Source is on the Windows filesystem (/mnt/...). fixpath.sh lowercases

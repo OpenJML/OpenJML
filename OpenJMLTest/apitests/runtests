@@ -27,7 +27,7 @@ for d in $f ; do
        TEST=Test
        CP=.
        if [ -e config ]; then source config ; fi
-       NOJML= njavac $ARGS
+       NOJML=1 WSLENV="${WSLENV:+$WSLENV:}NOJML" njavac $ARGS
        njava -cp $CP $TEST > actual 2>&1
        stat=$?
        if [ -e expected ]; then

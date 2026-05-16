@@ -97,7 +97,7 @@ bash configure
 
 # Build the OpenJML compiler/JDK (development build)
 make openjml
-# Equivalent to: NOJML= make  (the NOJML var disables JML checking during build)
+# Equivalent to: NOJML=1 WSLENV="${WSLENV:+$WSLENV:}NOJML" make  (NOJML=1 disables JML checking; WSLENV forwards it to Windows PE processes)
 
 # Build the runtime jar (needed for RAC testing)
 make jmlruntime.jar
