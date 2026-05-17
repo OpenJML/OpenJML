@@ -109,7 +109,8 @@ runs:
         # stdbuf forces line-buffered stdout/stderr so test progress appears in the
         # Actions output pane in real time rather than only at the end of the test run.
         # (wsl-bash pipes output through wsl.exe which is fully buffered by default)
-        stdbuf -oL -eL make -C OpenJML/OpenJMLsrc release-test || true
+        stdbuf -oL -eL make -C OpenJML/OpenJMLsrc release-test 2>&1 \
+          | grep --line-buffered -vE '^fixpath:|Entering directory|Leaving directory' || true
     - name: Archive build artifact
       if: inputs.upload == 'true'
       shell: bash
