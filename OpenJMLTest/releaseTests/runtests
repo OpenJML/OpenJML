@@ -9,10 +9,10 @@ LOCAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
-Z=:
+Z=":"
 case "$(uname -s)" in
-      CYGWIN*|MINGW*|MSYS*) Z=";" ;;
-      *) Z=":" ;;
+    CYGWIN*|MINGW*|MSYS*) Z=";" ;;
+    Linux) grep -qi microsoft /proc/version 2>/dev/null && Z=";" ;;
 esac
   
 if [ -z "${ZIPARCHIVE+x}" ]; then
