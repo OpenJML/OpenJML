@@ -9,19 +9,31 @@
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the path to this script file
 INSTALL=$(dirname "$FILE") # path of the folder containing this file
 
-if [ -e "$INSTALL/version-info.txt" ]; then
-  ## In a release
-  CL=`echo "$INSTALL"/jdk/modules/* | sed -e "s/ /:/g"`
-  MODULES="$INSTALL/jdk/modules"
+## Detect platform: set path separator (PS) and path converter (conv).
+## In WSL and native Windows shells, javac is a Windows .exe that needs Windows-format
+## paths and ; as the path-list separator.  On macOS/Linux, : and native paths are used.
+if [ -n "$(grep -si microsoft /proc/version 2>/dev/null)" ]; then
+    PS=";" ; conv() { wslpath -w "$1"; }
 else
-  ## In development environment
-  CL=`echo "$INSTALL"/build/*/jdk/modules/* | sed -e "s/ /:/g"`
-  MODULES=`echo "$INSTALL"/build/*release/jdk/modules`
+    case "$(uname -s)" in
+        CYGWIN*|MINGW*|MSYS*) PS=";" ; conv() { cygpath -w "$1"; } ;;
+        *)                     PS=":" ; conv() { printf '%s' "$1"; } ;;
+    esac
 fi
 
-CP=".:$CL"
+if [ -e "$INSTALL/version-info.txt" ]; then
+  ## In a release
+  MODULES=$(conv "$INSTALL/jdk/modules")
+  CL=$(for d in "$INSTALL"/jdk/modules/*/; do printf '%s%s' "$PS" "$(conv "${d%/}")"; done | cut -c2-)
+else
+  ## In development environment
+  MODULES=$(conv "$(echo "$INSTALL"/build/*release/jdk/modules)")
+  CL=$(for d in "$INSTALL"/build/*/jdk/modules/*/; do printf '%s%s' "$PS" "$(conv "${d%/}")"; done | cut -c2-)
+fi
+
+CP=".${PS}${CL}"
 
 . "${INSTALL}/setup-exports"
 
-"${INSTALL}/openjml" -cp "$CP" -p $MODULES $OPENJML_EXPORTS --compile "$@"
+"${INSTALL}/openjml" -cp "$CP" -p "$MODULES" $OPENJML_EXPORTS --compile "$@"
 

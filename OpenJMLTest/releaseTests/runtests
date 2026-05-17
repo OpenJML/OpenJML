@@ -9,9 +9,10 @@ LOCAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
-Z=":"
+Z=":"   # path separator for openjml (Windows binary needs ; even in WSL)
+ZJ=":" # path separator for java (Linux JVM in WSL needs :, native Windows needs ;)
 case "$(uname -s)" in
-    CYGWIN*|MINGW*|MSYS*) Z=";" ;;
+    CYGWIN*|MINGW*|MSYS*) Z=";" ; ZJ=";" ;;
     Linux) grep -qi microsoft /proc/version 2>/dev/null && Z=";" ;;
 esac
   
@@ -131,36 +132,36 @@ mkdir -p rac
 ${RTH} testRac "$JML -rac --rac-show-source=line -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
 ${RTH} testRac "$JML -rac --rac-show-source=line -d rac -classpath src src/D.java" || { RES=$(($RES+1)); }
 echo RAC-OK
-#echo java -classpath "rac${Z}${RT}" A
-java -classpath "rac${Z}${RT}" A  > racactual  2> racstderr
+#echo java -classpath "rac${ZJ}${RT}" A
+java -classpath "rac${ZJ}${RT}" A  > racactual  2> racstderr
 tr -d '\r' < racactual |  diff - ../releaseTests/testRac/expected-ok || { RES=$(($RES+1)); }
 diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-DEFAULT
-java -classpath "rac${Z}${RT}" A 1 2  > racactual  2> racstderr
+java -classpath "rac${ZJ}${RT}" A 1 2  > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple || { RES=$(($RES+1)); }
 diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-STDOUT
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=stdout A 1 2 > racactual 2> racstderr
+java -classpath "rac${ZJ}${RT}" -Dorg.jmlspecs.openjml.rac=stdout A 1 2 > racactual 2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-simple || { RES=$(($RES+1)); }
 diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-EXC
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=exception A 1 2 > racactual  2> racstderr
+java -classpath "rac${ZJ}${RT}" -Dorg.jmlspecs.openjml.rac=exception A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
 sed -e 'sx\\x/xg' < racstderr | diff - ../releaseTests/testRac/expected-exceptions  || { RES=$(($RES+1)); }
 echo RAC-JA
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=javaassert A 1 2 > racactual  2> racstderr
+java -classpath "rac${ZJ}${RT}" -Dorg.jmlspecs.openjml.rac=javaassert A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-javaassert || { RES=$(($RES+1)); }
 diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-JA-ENABLED
-java -ea -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=javaassert A 1 2 > racactual  2> racstderr
+java -ea -classpath "rac${ZJ}${RT}" -Dorg.jmlspecs.openjml.rac=javaassert A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
 sed -e 'sx\\x/xg' < racstderr | diff - ../releaseTests/testRac/expected-javaassertenabled  || { RES=$(($RES+1)); }
 echo RAC-AE
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=assertionerror A 1 2 > racactual  2> racstderr
+java -classpath "rac${ZJ}${RT}" -Dorg.jmlspecs.openjml.rac=assertionerror A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-start || { RES=$(($RES+1)); }
 sed -e 'sx\\x/xg' < racstderr | diff -  ../releaseTests/testRac/expected-assertionerror  || { RES=$(($RES+1)); }
 echo RAC-ST
-java -classpath "rac${Z}${RT}" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2> racstderr
+java -classpath "rac${ZJ}${RT}" -Dorg.jmlspecs.openjml.rac=showstack A 1 2 > racactual  2> racstderr
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' |  diff - ../releaseTests/testRac/expected-stack || { RES=$(($RES+1)); }
 diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 echo RAC-ST with openjml-java
@@ -170,7 +171,7 @@ diff racstderr ../releaseTests/testRac/expected-empty  || { RES=$(($RES+1)); }
 
 ${RTH} testRac "$JML -rac --rac-show-source=source -d rac -classpath ./src/testRac --specs-path ./src/testRac ./src/testRac/A.java" || { RES=$(($RES+1)); }
 echo RAC-SIMPLE with source
-java -classpath "rac${Z}${RT}" A 1 2  > racactual
+java -classpath "rac${ZJ}${RT}" A 1 2  > racactual
 tr -d '\r' < racactual | sed -e 'sx\\x/xg' | diff - ../releaseTests/testRac/expected-simple-source || { RES=$(($RES+1)); }
 
 ## Checks using annotations with built-in java - should be OK; annotations are not actually needed at runtime
