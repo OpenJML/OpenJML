@@ -39,9 +39,14 @@ else
   BINJAVAC=`echo "$INSTALL"/build/*/jdk/bin/javac$EXE`
 fi
 
-## On WSL: forward OPENJML path vars to Windows PE processes (java.exe/javac.exe),
-## translating Unix paths to Windows format via the WSLENV /p flag.
+## On WSL: forward OPENJML_* vars to Windows PE processes (java.exe/javac.exe).
 ## Without this, System.getenv() returns null for these vars in Windows PE processes.
+## Path variables use the /p flag so WSL translates Linux paths to Windows format.
+## Non-path variables (e.g. OPENJML_verboseness) are forwarded as plain strings.
 if [ -n "$EXE" ]; then
-  export WSLENV="${WSLENV:+$WSLENV:}OPENJML_INSTALL/p:OPENJML_SPECS/p:OPENJML_SOLVERS/p"
+  _extra=$(compgen -e 'OPENJML_' \
+    | grep -Ev '^(OPENJML_INSTALL|OPENJML_SPECS|OPENJML_SOLVERS)$' \
+    | tr '\n' ':' | sed 's/:$//')
+  [ -n "$_extra" ] && export WSLENV="${WSLENV:+$WSLENV:}${_extra}"
+  export WSLENV="${WSLENV:+$WSLENV:}OJ:OPENJML_INSTALL/p:OPENJML_SPECS/p:OPENJML_SOLVERS/p"
 fi
