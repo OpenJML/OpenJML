@@ -28,7 +28,10 @@ if exist "%INSTALL%\version-info.txt" (
     for /d %%b in ("%INSTALL%\build\*release") do set "MODULES=%%b\jdk\modules"
 )
 
-:: Pass CL and MODULES out of the setlocal scope so the call can use them
-endlocal & set "CL=%CL%" & set "MODULES=%MODULES%" & set "OPENJML_EXPORTS=%OPENJML_EXPORTS%"
+:: Pass CL, MODULES, OPENJML_EXPORTS, and INSTALL out of the setlocal scope.
+:: All %VAR% references on this line expand before endlocal executes, so the
+:: local values are captured correctly.  INSTALL must be included because it is
+:: used on the very next line after the local scope is gone.
+endlocal & set "CL=%CL%" & set "MODULES=%MODULES%" & set "OPENJML_EXPORTS=%OPENJML_EXPORTS%" & set "INSTALL=%INSTALL%"
 
 call "%INSTALL%\openjml.bat" -cp ".;%CL%" -p "%MODULES%" %OPENJML_EXPORTS% --compile %*

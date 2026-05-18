@@ -9,6 +9,9 @@ echo TESTING ${TESTNAME}
 mkdir -p ${TESTLOC}/${TESTNAME}
 
 bash -c "${CMD//;/\\;}" 2>&1 | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
+CMD_EXIT=${PIPESTATUS[0]}
+
+EXPECTED_EXIT=$(cat "${TESTLOC}/${TESTNAME}/expected-exit" 2>/dev/null || echo 0)
 
 LRES=1
 if [[ "${NOSTDDOCLET}" != "" ]] ; then
@@ -16,6 +19,10 @@ grep -v "Standard Doclet version" < ${TESTLOC}/${TESTNAME}/actual > ${TESTLOC}/$
 mv ${TESTLOC}/${TESTNAME}/actualx ${TESTLOC}/${TESTNAME}/actual
 fi
 
-(grep -v "Note:" ${TESTLOC}/${TESTNAME}/expected | tr '\\' '/' | diff ${TESTLOC}/${TESTNAME}/actual - ) && echo ${TESTNAME} OK && LRES=0 && rm -f ${TESTLOC}/${TESTNAME}/actual
+(grep -v "Note:" ${TESTLOC}/${TESTNAME}/expected | tr '\\' '/' | diff ${TESTLOC}/${TESTNAME}/actual - ) \
+  && [ "${CMD_EXIT}" = "${EXPECTED_EXIT}" ] \
+  && echo ${TESTNAME} OK && LRES=0 && rm -f ${TESTLOC}/${TESTNAME}/actual
+
+[ "${CMD_EXIT}" != "${EXPECTED_EXIT}" ] && echo "${TESTNAME}: exit ${CMD_EXIT} (expected ${EXPECTED_EXIT})"
 
 exit $LRES
