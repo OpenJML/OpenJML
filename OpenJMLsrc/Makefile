@@ -191,8 +191,8 @@ post: .FORCE
 	## The following append directly to the archive from their source locations, avoiding
 	## a time-consuming copy into $(TEMP). zip appends new entries without recopying
 	## existing compressed data — only the new entries and the central directory are written.
-	(cd $$(echo build/*release); $(ZIPCMD) -qr -x '*.DS_Store' $(topdir)/$(TEMP)/openjml.zip jdk)
-	(cd ../../Solvers; $(ZIPCMD) -qr -x '*.DS_Store' $(topdir)/$(TEMP)/openjml.zip Solvers-$(OS_NAME))
+	(cd $$(echo build/*release) && $(ZIPCMD) -qr $(topdir)/$(TEMP)/openjml.zip jdk -x '*.DS_Store')
+	(cd ../../Solvers && $(ZIPCMD) -qr $(topdir)/$(TEMP)/openjml.zip Solvers-$(OS_NAME) -x '*.DS_Store')
 
 openjml-lsp:
 	$(MAKE) -C ../OpenJMLlsp release
