@@ -34,10 +34,13 @@ else
   fi
   ## ZIPARCHIVE is set -- presume it names an openjml.zip to be tested
   if [ ! -e "$ZIPARCHIVE" ]; then
-    echo "Zip file not found" $ZIPARCHIVE "cwd=" `pwd` 
+    echo "Zip file not found" $ZIPARCHIVE "cwd=" `pwd`
     exit 1
   fi
-  
+  ## Canonicalize to an absolute path now, before pushd changes the working directory.
+  ## unzip runs from inside temp-release/, so a relative ZIPARCHIVE would resolve wrongly.
+  ZIPARCHIVE=$(cd "$(dirname "$ZIPARCHIVE")" && pwd -P)/$(basename "$ZIPARCHIVE")
+
   rm -rf temp-release
   mkdir temp-release
   pushd temp-release > /dev/null

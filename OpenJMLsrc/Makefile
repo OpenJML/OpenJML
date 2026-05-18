@@ -178,9 +178,7 @@ post: .FORCE
 	mkdir $(TEMP)
 	cp -pRL jmlruntime.jar $(TEMP)
 	cp -pRL jmlruntime.jar $(TUT)
-	cp -pRL build/*release/jdk $(TEMP)
 	(cd $(TEMP); rm -rf `find . -name .DS_Store`)
-	cp -pR ../../Solvers/Solvers-$(OS_NAME) $(TEMP)
 	uname
 	uname -m
 	cp -pR ../../Specs/specs $(TEMP)
@@ -190,6 +188,11 @@ post: .FORCE
 	$(MAKE) openjml-lsp
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
+	## The following append directly to the archive from their source locations, avoiding
+	## a time-consuming copy into $(TEMP). zip appends new entries without recopying
+	## existing compressed data — only the new entries and the central directory are written.
+	(cd $$(echo build/*release); $(ZIPCMD) -qr -x '*.DS_Store' $(topdir)/$(TEMP)/openjml.zip jdk)
+	(cd ../../Solvers; $(ZIPCMD) -qr -x '*.DS_Store' $(topdir)/$(TEMP)/openjml.zip Solvers-$(OS_NAME))
 
 openjml-lsp:
 	$(MAKE) -C ../OpenJMLlsp release
