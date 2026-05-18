@@ -1,0 +1,142 @@
+name: 'OpenJML Release Test'
+description: 'A composite action that runs the OpenJML release tests on an existing build'
+
+## Presumes the current working folder is the one containing OpenJML, Specs, Solvers, JMLAnnotations etc.
+## and that a release build has already been performed in OpenJML/OpenJMLsrc.
+
+inputs:
+  arch:
+    description: 'Target architecture: "x86_64" to build under arch -x86_64 (Rosetta 2) for Intel; anything else builds natively'
+    default: 'default'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Test the build
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        make -C OpenJML/OpenJMLsrc release-test
+    - name: Test the build on Windows
+      if: runner.os == 'Windows'
+      shell: wsl-bash {0}
+      run: |
+        # stdbuf forces line-buffered stdout/stderr so test progress appears in the
+        # Actions output pane in real time rather than only at the end of the test run.
+        # (wsl-bash pipes output through wsl.exe which is fully buffered by default)
+        stdbuf -oL -eL make -C OpenJML/OpenJMLsrc release-test 2>&1 \
+          | grep --line-buffered -vE '^fixpath:|Entering directory|Leaving directory' || true
+    - name: Test .bat scripts on Windows (native PowerShell)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+        $res   = 0
+        $tests = (Resolve-Path 'OpenJML/OpenJMLTest/releaseTests').Path
+
+        # Setup is fatal: if we cannot unzip the release there is nothing to test.
+        $zip = (Resolve-Path 'OpenJML/OpenJMLsrc/release-temp/openjml.zip').Path
+        New-Item -ItemType Directory -Path 'temp-bat' -Force | Out-Null
+        Expand-Archive -Path $zip -DestinationPath 'temp-bat' -Force
+        $env:OJBIN = (Resolve-Path 'temp-bat').Path
+        $ojbin     = $env:OJBIN
+
+        # Normalize output for comparison: strip \r, convert \ to /, trim trailing
+        # whitespace per line, drop Note: lines — mirrors releaseTestHelper.
+        function Normalize([string[]]$lines) {
+            if (-not $lines) { return '' }
+            ($lines | Where-Object { $_ -notmatch '^Note: ' } |
+                      ForEach-Object { ($_ -replace '\\', '/').TrimEnd() }) -join "`n"
+        }
+
+        # Compare output AND exit code; report both kinds of mismatch independently
+        # so the caller sees the full picture before moving on.
+        function Compare-Test([string]$name, [string[]]$actual, [int]$exitCode,
+                              [string]$expectedFile, [int]$expectedExit = 0) {
+            $a      = Normalize $actual
+            $e      = Normalize (Get-Content $expectedFile)
+            $exitOk = ($exitCode -eq $expectedExit)
+            $outOk  = ($a.Trim() -eq $e.Trim())
+            if ($exitOk -and $outOk) { Write-Host "$name OK"; return 0 }
+            if (-not $exitOk) {
+                Write-Host "FAIL ${name}: exit $exitCode (expected $expectedExit)"
+            }
+            if (-not $outOk) {
+                Write-Host "FAIL ${name}: output mismatch"
+                Write-Host '--- actual ---';   $a -split "`n" | ForEach-Object { Write-Host "  $_" }
+                Write-Host '--- expected ---'; $e -split "`n" | ForEach-Object { Write-Host "  $_" }
+            }
+            return 1
+        }
+
+        # ── openjml.bat --version ────────────────────────────────────────
+        try {
+            $version = 'openjml ' + (Get-Content 'OpenJML/version.txt' -Raw).Trim()
+            Set-Content "$tests\testJmlVersion\expected" $version
+            $out  = & "$ojbin\openjml.bat" --version 2>&1; $exit = $LASTEXITCODE
+            $res += Compare-Test 'testJmlVersion' $out $exit "$tests\testJmlVersion\expected"
+        } catch { Write-Host "FAIL testJmlVersion: $_"; $res++ }
+
+        # ── openjml.bat -check on a valid file (testOK1) ─────────────────
+        try {
+            $out  = & "$ojbin\openjml.bat" --specs-path "$tests\src" "$tests\src\B.java" 2>&1
+            $exit = $LASTEXITCODE
+            if ($exit -eq 0) { Write-Host 'testOK1 OK' }
+            else { Write-Host "FAIL testOK1: exit $exit"; $out | ForEach-Object { Write-Host "  $_" }; $res++ }
+        } catch { Write-Host "FAIL testOK1: $_"; $res++ }
+
+        # ── openjml.bat --esc (testEsc1, testEsc2) ───────────────────────
+        try {
+            $out  = & "$ojbin\openjml.bat" --esc "$tests\src\testEsc\A.java" `
+                        -classpath "$tests\src\testEsc" 2>&1; $exit = $LASTEXITCODE
+            if ($exit -eq 0) { Write-Host 'testEsc1 OK' }
+            else { Write-Host "FAIL testEsc1: exit $exit"; $out | ForEach-Object { Write-Host "  $_" }; $res++ }
+        } catch { Write-Host "FAIL testEsc1: $_"; $res++ }
+
+        try {
+            $out  = & "$ojbin\openjml.bat" --esc "$tests\src\testEsc\B.java" `
+                        -classpath "$tests\src\testEsc" 2>&1; $exit = $LASTEXITCODE
+            if ($exit -eq 0) { Write-Host 'testEsc2 OK' }
+            else { Write-Host "FAIL testEsc2: exit $exit"; $out | ForEach-Object { Write-Host "  $_" }; $res++ }
+        } catch { Write-Host "FAIL testEsc2: $_"; $res++ }
+
+        # ── RAC: compile with openjml.bat -rac, run with openjml-java.bat ──
+        # Push to $tests so source paths in RAC messages are relative
+        # (./src/testRac/A.java:4:) and match expected-ok / expected-simple.
+        Push-Location $tests
+        try {
+            $racDir = (New-Item -ItemType Directory -Path 'rac-bat' -Force).FullName
+            $rt     = "$ojbin\jmlruntime.jar"
+
+            $compOut  = & "$ojbin\openjml.bat" -rac --rac-show-source=line `
+                -d "$racDir" -classpath ".\src\testRac" --specs-path ".\src\testRac" `
+                ".\src\testRac\A.java" 2>&1
+            $compExit = $LASTEXITCODE
+            if ($compExit -ne 0) {
+                Write-Host "FAIL testRac-bat (compilation): exit $compExit"
+                $compOut | ForEach-Object { Write-Host "  $_" }
+                $res++
+            } else {
+                # No-arg run: assertion passes (0 != 2) → exit 0, output START/END
+                $out  = & "$ojbin\openjml-java.bat" -classpath "$racDir;$rt" A 2>&1
+                $exit = $LASTEXITCODE
+                $res += Compare-Test 'testRac-ok (.bat)' $out $exit ".\testRac\expected-ok"
+
+                # Two-arg run: assertion fails, program continues → exit 0, violation printed
+                $out  = & "$ojbin\openjml-java.bat" -classpath "$racDir;$rt" A 1 2 2>&1
+                $exit = $LASTEXITCODE
+                $res += Compare-Test 'testRac-simple (.bat)' $out $exit ".\testRac\expected-simple"
+            }
+        } catch { Write-Host "FAIL testRac-bat: $_"; $res++ }
+        finally { Pop-Location }
+
+        # ── testAPI using .bat scripts (full output comparison) ───────────
+        Push-Location "$tests\testAPI"
+        try {
+            Remove-Item *.class -ErrorAction SilentlyContinue
+            $out  = cmd /c "`"$tests\testAPI\run.bat`"" 2>&1; $exit = $LASTEXITCODE
+            $res += Compare-Test 'testAPI (.bat)' $out $exit "$tests\testAPI\expected"
+        } catch { Write-Host "FAIL testAPI (.bat): $_"; $res++ }
+        finally { Pop-Location }
+
+        if ($res -gt 0) { Write-Error "$res .bat test(s) failed"; exit 1 }

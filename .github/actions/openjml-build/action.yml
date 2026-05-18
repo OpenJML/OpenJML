@@ -4,10 +4,6 @@ description: 'A composite action that builds OpenJML in an existing check out'
 ## Presumes the current working folder is the one containsing OpenJML, Specs, Solvers, JMLAnnotations etc.
 
 inputs:
-  test:
-    description: 'Whether to run the release test'
-    type: boolean
-    required: true
   upload:
     description: 'Whether to upload the built JDK as an artifact for use by test jobs'
     type: boolean
@@ -97,20 +93,6 @@ runs:
         cd OpenJML/OpenJMLsrc
         arch -x86_64 bash -c "./configure && make release"
         cd ..
-    - name: Test the build
-      if: inputs.test == 'true' && runner.os != 'Windows' && ( inputs.arch == 'x86_64' || inputs.os == 'macos-14' )
-      shell: bash
-      run: |
-        make -C OpenJML/OpenJMLsrc release-test
-    - name: Test the build on Windows
-      if: inputs.test == 'true' && runner.os == 'Windows'
-      shell: wsl-bash {0}
-      run: |
-        # stdbuf forces line-buffered stdout/stderr so test progress appears in the
-        # Actions output pane in real time rather than only at the end of the test run.
-        # (wsl-bash pipes output through wsl.exe which is fully buffered by default)
-        stdbuf -oL -eL make -C OpenJML/OpenJMLsrc release-test 2>&1 \
-          | grep --line-buffered -vE '^fixpath:|Entering directory|Leaving directory' || true
     - name: Archive build artifact
       if: inputs.upload == 'true'
       shell: bash

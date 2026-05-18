@@ -1,3 +1,4 @@
+## Keep in sync with setup-exports.bat (Windows CMD equivalent).
 ## This file sets OPENJML_EXPORTS, which contains a list of options stating which modules are to be exported.
 ## These exports are needed when using OpenJML programmatically. OpenJDK itself was not designed with programmatic use
 ## in mind, so all the internal APIs are fairly tightly encapsulated. This is fine for running OpenJML on the command-line

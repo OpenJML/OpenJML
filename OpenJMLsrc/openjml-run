@@ -1,5 +1,6 @@
 #! /usr/bin/env bash
 
+## Keep in sync with openjml-run.bat (Windows CMD equivalent).
 ## This script runs (like 'java' does) compiled programs (the result of openjml-compile) that have OpenJML programmatically linked in.
 
 ## The directory containing this file, which should be either .../OpenJMLsrc or the release folder

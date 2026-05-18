@@ -1,4 +1,5 @@
 @echo off
+:: Keep in sync with setup-exports (bash equivalent).
 :: Sets OPENJML_EXPORTS with --add-exports flags needed for programmatic use of OpenJML.
 :: Usage: call "%INSTALL%\setup-exports.bat"
 

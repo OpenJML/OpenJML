@@ -1,4 +1,5 @@
 @echo off
+:: Keep in sync with openjml-run (bash equivalent).
 :: Runs (like java) compiled programs that have OpenJML programmatically linked in.
 :: Use this to run programs compiled with openjml-compile.bat.
 

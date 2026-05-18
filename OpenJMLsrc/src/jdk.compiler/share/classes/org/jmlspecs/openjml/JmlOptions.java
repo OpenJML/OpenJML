@@ -217,7 +217,8 @@ public class JmlOptions extends Options {
         if (s.length() > 1 && s.startsWith("\"") && s.endsWith("\"")) {
             s = s.substring(1,s.length()-1);
         }
-
+        s = s.replace("\r","");
+        
         boolean negate = false;
         if (s.startsWith("--no-") || s.startsWith("-no-")) {
             negate = true;

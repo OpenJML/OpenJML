@@ -1,4 +1,5 @@
 @echo off
+:: Keep in sync with setup-vars (bash equivalent).
 :: Sets OPENJML_INSTALL BINJAVA BINJAVAC OPENJML_SOLVERS OPENJML_SPECS
 :: Requires %INSTALL% to be set by the calling script.
 :: Usage: call "%INSTALL%\setup-vars.bat"

@@ -1,4 +1,5 @@
 @echo off
+:: Keep in sync with openjml-java (bash equivalent).
 :: Runs the openjml-modified java (analogous to java), including the jmlruntime.jar.
 :: Use this instead of plain java to run RAC-compiled programs.
 

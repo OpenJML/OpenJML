@@ -1,3 +1,4 @@
+# Keep in sync with setup-vars.bat (Windows CMD equivalent).
 # A sourced script that is shared between openjml and openjml-java
 
 ## Uses $INSTALL

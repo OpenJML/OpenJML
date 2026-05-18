@@ -1,4 +1,5 @@
 @echo off
+:: Keep in sync with openjml-compile (bash equivalent).
 :: Runs openjml with options that permit linking in openjdk/openjml code for programmatic
 :: access to openjdk/openjml internals (analogous to javac).
 

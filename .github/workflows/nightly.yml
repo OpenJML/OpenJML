@@ -14,8 +14,7 @@ name: Nightly test of OpenJML
 ## As a compromise, the workflow uses a build job (per OS) that uploads the built JDK as an artifact,
 ## and separate test jobs (othertests, unittests1/2/3) that download the artifact instead of rebuilding.
 
-## FIXME: The setting of PATH uses : where it might need ; for some OSes; it would be better if adjustments to PATH were not needed at all
-## FIXME: debug use of the $sep variable
+## Note: PATH adjustments below use ':' (Linux/macOS). Windows jobs in these steps are not yet supported.
 
 on:
   workflow_dispatch:
@@ -41,7 +40,8 @@ jobs:
     - id: export
       run: |
         ## Edit the list of OSes here
-        echo 'oslist=[ "macos-14", "ubuntu-24.04", "ubuntu-24.04-arm" ]' >> "$GITHUB_OUTPUT"
+        ## macos-14 is used twice: once natively (ARM64) and once under Rosetta 2 (x86_64)
+        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64","arch":"default"}, {"os":"macos-14","label":"macos-x86_64","arch":"x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04","arch":"default"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64","arch":"default"}, {"os":"windows-latest","label":"windows","arch":"default"} ]' >> "$GITHUB_OUTPUT"
     
   ## This job builds OpenJML once per OS and uploads the built JDK as an artifact
   build:
@@ -49,7 +49,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
@@ -67,9 +67,9 @@ jobs:
     - name: Build OpenJML and upload artifact
       uses: ./ACTIONS/.github/actions/openjml-build/
       with:
-        test: 'false'
         upload: 'true'
-        os-label: ${{ matrix.os }}
+        os-label: ${{ matrix.label }}
+        arch: ${{ matrix.arch }}
 
   ## This job downloads the pre-built artifact and runs various non-unit tests
   othertests:
@@ -79,7 +79,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
@@ -98,12 +98,10 @@ jobs:
 
     #- name: Build OpenJML  ## uncomment (and remove Download step) to revert to self-contained
     #  uses: ./ACTIONS/.github/actions/openjml-build/
-    #  with:
-    #    test: 'false'
     - name: Download build artifact
       uses: ./ACTIONS/.github/actions/openjml-download/
       with:
-        os-label: ${{ matrix.os }}
+        os-label: ${{ matrix.label }}
 
     - name: Variable
       run: |
@@ -119,15 +117,15 @@ jobs:
 
     - name: Run release tests
       run: |
-        PATH="../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest release-tests || echo "failures=$failures release tests failed." >> $GITHUB_ENV
+        PATH="../../$FOLDER:$PATH" make -C OpenJML/OpenJMLTest release-tests || echo "failures=$failures release tests failed." >> $GITHUB_ENV
 
     - name: Run tutorial tests
       run: |
-        PATH="../../OpenJML/$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || echo "failures=$failures tutorial tests failed." >> $GITHUB_ENV
+        PATH="../../OpenJML/$FOLDER:$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || echo "failures=$failures tutorial tests failed." >> $GITHUB_ENV
 
     - name: Run json tests
       run: |
-        PATH="../../../$FOLDER$sep$PATH" make -C OpenJML/OpenJMLTest json-tests || echo "failures=$failures json tests failed." >> $GITHUB_ENV
+        PATH="../../../$FOLDER:$PATH" make -C OpenJML/OpenJMLTest json-tests || echo "failures=$failures json tests failed." >> $GITHUB_ENV
 
     - name: Run LSP server tests
       run: |
@@ -146,7 +144,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
@@ -163,16 +161,14 @@ jobs:
         branch: ${{ github.ref_name }}
     #- name: Build OpenJML  ## uncomment (and remove Download step) to revert to self-contained
     #  uses: ./ACTIONS/.github/actions/openjml-build/
-    #  with:
-    #    test: 'false'
     - name: Download build artifact
       uses: ./ACTIONS/.github/actions/openjml-download/
       with:
-        os-label: ${{ matrix.os }}
+        os-label: ${{ matrix.label }}
 
     - name: Run unit tests
       run: |
-        PATH="../../$FOLDER$sep$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="../../$FOLDER:$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
 
   unittests2:
     ## To revert to self-contained jobs (no artifact sharing): remove 'build' from needs,
@@ -181,7 +177,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
@@ -198,16 +194,14 @@ jobs:
         branch: ${{ github.ref_name }}
     #- name: Build OpenJML  ## uncomment (and remove Download step) to revert to self-contained
     #  uses: ./ACTIONS/.github/actions/openjml-build/
-    #  with:
-    #    test: 'false'
     - name: Download build artifact
       uses: ./ACTIONS/.github/actions/openjml-download/
       with:
-        os-label: ${{ matrix.os }}
+        os-label: ${{ matrix.label }}
 
     - name: Run unit tests
       run: |
-        PATH="../../$FOLDER$sep$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="../../$FOLDER:$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
 
   unittests3:
     ## To revert to self-contained jobs (no artifact sharing): remove 'build' from needs,
@@ -216,7 +210,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ fromJson(needs.export-matrix.outputs.oses) }}
+        include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
 
     steps:
@@ -233,13 +227,11 @@ jobs:
         branch: ${{ github.ref_name }}
     #- name: Build OpenJML  ## uncomment (and remove Download step) to revert to self-contained
     #  uses: ./ACTIONS/.github/actions/openjml-build/
-    #  with:
-    #    test: 'false'
     - name: Download build artifact
       uses: ./ACTIONS/.github/actions/openjml-download/
       with:
-        os-label: ${{ matrix.os }}
+        os-label: ${{ matrix.label }}
 
     - name: Run unit tests
       run: |
-        PATH="../../$FOLDER$sep$PATH" START=71 LINES=60 make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="../../$FOLDER:$PATH" START=71 LINES=60 make -C OpenJML/OpenJMLTest unittests-par 

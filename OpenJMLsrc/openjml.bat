@@ -1,4 +1,5 @@
 @echo off
+:: Keep in sync with openjml (bash equivalent).
 :: Runs the openjml compilation/esc/rac tool (analogous to javac).
 
 :: Resolve the directory containing this script as an absolute path (no trailing backslash)

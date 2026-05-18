@@ -103,7 +103,11 @@ jobs:
     - name: Build OpenJML
       uses: ./ACTIONS/.github/actions/openjml-build/
       with:
-        test: true
+        arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
+
+    - name: Test OpenJML release
+      uses: ./ACTIONS/.github/actions/openjml-release-test/
+      with:
         arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
 
     - name: Check current GitHub release number against version.txt

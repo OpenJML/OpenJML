@@ -1,5 +1,6 @@
 #! /usr/bin/env bash
 
+## Keep in sync with openjml-compile.bat (Windows CMD equivalent).
 ## This script runs the basic openjml compilation/esc/rac tool, but with the options that permit linking in 
 ## openjdk/openjml code for programmatic access to openjdk/openjml. It is analogous to javac.
 
