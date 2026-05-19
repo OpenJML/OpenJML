@@ -12,7 +12,6 @@ public class Run {
        var list = new ArrayList<>(Arrays.asList(exps));  // mutable — Arrays.asList returns fixed-size
        list.addAll(Arrays.asList(args));
        combined = (String[])list.toArray(new String[list.size()]);
-       System.out.println(String.join(" ", combined));
     }
     API api = (API)IAPI.make();
     int x = IAPI.make().execute(combined);

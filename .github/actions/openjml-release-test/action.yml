@@ -93,14 +93,14 @@ runs:
         # Use -Raw + .Trim() when reading expected-exit to avoid array coercion.
         Push-Location $tests
         try {
-            $out  = & "$ojbin\openjml.bat" --esc src\testEsc\A.java `
-                        -classpath src\testEsc 2>&1; $exit = $LASTEXITCODE
+            $out  = & "$ojbin\openjml.bat" --esc .\src\testEsc\A.java `
+                        -classpath .\src\testEsc 2>&1; $exit = $LASTEXITCODE
             $res += Compare-Test 'testEsc1' $out $exit testEsc1\expected 6
         } catch { Write-Host "FAIL testEsc1: $_"; $res++ }
 
         try {
-            $out  = & "$ojbin\openjml.bat" --esc src\testEsc\B.java `
-                        -classpath src\testEsc 2>&1; $exit = $LASTEXITCODE
+            $out  = & "$ojbin\openjml.bat" --esc .\src\testEsc\B.java `
+                        -classpath .\src\testEsc 2>&1; $exit = $LASTEXITCODE
             $res += Compare-Test 'testEsc2' $out $exit testEsc2\expected 0
         } catch { Write-Host "FAIL testEsc2: $_"; $res++ }
         finally { Pop-Location }
