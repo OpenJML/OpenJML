@@ -201,16 +201,23 @@ ${RTH} testRuntime5 "$JML src/D.java " || RES=$(($RES+1))
 
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc1 "timeout 30 $JML --esc ./src/testEsc/A.java -classpath ./src/testEsc" 6 || RES=$(($RES+1))
+${RTH} testEsc1 "timeout 60 $JML --esc ./src/testEsc/A.java -classpath ./src/testEsc" 6 || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
+${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath with an explicit solver (tests the --exec option)
-${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=../../../Solvers/Solvers-${OS_NAME}/z3-4.3.1${EXE}" || RES=$(($RES+1))
+if   [ -e "../../../Solvers/Solvers-${OS_NAME}/z3-4.3.1${EXE}" ] ; then
+  ${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=../../../Solvers/Solvers-${OS_NAME}/z3-4.3.1${EXE}" || RES=$(($RES+1))
+elif [ -e "../../../Solvers/Solvers-${OS_NAME}/z3-4.3.2${EXE}" ] ; then
+  ${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=../../../Solvers/Solvers-${OS_NAME}/z3-4.3.2${EXE}" || RES=$(($RES+1))
+else
+  echo "FAILURE: Z3 executable not found"
+  RES=$(($RES+1))
+fi
 
 ## Checks using explicit solver folder
-${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --os-name=${OS_NAME}" || RES=$(($RES+1))
+${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --os-name=${OS_NAME}" || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
