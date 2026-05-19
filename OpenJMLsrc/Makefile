@@ -68,6 +68,10 @@ include $(topdir)/make/Init.gmk
 
 #### OpenJML-specific build targets
 
+.PHONY: release clean-jml clean-release version version-info tutorial annotation post \
+        openjml-lsp openjml-ui userguide-examples update-docs push-docs \
+        trial release-test openjml smt
+
 ## This Makefile assumes that the OpenJML, JMLAnnotations, Specs, openjml.github.io, OpenJML_Demo, Solvers
 ## repos are cloned into sibling folders under one common folder
 ## I expect this Makefile and auxiliary scripts to fail if there are spaces in folder and file paths

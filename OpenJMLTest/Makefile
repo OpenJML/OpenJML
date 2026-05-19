@@ -12,6 +12,12 @@ SRC=${TEST}/../OpenJMLsrc
 ## Location of a folder in which to put test files (relative to the folder holding this makefile)
 T=temp-release
 
+.PHONY: openjml-test openjml-test-git openjml-test-temp openjml-clean openjml \
+        clean release prep temp-release \
+        tutorial-tests tutorial-tests-git userguide-tests userguide-tests-released \
+        release-tests unittests-seq unittests-par json-tests lsp-tests \
+        cov-clean cov-test cov-report cov-show
+
 ### The following is the OpenJML tests
 
 ### FIXME - not sure we need prep, even without release-tests

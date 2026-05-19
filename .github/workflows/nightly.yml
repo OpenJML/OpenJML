@@ -1,6 +1,6 @@
 name: Nightly test of OpenJML
 
-## This workflow runs all the unit and functionality tests on a build of the current developmenet environment for OpenJML
+## This workflow runs all the unit and functionality tests on a build of the current development environment for OpenJML
 ## that is, on the HEAD of branch dev-21 as it has been pushed to the github repo.
 ## The workflow runs each designated OS as a separate matrixed job. The job does a build and then sequentially runs a number of tests.
 ##
@@ -14,7 +14,7 @@ name: Nightly test of OpenJML
 ## As a compromise, the workflow uses a build job (per OS) that uploads the built JDK as an artifact,
 ## and separate test jobs (othertests, unittests1/2/3) that download the artifact instead of rebuilding.
 
-## Note: PATH adjustments below use ':' (Linux/macOS). Windows jobs in these steps are not yet supported.
+## Note: PATH adjustments below use ':' (Linux/macOS/WSL). Windows jobs in these steps are not yet supported.
 
 on:
   workflow_dispatch:
@@ -88,6 +88,7 @@ jobs:
       with:
         sparse-checkout: ./.github
         path: ACTIONS
+
     - name: OS setup
       uses: ./ACTIONS/.github/actions/os-setup/
 
@@ -117,15 +118,15 @@ jobs:
 
     - name: Run release tests
       run: |
-        PATH="../../$FOLDER:$PATH" make -C OpenJML/OpenJMLTest release-tests || echo "failures=$failures release tests failed." >> $GITHUB_ENV
+        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" make -C OpenJML/OpenJMLTest release-tests || echo "failures=$failures release tests failed." >> $GITHUB_ENV
 
     - name: Run tutorial tests
       run: |
-        PATH="../../OpenJML/$FOLDER:$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || echo "failures=$failures tutorial tests failed." >> $GITHUB_ENV
+        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || echo "failures=$failures tutorial tests failed." >> $GITHUB_ENV
 
     - name: Run json tests
       run: |
-        PATH="../../../$FOLDER:$PATH" make -C OpenJML/OpenJMLTest json-tests || echo "failures=$failures json tests failed." >> $GITHUB_ENV
+        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" make -C OpenJML/OpenJMLTest json-tests || echo "failures=$failures json tests failed." >> $GITHUB_ENV
 
     - name: Run LSP server tests
       run: |
@@ -168,7 +169,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="../../$FOLDER:$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
 
   unittests2:
     ## To revert to self-contained jobs (no artifact sharing): remove 'build' from needs,
@@ -201,7 +202,7 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="../../$FOLDER:$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
 
   unittests3:
     ## To revert to self-contained jobs (no artifact sharing): remove 'build' from needs,
@@ -234,4 +235,4 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="../../$FOLDER:$PATH" START=71 LINES=60 make -C OpenJML/OpenJMLTest unittests-par 
+        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=71 LINES=60 make -C OpenJML/OpenJMLTest unittests-par 

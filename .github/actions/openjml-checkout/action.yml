@@ -21,9 +21,9 @@ runs:
       shell: bash
       run: |
         git config --global core.autocrlf input
-        if [ -n '${{ inputs.folder }}' ]; then
-          mkdir -p ${{ inputs.folder }}
-          cd ${{ inputs.folder }}
+        if [ -n "${{ inputs.folder }}" ]; then
+          mkdir -p "${{ inputs.folder }}"
+          cd "${{ inputs.folder }}"
         fi
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/Specs

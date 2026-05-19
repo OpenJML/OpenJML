@@ -21,16 +21,16 @@ runs:
         path: .
     - name: Extract build artifact
       shell: bash
-      run: tar -xzf openjml-build.tar.gz
+      run: tar -xzf openjml-build.tar.gz || { echo "ERROR: failed to extract openjml-build.tar.gz"; exit 1; }
     - name: Diagnose extraction (debug)
       shell: bash
       run: |
         echo "=== Archive size ==="
         ls -lh openjml-build.tar.gz
-        tar -tzf openjml-build.tar.gz > /tmp/archive-contents.txt
+        tar -tzf openjml-build.tar.gz > $RUNNER_TEMP/archive-contents.txt
         echo "=== First 30 archive entries ==="
-        head -30 /tmp/archive-contents.txt
+        head -30 $RUNNER_TEMP/archive-contents.txt
         echo "=== jvm.cfg in archive? ==="
-        grep jvm.cfg /tmp/archive-contents.txt || echo "NOT FOUND IN ARCHIVE"
+        grep jvm.cfg $RUNNER_TEMP/archive-contents.txt || { echo "NOT FOUND IN ARCHIVE"; exit 1; }
         echo "=== jvm.cfg on filesystem? ==="
-        find . -name jvm.cfg 2>/dev/null || echo "NOT FOUND ON FILESYSTEM"
+        find . -name jvm.cfg 2>/dev/null | grep -q . || { echo "NOT FOUND ON FILESYSTEM"; exit 1; }

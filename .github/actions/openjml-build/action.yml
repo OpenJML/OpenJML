@@ -85,14 +85,12 @@ runs:
         cd OpenJML/OpenJMLsrc
         ./configure
         make release
-        cd ..
     - name: Build OpenJML release on macOS (x86_64 via Rosetta 2)
       if: inputs.arch == 'x86_64'
       shell: bash
       run: |
         cd OpenJML/OpenJMLsrc
         arch -x86_64 bash -c "./configure && make release"
-        cd ..
     - name: Archive build artifact
       if: inputs.upload == 'true'
       shell: bash
@@ -110,11 +108,11 @@ runs:
         ls OpenJML/OpenJMLsrc/build/
         echo "=== Archive size ==="
         ls -lh openjml-build.tar.gz
-        tar -tzf openjml-build.tar.gz > /tmp/archive-contents.txt
+        tar -tzf openjml-build.tar.gz > $RUNNER_TEMP/archive-contents.txt
         echo "=== First 30 archive entries ==="
-        head -30 /tmp/archive-contents.txt
+        head -30 $RUNNER_TEMP/archive-contents.txt
         echo "=== jvm.cfg in archive? ==="
-        grep jvm.cfg /tmp/archive-contents.txt || echo "NOT FOUND"
+        grep jvm.cfg $RUNNER_TEMP/archive-contents.txt || { echo "NOT FOUND"; exit 1; }
     - name: Upload build artifact
       if: inputs.upload == 'true'
       uses: actions/upload-artifact@v7
