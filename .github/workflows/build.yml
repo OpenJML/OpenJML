@@ -108,6 +108,8 @@ jobs:
         arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
 
     - name: Test OpenJML release
+      id: release-test
+      continue-on-error: true
       uses: ./ACTIONS/.github/actions/openjml-release-test/
       with:
         arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
@@ -137,6 +139,15 @@ jobs:
         overwrite: true
         include-hidden-files: true
         retention-days: 1
+
+    - name: Fail job if release tests failed
+      if: steps.release-test.outcome == 'failure'
+      shell: bash
+      run: |
+        echo "### ⚠️ Release tests failed on ${{ matrix.label }}" >> $GITHUB_STEP_SUMMARY
+        echo "The build artifact was uploaded despite test failures. Review the **Test OpenJML release** step above." >> $GITHUB_STEP_SUMMARY
+        echo "::error::Release tests failed — artifact uploaded but job is marked failed"
+        exit 1
 
   ## This job uploads the release, which has been stored in a github artifact, into the OpenJML release that is under construction,
   ## which is presumed to be the most recent

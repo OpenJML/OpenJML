@@ -9,10 +9,11 @@ LOCAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
+EXE=""
 Z=":"   # path separator for openjml (Windows binary needs ; even in WSL)
 ZJ=":" # path separator for java (Linux JVM in WSL needs :, native Windows needs ;)
 case "$(uname -s)" in
-    CYGWIN*|MINGW*|MSYS*) Z=";" ; ZJ=";" ;;
+    CYGWIN*|MINGW*|MSYS*) Z=";" ; ZJ=";" ; EXE=".exe" ;;
     Linux) grep -qi microsoft /proc/version 2>/dev/null && Z=";" ;;
 esac
 ## OS/arch suffix for the Solvers subdirectory — authoritative definition in os-name.sh.
@@ -206,7 +207,10 @@ ${RTH} testEsc1 "timeout 30 $JML --esc ./src/testEsc/A.java -classpath ./src/tes
 ${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath with an explicit solver (tests the --exec option)
-${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=../../../Solvers/Solvers-${OS_NAME}/z3-4.3.1" || RES=$(($RES+1))
+${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=../../../Solvers/Solvers-${OS_NAME}/z3-4.3.1${EXE}" || RES=$(($RES+1))
+
+## Checks using explicit solver folder
+${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --os-name=${OS_NAME}" || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
