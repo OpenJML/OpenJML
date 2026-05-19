@@ -1,4 +1,0 @@
-releaseTests/src/../A.java:1: error: incompatible types: int cannot be converted to boolean
-public class A { /*@ invariant 0; */ }
-                               ^
-1 error

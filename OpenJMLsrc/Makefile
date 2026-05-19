@@ -98,22 +98,10 @@ JAR      := jar
 ## The zip tool used to assemble the release archive; override on the command line if needed
 ZIPCMD := zip
 
-## OS name used to select the correct Solvers subfolder
-UNAME := $(shell uname)
-ANAME := $(shell uname -m)
-## Under WSL, uname returns Linux but /proc/version contains "microsoft"
-IS_WSL := $(shell grep -si microsoft /proc/version 2>/dev/null)
-ifeq ($(UNAME),Darwin)
-  OS_NAME := macos
-else ifeq ($(UNAME),Windows)
-  OS_NAME := windows
-else ifneq ($(IS_WSL),)
-  OS_NAME := windows
-else ifeq ($(ANAME),aarch64)
-  OS_NAME := linux-arm64
-else
-  OS_NAME := linux
-endif
+## OS/arch suffix for the Solvers subdirectory (e.g. Solvers-macos).
+## Computed by os-name.sh — keep in sync with Utils.identifyOS in Java
+## and with the actual folder names in the sibling Solvers/ repository.
+OS_NAME := $(shell $(topdir)/os-name.sh)
 
 ## Used in both the github build.yml action and the development environment
 
@@ -187,10 +175,10 @@ post: .FORCE
 	uname -m
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
-	cp setup-exports setup-vars openjml openjml-* $(TEMP)
+	cp setup-exports setup-vars openjml openjml-* os-name.sh $(TEMP)
 	cp setup-exports.bat setup-vars.bat openjml.bat openjml-*.bat $(TEMP)
 	$(MAKE) openjml-lsp
-	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension
+	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension $(TEMP)/os-name.sh
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
 	## The following append directly to the archive from their source locations, avoiding
 	## a time-consuming copy into $(TEMP). zip appends new entries without recopying

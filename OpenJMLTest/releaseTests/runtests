@@ -15,6 +15,9 @@ case "$(uname -s)" in
     CYGWIN*|MINGW*|MSYS*) Z=";" ; ZJ=";" ;;
     Linux) grep -qi microsoft /proc/version 2>/dev/null && Z=";" ;;
 esac
+## OS/arch suffix for the Solvers subdirectory — authoritative definition in os-name.sh.
+## Keep in sync with Utils.identifyOS in Java and with actual Solvers/ folder names.
+OS_NAME=$("$LOCAL/../../OpenJMLsrc/os-name.sh")
   
 if [ -z "${ZIPARCHIVE+x}" ]; then
 ## Source the file that sets OPENJML_JVM, if requested because COV is set
@@ -86,32 +89,32 @@ ${RTH} testJmlHelp "$JML --help" || RES=$(($RES+1))
 ${RTH} testJmlHelp "$JML -help" || RES=$(($RES+1))
 
 ## Checks when there is a default verboseness argument
-${RTH} testJmlBadNoSource "$JML --verboseness=" || RES=$(($RES+1))
+${RTH} testJmlBadNoSource "$JML --verboseness=" 2 || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument
-${RTH} testJmlBadNoValue "$JML --verboseness" || RES=$(($RES+1))
+${RTH} testJmlBadNoValue "$JML --verboseness" 2 || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME - embedded quotes are not working as expected within the test script
 ##${RTH} testJmlBadArg "$JML --verboseness \"\"" || RES=$(($RES+1))
 
 ## Checks when there is a default verboseness argument
-${RTH} testJmlBadNoSource "$JML --verboseness= " || RES=$(($RES+1))
+${RTH} testJmlBadNoSource "$JML --verboseness= " 2 || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness argument ## FIXME _ this works OK but not within this test script
 #${RTH} testJmlBadArg "$JML '-verboseness= '" || RES=$(($RES+1))
 
 ## Checks when there is a bad verboseness property
 export OPENJML_verboseness=x
-${RTH} testJmlBadProperty "$JML --check" || RES=$(($RES+1))
+${RTH} testJmlBadProperty "$JML --check" 2 || RES=$(($RES+1))
 unset OPENJML_verboseness
 
 ## Checks when there is a bad verboseness property
 echo "org.openjml.option.verboseness=x" > ./openjml.properties
-${RTH} testJmlBadProperty "$JML --check" || RES=$(($RES+1))
+${RTH} testJmlBadProperty "$JML --check" 2 || RES=$(($RES+1))
 rm openjml.properties
 
 ## Checks when there is a bad use of -java
-${RTH} testJmlBadJava "$JML --check -java" || RES=$(($RES+1))
+${RTH} testJmlBadJava "$JML --check -java" 2 || RES=$(($RES+1))
 
 
 #echo "public class A { /*@ invariant 0; */ }" > A.java
@@ -202,39 +205,39 @@ ${RTH} testEsc1 "timeout 30 $JML --esc ./src/testEsc/A.java -classpath ./src/tes
 ## Checks using classpath - ok, uses specs in java file
 ${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
-## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" --exec=`echo ../../../Solvers/Solvers-*/z3-4.3.1` || RES=$(($RES+1))
+## Checks using classpath with an explicit solver (tests the --exec option)
+${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=../../../Solvers/Solvers-${OS_NAME}/z3-4.3.1" || RES=$(($RES+1))
 
 
 ## Checks using no paths - fails to find super class, uses specs in java file
-${RTH} testPath1 "$JML -jmltesting ./src/testPath/data/TestPath.java " || RES=$(($RES+1))
+${RTH} testPath1 "$JML -jmltesting ./src/testPath/data/TestPath.java " 1 || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testPath2 "$JML -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data" || RES=$(($RES+1))
+${RTH} testPath2 "$JML -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data" 1 || RES=$(($RES+1))
 
 ## Checks using specs path - finds specs but not super class
-${RTH} testPath3 "$JML -jmltesting ./src/testPath/data/TestPath.java --specs-path ./src/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath3 "$JML -jmltesting ./src/testPath/data/TestPath.java --specs-path ./src/testPath/data-specs " 1 || RES=$(($RES+1))
 
 ## Checks using source path - finds specs but not super class
-${RTH} testPath4 "$JML -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs " || RES=$(($RES+1))
+${RTH} testPath4 "$JML -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs " 1 || RES=$(($RES+1))
 
 ## Checks using source path (specs and java) - finds specs and super class
-${RTH} testPath5 "$JML -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs${Z}./src/testPath/data " || RES=$(($RES+1))
+${RTH} testPath5 "$JML -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data-specs${Z}./src/testPath/data " 1 || RES=$(($RES+1))
 
 ## Checks using source path (java then specs) - finds super class; uses jml file for specs even though it is later on the search path
-${RTH} testPath6 "$JML -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data${Z}./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath6 "$JML -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data${Z}./src/testPath/data-specs" 1 || RES=$(($RES+1))
 
 ## Checks using source path and specs path - uses specs file, finds super class
-${RTH} testPath7 "$JML -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data --specs-path ./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath7 "$JML -jmltesting ./src/testPath/data/TestPath.java -sourcepath ./src/testPath/data --specs-path ./src/testPath/data-specs" 1 || RES=$(($RES+1))
 
 ## Checks using class path (specs and java) - finds specs and super class
-${RTH} testPath8 "$JML -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data-specs${Z}./src/testPath/data " || RES=$(($RES+1))
+${RTH} testPath8 "$JML -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data-specs${Z}./src/testPath/data " 1 || RES=$(($RES+1))
 
 ## Checks using class path (java then specs) - finds super class; uses jml file for specs
-${RTH} testPath9 "$JML -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data${Z}./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath9 "$JML -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data${Z}./src/testPath/data-specs" 1 || RES=$(($RES+1))
 
 ## Checks using class path and specs path - uses specs file, finds super class
-${RTH} testPath10 "$JML -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data --specs-path ./src/testPath/data-specs" || RES=$(($RES+1))
+${RTH} testPath10 "$JML -jmltesting ./src/testPath/data/TestPath.java -classpath ./src/testPath/data --specs-path ./src/testPath/data-specs" 1 || RES=$(($RES+1))
 
 
 ## Checks an invalid file

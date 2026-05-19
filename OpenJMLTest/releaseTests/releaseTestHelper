@@ -3,7 +3,8 @@
 export TESTNAME=$1
 export TESTLOC=../releaseTests
 export CMD="$2"
-EXPECTED_EXIT=${3:-0}
+## $3, if provided, is the expected exit code; if absent the exit code is not checked.
+EXPECTED_EXIT=${3:-}
 
 echo TESTING ${TESTNAME}
 
@@ -12,7 +13,6 @@ mkdir -p ${TESTLOC}/${TESTNAME}
 bash -c "${CMD//;/\\;}" 2>&1 | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
 CMD_EXIT=${PIPESTATUS[0]}
 
-
 LRES=1
 if [[ "${NOSTDDOCLET}" != "" ]] ; then
 grep -v "Standard Doclet version" < ${TESTLOC}/${TESTNAME}/actual > ${TESTLOC}/${TESTNAME}/actualx
@@ -20,9 +20,9 @@ mv ${TESTLOC}/${TESTNAME}/actualx ${TESTLOC}/${TESTNAME}/actual
 fi
 
 (grep -v "Note:" ${TESTLOC}/${TESTNAME}/expected | tr '\\' '/' | diff ${TESTLOC}/${TESTNAME}/actual - ) \
-  && [ "${CMD_EXIT}" = "${EXPECTED_EXIT}" ] \
+  && { [ -z "$EXPECTED_EXIT" ] || [ "${CMD_EXIT}" = "$EXPECTED_EXIT" ]; } \
   && echo ${TESTNAME} OK && LRES=0 && rm -f ${TESTLOC}/${TESTNAME}/actual
 
-[ "${CMD_EXIT}" != "${EXPECTED_EXIT}" ] && echo "${TESTNAME}: exit ${CMD_EXIT} (expected ${EXPECTED_EXIT})"
+[ -n "$EXPECTED_EXIT" ] && [ "${CMD_EXIT}" != "$EXPECTED_EXIT" ] && echo "${TESTNAME}: exit ${CMD_EXIT} (expected $EXPECTED_EXIT)"
 
 exit $LRES

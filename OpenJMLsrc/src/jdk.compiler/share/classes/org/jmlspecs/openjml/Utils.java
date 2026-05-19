@@ -442,7 +442,10 @@ public class Utils {
         return false;// This should really be an error FIXME
     }
 
-    /** Determines which OS we are in and returns an identifying string */
+    /** Determines which OS we are in and returns an identifying string matching
+     *  the suffix used for Solvers directory names (e.g. "macos", "linux", "linux-arm64", "windows").
+     *  Keep in sync with OpenJMLsrc/os-name.sh (the authoritative shell implementation)
+     *  and with the actual subdirectory names in the sibling Solvers/ repository. */
     public static String identifyOS(Context context) {
         String sp = context == null ? null : JmlOption.OSNAME.value(context);
         if (sp == null || sp.isEmpty() || "auto".equals(sp)) sp = System.getProperty("os.name");
