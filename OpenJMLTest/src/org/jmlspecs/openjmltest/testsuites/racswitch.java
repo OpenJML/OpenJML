@@ -461,6 +461,29 @@ public class racswitch extends RacBase {
                 );
     }
 
+    @Test public void testStringSwitchNullCase() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                  public static void main(String[] args) {
+                    String s = null;
+                    int k = 0;
+                    try { switch (s) {
+                      case "asd": k = 1; break;
+                      case "abc": k = 2; break;
+                      case "def": k = 3; break;
+                      case null, default: k = 4; break;
+                    } } catch (Exception e) { System.out.println("CAUGHT"); }
+                    System.out.println("END " + k);
+                  }
+                }
+                """
+                ,"END 4"
+                );
+    }
+
     @Test public void testEnumSwitch() {
         helpRacText("tt.A",
                 """
@@ -536,6 +559,31 @@ public class racswitch extends RacBase {
                 """
                 ,"CAUGHT"
                 ,"END 0"
+                );
+    }
+
+    @Test public void testEnumSwitchNullCase() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                  enum E { A,B,C};
+                  public static void main(String[] args) {
+                    E e = null;
+                    int k = 0;
+                    try { switch (e) {
+                      case A: k = 1; break;
+                      case B: k = 2; break;
+                      case C: k = 3; break;
+                      case null, default: k = 4; break;
+                      }
+                    } catch (Exception ee) { System.out.println("CAUGHT");}
+                    System.out.println("END " + k);
+                  }
+                }
+                """
+                ,"END 4"
                 );
     }
 

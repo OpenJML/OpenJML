@@ -14,7 +14,7 @@ public class escswitch extends EscBase {
         super.setUp();
         addOptions("--source", "21");
         addOptions("--enable-preview"); // To allow unnamed vars in pattern matching
-        addOptions("--check-feasibility=none");
+        addOptions("--check-feasibility=exit,switch,return");
         expectedExit = 0;
     }
 
@@ -576,9 +576,9 @@ public class escswitch extends EscBase {
     }
     
     public void testSwitchPrimitiveWhenFail() {
-        helpEsc("tt.A", """
+        helpEsc("tt.Z", """
                 package tt;
-                public class A {
+                public class Z {
                     //@ ensures (n == 0 && b) ==> \\result == 1;
                     //@ ensures (n == 0 && !b) ==> \\result == -10;
                     //@ ensures n != 0==> \\result == 0;
@@ -592,4 +592,271 @@ public class escswitch extends EscBase {
                 }
                 """);
     }
+    
+    @Test public void escEnum() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  enum E { A,B,C};
+                  //@ requires arg != null;
+                  //@ ensures arg == E.A ==> \\result == 1;
+                  //@ ensures arg == E.C ==> \\result == 4;
+                  public static int m(/*@ nullable */ E arg) {
+                    int k = switch (arg) {
+                      case A -> 1;
+                      case B -> 2;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test public void escEnumNull() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  enum E { A,B,C};
+                  //@ ensures arg == E.A ==> \\result == 1;
+                  //@ ensures arg == E.C ==> \\result == 4;
+                  public static int m(/*@ nullable */ E arg) {
+                    int k = switch (arg) {
+                      case A -> 1;
+                      case B -> 2;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                ,"/tt/Z.java:8: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m", 20
+                );
+    }
+
+    @Test public void escEnumNullCase() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  enum E { A,B,C};
+                  //@ ensures arg == E.A ==> \\result == 1;
+                  //@ ensures arg == E.C ==> \\result == 4;
+                  //@ ensures arg == null ==> \\result == 3;
+                  public static int m(/*@ nullable */ E arg) {
+                    int k = switch (arg) {
+                      case A -> 1;
+                      case B -> 2;
+                      case null -> 3;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test public void escEnumNullDefaultCase() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  enum E { A,B,C};
+                  //@ ensures arg == E.A ==> \\result == 1;
+                  //@ ensures arg == E.C ==> \\result == 4;
+                  //@ ensures arg == null ==> \\result == 4;
+                  public static int m(/*@ nullable */ E arg) {
+                    int k = switch (arg) {
+                      case A -> 1;
+                      case B -> 2;
+                      case null, default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test public void escString() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  //@ requires arg != null;
+                  //@ ensures arg == "abc" ==> \\result == 1;
+                  //@ ensures arg == "def" ==> \\result == 4;
+                  public static int m(/*@ nullable */ String arg) {
+                    int k = switch (arg) {
+                      case "abc" -> 1;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test public void escStringNull() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  //@ ensures arg == "abc" ==> \\result == 1;
+                  //@ ensures arg == "def" ==> \\result == 4;
+                  public static int m(/*@ nullable */ String arg) {
+                    int k = switch (arg) {
+                      case "abc" -> 1;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                ,"/tt/Z.java:7: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m", 20
+                );
+    }
+
+    @Test public void escStringNullCase() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  //@ ensures arg == "abc" ==> \\result == 1;
+                  //@ ensures arg == null ==> \\result == 3;
+                  //@ ensures arg == "def" ==> \\result == 4;
+                  public static int m(/*@ nullable */ String arg) {
+                    int k = switch (arg) {
+                      case "abc" -> 1;
+                      case null -> 3;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test public void escStringNullDefaultCase() {
+        addOptions("--show","--method=m");
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  //@ ensures arg == "abc" ==> \\result == 1;
+                  //@ ensures arg == null ==> \\result == 4;
+                  //@ ensures arg == "def" ==> \\result == 4;
+                  public static int m(/*@ nullable */ String arg) {
+                    int k = switch (arg) {
+                      case "abc" -> 1;
+                      case null, default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
+// Boolean and boolean are not allowed until Java 24; same for long float double and corresponding boxed types
+//    @Test public void escBoolean() {
+//        helpEsc("tt.Z",
+//                """
+//                package tt;
+//                /*@ nullable_by_default*/
+//                public class Z {
+//                  //@ requires arg != null;
+//                  //@ ensures arg == true ==> \\result == 1;
+//                  //@ ensures arg == false ==> \\result == 4;
+//                  public static int m(/*@ nullable */ Boolean arg) {
+//                    int k = switch (arg) {
+//                      case true -> 1;
+//                      default -> 4;
+//                    };
+//                    return k;
+//                  }
+//                }
+//                """
+//                );
+//    }
+//
+//    @Test public void escBoolean1() {
+//        helpEsc("tt.Z",
+//                """
+//                package tt;
+//                /*@ nullable_by_default*/
+//                public class Z {
+//                  //@ ensures arg == Boolean.TRUE ==> \\result == 1;
+//                  //@ ensures arg == Boolean.FALSE ==> \\result == 4;
+//                  public static int m(/*@ nullable */ Boolean arg) {
+//                    int k = switch (arg) {
+//                      case true -> 1;
+//                      default -> 4;
+//                    };
+//                    return k;
+//                  }
+//                }
+//                """
+//                );
+//    }
+//
+//    @Test public void escBoolean2() {
+//        helpEsc("tt.Z",
+//                """
+//                package tt;
+//                /*@ nullable_by_default*/
+//                public class Z {
+//                  //@ requires arg != null;
+//                  //@ ensures arg == Boolean.TRUE ==> \\result == 1;
+//                  //@ ensures arg == Boolean.FALSE ==> \\result == 4;
+//                  public static int m(/*@ nullable */ Boolean arg) {
+//                    int k = switch (arg) {
+//                      case Boolean.TRUE -> 1;
+//                      default -> 4;
+//                    };
+//                    return k;
+//                  }
+//                }
+//                """
+//                );
+//    }
+//
+//    @Test public void escBooleanNull() {
+//        helpEsc("tt.Z",
+//                """
+//                package tt;
+//                /*@ nullable_by_default*/
+//                public class Z {
+//                  //@ requires arg != null;
+//                  //@ ensures arg == Boolean.TRUE ==> \\result == 1;
+//                  //@ ensures arg == Boolean.FALSE ==> \\result == 4;
+//                  //@ ensures arg == null ==> \\result == 3;
+//                  public static int m(/*@ nullable */ Boolean arg) {
+//                    int k = switch (arg) {
+//                      case Boolean.TRUE -> 1;
+//                      case null -> 3;
+//                      default -> 4;
+//                    };
+//                    return k;
+//                  }
+//                }
+//                """
+//                );
+//    }
+
+
 }

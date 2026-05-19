@@ -16,7 +16,7 @@ runs:
       if: runner.os != 'Windows'
       shell: bash
       run: |
-        make -C OpenJML/OpenJMLsrc release-test || true
+        make -C OpenJML/OpenJMLsrc release-test
     - name: Test the build on Windows
       if: runner.os == 'Windows'
       shell: wsl-bash {0}
@@ -24,8 +24,7 @@ runs:
         # stdbuf forces line-buffered stdout/stderr so test progress appears in the
         # Actions output pane in real time rather than only at the end of the test run.
         # (wsl-bash pipes output through wsl.exe which is fully buffered by default)
-        stdbuf -oL -eL make -C OpenJML/OpenJMLsrc release-test 2>&1 \
-          | grep --line-buffered  || true
+        stdbuf -oL -eL make -C OpenJML/OpenJMLsrc release-test 2>&1
     - name: Test .bat scripts on Windows (native PowerShell)
       if: runner.os == 'Windows'
       shell: pwsh
