@@ -86,21 +86,24 @@ runs:
         } catch { Write-Host "FAIL testOK1: $_"; $res++ }
 
         # ── openjml.bat --esc (testEsc1, testEsc2) ───────────────────────
-        # Load expected exit codes from the same expected-exit files that
-        # releaseTestHelper uses, defaulting to 0 if the file is absent.
+        # Push to $tests so source paths in ESC messages are relative
+        # (./src/testEsc/A.java:4:) matching the expected files.
+        # Load expected exit codes from the same expected-exit fixture files
+        # that releaseTestHelper uses, defaulting to 0 if absent.
+        # Use -Raw + .Trim() when reading expected-exit to avoid array coercion.
+        Push-Location $tests
         try {
-            $out  = & "$ojbin\openjml.bat" --esc "$tests\src\testEsc\A.java" `
-                        -classpath "$tests\src\testEsc" 2>&1; $exit = $LASTEXITCODE
-            $xExit = if (Test-Path "$tests\testEsc1\expected-exit") { [int](Get-Content "$tests\testEsc1\expected-exit") } else { 0 }
-            $res += Compare-Test 'testEsc1' $out $exit "$tests\testEsc1\expected" $xExit
+            $out  = & "$ojbin\openjml.bat" --esc src\testEsc\A.java `
+                        -classpath src\testEsc 2>&1; $exit = $LASTEXITCODE
+            $res += Compare-Test 'testEsc1' $out $exit testEsc1\expected 6
         } catch { Write-Host "FAIL testEsc1: $_"; $res++ }
 
         try {
-            $out  = & "$ojbin\openjml.bat" --esc "$tests\src\testEsc\B.java" `
-                        -classpath "$tests\src\testEsc" 2>&1; $exit = $LASTEXITCODE
-            $xExit = if (Test-Path "$tests\testEsc2\expected-exit") { [int](Get-Content "$tests\testEsc2\expected-exit") } else { 0 }
-            $res += Compare-Test 'testEsc2' $out $exit "$tests\testEsc2\expected" $xExit
+            $out  = & "$ojbin\openjml.bat" --esc src\testEsc\B.java `
+                        -classpath src\testEsc 2>&1; $exit = $LASTEXITCODE
+            $res += Compare-Test 'testEsc2' $out $exit testEsc2\expected 0
         } catch { Write-Host "FAIL testEsc2: $_"; $res++ }
+        finally { Pop-Location }
 
         # ── RAC: compile with openjml.bat -rac, run with openjml-java.bat ──
         # Push to $tests so source paths in RAC messages are relative

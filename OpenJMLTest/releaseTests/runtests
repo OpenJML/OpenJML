@@ -197,7 +197,7 @@ ${RTH} testRuntime5 "$JML src/D.java " || RES=$(($RES+1))
 
 
 ## Checks using classpath - ok, uses specs in java file
-${RTH} testEsc1 "timeout 30 $JML --esc ./src/testEsc/A.java -classpath ./src/testEsc" || RES=$(($RES+1))
+${RTH} testEsc1 "timeout 30 $JML --esc ./src/testEsc/A.java -classpath ./src/testEsc" 6 || RES=$(($RES+1))
 
 ## Checks using classpath - ok, uses specs in java file
 ${RTH} testEsc2 "timeout 30 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))

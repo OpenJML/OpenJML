@@ -3,6 +3,7 @@
 export TESTNAME=$1
 export TESTLOC=../releaseTests
 export CMD="$2"
+EXPECTED_EXIT=${3:-0}
 
 echo TESTING ${TESTNAME}
 
@@ -11,7 +12,6 @@ mkdir -p ${TESTLOC}/${TESTNAME}
 bash -c "${CMD//;/\\;}" 2>&1 | grep -v "Note: " | tr -d '\r' | tr '\\' '/' > ${TESTLOC}/${TESTNAME}/actual
 CMD_EXIT=${PIPESTATUS[0]}
 
-EXPECTED_EXIT=$(cat "${TESTLOC}/${TESTNAME}/expected-exit" 2>/dev/null || echo 0)
 
 LRES=1
 if [[ "${NOSTDDOCLET}" != "" ]] ; then
