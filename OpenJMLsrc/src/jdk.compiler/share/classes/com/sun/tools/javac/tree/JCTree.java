@@ -1329,6 +1329,7 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public List<JCStatement> stats;
         public JCTree body;
         public boolean completesNormally;
+        public JCExpression predicate= null; // OPENJML
         protected JCCase(CaseKind caseKind, List<JCCaseLabel> labels,
                          JCExpression guard,
                          List<JCStatement> stats, JCTree body) {

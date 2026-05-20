@@ -587,6 +587,131 @@ public class racswitch extends RacBase {
                 );
     }
 
+        @Test public void testIntegerSwitch() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                  public static void main(String[] args) {
+                    Integer e = 2;
+                    int k = 0;
+                    switch (e) {
+                      case 1: k = 1; break;
+                      case 2: k = 2; break;
+                      case 3: k = 3; break;
+                      default: k = 4; break;
+                    }
+                    System.out.println("END " + k);
+                  }
+                }
+                """
+                ,"END 2"
+                );
+    }
+
+    @Test public void testIntegerSwitchNull() {
+        expectedRACExit = 1;
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                  public static void main(String[] args) {
+                    Integer e = null;
+                    int k = 0;
+                    { switch (e) {
+                      case 1: k = 1; break;
+                      case 2: k = 2; break;
+                      case 3: k = 3; break;
+                      default: k = 4; break;
+                      }
+                    }
+                    System.out.println("END " + k);
+                  }
+                }
+                """
+                ,"/tt/A.java:7: verify: JML Attempt to unbox a null object"
+                ,"Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\" because \"<local4>\" is null"
+                ,"\tat tt.A.main(A.java:7)"
+                );
+    }
+
+    @Test public void testIntegerSwitchNullCatch() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                  public static void main(String[] args) {
+                    Integer e = null;
+                    int k = 0;
+                    try { switch (e) {
+                      case 1: k = 1; break;
+                      case 2: k = 2; break;
+                      case 3: k = 3; break;
+                      default: k = 4; break;
+                      }
+                    } catch (Exception ee) { System.out.println("CAUGHT");}
+                    System.out.println("END " + k);
+                  }
+                }
+                """
+                ,"CAUGHT"
+                ,"END 0"
+                );
+    }
+
+    @Test public void testIntegerSwitchNullCase() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                  public static void main(String[] args) {
+                    Integer e = null;
+                    int k = 0;
+                    try { switch (e) {
+                      case 1: k = 1; break;
+                      case 2: k = 2; break;
+                      case 3: k = 3; break;
+                      case null: k = 5; break;
+                      default: k = 4; break;
+                      }
+                    } catch (Exception ee) { System.out.println("CAUGHT");}
+                    System.out.println("END " + k);
+                  }
+                }
+                """
+                ,"END 5"
+                );
+    }
+
+    @Test public void testIntegerSwitchNullDefaultCase() {
+        helpRacText("tt.A",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class A {
+                  public static void main(String[] args) {
+                    Integer e = null;
+                    int k = 0;
+                    try { switch (e) {
+                      case 1: k = 1; break;
+                      case 2: k = 2; break;
+                      case 3: k = 3; break;
+                      case null, default: k = 4; break;
+                      }
+                    } catch (Exception ee) { System.out.println("CAUGHT");}
+                    System.out.println("END " + k);
+                  }
+                }
+                """
+                ,"END 4"
+                );
+    }
+
+
     // -----------------------------------------------------------------------
     // Pattern-matching switch tests
     // -----------------------------------------------------------------------

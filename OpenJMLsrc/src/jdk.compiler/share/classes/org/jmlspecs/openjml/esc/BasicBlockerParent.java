@@ -762,6 +762,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         T previousBreakBlock = breakBlocks.get(names.empty);
         boolean isEnum = that.selector.type.tsym.isEnum();
         boolean isString = that.selector.type == syms.stringType;
+        boolean okDefault = isEnum || isString || that.selector.type.isPrimitive();
         
         //System.out.println("SWITCH " + isEnum + " " + isString + " " + that.patternSwitch + " " + that);
 
@@ -820,7 +821,10 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
 
                 // create the case test, or null if this is the default case
                 JCExpression eqq = null;
-                if (isString || isEnum ) {
+                if (caseItem.predicate != null) {
+                    okDefault = true;
+                    eqq = caseItem.predicate;
+                } else if (isString || isEnum ) {
                     if (!hasNull && !isDefault) for (JCExpression caseValue: caseValues) {
                         JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
                         JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
@@ -843,7 +847,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                     //System.out.println("EQQ1 " + isEnum + " " + hasNull + " " + eqq);
                     if (nn != null && hasNull) eqq = treeutils.makeAnd(eqq, nn, eqq);
                     //System.out.println("EQQ2 " + eqq);
-                }else {
+                } else {
                     if (!hasNull && !isDefault) for (JCExpression caseValue: caseValues) {
                         JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
                         JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
@@ -856,7 +860,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                         eqq = treeutils.trueLit;
                     }
                     if (nn != null && hasNull) eqq = treeutils.makeAnd(eqq, nn, eqq);
-                }                JmlStatementExpr asm = addAssume(caseItem.pos,Label.CASECONDITION,eqq,blockForTest.statements);
+                }
+                JmlStatementExpr asm = addAssume(caseItem.pos,Label.CASECONDITION,eqq,blockForTest.statements);
                 if (caseItem.guard != null) {
                     // FIXME - use endpos
                     //eqq = treeutils.makeAnd()
@@ -905,8 +910,8 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 // put in null for the case condition, since we did not know it
                 // yet (and we wanted to process the statements in textual order).
                 // So here we violate encapsulation a bit and poke it in.
-                defaultAsm.expression = eq;
-            } else {
+                defaultAsm.expression = (!okDefault) ? treeutils.trueLit : eq;
+            } else if (!that.isExhaustive) {
                 // There was no default - we need to construct an empty one
                 // create a block for this case test
                 T blockForTest = newBlock(CASEDEFAULT,pos);

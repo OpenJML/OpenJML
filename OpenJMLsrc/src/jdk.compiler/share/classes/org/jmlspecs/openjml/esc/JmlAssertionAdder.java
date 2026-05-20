@@ -7050,7 +7050,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    return false;
 	}
 
-	public JCExpression switchCheck(JCExpression switchExpr, List<JCCase> cases) {
+	public JCExpression switchCheck(JCExpression switchExpr, boolean isPatternSwitch, List<JCCase> cases) {
 	    JCExpression selector = convertExpr(switchExpr);
 	    boolean hasNullCase = hasNullCase(cases);
 	    if (selector.type.equals(syms.stringType)) {
@@ -7066,10 +7066,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                                    "java.lang.NullPointerException");
 	        }
 	    } else if (!switchExpr.type.isPrimitive()) {
-	        if (!hasNullCase) {
-	            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
-	            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
-	                                    "java.lang.NullPointerException");
+	        if (!hasNullCase && !isPatternSwitch) {
+//	            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+//	            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
+//	                                    "java.lang.NullPointerException");
+	            selector = addImplicitConversion(switchExpr, syms.intType, selector);
 	        }
 	    } else {
 	        selector = addImplicitConversion(switchExpr, syms.intType, selector);
@@ -7194,7 +7195,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	public JCSwitch switchHelper(DiagnosticPosition pos, boolean isExhaustive, boolean isPatternSwitch, JCExpression switchExpr, List<JCCase> cases) {
-	    JCExpression selector = switchCheck(switchExpr, cases);
+	    JCExpression selector = switchCheck(switchExpr, isPatternSwitch, cases);
 	    JCExpression nnull = null;
 	    if (selector.type.isReference()) {
 	        nnull = treeutils.makeNotNull(selector,selector);
@@ -7205,6 +7206,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        newswitch.primitiveSelector = selector;
 	    } else {
 	        newswitch.primitiveSelector = createUnboxingExpr(selector);
+	    }
+	    JCExpression nnselector = null;
+	    JCIdent unbox = null;
+        boolean hasNullCase = hasNullCase(cases);
+	    if (esc && hasNullCase && !selector.type.isPrimitive() && types.unboxedTypeOrType(selector.type) != selector.type) {
+	        nnselector = treeutils.makeNotNull(selector, selector);
+	        var unboxex = createUnboxingExpr(selector);
+	        var cond = M.at(pos).Conditional(nnselector, unboxex, treeutils.makeZeroEquivalentLit(unboxex, unboxex.type));
+	        cond.type = unboxex.type;
+	        unbox = newTemp(cond);
 	    }
 	    // treeMap is used to map break statements to their target statements
         treeMap.put((JCTree)pos, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
@@ -7223,6 +7234,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            //if (_case.labels.get(0) instanceof JCDefaultCaseLabel) hasDefault = true;
 	            continuation = Continuation.CONTINUE;
 	            boolean isArrow = _case.caseKind != com.sun.source.tree.CaseTree.CaseKind.STATEMENT;
+	            boolean isDefault = _case.getLabels().stream()
+	                    .anyMatch(l -> l instanceof JCTree.JCDefaultCaseLabel);
+	            boolean hasNull = _case.getLabels().stream()
+	                    .anyMatch(l -> TreeInfo.isNullCaseLabel(l));
 
 	            pushBlock();
 	            if (((JCTree)pos instanceof JCSwitch sw && sw.patternSwitch)
@@ -7253,6 +7268,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                newcase = M.at(_case).Case(_case.caseKind, _case.labels, _case.guard, bl.stats, _case.body);
 	            } else {
                     newcase = M.at(_case).Case(JCCase.STATEMENT, _case.labels, guard, bl.stats, null);
+	            }
+	            if (nnselector != null) {
+	                if (hasNull && !isDefault) {
+	                    newcase.predicate = treeutils.makeEqNull(selector.pos, selector);
+	                } else if (!isDefault) {
+	                    JCExpression disj = null;
+	                    for (var item: _case.labels) {
+	                        JCExpression eq = treeutils.makeEquality(item.pos, unbox, ((JCConstantCaseLabel)item).expr);
+	                        disj = disj == null ? eq : treeutils.makeAnd(disj, disj, eq);
+	                    }
+	                    newcase.predicate = treeutils.makeAnd(_case, nnselector, disj);
+	                }
 	            }
 	            newcase.completesNormally = _case.completesNormally;
 	            newcases.add(newcase);
@@ -7300,7 +7327,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    // record the translation from old to new AST  // FIXME - this used to be before trabnslating the body. Does it matter?
 		    result = addStat(newSwitch.setType(that.type)); // But actually, statements do not have a type
 		} else {
-	        JCExpression selector = switchCheck(that.selector, that.cases);
+	        JCExpression selector = switchCheck(that.selector, that.patternSwitch, that.cases);
 	        JCSwitch newswitch = M.at(that).Switch(selector, null); // cases filled in later, but we need the new tree reference now
 	        // treeMap is used to map break statements to their target statements
 	        treeMap.put(that, newswitch); // pos must also be the  JCSwitch or JCSwitchExpression
@@ -13890,21 +13917,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				utils.error(expr, "jml.message", "Could not find method " + methodName);
 				// ERROR - throw something
 			}
-
-			JCFieldAccess receiver = M.at(expr).Select(expr, id);
-			receiver.type = msym.type;
-			receiver.sym = msym;
-
-			JCMethodInvocation call = M.at(expr).Apply(List.<JCExpression>nil(), receiver, List.<JCExpression>nil());
+			
+			var decl = newTempDecl(expr, expr.type);
+			decl.init = expr;
+			var declId = treeutils.makeIdent(expr, decl.sym);
+            JCFieldAccess fa = M.at(expr).Select(declId, id);
+            fa.type = msym.type;
+            fa.sym = msym;
+            
+			JCMethodInvocation call = M.at(expr).Apply(List.<JCExpression>nil(), fa, List.<JCExpression>nil());
 			call.setType(unboxed);
-			boolean saved = alreadyConverted;
-			alreadyConverted = true;
-			try {
-				// FIXME - explain what happens when alreadyCOnverted is set
-				return convertExpr(call);
-			} finally {
-				alreadyConverted = saved;
-			}
+
+            JCExpression nn = treeutils.makeNotNull(declId, declId);
+            JCExpression z = treeutils.makeZeroEquivalentLit(declId, unboxed);
+            JCExpression cond = M.at(expr).Conditional(nn, call, z);
+            JCExpression r = M.at(decl).LetExpr(decl, cond);
+            if (!rac) r = convertExpr(r);
+			return r;
+
+//			boolean saved = alreadyConverted;
+//			alreadyConverted = true;
+//			try {
+//				// FIXME - explain what happens when alreadyCOnverted is set
+//				return convertExpr(call);
+//			} finally {
+//				alreadyConverted = saved;
+//			}
 		} else { // use model field
 			String fieldName = "the" + origtypeString;
 			if (origtypeString.equals("BigInteger"))

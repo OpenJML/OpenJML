@@ -58,7 +58,11 @@ public class escswitch extends EscBase {
     @Test
     public void testResultGet() {
         addOptions("--method=get");
-        helpEsc("com.example.Result", RESULT_SOURCE);
+        helpEsc("com.example.Result", RESULT_SOURCE
+                ,"/com/example/Result.java:15: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method <T,E>get", 19
+                ,"/com/example/Result.java:15: verify: Associated declaration", 21
+                ,"/com/example/Result.java:16: verify: Associated method exit", 9
+                );
     }
 
     // -----------------------------------------------------------------------
@@ -210,6 +214,7 @@ public class escswitch extends EscBase {
                             case Box(Integer x) when x > 0  -> 1;
                             case Box(Integer x) when x == 0 -> 0;
                             case Box(Integer x)             -> -1;
+                            case null -> 0;
                         };
                     }
                 }
@@ -686,6 +691,95 @@ public class escswitch extends EscBase {
                 );
     }
 
+    @Test public void escInteger() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  //@ requires arg != null;
+                  //@ ensures arg == 0 ==> \\result == 1;
+                  //@ ensures arg == 2 ==> \\result == 4;
+                  public static int m(/*@ nullable */ Integer arg) {
+                    int k = switch (arg) {
+                      case 0 -> 1;
+                      case 1 -> 2;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test public void escIntegerNull() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  //@ ensures arg == 0 ==> \\result == 1;
+                  //@ ensures arg == 2 ==> \\result == 4;
+                  public static int m(/*@ nullable */ Integer arg) {
+                    int k = switch (arg) {
+                      case 0 -> 1;
+                      case 1 -> 2;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                ,"/tt/Z.java:7: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m", 21
+                );
+    }
+
+    @Test public void escIntegerNullCase() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  //@ ensures arg != null && arg == 0 ==> \\result == 1;
+                  //@ ensures arg != null && arg == 2 ==> \\result == 4;
+                  //@ ensures arg == null ==> \\result == 3;
+                  public static int m(/*@ nullable */ Integer arg) {
+                    int k = switch (arg) {
+                      case 0 -> 1;
+                      case 1 -> 2;
+                      case null -> 3;
+                      default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test public void escIntegerNullDefaultCase() {
+        helpEsc("tt.Z",
+                """
+                package tt;
+                /*@ nullable_by_default*/
+                public class Z {
+                  //@ ensures arg != null && arg == 0 ==> \\result == 1;
+                  //@ ensures arg != null && arg == 2 ==> \\result == 4;
+                  //@ ensures arg == null ==> \\result == 4;
+                  public static int m(/*@ nullable */ Integer arg) {
+                    int k = switch (arg) {
+                      case 0 -> 1;
+                      case 1 -> 2;
+                      case null, default -> 4;
+                    };
+                    return k;
+                  }
+                }
+                """
+                );
+    }
+
     @Test public void escString() {
         helpEsc("tt.Z",
                 """
@@ -751,7 +845,7 @@ public class escswitch extends EscBase {
     }
 
     @Test public void escStringNullDefaultCase() {
-        addOptions("--show","--method=m");
+ //       addOptions("--show","--method=m");
         helpEsc("tt.Z",
                 """
                 package tt;
