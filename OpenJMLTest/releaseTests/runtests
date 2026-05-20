@@ -256,7 +256,13 @@ ${RTH} testCheck1 "$JML -jmltesting --specs-path src ./src/A.java" || RES=$(($RE
 
 echo Testing testAPI
 ../releaseTests/testAPI/run &> ../releaseTests/testAPI/actual
-tr -d '\r' < ../releaseTests/testAPI/actual | diff - ../releaseTests/testAPI/expected || { echo testAPI FAILED; RES=$(($RES+1)); }
+if ! tr -d '\r' < ../releaseTests/testAPI/actual | diff - ../releaseTests/testAPI/expected ; then
+    echo "testAPI FAILED"
+    echo "=== testAPI actual output ==="
+    cat ../releaseTests/testAPI/actual
+    echo "=== end testAPI actual ==="
+    RES=$(($RES+1))
+fi
 
 ## FIXME - jmldoc & prettyprinying
 if [[ "SKIP" == "" ]]; then

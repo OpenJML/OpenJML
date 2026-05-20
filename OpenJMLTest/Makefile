@@ -13,7 +13,7 @@ SRC=${TEST}/../OpenJMLsrc
 T=temp-release
 
 .PHONY: openjml-test openjml-test-git openjml-test-temp openjml-clean openjml \
-        clean release prep temp-release \
+        clean release prep \
         tutorial-tests tutorial-tests-git userguide-tests userguide-tests-released \
         release-tests unittests-seq unittests-par json-tests lsp-tests \
         cov-clean cov-test cov-report cov-show
@@ -63,6 +63,7 @@ clean: cov-clean
 	rm -rf tempUserGuide
 	rm -rf testcompiles
 	rm -rf jsontests/json-loc/xx
+	rm -f $T
 
 
 release: .FORCE
@@ -71,6 +72,7 @@ release: .FORCE
 
 prep: temp-release
 
+## This target must match $T
 temp-release:
 	rm -rf $T
 	mkdir $T
