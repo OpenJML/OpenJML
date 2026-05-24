@@ -39,7 +39,7 @@ public abstract class EscBase extends JmlTestSuite {
     }
 
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
-            "z3_4_3",
+//            "z3-4.16.0",
 //            "z3-4.8",
 //            "cvc4-1.8",
 //            "cvc5-0.0"
@@ -119,7 +119,8 @@ public abstract class EscBase extends JmlTestSuite {
     
     public EscBase() {
         this.options = null;
-        this.solver = "z3_4_3";
+        //this.solver = "z3-4.3.X";
+        this.solver = null; // null -- use JmlOption default
     }
     
     /** options is a comma-separated list of options to be added */

@@ -170,7 +170,7 @@ public class escnewBoxing extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullValue) in method m",12
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m",12
                 );
     }
 

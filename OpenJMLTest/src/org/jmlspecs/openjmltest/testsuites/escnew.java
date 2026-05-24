@@ -2779,4 +2779,21 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:6: error: This JML modifier is not allowed for a constructor declaration", 7
                 );
     }
+
+    @Test
+    public void testSealed() {
+        helpEsc("A", """
+                class A {
+                    sealed interface Animal permits Dog, Cat {}
+                    record Dog(String name) implements Animal {}
+                    record Cat(String name) implements Animal {}
+
+                    //@ requires a != null;
+                    void greet(Animal a) {
+                        //@ assert a instanceof Dog || a instanceof Cat;
+                    }
+                }
+                """);
+    }
+
 }

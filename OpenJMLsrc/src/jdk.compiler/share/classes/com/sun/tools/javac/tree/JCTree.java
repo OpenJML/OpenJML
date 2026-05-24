@@ -1291,7 +1291,6 @@ public abstract class JCTree implements Tree, Cloneable, DiagnosticPosition {
         public boolean isExhaustive;
         public boolean patternSwitch;
         public boolean wasEnumSelector;
-        public JCExpression primitiveSelector; // OPENJML
         protected JCSwitch(JCExpression selector, List<JCCase> cases) {
             this.selector = selector;
             this.cases = cases;

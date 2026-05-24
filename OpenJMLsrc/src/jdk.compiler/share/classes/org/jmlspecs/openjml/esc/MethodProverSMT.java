@@ -187,38 +187,42 @@ public class MethodProverSMT {
         org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.PROVEREXEC.value(context);
         String os = Utils.identifyOS(context);
-        if (exec == null || exec.isEmpty()) exec = Options.instance(context).get(Strings.proverPropertyPrefix + proverToUse);
         if (exec == null || exec.isEmpty()) {
             // The default is that the prover executables are located in folders named 
-            // ./Solvers-$OS for $OS either macos or windows or linux, relative to the path returned by findInstallLocation
+            // ./Solvers-$OS, relative to the path returned by findInstallLocation
             String loc = Main.solvers;
-            String ex = null;
-            ex = proverToUse.replace("z3_","z3-").replace('_','.');
+            String ex = proverToUse;
             
-            x: if (loc != null && os != null && ex != null) {
-                exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;
-                if (new java.io.File(exec).exists()) break x;
-                if (new java.io.File(exec + ".exe").exists()) { exec = exec + ".exe"; break x; }
-                if (proverToUse.equals("cvc4")) ex = ex + "-1"; // FIXME - is this needed?
-                exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex;
-                for (int i=5; i>=0; --i) {
-                    String execi = exec + "." + i;
-                    if (new java.io.File(execi).exists()) {
-                        exec = execi;
-                        break;
+            x: {
+                if (ex.contains("X")) {
+                    for (int i=20; i>=0; --i) {
+                        String num = Integer.toString(i);
+                        exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex.replace("X",num);
+                        if (new java.io.File(exec).exists()) {
+                            break;
+                        }
+                        if (new java.io.File(exec + ".exe").exists()) {
+                            exec = exec + ".exe";
+                            break;
+                        }
                     }
-                    if (new java.io.File(execi + ".exe").exists()) {
-                        exec = execi + ".exe";
-                        break;
+                } else {
+                    exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;
+                    if (new java.io.File(exec).exists()) {
+                        break x;
                     }
-                }
-                if (!new java.io.File(exec).exists()) {
-                    Utils.instance(context).warning("jml.message","Implicit executable does not exist " + exec + ".X");
-                    exec =  null;
+                    if (new java.io.File(exec + ".exe").exists()) { 
+                        exec = exec + ".exe"; 
+                        break x;
+                    }
                 }
             }
+        } else {
+            if (!new java.io.File(exec).exists()) {
+                Utils.instance(context).warning("jml.message","Specified executable does not exist " + exec);
+                exec =  null;
+            }
         }
-        //System.out.println("PROVER " + proverToUse + " " + exec + " " + os + " " + JmlOption.value(context, JmlOption.PROVEREXEC) + " " + Main.root);
         return exec;
     }
     
@@ -414,7 +418,8 @@ public class MethodProverSMT {
             // Starts the solver (and it waits for input)
             start = new Date();
             //setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
-            solver = smt.startSolver(smt.smtConfig,proverToUse,exec);
+            String smtProver = proverToUse.replace(".exe","").replace(".X","").replace("-","_").replace(".","_");
+            solver = smt.startSolver(smt.smtConfig,"z3_4_3",exec);
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
                 JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec);

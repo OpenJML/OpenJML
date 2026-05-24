@@ -756,7 +756,7 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
         }
         int pos = that.pos;
         int swpos = that.selector.getStartPosition();
-        if (that.primitiveSelector != null) scan(that.primitiveSelector); else scan(that.selector);
+        scan(that.selector);
         JCExpression switchExpression = result;
         List<JCCase> cases = that.cases;
         T previousBreakBlock = breakBlocks.get(names.empty);
@@ -824,29 +824,29 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                 if (caseItem.predicate != null) {
                     okDefault = true;
                     eqq = caseItem.predicate;
-                } else if (isString || isEnum ) {
-                    if (!hasNull && !isDefault) for (JCExpression caseValue: caseValues) {
-                        JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
-                        JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
-                        eqq = eqq == null ? eq : treeutils.makeOr(casepos, eqq, eq);
-                    }
-                    if (hasNull && !isDefault) {
-                        JCIdent vdd = treeutils.makeIdent(caseItem.getStartPosition(),vd.sym);
-                        eqq = treeutils.makeBinary(caseItem.getStartPosition(),JCTree.Tag.EQ,vdd,treeutils.nullLit);
-                    }
-                } else if (!that.patternSwitch) { // numeric or boolean
-                    if (!hasNull && !isDefault) for (JCExpression caseValue: caseValues) {
-                        JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
-                        JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
-                        eqq = eqq == null ? eq : treeutils.makeOr(casepos, eqq, eq);
-                    }
-                    if (hasNull && !isDefault) {
-                        JCIdent vdd = treeutils.makeIdent(caseItem.getStartPosition(),vd.sym);
-                        eqq = treeutils.makeBinary(caseItem.getStartPosition(),JCTree.Tag.EQ,vdd,treeutils.nullLit);
-                    }
-                    //System.out.println("EQQ1 " + isEnum + " " + hasNull + " " + eqq);
-                    if (nn != null && hasNull) eqq = treeutils.makeAnd(eqq, nn, eqq);
-                    //System.out.println("EQQ2 " + eqq);
+//                } else if (isString || isEnum ) {
+//                    if (!hasNull && !isDefault) for (JCExpression caseValue: caseValues) {
+//                        JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
+//                        JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
+//                        eqq = eqq == null ? eq : treeutils.makeOr(casepos, eqq, eq);
+//                    }
+//                    if (hasNull && !isDefault) {
+//                        JCIdent vdd = treeutils.makeIdent(caseItem.getStartPosition(),vd.sym);
+//                        eqq = treeutils.makeBinary(caseItem.getStartPosition(),JCTree.Tag.EQ,vdd,treeutils.nullLit);
+//                    }
+//                } else if (!that.patternSwitch) { // numeric or boolean
+//                    if (!hasNull && !isDefault) for (JCExpression caseValue: caseValues) {
+//                        JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
+//                        JCExpression eq = treeutils.makeBinary(caseValue.getStartPosition(),JCTree.Tag.EQ,vdd,(caseValue));
+//                        eqq = eqq == null ? eq : treeutils.makeOr(casepos, eqq, eq);
+//                    }
+//                    if (hasNull && !isDefault) {
+//                        JCIdent vdd = treeutils.makeIdent(caseItem.getStartPosition(),vd.sym);
+//                        eqq = treeutils.makeBinary(caseItem.getStartPosition(),JCTree.Tag.EQ,vdd,treeutils.nullLit);
+//                    }
+//                    //System.out.println("EQQ1 " + isEnum + " " + hasNull + " " + eqq);
+//                    if (nn != null && hasNull) eqq = treeutils.makeAnd(eqq, nn, eqq);
+//                    //System.out.println("EQQ2 " + eqq);
                 } else {
                     if (!hasNull && !isDefault) for (JCExpression caseValue: caseValues) {
                         JCIdent vdd = treeutils.makeIdent(caseValue == null ? Position.NOPOS : caseValue.getStartPosition(),vd.sym);
@@ -862,11 +862,6 @@ abstract public class BasicBlockerParent<T extends BlockParent<T>, P extends Bas
                     if (nn != null && hasNull) eqq = treeutils.makeAnd(eqq, nn, eqq);
                 }
                 JmlStatementExpr asm = addAssume(caseItem.pos,Label.CASECONDITION,eqq,blockForTest.statements);
-                if (caseItem.guard != null) {
-                    // FIXME - use endpos
-                    //eqq = treeutils.makeAnd()
-//                    addAssume(caseItem.guard.pos, Label.CASECONDITION, caseItem.guard, blockForTest.statements);
-                }
 
                 // continue to build up the default case test
                 if (isDefault) defaultAsm = asm; // remember the assumption for the default case

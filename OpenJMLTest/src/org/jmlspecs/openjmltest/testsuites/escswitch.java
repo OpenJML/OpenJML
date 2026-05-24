@@ -209,7 +209,7 @@ public class escswitch extends EscBase {
                     record Box(Integer x) {}
 
                     //@ ensures \\result == 1 || \\result == 0 || \\result == -1;
-                    int classify(Box b) {
+                    int classify(/*@ nullable */ Box b) {
                         return switch (b) {
                             case Box(Integer x) when x > 0  -> 1;
                             case Box(Integer x) when x == 0 -> 0;
@@ -309,21 +309,6 @@ public class escswitch extends EscBase {
                 """);
     }
 
-    @Test
-    public void testSealed() {
-        helpEsc("A", """
-                class A {
-                    sealed interface Animal permits Dog, Cat {}
-                    record Dog(String name) implements Animal {}
-                    record Cat(String name) implements Animal {}
-
-                    //@ requires a != null;
-                    void greet(Animal a) {
-                        //@ assert a instanceof Dog || a instanceof Cat;
-                    }
-                }
-                """);
-    }
 
     /** Pattern switch statement with a throw in one arm. */
     @Test
@@ -731,7 +716,7 @@ public class escswitch extends EscBase {
                   }
                 }
                 """
-                ,"/tt/Z.java:7: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m", 21
+                ,"/tt/Z.java:7: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method m", 20
                 );
     }
 

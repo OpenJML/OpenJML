@@ -200,7 +200,7 @@ public class JmlOption {
 
     public static final JmlOption METHOD = new JmlOption("--method",true,null,"Comma-separated list of method name patterns on which to run ESC",null);
     public static final JmlOption EXCLUDE = new JmlOption("--exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null);
-    public static final JmlOption PROVER = new JmlOption("--prover",true,null,"The prover to use to check verification conditions",null);
+    public static final JmlOption PROVER = new JmlOption("--prover",true,"z3-4.10.2","The prover to use to check verification conditions",null);
     public static final JmlOption PROVEREXEC = new JmlOption("--exec",true,null,"The prover executable to use",null);
     public static final JmlOption LOGIC = new JmlOption("--logic",true,"ALL","The SMT logic to use (default ALL)",null); // obsolete
     public static final JmlOption SMT = new JmlOption("--smt",true,null,"A file to write the smt command file to",null);

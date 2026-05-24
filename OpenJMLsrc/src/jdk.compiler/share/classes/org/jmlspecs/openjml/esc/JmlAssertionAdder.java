@@ -7065,7 +7065,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
 	                                    "java.lang.NullPointerException");
 	        }
-	    } else if (!switchExpr.type.isPrimitive()) {
+	    } else if (!switchExpr.type.isPrimitive() && !types.isSameType(switchExpr.type, syms.stringType)) {
 	        if (!hasNullCase && !isPatternSwitch) {
 //	            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
 //	            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE,
@@ -7194,23 +7194,70 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    }
 	}
 
-	public JCSwitch switchHelper(DiagnosticPosition pos, boolean isExhaustive, boolean isPatternSwitch, JCExpression switchExpr, List<JCCase> cases) {
-	    JCExpression selector = switchCheck(switchExpr, isPatternSwitch, cases);
+    public JCSwitch switchHelper(DiagnosticPosition pos, boolean isExhaustive, boolean isPatternSwitch, JCExpression switchExpr, List<JCCase> cases) {
+        boolean hasNullCase = false;
+        boolean isEnum = false;
+        boolean isString = false;
+        boolean isPrimitive = false;
+        boolean isPattern = false; // isPatternSwitch includes simple non-primitives like Enums and Strings and Integers with a null label
+        for (JCCase _case: cases) {
+            for (var label: _case.labels) {
+                if (label instanceof JCPatternCaseLabel) { isPattern |= true; }
+                else if (label instanceof JCDefaultCaseLabel) {}
+                else if (label instanceof JCConstantCaseLabel z) {
+                    if (TreeInfo.isNullCaseLabel(z)) hasNullCase |= true;
+                    else if (z.expr.type.isPrimitive()) isPrimitive |= true;
+                    else if (types.isSameType(z.expr.type, syms.stringType)) isString |= true;
+                    else if (z.expr.type.tsym.isEnum()) isEnum |= true;
+                    else utils.error(z, "jml.message", "Unknown kind of case label: " + label + " " + z.expr.type);
+                }
+                else { utils.error(label, "jml.message", "Unknown kind of case label: " + label + " " + label.getClass()); }
+            }
+        }
+        {
+            int n = (isPattern?1:0)+(isPrimitive?1:0)+(isEnum?1:0)+(isString?1:0);
+            if (n == 0) {
+                if (switchExpr.type.isPrimitive()) isPrimitive = true;
+                else if (switchExpr.type.tsym.isEnum()) isEnum = true;
+                else if (types.isSameType(switchExpr.type, syms.stringType)) isString = true;
+                else isPattern = true;
+            } else if (n != 1) {
+                utils.error(pos, "jml.message", "Mixed kinds of case labels"); // Typechecking should prevent this from ever being called
+                System.out.println("SWITCH KINDS " + isPrimitive + " " + isEnum +" " + isString + " " + isPattern + " " + isPatternSwitch + " " + isExhaustive + " " + hasNullCase);
+            }
+        }
+        
+        JCExpression selector = convertExpr(switchExpr);
+        if (!hasNullCase && !isPrimitive) {
+            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_VALUE, Label.POSSIBLY_NULL_VALUE, // F(XME - UNDEFINED_NULL_VALUE?
+                                    "java.lang.NullPointerException");
+        }
+        if (!hasNullCase && isPrimitive && !selector.type.isPrimitive()) {
+            JCExpression e = treeutils.makeNeqObject(switchExpr.pos, selector, treeutils.nullLit);
+            addJavaCheck(switchExpr, e, Label.POSSIBLY_NULL_UNBOX, Label.UNDEFINED_NULL_UNBOX,
+                                    "java.lang.NullPointerException");
+        }
+        if (!rac && isPrimitive && !hasNullCase) {
+            // FIXME - does not handle Boolean Long Float Double
+            selector = addImplicitConversion(switchExpr, syms.intType, selector);
+        }
+
+        
 	    JCExpression nnull = null;
 	    if (selector.type.isReference()) {
 	        nnull = treeutils.makeNotNull(selector,selector);
 	    }
 	    JCSwitch newswitch = M.at(pos).Switch(selector, null); // cases filled in later, but we need the new tree reference now
 	    newswitch.isExhaustive = isExhaustive;
-	    if (selector.type.isPrimitive() || selector.type.tsym == syms.stringType.tsym || isPatternSwitch || selector.type.tsym.isEnum()) {
-	        newswitch.primitiveSelector = selector;
-	    } else {
-	        newswitch.primitiveSelector = createUnboxingExpr(selector);
-	    }
+//	    if (selector.type.isPrimitive() || selector.type.tsym == syms.stringType.tsym || isPatternSwitch || selector.type.tsym.isEnum()) {
+//	        newswitch.primitiveSelector = selector;
+//	    } else {
+//	        newswitch.primitiveSelector = createUnboxingExpr(selector);
+//	    }
 	    JCExpression nnselector = null;
 	    JCIdent unbox = null;
-        boolean hasNullCase = hasNullCase(cases);
-	    if (esc && hasNullCase && !selector.type.isPrimitive() && types.unboxedTypeOrType(selector.type) != selector.type) {
+	    if (esc && hasNullCase && isPrimitive && !selector.type.isPrimitive()) {
 	        nnselector = treeutils.makeNotNull(selector, selector);
 	        var unboxex = createUnboxingExpr(selector);
 	        var cond = M.at(pos).Conditional(nnselector, unboxex, treeutils.makeZeroEquivalentLit(unboxex, unboxex.type));
@@ -7250,18 +7297,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            addFeasibilityCheck(_case, currentStatements, Strings.feas_switch, "after case condition");
 	            convert(_case.stats); // This might change 'continuation'
                 currentEnv.inArrowCase = prevArrow;
-//	            if (!rac && isArrow && _case.completesNormally) {
-//	                // For compilation, Lower.java inserts a break at the end of the stats list
-//	                JCBreak brk = M.at(_case).Break(null);
-//	                brk.target = newswitch;
-//	                addStat(brk);
-//	            }
 	            JCBlock bl = popBlock(_case);
 //                System.out.println("CASE " + isArrow + " " + _case.completesNormally + " " + bl);
-	            // Have to be careful about blocks
-	            // If the case had a block, it must still have a block
-	            // If the case did not have a block and is not an arrow case, then it must stay not a block // FIXME - not sure about this -- I think can always turn into a block
-	            // Otherwise it does not matter.
+	            // Have to be careful about blocks:
+	            // If the case statements are not a block, we cannot convert them into a block because
+	            // the original statements might have a declaration which stays in scope in follofinw cases.
 	            JCExpression guard = null; // convert(_case.guard);
 	            JCCase newcase;
 	            if (rac) {
@@ -7269,17 +7309,30 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            } else {
                     newcase = M.at(_case).Case(JCCase.STATEMENT, _case.labels, guard, bl.stats, null);
 	            }
-	            if (nnselector != null) {
-	                if (hasNull && !isDefault) {
-	                    newcase.predicate = treeutils.makeEqNull(selector.pos, selector);
-	                } else if (!isDefault) {
-	                    JCExpression disj = null;
-	                    for (var item: _case.labels) {
-	                        JCExpression eq = treeutils.makeEquality(item.pos, unbox, ((JCConstantCaseLabel)item).expr);
-	                        disj = disj == null ? eq : treeutils.makeAnd(disj, disj, eq);
-	                    }
-	                    newcase.predicate = treeutils.makeAnd(_case, nnselector, disj);
+	            if (isDefault || rac) {
+	                // skip
+	            } else if (hasNull) {
+	                // Java does not allow mixing null with other case labels (except default)
+	                newcase.predicate = treeutils.makeEqNull(selector.pos, selector);
+	            } else if (nnselector != null) { // primitive with unboxing
+	                JCExpression disj = null;
+	                for (var item: _case.labels) {
+	                    JCExpression eq = treeutils.makeEquality(item.pos, unbox, ((JCConstantCaseLabel)item).expr);
+	                    disj = disj == null ? eq : treeutils.makeOr(disj, disj, eq);
 	                }
+	                newcase.predicate = treeutils.makeAnd(_case, nnselector, disj);
+	            } else if (isEnum || isString) {
+                    JCExpression disj = null;
+                    for (var item: _case.labels) {
+                        JCExpression eq = treeutils.makeEquality(item.pos, selector, ((JCConstantCaseLabel)item).expr);
+                        disj = disj == null ? eq : treeutils.makeOr(disj, disj, eq);
+                    }
+                    newcase.predicate = disj;
+	            } else if (isPattern) {
+	                // Handled by translatePatternLabels
+	                // FIXME - does not work for pattern labels that are not disjoint, nor for default 
+	            } else {
+	                // If this case holds, some error occurred
 	            }
 	            newcase.completesNormally = _case.completesNormally;
 	            newcases.add(newcase);

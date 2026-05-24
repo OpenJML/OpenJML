@@ -449,7 +449,10 @@ public class Utils {
     public static String identifyOS(Context context) {
         String sp = context == null ? null : JmlOption.OSNAME.value(context);
         if (sp == null || sp.isEmpty() || "auto".equals(sp)) sp = System.getProperty("os.name");
-        if (sp.contains("mac") || sp.contains("Mac")) return "macos";
+        if (sp.contains("mac") || sp.contains("Mac")) {
+            if ("aarch64".equals(System.getProperty("os.arch"))) return "macos-arm64";
+            return "macos";
+        }
         if (sp.contains("lin") || sp.contains("Lin")) {
             if ("aarch64".equals(System.getProperty("os.arch"))) return "linux-arm64";
             return "linux";

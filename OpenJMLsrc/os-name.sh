@@ -10,7 +10,11 @@
 ##          and copied into each release zip so release scripts can call it.
 
 case "$(uname -s)" in
-    Darwin) echo "macos" ;;
+    Darwin)
+        case "$(uname -m)" in
+            arm64|aarch64) echo "macos-arm64" ;;
+            *)             echo "macos" ;;
+        esac ;;
     Linux)
         if grep -qi microsoft /proc/version 2>/dev/null; then
             echo "windows"
