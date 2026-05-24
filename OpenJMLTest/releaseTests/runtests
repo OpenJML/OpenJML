@@ -207,12 +207,11 @@ ${RTH} testEsc1 "timeout 60 $JML --esc ./src/testEsc/A.java -classpath ./src/tes
 ${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc" || RES=$(($RES+1))
 
 ## Checks using classpath with an explicit solver (tests the --exec option)
-if   [ -e "../../../Solvers/Solvers-${OS_NAME}/z3-4.3.1${EXE}" ] ; then
-  ${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=../../../Solvers/Solvers-${OS_NAME}/z3-4.3.1${EXE}" || RES=$(($RES+1))
-elif [ -e "../../../Solvers/Solvers-${OS_NAME}/z3-4.3.2${EXE}" ] ; then
-  ${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=../../../Solvers/Solvers-${OS_NAME}/z3-4.3.2${EXE}" || RES=$(($RES+1))
+EX=../../../Solvers/Solvers-${OS_NAME}/z3-4.8.12${EXE}
+if   [ -e "$EX" ] ; then
+  ${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --exec=$EX" || RES=$(($RES+1))
 else
-  echo "FAILURE: Z3 executable not found"
+  echo "FAILURE: Z3 executable not found: $EX"
   RES=$(($RES+1))
 fi
 

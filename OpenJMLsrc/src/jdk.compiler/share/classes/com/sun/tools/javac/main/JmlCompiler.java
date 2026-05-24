@@ -204,9 +204,6 @@ public class JmlCompiler extends JavaCompiler {
             System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
             System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
         }
-        if (utils.esc && "linux-arm64".equals(Utils.identifyOS(context))) {
-            utils.warning("jml.message", "--esc is not yet functional on linux on arm hardware");
-        }
 
         super.compile(sourceFileObjects, classnames, processors, addModules);
     }

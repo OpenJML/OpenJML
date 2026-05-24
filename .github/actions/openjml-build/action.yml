@@ -79,6 +79,8 @@ runs:
         ./configure --with-boot-jdk="$BOOT_JDK"
         make release
     - name: Build OpenJML release on non-Windows (native)
+      ## Covers: Linux x86_64, Linux arm64, macOS arm64.
+      ## configure auto-detects the host architecture, so no arch wrapper is needed.
       if: runner.os != 'Windows' && inputs.arch != 'x86_64'
       shell: bash
       run: |
@@ -86,7 +88,7 @@ runs:
         ./configure
         make release
     - name: Build OpenJML release on macOS (x86_64 via Rosetta 2)
-      if: inputs.arch == 'x86_64'
+      if: runner.os == 'macOS' && inputs.arch == 'x86_64'
       shell: bash
       run: |
         cd OpenJML/OpenJMLsrc

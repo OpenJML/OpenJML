@@ -7226,6 +7226,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 System.out.println("SWITCH KINDS " + isPrimitive + " " + isEnum +" " + isString + " " + isPattern + " " + isPatternSwitch + " " + isExhaustive + " " + hasNullCase);
             }
         }
+        if (esc && isPattern) {
+            utils.warning(pos, "jml.message", "--esc is not yet sound for pattern-matching switch statements and expressions");
+        }
         
         JCExpression selector = convertExpr(switchExpr);
         if (!hasNullCase && !isPrimitive) {

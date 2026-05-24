@@ -4,7 +4,8 @@ name: Build OpenJML
 ## The release number is taken from the OpenJML/version.txt file.
 ## The workflow clones the master branch of all the OpenJML components, builds the release, running the release tests, packaging it into a zip file,
 ## creates a GitHub release entry in the OpenJML project and uploads the zip file to the release.
-## If a release with current release number already exists, the workflow fails (though you can inspect to see if the release build was successful).
+## If a published release with the current release number already exists, the workflow fails.
+## If an existing draft release with that number exists, the workflow reuses it (uploading assets over any existing ones).
 ## The (human) build manager must check that the release was successfully created, edit the release notes and manually publish the release to make it public.
 
 ## The advantage of separating the release build from the release creation and upload is this: if the release creation (the prepare job) fails because a
@@ -35,6 +36,8 @@ jobs:
         ## Each entry: os = GitHub runner, label = artifact/zip name suffix.
         ## Two macOS entries share the macos-14 (ARM) runner; the x86_64 build
         ## runs under arch -x86_64 (Rosetta 2) to produce an Intel binary.
+        ## Both Ubuntu entries use identical native build commands (configure
+        ## auto-detects the host arch); no arch wrapper is needed for either.
         echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-latest","label":"windows"} ]' >> "$GITHUB_OUTPUT"
 
   prepare:
@@ -60,16 +63,33 @@ jobs:
         echo "version=$ver" >> "$GITHUB_OUTPUT"
 
     - name: Check most recent release
+      id: check_release
       run: |
         export ver=${{ steps.version.outputs.version }}
-        if curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | grep -q "\"name\": \"OpenJML $ver\""; then
-          echo "Version $ver already exists"
+        status=$(curl --silent "https://api.github.com/repos/OpenJML/OpenJML/releases" \
+          --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | python3 -c "
+        import json,sys,os
+        ver = os.environ['ver']
+        for r in json.load(sys.stdin):
+            if r['name'] == 'OpenJML ' + ver:
+                print('draft' if r['draft'] else 'published')
+                sys.exit(0)
+        print('none')
+        ")
+        echo "release_status=$status" >> "$GITHUB_OUTPUT"
+        if [ "$status" = "published" ]; then
+          echo "Version $ver already has a published release — cannot overwrite"
           exit 1
+        elif [ "$status" = "draft" ]; then
+          echo "Version $ver has an existing draft release — it will be reused and any existing assets overwritten"
+        else
+          echo "No prior release found for version $ver"
         fi
-        echo "No prior release found for version $ver"
 
     - name: Create the GitHub release
       ## Do this just once -- not for every element of the matrix
+      ## Skipped if a draft release already exists (will be reused by the upload job).
+      if: steps.check_release.outputs.release_status == 'none'
       run: |
         export ver=${{ steps.version.outputs.version }}
         echo Version $ver from branch $BRANCH
@@ -192,6 +212,23 @@ jobs:
         export id=$(curl --silent --fail "https://api.github.com/repos/OpenJML/OpenJML/releases?per_page=10" --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' | python3 -c "import json,sys,os; r=next(r for r in json.load(sys.stdin) if r['tag_name']==os.environ['ver']); print(r['id'])")
         [[ -z "$id" ]] && { echo "ERROR: could not find release id for version $ver"; exit 1; }
         export upload_url="https://uploads.github.com/repos/OpenJML/OpenJML/releases/$id/assets"
+        existing_asset_id=$(curl --silent --fail \
+          "https://api.github.com/repos/OpenJML/OpenJML/releases/$id/assets" \
+          --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" | \
+          python3 -c "
+        import json,sys,os
+        for a in json.load(sys.stdin):
+            if a['name'] == os.environ['f']:
+                print(a['id']); sys.exit(0)
+        print('')
+        ")
+        if [[ -n "$existing_asset_id" ]]; then
+          echo "Deleting existing asset $f (id=$existing_asset_id)"
+          curl -sf -X DELETE \
+            "https://api.github.com/repos/OpenJML/OpenJML/releases/assets/$existing_asset_id" \
+            --header "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            || { echo "ERROR: failed to delete existing asset $f"; exit 1; }
+        fi
         echo Uploading $f to id $id at url $upload_url
         curl -sf -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" \
           || { echo "ERROR: upload of $f failed"; exit 1; }
