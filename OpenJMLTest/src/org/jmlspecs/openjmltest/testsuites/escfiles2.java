@@ -383,7 +383,7 @@ public class escfiles2 extends EscBaseFiles {
     // FIXME - don't think this is helpful because it does not call setupForFiles
     @Test
     public void escharness3() {
-        solver = "z3_4_3";
+        solver = null;
         helpEscSimple("--normal");
     }
     

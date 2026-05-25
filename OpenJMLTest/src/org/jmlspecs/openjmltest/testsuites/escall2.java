@@ -12,7 +12,7 @@ import org.openjml.runners.ParameterizedWithNames;
 public class escall2 extends EscBase {
 
     public escall2() {
-        super(null,"z3_4_3");
+        super(null,null);
     }
 
 

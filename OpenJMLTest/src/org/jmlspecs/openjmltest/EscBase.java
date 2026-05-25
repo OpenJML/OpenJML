@@ -43,11 +43,6 @@ public abstract class EscBase extends JmlTestSuite {
 //            "z3-4.8",
 //            "cvc4-1.8",
 //            "cvc5-0.0"
-//            "z3_4_7", 
- //           "z3_4_5", 
- //           "z3_4_6", 
- //           "z3_4_3_1", 
-//          "z3_4_4", 
 //            "cvc4",
             //"yices2",
  //             "yices", 

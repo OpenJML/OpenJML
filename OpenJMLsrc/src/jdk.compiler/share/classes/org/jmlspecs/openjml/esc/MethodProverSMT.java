@@ -419,7 +419,7 @@ public class MethodProverSMT {
             start = new Date();
             //setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             String smtProver = proverToUse.replace(".exe","").replace(".X","").replace("-","_").replace(".","_");
-            solver = smt.startSolver(smt.smtConfig,"z3_4_3",exec);
+            solver = smt.startSolver(smt.smtConfig,"z3_4_3",exec); // Argument is the SMT library adapter
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
                 JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec);
@@ -638,15 +638,16 @@ public class MethodProverSMT {
                                     // continue on - counting this as a SAT response
                                     utils.progress(0,Utils.PROGRESS,msgOK);
                                 } else {
-                                    String msg3 = "Aborted feasibility check: " + smt.smtConfig.defaultPrinter.toString(value);
+                                    String msg3 = "Aborted feasibility check: ";
+                                    String msg4 = smt.smtConfig.defaultPrinter.toString(value);
                                     unknownReason = smt.smtConfig.responseFactory.error(msg2);
-                                    boolean timeout = msg3.contains("timeout");
+                                    boolean timeout = msg4.contains("timeout");
                                     if (timeout) {
-                                        utils.verify(methodDecl,"esc.resourceout.feasibility",": " + msg3);
+                                        utils.verify(methodDecl,"esc.resourceout.feasibility",": " + msg3 + msg4);
                                         proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.TIMEOUT,start);
-                                        utils.progress(0,Utils.PROGRESS,fileLocation + msg + "timeout");
+                                        utils.progress(0,Utils.PROGRESS,fileLocation + msg3 + " timeout");
                                     } else {
-                                        utils.progress(0,Utils.PROGRESS,fileLocation + msg + "unknown reason: " + value);
+                                        utils.progress(0,Utils.PROGRESS,fileLocation + msg3 + " unknown reason: " + msg4);
                                     }
                                 }
                             } else {

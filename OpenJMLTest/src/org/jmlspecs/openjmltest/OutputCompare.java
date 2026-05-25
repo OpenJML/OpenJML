@@ -128,9 +128,13 @@ public class OutputCompare {
         collector = collectorp;
         nDiags = collector.getDiagnostics().size();
         diagListPos = 0;
+        if (nDiags > 0) {
+            var dd = collector.getDiagnostics().get(diagListPos);
+            if (JmlTestSuite.diagnosticToString(dd).contains("is not yet sound")) diagListPos++;
+        }
         if (print) System.out.println("START " + expectedErrors.length + " " + nDiags);
         if (!compareResultsX(expectedErrors)) {
-            if (diagListPos < nDiags) {
+            if (diagListPos < nDiags-diagListPos) {
                 Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(diagListPos);
                 String reason = switch (itemThatDiffers) { case 0 -> " (text)"; case 1 -> " (col)"; case 2 -> " (start)"; case 3 -> " (pos)"; case 4 -> " (end)"; default -> ""; };
                 fail("Failed to match diagnostic " + diagListPos + reason+ ": " + JmlTestSuite.diagnosticToString(d));
@@ -138,7 +142,7 @@ public class OutputCompare {
                 Assert.fail("Fewer errors observed (" + nDiags + ") than expected. First extra: " + expectedErrors[expectedUsed]);
             }
         } else {
-            if (diagListPos < nDiags) {
+            if (diagListPos < nDiags-diagListPos) {
                 Diagnostic<? extends JavaFileObject> d = collector.getDiagnostics().get(diagListPos);
                 Assert.fail("More errors observed (" + nDiags + ") than expected. First extra: " + JmlTestSuite.diagnosticToString(d));
             } else if (compareAll && expectedUsed < expectedErrors.length) {

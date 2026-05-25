@@ -34,15 +34,15 @@ METHOD <init> Q() Q
 METHOD m m(int) Q
 METHOD q q() Q
 RES 0
-RES Q() UNSAT [z3_4_3]
-RES m(int) UNSAT [z3_4_3]
+RES Q() UNSAT
+RES m(int) UNSAT
 data/Q.java:11: verify: The prover cannot establish an assertion (Postcondition: data/Q.java:9:) in method q
     return 0;
     ^
 data/Q.java:9: verify: Associated declaration: data/Q.java:11:
   //@ ensures \result == 1;
       ^
-RES q() POSSIBLY_SAT [z3_4_3]
+RES q() POSSIBLY_SAT
 DOING CLASS
 data/Q.java:11: verify: The prover cannot establish an assertion (Postcondition: data/Q.java:9:) in method q
     return 0;

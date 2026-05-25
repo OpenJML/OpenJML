@@ -58,7 +58,7 @@ public class SpecsEsc extends EscBaseFiles {
      * @param classname the fully qualified class to test
      */
     public SpecsEsc(String foldername) {
-        super("", "z3_4_3");  // FIXME - allow solvers
+        super("", null);
         this.foldername = foldername;
     }
 

@@ -20,7 +20,7 @@ public class Run {
           if (d instanceof JmlMethodDecl m) {
             System.out.println("METHOD-DOESC " + m.sym + " " + m);
             var r = api.doESC(m);
-            System.out.println("RES " + m.sym + " " + r);
+            System.out.println("RES " + m.sym + " " + r.result());
           }
         }
         System.out.println("DOING CLASS");
