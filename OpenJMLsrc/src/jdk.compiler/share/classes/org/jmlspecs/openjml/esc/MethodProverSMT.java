@@ -187,7 +187,12 @@ public class MethodProverSMT {
         org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.PROVEREXEC.value(context);
         String os = Utils.identifyOS(context);
-        if (exec == null || exec.isEmpty()) {
+        if (exec != null && !exec.isEmpty()) {
+            if (!new java.io.File(exec).exists()) {
+                Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
+                exec = null;
+            }
+        } else {
             // The default is that the prover executables are located in folders named 
             // ./Solvers-$OS, relative to the path returned by findInstallLocation
             String loc = Main.solvers;
@@ -215,12 +220,9 @@ public class MethodProverSMT {
                         exec = exec + ".exe"; 
                         break x;
                     }
+                    Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
+                    exec = null;
                 }
-            }
-        } else {
-            if (!new java.io.File(exec).exists()) {
-                Utils.instance(context).warning("jml.message","Specified executable does not exist " + exec);
-                exec =  null;
             }
         }
         return exec;
@@ -272,7 +274,7 @@ public class MethodProverSMT {
         String exec = pickProverExec(proverToUse, context);
         if (exec == null || exec.trim().isEmpty()) {
             //log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
-            JCDiagnostic d = utils.errorDiag(log.currentSource(), null,"esc.no.exec",proverToUse);
+            JCDiagnostic d = utils.errorDiag(null, null,"esc.no.exec",proverToUse);
             log.report(d);
             return factory.makeProverResult(methodDecl,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }

@@ -461,7 +461,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPrivate5() {
         addOptions("--method", "tt.TestJava.m1");
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends tx.Parent {
@@ -485,7 +485,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPublic5() {
         addOptions("--method", "tt.TestJava.m1");
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends tx.Parent {
@@ -511,7 +511,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testProtected5() {
         addOptions("--method", "tt.TestJava.m1");
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends tx.Parent {
@@ -537,7 +537,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPackage5() {
         addOptions("--method", "tt.TestJava.m1");
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends tx.Parent {
@@ -564,7 +564,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPrivate6() {
         addOptions("--method", "tt.TestJava.m1");
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends tx.Parent {
@@ -587,7 +587,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPublic6() {
         addOptions("--method", "tt.TestJava.m1");
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends tx.Parent {
@@ -612,7 +612,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testProtected6() {
         addOptions("--method", "tt.TestJava.m1");
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends tx.Parent {
@@ -637,7 +637,7 @@ public class escvisibility extends EscBase {
     @Test
     public void testPackage6() {
         addOptions("--method", "tt.TestJava.m1");
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava extends tx.Parent {
@@ -671,7 +671,7 @@ public class escvisibility extends EscBase {
                 }
                 """;
 
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -702,7 +702,7 @@ public class escvisibility extends EscBase {
                 }
                 """;
 
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -728,7 +728,7 @@ public class escvisibility extends EscBase {
                 }
                 """;
 
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -759,7 +759,7 @@ public class escvisibility extends EscBase {
                 }
                 """;
 
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
@@ -786,7 +786,7 @@ public class escvisibility extends EscBase {
                 }
                 """;
 
-        helpEsc("tt.TestJava",
+        helpEsc2("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {

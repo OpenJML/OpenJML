@@ -499,11 +499,10 @@ public class escvisibility1 extends EscBase {
 
     @Test
     public void testThisStar8() {
-        helpEsc("tx.B","package tx; public class B {\n protected int i;\n}",
+        helpEsc2("tx.B","package tx; public class B {\n protected int i;\n}",
                 "tt.A",
                 """
                 package tt; public class A extends tx.B {
-                \s
                 //@ pure
                  A() { i = 0; }
                 }
@@ -513,11 +512,10 @@ public class escvisibility1 extends EscBase {
 
     @Test
     public void testThisStar9() {
-        helpEsc("tx.B","package tx; public class B {\n protected int i;\n}",
+        helpEsc2("tx.B","package tx; public class B {\n protected int i;\n}",
                 "tt.A",
                 """
                 package tt; public class A extends tx.B {
-                \s
                 //@ pure
                 protected A() { i = 0; }
                 }
@@ -531,7 +529,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testNestedPrivate() {
         expectedExit = 1;
-        helpEsc("tt.B","package tt; public class B {\n static tt.A.P pp = A.Q.q; }\n", // No tt.A.P, No A.Q.q
+        helpEsc2("tt.B","package tt; public class B {\n static tt.A.P pp = A.Q.q; }\n", // No tt.A.P, No A.Q.q
                 "tt.A",
                 """
                 package tt; public class A  {
@@ -554,7 +552,7 @@ public class escvisibility1 extends EscBase {
     @Test
     public void testNestedProtected() {
         expectedExit = 1;
-        helpEsc("tt.B","package tx; public class B {\n static tt.A.P pp = tt.A.Q.q; }\n", // No tt.A.P, No A.Q.q
+        helpEsc2("tt.B","package tx; public class B {\n static tt.A.P pp = tt.A.Q.q; }\n", // No tt.A.P, No A.Q.q
                 "tt.A",
                 """
                 package tt; public class A  {

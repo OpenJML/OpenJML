@@ -1820,6 +1820,14 @@ public class Utils {
                 key, args);// TODO - not unicode friendly
     }
     
+    static public DiagnosticPosition NOSOURCE = null;
+    
+    public void errorNoSource(String key, Object ... args) {
+        var p = log().useSource(null);
+        log().error(null, null, JCDiagnostic.Factory.instance(context).errorKey(key, args));
+        log().useSource(p);
+    }
+
     public void error(DiagnosticPosition pos, String key, Object ... args) {
         log().error(null, pos, JCDiagnostic.Factory.instance(context).errorKey(key, args));
     }

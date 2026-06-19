@@ -164,7 +164,7 @@ public abstract class EscBase extends JmlTestSuite {
     /** Applies ESC to the case where there are two input .java mock files, each consisting of a class name and the input source text;
      * the expectedResults array is a line-by-line list of the expected output.
      */
-    protected void helpEsc(String classname, String inputSource, String classname2, String inputSource2, Object... expectedResults) {
+    protected void helpEsc2(String classname, String inputSource, String classname2, String inputSource2, Object... expectedResults) {
         try {
             String filename = classname.replace(".","/")+".java";
             JavaFileObject f = new MockJavaFileObject(filename,inputSource);

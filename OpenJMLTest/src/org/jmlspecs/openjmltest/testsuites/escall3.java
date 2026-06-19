@@ -24,11 +24,8 @@ public class escall3 extends EscBase {
                 package tt;
                 public class TestJava { }
                 """
-                ,oneof(
-                        seq("/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-macos/Z.X",-1)
-                        ,seq("/tt/TestJava.java: warning: Implicit executable does not exist $ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-linux/Z.X",-1)
-                    )
-                ,"/tt/TestJava.java: error: The executable for prover Z is not specified - use -exec or define an openjml.prover.... property",-1
+                ,"error: Specified executable does not exist: \"$ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-" + org.jmlspecs.openjml.Utils.identifyOS(context) + "/Z\"",-1
+                ,"error: The executable for prover Z is not specified - use --exec or define an openjml.prover.... property",-1
                 );
     }
     
@@ -41,7 +38,8 @@ public class escall3 extends EscBase {
                 package tt;
                 public class TestJava { }
                 """
-                ,"/tt/TestJava.java: error: The executable for prover z3_4_3 is not specified - use -exec or define an openjml.prover.... property",-1
+                ,"error: Specified executable does not exist: \" \""
+                ,"error: The executable for prover z3-4.3.X is not specified - use --exec or define an openjml.prover.... property",-1
                 );
     }
     
