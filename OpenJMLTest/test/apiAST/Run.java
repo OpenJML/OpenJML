@@ -14,11 +14,11 @@ public class Run {
         api.execute("--check", "-cp", "data", "./data/A.java");
         System.out.println("DOING ESC");
         api = IAPI.make();
+        api.setASTListener(new Listener());
         var x = api.execute("--check", "-cp", "data", "data/Q.java");
         System.out.println("RES " + x);
         for (var d: Walk.topclass.defs) {
           if (d instanceof JmlMethodDecl m) {
-            System.out.println("METHOD-DOESC " + m.sym + " " + m);
             var r = api.doESC(m);
             System.out.println("RES " + m.sym + " " + r.result());
           }
