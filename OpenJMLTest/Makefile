@@ -55,6 +55,7 @@ openjml: .FORCE
 ## Deletes all temporary files
 ## Many more to delete
 clean: cov-clean
+	$MAKE -C unittests clean
 	find . -name '*.class' -delete
 	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
 	find . -name '*actual*' -delete

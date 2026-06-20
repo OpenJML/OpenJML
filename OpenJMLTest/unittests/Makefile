@@ -9,3 +9,6 @@ OPTIONS=-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks
 
 unittestframework: ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testsuites/*.java
 	@NOJML=1 WSLENV="$${WSLENV:+$$WSLENV:}NOJML" $(NJAVAC) -g $(OPTIONS) -cp $(CP) -p $(ROOT)/build/*-release/jdk/modules $(OPENJML_EXPORTS) ../src/org/openjml/runners/*.java  ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testsuites/*.java
+
+clean:
+	rm -rf temp log* the.jml.lock unittestframework
