@@ -9357,6 +9357,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             } catch (JmlNotImplementedException e) {
                 throw e;
+            } catch (NoModelMethod e) {
+                throw e;
             } catch (Exception e) {
                 System.out.println("CAUGHT " + e);
                 e.printStackTrace(System.out);
