@@ -840,13 +840,19 @@ public class escTryWithResources extends EscBase {
                 package tt;
                 import java.io.*;
                 public class A {
-                    static <R extends Closeable> void process(/*@ non_null */ R resource,
+                    static <R extends PureCloseable> void process(/*@ non_null */ R resource,
                             /*@ non_null */ InputStream extra) throws IOException {
                         try (R r = resource;
                              extra) {
                             ;
                         }
                     }
+                }
+                
+                interface PureCloseable extends Closeable {
+                    //@ also public normal_behavior
+                    //@   assignable objectState;
+                    public void close();
                 }
                 """);
     }
