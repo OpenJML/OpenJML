@@ -13973,7 +13973,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				utils.error(expr, "jml.message", "Could not find method " + methodName);
 				// ERROR - throw something
 			}
-			
 			var decl = newTempDecl(expr, expr.type);
 			decl.init = expr;
 			var declId = treeutils.makeIdent(expr, decl.sym);
@@ -13986,8 +13985,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
             JCExpression nn = treeutils.makeNotNull(declId, declId);
             JCExpression z = treeutils.makeZeroEquivalentLit(declId, unboxed);
-            JCExpression cond = M.at(expr).Conditional(nn, call, z);
-            JCExpression r = M.at(decl).LetExpr(decl, cond);
+            JCExpression cond = M.at(expr).Conditional(nn, call, z).setType(call.type);
+            JCExpression r = M.at(decl).LetExpr(decl, cond).setType(unboxed);
             if (!rac) r = convertExpr(r);
 			return r;
 
