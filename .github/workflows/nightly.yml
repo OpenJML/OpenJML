@@ -41,7 +41,7 @@ jobs:
       run: |
         ## Edit the list of OSes here
         ## macos-14 is used twice: once natively (ARM64) and once under Rosetta 2 (x86_64)
-        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64","arch":"default"}, {"os":"macos-14","label":"macos-x86_64","arch":"x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04","arch":"default"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64","arch":"default"}, {"os":"windows-latest","label":"windows","arch":"default"} ]' >> "$GITHUB_OUTPUT"
+        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64","arch":"default"}, {"os":"macos-14","label":"macos-x86_64","arch":"x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04","arch":"default"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64","arch":"default"}, {"os":"windows-2022","label":"windows","arch":"default"} ]' >> "$GITHUB_OUTPUT"
     
   ## This job builds OpenJML once per OS and uploads the built JDK as an artifact
   build:

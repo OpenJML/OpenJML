@@ -38,7 +38,7 @@ jobs:
         ## runs under arch -x86_64 (Rosetta 2) to produce an Intel binary.
         ## Both Ubuntu entries use identical native build commands (configure
         ## auto-detects the host arch); no arch wrapper is needed for either.
-        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-latest","label":"windows"} ]' >> "$GITHUB_OUTPUT"
+        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-2022","label":"windows"} ]' >> "$GITHUB_OUTPUT"
 
   prepare:
     runs-on: ubuntu-24.04
