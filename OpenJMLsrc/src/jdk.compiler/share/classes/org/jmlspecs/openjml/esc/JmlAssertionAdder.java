@@ -7103,9 +7103,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        }
 	        var stat = convert(bpat.var);
 	        JCTree clazz = treeutils.makeType(pattern.pos, types.erasure(bpat.type));
-	        JCExpression typeTest = M.at(pattern).TypeTest(copy(expr), clazz);
-	        typeTest.setType(syms.booleanType);
-	        addAssume(pattern, Label.IMPLICIT_ASSUME, typeTest);
+	        if (bpat.type.isReference()) {
+	            JCExpression typeTest = M.at(pattern).TypeTest(copy(expr), clazz);
+	            typeTest.setType(syms.booleanType);
+	            addAssume(pattern, Label.IMPLICIT_ASSUME, typeTest);
+	        }
 	        JCIdent id = M.at(stat).Ident(bpat.var.sym);
 	        JCExpression eq = treeutils.makeEquality(pattern.getPreferredPosition(), id, expr);
 	        addAssume(pattern, Label.IMPLICIT_ASSUME, eq);
@@ -7279,7 +7281,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        //boolean hasDefault = false;
 	        var initialHeapState = saveState();
 	        java.util.List<HeapInfo> collectedStates = new LinkedList<>();
+            int caseIndex = -1;
+            int p = pos.getPreferredPosition();
+//            JCIdent caseIndexID = null;
+//            if (!rac) {
+//                var ndecl = newTempDecl(pos, uniqueTempString("switchCaseIndex"), syms.intType);
+//                addStat(ndecl);
+//                caseIndexID = M.at(pos).Ident(ndecl.name);
+//                caseIndexID.setType(syms.intType);
+//                JCExpression e1 = treeutils.makeBinary(p, JCTree.Tag.LE, treeutils.zero, caseIndexID);
+//                JCExpression e2 = treeutils.makeBinary(p, JCTree.Tag.LT, caseIndexID, treeutils.makeIntLiteral(p, cases.size()));
+//                addAssume(pos, Label.IMPLICIT_ASSUME, treeutils.makeBitAnd(p, e1, e2));
+//            }
 	        for (JCCase _case: cases) {
+	            caseIndex++;
 	            resetState(initialHeapState);
 	            //if (_case.labels.get(0) instanceof JCDefaultCaseLabel) hasDefault = true;
 	            continuation = Continuation.CONTINUE;
@@ -7294,6 +7309,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    || ((JCTree)pos instanceof JCSwitchExpression swexpr && swexpr.patternSwitch)
 	                    || _case.labels.stream().anyMatch(l -> l instanceof JCPatternCaseLabel)) {
 	                translatePatternLabels(_case, selector);
+//                    if (!rac) {
+//                        addAssume(pos, Label.IMPLICIT_ASSUME, treeutils.makeBinary(p, JCTree.Tag.LE, caseIndexID, treeutils.makeIntLiteral(p, caseIndex)));
+//                    }
 	            }
 	            boolean prevArrow = currentEnv.inArrowCase;
 	            currentEnv.inArrowCase = isArrow;
