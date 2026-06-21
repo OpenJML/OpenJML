@@ -37,7 +37,7 @@ runs:
       uses: Vampire/setup-wsl@v6
       with:
         distribution: Ubuntu-24.04
-        additional-packages: autoconf make zip unzip file cpio m4 openjdk-21-jdk nodejs npm pkg-config libsecret-1-dev
+        additional-packages: autoconf make zip unzip file cpio m4 openjdk-21-jdk nodejs npm pkg-config libsecret-1-dev build-essential
     - name: Enable WSL interop
       ## Ubuntu-24.04 starts systemd as PID 1 by default, which prevents the
       ## WSL init from registering the binfmt_misc handler for Windows PE
