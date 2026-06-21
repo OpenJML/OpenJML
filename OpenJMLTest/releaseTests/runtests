@@ -14,7 +14,7 @@ Z=":"   # path separator for openjml (Windows binary needs ; even in WSL)
 ZJ=":" # path separator for java (Linux JVM in WSL needs :, native Windows needs ;)
 case "$(uname -s)" in
     CYGWIN*|MINGW*|MSYS*) Z=";" ; ZJ=";" ; EXE=".exe" ;;
-    Linux) grep -qi microsoft /proc/version 2>/dev/null && Z=";" ;;
+    Linux) grep -qi microsoft /proc/version 2>/dev/null && Z=";" && EXE=".exe" ;;
 esac
 ## OS/arch suffix for the Solvers subdirectory — authoritative definition in os-name.sh.
 ## Keep in sync with Utils.identifyOS in Java and with actual Solvers/ folder names.
