@@ -2,7 +2,7 @@
 <feature
       id="org.openjml.OpenJMLFeature"
       label="OpenJML"
-      version="21.0.25.a"
+      version="21.0.27"
       provider-name="David R. Cok">
 
    <description url="https://openjml.org">
@@ -31,6 +31,6 @@ https://github.com/OpenJML/OpenJML
 
    <plugin
          id="org.openjml.OpenJMLUI"
-         version="21.0.25.a"/>
+         version="21.0.27"/>
 
 </feature>
