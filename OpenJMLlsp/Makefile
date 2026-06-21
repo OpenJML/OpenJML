@@ -117,10 +117,20 @@ jar: compile $(VERSION_PROPS)
 	       -C $(CLASSES) .
 
 ## Build the VS Code extension .vsix package.
+## vsce depends on keytar (a native addon that must be compiled).  On WSL the
+## workspace is on an NTFS mount; parallel npm writes to NTFS can corrupt files
+## and cause the native build to fail.  Work around this by installing vsce in
+## a tmpfs/ext4 temp directory so that keytar compiles on a native filesystem.
+## Only the pure-JS runtime dep (vscode-languageclient) is installed into the
+## extension directory itself (--omit=dev skips @vscode/vsce and keytar).
 vsix:
-	cd $(VSIX_DIR) && npm install
+	cd $(VSIX_DIR) && npm install --omit=dev
 	cd $(VSIX_DIR) && npm version $(VSIX_VERSION) --no-git-tag-version --allow-same-version
-	cd $(VSIX_DIR) && ./node_modules/.bin/vsce package --no-yarn --out $(VSIX_NAME)
+	set -e; \
+	VSIX_TMP=$$(mktemp -d); \
+	cd $$VSIX_TMP && npm init -y > /dev/null && npm install @vscode/vsce@2.15.0 --no-audit; \
+	cd $(VSIX_DIR) && $$VSIX_TMP/node_modules/.bin/vsce package --no-yarn --out $(VSIX_NAME); \
+	rm -rf $$VSIX_TMP
 
 ## Stage LSP files for inclusion in an OpenJML release zip.
 ## Produces $(RELEASE_STAGE)/openjml-lsp   (launcher, goes to release root)
