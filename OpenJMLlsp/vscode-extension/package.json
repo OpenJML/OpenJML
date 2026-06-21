@@ -503,7 +503,7 @@
     "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
-    "@vscode/vsce": "^3.0.0"
+    "@vscode/vsce": "2.15.0"
   },
   "overrides": {
     "cheerio": "1.0.0-rc.12",
