@@ -37,7 +37,7 @@ runs:
       uses: Vampire/setup-wsl@v6
       with:
         distribution: Ubuntu-24.04
-        additional-packages: autoconf make zip unzip file cpio m4 openjdk-21-jdk nodejs npm pkg-config libsecret-1-dev build-essential
+        additional-packages: autoconf make zip unzip file cpio m4 openjdk-21-jdk pkg-config libsecret-1-dev build-essential
     - name: Enable WSL interop
       ## Ubuntu-24.04 starts systemd as PID 1 by default, which prevents the
       ## WSL init from registering the binfmt_misc handler for Windows PE
@@ -55,6 +55,15 @@ runs:
       uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: x64
+    - name: Install Node.js 20 in WSL
+      ## Ubuntu 24.04's apt nodejs package is 18.x; @vscode/vsce and its
+      ## transitive deps (undici, cheerio) require Node >=20.  Install from
+      ## NodeSource instead.  Runs via wsl-bash (registered by setup-wsl).
+      if: runner.os == 'Windows'
+      shell: wsl-bash {0}
+      run: |
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        sudo apt-get install -y --no-install-recommends nodejs
     - name: WSL additions
       if: runner.os == 'Windows'
       shell: pwsh
