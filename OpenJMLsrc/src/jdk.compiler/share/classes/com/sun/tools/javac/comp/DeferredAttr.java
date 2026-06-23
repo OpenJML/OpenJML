@@ -597,6 +597,7 @@ public class DeferredAttr extends JCTree.Visitor {
                 public void visitTree(JCTree tree) {
                     if (tree instanceof org.jmlspecs.openjml.JmlTree.JmlSingleton) return;
                     if (tree instanceof org.jmlspecs.openjml.JmlTree.JmlMethodInvocation) return;
+                    if (tree instanceof org.jmlspecs.openjml.JmlTree.JmlRange) return;
                     super.visitTree(tree);
                 }
             }
