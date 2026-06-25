@@ -145,8 +145,7 @@ public class Driver {
 		/*@Mutable*/ BufferedReader in = null;
 
 		try {
-			// FIXME - Inet6?  Allow non-local host?
-			serverSocket = new Socket(Inet4Address.getLocalHost(), port);
+			serverSocket = new Socket(InetAddress.getLoopbackAddress(), port);
 			out = new PrintWriter(serverSocket.getOutputStream(), true);
 			in = new BufferedReader(new InputStreamReader(
 					serverSocket.getInputStream()));

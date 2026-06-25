@@ -125,7 +125,11 @@ public class SolverProcess {
     		Thread.sleep(1000);
     		if (listen) listen();
     	} catch (IOException e) {
-    		throw new ProverException(e.getMessage());
+    		// Java 21.0.3+ changed the IOException message format for exec failures from
+    		// "error=N, description" to "Exec failed, error: N (description) ".
+    		// Normalize to the older form so test output is stable across JVM versions.
+    		String msg = e.getMessage().replaceAll("Exec failed, error: (\\d+) \\((.+?)\\)\\s*$", "error=$1, $2");
+    		throw new ProverException(msg);
     	} catch (RuntimeException|InterruptedException e) {
     		throw new ProverException(e.getMessage());
     	}
