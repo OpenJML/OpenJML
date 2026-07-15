@@ -1,0 +1,10 @@
+Proving methods in ScreenPoint
+Starting proof of ScreenPoint.ScreenPoint(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ScreenPoint.ScreenPoint(int,int) with prover !!!! - no warnings
+Starting proof of ScreenPoint.test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ScreenPoint.test() with prover !!!! - no warnings
+Completed proving methods in ScreenPoint
