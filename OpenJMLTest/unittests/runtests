@@ -66,4 +66,4 @@ SPECS=$(cd "$ROOT/../../Specs/specs" && pwd -P)
 ## This almost duplicates running openjml-java in the development environment, except for the addition of AGENT and the specific classpath
 ## echo Running $@
 #( "$ROOT"/openjml-java $AGENT  -cp "unittests:src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )
-( cd ..; OPENJML_INSTALL="$ROOT" OPENJML_SOLVERS="$ROOT/../../Solvers" OPENJML_SPECS="$SPECS" "$NJAVA" $OPENJML_JVM -cp "src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )
+( cd ..; OPENJML_INSTALL="$ROOT" OPENJML_SOLVERS="$ROOT/../../Solvers" OPENJML_SPECS="$SPECS" "$NJAVA" "--patch-module=jdk.compiler=$ROOT/libs/jSMTLIB.jar" $OPENJML_JVM -cp "src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )

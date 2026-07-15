@@ -21,4 +21,5 @@ fi
 . "${INSTALL}/setup-vars"
 
 ## Run the executable for openjml-java (the java equivalent in openjml)
-"$BINJAVA" $OPENJML_JVM "$@"
+JSMTLIB_JAR="$INSTALL/libs/jSMTLIB.jar"
+"$BINJAVA" "--patch-module=jdk.compiler=$JSMTLIB_JAR" $OPENJML_JVM "$@"

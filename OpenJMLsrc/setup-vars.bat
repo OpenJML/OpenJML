@@ -6,6 +6,8 @@
 
 if not defined OPENJML_INSTALL set "OPENJML_INSTALL=%INSTALL%"
 
+set "JSMTLIB_JAR=%INSTALL%\libs\jSMTLIB.jar"
+
 if exist "%INSTALL%\version-info.txt" (
     :: In a release
     if not defined OPENJML_SPECS   set "OPENJML_SPECS=%INSTALL%\specs"
