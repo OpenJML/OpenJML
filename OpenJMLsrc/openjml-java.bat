@@ -8,4 +8,4 @@ for %%i in ("%~dp0.") do set "INSTALL=%%~fi"
 
 call "%INSTALL%\setup-vars.bat"
 
-"%BINJAVA%" %OPENJML_JVM% %*
+"%BINJAVA%" "--patch-module=jdk.compiler=%JSMTLIB_JAR%" %OPENJML_JVM% %*

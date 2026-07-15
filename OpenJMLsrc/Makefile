@@ -176,6 +176,7 @@ post: .FORCE
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
 	cp setup-exports setup-vars openjml openjml-* os-name.sh $(TEMP)
+	cp -pR libs $(TEMP)
 	cp setup-exports.bat setup-vars.bat openjml.bat openjml-*.bat $(TEMP)
 	$(MAKE) openjml-lsp
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension $(TEMP)/os-name.sh
@@ -244,14 +245,14 @@ release-test: .FORCE
 openjml: .FORCE
 	NOJML= $(MAKE)
 
-## Updates the smt code from the jSMTLIB repo 
-## The repo must be cloned locally and resident at ../../../jSMTLIB relative to the folder holding this Makefile
+## Updates jSMTLIB.jar in libs/ from the jSMTLIB repo
+## The repo must be cloned locally and resident at ../../../jSMTLIB or ../../jSMTLIB relative to this Makefile
 ## This action is rarely needed
 smt:
 	if [ -e $(topdir)/../../../jSMTLIB/SMT ]; then \
-	    cp -Rp $(topdir)/../../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
+	    cp -pu $(topdir)/../../../jSMTLIB/SMT/jSMTLIB.jar libs/jSMTLIB.jar ; \
 	elif [ -e $(topdir)/../../jSMTLIB/SMT ]; then \
-	    cp -Rp $(topdir)/../../jSMTLIB/SMT/src/org/ src/jdk.compiler/share/classes/org ; \
+	    cp -pu $(topdir)/../../jSMTLIB/SMT/jSMTLIB.jar libs/jSMTLIB.jar ; \
 	fi
 
 ## Builds the jmlruntime.jar, which holds classes needed for running rac

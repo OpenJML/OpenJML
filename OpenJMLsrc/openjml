@@ -26,9 +26,10 @@ fi
 ## The following line fixes issue #876, but is a hack because the root problem and this solution are not understood, as documented in #908
 if [ -z "${OJ++}" ]; then export OJ= ; fi
 
-## Uses OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS OPENJML_JVM OPENJML_EXPORTS
+## Uses OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS OPENJML_JVM OPENJML_EXPORTS JSMTLIB_JAR
+
 if [ -z "$OPENJML_JVM" ]; then
-  "$BINJAVAC" "$@"
+  "$BINJAVAC" "-J--patch-module=jdk.compiler=$JSMTLIB_JAR" "$@"
 else
-  "$BINJAVA" $OPENJML_JVM -cp ".:$INSTALL" org.openjml.RunOpenJML "$@" $OPENJML_EXPORTS
+  "$BINJAVA" "--patch-module=jdk.compiler=$JSMTLIB_JAR" $OPENJML_JVM -cp ".:$INSTALL" org.openjml.RunOpenJML "$@" $OPENJML_EXPORTS
 fi

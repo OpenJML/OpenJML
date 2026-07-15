@@ -112,7 +112,8 @@ define SetupInterimModule
           --add-exports java.base/jdk.internal.javac=java.compiler.interim \
           --add-exports java.base/jdk.internal.javac=jdk.compiler.interim \
           --add-exports jdk.internal.opt/jdk.internal.opt=jdk.compiler.interim \
-          --add-exports jdk.internal.opt/jdk.internal.opt=jdk.javadoc.interim, \
+          --add-exports jdk.internal.opt/jdk.internal.opt=jdk.javadoc.interim \
+          $$($1_EXTRA_JAVAC_FLAGS), \
   ))
 
   $1_DEPS_INTERIM := $$(addsuffix .interim, $$(filter \
@@ -122,6 +123,8 @@ define SetupInterimModule
 
   TARGETS += $$(BUILD_$1.interim)
 endef
+
+jdk.compiler_EXTRA_JAVAC_FLAGS := --patch-module jdk.compiler.interim=$(TOPDIR)/libs/jSMTLIB.jar
 
 $(foreach m, $(INTERIM_LANGTOOLS_BASE_MODULES), \
   $(eval $(call SetupInterimModule,$m)) \

@@ -16,6 +16,8 @@ if [ -z ${OPENJML_INSTALL++} ]; then export OPENJML_INSTALL="$INSTALL" ; else ex
 ## set BINJAVA, BINJAVAC and other vars -- if those others are already set, then export them
 ## BINJAVA and BINJAVAC are an absolute path, still might have spaces
 
+JSMTLIB_JAR="$INSTALL/libs/jSMTLIB.jar"
+
 ## On Windows (WSL) the JDK binaries have a .exe suffix; detect this once
 if [ -n "$(grep -si microsoft /proc/version 2>/dev/null)" ]; then EXE=".exe" ; else EXE="" ; fi
 
