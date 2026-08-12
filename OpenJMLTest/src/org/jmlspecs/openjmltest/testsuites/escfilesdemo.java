@@ -129,14 +129,12 @@ public class escfilesdemo extends EscBaseFiles {
 
     @Test @Ignore // FIXME - no expected file yet and long-running
     public void demoPurse() {
-        if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
         helpDemo("purse","demoPurse","--timeout=15");
     }
 
     @Test @Ignore // FIXME - no expected file yet and long-running
     public void demoPurseMod() {
-        if ("cvc4".equals(solver)) fail();
         expectedExit = 0;
         helpDemo("purseMod","demoPurseMod","--timeout=15");
     }

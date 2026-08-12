@@ -1148,7 +1148,7 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
+    @Test public void testArrayType1() {
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -1244,7 +1244,7 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test public void testArrayType2Bug() { // TODO: CVC4 takes 186 sec
+    @Test public void testArrayType2Bug() {
         helpEsc("tt.TestJava",
                 """
                 package tt;

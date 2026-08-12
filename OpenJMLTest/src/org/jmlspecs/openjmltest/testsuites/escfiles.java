@@ -232,7 +232,7 @@ public class escfiles extends EscBaseFiles {
 
     @Test
     public void escSimpleString() {
-        // FIXME - CVC4 crashes or is long
+        // FIXME - can be long-running
         helpEscSimple("--nonnull-by-default","-timeout=240");
     }
 

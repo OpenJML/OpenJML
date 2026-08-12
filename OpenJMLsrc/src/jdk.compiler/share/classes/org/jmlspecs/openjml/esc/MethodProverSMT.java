@@ -633,7 +633,7 @@ public class MethodProverSMT {
                             } else if (unknownReason instanceof IResponse.IAttributeList) {
                                 IResponse.IAttributeList attrList = (IResponse.IAttributeList)unknownReason;
                                 IAttributeValue value = attrList.attributes().get(0).attrValue();
-                                if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
+                                if (value.toString().contains("incomplete")) { // FIXME - this might be solver-specific
                                     // continue on - counting this as a SAT response
                                     utils.progress(0,Utils.PROGRESS,msgOK);
                                 } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
@@ -689,7 +689,7 @@ public class MethodProverSMT {
                         } else if (unknownReason instanceof IResponse.IAttributeList) {
                             IResponse.IAttributeList attrList = (IResponse.IAttributeList)unknownReason;
                             IAttributeValue value = attrList.attributes().get(0).attrValue();
-                            if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
+                            if (value.toString().contains("incomplete")) { // FIXME - this might be solver-specific
                                 // continue on
                             } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
                                     // continue on
