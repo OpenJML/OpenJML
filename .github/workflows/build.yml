@@ -121,6 +121,7 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ env.BRANCH }}
+        os-label: ${{ matrix.label }}
 
     - name: Build OpenJML
       uses: ./ACTIONS/.github/actions/openjml-build/

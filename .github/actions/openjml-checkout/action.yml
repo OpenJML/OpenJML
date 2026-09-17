@@ -9,6 +9,16 @@ inputs:
   branch:
     description: 'The branch of OpenJML and Specs to checkout'
     required: true
+  os-label:
+    description: >-
+      This matrix leg's own label (matrix.label in build.yml/nightly.yml, e.g. macos-arm64,
+      macos-x86_64, ubuntu-24.04, ubuntu-arm64, windows) -- used to pick the matching
+      Solvers-<name> subdirectory to download. Needed because macos-arm64/macos-x86_64 share one
+      physical macos-14 runner and only diverge later via an `arch -x86_64` wrapper applied during
+      build/test: os-name.sh's own live `uname -m` detection (correct for that later, wrapped
+      context) would pick the wrong subdirectory if run here, at checkout time, before any
+      wrapping is in effect.
+    required: true
   folder:
     description: 'Optional target directory for clones; defaults to the current working directory'
     required: false
@@ -17,7 +27,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Checkout OpenJML repos
+    - name: Checkout OpenJML repos (except Solvers)
       shell: bash
       run: |
         git config --global core.autocrlf input
@@ -28,6 +38,37 @@ runs:
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/Specs
         git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
-        git clone -b master --depth 1 https://github.com/OpenJML/Solvers
         git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
         git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
+
+    ## Solvers-<name> naming here must match os-name.sh (OpenJMLsrc/os-name.sh) exactly -- that
+    ## script's own header comment names the other places this same enum has to stay in sync
+    ## (Java's Utils.identifyOS, and the actual folder names in the Solvers repo itself); this
+    ## mapping is a fourth copy of it, keyed on os-label rather than a live `uname` check, for the
+    ## reason documented on the os-label input above.
+    - name: Determine Solvers subdirectory for this matrix leg
+      id: solvers-subdir
+      shell: bash
+      run: |
+        case "${{ inputs.os-label }}" in
+          macos-arm64)  echo "subdir=Solvers-macos-arm64" >> "$GITHUB_OUTPUT" ;;
+          macos-x86_64) echo "subdir=Solvers-macos" >> "$GITHUB_OUTPUT" ;;
+          ubuntu-24.04) echo "subdir=Solvers-linux" >> "$GITHUB_OUTPUT" ;;
+          ubuntu-arm64) echo "subdir=Solvers-linux-arm64" >> "$GITHUB_OUTPUT" ;;
+          windows)      echo "subdir=Solvers-windows" >> "$GITHUB_OUTPUT" ;;
+          *)
+            echo "::error::Unrecognized os-label '${{ inputs.os-label }}' -- add it to openjml-checkout's Solvers-subdirectory mapping"
+            exit 1 ;;
+        esac
+
+    ## smtlib/Solvers' own shared action (moved there from OpenJML/Solvers -- same repo, same
+    ## history) -- a blobless, sparse, shallow clone that downloads only this platform's own
+    ## solver binaries, not every platform's, the same one jSMTLIB's and checkkt's own CI already
+    ## use. Ends up at <folder>/Solvers/Solvers-<name>, matching the layout the previous plain
+    ## `git clone` of the whole repo also produced, so downstream (OpenJMLsrc/Makefile,
+    ## OpenJMLTest/releaseTests/runtests) needs no changes.
+    - name: Download Solvers for this platform
+      uses: smtlib/Solvers/.github/actions/download-solvers@download-solvers-v1
+      with:
+        subdir: ${{ steps.solvers-subdir.outputs.subdir }}
+        path: ${{ inputs.folder != '' && format('{0}/Solvers', inputs.folder) || 'Solvers' }}

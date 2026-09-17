@@ -64,6 +64,7 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
+        os-label: ${{ matrix.label }}
     - name: Build OpenJML and upload artifact
       uses: ./ACTIONS/.github/actions/openjml-build/
       with:
@@ -96,6 +97,7 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
+        os-label: ${{ matrix.label }}
 
     #- name: Build OpenJML  ## uncomment (and remove Download step) to revert to self-contained
     #  uses: ./ACTIONS/.github/actions/openjml-build/
@@ -160,6 +162,7 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
+        os-label: ${{ matrix.label }}
     #- name: Build OpenJML  ## uncomment (and remove Download step) to revert to self-contained
     #  uses: ./ACTIONS/.github/actions/openjml-build/
     - name: Download build artifact
@@ -193,6 +196,7 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
+        os-label: ${{ matrix.label }}
     #- name: Build OpenJML  ## uncomment (and remove Download step) to revert to self-contained
     #  uses: ./ACTIONS/.github/actions/openjml-build/
     - name: Download build artifact
@@ -226,6 +230,7 @@ jobs:
       uses: ./ACTIONS/.github/actions/openjml-checkout/
       with:
         branch: ${{ github.ref_name }}
+        os-label: ${{ matrix.label }}
     #- name: Build OpenJML  ## uncomment (and remove Download step) to revert to self-contained
     #  uses: ./ACTIONS/.github/actions/openjml-build/
     - name: Download build artifact
