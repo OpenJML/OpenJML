@@ -250,9 +250,11 @@ openjml: .FORCE
 ## This action is rarely needed
 smt:
 	if [ -e $(topdir)/../../../jSMTLIB/SMT ]; then \
-	    cp -pu $(topdir)/../../../jSMTLIB/SMT/jSMTLIB.jar libs/jSMTLIB.jar ; \
+	    cp -p $(topdir)/../../../jSMTLIB/SMT/jSMTLIB.jar libs/jSMTLIB.jar ; \
 	elif [ -e $(topdir)/../../jSMTLIB/SMT ]; then \
-	    cp -pu $(topdir)/../../jSMTLIB/SMT/jSMTLIB.jar libs/jSMTLIB.jar ; \
+	    cp -p $(topdir)/../../jSMTLIB/SMT/jSMTLIB.jar libs/jSMTLIB.jar ; \
+	else \
+	    echo "No jSMTLIB.jar copied"; \
 	fi
 
 ## Builds the jmlruntime.jar, which holds classes needed for running rac

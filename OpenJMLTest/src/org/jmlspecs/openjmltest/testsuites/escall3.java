@@ -39,7 +39,7 @@ public class escall3 extends EscBase {
                 public class TestJava { }
                 """
                 ,"error: Specified executable does not exist: \" \""
-                ,"error: The executable for prover z3-4.3.X is not specified - use --exec or define an openjml.prover.... property",-1
+                ,"error: The executable for prover z3-5.1.0 is not specified - use --exec or define an openjml.prover.... property",-1
                 );
     }
     

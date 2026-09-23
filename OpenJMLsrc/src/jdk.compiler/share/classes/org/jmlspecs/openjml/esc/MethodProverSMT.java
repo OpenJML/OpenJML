@@ -183,8 +183,8 @@ public class MethodProverSMT {
     
     /** Returns the prover exec specified by the options */
     public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
-        org.smtlib.SolverProcess.useMultiThreading = false;
-        org.smtlib.SolverProcess.useNotifyWait = false;
+        //org.smtlib.SolverProcess.useMultiThreading = false;
+        //org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.PROVEREXEC.value(context);
         String os = Utils.identifyOS(context);
         if (exec != null && !exec.isEmpty()) {
@@ -421,7 +421,7 @@ public class MethodProverSMT {
             start = new Date();
             //setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             String smtProver = proverToUse.replace(".exe","").replace(".X","").replace("-","_").replace(".","_");
-            solver = smt.startSolver(smt.smtConfig,"z3_4_3",exec); // Argument is the SMT library adapter
+            solver = smt.startSolver(smt.smtConfig,smtProver,exec); // Argument is the SMT library adapter
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
                 JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec);

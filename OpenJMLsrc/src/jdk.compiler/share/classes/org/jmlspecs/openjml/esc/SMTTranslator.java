@@ -235,14 +235,14 @@ public class SMTTranslator extends JmlTreeScanner {
         boolSort = F.createSortExpression(F.symbol("Bool")); // From SMT
         intSort = F.createSortExpression(F.symbol("Int")); // From SMT
         {
-            List<INumeral> bits = new LinkedList<INumeral>();
+            List<IIndex> bits = new LinkedList<IIndex>();
             bits.add(F.numeral(32));
             bv32Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
-            bits = new LinkedList<INumeral>(); bits.add(F.numeral(64));
+            bits = new LinkedList<IIndex>(); bits.add(F.numeral(64));
             bv64Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
-            bits = new LinkedList<INumeral>(); bits.add(F.numeral(16));
+            bits = new LinkedList<IIndex>(); bits.add(F.numeral(16));
             bv16Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
-            bits = new LinkedList<INumeral>(); bits.add(F.numeral(8));
+            bits = new LinkedList<IIndex>(); bits.add(F.numeral(8));
             bv8Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
@@ -2797,12 +2797,12 @@ public class SMTTranslator extends JmlTreeScanner {
                         int br = bits(tagr);
                         if (useBV) {
                             if (be > br) {
-                                List<INumeral> args = new LinkedList<>();
+                                List<IIndex> args = new LinkedList<>();
                                 args.add(F.numeral(br-1));
                                 args.add(F.numeral(0));
                                 result = F.fcn(F.id(F.symbol("extract"),args),result);
                             } else if (br > be) {
-                                List<INumeral> args = new LinkedList<>();
+                                List<IIndex> args = new LinkedList<>();
                                 args.add(F.numeral(br-be));
                                 result = F.fcn(F.id(F.symbol("sign_extend"),args),result);
                             }
@@ -2852,12 +2852,12 @@ public class SMTTranslator extends JmlTreeScanner {
         int br = bits(resulttag);
         if (be > br) {
             if (br == 0) Utils.stop();
-            List<INumeral> args = new LinkedList<>();
+            List<IIndex> args = new LinkedList<>();
             args.add(F.numeral(br-1));
             args.add(F.numeral(0));
             return F.fcn(F.id(F.symbol("extract"),args),expr);
         } else if (be < br) {
-            List<INumeral> args = new LinkedList<>();
+            List<IIndex> args = new LinkedList<>();
             args.add(F.numeral(br-be));
             return F.fcn(F.id(F.symbol("sign_extend"),args),expr);
         } else {
