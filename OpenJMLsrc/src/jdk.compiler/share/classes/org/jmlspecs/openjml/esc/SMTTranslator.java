@@ -218,7 +218,7 @@ public class SMTTranslator extends JmlTreeScanner {
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
     
     /** The constructor - create a new instance for each Basic Program to be translated */
-    public SMTTranslator(Context context, String source) {
+    public SMTTranslator(Context context, String source, Configuration smtConfig) {
         this.context = context;
         this.source = source;
         // OpenJDK tools
@@ -231,7 +231,7 @@ public class SMTTranslator extends JmlTreeScanner {
         jmltypes = JmlTypes.instance(context);
         
         // SMT factory and commonly used objects
-        F = new org.smtlib.impl.Factory();
+        F = new org.smtlib.impl.Factory(smtConfig);
         boolSort = F.createSortExpression(F.symbol("Bool")); // From SMT
         intSort = F.createSortExpression(F.symbol("Int")); // From SMT
         {

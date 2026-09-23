@@ -359,7 +359,7 @@ public class MethodProverSMT {
         // SMT abstractions and forwards all informational and error messages
         // to the OpenJML log mechanism
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
-        SMTTranslator smttrans = getTranslator(context, methodDecl.sym.toString());
+        SMTTranslator smttrans = getTranslator(context, methodDecl.sym.toString(), smt.smtConfig);
 
         IResponse solverResponse = null;
         BasicBlocker2 basicBlocker;
@@ -395,7 +395,7 @@ public class MethodProverSMT {
                     if (!utils.testingMode && utils.progress()) {
                     	utils.note(false, "Switching to bit-vector arithmetic");
                     }
-                    script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
+                    script = new SMTTranslator(context, methodDecl.sym.toString(), smt.smtConfig).convert(program,smt,true);
                 }
                 if (printSMT) {
                     try {
@@ -403,7 +403,7 @@ public class MethodProverSMT {
                         log.getWriter(WriterKind.NOTICE).println(separator);
                         log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                         log.getWriter(WriterKind.NOTICE).println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-                        org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.getWriter(WriterKind.NOTICE)),script);
+                        org.smtlib.sexpr.Printer.WithLines.write(smt.smtConfig, new PrintWriter(log.getWriter(WriterKind.NOTICE)),script);
                         log.getWriter(WriterKind.NOTICE).println();
                         log.getWriter(WriterKind.NOTICE).println();
                     } catch (VisitorException e) {
@@ -439,7 +439,7 @@ public class MethodProverSMT {
                 		new java.io.File(filename).getAbsoluteFile().getParentFile().mkdirs();
             	        try (var fw = new java.io.FileWriter(new java.io.File(filename))) {
             			    var sw = new java.io.StringWriter();
-            			    org.smtlib.sexpr.Printer.WithLines.write(sw,script);
+            			    org.smtlib.sexpr.Printer.WithLines.write(smt.smtConfig,sw,script);
             			    fw.write("; Proof attempt for " + utils.qualifiedMethodSig(methodDecl.sym));
             			    String s = sw.toString();
             			    int i = s.lastIndexOf(')');
@@ -2136,6 +2136,11 @@ public class MethodProverSMT {
         }
 
         @Override
+        public void logOutNoln(String msg) {
+            log.getWriter(WriterKind.NOTICE).print(msg);
+        }
+
+        @Override
         public void logOut(IResponse result) {
             log.getWriter(WriterKind.NOTICE).println(printer.toString(result));
         }
@@ -2227,8 +2232,8 @@ public class MethodProverSMT {
     }
     
     /** Allows other extending classes to implement a different type of proof **/
-    public SMTTranslator getTranslator(Context context, String def){
-        return new SMTTranslator(context, def);
+    public SMTTranslator getTranslator(Context context, String def, SMT.Configuration smtConfig){
+        return new SMTTranslator(context, def, smtConfig);
     }
 }
 
