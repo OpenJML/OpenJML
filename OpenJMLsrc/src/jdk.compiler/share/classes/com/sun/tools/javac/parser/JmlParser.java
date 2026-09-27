@@ -799,8 +799,11 @@ public class JmlParser extends JavacParser {
             ex = jmlF.Binary(JCTree.Tag.AND, le, lt);
             JCExpression exists = jmlF.JmlQuantifiedExpr(QuantifiedExpressions.qexistsKind, List.<JCVariableDecl>of(decl2), ex,
                     jmlF.Binary(JCTree.Tag.EQ, jmlF.Indexed(jmlF.Ident("_JMLvalues"), jmlF.Ident("i")), jmlF.Ident(n))  );
+            // The guard is 'instanceof' rather than '!= null' because the SMT translation of a quantifier
+            // over a reference type does not restrict the bound variable to that type; with just '!= null'
+            // this axiom claims every non-null object is an enum value, which is contradictory.
             ex = jmlF.JmlQuantifiedExpr(QuantifiedExpressions.qforallKind,List.<JCVariableDecl>of(decl), null,
-                    jmlF.JmlBinary(Operators.impliesKind, jmlF.Binary(JCTree.Tag.NE, jmlF.Ident(n), jmlF.Literal(TypeTag.BOT,null)),exists));
+                    jmlF.JmlBinary(Operators.impliesKind, jmlF.TypeTest(jmlF.Ident(n), jmlF.Ident(cd.getSimpleName())),exists));
             axiom = jmlF.JmlTypeClauseExpr(jmlF.Modifiers(Flags.ENUM),axiomID,axiomClause,ex);
             newdefs.add(axiom);
             ex = jmlF.Select(jmlF.Ident("_JMLvalues"), names.length);
