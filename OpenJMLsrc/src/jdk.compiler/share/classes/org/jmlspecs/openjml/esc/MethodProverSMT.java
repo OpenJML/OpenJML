@@ -742,6 +742,10 @@ public class MethodProverSMT {
 
 
                     if (print) log.getWriter(WriterKind.NOTICE).println("Some assertion is not valid");
+                    // An 'unknown' answer (e.g. cvc5 on quantified goals) may come with a model that
+                    // is not a counterexample; then no failing assertion is found below.
+                    boolean resultUnknown = solverResponse.equals(smt.smtConfig.responseFactory.unknown());
+                    boolean hadFailedAssertion = haveFailedAssertion;
                     haveFailedAssertion = true;
                     
                     // FIXME - decide how to show counterexamples when there is no tracing
@@ -758,7 +762,15 @@ public class MethodProverSMT {
                     path = new ArrayList<IProverResult.Span>();
                     JCExpression pathCondition = reportInvalidAssertion(
                             program,smt,solver,methodDecl,cemap,jmap,
-                            jmlesc.assertionAdder.pathMap, basicBlocker.pathmap, byPath);
+                            jmlesc.assertionAdder.pathMap, basicBlocker.pathmap, byPath, resultUnknown);
+                    if (pathCondition == null && resultUnknown) {
+                        if (!hadFailedAssertion) {
+                            utils.verify(methodDecl,"esc.unknown.nocounterexample","method " + utils.qualifiedName(methodDecl.sym));
+                            proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.UNKNOWN,start);
+                        }
+                        haveFailedAssertion = hadFailedAssertion;
+                        break;
+                    }
                     
                     //if (showTrace && pathCondition != null) log.getWriter(WriterKind.NOTICE).println("PATH CONDITION " + pathCondition.toString());
                     if (showTrace) log.getWriter(WriterKind.NOTICE).println(tracer.text());
@@ -912,6 +924,14 @@ public class MethodProverSMT {
     public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
             BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap, boolean byPath) {
+        return reportInvalidAssertion(program, smt, solver, decl, cemap, jmap, aaPathMap, bbPathMap, byPath, false);
+    }
+
+    /** As above; when resultUnknown is true (the prover answered 'unknown' rather than 'sat'), not finding
+     * an invalid assertion is an expected outcome, so it is not reported as an internal error. */
+    public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
+            Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
+            BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap, boolean byPath, boolean resultUnknown) {
         Info info = new Info();
         info.verbose = utils.jmlverbose >= Utils.JMLVERBOSE;
         info.smt = smt;
@@ -924,6 +944,7 @@ public class MethodProverSMT {
         info.byPath = byPath;
         JCExpression pathCondition = reportInvalidAssertion2(program.startBlock(),info,0, JmlTreeUtils.instance(context).falseLit);
         if (pathCondition == null) {
+            if (resultUnknown) return null;
         	utils.verify("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
             return null;
         }
@@ -2099,6 +2120,7 @@ public class MethodProverSMT {
 
             IExpr smtexpr = smttrans.bimap.getf(t2);
             if (smtexpr == null) continue;
+            if (mentionsBoundName(smtexpr, smttrans.boundNames, p)) continue; // no value in a model
             
             ee[0] = smtexpr;
             String value = null;
@@ -2127,6 +2149,23 @@ public class MethodProverSMT {
             }
         }
         return values;
+    }
+
+    /** Pattern for the symbols in a printed SMT-LIB expression: |quoted| or simple symbols */
+    static private final java.util.regex.Pattern SMT_SYMBOL = java.util.regex.Pattern.compile("\\|[^|]*\\||[^\\s()|]+");
+
+    /** True if the printed form of e contains any of the given (printed) bound-variable names. */
+    static protected boolean mentionsBoundName(IExpr e, java.util.Set<String> boundNames, IPrinter p) {
+        if (boundNames.isEmpty()) return false;
+        java.util.regex.Matcher m = SMT_SYMBOL.matcher(p.toString(e));
+        while (m.find()) {
+            String s = m.group();
+            if (boundNames.contains(s)) return true;
+            // a bar-quoted symbol and its unquoted form are the same symbol
+            if (s.length() > 2 && s.charAt(0) == '|' && boundNames.contains(s.substring(1, s.length()-1))) return true;
+            if (boundNames.contains("|" + s + "|")) return true;
+        }
+        return false;
     }
 
     /** This is a listener for SMT log and error messages */

@@ -216,6 +216,12 @@ public class SMTTranslator extends JmlTreeScanner {
 
     /** A mapping from Java expressions to/from SMT expressions */
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
+
+    /** The (printed) names of all variables bound in the translation -- quantifier, let and
+     * define-fun parameters. An expression mentioning one of these has no value in a model, so
+     * it must not be sent to the solver in a get-value command (cvc5 treats that as a fatal
+     * parse error and stops responding). */
+    final public java.util.Set<String> boundNames = new java.util.HashSet<>();
     
     /** The constructor - create a new instance for each Basic Program to be translated */
     public SMTTranslator(Context context, String source, Configuration smtConfig) {
@@ -874,7 +880,9 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_set_logic(F.symbol(s));
         startCommands.add(c);
         
-        if (JmlOption.ESC_TRIGGERS.isSet(context)) {
+        // These are z3 options (trigger-driven instantiation only); other solvers do not use them
+        String prover = JmlOption.PROVER.value(context);
+        if (JmlOption.ESC_TRIGGERS.isSet(context) && (prover == null || prover.startsWith("z3"))) {
             startCommands.add(command(smt,"(set-option :AUTO_CONFIG false)"));
             startCommands.add(command(smt,"(set-option :smt.MBQI false)"));
         }
@@ -1965,6 +1973,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //            }
             for (JCExpression e: args) {
                 IDeclaration d = F.declaration(F.symbol(e.toString()),convertSort(e.type));
+                boundNames.add(d.parameter().toString());
                 argDecls.add(d);
             }
             C_define_fun c = new C_define_fun(n, argDecls, resultSort, convertExpr(expr));
@@ -3275,6 +3284,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (iter.hasNext()) {
             JCVariableDecl decl = (JCVariableDecl)iter.next();
             IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
+            boundNames.add(sym.toString());
             IExpr e = convertExpr(decl.init);
             List<IBinding> bindings = new LinkedList<IBinding>();
             bindings.add(F.binding(sym,e));
@@ -3293,6 +3303,7 @@ public class SMTTranslator extends JmlTreeScanner {
             List<IDeclaration> params = new LinkedList<IDeclaration>();
             for (JCVariableDecl decl: that.decls) {
                 IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
+                boundNames.add(sym.toString());
                 ISort sort = convertSort(decl.type);
                 params.add(F.declaration(sym, sort));
                 if (decl.type.isPrimitive() && sort == intSort && !decl.type.toString().contains("\\")) {
