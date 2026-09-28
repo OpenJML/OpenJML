@@ -30,7 +30,7 @@ Starting proof of trace.mnotmodified(int) with prover cvc4
 TRACE of trace.mnotmodified(int)
 
 test\escTraceBS\trace.java:10:  	assert Assert \not_modified(i);
-			VALUE: i	 === ( - 1 )
+			VALUE: i	 === (- 1)
 			VALUE: \not_modified(i)	 === true
 test\escTraceBS\trace.java:11:  	i = 4
 			VALUE: 4	 === 4

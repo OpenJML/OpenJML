@@ -381,10 +381,10 @@ public class escArithmeticModes2 extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: Label K has value 0",30
-                ,"/tt/TestJava.java:8: verify: Label I has value ( - 2147483648 )",30
-                ,"/tt/TestJava.java:8: verify: Label J has value ( - 1 )",41
+                ,"/tt/TestJava.java:8: verify: Label I has value (- 2147483648)",30
+                ,"/tt/TestJava.java:8: verify: Label J has value (- 1)",41
                 ,"/tt/TestJava.java:8: verify: Label D has value 2147483648",21
-                ,"/tt/TestJava.java:8: verify: Label M has value ( - 2147483648 )",57
+                ,"/tt/TestJava.java:8: verify: Label M has value (- 2147483648)",57
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method ma",9
               );
     }
@@ -428,10 +428,10 @@ public class escArithmeticModes2 extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: Label K has value 0",30
-                ,"/tt/TestJava.java:8: verify: Label I has value ( - 9223372036854775808 )",30
-                ,"/tt/TestJava.java:8: verify: Label J has value ( - 1 )",41
+                ,"/tt/TestJava.java:8: verify: Label I has value (- 9223372036854775808)",30
+                ,"/tt/TestJava.java:8: verify: Label J has value (- 1)",41
                 ,"/tt/TestJava.java:8: verify: Label D has value 9223372036854775808",21
-                ,"/tt/TestJava.java:8: verify: Label M has value ( - 9223372036854775808 )",57
+                ,"/tt/TestJava.java:8: verify: Label M has value (- 9223372036854775808)",57
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method ma",9
               );
     }
