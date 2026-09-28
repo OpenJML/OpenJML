@@ -416,9 +416,9 @@ public class SMTTranslator extends JmlTreeScanner {
         // (e.g. {(erasure T)}, {(_JMLT_0 T)}) that form matching loops and exhaust memory.
         addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (! (= (|`erasure| ("+MAKEJMLARRAYTYPE+" T)) ("+MAKEJAVAARRAYTYPE+" (|`erasure| T))) :pattern ((|`erasure| ("+MAKEJMLARRAYTYPE+" T))))))");
         addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (! (=> ("+JMLSUBTYPE+" T1 T2) ("+JAVASUBTYPE+" (|`erasure| T1) (|`erasure| T2))) :pattern (("+JMLSUBTYPE+" T1 T2)))))");
-        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+"))  (= ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T3)))))");
-        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> (and ("+JAVASUBTYPE+" T1 T2) (not (= T3 T4))) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))))))");
-        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))   (and ("+JAVASUBTYPE+" T1 T2) (= T3 T4)) ) )))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+"))  (! (= ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T3))) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T3))))))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (! (=> (and ("+JAVASUBTYPE+" T1 T2) (not (= T3 T4))) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4)))) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))))))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (! (=> ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))   (and ("+JAVASUBTYPE+" T1 T2) (= T3 T4)) ) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))))))");
         addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> (= (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))   (and (= T1 T2) (= T3 T4)) ) )))");
         //addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= ( "+arrayElemType+" ("+MAKEJAVAARRAYTYPE+" T)) T)))");
         }
@@ -431,8 +431,8 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= ( "+arrayElemType+" ("+MAKEJMLARRAYTYPE+" T)) T)))");
             addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (_isArrayType ("+MAKEJAVAARRAYTYPE+" T)) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (_isJMLArrayType ("+MAKEJMLARRAYTYPE+" T)) ))");
-            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+"))  (= ("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1)("+MAKEJAVAARRAYTYPE+" T2)) ("+JAVASUBTYPE+" T1 T2))))");
-            addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (= ("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1)("+MAKEJMLARRAYTYPE+" T2)) ("+JMLSUBTYPE+" T1 T2))))");
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+"))  (! (= ("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1)("+MAKEJAVAARRAYTYPE+" T2)) ("+JAVASUBTYPE+" T1 T2)) :pattern (("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1) ("+MAKEJAVAARRAYTYPE+" T2))))))");
+            addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (! (= ("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1)("+MAKEJMLARRAYTYPE+" T2)) ("+JMLSUBTYPE+" T1 T2)) :pattern (("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1) ("+MAKEJMLARRAYTYPE+" T2))))))");
         }
         
         addCommand(smt, "(define-fun |`arrayREF| ((id (Array REF (Array Int REF)))(arr REF)(i Int)) REF (select (select id arr) i))");
@@ -552,9 +552,9 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (|`numargs| (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) 3)))");
             
             addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (=> (= (_JMLT_1 T1 J1)(_JMLT_1 T2 J2)) (and (= T1 T2) (= J1 J2)))))");
-            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")) (=> ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J1) ))))"); // FIXME - this is true for collections, but necessarily always true?
-            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (=> (and ("+JAVASUBTYPE+" T1 T2) (distinct J1 J2)) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J2) )) )))"); // FIXME - this is true for collections, but necessarily always true?
-            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (= ("+JMLSUBTYPE+" (_JMLT_1 T1 J1)(_JMLT_1 T1 J2)) (= J1 J2))))");
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")) (! (=> ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J1) )) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J1))))))"); // FIXME - this is true for collections, but necessarily always true?
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (! (=> (and ("+JAVASUBTYPE+" T1 T2) (distinct J1 J2)) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J2) )) ) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J2))))))"); // FIXME - this is true for collections, but necessarily always true?
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (! (= ("+JMLSUBTYPE+" (_JMLT_1 T1 J1)(_JMLT_1 T1 J2)) (= J1 J2)) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T1 J2))))))");
             
             addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")) (=> (= T1 T2) ("+JAVASUBTYPE+" T1 T2))))");
             addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+")) (=> (= T1 T2) ("+JMLSUBTYPE+" T1 T2))))");

@@ -181,6 +181,15 @@ public class MethodProverSMT {
         };
     }
     
+    /** Maps an OpenJML prover name to the solver name jSMTLIB uses to choose an adapter. jSMTLIB
+     * looks the name up as given in jsmtlib.properties (e.g. cvc5-1.3.2) and normalizes it itself
+     * for its Solver_<name> class convention, so the name is passed through un-normalized. All
+     * z3 4.3 releases share the z3-4.3 adapter. */
+    public static String smtSolverName(String proverToUse) {
+        String name = proverToUse.replace(".exe","").replace(".X","");
+        return name.matches("z3-4\\.3\\.\\d+") ? "z3-4.3" : name;
+    }
+
     /** Returns the prover exec specified by the options */
     public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
         //org.smtlib.SolverProcess.useMultiThreading = false;
@@ -420,7 +429,7 @@ public class MethodProverSMT {
             // Starts the solver (and it waits for input)
             start = new Date();
             //setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
-            String smtProver = proverToUse.replace(".exe","").replace(".X","").replace("-","_").replace(".","_");
+            String smtProver = smtSolverName(proverToUse);
             solver = smt.startSolver(smt.smtConfig,smtProver,exec); // Argument is the SMT library adapter
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
@@ -555,7 +564,7 @@ public class MethodProverSMT {
                         }
                        
                         if (!usePushPop) {
-                            solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
+                            solver2 = smt.startSolver(smt.smtConfig,smtSolverName(proverToUse),exec);
                             if (JmlAssertionAdder.useAssertCount) {
                                 List<ICommand> commands = script.commands();
                                 commands.remove(commands.size()-1);
