@@ -38,6 +38,8 @@ cd "$R"
 . "../setup-coverage" "unit-$1"
 
 . "$ROOT/setup-exports"
+## The tests also use a few internal packages directly (e.g. escbatch drives SolverBatch and jSMTLIB)
+export OPENJML_EXPORTS="$OPENJML_EXPORTS --add-exports=jdk.compiler/org.jmlspecs.openjml.esc=ALL-UNNAMED --add-exports=jdk.compiler/org.smtlib=ALL-UNNAMED"
 
 rm -f *.class
 CL=$(echo "$ROOT"/build/*/jdk/modules/*  | grep -v META | sed -e "s/ /:/g")

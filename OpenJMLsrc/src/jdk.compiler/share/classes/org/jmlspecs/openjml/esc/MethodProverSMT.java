@@ -512,7 +512,9 @@ public class MethodProverSMT {
                     log.report(d);
             	}
             	try {
-            		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
+            		solverResponse = JmlOption.SMT_BATCH.isSet(context)
+            		        ? SolverBatch.execute(script, solver)
+            		        : script.execute(solver); // Note - the solver knows the smt configuration
             	} catch (Exception e) {
                     JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                     log.report(d);
