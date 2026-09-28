@@ -2461,7 +2461,7 @@ public class esc2 extends EscBase {
                   //@ ensures \\result == (i > 0 && i < 10);
                   //@ pure
                   //@ model public boolean m(int i);
-                  public void mm() {
+                  @org.jmlspecs.annotation.Options("--z3=mbqi") public void mm() {
                   //@ check (\\forall int k; 3<k && k <7; m(k));
                   //@ check (\\forall int k; 3<k && k <7; m(k-1));
                   //@ check !(\\forall int k; -3<k && k <7; m(k));

@@ -347,6 +347,7 @@ public class JmlOption {
     };
     { map.put("-escBV",ESC_BV); }
     public static final JmlOption ESC_TRIGGERS = new JmlOption("--triggers",false,true,"ESC: Enable quantifier triggers in SMT encoding (default true)",null);
+    public static final JmlOption Z3 = new JmlOption("--z3",true,"","ESC: Comma-separated z3 settings: mbqi, autoconf (turn on model-based quantifier instantiation / z3's auto-configuration), no-mbqi, no-autoconf (turn them off, the default)",null);
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("--esc-max-warnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
         public boolean check(Context context, boolean negate) {
             String limit = JmlOption.ESC_MAX_WARNINGS.value(context);

@@ -1,6 +1,6 @@
 public class Demo {
 
-public static void main(String... args) {
+@org.jmlspecs.annotation.Options("--z3=mbqi") public static void main(String... args) {
   //@ ghost boolean b = \choosex int k; 0 < k < 10; k == 0;
   //@ assert !b; // OK
   m0(); m(); mm();
@@ -8,7 +8,7 @@ public static void main(String... args) {
 }
 
 //@ pure
-public static void m0() {
+@org.jmlspecs.annotation.Options("--z3=mbqi") public static void m0() {
   //@ ghost int i = \choose short k;;true;
   //@ assert i <= Short.MAX_VALUE;
 }

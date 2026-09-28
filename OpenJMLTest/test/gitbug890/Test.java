@@ -60,7 +60,7 @@ public class Test {
 
     //@ requires arr != null; //requires arr.length == 1;
     //@ ensures \result == (arr.length == 0);
-    public static boolean test(int[] arr) {
+    @org.jmlspecs.annotation.Options("--z3=mbqi") public static boolean test(int[] arr) {
         int[] c1 = arr.clone();
         int[] c2 = arr.clone();
         setZero(c1);
