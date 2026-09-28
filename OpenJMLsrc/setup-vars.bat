@@ -1,6 +1,6 @@
 @echo off
 :: Keep in sync with setup-vars (bash equivalent).
-:: Sets OPENJML_INSTALL BINJAVA BINJAVAC OPENJML_SOLVERS OPENJML_SPECS
+:: Sets OPENJML_INSTALL BINJAVA BINJAVAC OPENJML_SOLVERS OPENJML_SPECS SMT_SOLVER_DIR
 :: Requires %INSTALL% to be set by the calling script.
 :: Usage: call "%INSTALL%\setup-vars.bat"
 
@@ -29,3 +29,8 @@ if exist "%INSTALL%\version-info.txt" (
         )
     )
 )
+
+:: SMT_SOLVER_DIR is the folder in which jSMTLIB finds the solver executables: those named by the
+:: .exec properties in its jsmtlib.properties, or else the solver name itself.
+:: Unless it is already set, it is the Solvers-windows folder of the solvers location.
+if not defined SMT_SOLVER_DIR set "SMT_SOLVER_DIR=%OPENJML_SOLVERS%\Solvers-windows"
