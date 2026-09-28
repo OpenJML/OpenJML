@@ -1,0 +1,128 @@
+Proving methods in ArgNullity
+Starting proof of ArgNullity.ArgNullity() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArgNullity.ArgNullity() with prover !!!! - no warnings
+Starting proof of ArgNullity.m1(@Nullable Integer) with prover !!!!
+test/argnullity/ArgNullity.java:12: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1
+    //@ ghost var s1 = zznn.insert(0,in); // FAILS
+                                  ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+    public seq<T> insert(bigint j, T v);
+                  ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:14: verify: Precondition conjunct is false: _JML__tmp`40 != null
+    public final bigint length;
+                         ^
+Completed proof of ArgNullity.m1(@Nullable Integer) with prover !!!! - with warnings
+Starting proof of ArgNullity.m2(@Nullable Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArgNullity.m2(@Nullable Integer) with prover !!!! - no warnings
+Starting proof of ArgNullity.m3(@Nullable Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArgNullity.m3(@Nullable Integer) with prover !!!! - no warnings
+Starting proof of ArgNullity.m4(@NonNull Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArgNullity.m4(@NonNull Integer) with prover !!!! - no warnings
+Starting proof of ArgNullity.m5(Integer) with prover !!!!
+test/argnullity/ArgNullity.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m5
+    //@ ghost var s5 = zznn.insert(0,in); // FAILS
+                                  ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+    public seq<T> insert(bigint j, T v);
+                  ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:37: verify: Precondition conjunct is false: _JML__tmp`228 != null
+    //@   reads t[*], t.length;
+                   ^
+Completed proof of ArgNullity.m5(Integer) with prover !!!! - with warnings
+Completed proving methods in ArgNullity
+Proving methods in ArgNullity2
+Starting proof of ArgNullity2.ArgNullity2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArgNullity2.ArgNullity2() with prover !!!! - no warnings
+Starting proof of ArgNullity2.mm1(@Nullable Integer) with prover !!!!
+test/argnullity/ArgNullity.java:42: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm1
+    //@ ghost var s1 = zznn.insert(0,in); // FAILS
+                                  ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+    public seq<T> insert(bigint j, T v);
+                  ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:45: verify: Precondition conjunct is false: _JML__tmp`40 != null
+    //-RAC@   ensures \result.length == t.length;
+                                             ^
+Completed proof of ArgNullity2.mm1(@Nullable Integer) with prover !!!! - with warnings
+Starting proof of ArgNullity2.mm2(@Nullable Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArgNullity2.mm2(@Nullable Integer) with prover !!!! - no warnings
+Starting proof of ArgNullity2.mm3(@Nullable Integer) with prover !!!!
+test/argnullity/ArgNullity.java:50: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm3
+    //@ ghost var s3 = zz.insert(0,in); // FAILS
+                                ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+    public seq<T> insert(bigint j, T v);
+                  ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:54: verify: Precondition conjunct is false: _JML__tmp`134 != null
+    //@ no_state
+        ^
+Completed proof of ArgNullity2.mm3(@Nullable Integer) with prover !!!! - with warnings
+Starting proof of ArgNullity2.mm4(@NonNull Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArgNullity2.mm4(@NonNull Integer) with prover !!!! - no warnings
+Starting proof of ArgNullity2.mm5(Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArgNullity2.mm5(Integer) with prover !!!! - no warnings
+Completed proving methods in ArgNullity2
+Proving methods in VarargNullity
+Starting proof of VarargNullity.VarargNullity() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of VarargNullity.VarargNullity() with prover !!!! - no warnings
+Starting proof of VarargNullity.m(@Nullable Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of VarargNullity.m(@Nullable Integer) with prover !!!! - no warnings
+Starting proof of VarargNullity.v(@NonNull Integer...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of VarargNullity.v(@NonNull Integer...) with prover !!!! - no warnings
+Starting proof of VarargNullity.v2(@Nullable Integer...) with prover !!!!
+test/argnullity/VarargNullity.java:18: verify: The prover cannot establish an assertion (Assert) in method v2
+    //@ assert args.length > 0 ==> args[0] != null; // FAILS
+        ^
+Completed proof of VarargNullity.v2(@Nullable Integer...) with prover !!!! - with warnings
+Starting proof of VarargNullity.v3(Integer...) with prover !!!!
+test/argnullity/VarargNullity.java:22: verify: The prover cannot establish an assertion (Assert) in method v3
+    //@ assert args.length > 0 ==> args[0] != null; // FAILS
+        ^
+Completed proof of VarargNullity.v3(Integer...) with prover !!!! - with warnings
+Completed proving methods in VarargNullity
+Proving methods in VarargNullity2
+Starting proof of VarargNullity2.VarargNullity2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of VarargNullity2.VarargNullity2() with prover !!!! - no warnings
+Starting proof of VarargNullity2.m(@Nullable Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of VarargNullity2.m(@Nullable Integer) with prover !!!! - no warnings
+Starting proof of VarargNullity2.vv1(@NonNull Integer...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of VarargNullity2.vv1(@NonNull Integer...) with prover !!!! - no warnings
+Starting proof of VarargNullity2.vv2(@Nullable Integer...) with prover !!!!
+test/argnullity/VarargNullity.java:42: verify: The prover cannot establish an assertion (Assert) in method vv2
+    //@ assert args.length > 0 ==> args[0] != null; // FAILS
+        ^
+Completed proof of VarargNullity2.vv2(@Nullable Integer...) with prover !!!! - with warnings
+Starting proof of VarargNullity2.vv3(Integer...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of VarargNullity2.vv3(Integer...) with prover !!!! - no warnings
+Completed proving methods in VarargNullity2
+15 verification failures
