@@ -4,7 +4,7 @@ Working notes for the `solver-work` branch; remove before merging. Nothing has b
 
 ## What is on this branch
 
-`solver-work` = `dev-21` (local, ahead of `origin/dev-21`: the rows up to 8ea8dbbde1) + the last two rows + this file.
+`solver-work` = `dev-21` (local, ahead of `origin/dev-21`: the rows up to 8ea8dbbde1) + the rows after it + this file.
 
 | Commit | Content |
 |---|---|
@@ -16,50 +16,46 @@ Working notes for the `solver-work` branch; remove before merging. Nothing has b
 | 3c641e0a3d | cvc5 goldens where cvc5 answers `unknown` (Dzmz, enums2, escJml1, escAbstractSpecs) |
 | 8ea8dbbde1 | Alternate goldens for z3-5.1.0 counterexample variants (6 tests) |
 | 8cca9c6b4b | `--z3=<settings>` (mbqi, autoconf, no-mbqi, no-autoconf; both off by default); `@Options("--z3=mbqi")` on the test methods that need MBQI; alternate goldens for jmlarray, jmlseq, jmlstring |
-| b3fdb6ffa8 | `pickProverExec` also finds `<prover>.jar` (smtinterpol) |
+| b3fdb6ffa8 | `pickProverExec` also finds `<prover>.jar` (smtinterpol) -- to be replaced, see below |
+| c0ec9ca7c0 | `jSMTLIB.jar` from jSMTLIB `dev` (0.14.0 development build, a4d9d20a); goldens and 2 test sources use `(- N)` (136 occurrences) |
 
-Checked with z3-5.1.0: esc2/escfunction `testMethodAxioms(2)` and `choosex` pass with the `@Options` annotations.
+Checked with z3-5.1.0 and z3-4.3.1: the value-format tests (esc2 testNewLblSyntax/testShowStatementESC,
+escArithmeticModes2 testModEqual(Long), escLemma, jmlbigint) pass with both. With z3-5.1.0: esc2/escfunction
+`testMethodAxioms(2)` and `choosex` pass with the `@Options` annotations.
 `escfiles` with z3-5.1.0 on `dev-21`: 90 passed, 8 failed, about 12-13 min (old build with z3-4.3.1: 76 min).
 
-## `--smt-batch` (separate branch `batch-prelude`, for review)
+## jSMTLIB (separate repository) -- merged into `dev` (local, not pushed)
 
-- 16fa2a2c51 on top of 93a4d6c13f: `--smt-batch` (off by default), `SolverBatch`, `escbatch` tests (9 pass),
-  and test-framework changes it needs (compile with `jSMTLIB.jar` patched in; export `org.jmlspecs.openjml.esc`, `org.smtlib`).
-- It needs no jSMTLIB change, but reaches three protected jSMTLIB members by reflection:
-  `AbstractSolver.translate(INode)`, `AbstractSolver.solverProcess`, `SolverProcess.process`
-  (the last is replaceable by the new public `SolverProcess.stopIfRunning()`). A public jSMTLIB method such as
-  `AbstractSolver.sendBatch(List<ICommand>)` would make it independent of jSMTLIB internals.
+- 0.13.0 released (includes the `:pattern` fix). `dev` is 0.14.0; its jar is the one in `OpenJMLsrc/libs`.
+- On `dev`: d42feb79 z3-4.3 `get-value` values structured, printing `(- N)`; 3e2477d3 cvc5 stopped after a parse error,
+  and failed option queries reported accurately; 807a0964 `parseScript` end-of-input check; 4cdd9e05 merge;
+  a4d9d20a script goldens (version-check for the 0.14.0 bump, zapi for the value format).
+- Unchecked: the bitwuzla golden for `ok_lambdaBasicArrow` probably needs the same message update (no bitwuzla here).
 
-## jSMTLIB (separate repository)
+## To do
 
-- Released 0.13.0 (includes the `:pattern` fix). `dev` is now 0.14.0.
-- Branch `fix/z3-4.3-get-value` (worktree `~/projects/jSMTLIB-getvalue`), not merged:
-  - d42feb79 `Solver_z3_4_3.get_value` returns structured values, so z3-4.3 prints `(- 5)` like every other adapter.
-  - (in progress) cvc5 stopped after a parse error; `requireOptionEnabled` reports a failed option query instead of
-    "only valid if ... has been enabled"; regression test; golden updates.
-  - (to do) `Parser.parseScript()` end-of-input check.
+- **smtinterpol**: replace the `.jar` special case (b3fdb6ffa8) in `pickProverExec` with a lookup of jSMTLIB's
+  `.command` property (`org.smtlib.solver_smtinterpol-2.5.command=java,-jar,%exec%,-q`); OpenJML has to load
+  jSMTLIB's properties itself (`new SMT()` does not).
 
 ## Decided
 
 - `@Options("--z3=...")` on a class or method replaces the global `--z3` value (the usual option stack).
 - `escchoose.m` and `gitbug890.model_test` (z3-5.1.0 lost proofs that MBQI does not fix) stay as failures.
 - cvc5 'unknown' goldens are kept as cvc5-specific responses; cvc5 timeouts are left; z3-5.1.0 is the default.
-- `--smt-batch` stays on its own branch for review.
+- `--smt-batch` is parked on its own branch `batch-prelude` (16fa2a2c51); see issue #985.
+- `escfilesTrace` is set aside for now.
 
 ## Decisions to make
 
-1. **Merging.** Merge `solver-work` into `dev-21`? And `fix/z3-4.3-get-value` into jSMTLIB `dev`, then a jar with it?
-   (The OpenJML goldens `( - N )` -> `(- N)`, 23 expected files + 2 test sources, go with that jar.)
-2. **`--smt-batch`**: see above -- keep? default? add the public jSMTLIB method?
-3. **A fallback for `unknown` results** (retry in a fresh z3 process with MBQI on and a short timeout): worth it?
+1. **Merging.** Merge `solver-work` into `dev-21`? The jar in it is a jSMTLIB development build: wait for a release?
+2. **A fallback for `unknown` results** (retry in a fresh z3 process with MBQI on and a short timeout): worth it?
    (z3 ignores `:smt.mbqi` set mid-session, and ignores time limits on `check-sat-using` with MBQI.)
-4. **Internal temporaries in messages**: "Precondition conjunct is false: `_JML__tmp`18 != null`" shows internal names
+3. **Internal temporaries in messages**: "Precondition conjunct is false: `_JML__tmp`18 != null`" shows internal names
    (and their numbering differs between runs and solvers). Show the source expression instead?
-5. **`escfilesTrace`** suite: it does not run (tests pass `""` as an option, which OpenJML rejects) and its goldens
-   are out of date. Repair it?
-6. **smtinterpol** support (the `.jar` lookup) is on this branch; keep it, or drop it since only z3 and cvc5 matter now?
 
 ## Left to the user
 
 - `gitbug963` (type-checker message changed) and `gitbug963a` (no expected file).
 - A full cvc5 run of the whole suite.
+- Deleting the superseded OpenJML branches `z3-triggers-enum-fix`, `solver-fixes`, `z3-mbqi`.
