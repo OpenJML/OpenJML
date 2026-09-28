@@ -229,6 +229,11 @@ public class MethodProverSMT {
                         exec = exec + ".exe"; 
                         break x;
                     }
+                    // A Java solver (e.g. smtinterpol-2.5.jar) is launched by jSMTLIB as 'java -jar <exec>'
+                    if (new java.io.File(exec + ".jar").exists()) {
+                        exec = exec + ".jar";
+                        break x;
+                    }
                     Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
                     exec = null;
                 }

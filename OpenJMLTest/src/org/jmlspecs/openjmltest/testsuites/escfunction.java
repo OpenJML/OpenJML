@@ -36,7 +36,7 @@ public class escfunction extends EscBase {
                   //@ ensures \\result == (i > 0 && i < 10);
                   //@ pure
                   //@ model public boolean m(int i);
-                  public void mm() {
+                  @org.jmlspecs.annotation.Options("--z3=mbqi") public void mm() {
                   //@ assert (\\forall int k; 3<k && k <7; m(k));
                   //@ assert (\\forall int k; 3<k && k <7; m(k-1));
                   //@ assert !(\\forall int k; -3<k && k <7; m(k));
@@ -59,7 +59,7 @@ public class escfunction extends EscBase {
                   //@ pure
                   //@ model public boolean m(int i);
                   //@ pure
-                  public void mm() {
+                  @org.jmlspecs.annotation.Options("--z3=mbqi") public void mm() {
                   //@ assert !(\\forall int k; 3<k && k <11; m(k));
                   }
                 }

@@ -291,7 +291,7 @@ test\escTrace4\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.f && TH
  	//Assume parameter type, allocation, and nullness
 test\escTrace4\trace.java:14:  	assume ImplicitAssume -2147483648 <= k && k <= 2147483647;
 			VALUE: -2147483648	 === ???
-			VALUE: k_302	 === ( - 1073741825 )
+			VALUE: k_302	 === (- 1073741825)
 			VALUE: -2147483648 <= k_302	 === ???
 			VALUE: -2147483648 <= k_302 && k_302 <= 2147483647	 === ???
  	//Adding invariants for a
@@ -418,32 +418,32 @@ test\escTrace4\trace.java:15:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
 test\escTrace4\trace.java:16:  	mm(k + k, k == 0)
-			VALUE: k	 === ( - 1073741825 )
-			VALUE: k	 === ( - 1073741825 )
-			VALUE: k + k	 === ( - 2147483650 )
-			VALUE: k	 === ( - 1073741825 )
+			VALUE: k	 === (- 1073741825)
+			VALUE: k	 === (- 1073741825)
+			VALUE: k + k	 === (- 2147483650)
+			VALUE: k	 === (- 1073741825)
 			VALUE: 0	 === 0
 			VALUE: k == 0	 === false
 test\escTrace4\trace.java:16:  	ArithmeticOperationRange assertion: !(0 < k && 0 < k) || k <= 2147483647 - k
 			VALUE: 0	 === 0
-			VALUE: k_302	 === ( - 1073741825 )
+			VALUE: k_302	 === (- 1073741825)
 			VALUE: 0 < k_302	 === false
 			VALUE: 0 < k_302 && 0 < k_302	 === false
 			VALUE: !(0 < k_302 && 0 < k_302)	 === true
 			VALUE: !(0 < k_302 && 0 < k_302) || k_302 <= 2147483647 - k_302	 === true
 test\escTrace4\trace.java:16:  	ArithmeticOperationRange assertion: !(k < 0 && k < 0) || -2147483648 - k <= k
-			VALUE: k_302	 === ( - 1073741825 )
+			VALUE: k_302	 === (- 1073741825)
 			VALUE: 0	 === 0
 			VALUE: k_302 < 0	 === true
-			VALUE: k_302	 === ( - 1073741825 )
+			VALUE: k_302	 === (- 1073741825)
 			VALUE: 0	 === 0
 			VALUE: k_302 < 0	 === true
 			VALUE: k_302 < 0 && k_302 < 0	 === true
 			VALUE: !(k_302 < 0 && k_302 < 0)	 === false
-			VALUE: -2147483648	 === ( - 2147483648 )
-			VALUE: k_302	 === ( - 1073741825 )
-			VALUE: -2147483648 - k_302	 === ( - 1073741823 )
-			VALUE: k_302	 === ( - 1073741825 )
+			VALUE: -2147483648	 === (- 2147483648)
+			VALUE: k_302	 === (- 1073741825)
+			VALUE: -2147483648 - k_302	 === (- 1073741823)
+			VALUE: k_302	 === (- 1073741825)
 			VALUE: -2147483648 - k_302 <= k_302	 === false
 			VALUE: !(k_302 < 0 && k_302 < 0) || -2147483648 - k_302 <= k_302	 === false
 test\escTrace4\trace.java:16:  Invalid assertion (ArithmeticOperationRange)
@@ -520,7 +520,7 @@ test\escTrace4\trace.java:3:  	assume ImplicitAssume -2147483648 <= THIS.f && TH
  	//Assume parameter type, allocation, and nullness
 test\escTrace4\trace.java:14:  	assume ImplicitAssume -2147483648 <= k && k <= 2147483647;
 			VALUE: -2147483648	 === ???
-			VALUE: k_302	 === ( - 1073741824 )
+			VALUE: k_302	 === (- 1073741824)
 			VALUE: -2147483648 <= k_302	 === ???
 			VALUE: -2147483648 <= k_302 && k_302 <= 2147483647	 === ???
  	//Adding invariants for a
@@ -647,32 +647,32 @@ test\escTrace4\trace.java:15:  	int j = 0
 			VALUE: 0	 === 0
 			VALUE: j	 === 0
 test\escTrace4\trace.java:16:  	mm(k + k, k == 0)
-			VALUE: k	 === ( - 1073741824 )
-			VALUE: k	 === ( - 1073741824 )
-			VALUE: k + k	 === ( - 2147483648 )
-			VALUE: k	 === ( - 1073741824 )
+			VALUE: k	 === (- 1073741824)
+			VALUE: k	 === (- 1073741824)
+			VALUE: k + k	 === (- 2147483648)
+			VALUE: k	 === (- 1073741824)
 			VALUE: 0	 === 0
 			VALUE: k == 0	 === false
 test\escTrace4\trace.java:16:  	ArithmeticOperationRange assertion: !(0 < k && 0 < k) || k <= 2147483647 - k
 			VALUE: 0	 === 0
-			VALUE: k_302	 === ( - 1073741824 )
+			VALUE: k_302	 === (- 1073741824)
 			VALUE: 0 < k_302	 === false
 			VALUE: 0 < k_302 && 0 < k_302	 === false
 			VALUE: !(0 < k_302 && 0 < k_302)	 === true
 			VALUE: !(0 < k_302 && 0 < k_302) || k_302 <= 2147483647 - k_302	 === true
 test\escTrace4\trace.java:16:  	ArithmeticOperationRange assertion: !(k < 0 && k < 0) || -2147483648 - k <= k
-			VALUE: k_302	 === ( - 1073741824 )
+			VALUE: k_302	 === (- 1073741824)
 			VALUE: 0	 === 0
 			VALUE: k_302 < 0	 === true
-			VALUE: k_302	 === ( - 1073741824 )
+			VALUE: k_302	 === (- 1073741824)
 			VALUE: 0	 === 0
 			VALUE: k_302 < 0	 === true
 			VALUE: k_302 < 0 && k_302 < 0	 === true
 			VALUE: !(k_302 < 0 && k_302 < 0)	 === false
-			VALUE: -2147483648	 === ( - 2147483648 )
-			VALUE: k_302	 === ( - 1073741824 )
-			VALUE: -2147483648 - k_302	 === ( - 1073741824 )
-			VALUE: k_302	 === ( - 1073741824 )
+			VALUE: -2147483648	 === (- 2147483648)
+			VALUE: k_302	 === (- 1073741824)
+			VALUE: -2147483648 - k_302	 === (- 1073741824)
+			VALUE: k_302	 === (- 1073741824)
 			VALUE: -2147483648 - k_302 <= k_302	 === true
 			VALUE: !(k_302 < 0 && k_302 < 0) || -2147483648 - k_302 <= k_302	 === true
  	//Checking caller invariants before calling method trace.mm(int,boolean)
