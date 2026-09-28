@@ -190,6 +190,37 @@ public class MethodProverSMT {
         return name.matches("z3-4\\.3\\.\\d+") ? "z3-4.3" : name;
     }
 
+    /** jSMTLIB's solver properties (its jsmtlib.properties: each solver's .adapter, .exec and .command),
+     * loaded once. jSMTLIB itself loads them only in its command-line driver, but they are what makes
+     * createSolver choose the right adapter (e.g. Solver_cvc5 for cvc5-1.3.2, rather than the generic
+     * Solver_smt) and the right launch command (e.g. 'java -jar ... -q' for smtinterpol). */
+    static private /*@ nullable */ java.util.Properties jsmtlibProperties = null;
+
+    static synchronized public java.util.Properties jsmtlibProperties() {
+        if (jsmtlibProperties == null) {
+            java.util.Properties p = null;
+            try {
+                p = new SMT.Configuration().readProperties();
+            } catch (RuntimeException e) {
+                // no properties: solvers are then found by name only
+            }
+            jsmtlibProperties = p != null ? p : new java.util.Properties();
+        }
+        return jsmtlibProperties;
+    }
+
+    /** The executable file name that jSMTLIB's properties give for the named solver (its .exec entry,
+     * platform-specific entry first), or null if there is none */
+    static /*@ nullable */ String jsmtlibExecName(String solverName) {
+        java.util.Properties p = jsmtlibProperties();
+        String key = org.smtlib.Utils.PROPS_SOLVER_PREFIX + solverName + org.smtlib.Utils.PROPS_EXEC_SUFFIX;
+        String os = System.getProperty("os.name","").toLowerCase(); // same platform names as jSMTLIB's
+        String platform = os.contains("win") ? "windows" : os.contains("mac") ? "macos" : "linux";
+        String value = p.getProperty(key + "." + platform);
+        if (value == null) value = p.getProperty(key);
+        return value == null || value.trim().isEmpty() ? null : value.trim();
+    }
+
     /** Returns the prover exec specified by the options */
     public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
         //org.smtlib.SolverProcess.useMultiThreading = false;
@@ -229,10 +260,20 @@ public class MethodProverSMT {
                         exec = exec + ".exe"; 
                         break x;
                     }
-                    // A Java solver (e.g. smtinterpol-2.5.jar) is launched by jSMTLIB as 'java -jar <exec>'
-                    if (new java.io.File(exec + ".jar").exists()) {
-                        exec = exec + ".jar";
-                        break x;
+                    // Otherwise the executable file that jSMTLIB's properties name for this solver, e.g.
+                    // cvc5 -> cvc5-1.3.2, or smtinterpol-2.5 -> smtinterpol-2.5.jar (which that solver's
+                    // .command property runs as 'java -jar <exec> -q')
+                    String name = jsmtlibExecName(smtSolverName(proverToUse));
+                    if (name != null) {
+                        String named = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + name;
+                        if (new java.io.File(named).exists()) {
+                            exec = named;
+                            break x;
+                        }
+                        if (new java.io.File(named + ".exe").exists()) {
+                            exec = named + ".exe";
+                            break x;
+                        }
                     }
                     Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
                     exec = null;
@@ -349,6 +390,7 @@ public class MethodProverSMT {
 
         // create an SMT object, adding any options
         SMT smt = new SMT();
+        smt.smtConfig.props = jsmtlibProperties(); // so createSolver applies each solver's .adapter/.command/.exec
 //        int seed = 0;
 //        String strseed = JmlOption.value(context, JmlOption.SEED);
 //        if (strseed != null && !strseed.isEmpty()) try {
