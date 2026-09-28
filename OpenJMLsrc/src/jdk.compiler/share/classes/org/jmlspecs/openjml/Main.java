@@ -642,6 +642,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         ex.printStackTrace(stdOut);
     }
     
+    /** The executable jSMTLIB resolves from the prover's name (null if the solver is launched by a
+     * .command property); public here because the esc package is not exported */
+    public static /*@ nullable */ String solverExec(String prover) {
+        return org.jmlspecs.openjml.esc.MethodProverSMT.solverExec(prover);
+    }
+
     public static void showConfig(Context context) {
         StringBuilder sb = new StringBuilder();
         java.util.function.Consumer<String> appln = s -> { sb.append(s); sb.append(Strings.eol); };

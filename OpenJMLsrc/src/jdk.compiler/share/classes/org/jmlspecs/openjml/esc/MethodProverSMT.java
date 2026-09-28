@@ -228,6 +228,12 @@ public class MethodProverSMT {
     public static /*@ nullable */ String proverExec(String proverToUse, Context context) {
         String exec = JmlOption.PROVEREXEC.value(context);
         if (exec != null && !exec.isEmpty()) return exec;
+        return solverExec(proverToUse);
+    }
+
+    /** The executable jSMTLIB resolves from the prover's name (null if the solver is launched by a
+     * .command property) */
+    public static /*@ nullable */ String solverExec(String proverToUse) {
         SMT smt = new SMT();
         smt.smtConfig.props = jsmtlibProperties();
         return smt.resolveExecutableForSolver(smtSolverName(proverToUse));

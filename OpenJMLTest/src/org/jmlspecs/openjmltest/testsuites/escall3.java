@@ -24,7 +24,7 @@ public class escall3 extends EscBase {
                 package tt;
                 public class TestJava { }
                 """
-                ,"error: Specified executable does not exist: \"$ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-" + org.jmlspecs.openjml.Utils.identifyOS(context) + "/Z\"",-1
+                ,"error: Specified executable does not exist: \"" + org.jmlspecs.openjml.Main.solverExec("Z") + "\"",-1
                 ,"error: No executable is known for prover Z - use --exec, or put the solver in the SMT_SOLVER_DIR folder",-1
                 );
     }
