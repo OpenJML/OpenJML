@@ -146,7 +146,11 @@ public abstract class EscBaseFiles extends EscBase {
             int ex = org.jmlspecs.openjml.Main.execute(pw,null,null,args.toArray(new String[args.size()]));
 
             String diffs = null;
-            var files = new File(outDir).list((f,s)->s.startsWith("expected") && !s.endsWith("-compile") && !s.endsWith(("-run")));
+            // An expected file may be solver-specific: 'expected<suffix>.<solver>' (e.g. expected.cvc5) is
+            // considered only when the prover in use starts with <solver>; untagged files apply to every solver.
+            String prover = solver != null ? solver : org.jmlspecs.openjml.JmlOption.PROVER.defaultValue().toString();
+            var files = new File(outDir).list((f,s)->s.startsWith("expected") && !s.endsWith("-compile") && !s.endsWith(("-run"))
+                                                    && (s.indexOf('.') < 0 || prover.startsWith(s.substring(s.indexOf('.')+1))));
             assertTrue("There are no expected output files in " + outDir, 0 != files.length);
             for (String name: files) {
                 String expectedFile = outDir + "/" + name;
