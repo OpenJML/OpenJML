@@ -108,15 +108,15 @@ escfilesmodels.gitbug673
 
 SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
 SpecsEsc.testSpecificationFile[java-util-Map]
-SFBugs.gitbug481a1
-SFBugs.gitbug481a2
-SFBugs.gitbug481a3
-SFBugs.gitbug481a4
-SFBugs.gitbug481a5
-SFBugs.gitbug481a8
-SFBugs.gitbug481b
-SFBugs.gitbug481c
-SFBugs.gitbug671                # crash during speculative attribution
+escsf1.gitbug481a1
+escsf1.gitbug481a2
+escsf1.gitbug481a3
+escsf1.gitbug481a4
+escsf1.gitbug481a5
+escsf1.gitbug481a8
+escsf1.gitbug481b
+escsf1.gitbug481c
+escsf3.gitbug671                # crash during speculative attribution
 
 #escArithmeticModes2.testModJavaB
 escArithmeticModes2.testModSafeBB
@@ -178,7 +178,7 @@ SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 primesc2.jmlreal                 # feasibility check times out
 escwebexamples.HeapSort
 
-SFBugs.gitbug712                      # String literal ("Alice") problem
+escsf3.gitbug712                      # String literal ("Alice") problem
 
 escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
 escfiles2.gitbug726                   # OLList problem
