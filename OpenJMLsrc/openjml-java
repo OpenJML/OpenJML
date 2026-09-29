@@ -17,7 +17,7 @@ if [ "$( uname )" = "Darwin" ] ; then
   "${INSTALL}/mac-setup" > /dev/null 2>&1 ;
 fi
 
-## Shared script to setup OPENJML_INSTALL OPENJML_SPECS OPENJML_SOLVERS BINJAVA
+## Shared script to setup OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR BINJAVA
 . "${INSTALL}/setup-vars"
 
 ## Run the executable for openjml-java (the java equivalent in openjml)

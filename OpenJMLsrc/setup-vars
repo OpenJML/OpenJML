@@ -2,7 +2,7 @@
 # A sourced script that is shared between openjml and openjml-java
 
 ## Uses $INSTALL
-## Sets BINJAVA BINJAVAC OPENJML_INSTALL OPENJML_SOLVERS OPENJML_SPECS
+## Sets BINJAVA BINJAVAC OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR
 
 if [ "$0" = "$BASH_SOURCE" ]; then
     echo "Error: setup-vars script must be sourced"
@@ -23,22 +23,31 @@ if [ -n "$(grep -si microsoft /proc/version 2>/dev/null)" ]; then EXE=".exe" ; e
 
 if [ -e "$INSTALL/version-info.txt" ]; then
   ## In a release
-  if [ -n ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS ; fi
   if [ -n ${OPENJML_SPECS++} ]; then export OPENJML_SPECS ; fi
   ## On WSL, Windows PE java.exe cannot see Linux env vars directly.
-  ## Set OPENJML_SPECS/OPENJML_SOLVERS here so they can be path-translated by WSLENV below.
+  ## Set OPENJML_SPECS here so it can be path-translated by WSLENV below.
   if [ -n "$EXE" ]; then
     if [ -z ${OPENJML_SPECS++} ];   then export OPENJML_SPECS="$INSTALL/specs"            ; fi
-    if [ -z ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS="$INSTALL" ; fi
   fi
+  _solvers="$INSTALL"
   BINJAVA="$INSTALL/jdk/bin/java$EXE"
   BINJAVAC="$INSTALL/jdk/bin/javac$EXE"
 else
   ## In development environment
-  if [ -z ${OPENJML_SOLVERS++} ]; then export OPENJML_SOLVERS=$(realpath "$INSTALL"/../../Solvers) ; else export OPENJML_SOLVERS ; fi
+  _solvers=$(realpath "$INSTALL"/../../Solvers)
   if [ -z ${OPENJML_SPECS++} ]; then export OPENJML_SPECS=$(realpath "$INSTALL"/../../Specs/specs) ; else export OPENJML_SPECS ; fi
   BINJAVA=`echo "$INSTALL"/build/*/jdk/bin/java$EXE`
   BINJAVAC=`echo "$INSTALL"/build/*/jdk/bin/javac$EXE`
+fi
+
+## SMT_SOLVER_DIR is the folder in which jSMTLIB finds the solver executables: those named by the
+## .exec properties in its jsmtlib.properties, or else the solver name itself.
+## Unless it is already set, it is the Solvers-<os> folder: in the installation for a release,
+## or in the sibling Solvers repository for the development environment.
+if [ -z ${SMT_SOLVER_DIR++} ]; then
+  export SMT_SOLVER_DIR="$_solvers/Solvers-$("$INSTALL"/os-name.sh)"
+else
+  export SMT_SOLVER_DIR
 fi
 
 ## On WSL: forward OPENJML_* vars to Windows PE processes (java.exe/javac.exe).
@@ -47,8 +56,8 @@ fi
 ## Non-path variables (e.g. OPENJML_verboseness) are forwarded as plain strings.
 if [ -n "$EXE" ]; then
   _extra=$(compgen -e 'OPENJML_' \
-    | grep -Ev '^(OPENJML_INSTALL|OPENJML_SPECS|OPENJML_SOLVERS)$' \
+    | grep -Ev '^(OPENJML_INSTALL|OPENJML_SPECS)$' \
     | tr '\n' ':' | sed 's/:$//')
   [ -n "$_extra" ] && export WSLENV="${WSLENV:+$WSLENV:}${_extra}"
-  export WSLENV="${WSLENV:+$WSLENV:}OJ:OPENJML_INSTALL/p:OPENJML_SPECS/p:OPENJML_SOLVERS/p"
+  export WSLENV="${WSLENV:+$WSLENV:}OJ:OPENJML_INSTALL/p:OPENJML_SPECS/p:SMT_SOLVER_DIR/p"
 fi

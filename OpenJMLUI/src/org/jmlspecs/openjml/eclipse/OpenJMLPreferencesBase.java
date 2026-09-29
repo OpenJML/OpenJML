@@ -383,9 +383,6 @@ abstract class OpenJMLPreferencesBase extends PreferencePage
                     { "false", "false" } },
                 parent));
 
-        addBoolean(parent, OpenJMLOptions.escTriggersKey,
-                "Enable quantifier triggers in SMT encoding (--triggers)");
-
         addBoolean(parent, OpenJMLOptions.escWarningsPathKey,
                 "Find all counterexample paths to each invalid assert (--esc-warnings-path)");
 

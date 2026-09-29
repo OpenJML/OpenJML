@@ -190,58 +190,66 @@ public class MethodProverSMT {
         return name.matches("z3-4\\.3\\.\\d+") ? "z3-4.3" : name;
     }
 
-    /** Returns the prover exec specified by the options */
+    /** jSMTLIB's solver properties (its jsmtlib.properties: each solver's .adapter, .exec and .command),
+     * loaded once. jSMTLIB itself loads them only in its command-line driver, but they are what makes
+     * createSolver choose the right adapter (e.g. Solver_cvc5 for cvc5-1.3.2, rather than the generic
+     * Solver_smt) and the right executable and launch command (e.g. 'java -jar ... -q' for smtinterpol). */
+    static private /*@ nullable */ java.util.Properties jsmtlibProperties = null;
+
+    static synchronized public java.util.Properties jsmtlibProperties() {
+        if (jsmtlibProperties == null) {
+            java.util.Properties p = null;
+            try {
+                p = new SMT.Configuration().readProperties();
+            } catch (RuntimeException e) {
+                // no properties: solvers are then found by name only
+            }
+            jsmtlibProperties = p != null ? p : new java.util.Properties();
+        }
+        return jsmtlibProperties;
+    }
+
+    /** Returns the prover executable given by the --exec option, or null if there is none, in which
+     * case jSMTLIB finds the executable from the solver name: the solver's .command or .exec property,
+     * or else the solver name itself, in the SMT_SOLVER_DIR folder (set by the openjml scripts).
+     * Reports an error and returns null if the --exec file does not exist. */
     public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
-        //org.smtlib.SolverProcess.useMultiThreading = false;
-        //org.smtlib.SolverProcess.useNotifyWait = false;
         String exec = JmlOption.PROVEREXEC.value(context);
-        String os = Utils.identifyOS(context);
-        if (exec != null && !exec.isEmpty()) {
-            if (!new java.io.File(exec).exists()) {
-                Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
-                exec = null;
-            }
-        } else {
-            // The default is that the prover executables are located in folders named 
-            // ./Solvers-$OS, relative to the path returned by findInstallLocation
-            String loc = Main.solvers;
-            String ex = proverToUse;
-            
-            x: {
-                if (ex.contains("X")) {
-                    for (int i=20; i>=0; --i) {
-                        String num = Integer.toString(i);
-                        exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex.replace("X",num);
-                        if (new java.io.File(exec).exists()) {
-                            break;
-                        }
-                        if (new java.io.File(exec + ".exe").exists()) {
-                            exec = exec + ".exe";
-                            break;
-                        }
-                    }
-                } else {
-                    exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;
-                    if (new java.io.File(exec).exists()) {
-                        break x;
-                    }
-                    if (new java.io.File(exec + ".exe").exists()) { 
-                        exec = exec + ".exe"; 
-                        break x;
-                    }
-                    // A Java solver (e.g. smtinterpol-2.5.jar) is launched by jSMTLIB as 'java -jar <exec>'
-                    if (new java.io.File(exec + ".jar").exists()) {
-                        exec = exec + ".jar";
-                        break x;
-                    }
-                    Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
-                    exec = null;
-                }
-            }
+        if (exec == null || exec.isEmpty()) return null;
+        if (!new java.io.File(exec).exists()) {
+            Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
+            return null;
         }
         return exec;
     }
-    
+
+    /** The executable that will be used for the prover: the --exec value, or else the one jSMTLIB
+     * resolves from the solver name (null if the solver is launched by a .command property) */
+    public static /*@ nullable */ String proverExec(String proverToUse, Context context) {
+        String exec = JmlOption.PROVEREXEC.value(context);
+        if (exec != null && !exec.isEmpty()) return exec;
+        return solverExec(proverToUse);
+    }
+
+    /** The executable jSMTLIB resolves from the prover's name (null if the solver is launched by a
+     * .command property) */
+    public static /*@ nullable */ String solverExec(String proverToUse) {
+        SMT smt = new SMT();
+        smt.smtConfig.props = jsmtlibProperties();
+        return smt.resolveExecutableForSolver(smtSolverName(proverToUse));
+    }
+
+    /** Checks that the prover's executable is known, reporting an error if it is not */
+    static boolean checkProverExec(String proverToUse, Context context) {
+        String exec = JmlOption.PROVEREXEC.value(context);
+        if (exec != null && !exec.isEmpty()) return pickProverExec(proverToUse, context) != null;
+        exec = proverExec(proverToUse, context);
+        // A relative name is looked up on the PATH when the solver is launched
+        if (exec == null || !new java.io.File(exec).isAbsolute() || new java.io.File(exec).exists()) return true;
+        Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
+        return false;
+    }
+
     protected ISolver solver = null;
     protected ISolver solver2 = null;
     protected boolean aborted = false;
@@ -285,14 +293,14 @@ public class MethodProverSMT {
 //            JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
 
         // determine the executable
-        String exec = pickProverExec(proverToUse, context);
-        if (exec == null || exec.trim().isEmpty()) {
+        if (!checkProverExec(proverToUse, context)) {
             //log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
             JCDiagnostic d = utils.errorDiag(null, null,"esc.no.exec",proverToUse);
             log.report(d);
             return factory.makeProverResult(methodDecl,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
-        if (debugSMT) System.out.println("Solver in use: " + exec);
+        String exec = pickProverExec(proverToUse, context); // null: jSMTLIB finds it from the solver name
+        if (debugSMT) System.out.println("Solver in use: " + proverExec(proverToUse, context));
         
         IProverResult proofResultAccumulated = null;
         IProverResult proofResult = null;
@@ -349,6 +357,7 @@ public class MethodProverSMT {
 
         // create an SMT object, adding any options
         SMT smt = new SMT();
+        smt.smtConfig.props = jsmtlibProperties(); // so createSolver applies each solver's .adapter/.command/.exec
 //        int seed = 0;
 //        String strseed = JmlOption.value(context, JmlOption.SEED);
 //        if (strseed != null && !strseed.isEmpty()) try {
@@ -438,7 +447,7 @@ public class MethodProverSMT {
             solver = smt.startSolver(smt.smtConfig,smtProver,exec); // Argument is the SMT library adapter
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
-                JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec);
+                JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec != null ? exec : smtProver);
                 log.report(d);
         		return factory.makeProverResult(methodDecl,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             } else {

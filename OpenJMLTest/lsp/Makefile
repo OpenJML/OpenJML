@@ -162,7 +162,7 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	      . $(SRC)/setup-exports; \
 	      OPENJML_INSTALL="$(BUILDJDK)" \
 	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
-	      OPENJML_SOLVERS="$(SRC)/../../Solvers" \
+	      SMT_SOLVER_DIR="$${SMT_SOLVER_DIR:-$(SRC)/../../Solvers/Solvers-$$($(SRC)/os-name.sh)}" \
 	      "$(NJAVA)" $(JAVA_AGENT) $$OPENJML_JVM $$OPENJML_EXPORTS \
 	        -Dlsp.testdata=$(LSPTEST)/testdata \
 	        -Djml.grammar.lsp=$(LSPROOT)/vscode-extension/syntaxes/jml.tmLanguage.json \

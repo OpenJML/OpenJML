@@ -25,7 +25,7 @@ import java.util.Arrays;
 //                        lblexpression.class, matchClasses.class, methodspecs.class, misctests.class, modelghost.class, modifiers.class, namelookup.class, notspecified.class, nowarn.class,
 //                        positions.class, prettyprinting.class, purity.class, QueryPure.class, QuerySecret.class, racArithmeticModes.class, racdemoexamples.class, racfeatures.class, racfiles.class,
 //                        racJML.class, racnew.class, racnew2.class, racnew3.class, racnewLoops.class, racnewWithSpecs.class, racnonpublic.class, racreadable.class, racsystem.class, redundant.class,
-//                        scanner.class, SFBugs.class, SpecsBase.class, SpecsEsc.class, SpecsRac.class, statements.class, strict.class, strongarm.class, sysclasses.class, typechecking.class,
+//                        scanner.class, escsf1.class, escsf2.class, escsf3.class, SpecsBase.class, SpecsEsc.class, SpecsRac.class, statements.class, strict.class, strongarm.class, sysclasses.class, typechecking.class,
 //                        typecheckingJmlTypes.class, typecheckingvisibility.class, typeclauses.class })
 
 // The following runner works with the suite method to add all test case files

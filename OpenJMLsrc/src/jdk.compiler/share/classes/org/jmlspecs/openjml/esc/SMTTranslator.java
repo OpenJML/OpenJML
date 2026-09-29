@@ -223,8 +223,6 @@ public class SMTTranslator extends JmlTreeScanner {
      * parse error and stops responding). */
     final public java.util.Set<String> boundNames = new java.util.HashSet<>();
 
-    /** Unrecognized --z3 settings already warned about, so each is reported only once */
-    static final private java.util.Set<String> warnedZ3Ids = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
     
     /** The constructor - create a new instance for each Basic Program to be translated */
     public SMTTranslator(Context context, String source, Configuration smtConfig) {
@@ -883,23 +881,11 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_set_logic(F.symbol(s));
         startCommands.add(c);
         
-        // These are z3 options (trigger-driven instantiation only); other solvers do not use them
+        // z3 options (both off unless --z3 turns them on); other solvers do not use them
         String prover = JmlOption.PROVER.value(context);
-        if (JmlOption.ESC_TRIGGERS.isSet(context) && (prover == null || prover.startsWith("z3"))) {
-            boolean autoconf = false, mbqi = false; // both off unless --z3 turns them on
-            for (String id: JmlOption.Z3.value(context).split(",")) {
-                switch (id.trim()) {
-                    case "": break;
-                    case "mbqi": mbqi = true; break;
-                    case "no-mbqi": mbqi = false; break;
-                    case "autoconf": autoconf = true; break;
-                    case "no-autoconf": autoconf = false; break;
-                    default:
-                        if (warnedZ3Ids.add(id.trim())) utils.warning("jml.message", "Unrecognized --z3 setting ignored: " + id.trim());
-                }
-            }
-            startCommands.add(command(smt,"(set-option :AUTO_CONFIG " + autoconf + ")"));
-            startCommands.add(command(smt,"(set-option :smt.MBQI " + mbqi + ")"));
+        if (prover == null || prover.startsWith("z3")) {
+            startCommands.add(command(smt,"(set-option :AUTO_CONFIG " + JmlOption.z3Setting(context, "autoconf") + ")"));
+            startCommands.add(command(smt,"(set-option :smt.MBQI " + JmlOption.z3Setting(context, "mbqi") + ")"));
         }
         String strseed = JmlOption.SEED.value(context);
         if (strseed != null && !strseed.isEmpty()) try {

@@ -24,8 +24,25 @@ public class OpenJMLTestRunner {
     static boolean sequential = true;
     static boolean verbose = false;
 
+    /** Prints, at the top of the test log, the solver the ESC tests use (the PROVER environment
+     * variable, else OpenJML's default) and the executable jSMTLIB resolves for it */
+    static void printSolver() {
+        String solver = System.getenv("PROVER");
+        if (solver == null || solver.isEmpty()) solver = String.valueOf(org.jmlspecs.openjml.JmlOption.PROVER.defaultValue());
+        String exec;
+        try {
+            exec = org.jmlspecs.openjml.Main.solverExec(solver);
+            if (exec == null) exec = "launched by its .command property";
+            else if (new File(exec).isAbsolute() && !new File(exec).exists()) exec = exec + " (DOES NOT EXIST)";
+        } catch (RuntimeException e) {
+            exec = "not resolved: " + e;
+        }
+        System.out.println("Solver: " + solver + "  Executable: " + exec);
+    }
+
     @SuppressWarnings("unchecked")
     public static void main(String... args) throws Exception {
+        // printSolver(); // Disabled: initializing OpenJML before the tests changes which \max is registered (#987)
         String th = System.getenv("THREADS");
         if (th != null && !th.isEmpty()) {
             try {
