@@ -39,6 +39,7 @@ if [ -d "$DIR/jdk" ]; then
     # it from OPENJML_INSTALL internally.  Set it only for a custom location.
     export SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$OPENJML_INSTALL/Solvers-$("$DIR"/os-name.sh)}"
     JARFILE="$DIR/lsp/openjml-lsp.jar"
+    JSMTLIB_JAR="$DIR/libs/jSMTLIB.jar"
     LSP4J_CP="$DIR/lsp/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/lsp/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 else
     ## ── Development layout (sibling OpenJMLsrc/ repo) ────────────────────────
@@ -54,10 +55,12 @@ else
     export OPENJML_SPECS="${OPENJML_SPECS:-$OPENJML_INSTALL/../../Specs/specs}"
     export SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$OPENJML_INSTALL/../../Solvers/Solvers-$("$SRC"/os-name.sh)}"
     JARFILE="$DIR/build/openjml-lsp.jar"
+    JSMTLIB_JAR="$SRC/libs/jSMTLIB.jar"
     LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 fi
 
 [ -f "$JARFILE" ]        || { echo "ERROR: missing $JARFILE" >&2; exit 1; }
+[ -f "$JSMTLIB_JAR" ]    || { echo "ERROR: missing $JSMTLIB_JAR" >&2; exit 1; }
 [ -f "${LSP4J_CP%%:*}" ] || { echo "ERROR: missing ${LSP4J_CP%%:*}" >&2; exit 1; }
 
 # com.google.gson is now unconditionally exported from jdk.compiler (see
@@ -65,7 +68,9 @@ fi
 # Do NOT put a separate Gson jar on the classpath — that would create a
 # split-package conflict since jdk.compiler already provides com.google.gson.
 
+# jSMTLIB is not built into jdk.compiler; it is patched in, as the openjml scripts do.
 exec "$BUILDJDK/bin/java" \
+     "--patch-module=jdk.compiler=$JSMTLIB_JAR" \
      $OPENJML_JVM \
      $OPENJML_EXPORTS \
      -cp "$JARFILE:$LSP4J_CP" \
