@@ -717,9 +717,9 @@
               "@class": "org.jmlspecs.openjml.JmlTree$JmlBinary",
               "@id": "89",
               "lhs": {
-                "@class": "com.sun.tools.javac.tree.JCTree$JCBinary",
+                "@class": "com.sun.tools.javac.tree.JCTree$JCInstanceOf",
                 "@id": "90",
-                "lhs": {
+                "expr": {
                   "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
                   "@id": "91",
                   "name": {
@@ -728,20 +728,14 @@
                     "primitive": "_JML__enum_"
                   }
                 },
-                "opcode": {
-                  "@class": "com.sun.tools.javac.tree.JCTree$Tag",
-                  "@ref": "47",
-                  "primitive": "NE"
-                },
-                "rhs": {
-                  "@class": "com.sun.tools.javac.tree.JCTree$JCLiteral",
+                "pattern": {
+                  "@class": "com.sun.tools.javac.tree.JCTree$JCIdent",
                   "@id": "92",
-                  "typetag": {
-                    "@class": "com.sun.tools.javac.code.TypeTag",
-                    "@ref": "49",
-                    "primitive": "BOT"
-                  },
-                  "value": null
+                  "name": {
+                    "@class": "com.sun.tools.javac.util.Name",
+                    "@ref": "22",
+                    "primitive": "C"
+                  }
                 }
               },
               "op": {
