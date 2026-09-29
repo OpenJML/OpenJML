@@ -2495,7 +2495,7 @@ public class CheckRunner {
         //}
         //sb.append("  OPENJML_INSTALL=").append(System.getenv("OPENJML_INSTALL")).append('\n');
         //sb.append("  OPENJML_SPECS=").append(System.getenv("OPENJML_SPECS")).append('\n');
-        //sb.append("  OPENJML_SOLVERS=").append(System.getenv("OPENJML_SOLVERS")).append('\n');
+        //sb.append("  SMT_SOLVER_DIR=").append(System.getenv("SMT_SOLVER_DIR")).append('\n');
         ServerLog.serverLog(sb.toString());
     }
 

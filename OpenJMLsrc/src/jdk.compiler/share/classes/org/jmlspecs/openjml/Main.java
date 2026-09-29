@@ -58,8 +58,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     public static final String install = System.getenv("OPENJML_INSTALL");
     /** Absolute path to the folder that holds the library specifications */
     public static final String specs = (System.getenv("OPENJML_SPECS") != null ? System.getenv("OPENJML_SPECS") : System.getenv("OPENJML_INSTALL") + "/specs");
-    /** Absolute path to the folder holding Solvers-macos, etc. */
-    public static final String solvers = System.getenv("OPENJML_SOLVERS") != null ? System.getenv("OPENJML_SOLVERS") : System.getenv("OPENJML_INSTALL");
+    /** The folder in which jSMTLIB finds the solver executables (set by the openjml scripts) */
+    public static final String solvers = System.getenv("SMT_SOLVER_DIR");
 
     /** An additional exit code, along with those in the super class */
     public static final int EXIT_CANCELED = -1;
