@@ -212,22 +212,25 @@ public class MethodProverSMT {
     /** Returns the prover executable given by the --exec option, or null if there is none, in which
      * case jSMTLIB finds the executable from the solver name: the solver's .command or .exec property,
      * or else the solver name itself, in the SMT_SOLVER_DIR folder (set by the openjml scripts).
-     * Reports an error and returns null if the --exec file does not exist. */
+     * Reports an error and returns null if the --exec file does not exist.
+     * A relative --exec path is relative to the current directory; it is returned as an absolute path,
+     * since jSMTLIB takes a relative executable path to be relative to SMT_SOLVER_DIR. */
     public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
         String exec = JmlOption.PROVEREXEC.value(context);
         if (exec == null || exec.isEmpty()) return null;
-        if (!new java.io.File(exec).exists()) {
+        java.io.File f = new java.io.File(exec);
+        if (!f.exists()) {
             Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
             return null;
         }
-        return exec;
+        return f.getAbsolutePath();
     }
 
     /** The executable that will be used for the prover: the --exec value, or else the one jSMTLIB
      * resolves from the solver name (null if the solver is launched by a .command property) */
     public static /*@ nullable */ String proverExec(String proverToUse, Context context) {
         String exec = JmlOption.PROVEREXEC.value(context);
-        if (exec != null && !exec.isEmpty()) return exec;
+        if (exec != null && !exec.isEmpty()) return new java.io.File(exec).getAbsolutePath();
         return solverExec(proverToUse);
     }
 
