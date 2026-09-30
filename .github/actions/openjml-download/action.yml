@@ -21,7 +21,8 @@ runs:
         path: .
     - name: Extract build artifact
       shell: bash
-      run: tar -xzf openjml-build.tar.gz || { echo "ERROR: failed to extract openjml-build.tar.gz"; exit 1; }
+      run: |
+        tar -xzf openjml-build.tar.gz || { echo "ERROR: failed to extract openjml-build.tar.gz"; exit 1; }
     - name: Diagnose extraction (debug)
       shell: bash
       run: |
