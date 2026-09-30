@@ -201,7 +201,7 @@ public class JmlOption {
     public static final JmlOption METHOD = new JmlOption("--method",true,null,"Comma-separated list of method name patterns on which to run ESC",null);
     public static final JmlOption EXCLUDE = new JmlOption("--exclude",true,null,"Comma-separated list of method name patterns to exclude from ESC",null);
     public static final JmlOption PROVER = new JmlOption("--prover",true,
-            Utils.identifyOS(null).equals("linux-arm64") ? "z3-4.8.12" : "z3-4.3.X","The prover to use to check verification conditions",null);
+            "z3-5.1.0","The prover to use to check verification conditions",null);
     public static final JmlOption PROVEREXEC = new JmlOption("--exec",true,null,"The prover executable to use",null);
     public static final JmlOption LOGIC = new JmlOption("--logic",true,"ALL","The SMT logic to use (default ALL)",null); // obsolete
     public static final JmlOption SMT = new JmlOption("--smt",true,null,"A file to write the smt command file to",null);
@@ -346,7 +346,33 @@ public class JmlOption {
     	}
     };
     { map.put("-escBV",ESC_BV); }
-    public static final JmlOption ESC_TRIGGERS = new JmlOption("--triggers",false,true,"ESC: Enable quantifier triggers in SMT encoding (default true)",null);
+    public static final JmlOption Z3 = new JmlOption("--z3",true,"","ESC: Comma-separated z3 settings: mbqi, autoconf (turn on model-based quantifier instantiation / z3's auto-configuration), no-mbqi, no-autoconf (turn them off, the default)",null) {
+        public boolean check(Context context, boolean negate) {
+            String val = JmlOption.Z3.value(context);
+            boolean ok = true;
+            if (val != null) for (String id: val.split(",")) {
+                if (!id.isBlank() && !z3Settings.contains(id.trim())) {
+                    clWarning(context, "Command-line argument error: Unrecognized " + JmlOption.Z3.optionName() + " setting ignored: " + id.trim());
+                    ok = false;
+                }
+            }
+            return ok;
+        }
+    };
+    /** The settings --z3 accepts */
+    static final java.util.List<String> z3Settings = java.util.List.of("mbqi", "no-mbqi", "autoconf", "no-autoconf");
+
+    /** Whether the given z3 setting (mbqi or autoconf) is on per --z3: off unless turned on, and a later
+     * item overrides an earlier one; unrecognized items are ignored (check() warns about them) */
+    public static boolean z3Setting(Context context, String name) {
+        boolean on = false;
+        String val = JmlOption.Z3.value(context);
+        if (val != null) for (String id: val.split(",")) {
+            if (id.trim().equals(name)) on = true;
+            else if (id.trim().equals("no-" + name)) on = false;
+        }
+        return on;
+    }
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("--esc-max-warnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
         public boolean check(Context context, boolean negate) {
             String limit = JmlOption.ESC_MAX_WARNINGS.value(context);

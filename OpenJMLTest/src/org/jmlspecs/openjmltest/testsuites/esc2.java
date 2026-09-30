@@ -2461,7 +2461,7 @@ public class esc2 extends EscBase {
                   //@ ensures \\result == (i > 0 && i < 10);
                   //@ pure
                   //@ model public boolean m(int i);
-                  public void mm() {
+                  @org.jmlspecs.annotation.Options("--z3=mbqi") public void mm() {
                   //@ check (\\forall int k; 3<k && k <7; m(k));
                   //@ check (\\forall int k; 3<k && k <7; m(k-1));
                   //@ check !(\\forall int k; -3<k && k <7; m(k));
@@ -2867,7 +2867,7 @@ public class esc2 extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:5: verify: Label I has value 1",24
-                ,"/tt/TestJava.java:5: verify: Label J has value ( - 1 )",36
+                ,"/tt/TestJava.java:5: verify: Label J has value (- 1)",36
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m0",11
                 );
     }
@@ -3098,7 +3098,7 @@ public class esc2 extends EscBase {
                 ,"/tt/TestJava.java:7: verify: Show statement expression i has value 0", 15
                 ,"/tt/TestJava.java:7: verify: Show statement expression j + 1 has value 2", 18
                 ,"/tt/TestJava.java:9: verify: Show statement expression k has value 1", 15
-                ,"/tt/TestJava.java:12: verify: Show statement expression m has value ( - 1 )", 15
+                ,"/tt/TestJava.java:12: verify: Show statement expression m has value (- 1)", 15
                 ,"/tt/TestJava.java:12: verify: Show statement expression k has value 1", 17
                 ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method m", 10
                 );

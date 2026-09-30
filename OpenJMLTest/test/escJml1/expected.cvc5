@@ -1,0 +1,12 @@
+Proving methods in StorageParameters
+Starting proof of StorageParameters.StorageParameters(long[]) with prover !!!!
+Completed proof of StorageParameters.StorageParameters(long[]) with prover !!!! - no warnings
+Starting proof of StorageParameters.getConfigurationSizes() with prover !!!!
+Completed proof of StorageParameters.getConfigurationSizes() with prover !!!! - no warnings
+Starting proof of StorageParameters.main(String...) with prover !!!!
+test/escJml1/StorageParameters.java:16: verify: Validity is unknown - the prover's model does not identify a failing assertion: method StorageParameters.main
+    public static void main(String... args) {
+                       ^
+Completed proof of StorageParameters.main(String...) with prover !!!! - UNKNOWN
+Completed proving methods in StorageParameters
+1 verification failure

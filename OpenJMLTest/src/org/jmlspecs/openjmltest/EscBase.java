@@ -41,9 +41,7 @@ public abstract class EscBase extends JmlTestSuite {
     static public java.util.List<String> solvers = java.util.Arrays.asList(new String[]{ 
 //            "z3-4.16.0",
 //            "z3-4.8",
-//            "cvc4-1.8",
 //            "cvc5-0.0"
-//            "cvc4",
             //"yices2",
  //             "yices", 
  //            "simplify" 
@@ -108,14 +106,17 @@ public abstract class EscBase extends JmlTestSuite {
     protected String options;  // FIXME - remove?run
     /** The name of the solver to be used */
     protected String solver;
-    
+
     // Currently, we are running EscBase tests for a single solver and no options parameter.
     // Any custom options for a test are added using addOptions after setup and before calling helpEsc
-    
+
+    /** If set, overrides the default solver (JmlOption.PROVER's compiled default) used by
+     *  ESC tests, so a run can be repeated against a different solver without editing source. */
+    protected static final String solverEnv = System.getenv("PROVER");
+
     public EscBase() {
         this.options = null;
-        //this.solver = "z3-4.3.X";
-        this.solver = null; // null -- use JmlOption default
+        this.solver = (solverEnv != null && !solverEnv.isEmpty()) ? solverEnv : null; // null -- use JmlOption default
     }
     
     /** options is a comma-separated list of options to be added */

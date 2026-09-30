@@ -301,6 +301,18 @@ public class LauncherIntegrationTest {
                 install.resolve("setup-exports"),
                 SRC_ROOT.resolve("setup-exports").toAbsolutePath());
 
+        // os-name.sh — run by the script to choose the Solvers-<os> folder.
+        Files.createSymbolicLink(
+                install.resolve("os-name.sh"),
+                SRC_ROOT.resolve("os-name.sh").toAbsolutePath());
+
+        // libs/jSMTLIB.jar — patched into jdk.compiler by the script.
+        Path libsDir = install.resolve("libs");
+        Files.createDirectories(libsDir);
+        Files.createSymbolicLink(
+                libsDir.resolve("jSMTLIB.jar"),
+                SRC_ROOT.resolve("libs/jSMTLIB.jar").toAbsolutePath());
+
         // lsp/ directory with the server jar and LSP4J libraries.
         Path lspDir = install.resolve("lsp");
         Files.createDirectories(lspDir);

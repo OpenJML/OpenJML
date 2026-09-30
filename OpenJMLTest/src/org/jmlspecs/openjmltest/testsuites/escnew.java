@@ -1519,7 +1519,6 @@ public class escnew extends EscBase {
 
     @Test
     public void testShortCircuit() {
-        //Assume.assumeTrue(!"cvc4".equals(solver)); // SKIPPING cvc4 does not handle integer division
         helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;

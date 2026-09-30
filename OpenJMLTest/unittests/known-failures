@@ -108,15 +108,15 @@ escfilesmodels.gitbug673
 
 SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
 SpecsEsc.testSpecificationFile[java-util-Map]
-SFBugs.gitbug481a1
-SFBugs.gitbug481a2
-SFBugs.gitbug481a3
-SFBugs.gitbug481a4
-SFBugs.gitbug481a5
-SFBugs.gitbug481a8
-SFBugs.gitbug481b
-SFBugs.gitbug481c
-SFBugs.gitbug671                # crash during speculative attribution
+escsf1.gitbug481a1
+escsf1.gitbug481a2
+escsf1.gitbug481a3
+escsf1.gitbug481a4
+escsf1.gitbug481a5
+escsf1.gitbug481a8
+escsf1.gitbug481b
+escsf1.gitbug481c
+escsf3.gitbug671                # crash during speculative attribution
 
 #escArithmeticModes2.testModJavaB
 escArithmeticModes2.testModSafeBB
@@ -126,7 +126,7 @@ escfiles.modelImport5 		#	static model import needs implementation
 escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
 escfiles3.sfbug420X
-#escfiles3.sfbug420e
+escfiles3.sfbug420e                   # overflow warning in push reported instead of PossiblyTooLargeIndex
 escfiles3.sfbug420eOK
 escfiles.valuestrings           # string specs
 escfiles2.escRawding2
@@ -178,7 +178,7 @@ SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 primesc2.jmlreal                 # feasibility check times out
 escwebexamples.HeapSort
 
-SFBugs.gitbug712                      # String literal ("Alice") problem
+escsf3.gitbug712                      # String literal ("Alice") problem
 
 escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
 escfiles2.gitbug726                   # OLList problem
@@ -189,3 +189,9 @@ escfileslist1.test[escDoubleArith]    # feasibility problem with real arithmetic
 escfileslist3.test[gitbug944]         # bad translation for \seq<\bigint>
 runscripts2.apiASTCrash               # CRASH in Attr
 
+escfiles2.gitbug890                   # z3-5.1.0 lost proof in model_test; MBQI does not recover it
+escfiles3.gitbug963a                  # no expected output file yet (partial fix for #963)
+escfiles3.buggyCalculatorBV           # times out (bit-vector arithmetic)
+escfiles3.gitbug971a                  # Associated declaration reported at ScreenPoint.java:7, expected :6
+escfileslist3.test[gitbug850]         # Assignable warning attributed to FindMaxElem.java:12, expected FindMaxElemImpl.java:25
+release.testEsc2B                     # times out

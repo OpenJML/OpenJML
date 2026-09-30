@@ -89,7 +89,7 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tbigint.assignop(\bigint,\bigint) with prover !!!! - no warnings
 Starting proof of Tbigint.show() with prover !!!!
-test/jmlbigint/Tbigint.java:173: verify: Show statement expression b has value ( - 4242 )
+test/jmlbigint/Tbigint.java:173: verify: Show statement expression b has value (- 4242)
       show b;
            ^
 test/jmlbigint/Tbigint.java:174: verify: The prover cannot establish an assertion (Unreachable) in method show

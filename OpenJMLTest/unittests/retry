@@ -1,8 +1,9 @@
 #! /bin/bash
 
-cat known-failures  | sed -e '/^\#/d' | awk '{print $1}' | sort > known-failures-sorted
-newfailures=`grep -E 'FAILED' log-*  | sed -e 's/.*testsuites[.]//' | sort | comm -13 known-failures-sorted -`
-newsuccesses=`grep -E 'FAILED' log-* | sed -e 's/.*testsuites[.]//' | sort | comm -23 known-failures-sorted -`
+cat known-failures  | sed -e '/^\#/d' | awk '{print $1}' | sort -u > known-failures-sorted
+## sort -u: a test may appear in several logs; list (and retry) it once
+newfailures=`grep -E 'FAILED' log-*  | sed -e 's/.*testsuites[.]//' | sort -u | comm -13 known-failures-sorted -`
+newsuccesses=`grep -E 'FAILED' log-* | sed -e 's/.*testsuites[.]//' | sort -u | comm -23 known-failures-sorted -`
 rm known-failures-sorted
 echo Unexpected successes: $newsuccesses
 echo Unexpected failures: $newfailures

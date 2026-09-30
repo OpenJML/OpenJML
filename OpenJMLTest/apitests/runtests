@@ -1,11 +1,10 @@
 #! /bin/bash
 
-R=/Users/davidcok/projects/OpenJML21
-ROOT=$R/OpenJML/OpenJMLsrc
-JROOT=$R/OpenJML/OpenJMLTest/libs
-JUNIT="$JROOT/junit-4.13.2.jar:$JROOT/hamcrest-core-1.3.jar:$JROOT/junit-jupiter-api-5.5.2.jar:$JROOT/apiguardian-api-1.1.0.jar"
+## Each test compiles and runs a small program that calls OpenJML's API (org.jmlspecs.openjml.Main),
+## using the openjml-compile and openjml-run scripts of the development build
 
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROOT=$(cd ../../OpenJMLsrc && pwd -P)
 f="*"
 if [ $# -gt 0 ]; then f="$@" ; fi
 pwd
@@ -27,8 +26,8 @@ for d in $f ; do
        TEST=Test
        CP=.
        if [ -e config ]; then source config ; fi
-       NOJML=1 WSLENV="${WSLENV:+$WSLENV:}NOJML" njavac $ARGS
-       njava -cp $CP $TEST > actual 2>&1
+       "$ROOT/openjml-compile" $ARGS
+       "$ROOT/openjml-run" -cp $CP $TEST > actual 2>&1
        stat=$?
        if [ -e expected ]; then
            ( diff expected actual && rm actual ) || let errs++

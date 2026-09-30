@@ -48,7 +48,9 @@ public class escfileslist extends EscBaseFiles implements Utils {
             "org.jmlspecs.openjmltest.testsuites.escfeatures",
             "org.jmlspecs.openjmltest.testsuites.primesc1",
             "org.jmlspecs.openjmltest.testsuites.primesc2",
-            "org.jmlspecs.openjmltest.testsuites.SFBugs"
+            "org.jmlspecs.openjmltest.testsuites.escsf1",
+            "org.jmlspecs.openjmltest.testsuites.escsf2",
+            "org.jmlspecs.openjmltest.testsuites.escsf3"
     };
     
     /** A routine that computes a List of one-element String arrays, where each of those elements is a 

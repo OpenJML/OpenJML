@@ -39,8 +39,8 @@ test\escTraceLoops\trace.java:207:  	//@ loop_invariant j == \count && 0 <= \cou
 			VALUE: j == \count && 0 <= \count && \count <= a.length	 === true
 test\escTraceLoops\trace.java:208:  	//@ decreases -j;
 			VALUE: j	 === 1
-			VALUE: -j	 === ( - 1 )
-				Initial Value of Loop Decreases Expression = ( - 1 )
+			VALUE: -j	 === (- 1)
+				Initial Value of Loop Decreases Expression = (- 1)
 test\escTraceLoops\trace.java:209:  	Loop test
 			VALUE: \count	 === 1
 			VALUE: _JML__tmp111	 === 2

@@ -58,8 +58,8 @@ public class Main extends com.sun.tools.javac.main.Main {
     public static final String install = System.getenv("OPENJML_INSTALL");
     /** Absolute path to the folder that holds the library specifications */
     public static final String specs = (System.getenv("OPENJML_SPECS") != null ? System.getenv("OPENJML_SPECS") : System.getenv("OPENJML_INSTALL") + "/specs");
-    /** Absolute path to the folder holding Solvers-macos, etc. */
-    public static final String solvers = System.getenv("OPENJML_SOLVERS") != null ? System.getenv("OPENJML_SOLVERS") : System.getenv("OPENJML_INSTALL");
+    /** The folder in which jSMTLIB finds the solver executables (set by the openjml scripts) */
+    public static final String solvers = System.getenv("SMT_SOLVER_DIR");
 
     /** An additional exit code, along with those in the super class */
     public static final int EXIT_CANCELED = -1;
@@ -642,6 +642,12 @@ public class Main extends com.sun.tools.javac.main.Main {
         ex.printStackTrace(stdOut);
     }
     
+    /** The executable jSMTLIB resolves from the prover's name (null if the solver is launched by a
+     * .command property); public here because the esc package is not exported */
+    public static /*@ nullable */ String solverExec(String prover) {
+        return org.jmlspecs.openjml.esc.MethodProverSMT.solverExec(prover);
+    }
+
     public static void showConfig(Context context) {
         StringBuilder sb = new StringBuilder();
         java.util.function.Consumer<String> appln = s -> { sb.append(s); sb.append(Strings.eol); };
@@ -652,7 +658,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         appln.accept("Operating system: " + Utils.identifyOS(context));
         appln.accept("Architecture:     " + System.getProperty("os.arch"));
         appln.accept("Prover:           " + org.jmlspecs.openjml.esc.JmlEsc.pickProver(context));
-        appln.accept("Prover exec:      " + org.jmlspecs.openjml.esc.MethodProverSMT.pickProverExec(org.jmlspecs.openjml.esc.JmlEsc.pickProver(context), context));
+        appln.accept("Prover exec:      " + org.jmlspecs.openjml.esc.MethodProverSMT.proverExec(org.jmlspecs.openjml.esc.JmlEsc.pickProver(context), context));
         appln.accept("CWD:              " + System.getProperty("user.name"));
         System.out.print(sb.toString());
     }

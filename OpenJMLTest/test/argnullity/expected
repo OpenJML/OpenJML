@@ -52,7 +52,7 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
                   ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:45: verify: Precondition conjunct is false: _JML__tmp`40 != null
     //-RAC@   ensures \result.length == t.length;
-                                             ^
+                                      ^
 Completed proof of ArgNullity2.mm1(@Nullable Integer) with prover !!!! - with warnings
 Starting proof of ArgNullity2.mm2(@Nullable Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -65,9 +65,9 @@ test/argnullity/ArgNullity.java:50: verify: The prover cannot establish an asser
 $SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:54: verify: Precondition conjunct is false: _JML__tmp`134 != null
-    //@ no_state
-        ^
+$SPECS/org/jmlspecs/lang/internal/seq.jml:53: verify: Precondition conjunct is false: _JML__tmp`134 != null
+    //-RAC@  ensures \result == this[i];
+                                   ^
 Completed proof of ArgNullity2.mm3(@Nullable Integer) with prover !!!! - with warnings
 Starting proof of ArgNullity2.mm4(@NonNull Integer) with prover !!!!
 Feasibility check - end of preconditions : OK

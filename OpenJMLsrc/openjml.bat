@@ -8,7 +8,7 @@ for %%i in ("%~dp0.") do set "INSTALL=%%~fi"
 call "%INSTALL%\setup-vars.bat"
 
 if not defined OPENJML_JVM (
-    "%BINJAVAC%" %*
+    "%BINJAVAC%" "-J--patch-module=jdk.compiler=%JSMTLIB_JAR%" %*
 ) else (
-    "%BINJAVA%" %OPENJML_JVM% -cp ".;%INSTALL%" org.openjml.RunOpenJML %* %OPENJML_EXPORTS%
+    "%BINJAVA%" "--patch-module=jdk.compiler=%JSMTLIB_JAR%" %OPENJML_JVM% -cp ".;%INSTALL%" org.openjml.RunOpenJML %* %OPENJML_EXPORTS%
 )

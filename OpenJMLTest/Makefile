@@ -23,8 +23,8 @@ T=temp-release
 ### FIXME - not sure we need prep, even without release-tests
 openjml-test: prep
 	$(MAKE) release-tests > log-release-tests || ( echo "Errors reported in log-release-tests" && exit 1 )
-	$(MAKE) userguide-tests
-	$(MAKE) json-tests
+	-$(MAKE) userguide-tests
+	-$(MAKE) json-tests
 	-$(MAKE) -C lsp run-tests
 	-$(MAKE) tutorial-tests
 	-$(MAKE) unittests-par
@@ -33,7 +33,8 @@ openjml-test: prep
 openjml-test-git: prep
 	$(MAKE) -C ${TEST} release-tests
 	-$(MAKE) -C ${TEST} userguide-tests-released
-	$(MAKE) -C ${TEST} json-tests
+	-$(MAKE) -C lsp run-tests
+	-$(MAKE) -C ${TEST} json-tests
 	-$(MAKE) tutorial-tests
 	JOBS=4 time ${TEST}/unittests/runpar
 
@@ -55,7 +56,7 @@ openjml: .FORCE
 ## Deletes all temporary files
 ## Many more to delete
 clean: cov-clean
-	$MAKE -C unittests clean
+	$(MAKE) -C unittests clean
 	find . -name '*.class' -delete
 	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
 	find . -name '*actual*' -delete

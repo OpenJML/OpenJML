@@ -1,0 +1,17 @@
+test/gitbug963/ArrayQueue.java:16: error: incompatible types: no instance(s) of type variable(s) T exist so that \seq<T> conforms to Object
+: \seq.of(a[head..a.length-1])+\seq.of(a[0..last-1]);
+         ^
+  where T is a type-variable:
+    T extends Object declared in method <T>of(T...)
+test/gitbug963/ArrayQueue.java:16: error: incompatible types: no instance(s) of type variable(s) T exist so that \seq<T> conforms to Object
+: \seq.of(a[head..a.length-1])+\seq.of(a[0..last-1]);
+                                      ^
+  where T is a type-variable:
+    T extends Object declared in method <T>of(T...)
+test/gitbug963/ArrayQueue.java:25: error: generic array creation
+    E[] a = new E[m];
+            ^
+Operation not performed because of parse or type errors
+Note: Some input files use unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+3 errors

@@ -1,0 +1,21 @@
+Proving methods in ScreenPoint
+Starting proof of ScreenPoint.ScreenPoint(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ScreenPoint.ScreenPoint(int,int) with prover !!!! - no warnings
+Starting proof of ScreenPoint.test() with prover !!!!
+test/gitbug971/ScreenPoint.java:22: verify: The prover cannot establish an assertion (InvariantExit) in method test
+        ScreenPoint p = new ScreenPoint(5, 7);
+                        ^
+test/gitbug971/ScreenPoint.java:7: verify: Associated declaration
+    //@ public invariant 0 <= y < MAX_SIZE;
+               ^
+test/gitbug971/ScreenPoint.java:22: verify: The prover cannot establish an assertion (InvariantExit) in method test
+        ScreenPoint p = new ScreenPoint(5, 7);
+                        ^
+test/gitbug971/ScreenPoint.java:6: verify: Associated declaration
+    //@ public invariant 0 <= x < MAX_SIZE;
+               ^
+Completed proof of ScreenPoint.test() with prover !!!! - with warnings
+Completed proving methods in ScreenPoint
+4 verification failures

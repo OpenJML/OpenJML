@@ -181,53 +181,78 @@ public class MethodProverSMT {
         };
     }
     
-    /** Returns the prover exec specified by the options */
-    public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
-        org.smtlib.SolverProcess.useMultiThreading = false;
-        org.smtlib.SolverProcess.useNotifyWait = false;
-        String exec = JmlOption.PROVEREXEC.value(context);
-        String os = Utils.identifyOS(context);
-        if (exec != null && !exec.isEmpty()) {
-            if (!new java.io.File(exec).exists()) {
-                Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
-                exec = null;
-            }
-        } else {
-            // The default is that the prover executables are located in folders named 
-            // ./Solvers-$OS, relative to the path returned by findInstallLocation
-            String loc = Main.solvers;
-            String ex = proverToUse;
-            
-            x: {
-                if (ex.contains("X")) {
-                    for (int i=20; i>=0; --i) {
-                        String num = Integer.toString(i);
-                        exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + ex.replace("X",num);
-                        if (new java.io.File(exec).exists()) {
-                            break;
-                        }
-                        if (new java.io.File(exec + ".exe").exists()) {
-                            exec = exec + ".exe";
-                            break;
-                        }
-                    }
-                } else {
-                    exec = loc + java.io.File.separator + "Solvers-" + os + java.io.File.separator + proverToUse;
-                    if (new java.io.File(exec).exists()) {
-                        break x;
-                    }
-                    if (new java.io.File(exec + ".exe").exists()) { 
-                        exec = exec + ".exe"; 
-                        break x;
-                    }
-                    Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
-                    exec = null;
-                }
-            }
-        }
-        return exec;
+    /** Maps an OpenJML prover name to the solver name jSMTLIB uses to choose an adapter. jSMTLIB
+     * looks the name up as given in jsmtlib.properties (e.g. cvc5-1.3.2) and normalizes it itself
+     * for its Solver_<name> class convention, so the name is passed through un-normalized. All
+     * z3 4.3 releases share the z3-4.3 adapter. */
+    public static String smtSolverName(String proverToUse) {
+        String name = proverToUse.replace(".exe","").replace(".X","");
+        return name.matches("z3-4\\.3\\.\\d+") ? "z3-4.3" : name;
     }
-    
+
+    /** jSMTLIB's solver properties (its jsmtlib.properties: each solver's .adapter, .exec and .command),
+     * loaded once. jSMTLIB itself loads them only in its command-line driver, but they are what makes
+     * createSolver choose the right adapter (e.g. Solver_cvc5 for cvc5-1.3.2, rather than the generic
+     * Solver_smt) and the right executable and launch command (e.g. 'java -jar ... -q' for smtinterpol). */
+    static private /*@ nullable */ java.util.Properties jsmtlibProperties = null;
+
+    static synchronized public java.util.Properties jsmtlibProperties() {
+        if (jsmtlibProperties == null) {
+            java.util.Properties p = null;
+            try {
+                p = new SMT.Configuration().readProperties();
+            } catch (RuntimeException e) {
+                // no properties: solvers are then found by name only
+            }
+            jsmtlibProperties = p != null ? p : new java.util.Properties();
+        }
+        return jsmtlibProperties;
+    }
+
+    /** Returns the prover executable given by the --exec option, or null if there is none, in which
+     * case jSMTLIB finds the executable from the solver name: the solver's .command or .exec property,
+     * or else the solver name itself, in the SMT_SOLVER_DIR folder (set by the openjml scripts).
+     * Reports an error and returns null if the --exec file does not exist.
+     * A relative --exec path is relative to the current directory; it is returned as an absolute path,
+     * since jSMTLIB takes a relative executable path to be relative to SMT_SOLVER_DIR. */
+    public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
+        String exec = JmlOption.PROVEREXEC.value(context);
+        if (exec == null || exec.isEmpty()) return null;
+        java.io.File f = new java.io.File(exec);
+        if (!f.exists()) {
+            Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
+            return null;
+        }
+        return f.getAbsolutePath();
+    }
+
+    /** The executable that will be used for the prover: the --exec value, or else the one jSMTLIB
+     * resolves from the solver name (null if the solver is launched by a .command property) */
+    public static /*@ nullable */ String proverExec(String proverToUse, Context context) {
+        String exec = JmlOption.PROVEREXEC.value(context);
+        if (exec != null && !exec.isEmpty()) return new java.io.File(exec).getAbsolutePath();
+        return solverExec(proverToUse);
+    }
+
+    /** The executable jSMTLIB resolves from the prover's name (null if the solver is launched by a
+     * .command property) */
+    public static /*@ nullable */ String solverExec(String proverToUse) {
+        SMT smt = new SMT();
+        smt.smtConfig.props = jsmtlibProperties();
+        return smt.resolveExecutableForSolver(smtSolverName(proverToUse));
+    }
+
+    /** Checks that the prover's executable is known, reporting an error if it is not */
+    static boolean checkProverExec(String proverToUse, Context context) {
+        String exec = JmlOption.PROVEREXEC.value(context);
+        if (exec != null && !exec.isEmpty()) return pickProverExec(proverToUse, context) != null;
+        exec = proverExec(proverToUse, context);
+        // A relative name is looked up on the PATH when the solver is launched
+        if (exec == null || !new java.io.File(exec).isAbsolute() || new java.io.File(exec).exists()) return true;
+        Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
+        return false;
+    }
+
     protected ISolver solver = null;
     protected ISolver solver2 = null;
     protected boolean aborted = false;
@@ -271,14 +296,14 @@ public class MethodProverSMT {
 //            JmlSpecs.instance(context).getDenestedSpecs(methodDecl.sym);
 
         // determine the executable
-        String exec = pickProverExec(proverToUse, context);
-        if (exec == null || exec.trim().isEmpty()) {
+        if (!checkProverExec(proverToUse, context)) {
             //log.error("esc.no.exec",proverToUse); //$NON-NLS-1$
             JCDiagnostic d = utils.errorDiag(null, null,"esc.no.exec",proverToUse);
             log.report(d);
             return factory.makeProverResult(methodDecl,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
-        if (debugSMT) System.out.println("Solver in use: " + exec);
+        String exec = pickProverExec(proverToUse, context); // null: jSMTLIB finds it from the solver name
+        if (debugSMT) System.out.println("Solver in use: " + proverExec(proverToUse, context));
         
         IProverResult proofResultAccumulated = null;
         IProverResult proofResult = null;
@@ -335,6 +360,7 @@ public class MethodProverSMT {
 
         // create an SMT object, adding any options
         SMT smt = new SMT();
+        smt.smtConfig.props = jsmtlibProperties(); // so createSolver applies each solver's .adapter/.command/.exec
 //        int seed = 0;
 //        String strseed = JmlOption.value(context, JmlOption.SEED);
 //        if (strseed != null && !strseed.isEmpty()) try {
@@ -359,7 +385,7 @@ public class MethodProverSMT {
         // SMT abstractions and forwards all informational and error messages
         // to the OpenJML log mechanism
         smt.smtConfig.log.addListener(new SMTListener(log,smt.smtConfig.defaultPrinter));
-        SMTTranslator smttrans = getTranslator(context, methodDecl.sym.toString());
+        SMTTranslator smttrans = getTranslator(context, methodDecl.sym.toString(), smt.smtConfig);
 
         IResponse solverResponse = null;
         BasicBlocker2 basicBlocker;
@@ -395,7 +421,7 @@ public class MethodProverSMT {
                     if (!utils.testingMode && utils.progress()) {
                     	utils.note(false, "Switching to bit-vector arithmetic");
                     }
-                    script = new SMTTranslator(context, methodDecl.sym.toString()).convert(program,smt,true);
+                    script = new SMTTranslator(context, methodDecl.sym.toString(), smt.smtConfig).convert(program,smt,true);
                 }
                 if (printSMT) {
                     try {
@@ -403,7 +429,7 @@ public class MethodProverSMT {
                         log.getWriter(WriterKind.NOTICE).println(separator);
                         log.getWriter(WriterKind.NOTICE).println(Strings.empty);
                         log.getWriter(WriterKind.NOTICE).println("SMT TRANSLATION OF " + utils.qualifiedMethodSig(methodDecl.sym));
-                        org.smtlib.sexpr.Printer.WithLines.write(new PrintWriter(log.getWriter(WriterKind.NOTICE)),script);
+                        org.smtlib.sexpr.Printer.WithLines.write(smt.smtConfig, new PrintWriter(log.getWriter(WriterKind.NOTICE)),script);
                         log.getWriter(WriterKind.NOTICE).println();
                         log.getWriter(WriterKind.NOTICE).println();
                     } catch (VisitorException e) {
@@ -420,11 +446,11 @@ public class MethodProverSMT {
             // Starts the solver (and it waits for input)
             start = new Date();
             //setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
-            String smtProver = proverToUse.replace(".exe","").replace(".X","").replace("-","_").replace(".","_");
-            solver = smt.startSolver(smt.smtConfig,"z3_4_3",exec); // Argument is the SMT library adapter
+            String smtProver = smtSolverName(proverToUse);
+            solver = smt.startSolver(smt.smtConfig,smtProver,exec); // Argument is the SMT library adapter
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
-                JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec);
+                JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec != null ? exec : smtProver);
                 log.report(d);
         		return factory.makeProverResult(methodDecl,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
             } else {
@@ -439,7 +465,7 @@ public class MethodProverSMT {
                 		new java.io.File(filename).getAbsoluteFile().getParentFile().mkdirs();
             	        try (var fw = new java.io.FileWriter(new java.io.File(filename))) {
             			    var sw = new java.io.StringWriter();
-            			    org.smtlib.sexpr.Printer.WithLines.write(sw,script);
+            			    org.smtlib.sexpr.Printer.WithLines.write(smt.smtConfig,sw,script);
             			    fw.write("; Proof attempt for " + utils.qualifiedMethodSig(methodDecl.sym));
             			    String s = sw.toString();
             			    int i = s.lastIndexOf(')');
@@ -555,7 +581,7 @@ public class MethodProverSMT {
                         }
                        
                         if (!usePushPop) {
-                            solver2 = smt.startSolver(smt.smtConfig,proverToUse,exec);
+                            solver2 = smt.startSolver(smt.smtConfig,smtSolverName(proverToUse),exec);
                             if (JmlAssertionAdder.useAssertCount) {
                                 List<ICommand> commands = script.commands();
                                 commands.remove(commands.size()-1);
@@ -633,7 +659,7 @@ public class MethodProverSMT {
                             } else if (unknownReason instanceof IResponse.IAttributeList) {
                                 IResponse.IAttributeList attrList = (IResponse.IAttributeList)unknownReason;
                                 IAttributeValue value = attrList.attributes().get(0).attrValue();
-                                if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
+                                if (value.toString().contains("incomplete")) { // FIXME - this might be solver-specific
                                     // continue on - counting this as a SAT response
                                     utils.progress(0,Utils.PROGRESS,msgOK);
                                 } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
@@ -689,7 +715,7 @@ public class MethodProverSMT {
                         } else if (unknownReason instanceof IResponse.IAttributeList) {
                             IResponse.IAttributeList attrList = (IResponse.IAttributeList)unknownReason;
                             IAttributeValue value = attrList.attributes().get(0).attrValue();
-                            if (value.toString().contains("incomplete")) { // FIXME - this might be only CVC4
+                            if (value.toString().contains("incomplete")) { // FIXME - this might be solver-specific
                                 // continue on
                             } else if (value.toString().equals("ok")) { // FIXME - this might be only Z3
                                     // continue on
@@ -733,6 +759,10 @@ public class MethodProverSMT {
 
 
                     if (print) log.getWriter(WriterKind.NOTICE).println("Some assertion is not valid");
+                    // An 'unknown' answer (e.g. cvc5 on quantified goals) may come with a model that
+                    // is not a counterexample; then no failing assertion is found below.
+                    boolean resultUnknown = solverResponse.equals(smt.smtConfig.responseFactory.unknown());
+                    boolean hadFailedAssertion = haveFailedAssertion;
                     haveFailedAssertion = true;
                     
                     // FIXME - decide how to show counterexamples when there is no tracing
@@ -749,7 +779,15 @@ public class MethodProverSMT {
                     path = new ArrayList<IProverResult.Span>();
                     JCExpression pathCondition = reportInvalidAssertion(
                             program,smt,solver,methodDecl,cemap,jmap,
-                            jmlesc.assertionAdder.pathMap, basicBlocker.pathmap, byPath);
+                            jmlesc.assertionAdder.pathMap, basicBlocker.pathmap, byPath, resultUnknown);
+                    if (pathCondition == null && resultUnknown) {
+                        if (!hadFailedAssertion) {
+                            utils.verify(methodDecl,"esc.unknown.nocounterexample","method " + utils.qualifiedName(methodDecl.sym));
+                            proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.UNKNOWN,start);
+                        }
+                        haveFailedAssertion = hadFailedAssertion;
+                        break;
+                    }
                     
                     //if (showTrace && pathCondition != null) log.getWriter(WriterKind.NOTICE).println("PATH CONDITION " + pathCondition.toString());
                     if (showTrace) log.getWriter(WriterKind.NOTICE).println(tracer.text());
@@ -903,6 +941,14 @@ public class MethodProverSMT {
     public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
             Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
             BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap, boolean byPath) {
+        return reportInvalidAssertion(program, smt, solver, decl, cemap, jmap, aaPathMap, bbPathMap, byPath, false);
+    }
+
+    /** As above; when resultUnknown is true (the prover answered 'unknown' rather than 'sat'), not finding
+     * an invalid assertion is an expected outcome, so it is not reported as an internal error. */
+    public JCExpression reportInvalidAssertion(BasicProgram program, SMT smt, ISolver solver, JCMethodDecl decl,
+            Map<JCTree,String> cemap, BiMap<JCTree,JCExpression> jmap,
+            BiMap<JCTree,JCTree> aaPathMap, BiMap<JCTree,JCTree> bbPathMap, boolean byPath, boolean resultUnknown) {
         Info info = new Info();
         info.verbose = utils.jmlverbose >= Utils.JMLVERBOSE;
         info.smt = smt;
@@ -915,6 +961,7 @@ public class MethodProverSMT {
         info.byPath = byPath;
         JCExpression pathCondition = reportInvalidAssertion2(program.startBlock(),info,0, JmlTreeUtils.instance(context).falseLit);
         if (pathCondition == null) {
+            if (resultUnknown) return null;
         	utils.verify("jml.internal.notsobad","Could not find an invalid assertion even though the proof result was satisfiable: " + decl.sym); //$NON-NLS-1$ //$NON-NLS-2$
             return null;
         }
@@ -2090,6 +2137,7 @@ public class MethodProverSMT {
 
             IExpr smtexpr = smttrans.bimap.getf(t2);
             if (smtexpr == null) continue;
+            if (mentionsBoundName(smtexpr, smttrans.boundNames, p)) continue; // no value in a model
             
             ee[0] = smtexpr;
             String value = null;
@@ -2120,6 +2168,23 @@ public class MethodProverSMT {
         return values;
     }
 
+    /** Pattern for the symbols in a printed SMT-LIB expression: |quoted| or simple symbols */
+    static private final java.util.regex.Pattern SMT_SYMBOL = java.util.regex.Pattern.compile("\\|[^|]*\\||[^\\s()|]+");
+
+    /** True if the printed form of e contains any of the given (printed) bound-variable names. */
+    static protected boolean mentionsBoundName(IExpr e, java.util.Set<String> boundNames, IPrinter p) {
+        if (boundNames.isEmpty()) return false;
+        java.util.regex.Matcher m = SMT_SYMBOL.matcher(p.toString(e));
+        while (m.find()) {
+            String s = m.group();
+            if (boundNames.contains(s)) return true;
+            // a bar-quoted symbol and its unquoted form are the same symbol
+            if (s.length() > 2 && s.charAt(0) == '|' && boundNames.contains(s.substring(1, s.length()-1))) return true;
+            if (boundNames.contains("|" + s + "|")) return true;
+        }
+        return false;
+    }
+
     /** This is a listener for SMT log and error messages */
     public static class SMTListener implements org.smtlib.Log.IListener {
         org.smtlib.IPrinter printer;
@@ -2133,6 +2198,11 @@ public class MethodProverSMT {
         @Override
         public void logOut(String msg) {
             log.getWriter(WriterKind.NOTICE).println(msg);
+        }
+
+        @Override
+        public void logOutNoln(String msg) {
+            log.getWriter(WriterKind.NOTICE).print(msg);
         }
 
         @Override
@@ -2227,8 +2297,8 @@ public class MethodProverSMT {
     }
     
     /** Allows other extending classes to implement a different type of proof **/
-    public SMTTranslator getTranslator(Context context, String def){
-        return new SMTTranslator(context, def);
+    public SMTTranslator getTranslator(Context context, String def, SMT.Configuration smtConfig){
+        return new SMTTranslator(context, def, smtConfig);
     }
 }
 

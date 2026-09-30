@@ -486,6 +486,8 @@ public class compiler extends JmlTestSuite{
     @Test 
     public void testSourcePath4() throws Exception {
         if (!new java.io.File("../OpenJMLsrc/release-temp/jmlruntime.jar").exists()) {
+            // setUp redirected System.out/err for capturing; helper, which restores them, is not called here
+            if (capture) collectSystemOutput(false);
             this.err = savederr;  // FIXME
             this.out = savedout;
             this.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
@@ -1124,6 +1126,25 @@ public class compiler extends JmlTestSuite{
                 ,"error: Failed to load extension X: No such package found"
                 ,""
                 );
+    }
+
+    /** A source file that cannot be read gives the ordinary 'error reading' error, not an internal error */
+    @Test
+    public void testUnreadableSource() throws Exception {
+        java.io.File dir = java.nio.file.Files.createTempDirectory("unreadable").toFile();
+        java.io.File f = new java.io.File(dir, "A.java");
+        java.nio.file.Files.writeString(f.toPath(), "public class A {}\n");
+        try {
+            f.setReadable(false);
+            // Where a file cannot be made unreadable (e.g. on Windows, or as root) there is nothing to test.
+            // (A plain return: OpenJMLTestRunner would count an Assume failure as a test failure.)
+            if (f.canRead()) return;
+            helper(new String[] { "--check", f.getPath() }, 1, 2, "error: error reading " + f.getPath());
+        } finally {
+            f.setReadable(true);
+            f.delete();
+            dir.delete();
+        }
     }
 
     @Test @Ignore // FIXME - have not yet fixed how extensions are found

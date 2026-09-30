@@ -35,9 +35,17 @@ if [ -d "$DIR/jdk" ]; then
     BUILDJDK="$DIR/jdk"
     . "$DIR/setup-exports"
     export OPENJML_INSTALL="${OPENJML_INSTALL:-$DIR}"
-    # OPENJML_SPECS and OPENJML_SOLVERS: not defaulted here — OpenJML derives
-    # them from OPENJML_INSTALL internally.  Set them only for custom locations.
+    # OPENJML_SPECS: not defaulted here — OpenJML derives
+    # it from OPENJML_INSTALL internally.  Set it only for a custom location.
+    export SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$OPENJML_INSTALL/Solvers-$("$DIR"/os-name.sh)}"
+    # A release contains just the Solvers-<os> folder it was built for, which can differ from what
+    # os-name.sh reports (e.g. the macOS x86_64 release on Apple Silicon); use that folder then.
+    if [ ! -d "$SMT_SOLVER_DIR" ]; then
+        _dirs=( "$OPENJML_INSTALL"/Solvers-* )
+        if [ ${#_dirs[@]} -eq 1 ] && [ -d "${_dirs[0]}" ]; then export SMT_SOLVER_DIR="${_dirs[0]}"; fi
+    fi
     JARFILE="$DIR/lsp/openjml-lsp.jar"
+    JSMTLIB_JAR="$DIR/libs/jSMTLIB.jar"
     LSP4J_CP="$DIR/lsp/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/lsp/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 else
     ## ── Development layout (sibling OpenJMLsrc/ repo) ────────────────────────
@@ -51,12 +59,14 @@ else
     . "$SRC/setup-exports"
     export OPENJML_INSTALL="${OPENJML_INSTALL:-$SRC}"
     export OPENJML_SPECS="${OPENJML_SPECS:-$OPENJML_INSTALL/../../Specs/specs}"
-    export OPENJML_SOLVERS="${OPENJML_SOLVERS:-$OPENJML_INSTALL/../../Solvers}"
+    export SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$OPENJML_INSTALL/../../Solvers/Solvers-$("$SRC"/os-name.sh)}"
     JARFILE="$DIR/build/openjml-lsp.jar"
+    JSMTLIB_JAR="$SRC/libs/jSMTLIB.jar"
     LSP4J_CP="$DIR/libs/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/libs/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
 fi
 
 [ -f "$JARFILE" ]        || { echo "ERROR: missing $JARFILE" >&2; exit 1; }
+[ -f "$JSMTLIB_JAR" ]    || { echo "ERROR: missing $JSMTLIB_JAR" >&2; exit 1; }
 [ -f "${LSP4J_CP%%:*}" ] || { echo "ERROR: missing ${LSP4J_CP%%:*}" >&2; exit 1; }
 
 # com.google.gson is now unconditionally exported from jdk.compiler (see
@@ -64,7 +74,9 @@ fi
 # Do NOT put a separate Gson jar on the classpath — that would create a
 # split-package conflict since jdk.compiler already provides com.google.gson.
 
+# jSMTLIB is not built into jdk.compiler; it is patched in, as the openjml scripts do.
 exec "$BUILDJDK/bin/java" \
+     "--patch-module=jdk.compiler=$JSMTLIB_JAR" \
      $OPENJML_JVM \
      $OPENJML_EXPORTS \
      -cp "$JARFILE:$LSP4J_CP" \

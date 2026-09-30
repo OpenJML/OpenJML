@@ -24,8 +24,8 @@ public class escall3 extends EscBase {
                 package tt;
                 public class TestJava { }
                 """
-                ,"error: Specified executable does not exist: \"$ROOT/OpenJML/OpenJMLsrc/../../Solvers/Solvers-" + org.jmlspecs.openjml.Utils.identifyOS(context) + "/Z\"",-1
-                ,"error: The executable for prover Z is not specified - use --exec or define an openjml.prover.... property",-1
+                ,"error: Specified executable does not exist: \"" + org.jmlspecs.openjml.Main.solverExec("Z") + "\"",-1
+                ,"error: No executable is known for prover Z - use --exec, or put the solver in the SMT_SOLVER_DIR folder",-1
                 );
     }
     
@@ -39,7 +39,7 @@ public class escall3 extends EscBase {
                 public class TestJava { }
                 """
                 ,"error: Specified executable does not exist: \" \""
-                ,"error: The executable for prover z3-4.3.X is not specified - use --exec or define an openjml.prover.... property",-1
+                ,"error: No executable is known for prover z3-5.1.0 - use --exec, or put the solver in the SMT_SOLVER_DIR folder",-1
                 );
     }
     
@@ -1148,7 +1148,7 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test public void testArrayType1() { // TODO: CVC4 takes 147 sec
+    @Test public void testArrayType1() {
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -1244,7 +1244,7 @@ public class escall3 extends EscBase {
                 );
     }
     
-    @Test public void testArrayType2Bug() { // TODO: CVC4 takes 186 sec
+    @Test public void testArrayType2Bug() {
         helpEsc("tt.TestJava",
                 """
                 package tt;

@@ -1,0 +1,22 @@
+Proving methods in EEE
+Starting proof of EEE.EEE(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of EEE.EEE(int) with prover !!!! - no warnings
+Completed proving methods in EEE
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.m0() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.m0() with prover !!!! - no warnings
+Starting proof of Test.m1() with prover !!!!
+test/enums2/Test.java:27: verify: Validity is unknown - the prover's model does not identify a failing assertion: method Test.m1
+    public void m1() {
+                ^
+Completed proof of Test.m1() with prover !!!! - UNKNOWN
+Completed proving methods in Test
+1 verification failure

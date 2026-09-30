@@ -216,9 +216,16 @@ public class SMTTranslator extends JmlTreeScanner {
 
     /** A mapping from Java expressions to/from SMT expressions */
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
+
+    /** The (printed) names of all variables bound in the translation -- quantifier, let and
+     * define-fun parameters. An expression mentioning one of these has no value in a model, so
+     * it must not be sent to the solver in a get-value command (cvc5 treats that as a fatal
+     * parse error and stops responding). */
+    final public java.util.Set<String> boundNames = new java.util.HashSet<>();
+
     
     /** The constructor - create a new instance for each Basic Program to be translated */
-    public SMTTranslator(Context context, String source) {
+    public SMTTranslator(Context context, String source, Configuration smtConfig) {
         this.context = context;
         this.source = source;
         // OpenJDK tools
@@ -231,18 +238,18 @@ public class SMTTranslator extends JmlTreeScanner {
         jmltypes = JmlTypes.instance(context);
         
         // SMT factory and commonly used objects
-        F = new org.smtlib.impl.Factory();
+        F = new org.smtlib.impl.Factory(smtConfig);
         boolSort = F.createSortExpression(F.symbol("Bool")); // From SMT
         intSort = F.createSortExpression(F.symbol("Int")); // From SMT
         {
-            List<INumeral> bits = new LinkedList<INumeral>();
+            List<IIndex> bits = new LinkedList<IIndex>();
             bits.add(F.numeral(32));
             bv32Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
-            bits = new LinkedList<INumeral>(); bits.add(F.numeral(64));
+            bits = new LinkedList<IIndex>(); bits.add(F.numeral(64));
             bv64Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
-            bits = new LinkedList<INumeral>(); bits.add(F.numeral(16));
+            bits = new LinkedList<IIndex>(); bits.add(F.numeral(16));
             bv16Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
-            bits = new LinkedList<INumeral>(); bits.add(F.numeral(8));
+            bits = new LinkedList<IIndex>(); bits.add(F.numeral(8));
             bv8Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
         }
         arraySym = F.symbol("Array"); // From SMT Array theory
@@ -412,25 +419,27 @@ public class SMTTranslator extends JmlTreeScanner {
         addCommand(smt,"(declare-fun _isJMLArrayType ("+JMLTYPESORT+") Bool)");
         addCommand(smt,"(declare-fun "+arrayElemType+" ("+JMLTYPESORT+") "+JMLTYPESORT+")");
         if (quantOK) {
-        addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= (|`erasure| ("+MAKEJMLARRAYTYPE+" T)) ("+MAKEJAVAARRAYTYPE+" (|`erasure| T)))))");
-        addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (=> ("+JMLSUBTYPE+" T1 T2) ("+JAVASUBTYPE+" (|`erasure| T1) (|`erasure| T2)))))");
-        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+"))  (= ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T3)))))");
-        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> (and ("+JAVASUBTYPE+" T1 T2) (not (= T3 T4))) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))))))");
-        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))   (and ("+JAVASUBTYPE+" T1 T2) (= T3 T4)) ) )))");
+        // Explicit :pattern triggers below: z3 >= 4.12 otherwise infers overly general triggers
+        // (e.g. {(erasure T)}, {(_JMLT_0 T)}) that form matching loops and exhaust memory.
+        addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (! (= (|`erasure| ("+MAKEJMLARRAYTYPE+" T)) ("+MAKEJAVAARRAYTYPE+" (|`erasure| T))) :pattern ((|`erasure| ("+MAKEJMLARRAYTYPE+" T))))))");
+        addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (! (=> ("+JMLSUBTYPE+" T1 T2) ("+JAVASUBTYPE+" (|`erasure| T1) (|`erasure| T2))) :pattern (("+JMLSUBTYPE+" T1 T2)))))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+"))  (! (= ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T3))) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T3))))))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (! (=> (and ("+JAVASUBTYPE+" T1 T2) (not (= T3 T4))) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4)))) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))))))");
+        addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (! (=> ("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))   (and ("+JAVASUBTYPE+" T1 T2) (= T3 T4)) ) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))))))");
         addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(T3 "+JMLTYPESORT+")(T4 "+JMLTYPESORT+"))  (=> (= (_JMLT_1 T1 T3) (_JMLT_1 T2 T4))   (and (= T1 T2) (= T3 T4)) ) )))");
         //addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= ( "+arrayElemType+" ("+MAKEJAVAARRAYTYPE+" T)) T)))");
         }
         if (quants && quantOK) {
-            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (= (_JMLT_0 (" +MAKEJAVAARRAYTYPE+ " T)) ( "+MAKEJMLARRAYTYPE+" (_JMLT_0 T))  ) ))");
-            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")(T1 "+JMLTYPESORT+")) (= (_JMLT_1 (" +MAKEJAVAARRAYTYPE+ " T) T1) ( "+MAKEJMLARRAYTYPE+" (_JMLT_1 T T1))  ) ))");
-            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")(T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+")) (= (_JMLT_2 (" +MAKEJAVAARRAYTYPE+ " T) T1 T2) ( "+MAKEJMLARRAYTYPE+" (_JMLT_2 T T1 T2))  ) ))");
+            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (! (= (_JMLT_0 (" +MAKEJAVAARRAYTYPE+ " T)) ( "+MAKEJMLARRAYTYPE+" (_JMLT_0 T))  ) :pattern ((_JMLT_0 (" +MAKEJAVAARRAYTYPE+ " T)))) ))");
+            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")(T1 "+JMLTYPESORT+")) (! (= (_JMLT_1 (" +MAKEJAVAARRAYTYPE+ " T) T1) ( "+MAKEJMLARRAYTYPE+" (_JMLT_1 T T1))  ) :pattern ((_JMLT_1 (" +MAKEJAVAARRAYTYPE+ " T) T1))) ))");
+            addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")(T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+")) (! (= (_JMLT_2 (" +MAKEJAVAARRAYTYPE+ " T) T1 T2) ( "+MAKEJMLARRAYTYPE+" (_JMLT_2 T T1 T2))  ) :pattern ((_JMLT_2 (" +MAKEJAVAARRAYTYPE+ " T) T1 T2))) ))");
             addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (=> (_isJMLArrayType (_JMLT_0 T)) (_isArrayType T)) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (=> (_isArrayType (|`erasure| T)) (_isJMLArrayType T) ) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= ( "+arrayElemType+" ("+MAKEJMLARRAYTYPE+" T)) T)))");
             addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (_isArrayType ("+MAKEJAVAARRAYTYPE+" T)) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (_isJMLArrayType ("+MAKEJMLARRAYTYPE+" T)) ))");
-            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+"))  (= ("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1)("+MAKEJAVAARRAYTYPE+" T2)) ("+JAVASUBTYPE+" T1 T2))))");
-            addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (= ("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1)("+MAKEJMLARRAYTYPE+" T2)) ("+JMLSUBTYPE+" T1 T2))))");
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+"))  (! (= ("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1)("+MAKEJAVAARRAYTYPE+" T2)) ("+JAVASUBTYPE+" T1 T2)) :pattern (("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1) ("+MAKEJAVAARRAYTYPE+" T2))))))");
+            addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (! (= ("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1)("+MAKEJMLARRAYTYPE+" T2)) ("+JMLSUBTYPE+" T1 T2)) :pattern (("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1) ("+MAKEJMLARRAYTYPE+" T2))))))");
         }
         
         addCommand(smt, "(define-fun |`arrayREF| ((id (Array REF (Array Int REF)))(arr REF)(i Int)) REF (select (select id arr) i))");
@@ -512,7 +521,8 @@ public class SMTTranslator extends JmlTreeScanner {
                             F.fcn(impliesSym,
                                     F.fcn(F.symbol(JMLSUBTYPE), F.symbol("t"), F.symbol("tt")),
                                     F.fcn(F.symbol(JAVASUBTYPE), F.fcn(F.symbol("|`erasure|"), F.symbol("t")), F.fcn(F.symbol("|`erasure|"), F.symbol("tt")))
-                                    )));
+                                    ),
+                            Arrays.asList(F.fcn(F.symbol(JMLSUBTYPE), F.symbol("t"), F.symbol("tt"))))); // explicit trigger: z3 >= 4.12 otherwise infers {erasure t, erasure tt}
             commands.add(c);
 //            // (forall ((r REF)) (= (|`erasure| (jmlTypeOf r)) (javaTypeof r)))
 //            c = new C_assert(
@@ -549,14 +559,14 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(assert (forall ((JVT "+JAVATYPESORT+")(JMLT1 "+JMLTYPESORT+")(JMLT2 "+JMLTYPESORT+")(JMLT3 "+JMLTYPESORT+")) (= (|`numargs| (_JMLT_3 JVT JMLT1 JMLT2 JMLT3)) 3)))");
             
             addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (=> (= (_JMLT_1 T1 J1)(_JMLT_1 T2 J2)) (and (= T1 T2) (= J1 J2)))))");
-            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")) (=> ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J1) ))))"); // FIXME - this is true for collections, but necessarily always true?
-            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (=> (and ("+JAVASUBTYPE+" T1 T2) (distinct J1 J2)) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J2) )) )))"); // FIXME - this is true for collections, but necessarily always true?
-            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (= ("+JMLSUBTYPE+" (_JMLT_1 T1 J1)(_JMLT_1 T1 J2)) (= J1 J2))))");
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")) (! (=> ("+JAVASUBTYPE+" T1 T2) ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J1) )) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J1))))))"); // FIXME - this is true for collections, but necessarily always true?
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (! (=> (and ("+JAVASUBTYPE+" T1 T2) (distinct J1 J2)) (not ("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J2) )) ) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T2 J2))))))"); // FIXME - this is true for collections, but necessarily always true?
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(J1 "+JMLTYPESORT+")(J2 "+JMLTYPESORT+")) (! (= ("+JMLSUBTYPE+" (_JMLT_1 T1 J1)(_JMLT_1 T1 J2)) (= J1 J2)) :pattern (("+JMLSUBTYPE+" (_JMLT_1 T1 J1) (_JMLT_1 T1 J2))))))");
             
             addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")) (=> (= T1 T2) ("+JAVASUBTYPE+" T1 T2))))");
             addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+")) (=> (= T1 T2) ("+JMLSUBTYPE+" T1 T2))))");
 
-            addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+")) (=> ("+JMLSUBTYPE+" T1 T2) ("+JAVASUBTYPE+" (|`erasure| T1) (|`erasure| T2)))))");
+            addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+")) (! (=> ("+JMLSUBTYPE+" T1 T2) ("+JAVASUBTYPE+" (|`erasure| T1) (|`erasure| T2))) :pattern (("+JMLSUBTYPE+" T1 T2)))))");
         }
         
         // Record the location in the commands list at which all the type
@@ -871,9 +881,11 @@ public class SMTTranslator extends JmlTreeScanner {
         c = new C_set_logic(F.symbol(s));
         startCommands.add(c);
         
-        if (JmlOption.ESC_TRIGGERS.isSet(context)) {
-            startCommands.add(command(smt,"(set-option :AUTO_CONFIG false)"));
-            startCommands.add(command(smt,"(set-option :smt.MBQI false)"));
+        // z3 options (both off unless --z3 turns them on); other solvers do not use them
+        String prover = JmlOption.PROVER.value(context);
+        if (prover == null || prover.startsWith("z3")) {
+            startCommands.add(command(smt,"(set-option :AUTO_CONFIG " + JmlOption.z3Setting(context, "autoconf") + ")"));
+            startCommands.add(command(smt,"(set-option :smt.MBQI " + JmlOption.z3Setting(context, "mbqi") + ")"));
         }
         String strseed = JmlOption.SEED.value(context);
         if (strseed != null && !strseed.isEmpty()) try {
@@ -1962,6 +1974,7 @@ public class SMTTranslator extends JmlTreeScanner {
 //            }
             for (JCExpression e: args) {
                 IDeclaration d = F.declaration(F.symbol(e.toString()),convertSort(e.type));
+                boundNames.add(d.parameter().toString());
                 argDecls.add(d);
             }
             C_define_fun c = new C_define_fun(n, argDecls, resultSort, convertExpr(expr));
@@ -2797,12 +2810,12 @@ public class SMTTranslator extends JmlTreeScanner {
                         int br = bits(tagr);
                         if (useBV) {
                             if (be > br) {
-                                List<INumeral> args = new LinkedList<>();
+                                List<IIndex> args = new LinkedList<>();
                                 args.add(F.numeral(br-1));
                                 args.add(F.numeral(0));
                                 result = F.fcn(F.id(F.symbol("extract"),args),result);
                             } else if (br > be) {
-                                List<INumeral> args = new LinkedList<>();
+                                List<IIndex> args = new LinkedList<>();
                                 args.add(F.numeral(br-be));
                                 result = F.fcn(F.id(F.symbol("sign_extend"),args),result);
                             }
@@ -2852,12 +2865,12 @@ public class SMTTranslator extends JmlTreeScanner {
         int br = bits(resulttag);
         if (be > br) {
             if (br == 0) Utils.stop();
-            List<INumeral> args = new LinkedList<>();
+            List<IIndex> args = new LinkedList<>();
             args.add(F.numeral(br-1));
             args.add(F.numeral(0));
             return F.fcn(F.id(F.symbol("extract"),args),expr);
         } else if (be < br) {
-            List<INumeral> args = new LinkedList<>();
+            List<IIndex> args = new LinkedList<>();
             args.add(F.numeral(br-be));
             return F.fcn(F.id(F.symbol("sign_extend"),args),expr);
         } else {
@@ -3272,6 +3285,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (iter.hasNext()) {
             JCVariableDecl decl = (JCVariableDecl)iter.next();
             IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
+            boundNames.add(sym.toString());
             IExpr e = convertExpr(decl.init);
             List<IBinding> bindings = new LinkedList<IBinding>();
             bindings.add(F.binding(sym,e));
@@ -3290,6 +3304,7 @@ public class SMTTranslator extends JmlTreeScanner {
             List<IDeclaration> params = new LinkedList<IDeclaration>();
             for (JCVariableDecl decl: that.decls) {
                 IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
+                boundNames.add(sym.toString());
                 ISort sort = convertSort(decl.type);
                 params.add(F.declaration(sym, sort));
                 if (decl.type.isPrimitive() && sort == intSort && !decl.type.toString().contains("\\")) {

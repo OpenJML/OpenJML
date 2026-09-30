@@ -50,24 +50,24 @@ test/gitbug626/Test.java:11:  	Loop test
 			VALUE: i < 4	 === false
 			VALUE: i >= 0 && i < 4	 === false
 test/gitbug626/Test.java:13:  	return -1;
-			VALUE: -1	 === ( - 1 )
+			VALUE: -1	 === (- 1)
 test/gitbug626/Test.java:6:  	ensures (\result >= -1) && (\result < 4); 
-			VALUE: \result	 === ( - 1 )
-			VALUE: -1	 === ( - 1 )
+			VALUE: \result	 === (- 1)
+			VALUE: -1	 === (- 1)
 			VALUE: \result >= -1	 === true
 			VALUE: (\result >= -1)	 === true
-			VALUE: \result	 === ( - 1 )
+			VALUE: \result	 === (- 1)
 			VALUE: 4	 === 4
 			VALUE: \result < 4	 === true
 			VALUE: (\result < 4)	 === true
 test/gitbug626/Test.java:7:  	ensures (\result >= 0) ==> x[\result]; 
-			VALUE: \result	 === ( - 1 )
+			VALUE: \result	 === (- 1)
 			VALUE: 0	 === 0
 			VALUE: \result >= 0	 === false
 			VALUE: (\result >= 0)	 === false
 test/gitbug626/Test.java:8:  	ensures (\result == -1) ==> (\forall int i; (0 <= i) && (i < 4); !x[i]); 
-			VALUE: \result	 === ( - 1 )
-			VALUE: -1	 === ( - 1 )
+			VALUE: \result	 === (- 1)
+			VALUE: -1	 === (- 1)
 			VALUE: \result == -1	 === true
 			VALUE: (\result == -1)	 === true
 			VALUE: \forall int i; (0 <= i) && (i < 4); !x[i]	 === false

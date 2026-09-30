@@ -123,8 +123,6 @@ public class OpenJMLOptions {
     public static final String counterexampleKey       = "openjml.counterexample";
     /** Bit-vector arithmetic (--esc-bv): auto/true/false. */
     public static final String escBvKey                = "openjml.escBv";
-    /** Enable quantifier triggers in SMT encoding (--triggers; default true). */
-    public static final String escTriggersKey          = "openjml.escTriggers";
     /** Find all counterexample paths to each invalid assert (--esc-warnings-path). */
     public static final String escWarningsPathKey      = "openjml.escWarningsPath";
     /** Split proof into sections (--split). */
@@ -292,7 +290,6 @@ public class OpenJMLOptions {
         store.setDefault(subexpressionsKey,           "false");
         store.setDefault(counterexampleKey,           "false");
         store.setDefault(escBvKey,                    "auto");
-        store.setDefault(escTriggersKey,              "true");
         store.setDefault(escWarningsPathKey,          "false");
         store.setDefault(splitKey,                    "");
         store.setDefault(solverSeedKey,               "0");
@@ -360,7 +357,6 @@ public class OpenJMLOptions {
         new ToolOption(subexpressionsKey,          "--subexpressions",              "false",      true),
         new ToolOption(counterexampleKey,          "--counterexample",              "false",      true),
         new ToolOption(escBvKey,                   "--esc-bv",                      "auto",       false),
-        new ToolOption(escTriggersKey,             "--triggers",                    "true",       true),
         new ToolOption(escWarningsPathKey,         "--esc-warnings-path",           "false",      true),
         new ToolOption(splitKey,                   "--split",                       "",           false),
         new ToolOption(solverSeedKey,              "--solver-seed",                 "0",          false),

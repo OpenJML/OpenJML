@@ -135,7 +135,7 @@ From `OpenJMLsrc/`, use the wrapper scripts:
 Environment variables that control behavior:
 - `OPENJML_INSTALL` — path to the OpenJML installation (auto-set by scripts)
 - `OPENJML_SPECS` — path to the specs directory (defaults to `../../Specs/specs`)
-- `OPENJML_SOLVERS` — path to solvers directory (defaults to `../../Solvers`)
+- `SMT_SOLVER_DIR` — the folder of solver executables, which jSMTLIB searches (defaults to `../../Solvers/Solvers-<os>` in development, `$OPENJML_INSTALL/Solvers-<os>` in a release)
 - `OPENJML_JVM` — extra JVM options (optional)
 
 The `setup-exports` file sets `OPENJML_EXPORTS`, the `--add-exports` flags needed when using OpenJML programmatically (the internal compiler APIs are heavily encapsulated by the Java module system).

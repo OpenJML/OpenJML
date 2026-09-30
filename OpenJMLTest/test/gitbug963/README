@@ -1,0 +1,3 @@
+This is the original problem report.
+There was a bug in type attribution that caused a crash.
+But once that was fixed, some additional edits on the specs were needed, as done in gitbug963a.

@@ -12,13 +12,13 @@ Starting proof of openjml.demo.Paths.multipleErrors(int) with prover z3_4_3
 TRACE of openjml.demo.Paths.multipleErrors(int)
 
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:25:  	if (i == 0) ...
-			VALUE: i	 === ( - 1 )
+			VALUE: i	 === (- 1)
 			VALUE: 0	 === 0
 			VALUE: i == 0	 === false
 			VALUE: (i == 0)	 === false
 				Condition = false
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:28:  	assert Assert i > 0;
-			VALUE: i	 === ( - 1 )
+			VALUE: i	 === (- 1)
 			VALUE: 0	 === 0
 			VALUE: i > 0	 === false
 ..\..\OpenJMLDemo\src\openjml\demo\Paths.java:28: verify: The prover cannot establish an assertion (Assert) in method multipleErrors

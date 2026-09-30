@@ -1,0 +1,12 @@
+Proving methods in Dzmz
+Starting proof of Dzmz.Dzmz() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Dzmz.Dzmz() with prover !!!! - no warnings
+Starting proof of Dzmz.main(String[]) with prover !!!!
+test/Dzmz/Dzmz.java:2: verify: Validity is unknown - the prover's model does not identify a failing assertion: method Dzmz.main
+    public static void main(String[] argv) {
+                       ^
+Completed proof of Dzmz.main(String[]) with prover !!!! - UNKNOWN
+Completed proving methods in Dzmz
+1 verification failure
