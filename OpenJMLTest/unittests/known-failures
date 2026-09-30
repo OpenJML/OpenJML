@@ -126,7 +126,7 @@ escfiles.modelImport5 		#	static model import needs implementation
 escfiles.modelImport6           #	static model import needs implementation
 escfiles.modelImport7           #	static model import needs implementation
 escfiles3.sfbug420X
-#escfiles3.sfbug420e
+escfiles3.sfbug420e                   # overflow warning in push reported instead of PossiblyTooLargeIndex
 escfiles3.sfbug420eOK
 escfiles.valuestrings           # string specs
 escfiles2.escRawding2
@@ -191,3 +191,7 @@ runscripts2.apiASTCrash               # CRASH in Attr
 
 escfiles2.gitbug890                   # z3-5.1.0 lost proof in model_test; MBQI does not recover it
 escfiles3.gitbug963a                  # no expected output file yet (partial fix for #963)
+escfiles3.buggyCalculatorBV           # times out (bit-vector arithmetic)
+escfiles3.gitbug971a                  # Associated declaration reported at ScreenPoint.java:7, expected :6
+escfileslist3.test[gitbug850]         # Assignable warning attributed to FindMaxElem.java:12, expected FindMaxElemImpl.java:25
+release.testEsc2B                     # times out
