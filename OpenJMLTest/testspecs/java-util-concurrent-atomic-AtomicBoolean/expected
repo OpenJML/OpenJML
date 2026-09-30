@@ -1,0 +1,5 @@
+Proving methods in TestAtomicBoolean
+Starting proof of TestAtomicBoolean.esc() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicBoolean.esc() with prover !!!! - no warnings
+Completed proving methods in TestAtomicBoolean
