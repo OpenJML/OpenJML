@@ -189,3 +189,5 @@ escfileslist1.test[escDoubleArith]    # feasibility problem with real arithmetic
 escfileslist3.test[gitbug944]         # bad translation for \seq<\bigint>
 runscripts2.apiASTCrash               # CRASH in Attr
 
+escfiles2.gitbug890                   # z3-5.1.0 lost proof in model_test; MBQI does not recover it
+escfiles3.gitbug963a                  # no expected output file yet (partial fix for #963)
