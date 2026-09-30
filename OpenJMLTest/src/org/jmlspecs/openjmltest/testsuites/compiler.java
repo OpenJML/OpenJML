@@ -486,6 +486,8 @@ public class compiler extends JmlTestSuite{
     @Test 
     public void testSourcePath4() throws Exception {
         if (!new java.io.File("../OpenJMLsrc/release-temp/jmlruntime.jar").exists()) {
+            // setUp redirected System.out/err for capturing; helper, which restores them, is not called here
+            if (capture) collectSystemOutput(false);
             this.err = savederr;  // FIXME
             this.out = savedout;
             this.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
