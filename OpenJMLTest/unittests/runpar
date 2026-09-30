@@ -50,6 +50,9 @@ if [ -z "$*" ]; then
         testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | tail -n +$START | head -n $LINES | sed -e 's/\.java//')
     else 
         testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/\.java//')
+        ## A full run: remove all old logs, including those of suites that no longer exist,
+        ## so that retry sees only this run's results
+        rm -f log-*
     fi
 else
     testlist=$@
@@ -94,7 +97,7 @@ else
     echo Completed retrys with remaining failures
     if [ -n "$OPT" ]; then cat logretry ; fi
     grep -E 'FAILED' logretry
-    FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
+    FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' | sort -u`
     echo "LIST:" $FAILURES
     echo "Second round retrys"
     runtests $FAILURES 2>&1 | tee logretry | grep  --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout'
@@ -105,7 +108,7 @@ else
         echo Completed retrys with remaining failures
         if [ -n "$OPT" ]; then cat logretry ; fi
         grep -E 'FAILED' logretry
-        FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' `
+        FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' | sort -u`
         echo "LIST:" $FAILURES
     fi
 fi
