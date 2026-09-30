@@ -16,10 +16,13 @@ if [ -z ${OPENJML_INSTALL++} ]; then export OPENJML_INSTALL="$INSTALL" ; else ex
 ## set BINJAVA, BINJAVAC and other vars -- if those others are already set, then export them
 ## BINJAVA and BINJAVAC are an absolute path, still might have spaces
 
-JSMTLIB_JAR="$INSTALL/libs/jSMTLIB.jar"
-
 ## On Windows (WSL) the JDK binaries have a .exe suffix; detect this once
 if [ -n "$(grep -si microsoft /proc/version 2>/dev/null)" ]; then EXE=".exe" ; else EXE="" ; fi
+
+## jSMTLIB is patched into jdk.compiler by the scripts (--patch-module). On WSL the JDK is a Windows
+## program, so it needs the jar's Windows path.
+JSMTLIB_JAR="$INSTALL/libs/jSMTLIB.jar"
+if [ -n "$EXE" ]; then JSMTLIB_JAR=$(wslpath -w "$JSMTLIB_JAR"); fi
 
 if [ -e "$INSTALL/version-info.txt" ]; then
   ## In a release
@@ -46,6 +49,13 @@ fi
 ## or in the sibling Solvers repository for the development environment.
 if [ -z ${SMT_SOLVER_DIR++} ]; then
   export SMT_SOLVER_DIR="$_solvers/Solvers-$("$INSTALL"/os-name.sh)"
+  ## A release contains just the Solvers-<os> folder it was built for. That can differ from what
+  ## os-name.sh reports, e.g. for the macOS x86_64 release run on an Apple Silicon Mac from a native
+  ## shell (os-name.sh then says macos-arm64); use the release's own folder then.
+  if [ -e "$INSTALL/version-info.txt" ] && [ ! -d "$SMT_SOLVER_DIR" ]; then
+    _dirs=( "$INSTALL"/Solvers-* )
+    if [ ${#_dirs[@]} -eq 1 ] && [ -d "${_dirs[0]}" ]; then export SMT_SOLVER_DIR="${_dirs[0]}"; fi
+  fi
 else
   export SMT_SOLVER_DIR
 fi

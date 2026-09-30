@@ -20,6 +20,5 @@ fi
 ## Shared script to setup OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR BINJAVA
 . "${INSTALL}/setup-vars"
 
-## Run the executable for openjml-java (the java equivalent in openjml)
-JSMTLIB_JAR="$INSTALL/libs/jSMTLIB.jar"
+## Run the executable for openjml-java (the java equivalent in openjml); setup-vars sets JSMTLIB_JAR
 "$BINJAVA" "--patch-module=jdk.compiler=$JSMTLIB_JAR" $OPENJML_JVM "$@"

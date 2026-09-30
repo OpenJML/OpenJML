@@ -38,6 +38,12 @@ if [ -d "$DIR/jdk" ]; then
     # OPENJML_SPECS: not defaulted here — OpenJML derives
     # it from OPENJML_INSTALL internally.  Set it only for a custom location.
     export SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$OPENJML_INSTALL/Solvers-$("$DIR"/os-name.sh)}"
+    # A release contains just the Solvers-<os> folder it was built for, which can differ from what
+    # os-name.sh reports (e.g. the macOS x86_64 release on Apple Silicon); use that folder then.
+    if [ ! -d "$SMT_SOLVER_DIR" ]; then
+        _dirs=( "$OPENJML_INSTALL"/Solvers-* )
+        if [ ${#_dirs[@]} -eq 1 ] && [ -d "${_dirs[0]}" ]; then export SMT_SOLVER_DIR="${_dirs[0]}"; fi
+    fi
     JARFILE="$DIR/lsp/openjml-lsp.jar"
     JSMTLIB_JAR="$DIR/libs/jSMTLIB.jar"
     LSP4J_CP="$DIR/lsp/org.eclipse.lsp4j-${LSP4J_VERSION}.jar:$DIR/lsp/org.eclipse.lsp4j.jsonrpc-${LSP4J_VERSION}.jar"
