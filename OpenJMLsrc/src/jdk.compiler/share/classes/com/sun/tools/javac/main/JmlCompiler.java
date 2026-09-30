@@ -418,9 +418,12 @@ public class JmlCompiler extends JavaCompiler {
         boolean jmlOption = JmlOption.JML.isSet(context);
         noJML = !jmlOption;
         var charSeq = readSource(filename);
+        boolean sourceRead = charSeq != null; // false if the file could not be read (readSource reported the error)
         try {
             if (debugParse) System.out.println("parser: About to parse: " + filename + (noJML?" (ignoring JML)":""));
-            if (filename.getKind() == JavaFileObject.Kind.SOURCE) {
+            // charSeq is null if the file could not be read; readSource has then reported the error, and
+            // the source is parsed (by javac) as an empty compilation unit, without looking for a specs file
+            if (sourceRead && filename.getKind() == JavaFileObject.Kind.SOURCE) {
                 // If the file is a source file and there is a specs file, we ignore any JML in the source file
                 // We also always ignore the JML if -no-jml has been set
                 specFile = checkForSpecsFile(filename, charSeq);
@@ -430,10 +433,12 @@ public class JmlCompiler extends JavaCompiler {
             JmlCompilationUnit javaCU = (JmlCompilationUnit)parse(filename, charSeq);
             if (javaCU.endPositions != null) log.setEndPosTable(filename, javaCU.endPositions);
             JmlCompilationUnit specCU = null;
+            boolean specsRead = true;
             if (specFile != null && jmlOption) {
                 noJML = !jmlOption;
                 log.useSource(specFile);
                 charSeq = readSource(specFile);
+                specsRead = charSeq != null;
                 specCU = (JmlCompilationUnit)parse(specFile, charSeq);
                 if (specCU.endPositions != null) log.setEndPosTable(specFile, specCU.endPositions);
                 javaCU.specsCompilationUnit = specCU;
@@ -446,8 +451,9 @@ public class JmlCompiler extends JavaCompiler {
         	}
         	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile + " " + " Classes: " + Utils.join(" ",javaCU.defs.stream().filter(d->d instanceof JmlClassDecl).map(d->((JmlClassDecl)d).name.toString())));
             
-        	org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
-            if (specCU != null) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
+            // A file that could not be read is parsed as an empty stand-in; there is no AST to check
+        	if (sourceRead) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
+            if (specCU != null && specsRead) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
             String ss = JmlOption.SHOW.value(context);
             if (javaCU != null && ss != null) {
                 if (ss.contains("ast") && filename.toString().contains("Test.java")) { // FIXME - fix this to show user-designated file
