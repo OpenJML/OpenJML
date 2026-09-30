@@ -420,7 +420,9 @@ public class JmlCompiler extends JavaCompiler {
         var charSeq = readSource(filename);
         try {
             if (debugParse) System.out.println("parser: About to parse: " + filename + (noJML?" (ignoring JML)":""));
-            if (filename.getKind() == JavaFileObject.Kind.SOURCE) {
+            // charSeq is null if the file could not be read; readSource has then reported the error, and
+            // the source is parsed (by javac) as an empty compilation unit, without looking for a specs file
+            if (charSeq != null && filename.getKind() == JavaFileObject.Kind.SOURCE) {
                 // If the file is a source file and there is a specs file, we ignore any JML in the source file
                 // We also always ignore the JML if -no-jml has been set
                 specFile = checkForSpecsFile(filename, charSeq);

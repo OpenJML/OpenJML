@@ -1126,6 +1126,25 @@ public class compiler extends JmlTestSuite{
                 );
     }
 
+    /** A source file that cannot be read gives the ordinary 'error reading' error, not an internal error */
+    @Test
+    public void testUnreadableSource() throws Exception {
+        java.io.File dir = java.nio.file.Files.createTempDirectory("unreadable").toFile();
+        java.io.File f = new java.io.File(dir, "A.java");
+        java.nio.file.Files.writeString(f.toPath(), "public class A {}\n");
+        try {
+            f.setReadable(false);
+            // Where a file cannot be made unreadable (e.g. on Windows, or as root) there is nothing to test.
+            // (A plain return: OpenJMLTestRunner would count an Assume failure as a test failure.)
+            if (f.canRead()) return;
+            helper(new String[] { "--check", f.getPath() }, 1, 2, "error: error reading " + f.getPath());
+        } finally {
+            f.setReadable(true);
+            f.delete();
+            dir.delete();
+        }
+    }
+
     @Test @Ignore // FIXME - have not yet fixed how extensions are found
     public void testExtension() throws Exception {
         helper(new String[]
