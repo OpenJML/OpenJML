@@ -139,10 +139,13 @@ jobs:
       shell: bash
       run: |
         export ver=`cat OpenJML/version.txt`
-        export tag=$(curl --silent --fail --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
-        [[ -z "$tag" ]] && { echo "ERROR: could not retrieve release tag from GitHub API"; exit 1; }
-        echo $ver $tag
-        test "$ver" = "$tag" || { echo "Version $ver from version.txt does not match the release tag, which is $tag"; exit 1; }
+        ## Look for the release with this version's tag (draft or published), as the upload job does.
+        ## (The first release in GitHub's list is not reliably the newest: drafts and releases published
+        ## during the build change the order.)
+        export found=$(curl --silent --fail --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases?per_page=100" | python3 -c "import json,sys,os; v=os.environ['ver']; print('yes' if any(r['tag_name']==v for r in json.load(sys.stdin)) else 'no')")
+        [[ -z "$found" ]] && { echo "ERROR: could not retrieve the releases from the GitHub API"; exit 1; }
+        echo "Version $ver; release with tag $ver found: $found"
+        test "$found" = "yes" || { echo "There is no GitHub release with tag $ver (the version in version.txt)"; exit 1; }
 
     - name: Copy zip for upload
       shell: bash
