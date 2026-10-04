@@ -562,6 +562,7 @@ public class MethodProverSMT {
                         }
                     }
                     String scriptString = program.toString();
+                    boolean warnedNonlinear = false; // the esc.feasibility.nonlinear warning is given at most once per method
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
@@ -670,6 +671,10 @@ public class MethodProverSMT {
                                     String msg4 = smt.smtConfig.defaultPrinter.toString(value);
                                     unknownReason = smt.smtConfig.responseFactory.error(msg2);
                                     boolean timeout = msg4.contains("timeout");
+                                    if (smttrans.nonlinear && !warnedNonlinear) {
+                                        warnedNonlinear = true;
+                                        utils.verify(methodDecl,"esc.feasibility.nonlinear",utils.qualifiedMethodSig(methodDecl.sym));
+                                    }
                                     if (timeout) {
                                         utils.verify(methodDecl,"esc.resourceout.feasibility",": " + msg3 + msg4);
                                         proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.TIMEOUT,start);
