@@ -1,0 +1,5 @@
+Proving methods in TestAtomicInteger
+Starting proof of TestAtomicInteger.esc() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicInteger.esc() with prover !!!! - no warnings
+Completed proving methods in TestAtomicInteger
