@@ -40,6 +40,26 @@ if [ -n "${COV++}" ]; then  ## Checks whether COV is set, to any value including
     export OJA="$BINJAVA -cp .:$TEST $PR $AGENT RunOpenJML"
     ## FIXME - OJA above will not work with spaces in paths
     export OPENJML_JVM="$AGENT"
+
+    ## Per-test mode (make cov-test-by-test sets COV_BY_TEST): instead of one destfile for the
+    ## whole run, each test's coverage goes to its own cov/by-test/<test>.exec (see
+    ## PerTestCoverage.java). Two different agent strings are needed:
+    ##  - COV_MAIN_AGENT, for the test JVM itself (runtests): its destfile only ever receives
+    ##    what runs OUTSIDE any test (class init, @BeforeClass, @Parameters) -- PerTestCoverage
+    ##    reads out and resets each test's own counters itself, through JaCoCo's runtime API.
+    ##  - OPENJML_JVM, for child JVMs (the openjml scripts that RunBase's ./run scripts call):
+    ##    its destfile holds a literal @COV_TEST@ placeholder, which RunBase replaces with the
+    ##    current test's file stem, so a child's coverage lands in the file of the test that
+    ##    launched it (and its JaCoCo session is named after that test).
+    ## Each test JVM writes its own index, index-$1.tsv, because runpar runs several at once.
+    if [ -n "${COV_BY_TEST++}" ]; then
+        BY_TEST_DIR="$TEST/cov/by-test"
+        mkdir -p "$BY_TEST_DIR"
+        export COV_BY_TEST_DIR="$BY_TEST_DIR"
+        export COV_BY_TEST_INDEX="$BY_TEST_DIR/index-$1.tsv"
+        export COV_MAIN_AGENT="-javaagent:$TEST/jacoco/lib/jacocoagent.jar=destfile=$BY_TEST_DIR/_outside-tests.exec"
+        export OPENJML_JVM="-javaagent:$TEST/jacoco/lib/jacocoagent.jar=destfile=$BY_TEST_DIR/@COV_TEST@.exec,sessionid=@COV_TEST@"
+    fi
 fi
 
 # setup any profiling -- $PR is a command-line argument for **java**, not javac

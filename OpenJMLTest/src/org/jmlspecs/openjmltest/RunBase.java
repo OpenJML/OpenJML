@@ -33,6 +33,9 @@ public abstract class RunBase extends JmlTestSuite {
         try {
             var pb = new ProcessBuilder(args);
             pb.inheritIO();
+            // Per-test coverage: the child's coverage goes to the file of the test running now
+            String jvm = pb.environment().get("OPENJML_JVM");
+            if (jvm != null) pb.environment().put("OPENJML_JVM", PerTestCoverage.childAgent(jvm));
             pb.directory(new java.io.File(workingDir));
             process = pb.start();
             if (timeoutMS > 0 && timeout(process,timeoutMS)) {
