@@ -134,7 +134,6 @@ escfiles2.escRawdingA
 escfiles2.escRawdingB
 escfiles2.gitbug450b		#	ArrayList contains
 escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
-escfiles2.gitbug876     # PrimeChecker timeout
 escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
 escfileslist2.test[escConstructor5]	# Feasibility problem or invariant problem
