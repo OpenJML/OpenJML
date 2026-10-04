@@ -175,6 +175,20 @@ public class escfiles3 extends EscBaseFiles {
         // Math.gcd cannot be settled (a model of gcd's quantified specification) and run to the timeout
         helpEscSimple("--check-feasibility=none");
     }
+
+    @Test
+    public void gitbug997a() {
+        // User-written gcd specifications with % and / by a quantified variable: refuted promptly, not
+        // a matching loop; quantified % and / are still instantiated from % and / outside the quantifier
+        helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
+    public void gitbug997b() {
+        // Warnings: quantifiers with no term that can serve as a trigger; a feasibility check not decided
+        // because of nonlinear arithmetic (the short timeout ends it quickly)
+        helpEscSimple("--timeout=5","--check-feasibility=precondition");
+    }
     
     @Test
     public void byteQuant() {
