@@ -2,4 +2,22 @@ Proving methods in TestAtomicInteger
 Starting proof of TestAtomicInteger.esc() with prover !!!!
 Feasibility check - at implicit return : OK
 Completed proof of TestAtomicInteger.esc() with prover !!!! - no warnings
+Starting proof of TestAtomicInteger.lazySet() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicInteger.lazySet() with prover !!!! - no warnings
+Starting proof of TestAtomicInteger.compareAndSet() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicInteger.compareAndSet() with prover !!!! - no warnings
+Starting proof of TestAtomicInteger.getAndModify() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicInteger.getAndModify() with prover !!!! - no warnings
+Starting proof of TestAtomicInteger.modifyAndGet() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicInteger.modifyAndGet() with prover !!!! - no warnings
+Starting proof of TestAtomicInteger.update() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicInteger.update() with prover !!!! - no warnings
+Starting proof of TestAtomicInteger.conversions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicInteger.conversions() with prover !!!! - no warnings
 Completed proving methods in TestAtomicInteger

@@ -2,4 +2,13 @@ Proving methods in TestAtomicBoolean
 Starting proof of TestAtomicBoolean.esc() with prover !!!!
 Feasibility check - at implicit return : OK
 Completed proof of TestAtomicBoolean.esc() with prover !!!! - no warnings
+Starting proof of TestAtomicBoolean.setAndGet() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicBoolean.setAndGet() with prover !!!! - no warnings
+Starting proof of TestAtomicBoolean.compareAndSet() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicBoolean.compareAndSet() with prover !!!! - no warnings
+Starting proof of TestAtomicBoolean.string() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicBoolean.string() with prover !!!! - no warnings
 Completed proving methods in TestAtomicBoolean

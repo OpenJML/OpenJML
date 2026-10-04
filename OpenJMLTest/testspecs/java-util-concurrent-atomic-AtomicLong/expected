@@ -2,4 +2,22 @@ Proving methods in TestAtomicLong
 Starting proof of TestAtomicLong.esc() with prover !!!!
 Feasibility check - at implicit return : OK
 Completed proof of TestAtomicLong.esc() with prover !!!! - no warnings
+Starting proof of TestAtomicLong.lazySet() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicLong.lazySet() with prover !!!! - no warnings
+Starting proof of TestAtomicLong.compareAndSet() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicLong.compareAndSet() with prover !!!! - no warnings
+Starting proof of TestAtomicLong.getAndModify() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicLong.getAndModify() with prover !!!! - no warnings
+Starting proof of TestAtomicLong.modifyAndGet() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicLong.modifyAndGet() with prover !!!! - no warnings
+Starting proof of TestAtomicLong.update() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicLong.update() with prover !!!! - no warnings
+Starting proof of TestAtomicLong.conversions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestAtomicLong.conversions() with prover !!!! - no warnings
 Completed proving methods in TestAtomicLong
