@@ -732,6 +732,21 @@ public class compiler extends JmlTestSuite{
                 );
     }
 
+    /** ESC proof attempts are limited to 300 s by default (#997) */
+    @Test
+    public void testTimeoutDefault() {
+        // setUp redirected System.out/err for capturing; helper, which restores them, is not called here
+        if (capture) collectSystemOutput(false);
+        org.junit.Assert.assertEquals("300", org.jmlspecs.openjml.JmlOption.TIMEOUT.defaultValue());
+    }
+
+    /** --timeout=0 still means no limit: accepted, and ESC runs as usual (#997) */
+    @Test
+    public void testTimeoutZero() {
+        helper(new String[] {"--esc","--timeout=0","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
+                "");
+    }
+
     @Test
     public void testOptionLang() {
         helper(new String[] {"--lang=zzz","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
