@@ -698,14 +698,14 @@ public class escgeneric extends EscBase {
 
     @Test
     public void testElemType3() {
-        expectedExit = 1;
         helpEsc("tt.TestJava",
                 """
                  class A { void m(/*@ non_null */ char[] a) {
                 //@ assert \\elemtype(\\typeof(a)) == \\type(int);
                 }}
                 """
-                ,"/tt/TestJava.java:1: error: the type modifier/annotation is not permitted on a primitive type: char", 23
+                ,"/tt/TestJava.java:1: warning: the annotation /*@ non_null */ is in the wrong position: the element type char cannot take it; it is used as if written on the array type: char /*@ non_null */ []", 23
+                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (Assert) in method m",5
                 );
     }
 
