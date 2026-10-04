@@ -168,6 +168,13 @@ public class escfiles3 extends EscBaseFiles {
     public void gitbug996() {
         helpEscSimple();
     }
+
+    @Test
+    public void gitbug997() {
+        // Only the proofs are of interest here: the feasibility checks of methods whose specifications use
+        // Math.gcd cannot be settled (a model of gcd's quantified specification) and run to the timeout
+        helpEscSimple("--check-feasibility=none");
+    }
     
     @Test
     public void byteQuant() {
