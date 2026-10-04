@@ -23,6 +23,8 @@ public class OpenJMLTestRunner {
     static ExecutorService eservice;
     static boolean sequential = true;
     static boolean verbose = false;
+    /** Per-test coverage (make cov-test-by-test), or null if that is off */
+    static PerTestCoverage coverage;
 
     /** Prints, at the top of the test log, the solver the ESC tests use (the PROVER environment
      * variable, else OpenJML's default) and the executable jSMTLIB resolves for it */
@@ -74,6 +76,7 @@ public class OpenJMLTestRunner {
             System.out.println("Concurrent processing of test cases is not implemented fully");
             System.exit(1);
         }
+        coverage = PerTestCoverage.init(); // null unless setup-coverage asked for per-test coverage
 
         try {
             eservice = Executors.newFixedThreadPool(numThreads==0?1:numThreads); // argument required to be positive
@@ -289,11 +292,15 @@ public class OpenJMLTestRunner {
         }
 
         public void run() {
-            Future<?> future = null;
+            Future<Boolean> future = null;
+            String name = method.getName() + (params==null||params.length==0?"":Arrays.toString(params));
+            String status = "FAIL";
+            if (coverage != null) coverage.start(clazz, name);
             try {
                 future = eservice.submit(()->doMethod(clazz, method, constr, params));
-                future.get(seconds, TimeUnit.SECONDS);
+                if (future.get(seconds, TimeUnit.SECONDS)) status = "PASS";
             } catch (TimeoutException e) {
+                status = "TIMEOUT";
                 synchronized (System.out) { System.out.println("TIMEOUT: " + method + " in thread " + Thread.currentThread().getName()); }
                 synchronized(stimeouts) { timeouts++; }
                 future.cancel(true);
@@ -306,11 +313,19 @@ public class OpenJMLTestRunner {
                     synchronized (System.out) { System.out.println("PROBLEM: " + method + " not reported as done"); }
                     future.cancel(true);
                 }
+                if (coverage != null) {
+                    try {
+                        coverage.finish(clazz, name, status);
+                    } catch (IOException e) {
+                        synchronized (System.out) { System.out.println("Per-test coverage not written for " + method + ": " + e); }
+                    }
+                }
             }
         }
                 
-        /** This method is run in the thread doing the testcase and constitutes running the test */
-        public void doMethod(Class<? extends JmlTestSuite> clazz, Method method, Constructor constr, Object[] params) {
+        /** This method is run in the thread doing the testcase and constitutes running the test;
+         *  returns whether the test passed */
+        public boolean doMethod(Class<? extends JmlTestSuite> clazz, Method method, Constructor constr, Object[] params) {
             String fullname = method.getName() + (params==null||params.length==0?"":Arrays.toString(params));
             String qualname = clazz + "." + fullname;
             synchronized (stests) { tests++; }
@@ -332,6 +347,7 @@ public class OpenJMLTestRunner {
                 } finally {
                     if (t != null) t.tearDown(); // FIXME - should we use the @After methods
                 }
+                return true;
             } catch (Throwable e) {
                 if (e.getCause() != null) e = e.getCause();
                 synchronized (sfailures) { failures++; }
@@ -341,6 +357,7 @@ public class OpenJMLTestRunner {
                     System.out.println(e);
                     if (System.getenv("STACK") != null) e.printStackTrace(System.out);
                 }
+                return false;
             }
         }
     }

@@ -16,7 +16,7 @@ T=temp-release
         clean release prep \
         tutorial-tests tutorial-tests-git userguide-tests userguide-tests-released \
         release-tests unittests-seq unittests-par json-tests lsp-tests \
-        cov-clean cov-test cov-report cov-show
+        cov-clean cov-test cov-report cov-show cov-test-by-test cov-analyze-by-test cov-report-by-test
 
 ### The following is the OpenJML tests
 
@@ -179,6 +179,70 @@ cov-report:
             --classfiles ./../OpenJMLsrc/build/macosx-x86_64-server-release/jdk/modules/jdk.compiler \
             --sourcefiles ./../OpenJMLlsp/src \
             --classfiles ./../OpenJMLlsp/build/classes )
+
+## Per-test coverage: like cov-test for the unit tests (runpar), but split by test case. Each
+## test's coverage (including that of any openjml child JVM its ./run script starts) goes to its
+## own cov/by-test/<TestSuite>.<method>.exec; each test JVM's index-unit-<suite>.tsv maps each
+## file back to its test (class, display name, PASS/FAIL/TIMEOUT, wall-clock ms). Whatever runs
+## outside any test (class init, @BeforeClass, @Parameters) goes to cov/by-test/_outside-tests.exec.
+## See PerTestCoverage.java and setup-coverage for the mechanism; the same as jSMTLIB's and
+## KotlinSL's per-test coverage. cov-test and its cov/*.exec are untouched. The directory is
+## cleared first: per-test files are appended to during a run, so stale ones from an earlier
+## run would silently mix in. SUITES limits the run to some test suites (all by default), e.g.
+##   make cov-test-by-test SUITES="escfiles3 typechecking"
+## and JOBS sets runpar's number of concurrent test JVMs, as usual. The analysis
+## (cov-analyze-by-test) then runs on the result, even if some tests failed.
+cov-test-by-test:
+	rm -rf cov/by-test
+	- COV= COV_BY_TEST= time ./unittests/runpar $(SUITES)
+	$(MAKE) cov-analyze-by-test
+
+## coverage-analyzer (github.com/davidcok/coverage-analyzer): finds tests that add nothing to
+## coverage -- empty, duplicate and subsumed tests, and a minimum-run-time set of tests that
+## covers everything the suite covers. Its classpath is its own jar plus the org.jacoco.core
+## and ASM jars vendored in jacoco/lib alongside jacocoagent.jar: the very (customized) JaCoCo
+## build that recorded the data, which places probes differently from stock JaCoCo; the
+## analyzer maps probes back to source lines by re-deriving that layout from the class files.
+## (The jars are the ones jSMTLIB and KotlinSL vendor; jacocoagent.jar is the same build.)
+COV_ANALYZER_JARS := coverage-analyzer org.jacoco.core asm asm-commons asm-tree
+ifeq ($(OS),Windows_NT)
+  COV_CP_SEP := ;
+else
+  COV_CP_SEP := :
+endif
+COV_EMPTY :=
+COV_SPACE := $(COV_EMPTY) $(COV_EMPTY)
+COV_ANALYZER_CP := $(subst $(COV_SPACE),$(COV_CP_SEP),$(patsubst %,jacoco/lib/%.jar,$(COV_ANALYZER_JARS)))
+## The OpenJML compiler as built: the jdk.compiler module of the development build
+COV_CLASSES ?= $(firstword $(wildcard ../OpenJMLsrc/build/*/jdk/modules/jdk.compiler))
+## OpenJML's own code and the javac code it extends -- the rest of jdk.compiler (com.sun.source,
+## jdk.internal, ...) and the test harness are left out. Override to analyze differently, e.g.
+##   make cov-analyze-by-test COV_ANALYZER_ARGS="--include 'org.jmlspecs.openjml.**' --granularity line"
+COV_ANALYZER_ARGS ?= --include 'org.jmlspecs.openjml.**' --include 'org.openjml.**' \
+	--include 'com.sun.tools.javac.**' --only-classfiles
+
+## Analyze the data from the last cov-test-by-test run (without re-running the tests): summary
+## to the terminal and cov/by-test-report.txt, full results as CSV files in cov/by-test-report/.
+## The per-JVM indexes are first concatenated into cov/by-test/index.tsv (one header).
+## --strip removes this directory's absolute path from test names that carry it.
+cov-analyze-by-test:
+	@cd cov/by-test && first=1 && for f in index-*.tsv; do \
+	    if [ $$first = 1 ]; then cat "$$f"; first=0; else tail -n +2 "$$f"; fi; \
+	done > index.tsv
+	java -cp "$(COV_ANALYZER_CP)" com.sigillogic.coverage.analyzer.Main \
+		--index cov/by-test/index.tsv --classfiles $(COV_CLASSES) --strip "$(CURDIR)/" \
+		$(COV_ANALYZER_ARGS) --out cov/by-test-report > cov/by-test-report.txt; \
+	status=$$?; cat cov/by-test-report.txt; exit $$status
+
+## Merge every per-test file back into one data set and report it, like cov-report does for
+## cov-test -- a check that splitting lost nothing.
+cov-report-by-test:
+	java -jar jacoco/lib/jacococli.jar merge --quiet cov/by-test/*.exec --destfile cov/by-test-merged.exec
+	java -jar jacoco/lib/jacococli.jar report --quiet cov/by-test-merged.exec \
+		--classfiles $(COV_CLASSES) \
+		--sourcefiles ../OpenJMLsrc/src/jdk.compiler/share/classes \
+		--html cov/html-by-test \
+		--xml cov/coverage-by-test.xml
 
 # Launches a browser on the current coverage data
 cov-show:

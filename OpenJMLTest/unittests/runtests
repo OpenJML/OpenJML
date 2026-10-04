@@ -63,7 +63,8 @@ done
 
 SPECS=$(cd "$ROOT/../../Specs/specs" && pwd -P)
 ## Now run the compiled Test program -- stdout and stderr output are combined into one output
+## (COV_MAIN_AGENT is set only for per-test coverage -- see setup-coverage)
 ## This almost duplicates running openjml-java in the development environment, except for the addition of AGENT and the specific classpath
 ## echo Running $@
 #( "$ROOT"/openjml-java $AGENT  -cp "unittests:src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )
-( cd ..; OPENJML_INSTALL="$ROOT" SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$ROOT/../../Solvers/Solvers-$("$ROOT"/os-name.sh)}" OPENJML_SPECS="$SPECS" "$NJAVA" "--patch-module=jdk.compiler=$ROOT/libs/jSMTLIB.jar" $OPENJML_JVM -cp "src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )
+( cd ..; OPENJML_INSTALL="$ROOT" SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$ROOT/../../Solvers/Solvers-$("$ROOT"/os-name.sh)}" OPENJML_SPECS="$SPECS" "$NJAVA" "--patch-module=jdk.compiler=$ROOT/libs/jSMTLIB.jar" ${COV_MAIN_AGENT:-$OPENJML_JVM} -cp "src:$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )

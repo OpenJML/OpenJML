@@ -87,6 +87,14 @@ else
 fi
 echo Completed
 sync
+## Per-test coverage (make cov-test-by-test): no retries. A retry runs a test a second time,
+## in another JVM, which would add that run's coverage to the test's file and a second row to
+## the index -- and the retry list also takes in failures from other suites' old log files.
+if [ -n "${COV_BY_TEST++}" ]; then
+    echo "Per-test coverage: retries skipped"
+    echo END `date`
+    exit $RUNERR
+fi
 set -o pipefail
 echo MID `date`
 ./retry -run  2>&1 | tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
