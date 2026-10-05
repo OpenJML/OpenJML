@@ -1,0 +1,32 @@
+Proving methods in SeqConditional
+Starting proof of SeqConditional.SeqConditional() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SeqConditional.SeqConditional() with prover !!!! - no warnings
+Starting proof of SeqConditional.concrete(boolean,Integer,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SeqConditional.concrete(boolean,Integer,Integer) with prover !!!! - no warnings
+Starting proof of SeqConditional.generic(boolean,E,E) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SeqConditional.generic(boolean,E,E) with prover !!!! - no warnings
+Starting proof of SeqConditional.wrong(boolean,E,E) with prover !!!!
+test/gitbug963b/SeqConditional.java:20: verify: The prover cannot establish an assertion (Assert) in method wrong
+        //@ assert s.length() == 2; // FAILS when b
+            ^
+Completed proof of SeqConditional.wrong(boolean,E,E) with prover !!!! - with warnings
+Completed proving methods in SeqConditional
+Proving methods in Queue
+Starting proof of Queue.Queue() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Queue.Queue() with prover !!!! - no warnings
+Starting proof of Queue.size() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Queue.size() with prover !!!! - no warnings
+Completed proving methods in Queue
+Note: test/gitbug963b/SeqConditional.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 verification failure
