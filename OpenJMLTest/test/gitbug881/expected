@@ -1,3 +1,6 @@
+test/gitbug881/Test881.java:3: warning: No term in this quantified expression can serve as an SMT trigger for i, j: it is used only in arithmetic, comparisons or logical operations, so the solver may not use the quantifier, or may instantiate it without end; consider stating the property with a model function or pure method
+    //@ assert \exists int i, j; 0 < i < j < 5; i + j == 2;
+               ^
 Proving methods in Test881
 Starting proof of Test881.Test881() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -9,4 +12,5 @@ test/gitbug881/Test881.java:3: verify: The prover cannot establish an assertion 
         ^
 Completed proof of Test881.m() with prover !!!! - with warnings
 Completed proving methods in Test881
+1 warning
 1 verification failure

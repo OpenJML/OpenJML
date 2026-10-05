@@ -5506,6 +5506,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public java.util.List<JmlQuantifiedExpr> quantifiedExprs = new LinkedList<JmlQuantifiedExpr>();
+
+    /** file:position of the quantified expressions already warned about having no trigger (see QuantifiedExpressions.warnIfNoTrigger) */
+    public java.util.Set<String> quantifierTriggerWarnings = new java.util.HashSet<>();
     
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         boolean saved = this.attribJmlDecls;

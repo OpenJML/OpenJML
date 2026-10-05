@@ -1,0 +1,42 @@
+Proving methods in PrimeLink
+Starting proof of PrimeLink.PrimeLink() with prover !!!!
+Completed proof of PrimeLink.PrimeLink() with prover !!!! - no warnings
+Starting proof of PrimeLink.constantDivisor(int) with prover !!!!
+Completed proof of PrimeLink.constantDivisor(int) with prover !!!! - no warnings
+Starting proof of PrimeLink.variableDivisor(int,int) with prover !!!!
+Completed proof of PrimeLink.variableDivisor(int,int) with prover !!!! - no warnings
+Starting proof of PrimeLink.division(int,int) with prover !!!!
+Completed proof of PrimeLink.division(int,int) with prover !!!! - no warnings
+Starting proof of PrimeLink.wrong(int) with prover !!!!
+test/gitbug997a/PrimeLink.java:26: verify: The prover cannot establish an assertion (Assert) in method wrong
+      //@ assert n % 3 == 1; // fails, e.g. for n == 11
+          ^
+Completed proof of PrimeLink.wrong(int) with prover !!!! - with warnings
+Completed proving methods in PrimeLink
+Proving methods in UserGcd
+Starting proof of UserGcd.UserGcd() with prover !!!!
+Completed proof of UserGcd.UserGcd() with prover !!!! - no warnings
+Skipping proof of UserGcd.gcd(int,int) (because the method has no body)
+Starting proof of UserGcd.mygcd(int,int) with prover !!!!
+test/gitbug997a/UserGcd.java:16: verify: The prover cannot establish an assertion (Postcondition) in method mygcd
+      return 1; // wrong
+      ^
+test/gitbug997a/UserGcd.java:13: verify: Associated declaration
+  //@ ensures \result == gcd(x, y);
+      ^
+Completed proof of UserGcd.mygcd(int,int) with prover !!!! - with warnings
+Completed proving methods in UserGcd
+Proving methods in UserGcdDiv
+Starting proof of UserGcdDiv.UserGcdDiv() with prover !!!!
+Completed proof of UserGcdDiv.UserGcdDiv() with prover !!!! - no warnings
+Skipping proof of UserGcdDiv.gcd(int,int) (because the method has no body)
+Starting proof of UserGcdDiv.mygcd(int,int) with prover !!!!
+test/gitbug997a/UserGcdDiv.java:14: verify: The prover cannot establish an assertion (Postcondition) in method mygcd
+      return 1; // wrong
+      ^
+test/gitbug997a/UserGcdDiv.java:11: verify: Associated declaration
+  //@ ensures \result == gcd(x, y);
+      ^
+Completed proof of UserGcdDiv.mygcd(int,int) with prover !!!! - with warnings
+Completed proving methods in UserGcdDiv
+5 verification failures

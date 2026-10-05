@@ -214,6 +214,29 @@ public class SMTTranslator extends JmlTreeScanner {
     /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
 
+    /** True when translating the body of a quantified expression that has no explicit triggers, so
+     * that the solver must infer triggers from the body (see quantDivMod) */
+    boolean inUntriggeredQuant = false;
+
+    /** Names of the uninterpreted forms of Java integer / and %, used inside quantifier bodies (see quantDivMod) */
+    static final String cdivq = "|#cdivq#|";
+    static final String cmodq = "|#cmodq#|";
+
+    /** Whether cdivq and cmodq have been declared in the current script */
+    boolean cdivqDeclared = false;
+    boolean cmodqDeclared = false;
+
+    /** A Java integer / or % outside any quantifier: name is cdivq or cmodq, args its operands and
+     * value its (direct) translation */
+    record GroundDivMod(String name, List<IExpr> args, IExpr value) {}
+
+    /** The / and % terms translated outside quantifiers, linked to cdivq and cmodq at the end of convert */
+    List<GroundDivMod> groundDivMods = new LinkedList<>();
+
+    /** Set when the translation contains nonlinear integer arithmetic: a multiplication of two
+     * non-numerals, or a division or remainder whose divisor is not a numeral */
+    public boolean nonlinear = false;
+
     /** A mapping from Java expressions to/from SMT expressions */
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
 
@@ -869,6 +892,8 @@ public class SMTTranslator extends JmlTreeScanner {
         ICommand c;
         startCommands = new LinkedList<ICommand>();
         commands = new LinkedList<ICommand>();
+        cdivqDeclared = cmodqDeclared = false;
+        groundDivMods.clear();
         
         // FIXME - use factory for the commands?
         // set any options
@@ -1060,7 +1085,7 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|) )))");
 
             addCommand(smt,"(define-fun |#cdiv#| ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
-            addCommand(smt,"(define-fun |#cmod#| ((a Int) (b Int)) Int (ite (>= a 0) (mod a b) (mod (- a) (- b))))");
+            addCommand(smt,"(define-fun |#cmod#| ((a Int) (b Int)) Int (- a (* b (|#cdiv#| a b))))"); // Java %: the sign of the dividend
             addCommand(smt,"(define-fun |#inRange32#| ((a Int)) Bool (and (<= |#min32#| a) (<= a |#max32#|)))");
             addCommand(smt,"(define-fun |#add32ok#| ((a Int) (b Int)) Bool (|#inRange32#| (+ a b)) )");
             addCommand(smt,"(define-fun |#add32#| ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (|#inRange32#| p) p (ite (< |#max32#| p) (- p |#big32#|) (+ p |#big32#|)))))");
@@ -1178,6 +1203,7 @@ public class SMTTranslator extends JmlTreeScanner {
             commands.add(new C_assert(f));
         }
         addTypeRelationships(loc,smt);
+        linkGroundDivMods();
         
         script.commands().addAll(startCommands);
         script.commands().addAll(commands);
@@ -1916,6 +1942,64 @@ public class SMTTranslator extends JmlTreeScanner {
         throw new JmlBVException();
     }
     
+    /** Whether e is an integer numeral, possibly negated */
+    static boolean isNumeral(IExpr e) {
+        if (e instanceof IExpr.INumeral) return true;
+        return e instanceof IExpr.IFcnExpr f && f.head().toString().equals("-") && f.args().size() == 1
+                && f.args().get(0) instanceof IExpr.INumeral;
+    }
+
+    /** Java integer division (name == cdivq) or remainder (name == cmodq) of args, for use inside the
+     * body of a quantifier without explicit triggers (with explicit triggers, the solver infers none). |#cdiv#| is a define-fun, which the solver expands in place, and % is
+     * translated directly into arithmetic, so neither leaves a term that the solver can use as a
+     * trigger: a quantifier such as (\forall int c; c > 0 && a % c == 0 ...) then has only
+     * arithmetic triggers, such as (* -1 c), which can loop (issue #997). These are declared
+     * (uninterpreted) functions instead, each defined by an axiom whose only trigger is an
+     * application of the function itself, so the axiom creates no new triggering terms. The
+     * declarations are added to the script only when used. */
+    protected IExpr quantDivMod(String name, List<IExpr> args) {
+        String div = "(ite (>= a 0) (div a b) (div (- a) (- b)))";
+        if (name.equals(cdivq)) {
+            if (!cdivqDeclared) {
+                cdivqDeclared = true;
+                startCommands.add(command(smt, "(declare-fun " + cdivq + " (Int Int) Int)"));
+                startCommands.add(command(smt, "(assert (forall ((a Int) (b Int)) (! (= (" + cdivq + " a b) " + div + ") :pattern ((" + cdivq + " a b)))))"));
+            }
+        } else {
+            if (!cmodqDeclared) {
+                cmodqDeclared = true;
+                startCommands.add(command(smt, "(declare-fun " + cmodq + " (Int Int) Int)"));
+                startCommands.add(command(smt, "(assert (forall ((a Int) (b Int)) (! (= (" + cmodq + " a b) (- a (* b " + div + "))) :pattern ((" + cmodq + " a b)))))"));
+            }
+        }
+        return F.fcn(F.symbol(name), args);
+    }
+
+    /** A quantifier body that uses cdivq or cmodq can be instantiated only from ground cdivq or cmodq
+     * terms, but / and % outside quantifiers are translated directly (for instance n % 2, needed to
+     * instantiate (\\forall int k; 2 <= k < n; n % k != 0) with k == 2). So when the script uses
+     * cdivq (cmodq), each ground / (%) term is asserted equal to its cdivq (cmodq) form. Terms that
+     * mention variables bound by a let, a quantifier or a function definition are not ground and are skipped. */
+    protected void linkGroundDivMods() {
+        if (!cdivqDeclared && !cmodqDeclared) return;
+        Set<String> done = new HashSet<>();
+        for (GroundDivMod g: groundDivMods) {
+            if (!(g.name().equals(cdivq) ? cdivqDeclared : cmodqDeclared)) continue;
+            if (g.args().stream().anyMatch(this::mentionsBound)) continue;
+            IExpr q = F.fcn(F.symbol(g.name()), g.args());
+            if (done.add(q.toString())) commands.add(new C_assert(F.fcn(eqSym, q, g.value())));
+        }
+    }
+
+    /** Whether e might mention a bound variable (see boundNames); anything but symbols, literals and
+     * function applications is assumed to */
+    protected boolean mentionsBound(IExpr e) {
+        if (e instanceof IExpr.ISymbol sym) return boundNames.contains(sym.toString());
+        if (e instanceof IExpr.ILiteral) return false;
+        if (e instanceof IExpr.IFcnExpr f) return f.args().stream().anyMatch(this::mentionsBound);
+        return true;
+    }
+
     /** Issues an error message about something not being implemented */
     public void notImplWarn(DiagnosticPosition pos, String msg) {
     	utils.warning(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
@@ -2448,8 +2532,10 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.fcn(F.symbol("*"), args);
                 } else if (useBV)
             		result = F.fcn(F.symbol("bvmul"), args);
-            	else
+            	else {
+                    if (!isNumeral(lhs) && !isNumeral(rhs)) nonlinear = true;
             		result = F.fcn(F.symbol("*"), args);
+            	}
                 break;
             case DIV:
                 // FIXME - what kinds of primitive types should be expected
@@ -2466,7 +2552,12 @@ public class SMTTranslator extends JmlTreeScanner {
 //                            F.fcn(F.symbol("div"), args),
 //                            F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))
 //                            );
-                    result = F.fcn(F.symbol("|#cdiv#|"), args);
+                    if (!isNumeral(rhs)) nonlinear = true;
+                    if (inUntriggeredQuant && !isNumeral(rhs)) result = quantDivMod(cdivq, args);
+                    else {
+                        result = F.fcn(F.symbol("|#cdiv#|"), args);
+                        if (!inQuant) groundDivMods.add(new GroundDivMod(cdivq, args, result));
+                    }
                 }
                 break;
             case MOD:
@@ -2482,13 +2573,18 @@ public class SMTTranslator extends JmlTreeScanner {
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("/"), args))))),
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("-"), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("-"), F.fcn(F.symbol("/"), args)))))))
                             );
+                } else if (inUntriggeredQuant && !isNumeral(rhs)) {
+                    nonlinear = true;
+                    result = quantDivMod(cmodq, args);
                 } else {  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod rhs )
+                    if (!isNumeral(rhs)) nonlinear = true;
                     result = F.fcn(iteSym, 
                             F.fcn(F.symbol(">="),  args.get(0), zero), 
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), args))),
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))))
                             );
                     //result = F.fcn(F.symbol("|#cmod#|"), args);
+                    if (!inQuant) groundDivMods.add(new GroundDivMod(cmodq, args, result));
                 }
 //                result = F.fcn(iteSym, 
 //                        F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
@@ -3298,9 +3394,11 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         boolean prev = inQuant;
+        boolean prevUntriggered = inUntriggeredQuant;
         try {
             IExpr typeConstraint = null;
             inQuant = true;
+            inUntriggeredQuant = that.triggers == null || that.triggers.isEmpty();
             List<IDeclaration> params = new LinkedList<IDeclaration>();
             for (JCVariableDecl decl: that.decls) {
                 IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
@@ -3333,7 +3431,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (that.triggers != null && !that.triggers.isEmpty()) {
                     List<IExpr> triggers = convertExprList(that.triggers);
                     result = F.exists(params,value,triggers);
-                } {
+                } else {
                     result = F.exists(params,value);
                 }
                 break;
@@ -3362,6 +3460,7 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         } finally {
             inQuant = prev;
+            inUntriggeredQuant = prevUntriggered;
         }
     }
 

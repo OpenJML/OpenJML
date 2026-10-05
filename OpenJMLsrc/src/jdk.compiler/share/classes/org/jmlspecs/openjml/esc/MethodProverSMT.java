@@ -374,7 +374,7 @@ public class MethodProverSMT {
         Object o = JmlOption.TIMEOUT.value(context);
         if (o != null && !o.toString().isEmpty()) {
             try {
-                smt.smtConfig.timeout = Double.parseDouble(o.toString());
+                smt.smtConfig.timeout = Double.parseDouble(o.toString()); // 0 (or less) means no timeout
             } catch (NumberFormatException e) {
                 utils.warning("jml.message","Timeout value cannot be parsed as a double: " + o);
             }
@@ -562,6 +562,7 @@ public class MethodProverSMT {
                         }
                     }
                     String scriptString = program.toString();
+                    boolean warnedNonlinear = false; // the esc.feasibility.nonlinear warning is given at most once per method
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
@@ -670,6 +671,10 @@ public class MethodProverSMT {
                                     String msg4 = smt.smtConfig.defaultPrinter.toString(value);
                                     unknownReason = smt.smtConfig.responseFactory.error(msg2);
                                     boolean timeout = msg4.contains("timeout");
+                                    if (smttrans.nonlinear && !warnedNonlinear) {
+                                        warnedNonlinear = true;
+                                        utils.verify(methodDecl,"esc.feasibility.nonlinear",utils.qualifiedMethodSig(methodDecl.sym));
+                                    }
                                     if (timeout) {
                                         utils.verify(methodDecl,"esc.resourceout.feasibility",": " + msg3 + msg4);
                                         proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.TIMEOUT,start);
@@ -739,7 +744,7 @@ public class MethodProverSMT {
                         IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
                         if (r.isError()) {
                             String msg = ": ";
-                            if (JmlOption.TIMEOUT.value(context) != null) msg = " (possible timeout): ";
+                            if (smt.smtConfig.timeout > 0) msg = " (possible timeout): ";
                             utils.verify(methodDecl,"esc.nomodel","method " + utils.qualifiedName(methodDecl.sym) + " - " + msg + r);
                             if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.UNKNOWN,start);
                             break b;
@@ -751,7 +756,7 @@ public class MethodProverSMT {
                     IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
                     if (r.isError()) {
                         String msg = ": ";
-                        if (JmlOption.TIMEOUT.value(context) != null) msg = " (possible timeout): ";
+                        if (smt.smtConfig.timeout > 0) msg = " (possible timeout): ";
                         utils.verify(methodDecl,"esc.nomodel",msg + r);
                         if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.UNKNOWN,start);
                         break b;

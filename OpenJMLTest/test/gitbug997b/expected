@@ -1,0 +1,27 @@
+test/gitbug997b/NoTrigger.java:4: warning: No term in this quantified expression can serve as an SMT trigger for i: it is used only in arithmetic, comparisons or logical operations, so the solver may not use the quantifier, or may instantiate it without end; consider stating the property with a model function or pure method
+  //@ requires (\forall int i; 0 <= i < 10; i * i >= 0);  // warning: i occurs only in arithmetic
+                ^
+test/gitbug997b/NoTrigger.java:7: warning: No term in this quantified expression can serve as an SMT trigger for c: it is used only in arithmetic, comparisons or logical operations, so the solver may not use the quantifier, or may instantiate it without end; consider stating the property with a model function or pure method
+  //@ requires (\forall int c; c > 0; c % 2 >= 0);  // warning: c % 2 is linear arithmetic
+                ^
+Proving methods in Feas
+Starting proof of Feas.Feas() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Feas.Feas() with prover !!!! - no warnings
+Starting proof of Feas.fermat(int,int,int) with prover !!!!
+test/gitbug997b/Feas.java:7: verify: A feasibility check of Feas.fermat(int,int,int) was not decided: its verification condition uses nonlinear integer arithmetic (a product of non-constant values, or a division or remainder by a non-constant value), for which the SMT solver often cannot find a model; --check-feasibility=none turns these checks off
+  public void fermat(int x, int y, int z) {
+              ^
+Aborted feasibility check:  unknown reason: "canceled"
+Completed proof of Feas.fermat(int,int,int) with prover !!!! - no warnings
+Completed proving methods in Feas
+Proving methods in NoTrigger
+Starting proof of NoTrigger.NoTrigger() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of NoTrigger.NoTrigger() with prover !!!! - no warnings
+Starting proof of NoTrigger.m(int[],int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of NoTrigger.m(int[],int) with prover !!!! - no warnings
+Completed proving methods in NoTrigger
+2 warnings
+1 verification failure
