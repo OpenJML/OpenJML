@@ -5378,7 +5378,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat(comment(sc, "   Checking " + clause, sc.sourcefile));
                     anyClauses = true;
 
-                    var lsexpr = convertAssignableToLocsetExpression(sc, sc.list, (ClassSymbol)parentMethodSym.owner, true); // FIXME - should this be the class of methodDecl or of the parent
+                    // The frame is checked against the body of methodDecl, so its model fields are expanded
+                    // using the in and maps clauses visible from methodDecl's class, not just from the class
+                    // declaring the (possibly inherited) specification case (#980)
+                    var lsexpr = convertAssignableToLocsetExpression(sc, sc.list, (ClassSymbol)methodDecl.sym.owner, true);
                     //System.out.println("MAIN METHOD LIST: " + clause + " :: " + lsexpr);
                     addStat(comment(sc, "     Resulting locset: " + lsexpr, sc.sourcefile));
                     sc.locset = lsexpr;
@@ -5620,6 +5623,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			return;
 		}
 		// FIXME - what if there is no declaration found?
+	}
+
+	/** Converts an expression of a method specification clause, as convertJML does, but with the log's
+	 * source set to the clause's file: the assertions created along the way (e.g. well-definedness checks)
+	 * take their position from the expression, so they must also take their file from it. The clause may
+	 * be inherited from a different file than the method being checked (#980).
+	 */
+	protected JCExpression convertClauseExpression(JmlMethodClause clause, JCExpression ex, JCExpression condition) {
+		JavaFileObject prev = log.useSource(clause.source());
+		try {
+			return convertJML(ex, condition, true);
+		} finally {
+			log.useSource(prev);
+		}
 	}
 
 	protected void addPostConditions(ListBuffer<JCStatement> finalizeStats) {
@@ -6005,7 +6022,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								ListBuffer<JCStatement> ch = pushBlock();
 								try {
 									JCExpression ex = ((JmlMethodClauseExpr) clause).expression;
-									JCExpression convertedex = convertJML(ex, preident, true);
+									JCExpression convertedex = convertClauseExpression(clause, ex, preident);
 									// ex = treeutils.makeImplies(clause.pos, preident, ex);
 									addTraceableComment(ex, clause.toString());
 									// FIXME - if the clause is synthetic, the source file may be null, and for
@@ -6057,7 +6074,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										addStat(vd);
 									}
 
-									ex = convertJML(ex, preident, true);
+									ex = convertClauseExpression(clause, ex, preident);
 									ex = treeutils.makeImplies(clause, preident, ex);
 									addAssert(methodDecl, Label.SIGNALS, ex, clause, clause.sourcefile);
 								} finally {
@@ -6124,8 +6141,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									ListBuffer<JCStatement> ch = pushBlock();
 									try {
 										// addTraceableComment(ex,clause.toString());
-										convertJML(ex, preident, true);
-										convertJML(pred, preident, true);
+										convertClauseExpression(clause, ex, preident);
+										convertClauseExpression(clause, pred, preident);
 										ex = treeutils.makeImplies(clause, preident, ex);
 										// addAssert(methodDecl,Label.SIGNALS,ex,currentStatements,clause,clause.sourcefile);
 									} finally {
