@@ -189,6 +189,11 @@ public class escfiles3 extends EscBaseFiles {
         // because of nonlinear arithmetic (the short timeout ends it quickly)
         helpEscSimple("--timeout=5","--check-feasibility=precondition");
     }
+
+    @Test
+    public void gitbug1000() {
+        helpEscSimple();
+    }
     
     @Test
     public void byteQuant() {

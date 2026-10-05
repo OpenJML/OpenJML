@@ -506,6 +506,12 @@ public class racfiles extends RacBase {
         helpCompileRun("Main");
     }
 
+    @Test
+    public void gitbug1000rac() {
+        // \max and \min with an empty range are reported as not defined
+        helpCompileRun("MinMaxRac");
+    }
+
     @Test @Ignore // not a complete program; appears to be an abandoned demo
     public void racRM1() {
         helpCompileRun("MaxSumArray","-code-math=java","-spec-math=java");

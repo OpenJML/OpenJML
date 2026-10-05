@@ -1,0 +1,62 @@
+Proving methods in MinMaxChecks
+Starting proof of MinMaxChecks.MinMaxChecks() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MinMaxChecks.MinMaxChecks() with prover !!!! - no warnings
+Starting proof of MinMaxChecks.concrete(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MinMaxChecks.concrete(int[]) with prover !!!! - no warnings
+Starting proof of MinMaxChecks.concreteLong(long[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MinMaxChecks.concreteLong(long[]) with prover !!!! - no warnings
+Starting proof of MinMaxChecks.emptyMax() with prover !!!!
+test/gitbug1000/MinMaxChecks.java:19: verify: The prover cannot establish an assertion (MaxNotDefined) in method emptyMax
+        //@ assert (\max int i; 0 <= i < 0; i) == 0; // FAILS: MaxNotDefined
+                    ^
+Completed proof of MinMaxChecks.emptyMax() with prover !!!! - with warnings
+Starting proof of MinMaxChecks.emptyMin() with prover !!!!
+test/gitbug1000/MinMaxChecks.java:23: verify: The prover cannot establish an assertion (MinNotDefined) in method emptyMin
+        //@ assert (\min int i; 0 <= i < 0; i) == 0; // FAILS: MinNotDefined
+                    ^
+Completed proof of MinMaxChecks.emptyMin() with prover !!!! - with warnings
+Starting proof of MinMaxChecks.maybeEmpty(int[]) with prover !!!!
+test/gitbug1000/MinMaxChecks.java:27: verify: The prover cannot establish an assertion (MaxNotDefined) in method maybeEmpty
+        //@ assert (\max int i; 0 <= i < a.length; a[i]) >= a[0]; // FAILS: MaxNotDefined, as a may be empty
+                    ^
+Completed proof of MinMaxChecks.maybeEmpty(int[]) with prover !!!! - with warnings
+Starting proof of MinMaxChecks.filtered(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MinMaxChecks.filtered(int[]) with prover !!!! - no warnings
+Starting proof of MinMaxChecks.guarded(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MinMaxChecks.guarded(int[]) with prover !!!! - no warnings
+Starting proof of MinMaxChecks.wrongMax(int[]) with prover !!!!
+test/gitbug1000/MinMaxChecks.java:44: verify: The prover cannot establish an assertion (Assert) in method wrongMax
+        //@ assert (\max int i; 0 <= i < a.length; a[i]) == 4; // FAILS
+            ^
+Completed proof of MinMaxChecks.wrongMax(int[]) with prover !!!! - with warnings
+Starting proof of MinMaxChecks.wrongMin(int[]) with prover !!!!
+test/gitbug1000/MinMaxChecks.java:49: verify: The prover cannot establish an assertion (Assert) in method wrongMin
+        //@ assert (\min int i; 0 <= i < a.length; a[i]) == 4; // FAILS
+            ^
+Completed proof of MinMaxChecks.wrongMin(int[]) with prover !!!! - with warnings
+Completed proving methods in MinMaxChecks
+Proving methods in MinMaxExample
+Starting proof of MinMaxExample.MinMaxExample() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MinMaxExample.MinMaxExample() with prover !!!! - no warnings
+Starting proof of MinMaxExample.minOfPosArray(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MinMaxExample.minOfPosArray(int[]) with prover !!!! - no warnings
+Starting proof of MinMaxExample.maxOfPosArray(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MinMaxExample.maxOfPosArray(int[]) with prover !!!! - no warnings
+Completed proving methods in MinMaxExample
+5 verification failures
