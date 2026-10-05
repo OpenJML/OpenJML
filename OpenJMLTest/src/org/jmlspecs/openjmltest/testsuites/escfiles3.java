@@ -194,6 +194,19 @@ public class escfiles3 extends EscBaseFiles {
     public void gitbug1000() {
         helpEscSimple();
     }
+
+    @Test
+    public void gitbug1001() {
+        // \sum, \product and \num_of, translated into recursive SMT functions (a port of PR #773)
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug1001b() {
+        // Loop invariants with \sum and \product that ESC does not yet prove (a short timeout keeps the
+        // result 'Validity is unknown' on any machine)
+        helpEscSimple("--timeout=10","--check-feasibility=none");
+    }
     
     @Test
     public void byteQuant() {

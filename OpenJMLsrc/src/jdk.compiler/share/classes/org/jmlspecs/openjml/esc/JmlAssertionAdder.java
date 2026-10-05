@@ -270,6 +270,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // set by the superclass constructor, which is called before all the fields of 
     // this derived class are initialized
     final public Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+
+    /** The number of \sum or \product bodies (with integral values) being translated; within them
+     * arithmetic is \bigint, and a nested \sum or \product is not converted to its declared type */
+    protected int bigintQuantifierDepth = 0;
     final public Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
     final public Type STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
     final public Type ARRAY = JmlPrimitiveTypes.arrayTypeKind.getType(context);
@@ -21412,12 +21416,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					    }
 					}
 
-					JCExpression value = convertNoSplit(that.value);
+					// The body of a \sum or \product is \bigint arithmetic: an integral body is widened to
+					// \bigint, and a \sum or \product within it is not converted to its declared type
+					boolean bigintBody = (key.equals(qsumID) || key.equals(qproductID)) && that.value.type.isIntegral();
+					if (bigintBody) bigintQuantifierDepth++;
+					JCExpression value;
+					try {
+					    value = convertNoSplit(that.value);
+					} finally {
+					    if (bigintBody) bigintQuantifierDepth--;
+					}
 					Type targetType = that.kind == qforallKind ? syms.booleanType
                             : that.kind == qexistsKind ? syms.booleanType
-							: that.kind == qnumofKind ? syms.booleanType : that.value.type; // FIXME - not sure
-																									// about this
-																									// default
+							: that.kind == qnumofKind ? syms.booleanType
+							: bigintBody ? BIGINT : that.value.type; // FIXME - not sure about this default
 					value = addImplicitConversion(value, targetType, value);
 					JmlQuantifiedExpr q = M.at(that).JmlQuantifiedExpr(that.kind, dd,
 							range, value);
@@ -21558,6 +21570,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         JCBlock bl = popBlock(that);
                         nonignoredStatements.addAll(bl.stats);
                         result = eresult = treeutils.makeIdent(that.pos, ndecl.sym);
+                    } else if ((key.equals(qsumID) || key.equals(qproductID)) && that.type.isIntegral()
+                            && dd.size() == 1 && IntegerRangeBounds.of(dd.head.sym, range).boundsRecursion()) {
+                        // (Only for the forms SMTTranslator.recursiveQuantifier translates; others are reported
+                        // there as not supported, and their value is unconstrained)
+                        // The arithmetic within \sum and \product is \bigint arithmetic (the SMT translation
+                        // computes over unbounded integers); a result of a fixed-range type is that value
+                        // converted to the type, with the same check (or wrap-around) as an explicit cast --
+                        // unless it is itself within the body of a \sum or \product, where it stays \bigint
+                        q.setType(BIGINT);
+                        if (bigintQuantifierDepth > 0) {
+                            result = eresult = q;
+                        } else {
+                            pushBlock();
+                            JCExpression converted = addConversion(that, that.type, q, true, true);
+                            JCBlock bl = popBlock(that);
+                            nonignoredStatements.addAll(bl.stats);
+                            result = eresult = converted;
+                        }
                     } else{
 					    result = eresult = q;
 					}
@@ -21943,74 +21973,23 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    if (decls.size() != 1 || range == null) return null;
 	    var x = decls.head.sym;
 	    if (!(x.type.isIntegral() || x.type.tsym == BIGINT.tsym)) return null;
-	    var conjuncts = new java.util.ArrayList<JCBinary>();
-	    if (!comparisonConjuncts(range, conjuncts)) return null;
-	    var lows = new java.util.ArrayList<JCExpression>();  // bounds with x on the right: L <= x or L < x
-	    var lowStrict = new java.util.ArrayList<Boolean>();
-	    var highs = new java.util.ArrayList<JCExpression>(); // bounds with x on the left: x <= U or x < U
-	    var highStrict = new java.util.ArrayList<Boolean>();
-	    for (JCBinary c: conjuncts) {
-	        JCExpression lhs = TreeInfo.skipParens(c.lhs), rhs = TreeInfo.skipParens(c.rhs);
-	        boolean xLeft = lhs instanceof JCIdent id && id.sym == x && !mentions(rhs, x);
-	        boolean xRight = rhs instanceof JCIdent id && id.sym == x && !mentions(lhs, x);
-	        if (xLeft == xRight) return null;
-	        JCExpression other = xLeft ? rhs : lhs;
-	        switch (c.getTag()) {
-	            case LT, LE -> { // x < other is an upper bound; other < x a lower bound
-	                if (xLeft) { highs.add(other); highStrict.add(c.hasTag(JCTree.Tag.LT)); }
-	                else { lows.add(other); lowStrict.add(c.hasTag(JCTree.Tag.LT)); }
-	            }
-	            case GT, GE -> { // x > other is a lower bound; other > x an upper bound
-	                if (xLeft) { lows.add(other); lowStrict.add(c.hasTag(JCTree.Tag.GT)); }
-	                else { highs.add(other); highStrict.add(c.hasTag(JCTree.Tag.GT)); }
-	            }
-	            default -> { return null; }
-	        }
-	    }
-	    if (lows.isEmpty() || highs.isEmpty()) return null; // unbounded on one side: x exists
+	    var bounds = IntegerRangeBounds.of(x, range);
+	    if (!bounds.exact) return null;
+	    if (bounds.lower.isEmpty() || bounds.upper.isEmpty()) return null; // unbounded on one side: x exists
 	    JCExpression result = null;
-	    for (int i = 0; i < lows.size(); i++) {
-	        for (int j = 0; j < highs.size(); j++) {
-	            JCExpression lo = lows.get(i), hi = highs.get(j);
+	    for (var lo: bounds.lower) {
+	        for (var hi: bounds.upper) {
 	            JCExpression c;
-	            if (lowStrict.get(i) && highStrict.get(j)) {
+	            if (lo.strict() && hi.strict()) {
 	                c = treeutils.makeBinary(range.pos, JCTree.Tag.LT,
-	                        treeutils.makeBinary(range.pos, JCTree.Tag.PLUS, lo, treeutils.makeIntLiteral(range.pos, 1)), hi);
+	                        treeutils.makeBinary(range.pos, JCTree.Tag.PLUS, lo.expr(), treeutils.makeIntLiteral(range.pos, 1)), hi.expr());
 	            } else {
-	                c = treeutils.makeBinary(range.pos, lowStrict.get(i) || highStrict.get(j) ? JCTree.Tag.LT : JCTree.Tag.LE, lo, hi);
+	                c = treeutils.makeBinary(range.pos, lo.strict() || hi.strict() ? JCTree.Tag.LT : JCTree.Tag.LE, lo.expr(), hi.expr());
 	            }
 	            result = result == null ? c : treeutils.makeAnd(range.pos, result, c);
 	        }
 	    }
 	    return result;
-	}
-
-	/** Adds the comparisons (<, <=, >, >=) whose conjunction (&& or &) is e to list; false if e is not such a conjunction */
-	protected boolean comparisonConjuncts(JCExpression e, java.util.List<JCBinary> list) {
-	    e = TreeInfo.skipParens(e);
-	    if (e instanceof JCBinary b) {
-	        switch (b.getTag()) {
-	            case AND: case BITAND: // a chained comparison such as 0 <= x < n becomes 0 <= x & x < n
-	                return comparisonConjuncts(b.lhs, list) && comparisonConjuncts(b.rhs, list);
-	            case LT: case LE: case GT: case GE: list.add(b); return true;
-	            default: return false;
-	        }
-	    }
-	    if (e instanceof JmlChained ch) {
-	        for (JCBinary b: ch.conjuncts) if (!comparisonConjuncts(b, list)) return false;
-	        return true;
-	    }
-	    return e instanceof JCLiteral lit && Boolean.TRUE.equals(lit.getValue());
-	}
-
-	/** Whether e mentions the variable sym */
-	protected static boolean mentions(JCExpression e, Symbol sym) {
-	    boolean[] found = { false };
-	    new JmlTreeScanner() {
-	        @Override
-	        public void visitIdent(JCIdent id) { if (id.sym == sym) found[0] = true; }
-	    }.scan(e);
-	    return found[0];
 	}
 
 	// FIXME - duplicate with what is in JmlAttr?

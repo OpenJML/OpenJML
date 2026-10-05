@@ -214,6 +214,17 @@ public class SMTTranslator extends JmlTreeScanner {
     /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
 
+    /** The variables bound (by quantifiers, \\let and function definitions) around the expression
+     * being translated, innermost last. A recursive function that translates \\sum, \\product or
+     * \\num_of takes them as parameters, since its body may use them (see recursiveQuantifier). */
+    protected final LinkedList<IDeclaration> bindingScope = new LinkedList<>();
+
+    /** A counter that makes the names of the recursive functions for \\sum, \\product and \\num_of unique */
+    protected int recursiveQuantifierCount = 0;
+
+    /** The recursive functions defined in the current script, by their definition (see recursiveQuantifier) */
+    protected final java.util.Map<String,ISymbol> recursiveFunctions = new java.util.HashMap<>();
+
     /** True when translating the body of a quantified expression that has no explicit triggers, so
      * that the solver must infer triggers from the body (see quantDivMod) */
     boolean inUntriggeredQuant = false;
@@ -894,6 +905,7 @@ public class SMTTranslator extends JmlTreeScanner {
         commands = new LinkedList<ICommand>();
         cdivqDeclared = cmodqDeclared = false;
         groundDivMods.clear();
+        recursiveFunctions.clear();
         
         // FIXME - use factory for the commands?
         // set any options
@@ -1942,6 +1954,108 @@ public class SMTTranslator extends JmlTreeScanner {
         throw new JmlBVException();
     }
     
+    /** Reports that quantified expression 'that' is not supported, and returns a new constant for its value */
+    protected IExpr unsupportedQuantifier(JmlQuantifiedExpr that) {
+        notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
+        ISymbol sym = F.symbol(makeBarEnclosedString(that));
+        addConstant(sym,convertSort(that.type),null);
+        return sym;
+    }
+
+    /** Translates (\\sum T x; R; V), (\\product T x; R; V) or (\\num_of T x; R; V) -- given the
+     * translations range (of R) and value (of V), the declaration of x in params, and the variables
+     * bound around the expression in outerScope -- into a call of a recursive function
+     * <pre>
+     *   (define-fun-rec f ((lo Int) (x Int) outer...) S
+     *      (ite (&lt; x lo) base (op (f lo (- x 1) outer...) (ite R V base))))
+     * </pre>
+     * applied to (lo, hi, outer...), where op is + (or * for \\product), base is 0 (or 1), and lo
+     * and hi are the greatest lower and least upper bound on x among the comparisons in R (see
+     * IntegerRangeBounds); \\num_of is the \\sum of 1 over R && V. The solver uses the definition
+     * by unfolding it, not by induction: for a range of known size it in effect computes the
+     * result, and for a symbolic range it can relate f(lo, k) to f(lo, k-1). The recursion is on
+     * the upper end so that one unfolding gives the step a loop that accumulates over increasing
+     * x needs, e.g. (\\sum 0 <= j < k+1) == (\\sum 0 <= j < k) + a[k]. Since R is re-checked for each
+     * x, R may have conjuncts other than its bounds. Returns null, for the caller to report the
+     * expression as not supported, if x is not a single integral variable, if R does not bound x
+     * on both sides, if the result is not an integer, or in bit-vector mode. Based on PR #773 by the
+     * OpenJML Senior Design group. */
+    protected /*@ nullable */ IExpr recursiveQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value,
+            List<IDeclaration> params, List<IDeclaration> outerScope) {
+        if (useBV || params.size() != 1 || params.get(0).sort() != intSort) return null;
+        ISort resultSort = convertSort(that.type);
+        if (resultSort != intSort) return null;
+        IntegerRangeBounds bounds = IntegerRangeBounds.of(that.decls.head.sym, that.range);
+        IDeclaration x = params.get(0);
+        // The range of x's type is conjoined to every range (JmlAssertionAdder); its bounds are not
+        // bounds the function can recur over (2^32 or more steps), so they do not count toward lo
+        // and hi, but are kept as a guard on each term
+        IExpr guard = null;
+        for (var list: java.util.List.of(bounds.lower, bounds.upper)) {
+            for (var b: list) {
+                if (!IntegerRangeBounds.isTypeExtreme(b.expr())) continue;
+                IExpr e = convertExpr(b.expr());
+                IExpr c = list == bounds.lower ? F.fcn(F.symbol(b.strict() ? "<" : "<="), e, x.parameter())
+                                               : F.fcn(F.symbol(b.strict() ? "<" : "<="), x.parameter(), e);
+                guard = guard == null ? c : F.fcn(andSym, guard, c);
+            }
+        }
+        bounds.lower.removeIf(b -> IntegerRangeBounds.isTypeExtreme(b.expr()));
+        bounds.upper.removeIf(b -> IntegerRangeBounds.isTypeExtreme(b.expr()));
+        if (bounds.lower.isEmpty() || bounds.upper.isEmpty()) return null;
+        // lo is the greatest lower bound, hi the least upper bound; a strict bound is moved by one
+        IExpr lo = null, hi = null;
+        for (var b: bounds.lower) {
+            IExpr e = convertExpr(b.expr());
+            if (b.strict()) e = F.fcn(F.symbol("+"), e, F.numeral(1));
+            lo = lo == null ? e : F.fcn(iteSym, F.fcn(F.symbol(">="), lo, e), lo, e);
+        }
+        for (var b: bounds.upper) {
+            IExpr e = convertExpr(b.expr());
+            if (b.strict()) e = F.fcn(F.symbol("-"), e, F.numeral(1));
+            hi = hi == null ? e : F.fcn(iteSym, F.fcn(F.symbol("<="), hi, e), hi, e);
+        }
+        String kind = that.kind.keyword();
+        boolean isProduct = kind.equals(QuantifiedExpressions.qproductID);
+        IExpr base = F.numeral(isProduct ? 1 : 0);
+        // When R consists only of the bounds, lo <= x <= hi implies it, and the term need not test it
+        // (beyond the guard); then the function does not mention the variables in the bounds (such
+        // as a loop's \\count), and occurrences that differ only in their bounds share it
+        IExpr test = bounds.exact ? guard : range;
+        if (kind.equals(QuantifiedExpressions.qnumofID)) {
+            test = test == null ? value : F.fcn(andSym, test, value);
+            value = F.numeral(1);
+        }
+        IExpr term = test == null ? value : F.fcn(iteSym, test, value, base);
+        ISymbol loSym = F.symbol("|#lo#|");
+        List<IDeclaration> fparams = new LinkedList<>();
+        fparams.add(F.declaration(loSym, intSort));
+        fparams.add(x);
+        fparams.addAll(outerScope);
+        List<IExpr> recursiveArgs = new LinkedList<>();
+        recursiveArgs.add(loSym);
+        recursiveArgs.add(F.fcn(F.symbol("-"), x.parameter(), F.numeral(1)));
+        for (IDeclaration d: outerScope) recursiveArgs.add(d.parameter());
+        java.util.function.Function<ISymbol,IExpr> bodyOf = f -> F.fcn(iteSym, F.fcn(F.symbol("<"), x.parameter(), loSym), base,
+                F.fcn(F.symbol(isProduct ? "*" : "+"), F.fcn(f, recursiveArgs), term));
+        // Occurrences with the same definition (up to the name of x) share one function, so that the
+        // solver can equate, e.g., a loop invariant's \\sum with a postcondition's
+        String xname = java.util.regex.Pattern.quote(x.parameter().toString());
+        String key = (kind + " " + fparams + " " + bodyOf.apply(F.symbol("|#f#|")))
+                .replaceAll("(?<=[\\s(])" + xname + "(?=[\\s)])", "|#x#|");
+        ISymbol f = recursiveFunctions.get(key);
+        if (f == null) {
+            f = F.symbol("|#" + kind.substring(1) + "_" + (++recursiveQuantifierCount) + "#|");
+            recursiveFunctions.put(key, f);
+            commands.add(new C_define_fun_rec(f, fparams, resultSort, bodyOf.apply(f)));
+        }
+        List<IExpr> args = new LinkedList<>();
+        args.add(lo);
+        args.add(hi);
+        for (IDeclaration d: outerScope) args.add(d.parameter());
+        return F.fcn(f, args);
+    }
+
     /** Whether e is an integer numeral, possibly negated */
     static boolean isNumeral(IExpr e) {
         if (e instanceof IExpr.INumeral) return true;
@@ -2061,7 +2175,14 @@ public class SMTTranslator extends JmlTreeScanner {
                 boundNames.add(d.parameter().toString());
                 argDecls.add(d);
             }
-            C_define_fun c = new C_define_fun(n, argDecls, resultSort, convertExpr(expr));
+            bindingScope.addAll(argDecls);
+            IExpr body;
+            try {
+                body = convertExpr(expr);
+            } finally {
+                for (int i = 0; i < argDecls.size(); i++) bindingScope.removeLast();
+            }
+            C_define_fun c = new C_define_fun(n, argDecls, resultSort, body);
             commands.add(c);
         }
         
@@ -3385,7 +3506,12 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr e = convertExpr(decl.init);
             List<IBinding> bindings = new LinkedList<IBinding>();
             bindings.add(F.binding(sym,e));
-            return F.let(bindings, doLet(iter,expr));
+            bindingScope.add(F.declaration(sym, convertSort(decl.type)));
+            try {
+                return F.let(bindings, doLet(iter,expr));
+            } finally {
+                bindingScope.removeLast();
+            }
         } else {
             return convertExpr(expr);
         }
@@ -3410,10 +3536,17 @@ public class SMTTranslator extends JmlTreeScanner {
                     typeConstraint = typeConstraint == null ? c : F.fcn(andSym, typeConstraint, c);
                 }
             }
-            scan(that.range);
-            IExpr range = result;
-            scan(that.value);
-            IExpr value = result;
+            List<IDeclaration> outerScope = new LinkedList<>(bindingScope);
+            bindingScope.addAll(params);
+            IExpr range, value;
+            try {
+                scan(that.range);
+                range = result;
+                scan(that.value);
+                value = result;
+            } finally {
+                for (int i = 0; i < params.size(); i++) bindingScope.removeLast();
+            }
             switch (that.kind.keyword()) {
             case QuantifiedExpressions.qforallID:
                 if (range != null) value = F.fcn(impliesSym,range,value);
@@ -3435,11 +3568,14 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.exists(params,value);
                 }
                 break;
+            case QuantifiedExpressions.qsumID:
+            case QuantifiedExpressions.qproductID:
+            case QuantifiedExpressions.qnumofID:
+                result = recursiveQuantifier(that, range, value, params, outerScope);
+                if (result == null) result = unsupportedQuantifier(that); // not a form that can be translated
+                break;
             default:
-                notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
-                ISymbol sym = F.symbol(makeBarEnclosedString(that));
-                addConstant(sym,convertSort(that.type),null);
-                result = sym;
+                result = unsupportedQuantifier(that);
             }
             // Can't do this, because then the quantified expression is evaluated
             // in the wrong context (I think)
