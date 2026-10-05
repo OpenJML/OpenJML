@@ -136,7 +136,6 @@ escfiles2.gitbug450b		#	ArrayList contains
 escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
-escfileslist2.test[escConstructor5]	# Feasibility problem or invariant problem
 escfileslist2.test[choose-repeat]
 escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
@@ -174,17 +173,14 @@ escfiles2.gitbug812a
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 ## Issue 842 -- specs for 812 and 814
 
-primesc2.jmlreal                 # feasibility check times out
 escwebexamples.HeapSort
 
 escsf3.gitbug712                      # String literal ("Alice") problem
 
 escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
 escfiles2.gitbug726                   # OLList problem
-escfiles2.gitbug880                   # Helloworld infeasible
 escfiles2.gitbug903                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 escfiles3.gitbug814                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-escfileslist1.test[escDoubleArith]    # feasibility problem with real arithmetic
 escfileslist3.test[gitbug944]         # bad translation for \seq<\bigint>
 runscripts2.apiASTCrash               # CRASH in Attr
 
