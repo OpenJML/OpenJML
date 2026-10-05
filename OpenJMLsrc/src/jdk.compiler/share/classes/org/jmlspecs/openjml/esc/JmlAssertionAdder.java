@@ -21529,6 +21529,35 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }.copy(value);
 					        result = eresult = value;
 					    }
+                    } else if (key.equals(qmaxID) || key.equals(qminID)) {
+                        // (\max T x; R; V) is well-defined only if some x satisfies R, which is asserted
+                        // (as for \choose). Its value is a new variable m with: every V (for x satisfying R)
+                        // is at most m, and some V equals m. \min is the mirror image.
+                        // The keyword is compared, not the kind, because \max has two kinds (see #987).
+                        boolean isMax = key.equals(qmaxID);
+                        pushBlock();
+                        JCExpression r = range != null ? range : treeutils.trueLit;
+                        JCExpression nonEmpty = nonEmptyIntegerRange(dd, r);
+                        if (nonEmpty == null) {
+                            var ex = M.at(that).JmlQuantifiedExpr(qexistsKind, dd, r, treeutils.trueLit);
+                            ex.setType(syms.booleanType);
+                            nonEmpty = ex;
+                        }
+                        addAssert(that, isMax ? Label.MAX : Label.MIN, nonEmpty);
+                        var ndecl = newTempDecl(that, uniqueTempString(isMax ? "_JMLmax" : "_JMLmin"), that.type);
+                        addStat(ndecl);
+                        JmlQuantifiedExpr bounded = M.at(that).JmlQuantifiedExpr(qforallKind, dd, r,
+                                treeutils.makeBinary(that.pos, isMax ? JCTree.Tag.LE : JCTree.Tag.GE, value,
+                                        treeutils.makeIdent(that.pos, ndecl.sym)));
+                        bounded.setType(syms.booleanType);
+                        addAssume(that, Label.IMPLICIT_ASSUME, bounded);
+                        JmlQuantifiedExpr attained = M.at(that).JmlQuantifiedExpr(qexistsKind, dd, r,
+                                treeutils.makeEquality(that.pos, value, treeutils.makeIdent(that.pos, ndecl.sym)));
+                        attained.setType(syms.booleanType);
+                        addAssume(that, Label.IMPLICIT_ASSUME, attained);
+                        JCBlock bl = popBlock(that);
+                        nonignoredStatements.addAll(bl.stats);
+                        result = eresult = treeutils.makeIdent(that.pos, ndecl.sym);
                     } else{
 					    result = eresult = q;
 					}
@@ -21578,6 +21607,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (utils.rac && key == qchooseID) decl.init = treeutils.makeZeroEquivalentLit(that, t);
 				addStat(decl);
 				JCBlock failureBlock = null;
+				// \max and \min are not defined when no value satisfies the range (as for \choose): this
+				// flag records whether one did
+				JCVariableDecl foundMaxMin = null;
+				if (key.equals(qmaxID) || key.equals(qminID)) {
+				    foundMaxMin = treeutils.makeVarDef(syms.booleanType, names.fromString("_JML$found$$" + nextUnique()), ownersym, that.pos);
+				    foundMaxMin.init = treeutils.falseLit;
+				    addStat(foundMaxMin);
+				}
 				
 				// Label for the loop, so we can break out of it
 				Name label = names.fromString(Strings.genPrefix + "while_" + nextUnique());
@@ -21750,8 +21787,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												"RAC not implemented for this type: " + that.type);
 
 									}
-									// FIXME - what about \bigint? should \min and \max be undefined if the range is
-									// empty?
+									// FIXME - what about \bigint?
 									JCExpression tmp = !splitExpressions ? newTemp(val) : val; // Make an ID if not
 																								// already
 									st = treeutils.makeAssignStat(that.pos, id, tmp);
@@ -21759,6 +21795,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											.If(treeutils.makeBinary(that.pos,
 													that.kind != qminKind ? JCTree.Tag.LT : JCTree.Tag.GT, idd, tmp),
 													st, null);
+									// { found = true; if (accumulator </> val) accumulator = val; }
+									st = M.at(that.pos).Block(0, List.<JCStatement>of(
+									        treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, foundMaxMin.sym), treeutils.trueLit),
+									        st));
 									break;
 
 								default:
@@ -21876,6 +21916,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} finally {
 					addStat(popBlock(that, check)); // B // pops enclosing block
 				}
+				if (foundMaxMin != null) {
+				    addAssert(that, key.equals(qmaxID) ? Label.MAX : Label.MIN, treeutils.makeIdent(that.pos, foundMaxMin.sym));
+				}
 				result = eresult = treeutils.makeIdent(that.pos, decl.sym);
 			}
 		} finally {
@@ -21884,6 +21927,90 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		return;
+	}
+
+	/**
+	 * A quantifier-free condition equivalent to (\\exists x; range; true), for a single integral
+	 * variable x and a range that is a conjunction of comparisons, each with x alone on one side
+	 * (e.g. 0 <= x < a.length, conjoined with the range of x's type); null otherwise. An integer x
+	 * satisfying all lower bounds L and upper bounds U exists exactly when every L is at most every
+	 * U, after a strict bound is moved by one: L < U if one of the pair is strict, L + 1 < U if both
+	 * are. The SMT solver proves an existential over integers only by instantiating it, which it
+	 * cannot do here (the range offers no trigger), so a well-definedness check stated as
+	 * (\\exists x; range; true) would fail even for a range such as 0 <= x < 3.
+	 */
+	protected /*@ nullable */ JCExpression nonEmptyIntegerRange(List<JCVariableDecl> decls, JCExpression range) {
+	    if (decls.size() != 1 || range == null) return null;
+	    var x = decls.head.sym;
+	    if (!(x.type.isIntegral() || x.type.tsym == BIGINT.tsym)) return null;
+	    var conjuncts = new java.util.ArrayList<JCBinary>();
+	    if (!comparisonConjuncts(range, conjuncts)) return null;
+	    var lows = new java.util.ArrayList<JCExpression>();  // bounds with x on the right: L <= x or L < x
+	    var lowStrict = new java.util.ArrayList<Boolean>();
+	    var highs = new java.util.ArrayList<JCExpression>(); // bounds with x on the left: x <= U or x < U
+	    var highStrict = new java.util.ArrayList<Boolean>();
+	    for (JCBinary c: conjuncts) {
+	        JCExpression lhs = TreeInfo.skipParens(c.lhs), rhs = TreeInfo.skipParens(c.rhs);
+	        boolean xLeft = lhs instanceof JCIdent id && id.sym == x && !mentions(rhs, x);
+	        boolean xRight = rhs instanceof JCIdent id && id.sym == x && !mentions(lhs, x);
+	        if (xLeft == xRight) return null;
+	        JCExpression other = xLeft ? rhs : lhs;
+	        switch (c.getTag()) {
+	            case LT, LE -> { // x < other is an upper bound; other < x a lower bound
+	                if (xLeft) { highs.add(other); highStrict.add(c.hasTag(JCTree.Tag.LT)); }
+	                else { lows.add(other); lowStrict.add(c.hasTag(JCTree.Tag.LT)); }
+	            }
+	            case GT, GE -> { // x > other is a lower bound; other > x an upper bound
+	                if (xLeft) { lows.add(other); lowStrict.add(c.hasTag(JCTree.Tag.GT)); }
+	                else { highs.add(other); highStrict.add(c.hasTag(JCTree.Tag.GT)); }
+	            }
+	            default -> { return null; }
+	        }
+	    }
+	    if (lows.isEmpty() || highs.isEmpty()) return null; // unbounded on one side: x exists
+	    JCExpression result = null;
+	    for (int i = 0; i < lows.size(); i++) {
+	        for (int j = 0; j < highs.size(); j++) {
+	            JCExpression lo = lows.get(i), hi = highs.get(j);
+	            JCExpression c;
+	            if (lowStrict.get(i) && highStrict.get(j)) {
+	                c = treeutils.makeBinary(range.pos, JCTree.Tag.LT,
+	                        treeutils.makeBinary(range.pos, JCTree.Tag.PLUS, lo, treeutils.makeIntLiteral(range.pos, 1)), hi);
+	            } else {
+	                c = treeutils.makeBinary(range.pos, lowStrict.get(i) || highStrict.get(j) ? JCTree.Tag.LT : JCTree.Tag.LE, lo, hi);
+	            }
+	            result = result == null ? c : treeutils.makeAnd(range.pos, result, c);
+	        }
+	    }
+	    return result;
+	}
+
+	/** Adds the comparisons (<, <=, >, >=) whose conjunction (&& or &) is e to list; false if e is not such a conjunction */
+	protected boolean comparisonConjuncts(JCExpression e, java.util.List<JCBinary> list) {
+	    e = TreeInfo.skipParens(e);
+	    if (e instanceof JCBinary b) {
+	        switch (b.getTag()) {
+	            case AND: case BITAND: // a chained comparison such as 0 <= x < n becomes 0 <= x & x < n
+	                return comparisonConjuncts(b.lhs, list) && comparisonConjuncts(b.rhs, list);
+	            case LT: case LE: case GT: case GE: list.add(b); return true;
+	            default: return false;
+	        }
+	    }
+	    if (e instanceof JmlChained ch) {
+	        for (JCBinary b: ch.conjuncts) if (!comparisonConjuncts(b, list)) return false;
+	        return true;
+	    }
+	    return e instanceof JCLiteral lit && Boolean.TRUE.equals(lit.getValue());
+	}
+
+	/** Whether e mentions the variable sym */
+	protected static boolean mentions(JCExpression e, Symbol sym) {
+	    boolean[] found = { false };
+	    new JmlTreeScanner() {
+	        @Override
+	        public void visitIdent(JCIdent id) { if (id.sym == sym) found[0] = true; }
+	    }.scan(e);
+	    return found[0];
 	}
 
 	// FIXME - duplicate with what is in JmlAttr?
