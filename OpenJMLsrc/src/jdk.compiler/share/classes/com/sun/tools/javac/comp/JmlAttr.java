@@ -5183,10 +5183,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.error(that, "jml.message", "No allowed implicit conversion permits this operation on JML types: " + left + " " + operator.name + " " + right);
                 }
             }
+            // The operators on generic JML types (e.g. \seq<T> + \seq<T>) are declared with the
+            // operator's own type variables, so the return type is, e.g., \seq<T>; take the type from an
+            // operand of the same JML type instead (whose type arguments may be type variables of the
+            // context, such as a class's E). Otherwise the operator's unresolved T survives into, e.g.,
+            // the type of a conditional expression with such an operand (#963)
+            if (hasTypeVariableArgument(rt)) {
+                if (left.tsym == rt.tsym) rt = left;
+                else if (right.tsym == rt.tsym) rt = right;
+            }
             that.type = rt;
             return rt;
         }
         return null;
+    }
+
+    /** Whether some type argument of t is a type variable */
+    private static boolean hasTypeVariableArgument(Type t) {
+        return t.getTypeArguments().stream().anyMatch(a -> a instanceof Type.TypeVar);
     }
     
     private static int intValue(Type x) { return ((Number)x.constValue()).intValue(); }
