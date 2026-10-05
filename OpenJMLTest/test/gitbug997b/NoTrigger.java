@@ -6,6 +6,7 @@ public class NoTrigger {
   //@ requires (\forall int c; c > 0 && n % c == 0; c <= n);  // no warning: n % c is a trigger
   //@ requires (\forall int c; c > 0; c % 2 >= 0);  // warning: c % 2 is linear arithmetic
   //@ requires (\forall int i; 0 <= i < 10; i * i >= 0 : a[i]);  // no warning: an explicit trigger
+  //@ requires (\forall int i; 0 <= i < 5; (\let int ii = 2*i; a[ii] >= 0));  // no warning: a[ii] is a[2*i]
   public void m(int[] a, int n) {
   }
 }

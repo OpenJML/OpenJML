@@ -291,14 +291,38 @@ public class QuantifiedExpressions extends JmlExtension {
         for (JCVariableDecl d: that.decls) if (d.sym != null) bound.add(d.sym);
         var occurring = new java.util.LinkedHashSet<Symbol>();
         var covered = new java.util.HashSet<Symbol>();
+        // A \\let variable stands for its initializer (the SMT translation substitutes it), so a
+        // trigger term mentioning it covers the bound variables its initializer mentions
+        var letVars = new java.util.HashMap<Symbol, java.util.Set<Symbol>>();
         var scanner = new JmlTreeScanner() {
             int inTrigger = 0; // > 0 when inside a term that can serve as a trigger
+            java.util.Set<Symbol> mentioned = null; // when non-null, collects the bound variables a \\let initializer mentions
             @Override
             public void visitIdent(JCIdent id) {
-                if (bound.contains(id.sym)) {
-                    occurring.add(id.sym);
-                    if (inTrigger > 0) covered.add(id.sym);
+                var syms = bound.contains(id.sym) ? java.util.Set.of(id.sym) : letVars.get(id.sym);
+                if (syms == null) return;
+                if (mentioned != null) mentioned.addAll(syms);
+                occurring.addAll(syms);
+                if (inTrigger > 0) covered.addAll(syms);
+            }
+            @Override
+            public void visitLetExpr(LetExpr let) {
+                for (JCStatement def: let.defs) {
+                    if (def instanceof JCVariableDecl d) {
+                        var prev = mentioned;
+                        mentioned = new java.util.HashSet<>();
+                        try {
+                            scan(d.init);
+                            letVars.put(d.sym, mentioned);
+                        } finally {
+                            if (prev != null) prev.addAll(mentioned);
+                            mentioned = prev;
+                        }
+                    } else {
+                        scan(def);
+                    }
                 }
+                scan(let.expr);
             }
             void trigger(Runnable r) {
                 inTrigger++;
