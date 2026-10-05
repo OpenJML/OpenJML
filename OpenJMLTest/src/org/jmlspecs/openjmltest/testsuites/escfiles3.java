@@ -113,6 +113,12 @@ public class escfiles3 extends EscBaseFiles {
     public void gitbug963a() {
         helpEscSimple();
     }
+
+    @Test
+    public void gitbug963b() {
+        // A conditional with a \seq concatenation as a branch (part of #963)
+        helpEscSimple();
+    }
     
     @Test
     public void gitissue62() {
