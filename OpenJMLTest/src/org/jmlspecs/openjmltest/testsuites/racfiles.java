@@ -543,6 +543,12 @@ public class racfiles extends RacBase {
     public void returnNullity() {
         helpCompileRun("ReturnNullable");
     }
+
+    @Test
+    public void gitbug947() {
+        // A non_null local with a RUNTIME type annotation, unused after its declaration (#947)
+        helpCompileRun("RuntimeAnno");
+    }
     
     // Only these two textBlock tests have main methods (FIXME - is that OK?)
     @Test
