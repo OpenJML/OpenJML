@@ -3155,7 +3155,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!isReturn && methodDecl.sym.isConstructor() && assume && types.isSameType(methodDecl.sym.type, basetype)) {
 			return;
 		}
-		if (!isReturn && startInvariants(basecsym, pos))
+		// The invariants of a return value are always needed, so they ignore completedInvariants
+		if (startInvariants(basecsym, pos, !isReturn))
 			return;
 		// if (basecsym.toString().contains("SassyOption")) System.out.println("START
 		// SassyOption " + (scount++));
@@ -3349,8 +3350,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                notImplemented(receiver, "receiver of class " + (receiver == null ? "-null-" : receiver.getClass().getName()));
 			}
 		} finally {
-			if (!isReturn)
-				endInvariants(basecsym);
+			endInvariants(basecsym, !isReturn);
 			if (!translatingJML)
 				clearInvariants();
 			currentStatements = prevStats;
@@ -3504,6 +3504,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		}
+		// Guards only the translation of the clauses, which is what can recurse: e.g. an invariant
+		// that calls a non-pure method, after which the invariants of fields are assumed (#969)
+		if (startInvariants(csym, d, false)) {
+			currentEnv.currentReceiver = saved;
+			return;
+		}
 		ListBuffer<JCStatement> check = pushBlock();
 		try {
 			for (JmlTypeClause t : specs.getAttrSpecs(csym).clauses) {
@@ -3534,6 +3540,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		} finally {
+			endInvariants(csym, false);
 			JCBlock bl = popBlock(d, check);
 			if (!bl.stats.isEmpty()) {
 				if (staticOnly || types.isJmlType(csym.type)) {
@@ -9688,12 +9695,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public boolean useMethodAxioms;
 
+	// Two kinds of state guard the generation of invariants:
+	// - completedInvariants avoids repeating the invariants of a class; clearInvariants() resets
+	//   it wherever invariants must be generated afresh (e.g. at each method call)
+	// - inProcessInvariants holds the classes whose invariants are being generated right now, so
+	//   that a recursive cycle (an invariant whose translation needs that same invariant again)
+	//   is detected. It is changed only by startInvariants/endInvariants, which nest, and so is
+	//   never cleared: clearing it within a nested translation would hide the cycle (#969)
 	public java.util.List<Symbol> completedInvariants = new LinkedList<Symbol>();
 	public java.util.Set<Symbol> inProcessInvariants = new HashSet<Symbol>();
 
 
 	protected boolean startInvariants(Symbol csym, DiagnosticPosition pos) {
-		if (completedInvariants.contains(csym))
+		return startInvariants(csym, pos, true);
+	}
+
+	/** Returns true if the invariants of csym are to be skipped: because they are in process, i.e. a
+	 * recursive cycle, which is warned about; or, if useCompleted, because they were already generated
+	 * since the last clearInvariants(). Otherwise marks csym as in process.
+	 */
+	protected boolean startInvariants(Symbol csym, DiagnosticPosition pos, boolean useCompleted) {
+		if (useCompleted && completedInvariants.contains(csym))
 			return true; // skip processing
 		if (inProcessInvariants.add(csym))
 			return false; // ok to do processing
@@ -9727,13 +9749,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void endInvariants(Symbol csym) {
+		endInvariants(csym, true);
+	}
+
+	protected void endInvariants(Symbol csym, boolean useCompleted) {
 		inProcessInvariants.remove(csym);
-		completedInvariants.add(csym);
+		if (useCompleted) completedInvariants.add(csym);
 	}
 
 	protected void clearInvariants() {
 		completedInvariants.clear();
-		inProcessInvariants.clear();
 	}
 	
     HeapInfo currentHeap = new HeapInfo(0, null, null);
