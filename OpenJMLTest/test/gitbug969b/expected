@@ -1,0 +1,44 @@
+test/gitbug969b/Node.java:8: warning: A non-pure method is being called where it is not permitted: Node.self(@org.jmlspecs.annotation.Nullable Node)
+    //@ public invariant self(next) == next;
+                             ^
+test/gitbug969b/Node.java:8: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node
+    //@ public invariant self(next) == next;
+                             ^
+test/gitbug969b/Node.java:8: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node
+    //@ public invariant self(next) == next;
+                              ^
+test/gitbug969b/Node.java:8: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node
+    //@ public invariant self(next) == next;
+                             ^
+test/gitbug969b/Node.java:7: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node
+    public /*@ nullable */ Node next;
+                                ^
+test/gitbug969b/Node.java:8: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node
+    //@ public invariant self(next) == next;
+                             ^
+Proving methods in Node
+Starting proof of Node.Node() with prover !!!!
+test/gitbug969b/Node.java:6: verify: The prover cannot establish an assertion (InvariantExit) in method Node
+public class Node {
+       ^
+test/gitbug969b/Node.java:8: verify: Associated declaration
+    //@ public invariant self(next) == next;
+               ^
+test/gitbug969b/Node.java:8: verify: The prover cannot establish an assertion (Assignable) in method Node: \everything
+    //@ public invariant self(next) == next;
+                             ^
+test/gitbug969b/Node.java:6: verify: Associated declaration
+public class Node {
+       ^
+Completed proof of Node.Node() with prover !!!! - with warnings
+Starting proof of Node.self(@Nullable Node) with prover !!!!
+test/gitbug969b/Node.java:9: verify: The prover cannot establish an assertion (InvariantExit) in method self: Node.self(@Nullable Node) (for result type)
+    public /*@ nullable */ Node self(/*@ nullable */ Node s) { return s; }
+                                                               ^
+test/gitbug969b/Node.java:8: verify: Associated declaration
+    //@ public invariant self(next) == next;
+               ^
+Completed proof of Node.self(@Nullable Node) with prover !!!! - with warnings
+Completed proving methods in Node
+6 warnings
+6 verification failures
