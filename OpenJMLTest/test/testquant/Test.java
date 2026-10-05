@@ -1,5 +1,5 @@
-// This test is just here to see if unimplemented cquantifier constructs are handled without giving outright errors,
-// though they won't prove.
+// \sum in a loop invariant and a postcondition (ESC support: #1001). The \sum of int values has type int, so
+// its value must fit in an int, which for an arbitrary array it need not: reported as ArithmeticCastRange.
 public class Test {
   //@ ensures \result == (\sum int i; 0 <= i && i < a.length; a[i]);
   public int foo(int[] a) {

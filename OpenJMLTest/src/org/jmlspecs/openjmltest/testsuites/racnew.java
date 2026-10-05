@@ -2476,6 +2476,7 @@ public class racnew extends RacBase {
                     }
                 }
                 """
+                ,"/tt/A.java:5: JML there is no value satisfying the range of the \\max expression" // the empty range
                 ,"A 5 -2147483648"
                 ,"END"
         );
@@ -2705,6 +2706,7 @@ public class racnew extends RacBase {
                     }
                 }
                 """
+                ,"/tt/A.java:5: JML there is no value satisfying the range of the \\min expression" // the empty range
                 ,"A 2 2147483647"
                 ,"END"
         );
@@ -2724,6 +2726,7 @@ public class racnew extends RacBase {
                     }
                 }
                 """
+                ,"/tt/A.java:5: JML there is no value satisfying the range of the \\max expression" // the empty range
                 ,"A 5 -2147483648"
                 ,"END"
         );
@@ -2743,6 +2746,7 @@ public class racnew extends RacBase {
                     }
                 }
                 """
+                ,"/tt/A.java:5: JML there is no value satisfying the range of the \\min expression" // the empty range
                 ,"A 2 2147483647"
                 ,"END"
         );
@@ -2762,6 +2766,7 @@ public class racnew extends RacBase {
                     }
                 }
                 """
+                ,"/tt/A.java:5: JML there is no value satisfying the range of the \\max expression" // the empty range
                 ,"A 5.0 -2.147483648E9"
                 ,"END"
         );
@@ -2781,6 +2786,7 @@ public class racnew extends RacBase {
                     }
                 }
                 """
+                ,"/tt/A.java:5: JML there is no value satisfying the range of the \\min expression" // the empty range
                 ,"A 2.0 1.7976931348623157E308"
                 ,"END"
         );

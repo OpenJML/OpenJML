@@ -270,6 +270,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // set by the superclass constructor, which is called before all the fields of 
     // this derived class are initialized
     final public Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+
+    /** The number of \sum or \product bodies (with integral values) being translated; within them
+     * arithmetic is \bigint, and a nested \sum or \product is not converted to its declared type */
+    protected int bigintQuantifierDepth = 0;
     final public Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
     final public Type STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
     final public Type ARRAY = JmlPrimitiveTypes.arrayTypeKind.getType(context);
@@ -21437,12 +21441,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					    }
 					}
 
-					JCExpression value = convertNoSplit(that.value);
+					// The body of a \sum or \product is \bigint arithmetic: an integral body is widened to
+					// \bigint, and a \sum or \product within it is not converted to its declared type
+					boolean bigintBody = (key.equals(qsumID) || key.equals(qproductID)) && that.value.type.isIntegral();
+					if (bigintBody) bigintQuantifierDepth++;
+					JCExpression value;
+					try {
+					    value = convertNoSplit(that.value);
+					} finally {
+					    if (bigintBody) bigintQuantifierDepth--;
+					}
 					Type targetType = that.kind == qforallKind ? syms.booleanType
                             : that.kind == qexistsKind ? syms.booleanType
-							: that.kind == qnumofKind ? syms.booleanType : that.value.type; // FIXME - not sure
-																									// about this
-																									// default
+							: that.kind == qnumofKind ? syms.booleanType
+							: bigintBody ? BIGINT : that.value.type; // FIXME - not sure about this default
 					value = addImplicitConversion(value, targetType, value);
 					JmlQuantifiedExpr q = M.at(that).JmlQuantifiedExpr(that.kind, dd,
 							range, value);
@@ -21554,6 +21566,53 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }.copy(value);
 					        result = eresult = value;
 					    }
+                    } else if (key.equals(qmaxID) || key.equals(qminID)) {
+                        // (\max T x; R; V) is well-defined only if some x satisfies R, which is asserted
+                        // (as for \choose). Its value is a new variable m with: every V (for x satisfying R)
+                        // is at most m, and some V equals m. \min is the mirror image.
+                        // The keyword is compared, not the kind, because \max has two kinds (see #987).
+                        boolean isMax = key.equals(qmaxID);
+                        pushBlock();
+                        JCExpression r = range != null ? range : treeutils.trueLit;
+                        JCExpression nonEmpty = nonEmptyIntegerRange(dd, r);
+                        if (nonEmpty == null) {
+                            var ex = M.at(that).JmlQuantifiedExpr(qexistsKind, dd, r, treeutils.trueLit);
+                            ex.setType(syms.booleanType);
+                            nonEmpty = ex;
+                        }
+                        addAssert(that, isMax ? Label.MAX : Label.MIN, nonEmpty);
+                        var ndecl = newTempDecl(that, uniqueTempString(isMax ? "_JMLmax" : "_JMLmin"), that.type);
+                        addStat(ndecl);
+                        JmlQuantifiedExpr bounded = M.at(that).JmlQuantifiedExpr(qforallKind, dd, r,
+                                treeutils.makeBinary(that.pos, isMax ? JCTree.Tag.LE : JCTree.Tag.GE, value,
+                                        treeutils.makeIdent(that.pos, ndecl.sym)));
+                        bounded.setType(syms.booleanType);
+                        addAssume(that, Label.IMPLICIT_ASSUME, bounded);
+                        JmlQuantifiedExpr attained = M.at(that).JmlQuantifiedExpr(qexistsKind, dd, r,
+                                treeutils.makeEquality(that.pos, value, treeutils.makeIdent(that.pos, ndecl.sym)));
+                        attained.setType(syms.booleanType);
+                        addAssume(that, Label.IMPLICIT_ASSUME, attained);
+                        JCBlock bl = popBlock(that);
+                        nonignoredStatements.addAll(bl.stats);
+                        result = eresult = treeutils.makeIdent(that.pos, ndecl.sym);
+                    } else if ((key.equals(qsumID) || key.equals(qproductID)) && that.type.isIntegral()
+                            && dd.size() == 1 && IntegerRangeBounds.of(dd.head.sym, range).boundsRecursion()) {
+                        // (Only for the forms SMTTranslator.recursiveQuantifier translates; others are reported
+                        // there as not supported, and their value is unconstrained)
+                        // The arithmetic within \sum and \product is \bigint arithmetic (the SMT translation
+                        // computes over unbounded integers); a result of a fixed-range type is that value
+                        // converted to the type, with the same check (or wrap-around) as an explicit cast --
+                        // unless it is itself within the body of a \sum or \product, where it stays \bigint
+                        q.setType(BIGINT);
+                        if (bigintQuantifierDepth > 0) {
+                            result = eresult = q;
+                        } else {
+                            pushBlock();
+                            JCExpression converted = addConversion(that, that.type, q, true, true);
+                            JCBlock bl = popBlock(that);
+                            nonignoredStatements.addAll(bl.stats);
+                            result = eresult = converted;
+                        }
                     } else{
 					    result = eresult = q;
 					}
@@ -21603,6 +21662,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (utils.rac && key == qchooseID) decl.init = treeutils.makeZeroEquivalentLit(that, t);
 				addStat(decl);
 				JCBlock failureBlock = null;
+				// \max and \min are not defined when no value satisfies the range (as for \choose): this
+				// flag records whether one did
+				JCVariableDecl foundMaxMin = null;
+				if (key.equals(qmaxID) || key.equals(qminID)) {
+				    foundMaxMin = treeutils.makeVarDef(syms.booleanType, names.fromString("_JML$found$$" + nextUnique()), ownersym, that.pos);
+				    foundMaxMin.init = treeutils.falseLit;
+				    addStat(foundMaxMin);
+				}
 				
 				// Label for the loop, so we can break out of it
 				Name label = names.fromString(Strings.genPrefix + "while_" + nextUnique());
@@ -21775,8 +21842,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												"RAC not implemented for this type: " + that.type);
 
 									}
-									// FIXME - what about \bigint? should \min and \max be undefined if the range is
-									// empty?
+									// FIXME - what about \bigint?
 									JCExpression tmp = !splitExpressions ? newTemp(val) : val; // Make an ID if not
 																								// already
 									st = treeutils.makeAssignStat(that.pos, id, tmp);
@@ -21784,6 +21850,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											.If(treeutils.makeBinary(that.pos,
 													that.kind != qminKind ? JCTree.Tag.LT : JCTree.Tag.GT, idd, tmp),
 													st, null);
+									// { found = true; if (accumulator </> val) accumulator = val; }
+									st = M.at(that.pos).Block(0, List.<JCStatement>of(
+									        treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, foundMaxMin.sym), treeutils.trueLit),
+									        st));
 									break;
 
 								default:
@@ -21901,6 +21971,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} finally {
 					addStat(popBlock(that, check)); // B // pops enclosing block
 				}
+				if (foundMaxMin != null) {
+				    addAssert(that, key.equals(qmaxID) ? Label.MAX : Label.MIN, treeutils.makeIdent(that.pos, foundMaxMin.sym));
+				}
 				result = eresult = treeutils.makeIdent(that.pos, decl.sym);
 			}
 		} finally {
@@ -21909,6 +21982,39 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		return;
+	}
+
+	/**
+	 * A quantifier-free condition equivalent to (\\exists x; range; true), for a single integral
+	 * variable x and a range that is a conjunction of comparisons, each with x alone on one side
+	 * (e.g. 0 <= x < a.length, conjoined with the range of x's type); null otherwise. An integer x
+	 * satisfying all lower bounds L and upper bounds U exists exactly when every L is at most every
+	 * U, after a strict bound is moved by one: L < U if one of the pair is strict, L + 1 < U if both
+	 * are. The SMT solver proves an existential over integers only by instantiating it, which it
+	 * cannot do here (the range offers no trigger), so a well-definedness check stated as
+	 * (\\exists x; range; true) would fail even for a range such as 0 <= x < 3.
+	 */
+	protected /*@ nullable */ JCExpression nonEmptyIntegerRange(List<JCVariableDecl> decls, JCExpression range) {
+	    if (decls.size() != 1 || range == null) return null;
+	    var x = decls.head.sym;
+	    if (!(x.type.isIntegral() || x.type.tsym == BIGINT.tsym)) return null;
+	    var bounds = IntegerRangeBounds.of(x, range);
+	    if (!bounds.exact) return null;
+	    if (bounds.lower.isEmpty() || bounds.upper.isEmpty()) return null; // unbounded on one side: x exists
+	    JCExpression result = null;
+	    for (var lo: bounds.lower) {
+	        for (var hi: bounds.upper) {
+	            JCExpression c;
+	            if (lo.strict() && hi.strict()) {
+	                c = treeutils.makeBinary(range.pos, JCTree.Tag.LT,
+	                        treeutils.makeBinary(range.pos, JCTree.Tag.PLUS, lo.expr(), treeutils.makeIntLiteral(range.pos, 1)), hi.expr());
+	            } else {
+	                c = treeutils.makeBinary(range.pos, lo.strict() || hi.strict() ? JCTree.Tag.LT : JCTree.Tag.LE, lo.expr(), hi.expr());
+	            }
+	            result = result == null ? c : treeutils.makeAnd(range.pos, result, c);
+	        }
+	    }
+	    return result;
 	}
 
 	// FIXME - duplicate with what is in JmlAttr?
