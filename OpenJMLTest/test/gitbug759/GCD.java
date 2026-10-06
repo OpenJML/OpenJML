@@ -1,3 +1,11 @@
+// gitbug759 (from issue #759): a user's attempt at specifying and proving gcd and fractions.
+// This test originally crashed the solver or timed out (e.g. Fraction2.Reciprocal timed out, and z3
+// crashed on GCD.lemma2, with OpenJML 21-0.22 and z3 4.3.1); with recent fixes (z3 5.1.0, and #997's
+// translation of % by a non-constant in quantifiers) ESC now gives correct responses, quickly, given
+// the specifications as they are: e.g. mod has no postcondition (it is commented out), so properties
+// stated with mod do not follow; lemma5 is false for negative n; Inverse lacks its gcd precondition.
+// The specifications are kept unchanged. The show statements and \lbl labels are commented out
+// (marked '// @' or '/* @'), because the counterexample values they report are not deterministic.
 public class GCD{
     /*@ public normal_behaviour
       @ requires n2 != 0;
@@ -84,54 +92,62 @@ public class GCD{
     //@ requires n != 0 || d != 0;
     //@ ensures \result == (GCD.gcd(n/GCD.gcd(n,d), d/GCD.gcd(n,d)) == 1);
     //@ helper no_state
-    public static boolean lemma(int n, int d) { /*@ show n, d; */  return true; }
+    public static boolean lemma(int n, int d) { /* @ show n, d; */  return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
-    //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(-n,d)));
+    // @ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(-n,d)));  // labeled form, commented out (see the top)
+    //@ ensures \result == ((GCD.gcd(n, d)) == (GCD.gcd(-n,d)));
     //@ helper no_state
-    public static boolean lemma2(int n, int d) { /*@ show n, d; */  return true; }
+    public static boolean lemma2(int n, int d) { /* @ show n, d; */  return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
-    //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(n,-d)));
+    // @ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(n,-d)));  // labeled form, commented out (see the top)
+    //@ ensures \result == ((GCD.gcd(n, d)) == (GCD.gcd(n,-d)));
     //@ helper no_state
-    public static boolean lemma3(int n, int d) { /*@ show n, d; */ return true; }
+    public static boolean lemma3(int n, int d) { /* @ show n, d; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE;
-    //@ ensures \result == ((\lbl A GCD.gcd(n, 1)) == 1);
+    // @ ensures \result == ((\lbl A GCD.gcd(n, 1)) == 1);  // labeled form, commented out (see the top)
+    //@ ensures \result == ((GCD.gcd(n, 1)) == 1);
     //@ helper no_state
-    public static boolean lemma4(int n) { /*@ show n; */ return true; }
-
-    //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE;
-    //@ requires n != 0;
-    //@ ensures \result == ((\lbl A GCD.gcd(n, n)) == n);
-    //@ helper no_state
-    public static boolean lemma5(int n) { /*@ show n; */ return true; }
+    public static boolean lemma4(int n) { /* @ show n; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE;
     //@ requires n != 0;
-    //@ ensures \result == ((\lbl A GCD.gcd(0, n)) == abs(n));
+    // @ ensures \result == ((\lbl A GCD.gcd(n, n)) == n);  // labeled form, commented out (see the top)
+    //@ ensures \result == ((GCD.gcd(n, n)) == n);
     //@ helper no_state
-    public static boolean lemma6(int n) { /*@ show n; */ return true; }
+    public static boolean lemma5(int n) { /* @ show n; */ return true; }
+
+    //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE;
+    //@ requires n != 0;
+    // @ ensures \result == ((\lbl A GCD.gcd(0, n)) == abs(n));  // labeled form, commented out (see the top)
+    //@ ensures \result == ((GCD.gcd(0, n)) == abs(n));
+    //@ helper no_state
+    public static boolean lemma6(int n) { /* @ show n; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
-    //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(d,n)));
+    // @ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(d,n)));  // labeled form, commented out (see the top)
+    //@ ensures \result == ((GCD.gcd(n, d)) == (GCD.gcd(d,n)));
     //@ helper no_state
-    public static boolean lemma7(int n, int d) { /*@ show n, d; */ return true; }
+    public static boolean lemma7(int n, int d) { /* @ show n, d; */ return true; }
 
     //@ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && -Integer.MAX_VALUE < d < Integer.MAX_VALUE;
     //@ requires n != 0 || d != 0;
-    //@ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(-n, -d)));
+    // @ ensures \result == ((\lbl A GCD.gcd(n, d)) == (\lbl B GCD.gcd(-n, -d)));  // labeled form, commented out (see the top)
+    //@ ensures \result == ((GCD.gcd(n, d)) == (GCD.gcd(-n, -d)));
     //@ helper no_state
-    public static boolean lemma8(int n, int d) { /*@ show n, d; */ return true; }
+    public static boolean lemma8(int n, int d) { /* @ show n, d; */ return true; }
 
     // @ requires -Integer.MAX_VALUE < n < Integer.MAX_VALUE && k > 0 && g > 0;
     //@ requires -1000000 < n < 1000000 && k > 0 && g > 0;
-    //@ ensures \result == (((\lbl A mod(n,g)) == 0 && (\lbl B mod(n/g,k)) == 0) ==> (\lbl C mod(n,k)) == 0);
+    // @ ensures \result == (((\lbl A mod(n,g)) == 0 && (\lbl B mod(n/g,k)) == 0) ==> (\lbl C mod(n,k)) == 0);  // labeled form, commented out (see the top)
+    //@ ensures \result == (((mod(n,g)) == 0 && (mod(n/g,k)) == 0) ==> (mod(n,k)) == 0);
     //@ helper no_state
-    public static boolean lemma9(int n, int k, int g) { /*@ show n, k, g; */ return true; }
+    public static boolean lemma9(int n, int k, int g) { /* @ show n, k, g; */ return true; }
 
     //@ requires n != Integer.MIN_VALUE && d != 0;
     //@ ensures mod(n,d) == 0 ==> (n/d)*d == n;

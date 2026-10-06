@@ -140,7 +140,6 @@ escfileslist1.test[escJmlDup]   # NullField for a field declared only in the .jm
 escfileslist2.test[choose-repeat]
 escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
-escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
 escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
 runscripts1.gitbug784            #   apache commons library
 escfileslist3.test[gitbug785]   #   Google guava library
