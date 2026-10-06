@@ -9089,7 +9089,14 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         public void visitBlock(JmlBlock tree)                          { visitTree(tree); }
         public void visitImport(JCImport tree)                         { visitTree(tree); }
-        public void visitNewClass(JCNewClass tree)                     { visitTree(tree); }
+        // A diamond 'new' (without a class body) is a poly expression whose type arguments are
+        // inferred from the argument's target type; that is ArgumentAttr's job. Delegating it to
+        // Attr directly left a diamond argument raw, e.g. take(new ArrayList<>()) for a
+        // List<Integer> parameter failed with 'ArrayList<E> cannot be converted to List<Integer>'
+        public void visitNewClass(JCNewClass tree) {
+            if (TreeInfo.isDiamond(tree) && tree.def == null) super.visitNewClass(tree);
+            else visitTree(tree);
+        }
         public void visitJmlBinary(JmlBinary tree)                     { visitTree(tree); }
         public void visitJmlChained(JmlChained tree)                   { visitTree(tree); }
         public void visitJmlChoose(JmlChoose tree)                     { visitTree(tree); }
