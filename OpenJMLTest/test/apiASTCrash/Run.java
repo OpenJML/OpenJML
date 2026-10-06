@@ -7,7 +7,7 @@ public class Run {
     
     public static void main(String... args) {
         IAPI api = IAPI.make();
-        IAPI.setASTListener(new IAPI.IASTListener() { 
+        api.setASTListener(new IAPI.IASTListener() { 
             @Override public void notify(Context context, javax.tools.JavaFileObject jfo, org.jmlspecs.openjml.JmlTree.JmlCompilationUnit cu) { System.out.println("ASTListener: " + context + " " + jfo + " " + cu); } 
         });
         //IAPI.setASTListener(new Listener());
