@@ -181,6 +181,16 @@ public class escfiles3 extends EscBaseFiles {
     }
 
     @Test
+    public void gitbug980b() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug980c() {
+        helpEscSimple();
+    }
+
+    @Test
     public void gitbug996() {
         helpEscSimple();
     }

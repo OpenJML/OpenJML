@@ -1251,12 +1251,15 @@ public class MethodProverSMT {
                             		|| assertStat.label == Label.POSSIBLY_NULL_RETURN) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
                                 if (p != pos || !mainSource.getName().equals(assertStat.sourcefile.getName())) {
+                                    // terminationPos is a position in the method's own file, which differs from
+                                    // mainSource when the failure is reported in an inherited specification (#980)
+                                    JavaFileObject methodSource = ((JmlMethodDecl)info.decl).sourcefile;
                                     if (terminationPos == info.decl.pos) {
-                                    	JavaFileObject pp = log.useSource(mainSource);
+                                    	JavaFileObject pp = log.useSource(methodSource);
                                     	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
                                     	log.useSource(pp);
                                     }
-                                    JavaFileObject prevv = log.useSource(mainSource);
+                                    JavaFileObject prevv = log.useSource(methodSource);
                                     if (p != Position.NOPOS) utils.verify(p, "jml.message", "Associated method exit");
                                     log.useSource(prevv);
                                 }
@@ -1616,12 +1619,14 @@ public class MethodProverSMT {
                         if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
                             if (p != pos || !mainSource.getName().equals(assertStat.sourcefile.getName())) {
+                                // terminationPos is a position in the method's own file (#980)
+                                JavaFileObject methodSource = ((JmlMethodDecl)info.decl).sourcefile;
                                 if (terminationPos == info.decl.pos) {
-                                	JavaFileObject pr = log.useSource(mainSource);
+                                	JavaFileObject pr = log.useSource(methodSource);
                                 	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
                                 	log.useSource(pr);
                                 }
-                                JavaFileObject prevv = log.useSource(mainSource);
+                                JavaFileObject prevv = log.useSource(methodSource);
                                 if (p != Position.NOPOS) utils.verify(p, "jml.message", "Associated method exit");
                                 log.useSource(prevv);
                             }

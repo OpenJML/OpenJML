@@ -1,0 +1,20 @@
+Proving methods in I
+Starting proof of I.m(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of I.m(int) with prover !!!! - no warnings
+Completed proving methods in I
+Proving methods in S
+Starting proof of S.S() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.S() with prover !!!! - no warnings
+Starting proof of S.m(int) with prover !!!!
+test/gitbug980c/I.java:5: verify: The prover cannot establish an assertion (UndefinedDivideByZero) in method m
+    //@ ensures \result == 10 / n;
+                              ^
+test/gitbug980c/S.java:2: verify: Associated method exit
+    public int m(int n) { return n == 0 ? 0 : 10 / n; }
+                          ^
+Completed proof of S.m(int) with prover !!!! - with warnings
+Completed proving methods in S
+2 verification failures

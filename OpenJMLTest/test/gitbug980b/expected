@@ -1,0 +1,15 @@
+Proving methods in I
+Starting proof of I.set(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of I.set(int) with prover !!!! - no warnings
+Completed proving methods in I
+Proving methods in S
+Starting proof of S.S() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.S() with prover !!!! - no warnings
+Starting proof of S.set(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.set(int) with prover !!!! - no warnings
+Completed proving methods in S
