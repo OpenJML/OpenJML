@@ -142,7 +142,6 @@ escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of to
 escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
 runscripts1.gitbug784            #   apache commons library
 escfileslist3.test[gitbug785]   #   Google guava library
-escfileslist3.test[gitbug878]             #   problem with type inference
 #escfileslist3.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist3.test[gitbug897]   # substring and loop
 escfileslist3.test[listNullity]
