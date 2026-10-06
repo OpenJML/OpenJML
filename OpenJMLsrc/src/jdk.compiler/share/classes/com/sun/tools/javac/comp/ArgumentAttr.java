@@ -239,7 +239,10 @@ public class ArgumentAttr extends JCTree.Visitor {
         if (cached != null) {
             //dup existing speculative type
             Z dup = (Z)cached.dup(that, env); // OPENJML -- cf Issue 1011
-            if (cached.mode != null) dup.mode = DeferredAttr.AttrMode.SPECULATIVE; // OPENJML -- cf Issue 1011: the dup shares the cached type's speculative results, so has had its speculative round
+            //the dup shares the speculative results of the cached type, so if the cached type has had // OPENJML -- cf Issue 1011
+            //a speculative round, the dup has too (a check round may then follow without one, as during // OPENJML -- cf Issue 1011
+            //recovery when method resolution fails before the arguments are checked) // OPENJML -- cf Issue 1011
+            if (cached.mode != null) dup.mode = DeferredAttr.AttrMode.SPECULATIVE; // OPENJML -- cf Issue 1011
             setResult(that, dup); // OPENJML -- cf Issue 1011
         } else {
             Z res = argumentTypeFactory.get();
