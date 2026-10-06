@@ -74,8 +74,8 @@ public class racfiles extends RacBase {
         helpCompileRun("Point");
     }
 
-    @Test
-    public void firstTest() {
+    @Test // Issue #1010 -- the same directory is an ESC test (escfileslist) for toString postconditions
+    public void gitbug1010() {
         helpCompileRun("FirstTest","--rac-java-checks","--rac-check-assumptions");
     }
 
