@@ -5135,7 +5135,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super.visitConditional(that);
         // The following is primarily to handle cases like b ? 0 : bigint-expression
         // Note -- need to check both as expressions and declaration initializers
-        result = that.type = condType(List.of(that.truepart, that.falsepart), List.of(that.truepart.type, that.falsepart.type));
+        // Only when a branch is \bigint or \real: otherwise javac's type stands, and for a poly
+        // conditional (e.g. a method argument) a branch may still be DEFERRED during speculative
+        // attribution, which condType cannot handle (#671)
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        if (that.truepart.type == BIGINT || that.truepart.type == REAL || that.falsepart.type == BIGINT || that.falsepart.type == REAL)
+            result = that.type = condType(List.of(that.truepart, that.falsepart), List.of(that.truepart.type, that.falsepart.type));
 //                ;        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
 //        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
 //        if (that.truepart.type == BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
