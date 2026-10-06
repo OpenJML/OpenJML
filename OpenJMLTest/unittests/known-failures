@@ -165,7 +165,6 @@ escnew.testSealed                 # sealed property not yet implemented
 racfiles.gitbug861                # missing check in compiler constant static initializer
 racfiles.racbug1                  # stack overflow because of missing 'helper' on methods with invariants
 
-bugs.gitbug1008         # #1008: javac bug in deferred-attribution recovery
 escfiles2.gitbug812a
 
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out

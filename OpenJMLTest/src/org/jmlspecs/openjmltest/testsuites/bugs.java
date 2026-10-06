@@ -36,14 +36,19 @@ public class bugs extends TCBase {
         ,"/A.java:1: error: cannot find symbol\n  symbol:   variable c\n  location: class A",50);
     }
 
-    /** Issue #1008: a javac (JDK 21) bug in deferred-attribution error recovery, which stock javac hides */
+    /** Issue #1008: crashed in a javac (JDK 11-25) bug in deferred-attribution error recovery (#1011), now fixed */
     @Test
     public void gitbug1008() {
-    	expectedExit = 1; // FIXME - crashes in type attribution, but requires a complicated expression
         helpTCText("A.java","public class A { //@ ensures equals(\\result.equals(b).c(p(0))); \n Object m(int j) { return null; } String b; StringBuffer a; int[] q; /*@ pure*/int p(int i) { return 0; }}"
                 ,"/A.java:1: error: boolean cannot be dereferenced",54
-                ,"/A.java: error: A catastrophic JML internal error occurred.  Please report the bug with as much information as you can.\n"
-                        + "  Reason: Unexpected Throwable error caught. Use STACK= to see the stack trace", -1
+                );
+    }
+
+    /** Issue #1011: the minimal plain-Java form of #1008 */
+    @Test
+    public void gitbug1011() {
+        helpTCText("C.java","public class C {\n  boolean m() { return q(z.c(p(0))); }\n  boolean z;\n  int p(int i) { return 0; }\n  boolean q(Object o) { return true; }\n}"
+                ,"/C.java:2: error: boolean cannot be dereferenced",27
                 );
     }
 
