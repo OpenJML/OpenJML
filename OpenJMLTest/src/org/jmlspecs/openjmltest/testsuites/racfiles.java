@@ -74,8 +74,8 @@ public class racfiles extends RacBase {
         helpCompileRun("Point");
     }
 
-    @Test
-    public void firstTest() {
+    @Test // Issue #1010 -- the same directory is an ESC test (escfileslist) for toString postconditions
+    public void gitbug1010() {
         helpCompileRun("FirstTest","--rac-java-checks","--rac-check-assumptions");
     }
 
@@ -542,6 +542,12 @@ public class racfiles extends RacBase {
     @Test
     public void returnNullity() {
         helpCompileRun("ReturnNullable");
+    }
+
+    @Test
+    public void gitbug947() {
+        // A non_null local with a RUNTIME type annotation, unused after its declaration (#947)
+        helpCompileRun("RuntimeAnno");
     }
     
     // Only these two textBlock tests have main methods (FIXME - is that OK?)

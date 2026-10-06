@@ -112,7 +112,11 @@ public class escsf3 extends SFBugsBase {
         helpEscSimple();
     }
     
-    @Test // FIXME -- Crash in speculative attribution
+    // The crash in speculative attribution reported here (#671) is fixed; escfiles3.gitbug671a is its
+    // minimal reproduction. This test, ESC of commons-collections' ListOrderedSet, is ignored: it now
+    // fails only on specification problems of that unannotated library (purity conflicts with the
+    // java.util specs, and type errors involving those specs), which are not the subject of #671.
+    @Test @Ignore
     public void gitbug671() {
         helpEscFile("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","--timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
     }

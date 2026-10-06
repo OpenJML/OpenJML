@@ -5135,7 +5135,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super.visitConditional(that);
         // The following is primarily to handle cases like b ? 0 : bigint-expression
         // Note -- need to check both as expressions and declaration initializers
-        result = that.type = condType(List.of(that.truepart, that.falsepart), List.of(that.truepart.type, that.falsepart.type));
+        // Only when a branch is \bigint or \real: otherwise javac's type stands, and for a poly
+        // conditional (e.g. a method argument) a branch may still be DEFERRED during speculative
+        // attribution, which condType cannot handle (#671)
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        if (that.truepart.type == BIGINT || that.truepart.type == REAL || that.falsepart.type == BIGINT || that.falsepart.type == REAL)
+            result = that.type = condType(List.of(that.truepart, that.falsepart), List.of(that.truepart.type, that.falsepart.type));
 //                ;        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
 //        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
 //        if (that.truepart.type == BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
@@ -9083,7 +9089,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         public void visitBlock(JmlBlock tree)                          { visitTree(tree); }
         public void visitImport(JCImport tree)                         { visitTree(tree); }
-        public void visitNewClass(JCNewClass tree)                     { visitTree(tree); }
+        // visitNewClass is not overridden: ArgumentAttr's infers a diamond 'new' from the argument's
+        // target type (#878), and attributes any other 'new' as a plain expression, with a fresh
+        // ResultInfo. Delegating to Attr instead, under the method-argument ResultInfo, left a
+        // diamond argument raw, and crashed on an anonymous class argument (MethodAttrInfo.dup)
         public void visitJmlBinary(JmlBinary tree)                     { visitTree(tree); }
         public void visitJmlChained(JmlChained tree)                   { visitTree(tree); }
         public void visitJmlChoose(JmlChoose tree)                     { visitTree(tree); }

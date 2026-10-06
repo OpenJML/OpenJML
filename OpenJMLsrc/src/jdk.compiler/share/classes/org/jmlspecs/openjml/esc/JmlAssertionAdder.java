@@ -23696,11 +23696,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (init == null) nn = null; // FIXME - used to use isKnownNonNull
 						JCBlock bl = popBlock(that, check);
 						currentStatements.addAll(bl.stats);
-						if (nn != null && nnDecl)
+						if (nn != null && nnDecl && !rac)
 							addAssert(that, Label.POSSIBLY_NULL_INITIALIZATION, nn, that.name);
 						stat.init = init;
 						// if (splitExpressions) {
 						addStat(stat);
+						// RAC checks the variable after its declaration rather than the initializer before it,
+						// so the variable is always used after it is stored: otherwise its live range can be
+						// empty, and javac then fails writing a RUNTIME type annotation on it (#947)
+						if (nn != null && nnDecl && rac)
+							addAssert(that, Label.POSSIBLY_NULL_INITIALIZATION,
+									treeutils.makeNeqObject(that.pos, treeutils.makeIdent(that.pos, that.sym), treeutils.nullLit), that.name);
 						if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
 							addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeDynamicTypeInEquality(that,
 									treeutils.makeIdent(that.pos, that.sym), that.type));

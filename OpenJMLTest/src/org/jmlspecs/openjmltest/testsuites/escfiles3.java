@@ -105,6 +105,12 @@ public class escfiles3 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug671a() {
+        // A conditional with a generic method call as a branch, as a method argument (#671)
+        helpEscSimple();
+    }
+
+    @Test
     public void gitbug963() {
         helpEscSimple();
     }
