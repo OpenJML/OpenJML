@@ -635,6 +635,7 @@ public class JmlCompiler extends JavaCompiler {
         	} catch (PropagatedException e) {
         		// cancellation or error in specifications parsed on demand - catch and continue // TODO: Review
         	} finally {
+                utils.warnUnmatchedMethodItems();
                 String summary = esc.reportCounts();
                 if (utils.jmlverbose >= Utils.PROGRESS && !utils.testingMode && JmlOption.SHOW_SUMMARY.isSet(context)) utils.note(false,summary);
         	}

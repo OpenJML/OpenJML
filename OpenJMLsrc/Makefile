@@ -181,6 +181,13 @@ post: .FORCE
 	$(MAKE) openjml-lsp
 	chmod ugo+x $(TEMP)/openjml $(TEMP)/openjml-* $(TEMP)/install-vscode-extension $(TEMP)/os-name.sh
 	(cd $(TEMP); $(ZIPCMD) -qr ./openjml.zip * )
+	## The release contains the exploded JDK image, which jlink does not make, so its jdk/release file lacks the
+	## JAVA_VERSION key that jlink adds; tools such as maven-surefire need it to identify the JVM (#1012)
+	f=$$(echo build/*release/jdk/release); \
+	  if ! grep -q '^JAVA_VERSION=' "$$f"; then \
+	    v=$$(sed -n 's/^JAVA_RUNTIME_VERSION="\([0-9.]*\).*/\1/p' "$$f"); \
+	    echo "JAVA_VERSION=\"$$v\"" >> "$$f"; \
+	  fi
 	## The following append directly to the archive from their source locations, avoiding
 	## a time-consuming copy into $(TEMP). zip appends new entries without recopying
 	## existing compressed data — only the new entries and the central directory are written.

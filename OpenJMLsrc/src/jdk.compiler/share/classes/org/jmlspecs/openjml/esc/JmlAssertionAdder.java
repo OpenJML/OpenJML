@@ -3166,7 +3166,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// SassyOption " + (scount++));
 
 		java.util.List<Type> parents = parents(basetype, true);
-		boolean contextIsStatic = receiver == null;
 
 		// Iterate through parent classes and interfaces, assuming relevant axioms and
 		// invariants
@@ -3177,12 +3176,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			ListBuffer<JCStatement> staticStats = stats;
 
 			{
-			    currentEnv.currentReceiver = receiver;
 				for (Type ctype : parents) {
 					if (!(ctype.tsym instanceof ClassSymbol))
 						continue;
 					if (isDataGroup(ctype))
 						continue;
+					// The parents include the enclosing classes, whose instance invariants are about the enclosing
+					// instance, not the receiver (#1012); without one, only their static invariants apply
+					JCExpression ctypeReceiver = invariantReceiver(pos, basetype, receiver, ctype);
+					boolean contextIsStatic = ctypeReceiver == null;
+					currentEnv.currentReceiver = ctypeReceiver;
 
 					typevarMapping = typemapping(ctype, null, null, null);
 					ListBuffer<JCStatement> check = pushBlock();
@@ -3334,11 +3337,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (!onlyComments(bl.stats) && !infer) {
 							if (contextIsStatic) {
 								staticStats.add(bl);
-							} else if (receiver == null) {
+							} else if (ctypeReceiver == null) {
 								// This can be because we are in a constructor
 								staticStats.add(bl);
 							} else {
-								JCExpression ex = treeutils.makeNeqObject(pos.getPreferredPosition(), receiver,
+								JCExpression ex = treeutils.makeNeqObject(pos.getPreferredPosition(), ctypeReceiver,
 										treeutils.nullLit);
 //								pushBlock(staticStats);
 //								ex = newTempIfNeeded(ex);
@@ -3362,6 +3365,63 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			typevarMapping = savedTypevarMapping;
 		}
 
+	}
+
+	/** The object on which the instance invariants of ctype are evaluated, when the invariants of basetype
+	 * are gathered for receiver (#1012): receiver itself, if ctype is basetype or one of its supertypes; if
+	 * ctype is an enclosing class of basetype (or a supertype of one), the enclosing instance (Outer.this),
+	 * provided every class between them is an inner (non-static) class. Otherwise null: then only the
+	 * static invariants of ctype apply. RAC can express the enclosing instance only within the code of
+	 * basetype's own class, where it is written Outer.this; ESC models it as a field of the receiver.
+	 */
+	protected JCExpression invariantReceiver(DiagnosticPosition pos, Type basetype, JCExpression receiver, Type ctype) {
+		if (receiver == null) return null;
+		if (types.isSubtype(types.erasure(basetype), types.erasure(ctype))) return receiver;
+		if (!(basetype.tsym instanceof ClassSymbol c)) return null;
+		boolean racThis = receiver instanceof JCIdent id && id.name == names._this && classDecl != null && classDecl.sym == c;
+		JCExpression expr = receiver;
+		while (!types.isSubtype(types.erasure(c.type), types.erasure(ctype))) {
+			if (!c.hasOuterInstance()) return null;
+			Symbol owner = c.owner;
+			while (owner instanceof MethodSymbol) owner = owner.owner;
+			if (!(owner instanceof ClassSymbol outer)) return null;
+			if (rac) {
+				if (!racThis) return null;
+				expr = makeQualifiedThis(pos.getPreferredPosition(), outer);
+			} else {
+				VarSymbol vsym = makeEnclosingSymbol(c, expr);
+				if (vsym == null) return null;
+				expr = treeutils.makeSelect(pos.getPreferredPosition(), expr, vsym);
+			}
+			c = outer;
+		}
+		return expr;
+	}
+
+	/** The receiver, in RAC code, of a (non-static) field of class fieldOwner referenced by its simple name: the
+	 * current receiver, or, when that is 'this' of an inner class and the field belongs to an enclosing class
+	 * (as Java allows), the enclosing instance Outer.this (#1012)
+	 */
+	protected JCExpression racFieldReceiver(int pos, ClassSymbol fieldOwner) {
+		JCExpression receiver = currentEnv.currentReceiver;
+		if (!(receiver instanceof JCIdent id && id.name == names._this && receiver.type != null
+				&& receiver.type.tsym instanceof ClassSymbol c)) return receiver;
+		while (!c.isSubClass(fieldOwner, types)) {
+			Symbol owner = c.owner;
+			while (owner instanceof MethodSymbol) owner = owner.owner;
+			if (!c.hasOuterInstance() || !(owner instanceof ClassSymbol outer)) return receiver;
+			c = outer;
+		}
+		return c == receiver.type.tsym ? receiver : makeQualifiedThis(pos, c);
+	}
+
+	/** Makes Outer.this, the enclosing instance of class outer, for RAC code within an inner class of outer
+	 * (javac's Lower translates it into a reference to the enclosing instance) */
+	protected JCFieldAccess makeQualifiedThis(int pos, ClassSymbol outer) {
+		JCFieldAccess fa = M.at(pos).Select(treeutils.makeType(pos, outer.type), names._this);
+		fa.sym = new VarSymbol(Flags.FINAL | Flags.HASINIT, names._this, outer.type, outer);
+		fa.type = outer.type;
+		return fa;
 	}
 
 	private void addNullnessDynamicTypeConditions(DiagnosticPosition pos, Type basetype, JCExpression receiver,
@@ -17896,6 +17956,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// FIXME - already tested for static
 					if (utils.isJMLStatic(sym))
 						newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+					else if (rac)
+						newfa = treeutils.makeSelect(that.pos, racFieldReceiver(that.pos, (ClassSymbol) sym.owner), sym);
 					else
 						newfa = treeutils.makeSelect(that.pos, currentEnv.currentReceiver, sym);
 				}

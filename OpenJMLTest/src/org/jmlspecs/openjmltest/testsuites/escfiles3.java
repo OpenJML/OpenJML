@@ -209,6 +209,12 @@ public class escfiles3 extends EscBaseFiles {
     }
 
     @Test
+    public void gitbug1012a() {
+        // An item of --method that matches no method gets a command-line warning (#1012)
+        helpEscSimple("--check-feasibility=none","--method=inc,inx");
+    }
+
+    @Test
     public void gitbug997a() {
         // User-written gcd specifications with % and / by a quantified variable: refuted promptly, not
         // a matching loop; quantified % and / are still instantiated from % and / outside the quantifier

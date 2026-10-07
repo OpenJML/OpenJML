@@ -1,0 +1,8 @@
+Proving methods in MethodOption
+Skipping proof of MethodOption.MethodOption() (Skipping MethodOption.MethodOption because it does not match inc,inx)
+Starting proof of MethodOption.inc(int) with prover !!!!
+Completed proof of MethodOption.inc(int) with prover !!!! - no warnings
+Skipping proof of MethodOption.dec(int) (Skipping MethodOption.dec because it does not match inc,inx)
+Completed proving methods in MethodOption
+warning: No method matches the --method item 'inx'
+1 warning
