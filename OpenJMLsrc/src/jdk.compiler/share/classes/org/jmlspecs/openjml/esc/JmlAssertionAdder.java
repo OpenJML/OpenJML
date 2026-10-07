@@ -5639,6 +5639,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 	}
 
+	/** As convertClauseExpression, but converting as convertNoSplit does; used for the clauses of a called
+	 * method whose specifications become axioms. Warnings found along the way (e.g. a recursive call without
+	 * a measured_by clause) are positioned in the clause, so must be reported in the clause's file (#738, #980).
+	 */
+	protected JCExpression convertNoSplitClauseExpression(JmlMethodClause clause, JCExpression ex, JCExpression condition) {
+		JavaFileObject prev = log.useSource(clause.source());
+		try {
+			return convertNoSplit(ex, condition, false);
+		} finally {
+			log.useSource(prev);
+		}
+	}
+
 	protected void addPostConditions(ListBuffer<JCStatement> finalizeStats) {
 		assumingPostConditions = false;
 		JCMethodDecl methodDecl = this.methodDecl;
@@ -24739,8 +24752,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										mcc = clause;
 									JmlMethodClauseExpr mce = (JmlMethodClauseExpr) clause;
 									// convertJML will use paramActuals
-									JCExpression e = convertNoSplit(mce.expression, pre, false); // Might throw an
-																									// exception
+									JCExpression e = convertNoSplitClauseExpression(clause, mce.expression, pre); // Might throw an exception
 									pre = treeutils.makeAndSimp(pre.pos, pre, e);
 								}
 								if (clause.clauseKind == MethodDeclClauseExtension.oldClause) {
@@ -24777,7 +24789,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								currentStatements = ignore;
 								// addStat(comment(clause));
 								// Note - convertJML uses resultExpr and currentEnv.currentReceiver and paramActuals
-								JCExpression e = convertNoSplit(enclause.expression, condition, false);
+								JCExpression e = convertNoSplitClauseExpression(clause, enclause.expression, condition);
 								//if (msym.toString().contains("empty")) System.out.println("MAX FOR " + enclause + " IS " + e);
 								if (treeutils.isFalseLit(e)) {
 									JCExpression not = treeutils.makeNot(pre, copy(pre));
