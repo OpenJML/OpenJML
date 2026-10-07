@@ -1,0 +1,18 @@
+OUT:
+x = 5
+nested OK
+test/gitbug1012/InnerInv.java:15: verify: JML invariant is false on leaving method InnerInv.Inner.bad()
+        void bad() { x = -1; }      // breaks the enclosing invariant: reported on leaving bad()
+             ^
+test/gitbug1012/InnerInv.java:7: verify: Associated declaration: test/gitbug1012/InnerInv.java:15:
+    //@ invariant 0 <= x;
+        ^
+test/gitbug1012/InnerInv.java:24: verify: JML invariant is false on leaving method InnerInv.Mid.Deep.bad()
+    class Mid { class Deep { void bad() { x = -2; } } }
+                                  ^
+test/gitbug1012/InnerInv.java:7: verify: Associated declaration: test/gitbug1012/InnerInv.java:24:
+    //@ invariant 0 <= x;
+        ^
+DONE
+
+ERR:

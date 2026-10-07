@@ -545,6 +545,12 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void gitbug1012() {
+        // Inner classes: enclosing-class fields and invariants belong to Outer.this (#1012)
+        helpCompileRun("InnerInv");
+    }
+
+    @Test
     public void gitbug947() {
         // A non_null local with a RUNTIME type annotation, unused after its declaration (#947)
         helpCompileRun("RuntimeAnno");
