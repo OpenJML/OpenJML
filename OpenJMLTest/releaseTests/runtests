@@ -263,6 +263,13 @@ if ! tr -d '\r' < ../releaseTests/testAPI/actual | diff - ../releaseTests/testAP
     RES=$(($RES+1))
 fi
 
+## Checks that the release's jdk/release file has a JAVA_VERSION entry that tools such as maven-surefire
+## can read and that matches the bundled JVM (#1012). Only a release build is checked: the development
+## build's jdk/release gets the entry only when a release has been packaged from it.
+if [ -n "${ZIPARCHIVE+x}" ]; then
+  ${RTH} testJavaVersion "$LOCAL/testJavaVersion/run" 0 || RES=$(($RES+1))
+fi
+
 ## FIXME - jmldoc & prettyprinying
 if [[ "SKIP" == "" ]]; then
 
