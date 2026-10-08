@@ -130,4 +130,25 @@ public class binaries extends TCBase {
                 ,"/$A/java/io/File.jml:4: error: There is no binary class to match this Java declaration in the specification file: java.io.Extra",1
         );
     }
+
+    /** Checks the annotations of a spec file against those of the binary class (#1015):
+     *  toURL() is @Deprecated in the binary, exists() is not */
+    @Test
+    public void testBinaryAnnotations() {
+        expectedExit = 0;
+        addMockFile("$A/java/io/File.jml",
+                "package java.io; \n" +
+                "public class File implements Serializable, Comparable<File> { \n" +
+                "  @Deprecated public java.net.URL toURL() throws java.net.MalformedURLException;\n" +
+                "  @Deprecated public boolean exists();\n" +
+                "}\n");
+        helpTCText("/A.java",
+                """
+                class A {
+                    boolean m(java.io.File file) { return file.exists(); }
+                }
+                """
+                ,"/$A/java/io/File.jml:4: warning: [jml-lint] Specification method declaration contains an annotation that the Java declaration does not have: java.lang.Deprecated",3
+        );
+    }
 }
