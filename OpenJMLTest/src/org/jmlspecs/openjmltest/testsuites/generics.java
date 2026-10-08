@@ -104,8 +104,9 @@ public class generics extends TCBase {
     @Test
     public void testMethod2() {
         addMockFile("$A/java/util/Vector.jml","package java.util;\npublic class Vector<E> extends java.util.AbstractList<E> implements java.util.List<E>, java.util.RandomAccess, java.lang.Cloneable, java.io.Serializable { \npublic <T> T[] toArray(T[] t); }");
+        // Vector.toArray(T[]) is synchronized in the binary but not in this specification (checked since #1015)
         helpTCText("A.java","public class A<X> { java.util.Vector<X> t; }"
-// OK in Java8                ,"/$A/java/util/Vector.jml:3: error: The method toArray in the specification matches a Java method <T>toArray(T[]) with different modifiers: synchronized",16
+                ,"/$A/java/util/Vector.jml:3: error: The method java.util.Vector.<T>toArray(T[]) in the specification matches a Java method with different modifiers: synchronized",16
                 );
         
     }
