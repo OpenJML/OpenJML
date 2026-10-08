@@ -128,6 +128,7 @@ escfiles3.sfbug420X
 escfiles3.sfbug420e                   # overflow warning in push reported instead of PossiblyTooLargeIndex
 escfiles3.sfbug420eOK
 escfiles.valuestrings           # string specs
+escfiles3.gitbug814d              # variable output: which warning is reported first varies from run to run (12 accepted expected files, still not all)
 escfiles.bag                     # warning order nondeterministic under --esc-max-warnings=1; test source is the original submission
 escfunction.testMethodAxioms2    # z3 MBQI answers unknown; outcome flips with unrelated changes to the SMT text (#1018)
 escfiles2.escRawding2
