@@ -1,3 +1,5 @@
 Proving methods in Test
 Skipping proof of Test.Test() (Skipping Test.Test because it does not match x)
 Completed proving methods in Test
+warning: No method matches the --method item 'x'
+1 warning
