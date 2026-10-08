@@ -1705,6 +1705,49 @@ public class Utils {
         }
         String fullyQualifiedSig = uniqueSymbolName(methodDecl.sym);
 
+        // The --method items are matched first, even for a method that is then excluded, so that each item that
+        // selects some method is recorded as matched (cf. warnUnmatchedMethodItems)
+        String notSelected = null;
+        String methodsToDo = JmlOption.METHOD.value(context);
+        if (methodsToDo != null && !methodsToDo.isEmpty()) {
+            match: {
+                if (fullyQualifiedSig.equals(methodsToDo)) { // A hack to allow at least one signature-containing item in the methods list
+                    matchedMethodItems.add(methodsToDo);
+                    break match;
+                }
+                for (String methodToDo: methodItems(methodsToDo)) { //$NON-NLS-1$ 
+                    methodToDo = methodToDo.trim();
+                    if (methodToDo.isEmpty()) continue;
+                    // Match if methodToDo
+                    //    is the full FQN
+                    //    is just the name of the method
+                    //    contains a "." character before a "(" and is the same as the FQ signature
+                    //    does not contain a "." character before a "(" and is the tail of the FQ signature
+                    if (fullyQualifiedName.equals(methodToDo) ||
+                            methodToDo.equals(simpleName) ||
+                            ( methodToDo.contains(".") && methodToDo.contains("(") && methodToDo.indexOf(".") > methodToDo.indexOf("(") ? fullyQualifiedSig.equals(methodToDo) : fullyQualifiedSig.endsWith(methodToDo))) {
+                        matchedMethodItems.add(methodToDo);
+                        break match;
+                    }
+                    try {
+                        // Also check whether methodToDo, interpreted as a regular expression
+                        // matches either the signature or the name
+                        if (Pattern.matches(methodToDo,fullyQualifiedSig) || Pattern.matches(methodToDo,fullyQualifiedName)) {
+                            matchedMethodItems.add(methodToDo);
+                            break match;
+                        }
+                    } catch(PatternSyntaxException e) {
+                        // The methodToDo can be a regular string and does not
+                        // need to be legal Pattern expression
+                        // skip
+                        int x = 0;
+                    }
+                }
+                notSelected = ("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
+            }
+        }
+        
+
         String excludes = JmlOption.EXCLUDE.value(context);
         if (excludes != null && !excludes.isEmpty()) {
             String[] splits = excludes.contains("(") || excludes.contains(";") ? excludes.split(";") : excludes.split(",");
@@ -1729,43 +1772,36 @@ public class Utils {
             }
         }
 
-        String methodsToDo = JmlOption.METHOD.value(context);
-        if (methodsToDo != null && !methodsToDo.isEmpty()) {
-            match: {
-                if (fullyQualifiedSig.equals(methodsToDo)) break match; // A hack to allow at least one signature-containing item in the methods list
-                String[] splits = methodsToDo.contains("(") || methodsToDo.contains(";") ? methodsToDo.split(";") : methodsToDo.split(",");
-                for (String methodToDo: splits) { //$NON-NLS-1$ 
-                    methodToDo = methodToDo.trim();
-                    if (methodToDo.isEmpty()) continue;
-                    // Match if methodToDo
-                    //    is the full FQN
-                    //    is just the name of the method
-                    //    contains a "." character before a "(" and is the same as the FQ signature
-                    //    does not contain a "." character before a "(" and is the tail of the FQ signature
-                    if (fullyQualifiedName.equals(methodToDo) ||
-                            methodToDo.equals(simpleName) ||
-                            ( methodToDo.contains(".") && methodToDo.contains("(") && methodToDo.indexOf(".") > methodToDo.indexOf("(") ? fullyQualifiedSig.equals(methodToDo) : fullyQualifiedSig.endsWith(methodToDo))) {
-                        break match;
-                    }
-                    try {
-                        // Also check whether methodToDo, interpreted as a regular expression
-                        // matches either the signature or the name
-                        if (Pattern.matches(methodToDo,fullyQualifiedSig)) break match;
-                        if (Pattern.matches(methodToDo,fullyQualifiedName)) break match;
-                    } catch(PatternSyntaxException e) {
-                        // The methodToDo can be a regular string and does not
-                        // need to be legal Pattern expression
-                        // skip
-                        int x = 0;
-                    }
-                }
-                return ("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
-            }
-        }
-        
-        return null;
+        return notSelected;
     }
     
+    /** The items of the --method option that have matched at least one method */
+    private final java.util.Set<String> matchedMethodItems = new java.util.HashSet<>();
+
+    /** The items of a --method option value: separated by semicolons if any item is a signature, otherwise by commas */
+    private static String[] methodItems(String methodsToDo) {
+        return methodsToDo.contains("(") || methodsToDo.contains(";") ? methodsToDo.split(";") : methodsToDo.split(",");
+    }
+
+    /** Warns, as for a command-line problem, about each item of the --method option that matched no method,
+     * so that a misspelled method name does not silently check nothing (#1012) */
+    public void warnUnmatchedMethodItems() {
+        String methodsToDo = JmlOption.METHOD.value(context);
+        if (methodsToDo == null || methodsToDo.isEmpty() || matchedMethodItems.contains(methodsToDo)) return;
+        for (String item: methodItems(methodsToDo)) {
+            item = item.trim();
+            if (!item.isEmpty() && !matchedMethodItems.contains(item)) {
+                // A command-line warning: not attributed to whichever source file was processed last
+                JavaFileObject prev = log.useSource(null);
+                try {
+                    warning("jml.message", "No method matches the --method item '" + item + "'");
+                } finally {
+                    log.useSource(prev);
+                }
+            }
+        }
+    }
+
     // The following are wrappers for calls to log, to output errors, warnings and notes through a 
     // common mechanism. The wrappers are handy because Log itself does not expose all the 
     // needed combinations of arguments. Note that you can use 

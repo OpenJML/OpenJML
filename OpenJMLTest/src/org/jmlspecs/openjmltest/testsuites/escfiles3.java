@@ -105,6 +105,12 @@ public class escfiles3 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug671a() {
+        // A conditional with a generic method call as a branch, as a method argument (#671)
+        helpEscSimple();
+    }
+
+    @Test
     public void gitbug963() {
         helpEscSimple();
     }
@@ -220,6 +226,12 @@ public class escfiles3 extends EscBaseFiles {
         // Only the proofs are of interest here: the feasibility checks of methods whose specifications use
         // Math.gcd cannot be settled (a model of gcd's quantified specification) and run to the timeout
         helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
+    public void gitbug1012a() {
+        // An item of --method that matches no method gets a command-line warning (#1012)
+        helpEscSimple("--check-feasibility=none","--method=inc,inx");
     }
 
     @Test

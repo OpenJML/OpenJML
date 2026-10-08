@@ -1,0 +1,98 @@
+Proving methods in Fraction2
+Starting proof of Fraction2.Fraction2(int,int) with prover !!!!
+Completed proof of Fraction2.Fraction2(int,int) with prover !!!! - no warnings
+Skipping proof of Fraction2.equal(Fraction2,Fraction2) (because the method has no body)
+Skipping proof of Fraction2.equal(Fraction2,\bigint,\bigint) (because the method has no body)
+Starting proof of Fraction2.main(String[]) with prover !!!!
+Completed proof of Fraction2.main(String[]) with prover !!!! - no warnings
+Starting proof of Fraction2.Multiply(Fraction2) with prover !!!!
+Completed proof of Fraction2.Multiply(Fraction2) with prover !!!! - no warnings
+Starting proof of Fraction2.Add(Fraction2) with prover !!!!
+Completed proof of Fraction2.Add(Fraction2) with prover !!!! - no warnings
+Starting proof of Fraction2.Inverse() with prover !!!!
+test/gitbug759/Fraction2.java:89: verify: The prover cannot establish an assertion (Assert) in method Inverse
+        //@ assert GCD.gcd(-numerator,denominator) == 1;
+            ^
+Completed proof of Fraction2.Inverse() with prover !!!! - with warnings
+Starting proof of Fraction2.Reciprocal() with prover !!!!
+test/gitbug759/Fraction2.java:112: verify: The prover cannot establish an assertion (Postcondition) in method Reciprocal
+        return result;
+        ^
+test/gitbug759/Fraction2.java:100: verify: Associated declaration
+      @ ensures \result.denominator == GCD.abs(numerator);
+        ^
+Completed proof of Fraction2.Reciprocal() with prover !!!! - with warnings
+Completed proving methods in Fraction2
+Proving methods in GCD
+Starting proof of GCD.GCD() with prover !!!!
+Completed proof of GCD.GCD() with prover !!!! - no warnings
+Starting proof of GCD.mod(int,int) with prover !!!!
+Completed proof of GCD.mod(int,int) with prover !!!! - no warnings
+Starting proof of GCD.abs(int) with prover !!!!
+Completed proof of GCD.abs(int) with prover !!!! - no warnings
+Starting proof of GCD.gcd(int,int) with prover !!!!
+Completed proof of GCD.gcd(int,int) with prover !!!! - no warnings
+Starting proof of GCD.lemma(int,int) with prover !!!!
+test/gitbug759/GCD.java:95: verify: The prover cannot establish an assertion (Postcondition) in method lemma
+    public static boolean lemma(int n, int d) { /* @ show n, d; */  return true; }
+                                                                    ^
+test/gitbug759/GCD.java:93: verify: Associated declaration
+    //@ ensures \result == (GCD.gcd(n/GCD.gcd(n,d), d/GCD.gcd(n,d)) == 1);
+        ^
+Completed proof of GCD.lemma(int,int) with prover !!!! - with warnings
+Starting proof of GCD.lemma2(int,int) with prover !!!!
+test/gitbug759/GCD.java:102: verify: The prover cannot establish an assertion (Postcondition) in method lemma2
+    public static boolean lemma2(int n, int d) { /* @ show n, d; */  return true; }
+                                                                     ^
+test/gitbug759/GCD.java:100: verify: Associated declaration
+    //@ ensures \result == ((GCD.gcd(n, d)) == (GCD.gcd(-n,d)));
+        ^
+Completed proof of GCD.lemma2(int,int) with prover !!!! - with warnings
+Starting proof of GCD.lemma3(int,int) with prover !!!!
+test/gitbug759/GCD.java:109: verify: The prover cannot establish an assertion (Postcondition) in method lemma3
+    public static boolean lemma3(int n, int d) { /* @ show n, d; */ return true; }
+                                                                    ^
+test/gitbug759/GCD.java:107: verify: Associated declaration
+    //@ ensures \result == ((GCD.gcd(n, d)) == (GCD.gcd(n,-d)));
+        ^
+Completed proof of GCD.lemma3(int,int) with prover !!!! - with warnings
+Starting proof of GCD.lemma4(int) with prover !!!!
+Completed proof of GCD.lemma4(int) with prover !!!! - no warnings
+Starting proof of GCD.lemma5(int) with prover !!!!
+test/gitbug759/GCD.java:122: verify: The prover cannot establish an assertion (Postcondition) in method lemma5
+    public static boolean lemma5(int n) { /* @ show n; */ return true; }
+                                                          ^
+test/gitbug759/GCD.java:120: verify: Associated declaration
+    //@ ensures \result == ((GCD.gcd(n, n)) == n);
+        ^
+Completed proof of GCD.lemma5(int) with prover !!!! - with warnings
+Starting proof of GCD.lemma6(int) with prover !!!!
+Completed proof of GCD.lemma6(int) with prover !!!! - no warnings
+Starting proof of GCD.lemma7(int,int) with prover !!!!
+Completed proof of GCD.lemma7(int,int) with prover !!!! - no warnings
+Starting proof of GCD.lemma8(int,int) with prover !!!!
+test/gitbug759/GCD.java:143: verify: The prover cannot establish an assertion (Postcondition) in method lemma8
+    public static boolean lemma8(int n, int d) { /* @ show n, d; */ return true; }
+                                                                    ^
+test/gitbug759/GCD.java:141: verify: Associated declaration
+    //@ ensures \result == ((GCD.gcd(n, d)) == (GCD.gcd(-n, -d)));
+        ^
+Completed proof of GCD.lemma8(int,int) with prover !!!! - with warnings
+Starting proof of GCD.lemma9(int,int,int) with prover !!!!
+test/gitbug759/GCD.java:150: verify: The prover cannot establish an assertion (Postcondition) in method lemma9
+    public static boolean lemma9(int n, int k, int g) { /* @ show n, k, g; */ return true; }
+                                                                              ^
+test/gitbug759/GCD.java:148: verify: Associated declaration
+    //@ ensures \result == (((mod(n,g)) == 0 && (mod(n/g,k)) == 0) ==> (mod(n,k)) == 0);
+        ^
+Completed proof of GCD.lemma9(int,int,int) with prover !!!! - with warnings
+Starting proof of GCD.divmod(int,int) with prover !!!!
+test/gitbug759/GCD.java:155: verify: The prover cannot establish an assertion (Postcondition) in method divmod
+    public static boolean divmod(int n, int d) { return true; }
+                                                 ^
+test/gitbug759/GCD.java:153: verify: Associated declaration
+    //@ ensures mod(n,d) == 0 ==> (n/d)*d == n;
+        ^
+Completed proof of GCD.divmod(int,int) with prover !!!! - with warnings
+Completed proving methods in GCD
+17 verification failures

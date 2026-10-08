@@ -116,7 +116,6 @@ escsf1.gitbug481a5
 escsf1.gitbug481a8
 escsf1.gitbug481b
 escsf1.gitbug481c
-escsf3.gitbug671                # crash during speculative attribution
 
 #escArithmeticModes2.testModJavaB
 escArithmeticModes2.testModSafeBB
@@ -139,12 +138,10 @@ escfileslist1.test[dynamicFrames]
 escfileslist1.test[escJmlDup]   # NullField for a field declared only in the .jml reported against the .java file (#1006)
 escfileslist2.test[choose-repeat]
 escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
-escfileslist2.test[firstTest]	#	Feasibility problems, likely caused by use of toString()
-escfileslist2.test[gitbug759]   #   Attempt at implementing a GCD
+escfileslist2.test[gitbug1010]	#	#1010: every toString override fails the inherited Object.toString postcondition
 escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
 runscripts1.gitbug784            #   apache commons library
 escfileslist3.test[gitbug785]   #   Google guava library
-escfileslist3.test[gitbug878]             #   problem with type inference
 #escfileslist3.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist3.test[gitbug897]   # substring and loop
 escfileslist3.test[listNullity]
@@ -168,7 +165,6 @@ escnew.testSealed                 # sealed property not yet implemented
 racfiles.gitbug861                # missing check in compiler constant static initializer
 racfiles.racbug1                  # stack overflow because of missing 'helper' on methods with invariants
 
-bugs.testMiscBug4      # deferred attribution problem
 escfiles2.gitbug812a
 
 SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
@@ -183,7 +179,6 @@ escfiles2.gitbug726                   # OLList problem
 escfiles2.gitbug903                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 escfiles3.gitbug814                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 escfileslist3.test[gitbug944]         # bad translation for \seq<\bigint>
-runscripts2.apiASTCrash               # CRASH in Attr
 
 escfiles2.gitbug890                   # z3-5.1.0 lost proof in model_test; MBQI does not recover it
 escfiles3.gitbug963a                  # no expected output file yet (partial fix for #963)

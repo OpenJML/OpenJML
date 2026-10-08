@@ -102,7 +102,7 @@ public class Fraction2 {
       @ ensures equal(\result, denominator, numerator);
       @ pure @*/
     public Fraction2 Reciprocal(){
-        //@ show numerator, denominator;
+        // @ show numerator, denominator; // commented out: the values are not deterministic (see GCD.java)
         int d = numerator < 0 ? -denominator : denominator;
         int n = numerator < 0 ? -numerator : numerator;
         //@ assume GCD.lemma7(d,n);

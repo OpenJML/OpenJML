@@ -5,5 +5,9 @@
 cd "$LOCAL"
 BIN=../../../OpenJMLsrc
 PATH=$BIN:$PATH
-export ROOT=`(cd ../../../.. ; pwd)`
+export REPO=`(cd ../../.. ; pwd)`   ## This checkout (usually named OpenJML)
+export ROOT=`(cd ../../../.. ; pwd)` ## The folder containing it, Specs, Solvers, etc.
 export SPECS=`(cd $ROOT/Specs/specs; pwd)`
+
+## Prints the named expected-output file with $ROOT/OpenJML (this checkout), $ROOT and $SPECS replaced
+expected_output() { sed -e "s%\$ROOT/OpenJML/%$REPO/%g" -e "s%\$ROOT%$ROOT%g" -e "s%\$SPECS%$SPECS%g" "$1"; }
