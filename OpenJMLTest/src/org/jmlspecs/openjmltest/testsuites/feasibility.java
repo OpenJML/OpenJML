@@ -17,16 +17,20 @@ public class feasibility extends EscBase {
         captureOutput = false;
     }
     
+    /** Selects the methods m, q and r of each test program (a program need not have all of them): one --method
+     * item, a pattern, so that it does not draw a warning that an item matches no method (#1012) */
+    static final String METHODS = ".*\\.(m|q|r)";
+
     protected void helpFeas(String feasoption, String program, Object... expectedResults) {
         if (split != null) addOptions("--split=" + split);
         addOptions("--check-feasibility=none");
         addOptions("--no-show-skipped");
-        addOptions("--method=m,q,r");
+        addOptions("--method=" + METHODS);
         super.helpEsc("tt.TestJava", program);
         reset();
         if (split != null) addOptions("--split=" + split);
         addOptions("--no-show-skipped");
-        addOptions("--method=m,q,r");
+        addOptions("--method=" + METHODS);
         addOptions("--check-feasibility=" + feasoption);
         super.helpEsc("tt.TestJava", program, expectedResults);
     }

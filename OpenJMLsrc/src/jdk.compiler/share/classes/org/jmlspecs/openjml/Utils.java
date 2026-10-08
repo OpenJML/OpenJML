@@ -1705,30 +1705,9 @@ public class Utils {
         }
         String fullyQualifiedSig = uniqueSymbolName(methodDecl.sym);
 
-        String excludes = JmlOption.EXCLUDE.value(context);
-        if (excludes != null && !excludes.isEmpty()) {
-            String[] splits = excludes.contains("(") || excludes.contains(";") ? excludes.split(";") : excludes.split(",");
-            for (String exclude: splits) { //$NON-NLS-1$
-                if (exclude.equals("<init>") && methodDecl.sym.isConstructor()) {
-                    return ("Skipping " + fullyQualifiedName + " because it matches the exclusion " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                }
-                if (fullyQualifiedName.equals(exclude) ||
-                        fullyQualifiedSig.equals(exclude) ||
-                        simpleName.equals(exclude)) {
-                    return ("Skipping " + fullyQualifiedName + " because it matches the exclusion " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                }
-                try {
-                    if (Pattern.matches(exclude,fullyQualifiedName)) {
-                        return ("Skipping " + fullyQualifiedName + " because it matches the exclusion pattern " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
-                    }
-                } catch(PatternSyntaxException e) {
-                    // The methodToDo can be a regular string and does not
-                    // need to be legal Pattern expression
-                    // skip
-                }
-            }
-        }
-
+        // The --method items are matched first, even for a method that is then excluded, so that each item that
+        // selects some method is recorded as matched (cf. warnUnmatchedMethodItems)
+        String notSelected = null;
         String methodsToDo = JmlOption.METHOD.value(context);
         if (methodsToDo != null && !methodsToDo.isEmpty()) {
             match: {
@@ -1764,11 +1743,36 @@ public class Utils {
                         int x = 0;
                     }
                 }
-                return ("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
+                notSelected = ("Skipping " + fullyQualifiedName + " because it does not match " + methodsToDo);  //$NON-NLS-1$//$NON-NLS-2$
             }
         }
         
-        return null;
+
+        String excludes = JmlOption.EXCLUDE.value(context);
+        if (excludes != null && !excludes.isEmpty()) {
+            String[] splits = excludes.contains("(") || excludes.contains(";") ? excludes.split(";") : excludes.split(",");
+            for (String exclude: splits) { //$NON-NLS-1$
+                if (exclude.equals("<init>") && methodDecl.sym.isConstructor()) {
+                    return ("Skipping " + fullyQualifiedName + " because it matches the exclusion " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                }
+                if (fullyQualifiedName.equals(exclude) ||
+                        fullyQualifiedSig.equals(exclude) ||
+                        simpleName.equals(exclude)) {
+                    return ("Skipping " + fullyQualifiedName + " because it matches the exclusion " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                }
+                try {
+                    if (Pattern.matches(exclude,fullyQualifiedName)) {
+                        return ("Skipping " + fullyQualifiedName + " because it matches the exclusion pattern " + exclude); //$NON-NLS-1$ //$NON-NLS-2$
+                    }
+                } catch(PatternSyntaxException e) {
+                    // The methodToDo can be a regular string and does not
+                    // need to be legal Pattern expression
+                    // skip
+                }
+            }
+        }
+
+        return notSelected;
     }
     
     /** The items of the --method option that have matched at least one method */
@@ -1787,7 +1791,13 @@ public class Utils {
         for (String item: methodItems(methodsToDo)) {
             item = item.trim();
             if (!item.isEmpty() && !matchedMethodItems.contains(item)) {
-                warning("jml.message", "No method matches the --method item '" + item + "'");
+                // A command-line warning: not attributed to whichever source file was processed last
+                JavaFileObject prev = log.useSource(null);
+                try {
+                    warning("jml.message", "No method matches the --method item '" + item + "'");
+                } finally {
+                    log.useSource(prev);
+                }
             }
         }
     }
