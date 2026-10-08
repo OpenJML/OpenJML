@@ -1,0 +1,34 @@
+Proving methods in IntStackAsArrayMV
+Starting proof of IntStackAsArrayMV.IntStackAsArrayMV() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntStackAsArrayMV.IntStackAsArrayMV() with prover !!!! - no warnings
+Starting proof of IntStackAsArrayMV.nthElement(int) with prover !!!!
+test/gitbug980/IntStackAsArrayMV.java:23: verify: The prover cannot establish an assertion (Accessible) in method nthElement: _elems
+        return _elems[n];
+               ^
+test/gitbug980/IntStackMV.java:11: verify: Associated declaration
+    //@ reads size, elems[n];
+        ^
+Completed proof of IntStackAsArrayMV.nthElement(int) with prover !!!! - with warnings
+Starting proof of IntStackAsArrayMV.nthElement2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntStackAsArrayMV.nthElement2(int) with prover !!!! - no warnings
+Starting proof of IntStackAsArrayMV.set(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntStackAsArrayMV.set(int,int) with prover !!!! - no warnings
+Completed proving methods in IntStackAsArrayMV
+Proving methods in IntStackMV
+Starting proof of IntStackMV.nthElement(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IntStackMV.nthElement(int) with prover !!!! - no warnings
+Starting proof of IntStackMV.nthElement2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IntStackMV.nthElement2(int) with prover !!!! - no warnings
+Starting proof of IntStackMV.set(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of IntStackMV.set(int,int) with prover !!!! - no warnings
+Completed proving methods in IntStackMV
+2 verification failures

@@ -4275,6 +4275,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    /** In a frame, x[i] is a location only if x is an array, or a model field, whose index is applied to the
+     * arrays mapped into it (#980); for a model field, the index (or the bounds of a range) must be integers. */
+    protected void checkIndexedStoreRef(JCArrayAccess aa) {
+        Type t = aa.indexed.type;
+        if (t == null || t.isErroneous() || t instanceof Type.ArrayType) return;
+        if (TreeInfo.symbol(aa.indexed) instanceof VarSymbol v && v.owner instanceof TypeSymbol && utils.isModel(v)) {
+            JCExpression[] bounds = aa.index instanceof JmlRange r ? new JCExpression[]{ r.lo, r.hi } : new JCExpression[]{ aa.index };
+            for (JCExpression b : bounds) {
+                if (b != null && b.type != null && !b.type.isErroneous() && !jmltypes.isAnyIntegral(b.type)) {
+                    log.error(b.pos, "jml.storeref.model.index.not.integral", v.name, b.type);
+                }
+            }
+            return;
+        }
+        log.error(aa.indexed.pos, "jml.storeref.not.indexable", aa.toString(), aa.indexed.toString(), t);
+    }
+
     /** This is an implementation that does the type attribution for 
      * assignable/accessible/captures method specification clauses
      * @param tree the method specification clause being attributed
@@ -4286,6 +4303,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
             if (!isRefining && e instanceof JCIdent) checkIfParameter((JCIdent)e);
+            if (e instanceof JCArrayAccess aa) checkIndexedStoreRef(aa);
             if (jmlenv.currentClauseKind == assignableClauseKind) {
                 if (e instanceof JCFieldAccess fa  && fa.selected.type.tsym instanceof ClassSymbol cs) {
                     if (isImmutable(cs)) {

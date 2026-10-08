@@ -1,0 +1,45 @@
+Proving methods in S
+Starting proof of S.S() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.S() with prover !!!! - no warnings
+Starting proof of S.get(int) with prover !!!!
+test/gitbug980a/S.java:17: verify: The prover cannot establish an assertion (Accessible) in method get: a
+    public int get(int n) { return a[n]; }
+                                   ^
+test/gitbug980a/S.java:15: verify: Associated declaration
+    //@ reads s[n];
+        ^
+Completed proof of S.get(int) with prover !!!! - with warnings
+Starting proof of S.get2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.get2(int) with prover !!!! - no warnings
+Starting proof of S.set(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.set(int) with prover !!!! - no warnings
+Starting proof of S.setOther(int) with prover !!!!
+test/gitbug980a/S.java:30: verify: The prover cannot establish an assertion (Assignable) in method setOther: a[n + 1]
+    public void setOther(int n) { a[n+1] = 1; }
+                                         ^
+test/gitbug980a/S.java:29: verify: Associated declaration
+    //@ assignable s[n];
+        ^
+Completed proof of S.setOther(int) with prover !!!! - with warnings
+Starting proof of S.set2(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of S.set2(int) with prover !!!! - no warnings
+Starting proof of S.set3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of S.set3() with prover !!!! - no warnings
+Starting proof of S.m() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.m() with prover !!!! - no warnings
+Starting proof of S.m2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.m2() with prover !!!! - no warnings
+Completed proving methods in S
+4 verification failures
