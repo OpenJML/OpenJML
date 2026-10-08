@@ -551,6 +551,12 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void gitbug1018rac() {
+        // Casts to integral types narrow as Java does, also from \bigint; char is unsigned (#1018)
+        helpCompileRun("Narrow");
+    }
+
+    @Test
     public void gitbug947() {
         // A non_null local with a RUNTIME type annotation, unused after its declaration (#947)
         helpCompileRun("RuntimeAnno");
