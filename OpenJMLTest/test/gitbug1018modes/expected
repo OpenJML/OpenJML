@@ -1,0 +1,20 @@
+Proving methods in Modes
+Starting proof of Modes.Modes() with prover !!!!
+Completed proof of Modes.Modes() with prover !!!! - no warnings
+Starting proof of Modes.hard(long) with prover !!!!
+test/gitbug1018modes/Modes.java:12: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method hard
+        int i = (int)x;
+                ^
+Completed proof of Modes.hard(long) with prover !!!! - with warnings
+Starting proof of Modes.soft(long) with prover !!!!
+test/gitbug1018modes/Modes.java:20: verify: The prover cannot establish an assertion (Assert) in method soft
+        //@ assert i >= 0;
+            ^
+test/gitbug1018modes/Modes.java:19: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method soft
+        int i = (int)x;
+                ^
+Completed proof of Modes.soft(long) with prover !!!! - with warnings
+Starting proof of Modes.quiet(long) with prover !!!!
+Completed proof of Modes.quiet(long) with prover !!!! - no warnings
+Completed proving methods in Modes
+3 verification failures
