@@ -62,6 +62,10 @@ public class bugs extends TCBase {
                 interface Foo {}
                 class A { void m() { new @X Foo() {}; } }
                 """
+                // The error is found three times at the same position; javac's log reports it once (as on the command
+                // line), but the test's diagnostic listener receives each
+                ,"/A.java:4: error: annotation @X not applicable in this type context",26
+                ,"/A.java:4: error: annotation @X not applicable in this type context",26
                 ,"/A.java:4: error: annotation @X not applicable in this type context",26
                 );
     }
