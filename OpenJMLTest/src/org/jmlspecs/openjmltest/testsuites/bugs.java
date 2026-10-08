@@ -44,6 +44,14 @@ public class bugs extends TCBase {
                 );
     }
 
+    /** Issue #1015: a method reference to Character in a generic call gave false jml-lint warnings
+     *  that the @Deprecated methods of Character.jml are not deprecated in the binary */
+    @Test
+    public void gitbug1015() {
+        helpTCText("F.java","public class F { boolean m() { return \"ab\".chars().allMatch(Character::isDigit); } }"
+                );
+    }
+
     /** Issue #1011: the minimal plain-Java form of #1008 */
     @Test
     public void gitbug1011() {
