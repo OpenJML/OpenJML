@@ -8794,6 +8794,138 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    return false;
 	}
 
+    /** Returns the model field that aa indexes (e.g. elems in elems[n]), or null if aa does not index a model field */
+    protected /*@ nullable */ VarSymbol indexedModelField(JCArrayAccess aa) {
+        Symbol sym = treeutils.getSym(aa.indexed);
+        return sym instanceof VarSymbol v && v.owner instanceof TypeSymbol && isModel(v) ? v : null;
+    }
+
+    /** Makes the store-refs for an indexed model field in a frame, e.g. elems[n] or elems[i..j] (#980).
+     * A model field in a frame stands for what is in it; when it is indexed, the index is applied to what
+     * is mapped into it: 'maps a[*] \into elems' contributes a[n], and 'maps a[lo..hi] \into elems'
+     * contributes a[n] only when lo <= n <= hi (the intersection of the two ranges). Mapped items that are
+     * not array elements (e.g. 'maps x.f \into elems') have no elements to index and contribute nothing,
+     * nor do the fields that are 'in' elems. Maps into model fields that are in elems count as maps into elems.
+     * The model field itself is included as well, so that a caller (which may not see the maps clauses)
+     * treats it as possibly changed; it is marked noContents, so it does not stand for the fields in it.
+     * The maps clauses are those visible from baseClassSym, and are used only if expand is true.
+     */
+    protected List<JmlStoreRef> makeIndexedModelFieldStoreRefs(DiagnosticPosition pos, JCArrayAccess aa, VarSymbol mf,
+            ClassSymbol baseClassSym, boolean expand) {
+        ListBuffer<JmlStoreRef> list = new ListBuffer<>();
+        JCExpression receiver = null;
+        if (!utils.isJMLStatic(mf)) {
+            if (aa.indexed instanceof JCFieldAccess fa) {
+                receiver = newTempIfNeeded(convertJML(fa.selected));
+            } else {
+                JCIdent t = M.at(pos).Ident(names._this);
+                t.sym = baseClassSym;
+                t.setType(baseClassSym.type);
+                receiver = convertJML(t);
+            }
+        }
+        JmlStoreRef sr = M.at(aa.pos).JmlStoreRef(false, null, null, receiver, null, mf, aa.indexed);
+        sr.noContents = true;
+        sr.modelIndex = convertedIndexRange(aa);
+        list.add(sr);
+        if (!expand) return list.toList();
+
+        // The index as a range lo..hi, where null is an absent bound
+        JCExpression lo = null, hi = null;
+        if (aa.index instanceof JmlRange rr) {
+            lo = rr.lo;
+            hi = rr.hi;
+        } else if (aa.index != null) {
+            lo = hi = aa.index;
+        }
+        for (JCExpression mapped : mappedInto(baseClassSym, mf)) {
+            if (!(mapped instanceof JCArrayAccess ma)) continue; // not array elements: nothing to index
+            JCExpression mlo = null, mhi = null;
+            if (ma.index instanceof JmlRange mr) {
+                mlo = mr.lo;
+                mhi = mr.hi;
+            } else if (ma.index != null) {
+                mlo = mhi = ma.index;
+            }
+            int p = aa.getPreferredPosition();
+            JCExpression clo = boundOf(p, lo, mlo, JCTree.Tag.GE);
+            JCExpression chi = boundOf(p, hi, mhi, JCTree.Tag.LE);
+            if (clo == null) clo = treeutils.makeZeroEquivalentLit(aa, BIGINT);
+            if (chi == null) chi = treeutils.makeLengthM1(aa, ma.indexed);
+            // A single index has lo == hi (the same object), which is how a single element is recognized
+            JCExpression cclo = convertJML(clo);
+            JmlRange r = M.at(p).JmlRange(cclo, chi == clo ? cclo : convertJML(chi));
+            r.type = RANGE;
+            var arr = newTempIfNeeded(convertJML(ma.indexed));
+            JmlStoreRef msr = M.at(aa.pos).JmlStoreRef(false, null, null, arr, r, null, mapped);
+            list.add(msr);
+        }
+        return list.toList();
+    }
+
+    /** The converted index of aa as a range: lo..hi, where a single index has lo == hi (the same object)
+     * and an absent bound is null. */
+    protected JmlRange convertedIndexRange(JCArrayAccess aa) {
+        JCExpression lo = null, hi = null;
+        if (aa.index instanceof JmlRange rr) {
+            lo = rr.lo == null ? null : convertJML(rr.lo);
+            hi = rr.hi == null ? null : convertJML(rr.hi);
+        } else if (aa.index != null) {
+            lo = hi = convertJML(aa.index);
+        }
+        JmlRange r = M.at(aa.index != null ? aa.index : aa).JmlRange(lo, hi);
+        r.type = RANGE;
+        return r;
+    }
+
+    /** Whether the (converted) index range 'smaller' lies within 'bigger' (null bounds: from the start, to the end) */
+    protected JCExpression indexRangeWithin(DiagnosticPosition pos, TranslationEnv targetEnv, boolean isSmallerConverted,
+            /*@ nullable */ JmlRange smaller, JmlRange bigger) {
+        if (smaller == null) return treeutils.makeBooleanLiteral(pos, false); // the whole model field is not within an index range
+        JCExpression result = treeutils.makeBooleanLiteral(pos, true);
+        if (bigger.lo != null) {
+            JCExpression slo = smaller.lo == null ? treeutils.makeIntLiteral(pos.getPreferredPosition(), 0)
+                    : isSmallerConverted ? smaller.lo : convertJML(smaller.lo);
+            result = treeutils.makeAndSimp(pos.getPreferredPosition(), result,
+                    treeutils.makeBinary(pos, JCTree.Tag.LE, convertJML(bigger.lo, targetEnv), slo));
+        }
+        if (bigger.hi != null) {
+            if (smaller.hi == null) return treeutils.makeBooleanLiteral(pos, false); // unbounded is not within bounded
+            JCExpression shi = isSmallerConverted ? smaller.hi : convertJML(smaller.hi);
+            result = treeutils.makeAndSimp(pos.getPreferredPosition(), result,
+                    treeutils.makeBinary(pos, JCTree.Tag.LE, shi, convertJML(bigger.hi, targetEnv)));
+        }
+        return result;
+    }
+
+    /** Combines two (unconverted) bounds of an intersection of ranges: the larger of two lower bounds (tag GE)
+     * or the smaller of two upper bounds (tag LE); a null bound is absent. */
+    private /*@ nullable */ JCExpression boundOf(int p, /*@ nullable */ JCExpression a, /*@ nullable */ JCExpression b, JCTree.Tag tag) {
+        if (a == null) return b;
+        if (b == null) return a;
+        return treeutils.makeConditional(p, treeutils.makeBinary(p, tag, a, b), a, b);
+    }
+
+    /** The store-ref expressions mapped (by maps clauses visible from rootClass) into modelField, or into a
+     * model field that is in modelField */
+    protected java.util.List<JCExpression> mappedInto(ClassSymbol rootClass, VarSymbol modelField) {
+        var result = new java.util.ArrayList<JCExpression>();
+        for (Type t : parents(rootClass.type, false)) {
+            if (!jmltypes.isSubtype(t, modelField.owner.type)) continue;
+            for (Symbol s : t.tsym.getEnclosedElements()) {
+                if (!(s instanceof VarSymbol vs)) continue;
+                JmlSpecs.FieldSpecs fs = specs.getAttrSpecs(vs);
+                if (fs == null) continue;
+                for (var cl : fs.list) {
+                    if (cl instanceof JmlTypeClauseMaps m && m.list.stream().anyMatch(g -> isContainedIn(g.sym, modelField))) {
+                        result.addAll(m.expressions);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
     /* Makes a JmlStoreRef value from a store-ref-expression */
     public List<JmlStoreRef> makeJmlStoreRef(DiagnosticPosition pos, JCExpression e, ClassSymbol baseClassSym, boolean expand) {
         boolean check = true;
@@ -8824,6 +8956,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             list.add(sr);
+        } else if (e instanceof JCArrayAccess aa && indexedModelField(aa) != null) {
+            // An indexed model field, e.g. elems[n]
+            list.addAll(makeIndexedModelFieldStoreRefs(pos, aa, indexedModelField(aa), baseClassSym, expand));
         } else if (e instanceof JCArrayAccess aa) {
             // An array store-ref, perhaps with a range
             //System.out.println("JAA " + aa + " " + hasRanges(aa.indexed));
@@ -14379,7 +14514,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			//if (kind == accessibleClauseKind) System.out.println("CA2 " + lhs + " " + lhs.getClass() + " " + methodSym + " " + methodSym.isConstructor() + " " + methodSym.owner);
 			if (lhs instanceof JCIdent id && id.sym.owner instanceof ClassSymbol && methodSym.isConstructor()) return okCondition;// OK to set a field of 'this' inside a constructor
 			// System.out.println("CONVERTING? " + lhsUnconverted + " " + lhs + " " + isConverted + " " + currentEnv.currentReceiver);
-			if (!isConverted) {
+			if (!isConverted && lhsUnconverted instanceof JCArrayAccess uaa && indexedModelField(uaa) != null) {
+			    // An indexed model field (e.g. a callee's assignable elems[n]): the model field itself, with its
+			    // index, compared with the frame by index (#980). convertLHS2 would make it an array access.
+			    JmlStoreRef msr = makeJmlStoreRef(pos, convertLHS2(uaa.indexed), (ClassSymbol)methodSym.owner, false).head;
+			    msr.noContents = true;
+			    msr.modelIndex = convertedIndexRange(uaa);
+			    lhs = msr;
+			    isConverted = true;
+			} else if (!isConverted) {
 			    // This conversion replaces formal ids with their actual expressions and does any other standard conversion
 			    lhs = convertLHS2(lhsUnconverted);
 			    isConverted = true;
@@ -25091,7 +25234,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    }
 
 			    // fields
-			    JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, bigger);
+			    JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, sr.modelIndex, bigger);
 			    //System.out.println("CFIELD " + ft + " " + e);
 			    result = ft == null ? e : treeutils.makeOr(smaller, ft, e);
 			}
@@ -25234,7 +25377,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                ft = convertJML(ft); // Convert in current envirnment  // FIXME - already converted???
 
                 // fields
-                JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, bigger);
+                JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, sr.modelIndex, bigger);
                 //System.out.println("CHECKED " + sr.field + " VS " + bigger + " " + e);
                 return ft == null ? e : treeutils.makeOr(smaller, ft, e);
             }
@@ -25318,6 +25461,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public JCExpression containsField(DiagnosticPosition pos, TranslationEnv targetEnv, boolean isSmallerConverted,
 			JCExpression receiver, VarSymbol field, JCExpression bigger) {
+		return containsField(pos, targetEnv, isSmallerConverted, receiver, field, null, bigger);
+	}
+
+	/** As above; smallerIndex is the index range of the smaller location if it is an indexed model field
+	 * (e.g. elems[n]), and null otherwise (#980) */
+	public JCExpression containsField(DiagnosticPosition pos, TranslationEnv targetEnv, boolean isSmallerConverted,
+			JCExpression receiver, VarSymbol field, /*@ nullable */ JmlRange smallerIndex, JCExpression bigger) {
 		if (bigger instanceof JmlStoreRef sr) {
 			if (sr.isEverything) {
 				return treeutils.makeBooleanLiteral(pos, true);
@@ -25325,11 +25475,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// If all model fields were expanded we could just compare field == sr.field, but model field
 			    // definitions can be recursive, so we can't always do that expansion
 			    //System.out.println("FIELDS " + field + " VS " + sr.field);
-				if (field == sr.field || (field != null && isContainedIn(field, sr.field))) {
-					var ee = utils.isJMLStatic(field) ? treeutils.makeBooleanLiteral(pos, true)
+				// A model field from an indexed frame item (sr.noContents) stands only for itself,
+				// not for the fields in it (#980)
+				if (field == sr.field || (field != null && !sr.noContents && isContainedIn(field, sr.field))) {
+					JCExpression ee = utils.isJMLStatic(field) ? treeutils.makeBooleanLiteral(pos, true)
 							: treeutils.makeEqObject(pos.getPreferredPosition(),
 									isSmallerConverted ? receiver : convertJML(receiver),
 											convertJML(sr.receiver, targetEnv));
+					// An indexed model field in the frame contains the same model field only at indices in its range
+					if (sr.noContents && sr.modelIndex != null) {
+						ee = treeutils.makeAndSimp(pos.getPreferredPosition(), ee,
+								indexRangeWithin(pos, targetEnv, isSmallerConverted, smallerIndex, sr.modelIndex));
+					}
 					return ee;
 				} else {
 				    // Now check all the maps clauses   // FIXME !!!
@@ -25363,14 +25520,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (sr.expression != null) {
 			    //System.out.println("BIGGER IS " + sr.expression);
 				return expand(pos, targetEnv, sr.expression,
-						s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, s));
+						s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, smallerIndex, s));
 			} else {
 				return treeutils.makeBooleanLiteral(pos, false);
 			}
 		} else {
             //System.out.println("BIGGER-F IS " + bigger);
             return expand(pos, targetEnv, bigger,
-                    s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, s));
+                    s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, smallerIndex, s));
 		}
 	}//
 

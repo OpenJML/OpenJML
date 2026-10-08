@@ -723,6 +723,8 @@ public class JmlTreeCopier extends TreeCopier<Void> implements JmlTreeVisitor<JC
                 that.originalStoreRef
                 );
         //copy.sourcefile = that.sourcefile;
+        copy.noContents = that.noContents;
+        copy.modelIndex = copy(that.modelIndex, p);
         copy.type = that.type;
         return copy;
     }
