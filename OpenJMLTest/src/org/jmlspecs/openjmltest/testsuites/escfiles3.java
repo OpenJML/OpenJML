@@ -236,6 +236,12 @@ public class escfiles3 extends EscBaseFiles {
     }
 
     @Test
+    public void specsStringContains() {
+        // String.contains is pure and specified (Specs PR #26)
+        helpEscSimple();
+    }
+
+    @Test
     public void gitbug1018modes() {
         // A failed range check of a cast is hard, soft or quiet according to --arithmetic-failure, as for
         // arithmetic operations (#1018)
