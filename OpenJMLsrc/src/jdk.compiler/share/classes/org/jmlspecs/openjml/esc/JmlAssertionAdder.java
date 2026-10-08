@@ -8867,10 +8867,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    return false;
 	}
 
-    /** Returns the model field that aa indexes (e.g. elems in elems[n]), or null if aa does not index a model field */
+    /** Returns the model field that aa indexes (e.g. elems in elems[n]), or null if aa does not index a model field.
+     * A model field of array type is not included: indexing it denotes an element of the array that is its
+     * value, as for any array (as JmlAttr.checkIndexedStoreRef treats it too) */
     protected /*@ nullable */ VarSymbol indexedModelField(JCArrayAccess aa) {
         Symbol sym = treeutils.getSym(aa.indexed);
-        return sym instanceof VarSymbol v && v.owner instanceof TypeSymbol && isModel(v) ? v : null;
+        return sym instanceof VarSymbol v && v.owner instanceof TypeSymbol && isModel(v)
+                && !(v.type instanceof Type.ArrayType) ? v : null;
     }
 
     /** Makes the store-refs for an indexed model field in a frame, e.g. elems[n] or elems[i..j] (#980).
