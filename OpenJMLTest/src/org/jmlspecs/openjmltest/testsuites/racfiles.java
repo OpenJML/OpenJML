@@ -545,9 +545,21 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void gitbug1019() {
+        // Constant expressions with converted operands (e.g. Long.MIN_VALUE + 49) evaluate as javac does (#1019)
+        helpCompileRun("ConstExpr");
+    }
+
+    @Test
     public void gitbug1012() {
         // Inner classes: enclosing-class fields and invariants belong to Outer.this (#1012)
         helpCompileRun("InnerInv");
+    }
+
+    @Test
+    public void gitbug1018rac() {
+        // Casts to integral types narrow as Java does, also from \bigint; char is unsigned (#1018)
+        helpCompileRun("Narrow");
     }
 
     @Test

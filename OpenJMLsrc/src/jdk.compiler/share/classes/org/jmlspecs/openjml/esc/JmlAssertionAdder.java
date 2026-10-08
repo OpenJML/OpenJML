@@ -16362,9 +16362,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			switch (b) {
 			case BYTE:
 				return 0;
+			case CHAR: // char is unsigned: a negative byte is not a char value (#1018)
+				return 1;
 			case INT:
-			case CHAR:
 			case SHORT:
+			case FLOAT:
+			case DOUBLE:
+			case LONG:
+				return -1;
+			}
+			break;
+		case CHAR: // char is unsigned, so not all of its values are short or byte values (#1018)
+			switch (b) {
+			case CHAR:
+				return 0;
+			case BYTE:
+			case SHORT:
+				return 1;
+			case INT:
 			case FLOAT:
 			case DOUBLE:
 			case LONG:
@@ -16494,7 +16509,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         String s = newtype.toString() + "Value";
                         if (s.contains("BigInteger")) s = "bigValue";
                         try {
-                            JCExpression e = makeMethodInvocation(pos, expr, names.fromString(s));
+                            JCExpression e;
+                            if (types.isSameType(oldtype, BIGINT) && newtype.isIntegral()) {
+                                // A \bigint is narrowed to an integral type as Java narrows, without a range check of
+                                // its own (the range is checked above, or not, according to the arithmetic mode), by
+                                // the conversions of its BigInteger value (#1018)
+                                // (BigInteger declares only longValue and intValue; short, char and byte are narrowed from int)
+                                var big = makeMethodInvocation(pos, expr, names.fromString("bigValue"));
+                                boolean toLong = newtype.getTag() == TypeTag.LONG;
+                                e = makeMethodInvocation(pos, big, names.fromString(toLong ? "longValue" : "intValue"));
+                                if (!toLong && newtype.getTag() != TypeTag.INT) e = M.at(pos).TypeCast(newtype, e).setType(newtype);
+                            } else {
+                                e = makeMethodInvocation(pos, expr, names.fromString(s));
+                            }
                             result = eresult = e;
                         } catch (java.util.NoSuchElementException e) {
                             utils.error(pos, "jml.internal", "There is no conversion to " + newtype + " in the runtime implementation for " + oldtype);
@@ -16646,7 +16673,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 case SHORT:
                 case CHAR:
                 case BYTE:
-                    addRangeConstraints(pos, false, oldtype, expr);
+                    // the range is stated on the widened value: for the bit-vector encoding, which compares a
+                    // narrow value (in particular a char) as signed, it is then an ordinary comparison (#1018)
+                    addRangeConstraints(pos, false, oldtype, castexpr);
                     break;
                 default:
                     utils.error(pos, "jml.internal", "Unimplemented case combination");
@@ -16683,8 +16712,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         if (isAssert) {
-            addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emax);
-            addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+            // As for arithmetic operations, --arithmetic-failure says whether a failed check is assumed to hold
+            // afterwards (hard), is only reported (soft), or is not checked but assumed (quiet) (#1018)
+            switch (JmlOption.ARITHMETIC.value(context)) {
+                case "hard" -> {
+                    addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+                case "quiet" -> {
+                    addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+                default -> {
+                    addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+            }
         } else {
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emax);
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emin);

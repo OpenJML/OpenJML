@@ -8,8 +8,7 @@ if [ -z "$OJBIN" ] ; then
   OJBIN=../../../OpenJMLsrc
 fi
 
-rm -rf *.class compile-output
-## The compiler's output (e.g. lint warnings about library specifications) is shown only if compilation fails
-"$OJBIN/openjml-compile" CheckJavaVersion.java > compile-output 2>&1 || { cat compile-output; exit 1; }
-rm -f compile-output
+rm -rf *.class
+## Any compiler output (e.g. lint warnings about the library specifications, as in #1015) makes the test fail
+"$OJBIN/openjml-compile" CheckJavaVersion.java || exit 1
 "$OJBIN/openjml-java" CheckJavaVersion

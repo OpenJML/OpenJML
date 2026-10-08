@@ -229,6 +229,27 @@ public class escfiles3 extends EscBaseFiles {
     }
 
     @Test
+    public void gitbug1018() {
+        // Casts between Java integral types narrow as Java does; char is unsigned; Safe math warns about an
+        // out-of-range argument, Java math does not (#1018). Casts of \\bigint values: primesc1.jmlbigintCasts
+        helpEscSimple("--check-feasibility=none","--exclude=main");
+    }
+
+    @Test
+    public void gitbug1018modes() {
+        // A failed range check of a cast is hard, soft or quiet according to --arithmetic-failure, as for
+        // arithmetic operations (#1018)
+        helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
+    public void gitbug1018bv() {
+        // As gitbug1018, with the bit-vector encoding (in which a char is widened with zeros) (#1018): the narrowed
+        // values only (javaMode); Safe-mode warnings for char casts are not yet given with bit-vectors (#1020)
+        helpEscSimple("--check-feasibility=none","--method=javaMode","--esc-bv=true");
+    }
+
+    @Test
     public void gitbug1012a() {
         // An item of --method that matches no method gets a command-line warning (#1012)
         helpEscSimple("--check-feasibility=none","--method=inc,inx");

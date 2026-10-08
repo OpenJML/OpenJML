@@ -1942,7 +1942,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.warning(WarningCategory.JML_LINT, t.source, t.pos,"jml.inline.should.be.final",msym.name.toString());
             }
 
-            checkMethodJavaModifiersMatch(javaMethodTree, msym, specDecl, (ClassSymbol)specDecl.sym.owner);
+            // msym is the specification declaration's own symbol when a specification class is attributed as a whole;
+            // the Java annotations and flags to compare against are on the Java (e.g. binary) symbol (#1015)
+            checkMethodJavaModifiersMatch(javaMethodTree, mspecs.javaSym != null ? mspecs.javaSym : msym, specDecl, (ClassSymbol)specDecl.sym.owner);
             
 //
 //      // FIXME - we do need to exclude some anonymous classes,  but all of them?

@@ -631,7 +631,8 @@ public class Utils {
     }
     
     public boolean hasJavaAnnotation(Symbol sym, JmlAnnotation annotation) {
-        return sym.getAnnotationMirrors().stream().anyMatch( a-> annotation.type == a.type);
+        // Compare the annotation classes: the specification and the Java declaration may have distinct Type objects for the same class (#1015)
+        return sym.getAnnotationMirrors().stream().anyMatch( a-> annotation.type.tsym == a.type.tsym);
     }
 
     public boolean hasMod(JCModifiers mods, ModifierKind... ata) {

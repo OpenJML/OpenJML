@@ -5,15 +5,15 @@ test/jmlreal/Treal.java:94: verify: JML assertion is false
         //@ check rlong.equals(null);  // Not allowed
             ^
 CASTS
-test/jmlreal/Tcasts.java:12: verify: JML argument to numeric cast is out of range of the target type
+test/jmlreal/Tcasts.java:23: verify: JML argument to numeric cast is out of range of the target type
       /*@ show (short)(z+Short.MAX_VALUE); */
                ^
 LABEL JMLSHOW_2 = -32719
-test/jmlreal/Tcasts.java:16: verify: JML argument to numeric cast is out of range of the target type
+test/jmlreal/Tcasts.java:27: verify: JML argument to numeric cast is out of range of the target type
       /*@ show (char)(z+2*Character.MAX_VALUE); */
                ^
 LABEL JMLSHOW_3 = 0
-test/jmlreal/Tcasts.java:20: verify: JML argument to numeric cast is out of range of the target type
+test/jmlreal/Tcasts.java:31: verify: JML argument to numeric cast is out of range of the target type
       /*@ show (int)(z+Integer.MAX_VALUE); */
                ^
 LABEL JMLSHOW_4 = 2147483647
@@ -25,5 +25,29 @@ LABEL JMLSHOW_9 = 2147483647
 LABEL JMLSHOW_10 = 9223372036854775807
 JML double value cast to real is not finite
 JML double value cast to real is not finite
+test/jmlreal/Tcasts.java:155: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+                ^
+test/jmlreal/Tcasts.java:159: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+                ^
+test/jmlreal/Tcasts.java:163: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+                ^
+test/jmlreal/Tcasts.java:167: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (int)(z+Integer.MAX_VALUE) == Integer.MAX_VALUE;
+                ^
+test/jmlreal/Tcasts.java:119: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+                ^
+test/jmlreal/Tcasts.java:124: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+                ^
+test/jmlreal/Tcasts.java:129: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+                ^
+test/jmlreal/Tcasts.java:134: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (int)(z+Integer.MAX_VALUE) == Integer.MAX_VALUE;
+                ^
 
 ERR:

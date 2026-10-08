@@ -860,6 +860,9 @@ public class JmlTreeUtils {
         if (ltag == TypeTag.FLOAT || rtag == TypeTag.FLOAT) return syms.floatType;
         if (ltag == TypeTag.LONG || rtag == TypeTag.LONG) return syms.longType;
         if (ltag == TypeTag.INT || rtag == TypeTag.INT) return syms.intType;
+        // char is unsigned, so neither it nor byte or short holds all values of the other: Java promotes to int (#1018)
+        if ((ltag == TypeTag.CHAR && (rtag == TypeTag.BYTE || rtag == TypeTag.SHORT))
+                || (rtag == TypeTag.CHAR && (ltag == TypeTag.BYTE || ltag == TypeTag.SHORT))) return syms.intType;
         if (ltag == TypeTag.SHORT || rtag == TypeTag.SHORT) return syms.shortType;
         if (ltag == TypeTag.CHAR || rtag == TypeTag.CHAR) return syms.charType;
         if (ltag == TypeTag.BYTE || rtag == TypeTag.BYTE) return syms.byteType;

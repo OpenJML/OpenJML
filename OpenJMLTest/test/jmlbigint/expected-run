@@ -22,25 +22,21 @@ test/jmlbigint/Tbigint.java:49: verify: JML assertion is false
             //@ check a.equals(null);
                 ^
 CASTS
-test/jmlbigint/Tcasts.java:12: verify: JML argument to numeric cast is out of range of the target type
+test/jmlbigint/Tcasts.java:24: verify: JML argument to numeric cast is out of range of the target type
       /*@ show (short)(z+Short.MAX_VALUE); */
                ^
-JML argument to numeric cast is out of range of the target type: 32817 to short
 LABEL JMLSHOW_2 = -32719
-test/jmlbigint/Tcasts.java:16: verify: JML argument to numeric cast is out of range of the target type
+test/jmlbigint/Tcasts.java:28: verify: JML argument to numeric cast is out of range of the target type
       /*@ show (char)(z+2*Character.MAX_VALUE); */
                ^
-JML argument to numeric cast is out of range of the target type: 131120 to char
 LABEL JMLSHOW_3 = 0
-test/jmlbigint/Tcasts.java:20: verify: JML argument to numeric cast is out of range of the target type
+test/jmlbigint/Tcasts.java:32: verify: JML argument to numeric cast is out of range of the target type
       /*@ show (int)(z+Integer.MAX_VALUE); */
                ^
-JML argument to numeric cast is out of range of the target type: 2147483697 to int
 LABEL JMLSHOW_4 = -2147483599
-test/jmlbigint/Tcasts.java:24: verify: JML argument to numeric cast is out of range of the target type
+test/jmlbigint/Tcasts.java:36: verify: JML argument to numeric cast is out of range of the target type
       /*@ show (long)(z+Long.MAX_VALUE); */
                ^
-JML argument to numeric cast is out of range of the target type: 9223372036854775857 to long
 LABEL JMLSHOW_5 = -9223372036854775759
 JML argument to numeric cast is out of range of the target type: 177 to byte
 LABEL JMLSHOW_6 = -79
@@ -54,6 +50,36 @@ JML argument to numeric cast is out of range of the target type: 922337203685477
 LABEL JMLSHOW_10 = -9223372036854775759
 LABEL JMLSHOW_11 = 8
 LABEL JMLSHOW_12 = 8
+test/jmlbigint/Tcasts.java:140: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+                ^
+test/jmlbigint/Tcasts.java:144: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+                ^
+test/jmlbigint/Tcasts.java:148: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+                ^
+test/jmlbigint/Tcasts.java:152: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (int)(z+Integer.MAX_VALUE) == -2147483599;
+                ^
+test/jmlbigint/Tcasts.java:156: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (long)(z+Long.MAX_VALUE) == Long.MIN_VALUE + 49L;
+                ^
+test/jmlbigint/Tcasts.java:116: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+                ^
+test/jmlbigint/Tcasts.java:121: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+                ^
+test/jmlbigint/Tcasts.java:126: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+                ^
+test/jmlbigint/Tcasts.java:131: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (int)(z+Integer.MAX_VALUE) == -2147483599;
+                ^
+test/jmlbigint/Tcasts.java:136: verify: JML argument to numeric cast is out of range of the target type
+      //@ check (long)(z+Long.MAX_VALUE) == Long.MIN_VALUE + 49L;
+                ^
 END
 
 ERR:

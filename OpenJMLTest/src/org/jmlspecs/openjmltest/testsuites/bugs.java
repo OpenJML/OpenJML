@@ -44,11 +44,57 @@ public class bugs extends TCBase {
                 );
     }
 
+    /** Issue #1015: a method reference to Character in a generic call gave false jml-lint warnings
+     *  that the @Deprecated methods of Character.jml are not deprecated in the binary */
+    @Test
+    public void gitbug1015() {
+        helpTCText("F.java","public class F { boolean m() { return \"ab\".chars().allMatch(Character::isDigit); } }"
+                );
+    }
+
     /** Issue #1011: the minimal plain-Java form of #1008 */
     @Test
     public void gitbug1011() {
         helpTCText("C.java","public class C {\n  boolean m() { return q(z.c(p(0))); }\n  boolean z;\n  int p(int i) { return 0; }\n  boolean q(Object o) { return true; }\n}"
                 ,"/C.java:2: error: boolean cannot be dereferenced",27
+                );
+    }
+
+    /** Issue #1016: a declaration annotation on the type of an anonymous-class new expression is
+     *  reported as misplaced, as by javac (it was an internal AssertionError) */
+    @Test
+    public void gitbug1016() {
+        helpTCText("A.java","""
+                import java.lang.annotation.*;
+                @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.TYPE) @interface X {}
+                interface Foo {}
+                class A { void m() { new @X Foo() {}; } }
+                """
+                // The error is found three times at the same position; javac's log reports it once (as on the command
+                // line), but the test's diagnostic listener receives each
+                ,"/A.java:4: error: annotation @X not applicable in this type context",26
+                ,"/A.java:4: error: annotation @X not applicable in this type context",26
+                ,"/A.java:4: error: annotation @X not applicable in this type context",26
+                );
+    }
+
+    /** Issue #1016: valid type annotations on new expressions, anonymous classes included, and on type arguments */
+    @Test
+    public void gitbug1016a() {
+        helpTCText("A.java","""
+                import java.lang.annotation.*;
+                @Target(ElementType.TYPE_USE) @interface TA {}
+                interface Foo {}
+                class A {
+                    void m() {
+                        Object o = new @TA Object();
+                        String[] s = new @TA String[3];
+                        Foo f = new @TA Foo() {};
+                        Runnable r = new @TA Runnable() { public void run() {} };
+                        java.util.List<@TA String> l = null;
+                    }
+                }
+                """
                 );
     }
 
