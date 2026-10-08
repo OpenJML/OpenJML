@@ -52,6 +52,40 @@ public class bugs extends TCBase {
                 );
     }
 
+    /** Issue #1016: a declaration annotation on the type of an anonymous-class new expression is
+     *  reported as misplaced, as by javac (it was an internal AssertionError) */
+    @Test
+    public void gitbug1016() {
+        helpTCText("A.java","""
+                import java.lang.annotation.*;
+                @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.TYPE) @interface X {}
+                interface Foo {}
+                class A { void m() { new @X Foo() {}; } }
+                """
+                ,"/A.java:4: error: annotation @X not applicable in this type context",26
+                );
+    }
+
+    /** Issue #1016: valid type annotations on new expressions, anonymous classes included, and on type arguments */
+    @Test
+    public void gitbug1016a() {
+        helpTCText("A.java","""
+                import java.lang.annotation.*;
+                @Target(ElementType.TYPE_USE) @interface TA {}
+                interface Foo {}
+                class A {
+                    void m() {
+                        Object o = new @TA Object();
+                        String[] s = new @TA String[3];
+                        Foo f = new @TA Foo() {};
+                        Runnable r = new @TA Runnable() { public void run() {} };
+                        java.util.List<@TA String> l = null;
+                    }
+                }
+                """
+                );
+    }
+
     /** There was a problem with a JML keyword being unrecognized after a JML statement
     * because the keyword mode was not turned on soon enough
     * */

@@ -1,0 +1,4 @@
+exit 0
+TypeOnAnonClass.java:10:20: compiler.err.annotation.type.not.applicable.to.type: X
+1 error
+exit 1
