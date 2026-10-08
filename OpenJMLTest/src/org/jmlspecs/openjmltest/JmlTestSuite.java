@@ -75,15 +75,15 @@ public abstract class JmlTestSuite {
     /** The relative path from OpenJMLTest to the OpenJMLDemo repo */
     public static final String OpenJMLDemoPath = "../../OpenJMLDemo";
 
-    // The test output expects that the current working directory while running unittests is  .../OpenJML/OpenJMLTest
-
-    // In a 'standard' local OpenJML github working environment, root will be the container for
-    // OpenJML/OpenJMLsrc, OpenJML/OpenJMLTest, Specs, etc.
-    // This value is needed because some tests emit a full absolute path name in error messages
-    // The code to set this value presumes the initial working directory of the test runner is 'OpenJMLTest'
-    static final public String root = new File(".").getAbsoluteFile().getParentFile().getParentFile().getParent();
+    // The tests run with OpenJMLTest, within the OpenJML checkout, as the current working directory.
+    // 'repo' is that checkout; 'root' is the folder containing it, which also holds Specs, Solvers, etc.
+    // These values are needed because some tests emit a full absolute path name in error messages.
+    // Expected outputs write the checkout as $ROOT/OpenJML: it is usually named OpenJML, but need not be
+    // (e.g. a git worktree).
+    static final public String repo = new File(".").getAbsoluteFile().getParentFile().getParent();
+    static final public String root = new File(repo).getParent();
     {
-        if (!new File(root + "/OpenJML").exists() || !new File(root + "/OpenJML/OpenJMLTest").exists()) {
+        if (!new File(repo + "/OpenJMLTest").exists()) {
             out.println("The current working directory for tests is incorrect");
             System.exit(1);
         }
@@ -105,7 +105,7 @@ public abstract class JmlTestSuite {
 
     /** Replace aspects of expected output that depend on the local environment */
     public static String doReplacements(String s) {
-        return s.replace("$ROOT",JmlTestSuite.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestSuite.streamLine)
+        return s.replace("$ROOT/OpenJML/",JmlTestSuite.repo + "/").replace("$ROOT",JmlTestSuite.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestSuite.streamLine)
                 .replaceAll("#DEMO", OpenJMLDemoPath);
     }
 

@@ -457,7 +457,7 @@ public class compiler extends JmlTestSuite{
                         "-classpath", "ZZZZZ", // does not exist, but is not part of the specs path
                         src + "testWarnings/A.java"
                 },1,0
-                ,"warning: [missing-specs-path] A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
+                ,"warning: [missing-specs-path] A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.repo + "/OpenJMLTest)"+eol
                 +"error: warnings found and -Werror specified"+eol
                 +"1 error"+eol
                 +"1 warning"+eol
