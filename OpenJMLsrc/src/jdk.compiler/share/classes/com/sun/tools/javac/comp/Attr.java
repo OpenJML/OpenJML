@@ -5296,7 +5296,8 @@ public class Attr extends JCTree.Visitor {
         attribAnnotationTypes(tree.annotations, env);
         // OPENJML - a crash results if we do not check for erroneous annotations - not sure if this is an openjdk or openjml bug
         boolean erroneous = false;
-        for (var a: tree.annotations) if (a.type.isErroneous()) erroneous = true;
+        // a.type is set only once the annotation is attributed (e.g. not yet in plain-javac mode); its type name is attributed just above // OPENJML -- cf Issue 1016
+        for (var a: tree.annotations) if ((a.type != null && a.type.isErroneous()) || (a.annotationType.type != null && a.annotationType.type.isErroneous())) erroneous = true; // OPENJML -- cf Issue 1016
 
         Type underlyingType = attribType(tree.underlyingType, env);
         if (erroneous) {
@@ -5306,7 +5307,9 @@ public class Attr extends JCTree.Visitor {
         	Type annotatedType = underlyingType.preannotatedType();
             //if (org.jmlspecs.openjml.Utils.isJML()) System.out.println("ANNTYPE-Q " + env.info.isNewClass);
 
-        	//if (!env.info.isNewClass) // OPENJML - commented out
+        	// In JML mode the type of a new expression is annotated here too (its annotations are attributed by then); // OPENJML -- cf Issue 1016
+        	// in plain-javac mode they are not yet, and are handled later, as in javac // OPENJML -- cf Issue 1016
+        	if (!env.info.isNewClass || org.jmlspecs.openjml.Utils.isJML()) // OPENJML -- cf Issue 1016
         		annotate.annotateTypeSecondStage(tree, tree.annotations, annotatedType);
         	result = tree.type = annotatedType;
         }

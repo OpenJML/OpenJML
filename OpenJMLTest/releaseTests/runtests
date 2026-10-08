@@ -270,6 +270,9 @@ if [ -n "${ZIPARCHIVE+x}" ]; then
   ${RTH} testJavaVersion "$LOCAL/testJavaVersion/run" 0 || RES=$(($RES+1))
 fi
 
+## Checks that the build's javac in plain-javac mode (NOJML=1) handles type annotations as stock javac does (#1016)
+${RTH} testNojml "$LOCAL/testNojml/run" 0 || RES=$(($RES+1))
+
 ## FIXME - jmldoc & prettyprinying
 if [[ "SKIP" == "" ]]; then
 
