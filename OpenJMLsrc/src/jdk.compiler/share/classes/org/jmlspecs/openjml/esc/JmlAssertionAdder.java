@@ -16569,8 +16569,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         if (isAssert) {
-            addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emax);
-            addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+            // As for arithmetic operations, --arithmetic-failure says whether a failed check is assumed to hold
+            // afterwards (hard), is only reported (soft), or is not checked but assumed (quiet) (#1018)
+            switch (JmlOption.ARITHMETIC.value(context)) {
+                case "hard" -> {
+                    addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+                case "quiet" -> {
+                    addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+                default -> {
+                    addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+            }
         } else {
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emax);
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emin);

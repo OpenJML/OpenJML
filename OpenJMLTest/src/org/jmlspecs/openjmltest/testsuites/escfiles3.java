@@ -216,6 +216,13 @@ public class escfiles3 extends EscBaseFiles {
     }
 
     @Test
+    public void gitbug1018modes() {
+        // A failed range check of a cast is hard, soft or quiet according to --arithmetic-failure, as for
+        // arithmetic operations (#1018)
+        helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
     public void gitbug1018bv() {
         // As gitbug1018, with the bit-vector encoding (in which a char is widened with zeros) (#1018): the narrowed
         // values only (javaMode); Safe-mode warnings for char casts are not yet given with bit-vectors (#1020)
