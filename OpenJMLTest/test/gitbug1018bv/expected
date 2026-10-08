@@ -1,0 +1,7 @@
+Proving methods in Narrow
+Skipping proof of Narrow.Narrow() (Skipping Narrow.Narrow because it does not match javaMode)
+Starting proof of Narrow.javaMode() with prover !!!!
+Completed proof of Narrow.javaMode() with prover !!!! - no warnings
+Skipping proof of Narrow.safeMode() (Skipping Narrow.safeMode because it does not match javaMode)
+Skipping proof of Narrow.main(String...) (Skipping Narrow.main because it does not match javaMode)
+Completed proving methods in Narrow

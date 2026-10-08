@@ -1,0 +1,22 @@
+Proving methods in Narrow
+Starting proof of Narrow.Narrow() with prover !!!!
+Completed proof of Narrow.Narrow() with prover !!!! - no warnings
+Starting proof of Narrow.javaMode() with prover !!!!
+Completed proof of Narrow.javaMode() with prover !!!! - no warnings
+Starting proof of Narrow.safeMode() with prover !!!!
+test/gitbug1018/Narrow.java:41: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method safeMode
+        byte b = (byte)c;           // warned about
+                 ^
+test/gitbug1018/Narrow.java:37: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method safeMode
+        char e = (char)z;           // warned about
+                 ^
+test/gitbug1018/Narrow.java:34: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method safeMode
+        char d = (char)y;           // warned about
+                 ^
+test/gitbug1018/Narrow.java:39: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method safeMode
+        short s = (short)c;         // warned about
+                  ^
+Completed proof of Narrow.safeMode() with prover !!!! - with warnings
+Skipping proof of Narrow.main(String...) (Skipping Narrow.main because it matches the exclusion main)
+Completed proving methods in Narrow
+4 verification failures

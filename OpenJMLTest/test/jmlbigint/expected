@@ -16,10 +16,10 @@ Starting proof of Tbigint.misc(int) with prover !!!!
 test/jmlbigint/Tbigint.java:49: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method misc
             //@ check a.equals(null);
                               ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:258: verify: Associated declaration
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:258: verify: Associated declaration
     public boolean equals(/*@ nullable */ Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:256: verify: Precondition conjunct is false: false
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:256: verify: Precondition conjunct is false: false
     //@ requires false; // .equals may not be called -- use == instead
                  ^
 Completed proof of Tbigint.misc(int) with prover !!!! - with warnings
@@ -111,82 +111,82 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tcasts.main(String...) with prover !!!! - no warnings
 Starting proof of Tcasts.m0() with prover !!!!
-test/jmlbigint/Tcasts.java:8: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m0
+test/jmlbigint/Tcasts.java:20: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m0
       /*@ show (byte)(z+Byte.MAX_VALUE); */
                ^
 Completed proof of Tcasts.m0() with prover !!!! - with warnings
 Starting proof of Tcasts.m1() with prover !!!!
-test/jmlbigint/Tcasts.java:12: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m1
+test/jmlbigint/Tcasts.java:24: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m1
       /*@ show (short)(z+Short.MAX_VALUE); */
                ^
 Completed proof of Tcasts.m1() with prover !!!! - with warnings
 Starting proof of Tcasts.m2() with prover !!!!
-test/jmlbigint/Tcasts.java:16: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m2
+test/jmlbigint/Tcasts.java:28: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m2
       /*@ show (char)(z+2*Character.MAX_VALUE); */
                ^
 Completed proof of Tcasts.m2() with prover !!!! - with warnings
 Starting proof of Tcasts.m3() with prover !!!!
-test/jmlbigint/Tcasts.java:20: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m3
+test/jmlbigint/Tcasts.java:32: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m3
       /*@ show (int)(z+Integer.MAX_VALUE); */
                ^
 Completed proof of Tcasts.m3() with prover !!!! - with warnings
 Starting proof of Tcasts.m4() with prover !!!!
-test/jmlbigint/Tcasts.java:24: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m4
+test/jmlbigint/Tcasts.java:36: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method m4
       /*@ show (long)(z+Long.MAX_VALUE); */
                ^
 Completed proof of Tcasts.m4() with prover !!!! - with warnings
 Starting proof of Tcasts.m5() with prover !!!!
-test/jmlbigint/Tcasts.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m5
+test/jmlbigint/Tcasts.java:40: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m5
       /*@ show (z+Byte.MAX_VALUE).byteValue(); */
                                            ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:213: verify: Associated declaration
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:213: verify: Associated declaration
     public byte byteValue();
                 ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:210: verify: Precondition conjunct is false: Byte.MIN_VALUE <= this <= Byte.MAX_VALUE
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:210: verify: Precondition conjunct is false: Byte.MIN_VALUE <= this <= Byte.MAX_VALUE
     //@   requires Byte.MIN_VALUE <= this <= Byte.MAX_VALUE;
                                           ^
 Completed proof of Tcasts.m5() with prover !!!! - with warnings
 Starting proof of Tcasts.m6() with prover !!!!
-test/jmlbigint/Tcasts.java:32: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m6
+test/jmlbigint/Tcasts.java:44: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m6
       /*@ show (z+Short.MAX_VALUE).shortValue(); */
                                              ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:207: verify: Associated declaration
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:207: verify: Associated declaration
     public short shortValue();
                  ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:204: verify: Precondition conjunct is false: Short.MIN_VALUE <= this <= Short.MAX_VALUE
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:204: verify: Precondition conjunct is false: Short.MIN_VALUE <= this <= Short.MAX_VALUE
     //@   requires Short.MIN_VALUE <= this <= Short.MAX_VALUE;
                                            ^
 Completed proof of Tcasts.m6() with prover !!!! - with warnings
 Starting proof of Tcasts.m7() with prover !!!!
-test/jmlbigint/Tcasts.java:36: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m7
+test/jmlbigint/Tcasts.java:48: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m7
       /*@ show (z+2*Character.MAX_VALUE).charValue(); */
                                                   ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:219: verify: Associated declaration
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:219: verify: Associated declaration
     public char charValue();
                 ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:216: verify: Precondition conjunct is false: Character.MIN_VALUE <= this <= Character.MAX_VALUE
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:216: verify: Precondition conjunct is false: Character.MIN_VALUE <= this <= Character.MAX_VALUE
     //@   requires Character.MIN_VALUE <= this <= Character.MAX_VALUE;
                                                ^
 Completed proof of Tcasts.m7() with prover !!!! - with warnings
 Starting proof of Tcasts.m8() with prover !!!!
-test/jmlbigint/Tcasts.java:40: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m8
+test/jmlbigint/Tcasts.java:52: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m8
       /*@ show (z+Integer.MAX_VALUE).intValue(); */
                                              ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:201: verify: Associated declaration
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:201: verify: Associated declaration
     public int intValue();
                ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:197: verify: Precondition conjunct is false: Integer.MIN_VALUE <= this <= Integer.MAX_VALUE
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:197: verify: Precondition conjunct is false: Integer.MIN_VALUE <= this <= Integer.MAX_VALUE
     //@   requires Integer.MIN_VALUE <= this <= Integer.MAX_VALUE;
                                              ^
 Completed proof of Tcasts.m8() with prover !!!! - with warnings
 Starting proof of Tcasts.m9() with prover !!!!
-test/jmlbigint/Tcasts.java:44: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m9
+test/jmlbigint/Tcasts.java:56: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m9
       /*@ show (z+Long.MAX_VALUE).longValue(); */
                                            ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:194: verify: Associated declaration
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:194: verify: Associated declaration
     public long longValue();
                 ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:190: verify: Precondition conjunct is false: Long.MIN_VALUE <= this <= Long.MAX_VALUE
+/Users/davidcok/projects/OpenJML21B/Specs/specs/org/jmlspecs/lang/internal/bigint.jml:190: verify: Precondition conjunct is false: Long.MIN_VALUE <= this <= Long.MAX_VALUE
     //@   requires Long.MIN_VALUE <= this <= Long.MAX_VALUE;
                                           ^
 Completed proof of Tcasts.m9() with prover !!!! - with warnings
@@ -210,5 +210,75 @@ Starting proof of Tcasts.p4(short) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tcasts.p4(short) with prover !!!! - no warnings
+Starting proof of Tcasts.j0() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.j0() with prover !!!! - no warnings
+Starting proof of Tcasts.j1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.j1() with prover !!!! - no warnings
+Starting proof of Tcasts.j2() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.j2() with prover !!!! - no warnings
+Starting proof of Tcasts.j3() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.j3() with prover !!!! - no warnings
+Starting proof of Tcasts.j4() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.j4() with prover !!!! - no warnings
+Starting proof of Tcasts.b0() with prover !!!!
+test/jmlbigint/Tcasts.java:116: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method b0
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+                ^
+Completed proof of Tcasts.b0() with prover !!!! - with warnings
+Starting proof of Tcasts.b1() with prover !!!!
+test/jmlbigint/Tcasts.java:121: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method b1
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+                ^
+Completed proof of Tcasts.b1() with prover !!!! - with warnings
+Starting proof of Tcasts.b2() with prover !!!!
+test/jmlbigint/Tcasts.java:126: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method b2
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+                ^
+Completed proof of Tcasts.b2() with prover !!!! - with warnings
+Starting proof of Tcasts.b3() with prover !!!!
+test/jmlbigint/Tcasts.java:131: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method b3
+      //@ check (int)(z+Integer.MAX_VALUE) == -2147483599;
+                ^
+Completed proof of Tcasts.b3() with prover !!!! - with warnings
+Starting proof of Tcasts.b4() with prover !!!!
+test/jmlbigint/Tcasts.java:136: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method b4
+      //@ check (long)(z+Long.MAX_VALUE) == Long.MIN_VALUE + 49L;
+                ^
+Completed proof of Tcasts.b4() with prover !!!! - with warnings
+Starting proof of Tcasts.s0() with prover !!!!
+test/jmlbigint/Tcasts.java:140: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method s0
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+                ^
+Completed proof of Tcasts.s0() with prover !!!! - with warnings
+Starting proof of Tcasts.s1() with prover !!!!
+test/jmlbigint/Tcasts.java:144: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method s1
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+                ^
+Completed proof of Tcasts.s1() with prover !!!! - with warnings
+Starting proof of Tcasts.s2() with prover !!!!
+test/jmlbigint/Tcasts.java:148: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method s2
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+                ^
+Completed proof of Tcasts.s2() with prover !!!! - with warnings
+Starting proof of Tcasts.s3() with prover !!!!
+test/jmlbigint/Tcasts.java:152: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method s3
+      //@ check (int)(z+Integer.MAX_VALUE) == -2147483599;
+                ^
+Completed proof of Tcasts.s3() with prover !!!! - with warnings
+Starting proof of Tcasts.s4() with prover !!!!
+test/jmlbigint/Tcasts.java:156: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method s4
+      //@ check (long)(z+Long.MAX_VALUE) == Long.MIN_VALUE + 49L;
+                ^
+Completed proof of Tcasts.s4() with prover !!!! - with warnings
 Completed proving methods in Tcasts
-30 verification failures
+40 verification failures

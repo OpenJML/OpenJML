@@ -1092,9 +1092,18 @@ public class SMTTranslator extends JmlTreeScanner {
 //            // Int arithmetic operations to do wrap-around operations
 //            addCommand(smt,"(define-fun |#addWrap32#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max32#|) (- sum |#big32#|) (ite (< sum |#max32#|) (+ sum |#big32#|) sum)))))");
 //            addCommand(smt,"(define-fun |#addWrap64#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max64#|) (- sum |#big64#|) (ite (< sum |#max64#|) (+ sum |#big64#|) sum)))))");
-            addCommand(smt,"(define-fun |#trunc32s#| ((x Int)) Int (let ((m (mod x |#big32#|))) (ite (<= m |#max32#|) m (- m |#big32#|) )))");
-            addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|) )))");
-            addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|) )))");
+            // Java's narrowing conversions of integral values: the value modulo 2^n, in the target type's range.
+            // A value already in range is returned directly, so that the prover needs no reasoning about mod
+            // when the range is known (#1018)
+            addCommand(smt,"(define-fun |#trunc64s#| ((x Int)) Int (ite (and (<= |#min64#| x) (<= x |#max64#|)) x (let ((m (mod x |#big64#|))) (ite (<= m |#max64#|) m (- m |#big64#|)))))");
+            addCommand(smt,"(define-fun |#trunc32s#| ((x Int)) Int (ite (and (<= |#min32#| x) (<= x |#max32#|)) x (let ((m (mod x |#big32#|))) (ite (<= m |#max32#|) m (- m |#big32#|)))))");
+            addCommand(smt,"(define-fun |#trunc16u#| ((x Int)) Int (ite (and (<= 0 x) (< x |#big16#|)) x (mod x |#big16#|)))"); // char is unsigned
+            addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (ite (and (<= |#min16#| x) (<= x |#max16#|)) x (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|)))))");
+            addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (ite (and (<= |#min8#| x) (<= x |#max8#|)) x (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|)))))");
+            // Java's conversion of a floating-point (or \real) value, already rounded toward zero, to int or long:
+            // the value clamped to the type's range (#1018)
+            addCommand(smt,"(define-fun |#clamp32#| ((x Int)) Int (ite (< x |#min32#|) |#min32#| (ite (< |#max32#| x) |#max32#| x)))");
+            addCommand(smt,"(define-fun |#clamp64#| ((x Int)) Int (ite (< x |#min64#|) |#min64#| (ite (< |#max64#| x) |#max64#| x)))");
 
             addCommand(smt,"(define-fun |#cdiv#| ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
             addCommand(smt,"(define-fun |#cmod#| ((a Int) (b Int)) Int (- a (* b (|#cdiv#| a b))))"); // Java %: the sign of the dividend
@@ -2964,10 +2973,12 @@ public class SMTTranslator extends JmlTreeScanner {
             } else if (jmltypes.isJmlType(tree.expr.type)) { 
                 if (treeutils.isIntegral(tagr)) {
                     if (tree.expr.type.tsym == REAL) {
-                        // \real to int -- FIXME
-                        result = F.fcn(F.symbol("toward_zero"), result);
+                        // \real to an integral type: as Java converts a double (#1018)
+                        result = realToIntegral(tagr, result);
                     } else if (tree.expr.type.tsym == BIGINT) {
-                        // \bigint to int -- OK
+                        // \bigint to an integral type: narrowed as Java narrows a long (#1018); whether an out-of-range
+                        // value is reported depends on the arithmetic mode and is checked in JmlAssertionAdder
+                        if (!useBV) result = narrowInt(tagr, result);
                     } else {
                         // FIXME - error
                     }
@@ -2994,6 +3005,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     // Both are integral
                 	if (useBV && tage != tagr) {
                 	    result = castBV(tagr, tage, result);
+                   	} else if (!fitsIn(tage, tagr)) {
+                   	    result = narrowInt(tagr, result);
                    	}
                 } else if (!treeutils.isIntegral(tage) && !treeutils.isIntegral(tagr)) {
                     // Both are floating point
@@ -3019,30 +3032,16 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.fcn(F.symbol("to_real"), result);
                 } else if (!argIsInt && resultIsInt) {
                     // Requires int and real logic
-                    // real to int
-                    result = F.fcn(F.symbol("toward_zero"), result);
+                    // float or double to an integral type, as Java converts it (#1018)
+                    result = realToIntegral(tagr, result);
                 } else if (argIsInt && resultIsInt) {
                     if (tage != tagr) {
                         int be = bits(tage);
                         int br = bits(tagr);
                         if (useBV) {
-                            if (be > br) {
-                                List<IIndex> args = new LinkedList<>();
-                                args.add(F.numeral(br-1));
-                                args.add(F.numeral(0));
-                                result = F.fcn(F.id(F.symbol("extract"),args),result);
-                            } else if (br > be) {
-                                List<IIndex> args = new LinkedList<>();
-                                args.add(F.numeral(br-be));
-                                result = F.fcn(F.id(F.symbol("sign_extend"),args),result);
-                            }
-                        } else {
-                            if (be > br) {
-                                if (br == 32) result = F.fcn(F.symbol("|#trunc32s#|"), result);
-                                if (br == 16) result = F.fcn(F.symbol("|#trunc16s#|"), result);
-                                if (br == 8) result = F.fcn(F.symbol("|#trunc8s#|"), result);
-                            }
-
+                            result = castBV(tagr, tage, result);
+                        } else if (!fitsIn(tage, tagr)) {
+                            result = narrowInt(tagr, result);
                         }
                     }
 
@@ -3089,12 +3088,48 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (be < br) {
             List<IIndex> args = new LinkedList<>();
             args.add(F.numeral(br-be));
-            return F.fcn(F.id(F.symbol("sign_extend"),args),expr);
+            // char is unsigned, so it is widened with zeros (#1018)
+            return F.fcn(F.id(F.symbol(exprtag == TypeTag.CHAR ? "zero_extend" : "sign_extend"),args),expr);
         } else {
             return expr;
         }
     }
     
+    /** Whether every value of the integral type 'from' is a value of the integral type 'to' (char is unsigned,
+     * so it neither contains nor is contained in byte or short) */
+    public boolean fitsIn(TypeTag from, TypeTag to) {
+        if (from == to || to == TypeTag.LONG) return true;
+        switch (from) {
+            case BYTE:  return to == TypeTag.SHORT || to == TypeTag.INT;
+            case SHORT: case CHAR: return to == TypeTag.INT;
+            default: return false;
+        }
+    }
+
+    /** The real value r converted to the integral type 'to' as Java converts a double (JLS 5.1.3): rounded toward
+     * zero; for long, clamped to the long range; for every other type, clamped to the int range and then, for
+     * short, char and byte, narrowed from int (#1018) */
+    public IExpr realToIntegral(TypeTag to, IExpr r) {
+        IExpr x = F.fcn(F.symbol("toward_zero"), r);
+        if (useBV) return x;
+        if (to == TypeTag.LONG) return F.fcn(F.symbol("|#clamp64#|"), x);
+        x = F.fcn(F.symbol("|#clamp32#|"), x);
+        return to == TypeTag.INT ? x : narrowInt(to, x);
+    }
+
+    /** The value x narrowed to the integral type 'to', as Java's narrowing conversion does: x modulo 2^n,
+     * in the range of the type (signed, except for char) */
+    public IExpr narrowInt(TypeTag to, IExpr x) {
+        switch (to) {
+            case LONG:  return F.fcn(F.symbol("|#trunc64s#|"), x);
+            case INT:   return F.fcn(F.symbol("|#trunc32s#|"), x);
+            case SHORT: return F.fcn(F.symbol("|#trunc16s#|"), x);
+            case CHAR:  return F.fcn(F.symbol("|#trunc16u#|"), x);
+            case BYTE:  return F.fcn(F.symbol("|#trunc8s#|"), x);
+            default:    return x;
+        }
+    }
+
     public int bits(TypeTag tag) {
     	switch (tag) {
     	case BYTE: return 8;
@@ -3183,7 +3218,7 @@ public class SMTTranslator extends JmlTreeScanner {
             if (typeString.startsWith("org_jmlspecs_lang_")) { // FIXME - find a way to do better than string checking
             	result = F.fcn(selectSym,
             			convertExpr(aa.indexed),
-            			convertExpr(aa.index)
+            			convertIndex(aa.index)
             			);
             } else {
             	IExpr.IFcnExpr sel = F.fcn(selectSym,
@@ -3192,7 +3227,7 @@ public class SMTTranslator extends JmlTreeScanner {
             			);
             	sel = F.fcn(selectSym,
             			sel,
-            			convertExpr(aa.index)
+            			convertIndex(aa.index)
             			);
             	result = sel;
             }
@@ -3201,9 +3236,21 @@ public class SMTTranslator extends JmlTreeScanner {
 
         shouldNotBeCalled(tree);
     }
-    
-    @Override 
-    public void visitConditional(JCConditional that) { 
+
+    /** Translates an array index. A \bigint index converted to int (e.g. a[i] with a \bigint i) is used
+     * without the conversion: the index is checked to be within the array's bounds, hence in the int
+     * range, before the access, so narrowing it would change nothing, but would make quantified
+     * formulas over such indices much harder for the prover (#1018) */
+    protected IExpr convertIndex(JCExpression index) {
+        if (index instanceof JCTypeCast cast && cast.expr.type != null && cast.expr.type.tsym == BIGINT
+                && treeutils.isIntegral(cast.type.getTag())) {
+            return convertExpr(cast.expr);
+        }
+        return convertExpr(index);
+    }
+
+    @Override
+    public void visitConditional(JCConditional that) {
         result = F.fcn(iteSym, 
                 convertExpr(that.cond), 
                 convertExpr(that.truepart), 
