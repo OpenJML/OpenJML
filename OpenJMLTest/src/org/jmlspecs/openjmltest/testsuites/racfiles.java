@@ -53,10 +53,9 @@ public class racfiles extends RacBase {
         helpCompileRun("Bug1");
     }
 
-    @Test // Originally a Stack overflow because of recursive check of invariant
+    @Test // Originally a stack overflow because of recursive invariant checks; now warned about at compile time (#1009)
     public void racbug1() {
-        expectedRACExit = 1;
-        helpCompileRun("Add");
+        helpCompileOnly();
     }
 
     @Test // Originally a Stack overflow because of recursive check of invariant
