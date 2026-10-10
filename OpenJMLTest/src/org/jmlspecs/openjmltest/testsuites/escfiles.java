@@ -192,7 +192,8 @@ public class escfiles extends EscBaseFiles {
     public void testquant() {
         expectedExit = -1;
         // With hard, the \sum's value is assumed in range once its range check is reported, so the loop invariant
-        // is not also reported as failing for a wrapped value (with soft, the default, it is) (#1018)
+        // is not also reported as failing for a wrapped value (with soft, the default, it is) (#1018). With soft, the
+        // order of the reported warnings varies from run to run, so there is no stable expected output (#1028)
         helpEscSimple("--code-math=bigint","--arithmetic-failure=hard");
     }
 
