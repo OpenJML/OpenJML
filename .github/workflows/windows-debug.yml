@@ -62,13 +62,12 @@ jobs:
         ls Solvers Solvers/Solvers-windows 2>&1 | head -20 || true
         cat /etc/wsl.conf 2>&1 || true
 
-    ## A small slice of the suites (alphabetical order, as in the Nightly's START and LINES); widen it once
-    ## these run
+    ## A few suites that cover the command line, ESC (solvers) and RAC; widen once these run
     - name: Run unit tests
       run: |
-        cd OpenJML/OpenJMLTest
+        cd OpenJML/OpenJMLTest/unittests
         # stdbuf: line-buffered output, so progress appears as it happens (see openjml-release-test)
-        PATH="$(cd ../OpenJMLsrc && pwd):$PATH" START=1 LINES=3 stdbuf -oL -eL make unittests-par 2>&1
+        PATH="$(cd ../../OpenJMLsrc && pwd):$PATH" stdbuf -oL -eL ./runpar compiler escgeneric escfiles racnew 2>&1
 
     - name: Report test failures and upload test logs
       if: always()
