@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -200,58 +202,76 @@ public class Extensions {
     
     public static final Map<String,IJmlClauseKind> allKinds = new HashMap<>();
 
-    /** Guards one-time population of allKinds. Volatile so the flag write is
+    /** Guards one-time registration of the built-in extensions. Volatile so the flag write is
      *  visible to all threads without acquiring the lock on the fast path. */
     private static volatile boolean registered = false;
+
+    /** The --extensions names (classes or packages) registered so far in this JVM; guarded by Extensions.class */
+    private static final Set<String> registeredExtensions = new HashSet<>();
+
+    /** The --extensions names already processed in a context, so a failure is reported once per context */
+    protected static final Context.Key<Set<String>> processedExtensionsKey = new Context.Key<>();
 
     // This static method runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be
     // looked up at runtime. The extension classes include the predefined
     // package org.jmlspecs.openjml.ext and any classes or packages given in the
     // extensions option.
-    // allKinds is shared across all contexts. Its content is context-independent:
-    // the same set of extensions is registered regardless of which context is used.
-    // The double-checked lock ensures that registration runs exactly once across
-    // all concurrent callers, so allKinds is fully populated before any thread
-    // reads it without holding the lock.
+    // allKinds is shared across all contexts. The built-in package is registered once per JVM
+    // (the double-checked lock ensures that runs exactly once across all concurrent callers).
+    // The --extensions option can differ between compilations, so it is processed for each
+    // context: each named extension is registered once per JVM, and a failure to load one is
+    // reported in each context that asks for it (#1026).
     public static void register(Context context) {
-        if (registered) return;
-        synchronized (Extensions.class) {
-            if (registered) return;
-            Package p = ClassLoader.getSystemClassLoader().getDefinedPackage("org.jmlspecs.openjml.ext");
-            try {
-                registerPackage(context,p);
-            } catch (java.io.IOException e) {
-                throw new RuntimeException(e);
-            }
-            if (!JmlOption.langJML.equals(JmlOption.LANG.value(context))) {
-                String exts = JmlOption.EXTENSIONS.value(context);
-                if (exts != null && !exts.isEmpty()) {
-                    for (String extname : exts.split(",")) {
-                        try {
-                            Class<?> cl = Class.forName(extname);
-                            if (cl == null || !registerClass(context,cl)) {
-                                Log.instance(context).error("jml.extension.failed", extname, "Improperly formed extension");
-                            }
-                            continue;
-                        } catch (ClassNotFoundException e) {
-                            // OK - go on to see if it is a package
-                        }
-                        try {
-                            p = ClassLoader.getSystemClassLoader().getDefinedPackage(extname); // Package.getPackage(extname);
-                            if (p != null) {
-                                registerPackage(context,p);
-                            } else {
-                                Log.instance(context).error("jml.extension.failed", extname,"No such package found");
-                            }
-                        } catch (Exception e) {
-                            Log.instance(context).error("jml.extension.failed", extname, e.toString());
-                        }
+        if (!registered) {
+            synchronized (Extensions.class) {
+                if (!registered) {
+                    Package p = ClassLoader.getSystemClassLoader().getDefinedPackage("org.jmlspecs.openjml.ext");
+                    try {
+                        registerPackage(context,p);
+                    } catch (java.io.IOException e) {
+                        throw new RuntimeException(e);
                     }
+                    registered = true;
                 }
             }
-            registered = true;
         }
+        if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) return;
+        String exts = JmlOption.EXTENSIONS.value(context);
+        if (exts == null || exts.isEmpty()) return;
+        Set<String> processed = context.get(processedExtensionsKey);
+        if (processed == null) context.put(processedExtensionsKey, processed = new HashSet<>());
+        synchronized (Extensions.class) {
+            for (String extname : exts.split(",")) {
+                if (!processed.add(extname) || registeredExtensions.contains(extname)) continue;
+                if (registerExtension(context, extname)) registeredExtensions.add(extname);
+            }
+        }
+    }
+
+    /** Registers the extension class or package named by an --extensions entry; reports and returns false on failure */
+    private static boolean registerExtension(Context context, String extname) {
+        try {
+            Class<?> cl = Class.forName(extname);
+            if (cl == null || !registerClass(context,cl)) {
+                Log.instance(context).error("jml.extension.failed", extname, "Improperly formed extension");
+                return false;
+            }
+            return true;
+        } catch (ClassNotFoundException e) {
+            // OK - go on to see if it is a package
+        }
+        try {
+            Package p = ClassLoader.getSystemClassLoader().getDefinedPackage(extname); // Package.getPackage(extname);
+            if (p != null) {
+                registerPackage(context,p);
+                return true;
+            }
+            Log.instance(context).error("jml.extension.failed", extname,"No such package found");
+        } catch (Exception e) {
+            Log.instance(context).error("jml.extension.failed", extname, e.toString());
+        }
+        return false;
     }
     
     /** Register all the classes in the given package, as found by findClasses() */
