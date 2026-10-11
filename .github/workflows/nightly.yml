@@ -137,6 +137,14 @@ jobs:
     - name: Report
       run: |
         if [ -z "$failures" ] ; then echo All tests OK; exit 0; else echo $failures; exit 1; fi
+
+    ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: othertests
+        os-label: ${{ matrix.label }}
         
 
   ## These jobs download the pre-built artifact and run subsets of the unit tests in parallel
@@ -174,6 +182,14 @@ jobs:
       run: |
         PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
 
+    ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: unittests1
+        os-label: ${{ matrix.label }}
+
   unittests2:
     ## To revert to self-contained jobs (no artifact sharing): remove 'build' from needs,
     ## comment out the Download step below, and uncomment the Build step below.
@@ -208,6 +224,14 @@ jobs:
       run: |
         PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
 
+    ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: unittests2
+        os-label: ${{ matrix.label }}
+
   unittests3:
     ## To revert to self-contained jobs (no artifact sharing): remove 'build' from needs,
     ## comment out the Download step below, and uncomment the Build step below.
@@ -241,3 +265,11 @@ jobs:
     - name: Run unit tests
       run: |
         PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=71 LINES=60 make -C OpenJML/OpenJMLTest unittests-par 
+
+    ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: unittests3
+        os-label: ${{ matrix.label }}
