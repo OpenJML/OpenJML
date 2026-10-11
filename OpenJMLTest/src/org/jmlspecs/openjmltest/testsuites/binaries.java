@@ -61,6 +61,24 @@ public class binaries extends TCBase {
         );
     }
 
+    /** A spec method whose parameter types differ from the only binary method with that name and arity is not matched to it (#1025) */
+    @Test
+    public void testBinary2b() {
+        addMockFile("$A/java/io/File.jml",
+                "package java.io; \n" +
+                "public class File implements Serializable, Comparable<File> { \n" +
+                " public boolean renameTo(String dest);\n" +
+                "}\n");
+        helpTCText("A.java",
+                """
+                 class A {
+                    java.io.File file;
+                }
+                """
+                ,"/$A/java/io/File.jml:3: error: There is no binary method to match this Java declaration in the specification file: java.io.File.renameTo\n      java.io.File has renameTo(java.io.File)",17
+        );
+    }
+
     /** Tests that model methods etc. in system spec files are actually checked */  // FIXME - not sure this should actually work - unlerss File is parsed by some other means, how would one know where VVV and TTT are
     @Test
     public void testBinary3() {
