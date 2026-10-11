@@ -44,8 +44,11 @@ jobs:
         os-label: windows
 
     ## What the unit-test scripts will find: they are bash scripts run in WSL, using the Windows build
+    ## (continue-on-error: wsl-bash stops a step at a failing command, and a failure here must not
+    ## keep the tests from running)
     - name: Environment for the unit tests
       if: always()
+      continue-on-error: true
       run: |
         set -x
         # Windows environment variables reach WSL only if listed in WSLENV
@@ -56,7 +59,7 @@ jobs:
         ls OpenJML/OpenJMLsrc/build/*/jdk/bin/java OpenJML/OpenJMLsrc/build/*/jdk/bin/java.exe 2>&1 || true
         OpenJML/OpenJMLsrc/os-name.sh || true
         which java java.exe javac javac.exe 2>&1 || true
-        ls ../Solvers 2>/dev/null; ls Solvers 2>&1 | head -5
+        ls Solvers Solvers/Solvers-windows 2>&1 | head -20 || true
         cat /etc/wsl.conf 2>&1 || true
 
     ## A small slice of the suites (alphabetical order, as in the Nightly's START and LINES); widen it once
