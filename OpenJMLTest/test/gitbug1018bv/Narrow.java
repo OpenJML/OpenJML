@@ -3,7 +3,7 @@
 //   javaMode: Java math: no warnings
 //   safeMode: Safe math: an out-of-range argument is warned about (here: the negative byte and short, and the
 //             char 65535 cast to short and to byte)
-// Run by ESC (escfiles3.gitbug1018; escfiles3.gitbug1018bv with the bit-vector encoding, javaMode only: #1020) and by RAC
+// Run by ESC (escfiles3.gitbug1018; escfiles3.gitbug1018bv with the bit-vector encoding) and by RAC
 // (racfiles.gitbug1018rac). Casts of \bigint values: test/jmlbigintCasts (ESC) and test/jmlbigint (RAC).
 public class Narrow {
     //@ code_java_math spec_java_math
