@@ -104,7 +104,8 @@ JML options:
   --arithmetic-failure       Whether arithmetic warnings are hard, soft (default) or quiet
   --check-accessible         When on (the default), JML accessible clauses are checked
   --specs-path               Specifies the directory path to search for specification files
-  --timeout                  Number of seconds to limit any individual proof attempt (default 300; 0 means no limit)
+  --timeout                  Number of seconds to limit each individual solver query (default 300; 0 means no limit); a method's proof may make several queries, see --timeout-method
+  --timeout-method           Number of seconds to limit the solver's total time for each method's proof, over all of its queries including feasibility checks (default 0, no limit)
   --show-not-implemented     When on (off by default), warnings about unimplemented constructs are issued
   --show-not-executable      When on (off by default), warnings about non-executable constructs are issued
   --warn                     Comma-separated list of warning keys to enable or disable

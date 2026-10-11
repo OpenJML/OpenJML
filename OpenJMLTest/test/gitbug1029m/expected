@@ -1,0 +1,10 @@
+Proving methods in Timeouts
+Starting proof of Timeouts.Timeouts() with prover !!!!
+Completed proof of Timeouts.Timeouts() with prover !!!! - no warnings
+Starting proof of Timeouts.m(long,long,long) with prover !!!!
+test/gitbug1029m/Timeouts.java:8: verify: Validity is unknown - time or memory limit reached: the time limit for the method's proof (--timeout-method) was reached
+    public static void m(long x, long y, long z) {
+                       ^
+Completed proof of Timeouts.m(long,long,long) with prover !!!! - TIMEOUT
+Completed proving methods in Timeouts
+1 verification failure

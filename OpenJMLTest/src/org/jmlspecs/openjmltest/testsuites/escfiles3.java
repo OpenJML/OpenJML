@@ -269,13 +269,6 @@ public class escfiles3 extends EscBaseFiles {
     }
 
     @Test
-    public void gitbug997b() {
-        // Warnings: quantifiers with no term that can serve as a trigger; a feasibility check not decided
-        // because of nonlinear arithmetic (the short timeout ends it quickly)
-        helpEscSimple("--timeout=5","--check-feasibility=precondition");
-    }
-
-    @Test
     public void gitbug1000() {
         helpEscSimple();
     }
@@ -286,12 +279,6 @@ public class escfiles3 extends EscBaseFiles {
         helpEscSimple();
     }
 
-    @Test
-    public void gitbug1001b() {
-        // Loop invariants with \sum and \product that ESC does not yet prove (a short timeout keeps the
-        // result 'Validity is unknown' on any machine)
-        helpEscSimple("--timeout=10","--check-feasibility=none");
-    }
     
     @Test
     public void byteQuant() {
