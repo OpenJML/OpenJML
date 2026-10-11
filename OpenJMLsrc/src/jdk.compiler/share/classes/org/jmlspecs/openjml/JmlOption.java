@@ -231,7 +231,8 @@ public class JmlOption {
     public static final JmlOption SPECS = new JmlOption("--specs-path",true,null,"Specifies the directory path to search for specification files",null);
     { map.put("-specspath",SPECS); }
     //public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
-    public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,"300","Number of seconds to limit any individual proof attempt (default 300; 0 means no limit)",null);
+    public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,"300","Number of seconds to limit each individual solver query (default 300; 0 means no limit); a method's proof may make several queries, see --timeout-method",null);
+    public static final JmlOption TIMEOUT_METHOD = new JmlOption("--timeout-method",true,"0","Number of seconds to limit the solver's total time for each method's proof, over all of its queries including feasibility checks (default 0, no limit)",null);
 
     public static final JmlOption SHOW_NOT_IMPLEMENTED = new JmlOption("--show-not-implemented",false,false,"When on (off by default), warnings about unimplemented constructs are issued",null);
     { map.put("-showNotImplemented",SHOW_NOT_IMPLEMENTED); }

@@ -12,8 +12,11 @@ Starting proof of Feas.fermat(int,int,int) with prover !!!!
 test/gitbug997b/Feas.java:7: verify: A feasibility check of Feas.fermat(int,int,int) was not decided: its verification condition uses nonlinear integer arithmetic (a product of non-constant values, or a division or remainder by a non-constant value), for which the SMT solver often cannot find a model; --check-feasibility=none turns these checks off
   public void fermat(int x, int y, int z) {
               ^
-Aborted feasibility check:  unknown reason: "canceled"
-Completed proof of Feas.fermat(int,int,int) with prover !!!! - no warnings
+test/gitbug997b/Feas.java:7: verify: Feasibility is unknown - time or memory limit reached: : Aborted feasibility check: timeout
+  public void fermat(int x, int y, int z) {
+              ^
+Aborted feasibility check:  timeout
+Completed proof of Feas.fermat(int,int,int) with prover !!!! - TIMEOUT
 Completed proving methods in Feas
 Proving methods in NoTrigger
 Starting proof of NoTrigger.NoTrigger() with prover !!!!
@@ -24,4 +27,4 @@ Feasibility check - end of preconditions : OK
 Completed proof of NoTrigger.m(int[],int) with prover !!!! - no warnings
 Completed proving methods in NoTrigger
 2 warnings
-1 verification failure
+2 verification failures

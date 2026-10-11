@@ -2,9 +2,9 @@ Proving methods in LoopLimits
 Starting proof of LoopLimits.LoopLimits() with prover !!!!
 Completed proof of LoopLimits.LoopLimits() with prover !!!! - no warnings
 Starting proof of LoopLimits.downLoop(int[]) with prover !!!!
-test/gitbug1001b/LoopLimits.java:10: verify: Validity is unknown - no model available method LoopLimits.downLoop -  (possible timeout): (error "line 864 column 18: model is not available")
+test/gitbug1001b/LoopLimits.java:10: verify: Validity is unknown - time or memory limit reached: : Aborted proof: timeout
     public int downLoop(int[] a) {
                ^
-Completed proof of LoopLimits.downLoop(int[]) with prover !!!! - UNKNOWN
+Completed proof of LoopLimits.downLoop(int[]) with prover !!!! - TIMEOUT
 Completed proving methods in LoopLimits
 1 verification failure

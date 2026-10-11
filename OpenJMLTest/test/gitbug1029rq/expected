@@ -1,0 +1,13 @@
+Proving methods in Requery
+Starting proof of Requery.Requery() with prover !!!!
+Completed proof of Requery.Requery() with prover !!!! - no warnings
+Starting proof of Requery.m(long,long,long,int) with prover !!!!
+test/gitbug1029rq/Requery.java:12: verify: The prover cannot establish an assertion (Assert) in method m
+        //@ check w > 5;
+            ^
+test/gitbug1029rq/Requery.java:10: verify: Validity is unknown - time or memory limit reached: : Aborted proof: timeout
+    public static void m(long x, long y, long z, int w) {
+                       ^
+Completed proof of Requery.m(long,long,long,int) with prover !!!! - with warnings
+Completed proving methods in Requery
+2 verification failures
