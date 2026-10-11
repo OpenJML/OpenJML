@@ -1,0 +1,75 @@
+name: Windows test debugging
+
+## Runs the unit tests on Windows only, to develop the Windows support of the Nightly's test jobs (which
+## do not yet run there) without spending a run on every platform. It runs on a push to the ci-windows
+## branch; Specs comes from dev-21. The other workflows do not run on that branch.
+##
+## On Windows, OpenJML is a Windows build used from WSL (as in openjml-build and openjml-release-test):
+## the test steps run under wsl-bash, so the test scripts see Linux paths while java.exe etc. are
+## Windows programs started through WSL interop.
+
+on:
+  push:
+    branches: [ ci-windows ]
+
+env:
+  FOLDER: OpenJMLsrc
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 240
+    ## Every run: step uses bash in WSL unless it says otherwise (the Nightly could set this per platform:
+    ## shell: ${{ matrix.label == 'windows' && 'wsl-bash {0}' || 'bash' }})
+    defaults:
+      run:
+        shell: wsl-bash {0}
+    steps:
+    - name: Checkout actions
+      uses: actions/checkout@v6
+      with:
+        sparse-checkout: ./.github
+        path: ACTIONS
+    - name: OS setup
+      uses: ./ACTIONS/.github/actions/os-setup/
+    - name: Checkout OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-checkout/
+      with:
+        branch: ${{ github.ref_name }}
+        specs-branch: dev-21
+        os-label: windows
+    - name: Build OpenJML
+      uses: ./ACTIONS/.github/actions/openjml-build/
+      with:
+        os-label: windows
+
+    ## What the unit-test scripts will find: they are bash scripts run in WSL, using the Windows build
+    - name: Environment for the unit tests
+      if: always()
+      run: |
+        set -x
+        # Windows environment variables reach WSL only if listed in WSLENV
+        echo "WSLENV=$WSLENV GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-<unset>} FOLDER=${FOLDER:-<unset>} GITHUB_ENV=${GITHUB_ENV:-<unset>}"
+        uname -a; pwd; echo "PATH=$PATH"
+        ls -d OpenJML/OpenJMLsrc/build/*/jdk/bin 2>&1
+        ls OpenJML/OpenJMLsrc/build/*/jdk/bin/ 2>&1 | grep -E '^java' || true
+        ls OpenJML/OpenJMLsrc/build/*/jdk/bin/java OpenJML/OpenJMLsrc/build/*/jdk/bin/java.exe 2>&1 || true
+        OpenJML/OpenJMLsrc/os-name.sh || true
+        which java java.exe javac javac.exe 2>&1 || true
+        ls ../Solvers 2>/dev/null; ls Solvers 2>&1 | head -5
+        cat /etc/wsl.conf 2>&1 || true
+
+    ## A small slice of the suites (alphabetical order, as in the Nightly's START and LINES); widen it once
+    ## these run
+    - name: Run unit tests
+      run: |
+        cd OpenJML/OpenJMLTest
+        # stdbuf: line-buffered output, so progress appears as it happens (see openjml-release-test)
+        PATH="$(cd ../OpenJMLsrc && pwd):$PATH" START=1 LINES=3 stdbuf -oL -eL make unittests-par 2>&1
+
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: windows-debug
+        os-label: windows
