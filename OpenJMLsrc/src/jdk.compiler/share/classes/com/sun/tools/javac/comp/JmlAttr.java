@@ -211,10 +211,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // This class is in the runtime library
     /*@non_null*/ public static String runtimeClassName = "org.jmlspecs.runtime.Utils";
     
-    /** Cached symbol of the org.jmlspecs.runtiome.Runtime class */
+    /** Cached symbol of the runtime utility class (named by the runtimeClassName field) */
     /*@non_null*/ public ClassSymbol runtimeClass;
     
-    /** Cached identifier of the org.jmlspecs.runtime.Runtime class */
+    /** Cached identifier of the runtime utility class (named by the runtimeClassName field) */
     /*@non_null*/ protected JCIdent runtimeClassIdent;
     
     /** Cached value of the datagroup class */
@@ -7644,9 +7644,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         {
             
             Name defempty = names.fromString("defaultEmpty");
-//        	Type t = runtimeClass.type;
-//        	var tt = jmlMaker.Type(t);
-//        	var eee = utils.nametree(Position.NOPOS, Position.NOPOS, "org.jmlspecs.runtime.Runtime.defaultEmpty", null);
         	
             JCFieldAccess sel = jmlMaker.Select(jmlMaker.Type(runtimeClass.type),defempty);
             JCExpression e = jmlMaker.Apply(List.<JCExpression>of(jmlMaker.Type(boxedVarType)),sel,List.<JCExpression>nil()); 
