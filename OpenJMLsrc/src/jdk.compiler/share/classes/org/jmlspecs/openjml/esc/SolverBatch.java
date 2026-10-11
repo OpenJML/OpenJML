@@ -35,7 +35,10 @@ import org.smtlib.SolverProcess;
  * jSMTLIB answers :print-success on the client side and does not expose raw sending, so the
  * adapter's translation and its solver process are reached by reflection:
  * {@code AbstractSolver.translate(INode)} and the {@code AbstractSolver.solverProcess} field,
- * both protected. If either is unavailable, the script is executed the ordinary way. A public
+ * both protected. If either is unavailable, the script is executed the ordinary way. The
+ * adapter's whole-run time-limit handling (jSMTLIB 0.14.0: {@code endedByTimeLimit},
+ * {@code timeLimitResponse}, {@code timeLimitResponseAfterExit}) is reached the same way, so that
+ * a block cut short by --timeout-method gets the timeout response, as a single command would. A public
  * jSMTLIB entry point (e.g. {@code ISolver.sendBatch(List<ICommand>)}) would replace this.
  */
 public class SolverBatch {
@@ -87,6 +90,7 @@ public class SolverBatch {
     static protected IResponse sendBlock(List<ICommand> block, ISolver solver, Access access) {
         SMT.Configuration smtConfig = solver.smt();
         if (block.isEmpty()) return smtConfig.responseFactory.success();
+        if (access.endedByTimeLimit()) return smtConfig.responseFactory.timeout();
         if (block.size() < minimumBlockSize) {
             IResponse r = smtConfig.responseFactory.success();
             for (ICommand c: block) {
@@ -116,6 +120,8 @@ public class SolverBatch {
                 if (more == null || more.isEmpty()) break;
                 out.append(more);
             }
+            IResponse timedOut = access.timeLimitResponse(out.toString());
+            if (timedOut != null) return timedOut;
             boolean completed = endsWithSuccess(out);
             String text = out.toString().trim();
             if (completed) text = text.substring(0, text.length() - "success".length()).trim();
@@ -125,11 +131,14 @@ public class SolverBatch {
                 // so it cannot be used further. Its OS process is stopped, leaving the adapter as it
                 // is: a later exit() then finds the process dead and cleans up, rather than waiting
                 // for a reply that will never come.
-                killProcess(process);
+                process.stopIfRunning();
                 text = text + " [the solver did not complete the block and was stopped]";
             }
             return smtConfig.responseFactory.error("Error in a block of commands sent to the solver: " + text);
         } catch (Exception e) {
+            // e.g. the whole-run time limit ended the solver before or during the block
+            IResponse timedOut = access.timeLimitResponseAfterExit();
+            if (timedOut != null) return timedOut;
             return smtConfig.responseFactory.error("Error writing a block of commands to the solver: " + e);
         }
     }
@@ -154,21 +163,6 @@ public class SolverBatch {
         }
     }
 
-    /** Stops the OS process behind the given SolverProcess (its protected 'process' field) */
-    static private void killProcess(SolverProcess sp) {
-        try {
-            Field f = SolverProcess.class.getDeclaredField("process");
-            f.setAccessible(true);
-            Process p = (Process)f.get(sp);
-            if (p != null) {
-                p.destroyForcibly();
-                p.waitFor(2, java.util.concurrent.TimeUnit.SECONDS);
-            }
-        } catch (Exception e) {
-            // Nothing more can be done; the caller reports the error in any case
-        }
-    }
-
     static private boolean endsWithSuccess(StringBuilder out) {
         String s = out.toString().trim();
         return s.equals("success") || s.endsWith("\nsuccess");
@@ -179,27 +173,41 @@ public class SolverBatch {
         final ISolver solver;
         final Method translate;
         final Field process;
+        // The adapter's time-limit handling; null if this jSMTLIB does not have it
+        final /*@Nullable*/ Field endedByTimeLimit;
+        final /*@Nullable*/ Method timeLimitResponse;
+        final /*@Nullable*/ Method timeLimitResponseAfterExit;
 
-        private Access(ISolver solver, Method translate, Field process) {
+        private Access(ISolver solver, Method translate, Field process,
+                Field endedByTimeLimit, Method timeLimitResponse, Method timeLimitResponseAfterExit) {
             this.solver = solver; this.translate = translate; this.process = process;
+            this.endedByTimeLimit = endedByTimeLimit;
+            this.timeLimitResponse = timeLimitResponse;
+            this.timeLimitResponseAfterExit = timeLimitResponseAfterExit;
         }
 
         /** Returns the accessors for this solver adapter, or null if it does not have them */
         static Access of(ISolver solver) {
-            Method m = null;
-            Field f = null;
-            for (Class<?> c = solver.getClass(); c != null && (m == null || f == null); c = c.getSuperclass()) {
+            Method m = null, tl = null, tla = null;
+            Field f = null, ended = null;
+            for (Class<?> c = solver.getClass(); c != null; c = c.getSuperclass()) {
                 try { if (m == null) m = c.getDeclaredMethod("translate", INode.class); } catch (NoSuchMethodException e) {}
                 try { if (f == null) f = c.getDeclaredField("solverProcess"); } catch (NoSuchFieldException e) {}
+                try { if (ended == null) ended = c.getDeclaredField("endedByTimeLimit"); } catch (NoSuchFieldException e) {}
+                try { if (tl == null) tl = c.getDeclaredMethod("timeLimitResponse", String.class); } catch (NoSuchMethodException e) {}
+                try { if (tla == null) tla = c.getDeclaredMethod("timeLimitResponseAfterExit"); } catch (NoSuchMethodException e) {}
             }
             if (m == null || f == null || !SolverProcess.class.isAssignableFrom(f.getType())) return null;
             try {
                 m.setAccessible(true);
                 f.setAccessible(true);
+                if (ended != null) ended.setAccessible(true);
+                if (tl != null) tl.setAccessible(true);
+                if (tla != null) tla.setAccessible(true);
             } catch (RuntimeException e) {
                 return null;
             }
-            return new Access(solver, m, f);
+            return new Access(solver, m, f, ended, tl, tla);
         }
 
         String translate(ICommand c) throws Exception {
@@ -208,6 +216,31 @@ public class SolverBatch {
 
         SolverProcess process() throws Exception {
             return (SolverProcess)process.get(solver);
+        }
+
+        boolean endedByTimeLimit() {
+            try {
+                return endedByTimeLimit != null && endedByTimeLimit.getBoolean(solver);
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        /** The timeout response if the given output is the solver's report that its whole-run limit ended it, else null */
+        /*@Nullable*/ IResponse timeLimitResponse(String output) {
+            try {
+                return timeLimitResponse == null ? null : (IResponse)timeLimitResponse.invoke(solver, output);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
+        /*@Nullable*/ IResponse timeLimitResponseAfterExit() {
+            try {
+                return timeLimitResponseAfterExit == null ? null : (IResponse)timeLimitResponseAfterExit.invoke(solver);
+            } catch (Exception e) {
+                return null;
+            }
         }
     }
 }
