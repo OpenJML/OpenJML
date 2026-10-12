@@ -262,6 +262,12 @@ public class escfiles3 extends EscBaseFiles {
     }
 
     @Test
+    public void gitbug1024() {
+        // The axioms for a method inherited from Object include that the receiver is not null (#1024)
+        helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
     public void gitbug1012a() {
         // An item of --method that matches no method gets a command-line warning (#1012)
         helpEscSimple("--check-feasibility=none","--method=inc,inx");

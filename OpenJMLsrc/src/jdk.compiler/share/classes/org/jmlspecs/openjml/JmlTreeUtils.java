@@ -1126,14 +1126,20 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for a short-circuit boolean AND expression */
-    public JCExpression makeAnd(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
+    public JCExpression makeAnd(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs, JCExpression ... more) {
+        // At least one rhs, so that a call without a position, makeAnd(a,b), does not compile: a JCExpression is
+        // also a DiagnosticPosition, and that call would silently drop a (#1024)
+        lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
+        for (JCExpression r: more) {
             lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,r);
         }
         return lhs;
     }
-    public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
+    public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs, JCExpression ... more) {
+        // At least one rhs, so that a call without a position, makeAnd(a,b), does not compile: a JCExpression is
+        // also a DiagnosticPosition, and that call would silently drop a (#1024)
+        lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
+        for (JCExpression r: more) {
             lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,r);
         }
         return lhs;
@@ -1156,16 +1162,22 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for a short-circuit boolean OR expression */
-    public JCExpression makeOr(int pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
+    public JCExpression makeOr(int pos, JCExpression lhs, JCExpression rhs, JCExpression ... more) {
+        // At least one rhs, so that a call without a position, makeOr(a,b), does not compile: a JCExpression is
+        // also a DiagnosticPosition, and that call would silently drop a (#1024)
+        lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+        for (JCExpression r: more) {
             lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,r);
         }
         return lhs;
     }
 
     /** Makes an attributed AST for a short-circuit boolean OR expression */
-    public JCExpression makeOr(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
+    public JCExpression makeOr(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs, JCExpression ... more) {
+        // At least one rhs, so that a call without a position, makeOr(a,b), does not compile: a JCExpression is
+        // also a DiagnosticPosition, and that call would silently drop a (#1024)
+        lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+        for (JCExpression r: more) {
             lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,r);
         }
         return lhs;
