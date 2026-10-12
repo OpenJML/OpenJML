@@ -14,7 +14,9 @@ name: Nightly test of OpenJML
 ## As a compromise, the workflow uses a build job (per OS) that uploads the built JDK as an artifact,
 ## and separate test jobs (othertests, unittests1/2/3) that download the artifact instead of rebuilding.
 
-## Note: PATH adjustments below use ':' (Linux/macOS/WSL). Windows jobs in these steps are not yet supported.
+## Windows: OpenJML is a Windows build used from WSL. The unit-test jobs run their run: steps under wsl-bash on
+## Windows (bash elsewhere), so those steps must not use Windows environment variables such as GITHUB_WORKSPACE or
+## FOLDER, which do not reach WSL; they use paths relative to the workspace. othertests does not yet run on Windows.
 
 on:
   workflow_dispatch:
@@ -157,6 +159,10 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
+    ## On Windows, run: steps use bash in WSL (see the note at the top)
+    defaults:
+      run:
+        shell: ${{ matrix.label == 'windows' && 'wsl-bash {0}' || 'bash' }}
 
     steps:
     - name: Checkout actions
@@ -180,7 +186,8 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
+        cd OpenJML/OpenJMLTest
+        PATH="$(cd ../OpenJMLsrc && pwd):$PATH" START=1 LINES=40 make unittests-par
 
     ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
     - name: Report test failures and upload test logs
@@ -199,6 +206,10 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
+    ## On Windows, run: steps use bash in WSL (see the note at the top)
+    defaults:
+      run:
+        shell: ${{ matrix.label == 'windows' && 'wsl-bash {0}' || 'bash' }}
 
     steps:
     - name: Checkout actions
@@ -222,7 +233,8 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
+        cd OpenJML/OpenJMLTest
+        PATH="$(cd ../OpenJMLsrc && pwd):$PATH" START=41 LINES=30 make unittests-par
 
     ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
     - name: Report test failures and upload test logs
@@ -241,6 +253,10 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
+    ## On Windows, run: steps use bash in WSL (see the note at the top)
+    defaults:
+      run:
+        shell: ${{ matrix.label == 'windows' && 'wsl-bash {0}' || 'bash' }}
 
     steps:
     - name: Checkout actions
@@ -264,7 +280,8 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=71 LINES=60 make -C OpenJML/OpenJMLTest unittests-par 
+        cd OpenJML/OpenJMLTest
+        PATH="$(cd ../OpenJMLsrc && pwd):$PATH" START=71 LINES=60 make unittests-par
 
     ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
     - name: Report test failures and upload test logs
