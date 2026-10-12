@@ -55,6 +55,11 @@ jobs:
         TIMEFORMAT="TIME esc-20-methods-batch %R s"; time $O --esc G20.java
         TIMEFORMAT="TIME esc-20-methods-nobatch %R s"; time $O --esc --no-smt-batch G20.java
 
+    ## The release launchers with a Linux and a Windows JDK under WSL (#1007)
+    - name: Launcher JDK test
+      continue-on-error: true
+      run: OpenJML/OpenJMLTest/scripttests/launcher-jdk-test
+
     ## What the unit-test scripts will find: they are bash scripts run in WSL, using the Windows build
     ## (continue-on-error: wsl-bash stops a step at a failing command, and a failure here must not
     ## keep the tests from running)
