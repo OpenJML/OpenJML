@@ -7,8 +7,10 @@
 ## Set these javac/openjml options for compiling all the test suites (they don't necessarily apply to all of the test cases)
 OPTIONS=-Xlint:unchecked -Xdiags:verbose -Xlint:text-blocks
 
-unittestframework: ../src/org/openjml/runners/*.java ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testsuites/*.java
+## The target is a stamp file; a rebuild of OpenJML (which rewrites Main.class) also forces a recompile
+unittestframework: ../src/org/openjml/runners/*.java ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testsuites/*.java $(wildcard $(ROOT)/build/*-release/jdk/modules/jdk.compiler/org/jmlspecs/openjml/Main.class)
 	@NOJML=1 WSLENV="$${WSLENV:+$$WSLENV:}NOJML" $(NJAVAC) -g $(OPTIONS) -cp $(CP) -p $(ROOT)/build/*-release/jdk/modules $(OPENJML_EXPORTS) ../src/org/openjml/runners/*.java  ../src/org/jmlspecs/openjmltest/*.java ../src/org/jmlspecs/openjmltest/testsuites/*.java
+	touch unittestframework
 
 clean:
 	rm -rf temp log* the.jml.lock unittestframework

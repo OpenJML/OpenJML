@@ -54,8 +54,12 @@ while true; do
   ## Make needs NJAVAC CP OPENJML_EXPORTS ROOT (hence these are exported)
   echo Compiling for $@
   make unittestframework
+  MAKERR=$?
 
   rm -f the.jml.lock ## Release the lock
+
+  ## Exit 2 (no results), rather than run stale .class files
+  if [ $MAKERR -ne 0 ]; then echo "Compilation failed for $@"; exit 2; fi
 
   echo Compilation complete
   break
