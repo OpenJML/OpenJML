@@ -33,6 +33,11 @@ public class runscripts2 extends RunBase {
         doTest();
     }
 
+    /** All compilations in one JVM must use the same --extensions (#1026) */
+    @Test public void apiExtensions() {
+        doTest();
+    }
+
     @Test public void apiB() {
         doTest();
     }

@@ -1122,7 +1122,6 @@ public class compiler extends JmlTestSuite{
     public void testExtension1() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
-                        "--specs-path","../OpenJMLsrc/release-temp",
                         "-lang=jml",
                         "--extensions=X", // Ignored when strict
                         src + "testNoErrors/A.java"
@@ -1133,6 +1132,22 @@ public class compiler extends JmlTestSuite{
 
     @Test
     public void testExtension2() throws Exception {
+        helper(new String[]
+                { "-sourcepath",src + "testNoErrors",
+                        "--extensions=X",
+                        src + "testNoErrors/A.java"
+                },2,1
+                ,"error: Failed to load extension X: No such package found"
+                ,""
+                );
+    }
+
+    /** --extensions is processed by every compilation in a JVM, not just the first (#1026) */
+    @Test
+    public void testExtension3() throws Exception {
+        org.jmlspecs.openjml.Main.execute(new String[] { "-sourcepath",src + "testNoErrors", src + "testNoErrors/A.java" });
+        collectSystemOutput(false); // discard the first compilation's output
+        collectSystemOutput(true);
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
                         "--extensions=X",

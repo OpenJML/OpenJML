@@ -4185,7 +4185,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     var ee4 = treeutils.makeJmlMethodInvocation(pos, FunctionLikeExpressions.invariantForKind, syms.booleanType, ee3);
                     var ee5 = treeutils.makeNotNull(p, copy(ee3));
                     var ee7 = makeAllocExpression(pos, copy(ee3), null);
-                    var ee6 = treeutils.makeImplies(pos, ee5, treeutils.makeAnd(ee4, ee7));
+                    var ee6 = treeutils.makeImplies(pos, ee5, treeutils.makeAnd(pos, ee4, ee7));
                     var ee8 = treeutils.makeAnd(p, ee1, ee2);
                     var ss = M.at(pos).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind, List.<JCVariableDecl>of(decl), ee8, ee6);
                     ss.type = syms.booleanType;
@@ -24979,7 +24979,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    if (recvSaved == null && !msym.isStatic()) currentEnv.currentReceiver = explicitThisId;
 	                JCExpression invsc = convertNoSplit(invs);
 //	                currentEnv.currentReceiver = recvSaved;
-					JCExpression pre = treeutils.makeAnd(qthisnn != null ? qthisnn : treeutils.trueLit, invsc);
+					JCExpression pre = treeutils.makeAndSimp(cs, qthisnn, invsc); // the receiver is not null (#1024)
 					if (isPrimitiveType) {
 						pre = invsc;
 					} else if (qthisid != null && classType != syms.objectType) {
