@@ -2561,6 +2561,8 @@ public class SMTTranslator extends JmlTreeScanner {
                 // skip
             } else if (tree.type.getTag() == TypeTag.BOOLEAN) {
                 TypeTag max = bits(tlhs) > bits(trhs) ? tlhs : trhs;
+                // Numeric operands are promoted to at least int, as in Java, so that a char is compared as unsigned (#1020)
+                if (bits(max) > 0 && bits(max) < 32) max = TypeTag.INT;
                 lhs = castBV(max,tree.lhs.type.getTag(),lhs);
                 rhs = castBV(max,tree.rhs.type.getTag(),rhs);
             } else {

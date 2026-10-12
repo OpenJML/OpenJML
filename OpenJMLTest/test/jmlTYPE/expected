@@ -31,7 +31,7 @@ test/jmlTYPE/Test.java:79: verify: The prover cannot establish an assertion (Und
 $SPECS/org/jmlspecs/lang/internal/TYPE.jml:145: verify: Associated declaration
     public boolean equals(Object o);
                    ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/TYPE.jml:76: verify: Precondition conjunct is false: null != null
+$SPECS/org/jmlspecs/lang/internal/TYPE.jml:76: verify: Precondition conjunct is false: null != null
     //@ public normal_behavior
                             ^
 Completed proof of Test.errors5() with prover !!!! - with warnings

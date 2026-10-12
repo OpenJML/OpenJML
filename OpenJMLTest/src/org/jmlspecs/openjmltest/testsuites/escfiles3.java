@@ -250,9 +250,21 @@ public class escfiles3 extends EscBaseFiles {
 
     @Test
     public void gitbug1018bv() {
-        // As gitbug1018, with the bit-vector encoding (in which a char is widened with zeros) (#1018): the narrowed
-        // values only (javaMode); Safe-mode warnings for char casts are not yet given with bit-vectors (#1020)
-        helpEscSimple("--check-feasibility=none","--method=javaMode","--esc-bv=true");
+        // As gitbug1018, with the bit-vector encoding, in which a char is widened with zeros (#1018) and compared
+        // as an int (#1020)
+        helpEscSimple("--check-feasibility=none","--exclude=main","--esc-bv=true");
+    }
+
+    @Test
+    public void gitbug1020() {
+        // With the bit-vector encoding, char operands of a comparison are compared as unsigned values (#1020)
+        helpEscSimple("--check-feasibility=none","--esc-bv=true");
+    }
+
+    @Test
+    public void gitbug1024() {
+        // The axioms for a method inherited from Object include that the receiver is not null (#1024)
+        helpEscSimple("--check-feasibility=none");
     }
 
     @Test
