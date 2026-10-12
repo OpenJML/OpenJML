@@ -3,6 +3,7 @@ name: Windows test debugging
 ## Runs the unit tests on Windows only, to develop the Windows support of the Nightly's test jobs (which
 ## do not yet run there) without spending a run on every platform. It runs on a push to the ci-windows
 ## branch; Specs comes from dev-21. The other workflows do not run on that branch.
+## Currently it runs a timing experiment instead of the tests (see below).
 ##
 ## On Windows, OpenJML is a Windows build used from WSL (as in openjml-build and openjml-release-test):
 ## the test steps run under wsl-bash, so the test scripts see Linux paths while java.exe etc. are
@@ -43,35 +44,118 @@ jobs:
       with:
         os-label: windows
 
-    ## What the unit-test scripts will find: they are bash scripts run in WSL, using the Windows build
-    ## (continue-on-error: wsl-bash stops a step at a failing command, and a failure here must not
-    ## keep the tests from running)
-    - name: Environment for the unit tests
-      if: always()
+    ## Timing experiment: where does the time go on Windows? (The release tests take 22-32 minutes on
+    ## Windows against 1-2 on Linux and macOS.) Each step measures one cost; continue-on-error so that a
+    ## failed measurement does not stop the others. Results are the 'TIME' lines in the log.
+    ## The commands are written to timing.sh and timing.ps1 so the second pass (Defender off) repeats them.
+    - name: Write the timing scripts
       continue-on-error: true
       run: |
-        set -x
-        # Windows environment variables reach WSL only if listed in WSLENV
-        echo "WSLENV=$WSLENV GITHUB_WORKSPACE=${GITHUB_WORKSPACE:-<unset>} FOLDER=${FOLDER:-<unset>} GITHUB_ENV=${GITHUB_ENV:-<unset>}"
-        uname -a; pwd; echo "PATH=$PATH"
-        ls -d OpenJML/OpenJMLsrc/build/*/jdk/bin 2>&1
-        ls OpenJML/OpenJMLsrc/build/*/jdk/bin/ 2>&1 | grep -E '^java' || true
-        ls OpenJML/OpenJMLsrc/build/*/jdk/bin/java OpenJML/OpenJMLsrc/build/*/jdk/bin/java.exe 2>&1 || true
-        OpenJML/OpenJMLsrc/os-name.sh || true
-        which java java.exe javac javac.exe 2>&1 || true
-        ls Solvers Solvers/Solvers-windows 2>&1 | head -20 || true
-        cat /etc/wsl.conf 2>&1 || true
+        mkdir -p timing
+        # 20 trivial methods, and a 1-method file, for ESC (per-method cost = difference / 19)
+        { echo "public class G20 {"; for i in $(seq 20); do echo "  //@ requires 0 < x && x < 1000; ensures \result > x;"; echo "  public int m$i(int x) { return x + 1; }"; done; echo "}"; } > timing/G20.java
+        printf 'public class G1 {\n  //@ requires 0 < x && x < 1000; ensures \\result > x;\n  public int m1(int x) { return x + 1; }\n}\n' > timing/G1.java
+        cat > timing/timing.sh <<'SH'
+        # Usage: timing.sh <label>; run from the workspace; works in WSL bash and Git Bash
+        set +e
+        L=$1
+        TIMEFORMAT="TIME $L %R s"
+        JAVA=$(echo OpenJML/OpenJMLsrc/build/*/jdk/bin/java.exe)
+        Z3=Solvers/Solvers-windows/z3-4.16.0.exe
+        echo "== $L: 200 x /bin/true (process start in this shell)"; time (for i in $(seq 200); do /bin/true; done)
+        echo "== $L: 20 x java.exe -version"; time (for i in $(seq 20); do "$JAVA" -version 2>/dev/null; done)
+        echo "== $L: 50 x z3.exe -version"; time (for i in $(seq 50); do "$Z3" -version >/dev/null; done)
+        echo "== $L: find over the checkout"; time (find OpenJML -type f | wc -l)
+        echo "== $L: read all test .java files"; time (find OpenJML/OpenJMLTest/test -name '*.java' -exec cat {} + | wc -c)
+        echo "== $L: 200 x grep on one file (script-style work)"; time (for i in $(seq 200); do grep -q class timing/G1.java; done)
+        SH
+        cat > timing/timing.ps1 <<'PS'
+        # Usage: timing.ps1 <label>; run from the workspace in pwsh
+        param($L)
+        $java = (Get-ChildItem OpenJML/OpenJMLsrc/build/*/jdk/bin/java.exe | Select-Object -First 1).FullName
+        $z3 = (Resolve-Path Solvers/Solvers-windows/z3-4.16.0.exe).Path
+        $t = Measure-Command { 1..20 | ForEach-Object { & $java -version 2>&1 | Out-Null } }; "TIME $L java-x20 $($t.TotalSeconds) s"
+        $t = Measure-Command { 1..50 | ForEach-Object { & $z3 -version | Out-Null } }; "TIME $L z3-x50 $($t.TotalSeconds) s"
+        $t = Measure-Command { (Get-ChildItem -Recurse -File OpenJML).Count }; "TIME $L find $($t.TotalSeconds) s"
+        PS
+        ls -l timing
 
-    ## A few suites that cover the command line, ESC (solvers) and RAC; widen once these run
-    - name: Run unit tests
+    - name: "Pass 1 (Defender on): PowerShell"
+      continue-on-error: true
+      shell: pwsh
+      run: ./timing/timing.ps1 pwsh
+
+    - name: "Pass 1 (Defender on): Git Bash"
+      continue-on-error: true
+      shell: bash
+      run: bash timing/timing.sh gitbash
+
+    - name: "Pass 1 (Defender on): WSL bash"
+      continue-on-error: true
+      run: bash timing/timing.sh wsl
+
+    ## The same reads from WSL's own file system (ext4), which java.exe would instead reach over the network share
+    - name: "Pass 1 (Defender on): WSL bash, files in the Linux file system"
+      continue-on-error: true
       run: |
-        cd OpenJML/OpenJMLTest/unittests
-        # stdbuf: line-buffered output, so progress appears as it happens (see openjml-release-test)
-        PATH="$(cd ../../OpenJMLsrc && pwd):$PATH" stdbuf -oL -eL ./runpar compiler escgeneric escfiles racnew 2>&1
+        set +e
+        TIMEFORMAT="TIME wsl-ext4 %R s"
+        echo "== copy the test folder into ~"; time cp -r OpenJML/OpenJMLTest/test ~/t
+        echo "== find there"; time (find ~/t -type f | wc -l)
+        echo "== read all .java there"; time (find ~/t -name '*.java' -exec cat {} + | wc -c)
 
-    - name: Report test failures and upload test logs
-      if: always()
-      uses: ./ACTIONS/.github/actions/openjml-test-report/
-      with:
-        job-name: windows-debug
-        os-label: windows
+    ## Real work: ESC of 1 and 20 methods with the openjml script (one JVM; z3 started per proof)
+    - name: "Pass 1 (Defender on): ESC from WSL"
+      continue-on-error: true
+      run: |
+        set +e
+        cd timing
+        O=../OpenJML/OpenJMLsrc/openjml
+        TIMEFORMAT="TIME esc-1-method %R s"; time $O --esc G1.java
+        TIMEFORMAT="TIME esc-20-methods %R s"; time $O --esc G20.java
+        TIMEFORMAT="TIME check-only %R s"; time $O --check G20.java
+
+    ## Real work: a small unit-test run (the first includes compiling the test framework)
+    - name: "Pass 1 (Defender on): runtests from WSL"
+      continue-on-error: true
+      run: |
+        set +e
+        cd OpenJML/OpenJMLTest/unittests
+        PATH="$(cd ../../OpenJMLsrc && pwd):$PATH"
+        TIMEFORMAT="TIME runtests-first %R s"; time ./runtests escfiles3.gitbug1024 2>&1 | tail -2
+        TIMEFORMAT="TIME runtests-2-tests %R s"; time ./runtests escfiles3.gitbug1024 escfiles2.gitbug880 2>&1 | tail -2
+
+    - name: Turn off Defender real-time scanning
+      continue-on-error: true
+      shell: pwsh
+      run: |
+        Set-MpPreference -DisableRealtimeMonitoring $true
+        Add-MpPreference -ExclusionPath $env:GITHUB_WORKSPACE
+        Get-MpPreference | Select-Object DisableRealtimeMonitoring, ExclusionPath
+
+    - name: "Pass 2 (Defender off): PowerShell"
+      continue-on-error: true
+      shell: pwsh
+      run: ./timing/timing.ps1 pwsh-nodef
+
+    - name: "Pass 2 (Defender off): Git Bash"
+      continue-on-error: true
+      shell: bash
+      run: bash timing/timing.sh gitbash-nodef
+
+    - name: "Pass 2 (Defender off): WSL bash"
+      continue-on-error: true
+      run: bash timing/timing.sh wsl-nodef
+
+    - name: "Pass 2 (Defender off): ESC and runtests from WSL"
+      continue-on-error: true
+      run: |
+        set +e
+        cd timing
+        O=../OpenJML/OpenJMLsrc/openjml
+        TIMEFORMAT="TIME esc-1-method-nodef %R s"; time $O --esc G1.java
+        TIMEFORMAT="TIME esc-20-methods-nodef %R s"; time $O --esc G20.java
+        cd ../OpenJML/OpenJMLTest/unittests
+        PATH="$(cd ../../OpenJMLsrc && pwd):$PATH"
+        TIMEFORMAT="TIME runtests-2-tests-nodef %R s"; time ./runtests escfiles3.gitbug1024 escfiles2.gitbug880 2>&1 | tail -2
+
