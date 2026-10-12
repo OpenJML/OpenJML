@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -206,11 +206,12 @@ public class Extensions {
      *  visible to all threads without acquiring the lock on the fast path. */
     private static volatile boolean registered = false;
 
-    /** The --extensions names (classes or packages) registered so far in this JVM; guarded by Extensions.class */
-    private static final Set<String> registeredExtensions = new HashSet<>();
+    /** The --extensions names (classes or packages) loaded in this JVM, fixed by the first compilation
+     *  that registers extensions; null until then; guarded by Extensions.class */
+    private static Set<String> jvmExtensions = null;
 
-    /** The --extensions names already processed in a context, so a failure is reported once per context */
-    protected static final Context.Key<Set<String>> processedExtensionsKey = new Context.Key<>();
+    /** The --extensions value last checked in a context, so the check runs once per context and value */
+    protected static final Context.Key<String> checkedExtensionsKey = new Context.Key<>();
 
     // This static method runs through all the extension classes and adds
     // appropriate information to the HashMap above, so extensions can be
@@ -219,9 +220,10 @@ public class Extensions {
     // extensions option.
     // allKinds is shared across all contexts. The built-in package is registered once per JVM
     // (the double-checked lock ensures that runs exactly once across all concurrent callers).
-    // The --extensions option can differ between compilations, so it is processed for each
-    // context: each named extension is registered once per JVM, and a failure to load one is
-    // reported in each context that asks for it (#1026).
+    // Extensions register themselves through static initializers, so they cannot be unloaded or
+    // kept per compilation. Hence the first compilation in a JVM fixes the set of --extensions,
+    // and a later compilation that asks for a different set is an error (#1026). A name that
+    // fails to load is reported in each compilation that asks for it, and is not part of the set.
     public static void register(Context context) {
         if (!registered) {
             synchronized (Extensions.class) {
@@ -236,16 +238,45 @@ public class Extensions {
                 }
             }
         }
-        if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) return;
-        String exts = JmlOption.EXTENSIONS.value(context);
-        if (exts == null || exts.isEmpty()) return;
-        Set<String> processed = context.get(processedExtensionsKey);
-        if (processed == null) context.put(processedExtensionsKey, processed = new HashSet<>());
+        String exts = JmlOption.langJML.equals(JmlOption.LANG.value(context)) ? null : JmlOption.EXTENSIONS.value(context);
+        if (exts == null) exts = "";
+        if (exts.equals(context.get(checkedExtensionsKey))) return;
+        context.put(checkedExtensionsKey, exts);
+        Set<String> requested = new TreeSet<>();
+        for (String extname : exts.split(",")) {
+            if (!extname.isEmpty()) requested.add(extname);
+        }
         synchronized (Extensions.class) {
-            for (String extname : exts.split(",")) {
-                if (!processed.add(extname) || registeredExtensions.contains(extname)) continue;
-                if (registerExtension(context, extname)) registeredExtensions.add(extname);
+            if (jvmExtensions == null) {
+                jvmExtensions = new TreeSet<>();
+                for (String extname : requested) {
+                    if (registerExtension(context, extname)) jvmExtensions.add(extname);
+                }
+                return;
             }
+            boolean differs = !requested.containsAll(jvmExtensions);
+            for (String extname : requested) {
+                if (jvmExtensions.contains(extname)) continue;
+                if (exists(extname)) differs = true;
+                else Log.instance(context).error("jml.extension.failed", extname, "No such package found");
+            }
+            if (differs) {
+                Log.instance(context).error("jml.extensions.differ", names(requested), names(jvmExtensions));
+            }
+        }
+    }
+
+    private static String names(Set<String> exts) {
+        return exts.isEmpty() ? "none" : String.join(",", exts);
+    }
+
+    /** Whether extname names a class or a package, without initializing anything */
+    private static boolean exists(String extname) {
+        try {
+            Class.forName(extname, false, ClassLoader.getSystemClassLoader());
+            return true;
+        } catch (ClassNotFoundException e) {
+            return ClassLoader.getSystemClassLoader().getDefinedPackage(extname) != null;
         }
     }
 

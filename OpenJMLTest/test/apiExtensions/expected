@@ -1,0 +1,23 @@
+--extensions=
+exit 0
+--extensions=org.jmlspecs.openjml.ext.MatchExt
+error: All compilations in one JVM must use the same --extensions: this compilation asks for org.jmlspecs.openjml.ext.MatchExt, but this JVM has loaded none
+exit 2
+--extensions=X
+error: Failed to load extension X: No such package found
+exit 2
+--extensions=
+exit 0
+--extensions=org.jmlspecs.openjml.ext.MatchExt,org.jmlspecs.openjml.ext.StatementLocationsExtension
+exit 0
+--extensions=org.jmlspecs.openjml.ext.StatementLocationsExtension,org.jmlspecs.openjml.ext.MatchExt
+exit 0
+--extensions=
+error: All compilations in one JVM must use the same --extensions: this compilation asks for none, but this JVM has loaded org.jmlspecs.openjml.ext.MatchExt,org.jmlspecs.openjml.ext.StatementLocationsExtension
+exit 2
+--extensions=org.jmlspecs.openjml.ext.MatchExt
+error: All compilations in one JVM must use the same --extensions: this compilation asks for org.jmlspecs.openjml.ext.MatchExt, but this JVM has loaded org.jmlspecs.openjml.ext.MatchExt,org.jmlspecs.openjml.ext.StatementLocationsExtension
+exit 2
+--extensions=org.jmlspecs.openjml.ext.MatchExt,org.jmlspecs.openjml.ext.StatementLocationsExtension,X
+error: Failed to load extension X: No such package found
+exit 2
