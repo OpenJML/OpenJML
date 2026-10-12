@@ -61,13 +61,17 @@ fi
 for d in $testlist; do rm -f log-${d%.java}; done
 
 RUNERR=0
+## Set when a testsuite produced no summary (run-summary exits 2); retry cannot see such a suite
+GAVEUP=0
+note() { case $1 in 0) ;; 2) RUNERR=1; GAVEUP=1 ;; *) RUNERR=1 ;; esac; }
 if [ $numjobs -eq 0 ]; then
     echo Running $(echo $testlist | wc -w) testsuites sequentially
     sync
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
-        ./run-summary log-$nm $nm || RUNERR=1
+        ./run-summary log-$nm $nm
+        note $?
     done
 else
     echo Running $(echo $testlist | wc -w) testsuites with $numjobs concurrent jobs
@@ -82,7 +86,8 @@ else
         wt
     done
     for pid in "${pids[@]}"; do
-        wait "$pid" || RUNERR=1
+        wait "$pid"
+        note $?
     done
 fi
 echo Completed
@@ -120,5 +125,6 @@ else
         echo "LIST:" $FAILURES
     fi
 fi
+if [ $GAVEUP -ne 0 ]; then echo "Some testsuites produced no results (see 'Giving up' above)"; fi
 echo END `date`
-exit $ERR
+exit $(( ERR || GAVEUP ))
