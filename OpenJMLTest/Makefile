@@ -135,10 +135,10 @@ unittests-seq: prep .FORCE
 unittests-par: prep .FORCE
 	@ ${TEST}/unittests/runpar
 
-# As unittests-par, with --smt-batch on for every openjml run, in-process or by script: OpenJML reads
-# options from OPENJML_<option> environment variables (the name is case-sensitive: smt_batch, not SMT_BATCH)
-unittests-par-batch: prep .FORCE
-	@ OPENJML_smt_batch=true WSLENV="$${WSLENV:+$$WSLENV:}OPENJML_smt_batch" ${TEST}/unittests/runpar
+# As unittests-par, with --smt-batch (on by default) off for every openjml run, in-process or by script: OpenJML
+# reads options from OPENJML_<option> environment variables (the name is case-sensitive: smt_batch, not SMT_BATCH)
+unittests-par-nobatch: prep .FORCE
+	@ OPENJML_smt_batch=false WSLENV="$${WSLENV:+$$WSLENV:}OPENJML_smt_batch" ${TEST}/unittests/runpar
 
 # Executes the tests of JSON output and input
 json-tests: .FORCE

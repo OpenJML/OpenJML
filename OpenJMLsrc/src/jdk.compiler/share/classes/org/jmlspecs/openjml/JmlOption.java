@@ -374,7 +374,7 @@ public class JmlOption {
         }
         return on;
     }
-    public static final JmlOption SMT_BATCH = new JmlOption("--smt-batch",false,false,"ESC: Send each run of SMT declarations and assertions to the solver as one block, with :print-success off, instead of one command at a time (default false)",null);
+    public static final JmlOption SMT_BATCH = new JmlOption("--smt-batch",false,true,"ESC: Send each run of SMT declarations and assertions to the solver as one block, with :print-success off, instead of one command at a time (default true)",null);
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("--esc-max-warnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
         public boolean check(Context context, boolean negate) {
             String limit = JmlOption.ESC_MAX_WARNINGS.value(context);
