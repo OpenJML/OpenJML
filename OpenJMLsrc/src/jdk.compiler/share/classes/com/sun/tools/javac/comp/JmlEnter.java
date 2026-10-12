@@ -1064,7 +1064,11 @@ public class JmlEnter extends Enter {
 				break x;
 			}
 		}
-		if (msym == null && count == 1 && !utils.isJML(mdecl)) {
+		// The unique candidate is used only if its parameter types are those of the specification after
+		// erasure (so a mismatch is reported as an unmatched method, #1025); a differing return type is
+		// reported later
+		if (msym == null && count == 1 && !utils.isJML(mdecl) && types.isSameTypes(
+				types.erasure(first.type).getParameterTypes(), types.erasure(mdecl.sym.type).getParameterTypes())) {
 			// utils.note(mdecl, "jml.message", "No match; could use the unique candidate "
 			// + first + " " + (!hasTypeParams?"": " (hasTypeParameters)"));
 			msym = first;
