@@ -16,8 +16,9 @@ if [ -z ${OPENJML_INSTALL++} ]; then export OPENJML_INSTALL="$INSTALL" ; else ex
 ## set BINJAVA, BINJAVAC and other vars -- if those others are already set, then export them
 ## BINJAVA and BINJAVAC are an absolute path, still might have spaces
 
-## On Windows (WSL) the JDK binaries have a .exe suffix; detect this once
-if [ -n "$(grep -si microsoft /proc/version 2>/dev/null)" ]; then EXE=".exe" ; else EXE="" ; fi
+if [ -e "$INSTALL/version-info.txt" ]; then _jdkbin="$INSTALL/jdk/bin"; else _jdkbin=$(echo "$INSTALL"/build/*/jdk/bin); fi
+## Under WSL the JDK may be a Windows build (java.exe), or a Linux one (e.g. the Linux release run in WSL, #1007)
+if grep -qsi microsoft /proc/version && [ -e "$_jdkbin/java.exe" ]; then EXE=".exe" ; else EXE="" ; fi
 
 ## jSMTLIB is patched into jdk.compiler by the scripts (--patch-module). On WSL the JDK is a Windows
 ## program, so it needs the jar's Windows path.
@@ -33,15 +34,13 @@ if [ -e "$INSTALL/version-info.txt" ]; then
     if [ -z ${OPENJML_SPECS++} ];   then export OPENJML_SPECS="$INSTALL/specs"            ; fi
   fi
   _solvers="$INSTALL"
-  BINJAVA="$INSTALL/jdk/bin/java$EXE"
-  BINJAVAC="$INSTALL/jdk/bin/javac$EXE"
 else
   ## In development environment
   _solvers=$(realpath "$INSTALL"/../../Solvers)
   if [ -z ${OPENJML_SPECS++} ]; then export OPENJML_SPECS=$(realpath "$INSTALL"/../../Specs/specs) ; else export OPENJML_SPECS ; fi
-  BINJAVA=`echo "$INSTALL"/build/*/jdk/bin/java$EXE`
-  BINJAVAC=`echo "$INSTALL"/build/*/jdk/bin/javac$EXE`
 fi
+BINJAVA="$_jdkbin/java$EXE"
+BINJAVAC="$_jdkbin/javac$EXE"
 
 ## SMT_SOLVER_DIR is the folder in which jSMTLIB finds the solver executables: those named by the
 ## .exec properties in its jsmtlib.properties, or else the solver name itself.
