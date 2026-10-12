@@ -48,7 +48,7 @@ runs:
               e=${a/actual/expected}
               if [ -f "$e" ]; then
                 echo "--- diff $e $a"
-                diff "$e" "$a" | head -100
+                diff "$e" "$a" | head -100 || true  # diff exits 1 when the files differ (shell has -e -o pipefail)
               else
                 echo "--- $a (no matching $e; first 100 lines)"
                 head -100 "$a"
