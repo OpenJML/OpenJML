@@ -121,4 +121,4 @@ else
     fi
 fi
 echo END `date`
-exit $(( ERR || RUNERR ))
+exit $ERR
