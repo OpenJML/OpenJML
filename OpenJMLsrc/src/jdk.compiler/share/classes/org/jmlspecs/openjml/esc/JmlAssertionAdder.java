@@ -24979,7 +24979,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    if (recvSaved == null && !msym.isStatic()) currentEnv.currentReceiver = explicitThisId;
 	                JCExpression invsc = convertNoSplit(invs);
 //	                currentEnv.currentReceiver = recvSaved;
-					JCExpression pre = treeutils.makeAndSimp(cs.pos, qthisnn, invsc); // the receiver is not null (#1024)
+					JCExpression pre = treeutils.makeAndSimp(cs, qthisnn, invsc); // the receiver is not null (#1024)
 					if (isPrimitiveType) {
 						pre = invsc;
 					} else if (qthisid != null && classType != syms.objectType) {
