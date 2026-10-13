@@ -542,8 +542,9 @@
     */
 #  include <float.h>
 
+   /* OPENJML -- dropped defined(TARGET_OS_MAC): newer macOS SDKs define it (Xcode 16.4 CI build), and <fp.h> no longer exists */
 #  if (defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
-    defined(THINK_C) || defined(__SC__) || defined(TARGET_OS_MAC)
+    defined(THINK_C) || defined(__SC__)
    /* We need to check that <math.h> hasn't already been included earlier
     * as it seems it doesn't agree with <fp.h>, yet we should really use
     * <fp.h> if possible.
