@@ -72,9 +72,10 @@ public class compiler extends JmlTestSuite{
                 expectedErr = JmlTestSuite.doReplacements(output[1]);
             }
         }
-        actualOutput = actualOutput.replace("\r", "");
-        actualErr = actualErr.replace("\r", "");
-        expected = expected.replace("\r", "");
+        // Line ends and path separators as on Linux and macOS (as OutputCompare.compareFiles does)
+        actualOutput = actualOutput.replace("\r", "").replace('\\', '/');
+        actualErr = actualErr.replace("\r", "").replace('\\', '/');
+        expected = expected.replace("\r", "").replace('\\', '/');
         actualOutput = removeNotes(actualOutput);
 
         if (print) this.out.println("EXPECTING: " + expected);
@@ -91,7 +92,7 @@ public class compiler extends JmlTestSuite{
                 fail("Output does not contain: " + expected + eol + "Instead is: " + actualOutput);
             }
             if (output.length > 1) {
-                expectedErr = expectedErr.replaceAll("\r", "");
+                expectedErr = expectedErr.replaceAll("\r", "").replace('\\', '/');
                 if (all == 0) {
                     assertEquals("The err out is wrong", expectedErr, actualErr);
                 } else if (all == 1 && (actualErr.indexOf(expectedErr) == -1)) {
@@ -1168,7 +1169,10 @@ public class compiler extends JmlTestSuite{
             f.setReadable(false);
             // Where a file cannot be made unreadable (e.g. on Windows, or as root) there is nothing to test.
             // (A plain return: OpenJMLTestRunner would count an Assume failure as a test failure.)
-            if (f.canRead()) return;
+            if (f.canRead()) {
+                if (capture) collectSystemOutput(false); // as helper would; otherwise later output, including the summary, is lost
+                return;
+            }
             helper(new String[] { "--check", f.getPath() }, 1, 2, "error: error reading " + f.getPath());
         } finally {
             f.setReadable(true);

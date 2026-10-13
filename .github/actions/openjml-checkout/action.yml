@@ -9,6 +9,10 @@ inputs:
   branch:
     description: 'The branch of OpenJML and Specs to checkout'
     required: true
+  specs-branch:
+    description: 'The branch of Specs to checkout, if different from branch (e.g. for a CI-only OpenJML branch)'
+    required: false
+    default: ''
   os-label:
     description: >-
       This matrix leg's own label (matrix.label in build.yml/nightly.yml, e.g. macos-arm64,
@@ -36,7 +40,7 @@ runs:
           cd "${{ inputs.folder }}"
         fi
         git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/OpenJML
-        git clone -b ${{ inputs.branch }} --depth 1 https://github.com/OpenJML/Specs
+        git clone -b ${{ inputs.specs-branch != '' && inputs.specs-branch || inputs.branch }} --depth 1 https://github.com/OpenJML/Specs
         git clone -b master-21 --depth 1 https://github.com/OpenJML/OpenJMLDemo
         git clone -b master --depth 1 https://github.com/OpenJML/JMLAnnotations
         git clone -b master --depth 1 https://github.com/OpenJML/openjml.github.io
