@@ -291,6 +291,12 @@ public class escfiles3 extends EscBaseFiles {
         helpEscSimple();
     }
 
+    @Test
+    public void gitbug1006() {
+        // NullField for a field declared only in the .jml file is reported in the .jml file
+        helpEscSimple();
+    }
+
     
     @Test
     public void byteQuant() {
