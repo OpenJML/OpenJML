@@ -19,7 +19,8 @@ make_release() {
     cp "$SRC"/openjml "$SRC"/openjml-compile "$SRC"/setup-vars "$SRC"/setup-exports "$SRC"/os-name.sh "$R"
     touch "$R/version-info.txt" "$R/libs/jSMTLIB.jar"
     for p in java javac; do
-        printf '#!/bin/sh\necho "%s$*"\n' "$p$1 " > "$R/jdk/bin/$p$1"
+        ## printf, not echo: dash's echo turns the \\ and \t of Windows paths into \ and a tab
+        printf '#!/bin/sh\nprintf "%%s\\n" "%s$*"\n' "$p$1 " > "$R/jdk/bin/$p$1"
         chmod +x "$R/jdk/bin/$p$1"
     done
     echo "$R"
