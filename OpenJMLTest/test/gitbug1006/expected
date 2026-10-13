@@ -1,0 +1,8 @@
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+test/gitbug1006/A.jml:4: verify: The prover cannot establish an assertion (NullField) in method A
+    //@ public ghost non_null Object f;
+                                     ^
+Completed proof of A.A() with prover !!!! - with warnings
+Completed proving methods in A
+1 verification failure

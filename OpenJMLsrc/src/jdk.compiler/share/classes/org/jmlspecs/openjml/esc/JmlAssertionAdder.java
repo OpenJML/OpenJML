@@ -5822,7 +5822,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (specs.isNonNull(d.sym, d)) {
                         //System.out.println("NNFIELD " + d + " " + d.sym + " " + d.sym.type + " " + specs.isNonNull(d.sym, d));
                         JCExpression id = treeutils.makeIdent(d.pos, d.sym);
-                        addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
+                        addAssert(d.sourcefile, d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)), null, null); // d may be in a .jml file (#1006)
                     }
                     if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)
                         continue;
@@ -5852,16 +5852,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 {
                     if (!isHelper(methodDecl.sym)) {
                         for (JCTree dd : classDecl.defs) { // FIXME - review isHelper here, and visibility
-                            if (!(dd instanceof JCVariableDecl))
+                            if (!(dd instanceof JmlVariableDecl d))
                                 continue;
-                            JCVariableDecl d = (JCVariableDecl) dd;
                             if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
                                 continue;
                             if (!utils.isJMLStatic(d.sym))
                                 continue;
                             if (specs.isNonNull(d.sym)) {
                                 JCExpression id = treeutils.makeIdent(d.pos, d.sym);
-                                addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
+                                addAssert(d.sourcefile, d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)), null, null); // d may be in a .jml file (#1006)
                             }
                             if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)
                                 continue;
@@ -5983,16 +5982,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// can we avoid that
 			if (!isHelper(methodDecl.sym))
 				for (JCTree dd : classDecl.defs) { // FIXME - review isHelper here, and visibility
-					if (!(dd instanceof JCVariableDecl))
+					if (!(dd instanceof JmlVariableDecl d))
 						continue;
-					JCVariableDecl d = (JCVariableDecl) dd;
 					if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
 						continue;
 					if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym))
 						continue;
 					if (specs.isNonNull(d.sym)) {
 						JCExpression id = treeutils.makeIdent(d.pos, d.sym);
-						addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
+						addAssert(d.sourcefile, d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)), null, null); // d may be in a .jml file (#1006)
 					}
 					if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)
 						continue;
@@ -13315,7 +13313,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JavaFileObject prev = null;
 				try {
 					if (lambdaSource != null)
-						log.useSource(lambdaSource);
+						prev = log.useSource(lambdaSource); // previously never restored (#1006)
 					// FIXME - push arith mode?
 					result = eresult = inlineConvertBlock(block, replacements, resultType);
 				} finally {
@@ -19609,7 +19607,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> steps, JCTree... trees) {
 		ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
 		boolean useDefaultModifies = true;
-		JavaFileObject loopSource = null;
+		JavaFileObject loopSource = log.currentSourceFile(); // the loop's own file, if there is no loop_modifies clause (#1006)
 		JmlStatementLoopModifies foundLoopMod = M.at(pos).JmlStatementLoopModifies(StatementLocationsExtension.loopwritesStatement,
 		        List.<JCExpression>nil());
 		if (loopSpecs != null) {
