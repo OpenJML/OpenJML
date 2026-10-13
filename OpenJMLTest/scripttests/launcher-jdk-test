@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-## Checks that the release launchers (openjml, openjml-compile) use the JDK the release contains:
+## Checks that the release launchers (openjml, openjml-compile) and os-name.sh go by the JDK the release contains:
 ## a Linux JDK (bin/javac) or, under WSL, a Windows JDK (bin/javac.exe). Issue #1007: under WSL,
 ## setup-vars assumed a Windows JDK even for a Linux release.
 ## Builds a fake release whose javac is a script that prints how it was called. Under WSL both
@@ -38,7 +38,10 @@ OUT=$(cd "$T" && "$R/openjml-compile" X.java 2>&1)
 check "Linux JDK: openjml-compile uses Linux paths" "$OUT" "-p $R/jdk/modules "
 
 if [ -n "$WSL" ]; then
+    check "Linux JDK under WSL: os-name.sh names a Linux Solvers folder" "$("$SRC/os-name.sh" "$T/release/jdk/bin")" '^linux'
     R=$(make_release ".exe")
+    check "Windows JDK under WSL: os-name.sh says windows" "$("$SRC/os-name.sh" "$R/jdk/bin")" '^windows$'
+
     OUT=$("$R/openjml" --version 2>&1)
     check "Windows JDK under WSL: openjml runs javac.exe with a Windows path" "$OUT" '^javac\.exe -J--patch-module=jdk\.compiler=\\\\'
     OUT=$(cd "$T" && "$R/openjml-compile" X.java 2>&1)
