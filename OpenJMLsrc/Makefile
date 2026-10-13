@@ -244,6 +244,7 @@ trial: .FORCE
 release-test: .FORCE
 	@ echo Running release tests on newly created trial release
 	@ ZIPARCHIVE="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
+	@ "$(topdir)/../OpenJMLTest/scripttests/launcher-jdk-test"
 
 ## Development build targets
 
