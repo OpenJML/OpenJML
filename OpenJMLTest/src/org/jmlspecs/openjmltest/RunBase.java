@@ -22,8 +22,14 @@ public abstract class RunBase extends JmlTestSuite {
     /** Timeout to apply to the test, in milliseconds; <=0 means no timeout */
     public int timeoutMS = 0;
 
-    /** Convenient holder for the array needed by the ProcessBuilder */
-    protected static final String[] args = new String[] { "./run" };
+    /** The command that runs the 'run' script. On Windows (a Windows JVM started from WSL) Windows cannot
+     * run a bash script, so the script runs in WSL, in the distro that started the tests (#1035).
+     */
+    protected static final String[] args = !System.getProperty("os.name").startsWith("Windows")
+            ? new String[] { "./run" }
+            : System.getenv("WSL_DISTRO_NAME") != null
+            ? new String[] { "wsl.exe", "-d", System.getenv("WSL_DISTRO_NAME"), "-e", "bash", "./run" }
+            : new String[] { "wsl.exe", "-e", "bash", "./run" };
     
     /** Runs the 'run' executable within the 'workingDir' folder, reporting a test success if 
      * the exit code is 0 and failure for any other result.
