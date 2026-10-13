@@ -9,16 +9,6 @@ LOCAL="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 ## It is intended to be run with the OpenJML project directory as its 
 ## current working directory, but does its work in a temporary subdirectory
 
-EXE=""
-Z=":"   # path separator for openjml (Windows binary needs ; even in WSL)
-ZJ=":" # path separator for java (Linux JVM in WSL needs :, native Windows needs ;)
-case "$(uname -s)" in
-    CYGWIN*|MINGW*|MSYS*) Z=";" ; ZJ=";" ; EXE=".exe" ;;
-    Linux) grep -qi microsoft /proc/version 2>/dev/null && Z=";" && EXE=".exe" ;;
-esac
-## OS/arch suffix for the Solvers subdirectory — authoritative definition in os-name.sh.
-## Keep in sync with Utils.identifyOS in Java and with actual Solvers/ folder names.
-OS_NAME=$("$LOCAL/../../OpenJMLsrc/os-name.sh")
   
 if [ -z "${ZIPARCHIVE+x}" ]; then
 ## Source the file that sets OPENJML_JVM, if requested because COV is set
@@ -62,6 +52,19 @@ if [ ! -e "$JML" ]; then
    echo No openjml : $JML
    exit 1
 fi
+
+if [ -d "$OJBIN/jdk" ]; then JDKBIN="$OJBIN/jdk/bin"; else JDKBIN=$(echo "$OJBIN"/build/*/jdk/bin); fi
+EXE=""
+Z=":"   # path separator for openjml (a Windows JDK needs ; even in WSL)
+ZJ=":" # path separator for java (Linux JVM in WSL needs :, native Windows needs ;)
+case "$(uname -s)" in
+    CYGWIN*|MINGW*|MSYS*) Z=";" ; ZJ=";" ; EXE=".exe" ;;
+    ## Under WSL the tested JDK may be a Windows one or a Linux one (#1007)
+    Linux) grep -qi microsoft /proc/version 2>/dev/null && [ -e "$JDKBIN/java.exe" ] && Z=";" && EXE=".exe" ;;
+esac
+## OS/arch suffix for the Solvers subdirectory — authoritative definition in os-name.sh.
+## Keep in sync with Utils.identifyOS in Java and with actual Solvers/ folder names.
+OS_NAME=$("$LOCAL/../../OpenJMLsrc/os-name.sh" "$JDKBIN")
 
 cd $LOCAL
 

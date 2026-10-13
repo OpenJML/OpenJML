@@ -22,6 +22,10 @@ The extension requires an OpenJML installation on the local machine.
 `openjml.serverPath` must point to the OpenJML installation folder or the `openjml-lsp` launcher script from the OpenJML distribution;
 the installer sets this automatically.
 
+**Windows:** the server launcher is a bash script, so use the extension from VS Code connected to WSL,
+with the Linux OpenJML release installed in WSL. Native Windows (and the Windows release run from WSL)
+is not supported yet (#1033).
+
 **Version requirements:**
 - VS Code 1.79 or later (the extension manifest declares `engines.vscode: ^1.79.0`; tested against 1.118).
 - The UI test suite (`OpenJMLTest/vscode/`) requires Node.js ≥ 20 (`@vscode/vsce` and ExTester both require Node 16+; Node 20 LTS is the minimum recommended version).

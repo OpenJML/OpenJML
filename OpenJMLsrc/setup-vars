@@ -47,7 +47,7 @@ BINJAVAC="$_jdkbin/javac$EXE"
 ## Unless it is already set, it is the Solvers-<os> folder: in the installation for a release,
 ## or in the sibling Solvers repository for the development environment.
 if [ -z ${SMT_SOLVER_DIR++} ]; then
-  export SMT_SOLVER_DIR="$_solvers/Solvers-$("$INSTALL"/os-name.sh)"
+  export SMT_SOLVER_DIR="$_solvers/Solvers-$("$INSTALL"/os-name.sh "$_jdkbin")"
   ## A release contains just the Solvers-<os> folder it was built for. That can differ from what
   ## os-name.sh reports, e.g. for the macOS x86_64 release run on an Apple Silicon Mac from a native
   ## shell (os-name.sh then says macos-arm64); use the release's own folder then.
