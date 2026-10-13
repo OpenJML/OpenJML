@@ -11,9 +11,6 @@ inputs:
   os-label:
     description: 'Unique OS label for naming the artifact (pass matrix.label to avoid collisions between builds on the same runner)'
     default: ${{ runner.os }}
-  arch:
-    description: 'Target architecture: "x86_64" to build under arch -x86_64 (Rosetta 2) for Intel; anything else builds natively'
-    default: 'default'
 
 runs:
   using: 'composite'
@@ -78,21 +75,14 @@ runs:
         echo "Using Boot JDK: $BOOT_JDK"
         ./configure --with-boot-jdk="$BOOT_JDK"
         make release
-    - name: Build OpenJML release on non-Windows (native)
-      ## Covers: Linux x86_64, Linux arm64, macOS arm64.
-      ## configure auto-detects the host architecture, so no arch wrapper is needed.
-      if: runner.os != 'Windows' && inputs.arch != 'x86_64'
+    - name: Build OpenJML release on non-Windows
+      ## configure auto-detects the host architecture
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         cd OpenJML/OpenJMLsrc
         ./configure
         make release
-    - name: Build OpenJML release on macOS (x86_64 via Rosetta 2)
-      if: runner.os == 'macOS' && inputs.arch == 'x86_64'
-      shell: bash
-      run: |
-        cd OpenJML/OpenJMLsrc
-        arch -x86_64 bash -c "./configure && make release"
     - name: Archive build artifact
       if: inputs.upload == 'true'
       shell: bash

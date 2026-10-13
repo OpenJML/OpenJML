@@ -4,26 +4,14 @@ description: 'A composite action that runs the OpenJML release tests on an exist
 ## Presumes the current working folder is the one containing OpenJML, Specs, Solvers, JMLAnnotations etc.
 ## and that a release build has already been performed in OpenJML/OpenJMLsrc.
 
-inputs:
-  arch:
-    description: 'Target architecture: "x86_64" to build under arch -x86_64 (Rosetta 2) for Intel; anything else builds natively'
-    default: 'default'
-
 runs:
   using: 'composite'
   steps:
     - name: Test the build
-      if: runner.os != 'Windows' && inputs.arch != 'x86_64'
+      if: runner.os != 'Windows'
       shell: bash
       run: |
         make -C OpenJML/OpenJMLsrc release-test
-    ## The x86_64 macOS release is built under Rosetta 2 (see openjml-build); test it the same way, so
-    ## that os-name.sh (used by the scripts and the tests) names the release's Solvers-macos folder
-    - name: Test the build on macOS (x86_64 via Rosetta 2)
-      if: runner.os == 'macOS' && inputs.arch == 'x86_64'
-      shell: bash
-      run: |
-        arch -x86_64 bash -c "make -C OpenJML/OpenJMLsrc release-test"
     - name: Test the build on Windows
       if: runner.os == 'Windows'
       shell: wsl-bash {0}

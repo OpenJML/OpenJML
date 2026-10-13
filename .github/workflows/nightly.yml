@@ -42,8 +42,8 @@ jobs:
     - id: export
       run: |
         ## Edit the list of OSes here
-        ## macos-14 is used twice: once natively (ARM64) and once under Rosetta 2 (x86_64)
-        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64","arch":"default"}, {"os":"macos-14","label":"macos-x86_64","arch":"x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04","arch":"default"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64","arch":"default"}, {"os":"windows-2022","label":"windows","arch":"default"} ]' >> "$GITHUB_OUTPUT"
+        ## macos-15-intel is GitHub's last Intel macOS runner; migrate when it is retired.
+        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-15-intel","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-2022","label":"windows"} ]' >> "$GITHUB_OUTPUT"
     
   ## This job builds OpenJML once per OS and uploads the built JDK as an artifact
   build:
@@ -72,7 +72,6 @@ jobs:
       with:
         upload: 'true'
         os-label: ${{ matrix.label }}
-        arch: ${{ matrix.arch }}
 
   ## This job downloads the pre-built artifact and runs various non-unit tests
   othertests:
