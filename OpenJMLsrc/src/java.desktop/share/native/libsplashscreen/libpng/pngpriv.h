@@ -542,7 +542,11 @@
     */
 #  include <float.h>
 
-   /* OPENJML -- dropped defined(TARGET_OS_MAC): newer macOS SDKs define it (Xcode 16.4 CI build), and <fp.h> no longer exists */
+// OPENJML -- defined(TARGET_OS_MAC) removed, as in later libpng versions: newer macOS SDKs define it and <fp.h> no longer exists
+/*
+#  if (defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
+    defined(THINK_C) || defined(__SC__) || defined(TARGET_OS_MAC)
+*/
 #  if (defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
     defined(THINK_C) || defined(__SC__)
    /* We need to check that <math.h> hasn't already been included earlier
