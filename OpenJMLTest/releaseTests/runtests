@@ -38,7 +38,14 @@ else
   rm -rf temp-release
   mkdir temp-release
   pushd temp-release > /dev/null
-  unzip ${ZIPARCHIVE} > /dev/null
+  ## Under WSL, unzipping onto a Windows drive (/mnt/...) with Linux unzip takes ~25 minutes; Windows' own
+  ## tar.exe (bsdtar, which reads zip files) is much faster. Named in full: Git for Windows has another tar.exe.
+  WINTAR=/mnt/c/Windows/System32/tar.exe
+  if grep -qi microsoft /proc/version 2>/dev/null && [[ "$PWD" == /mnt/* ]] && [ -x "$WINTAR" ]; then
+    "$WINTAR" -xf "$(wslpath -w "$ZIPARCHIVE")" || exit 1
+  else
+    unzip ${ZIPARCHIVE} > /dev/null
+  fi
   export OJBIN=`pwd`
   JML="$OJBIN"/openjml
   JV="$OJBIN"/openjml-java
