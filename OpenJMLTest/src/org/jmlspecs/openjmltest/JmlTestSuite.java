@@ -419,8 +419,9 @@ public abstract class JmlTestSuite {
             System.setOut(savedout);
             //System.out.println("ENDED COLLECTING-A " + (bout != null) + " " + (berr!=null) + " " + recordedOut);
             this.out = System.out;
-            recordedErr = berr.toString();
-            recordedOut = bout.toString();
+            // Goldens use \n; println writes \r\n on Windows (#1035)
+            recordedErr = berr.toString().replace("\r\n", "\n");
+            recordedOut = bout.toString().replace("\r\n", "\n");
             bout = berr = null;
             //System.out.println("ENDED COLLECTING " + recordedOut + " " + (berr!=null) + " ##" + recordedErr + "##");
         }
