@@ -312,7 +312,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath9() throws Exception {
         helper(new String[]
-                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data:" + relsrc + "/testPath/data-specs"
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data" + java.io.File.pathSeparator + relsrc + "/testPath/data-specs"
                 },1
                 );
     }
