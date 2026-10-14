@@ -3,7 +3,7 @@
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
 
-CP=.:commons-lang3-3.3.2.jar
+CP=".$CPSEP"commons-lang3-3.3.2.jar
 
 rm -rf actual
 echo COMPILING >> actual

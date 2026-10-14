@@ -208,6 +208,10 @@ public abstract class RacBase extends JmlTestSuite {
                             expected = expected.replaceFirst(": [^:]*:[0-9]+:$","");
                         //out.println("EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
+                        if (java.io.File.separatorChar == '\\') { // Windows paths (#1035)
+                            actual = actual.replace('\\', '/');
+                            expected = expected.replace('\\', '/');
+                        }
                         //out.println("EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
                     }
@@ -225,6 +229,10 @@ public abstract class RacBase extends JmlTestSuite {
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
+                        if (java.io.File.separatorChar == '\\') { // Windows paths (#1035)
+                            actual = actual.replace('\\', '/');
+                            expected = expected.replace('\\', '/');
+                        }
                         //out.println("ERR-EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
                     }

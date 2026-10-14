@@ -86,7 +86,9 @@ public class runscripts1 extends RunBase {
             doTest();
         } catch (AssertionError e) {
             org.junit.Assert.assertEquals("unexpected output", 
-                "Test noSuchTestFolder: failed to launch or to execute: java.io.IOException: Cannot run program \"./run\" (in directory \"test/noSuchTestFolder\"): error=2, No such file or directory",
+                java.io.File.separatorChar == '\\' // Windows: the script runs in WSL (#1035)
+                ? "Test noSuchTestFolder: failed to launch or to execute: java.io.IOException: Cannot run program \"wsl.exe\" (in directory \"test\\noSuchTestFolder\"): CreateProcess error=267, The directory name is invalid"
+                : "Test noSuchTestFolder: failed to launch or to execute: java.io.IOException: Cannot run program \"./run\" (in directory \"test/noSuchTestFolder\"): error=2, No such file or directory",
                 e.getMessage());
         }
     }
