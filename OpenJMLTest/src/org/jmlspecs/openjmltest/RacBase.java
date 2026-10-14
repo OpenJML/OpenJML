@@ -359,7 +359,8 @@ public abstract class RacBase extends JmlTestSuite {
                 }
                 String output = out.input().replaceAll("@[0-9abcdef]+", "@########");
                 ex = p.exitValue();
-                output = "OUT:" + eol + output + eol + "ERR:" + eol + err.input();
+                // "\n", not eol: after a program's bare "\r", Windows' "\r\n" would add an empty line (#1035)
+                output = "OUT:\n" + output + "\nERR:\n" + err.input();
                 if (print) this.out.println(output);
                 String diffs = "";
                 for (String file: new File(outputdir).list()) {
