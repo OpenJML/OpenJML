@@ -1109,7 +1109,10 @@ public class Utils {
         DiagnosticSource ds = source == null ? log().currentSource() : new DiagnosticSource(source, log);
         JCDiagnostic diag = JCDiagnostic.Factory.instance(context).note(ds, pos, "empty", "");
         String msg = diag.toString().replace("Note: ", "");
-        int k = msg.indexOf(':');
+        // Skip the colon of a Windows drive letter (D:\...) so the line number is kept (#1035)
+        boolean drive = msg.length() > 2 && Character.isLetter(msg.charAt(0)) && msg.charAt(1) == ':'
+                && (msg.charAt(2) == '\\' || msg.charAt(2) == '/');
+        int k = msg.indexOf(':', drive ? 2 : 0);
         k = msg.indexOf(':',k+1);
         msg = msg.substring(0,k+1);
         return msg;

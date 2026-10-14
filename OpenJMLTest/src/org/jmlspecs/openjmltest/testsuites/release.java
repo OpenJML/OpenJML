@@ -87,6 +87,10 @@ public class release extends JmlTestSuite {
         actualOutput = actualOutput.replace("\r", "");
         errOutput = errOutput.replace("\r", "");
         expected = expected.replace("\r", "");
+        if (java.io.File.separatorChar == '\\') { // Windows paths in diagnostics (#1035), as in OutputCompare
+            actualOutput = actualOutput.replace('\\', '/');
+            expected = expected.replace('\\', '/');
+        }
 
         if (print) this.out.println("EXPECTING: " + expected);
         if (print) this.out.println("ACTUAL OUT: " + actualOutput);

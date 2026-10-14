@@ -6,6 +6,9 @@ import org.junit.Test;
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 public class generics extends TCBase {
 
+    /** The test specs path; the separator is ';' on Windows (#1035) */
+    static final String SPECS_PATH = String.join(java.io.File.pathSeparator, "$A", "$B", "$CP");
+
     /** Test something very simple with no errors*/
     @Test
     public void testSimpleGeneric() {
@@ -16,7 +19,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     @Test
     public void testBinaryGeneric() {
-        addOptions("--specs-path", "$A:$B:$CP");
+        addOptions("--specs-path", SPECS_PATH);
         addMockFile("$A/java/util/ListIterator.jml","package java.util; public interface ListIterator<E> extends java.util.Iterator<E> { /*@ also public behavior requires true; */ @Override public boolean hasNext(); }");
         helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t() { return null; }}");
     }
@@ -34,7 +37,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     @Test
     public void testBinaryGeneric2() {
-        addOptions("--specs-path", "$A:$B:$CP");
+        addOptions("--specs-path", SPECS_PATH);
         addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator extends java.lang.Iterator { /*@ public behavior requires true; */ public boolean hasNext(); }");
         helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
                 ,"/$A/java/util/ListIterator.jml:2: error: The type ListIterator in the specification matches a Java type java.util.ListIterator<E> with a different number of type arguments",8
@@ -44,7 +47,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/ // OK
     @Test
     public void testBinaryGeneric3() {
-        addOptions("--specs-path", "$A:$B:$CP");
+        addOptions("--specs-path", SPECS_PATH);
         addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator<E> extends java.util.Iterator<E> {  }");
         helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
                 );
@@ -53,7 +56,7 @@ public class generics extends TCBase {
     /** Test with a binary class - type name not matching*/ // FIXME -- with Z not found, the model field \seq<Z> still shows symbols without errors, but isJmlType() is false
     @Test
     public void testBinaryGeneric3c() {
-        addOptions("--specs-path", "$A:$B:$CP");
+        addOptions("--specs-path", SPECS_PATH);
         addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator<E> extends java.util.Iterator<Z> {  }");
         helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
                 ,"/$A/java/util/ListIterator.jml:2: error: cannot find symbol\n  symbol: class Z",61
@@ -63,7 +66,7 @@ public class generics extends TCBase {
     /** Test with a binary class - mismatched names*/
     @Test
     public void testBinaryGeneric3b() {
-        addOptions("--specs-path", "$A:$B:$CP");
+        addOptions("--specs-path", SPECS_PATH);
         addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator<Z> extends java.util.Iterator<Z> {  }");
         helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
                 ,"/$A/java/util/ListIterator.jml:2: error: The specification type named ListIterator (java.util.ListIterator) has a type parameter named Z but the Java declaration has that type parameter named E",31
@@ -73,7 +76,7 @@ public class generics extends TCBase {
     /** Test with a binary class -- wrong package*/
     @Test
     public void testBinaryGeneric3a() {
-        addOptions("--specs-path", "$A:$B:$CP");
+        addOptions("--specs-path", SPECS_PATH);
         addMockFile("$A/java/util/ListIterator.jml","public interface ListIterator<Z> extends java.util.Iterator<Z> {  }");
         helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
                 ,"/$A/java/util/ListIterator.jml:1: error: Specification package does not match Java package: unnamed package vs. java.util",2
@@ -83,7 +86,7 @@ public class generics extends TCBase {
     /** Test with a binary class*/
     @Test
     public void testBinaryGeneric4() {
-        addOptions("--specs-path", "$A:$B:$CP");
+        addOptions("--specs-path", SPECS_PATH);
         addMockFile("$A/java/util/ListIterator.jml","package java.util;\npublic interface ListIterator<E,Z> extends java.util.Iterator<E> {  }");
         helpTCText("A.java","public class A<X> { java.util.ListIterator<X> t; }"
                 ,"/$A/java/util/ListIterator.jml:2: error: The type ListIterator<E,Z> in the specification matches a Java type java.util.ListIterator<E> with a different number of type arguments",8

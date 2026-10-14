@@ -231,6 +231,9 @@ public class Extensions {
                     Package p = ClassLoader.getSystemClassLoader().getDefinedPackage("org.jmlspecs.openjml.ext");
                     try {
                         registerPackage(context,p);
+                        // \max is both a quantifier and \max(\lockset); MiscExpressions' kind handles both,
+                        // so it must own the keyword, whatever the registration order (#1035)
+                        synonym(MiscExpressions.bsmaxID, MiscExpressions.bsmaxKind);
                     } catch (java.io.IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -442,6 +445,9 @@ public class Extensions {
 //                // This will happen if we are not in a plug-in
 //            }
 //        }
+        // Sorted, so classes initialize, and so register their keywords, in the same order on every platform
+        // (directory listing order differs between file systems; #1035)
+        java.util.Collections.sort(foundClassNames);
         ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
         if (foundClassNames.isEmpty()) {
             // Last resort
