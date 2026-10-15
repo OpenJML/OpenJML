@@ -21719,10 +21719,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					        var r = treeutils.makeRangeCheck(d.sym.type, treeutils.makeIdent(d, d.sym));
 					        range = range == null ? r : treeutils.makeAnd(range, range, r);
 					    } else if (!utils.isJavaOrJmlPrimitiveType(d.type)) {
-					        // the variable ranges over the values of its type (#984)
-					        var r = treeutils.makeDynamicTypeInEquality(d, treeutils.makeIdent(d, d.sym), d.type,
-					                !specs.isNonNullQuantified((JmlVariableDecl)d));
-					        range = range == null ? r : treeutils.makeAnd(range, range, r);
+					        // the variable ranges over the values of its type (#984); every reference is an Object
+					        boolean nullable = !specs.isNonNullQuantified((JmlVariableDecl)d);
+					        var id = treeutils.makeIdent(d, d.sym);
+					        var r = !types.isSameType(types.erasure(d.type), syms.objectType)
+					                ? treeutils.makeDynamicTypeInEquality(d, id, d.type, nullable)
+					                : nullable ? null : treeutils.makeNotNull(d, id);
+					        if (r != null) range = range == null ? r : treeutils.makeAnd(range, range, r);
 					    }
 					}
 
