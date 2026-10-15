@@ -81,9 +81,9 @@ runs:
       shell: bash
       run: |
         cd OpenJML/OpenJMLsrc
-        if [ "$RUNNER_OS" = macOS ] && [ "$RUNNER_ARCH" = X64 ]; then
+        if [ "$RUNNER_OS" = macOS ]; then
           ## JDK 21 GA fails to build with Xcode 16.3+ (JDK-8355561), and Xcode 16.0/16.1 miscompile it
-          ## (JDK-8340341), so the Intel runner (macos-15-intel, default Xcode 16.4) uses Xcode 16.2
+          ## (JDK-8340341), so the macOS runners (macos-15, macos-15-intel; default Xcode 16.4) use Xcode 16.2
           export DEVELOPER_DIR=/Applications/Xcode_16.2.app/Contents/Developer
           [ -d "$DEVELOPER_DIR" ] || { echo "::error::$DEVELOPER_DIR is not on this runner image"; exit 1; }
           xcrun clang --version | head -1; xcrun --show-sdk-version
