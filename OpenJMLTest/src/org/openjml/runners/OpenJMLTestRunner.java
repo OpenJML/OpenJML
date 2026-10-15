@@ -44,7 +44,7 @@ public class OpenJMLTestRunner {
 
     @SuppressWarnings("unchecked")
     public static void main(String... args) throws Exception {
-        // printSolver(); // Disabled: initializing OpenJML before the tests changes which \max is registered (#987)
+        printSolver();
         String th = System.getenv("THREADS");
         if (th != null && !th.isEmpty()) {
             try {

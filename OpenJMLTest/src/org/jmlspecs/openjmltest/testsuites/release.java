@@ -235,12 +235,15 @@ public class release extends JmlTestSuite {
                 );
     }
 
+    // Same as testEsc2A, but with --exec naming a solver binary other than the default prover's
     @Test
     public void testEsc2B() throws Exception {
         expectedFile = "releaseTests/testEsc2/expected";
+        String exe = System.getenv("SMT_SOLVER_DIR") + "/z3-4.16.0"
+                + (System.getProperty("os.name").startsWith("Windows") ? ".exe" : "");
         helper(new String[]
                 { "--esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc",
-                        "--exec=" + JmlTestSuite.root + "/Solvers/Solvers-macos/z3-4.3.1"
+                        "--exec=" + exe
                 },0
                 );
     }
