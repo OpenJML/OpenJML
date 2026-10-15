@@ -374,7 +374,7 @@ public class JmlOption {
         }
         return on;
     }
-    public static final JmlOption SMT_BATCH = new JmlOption("--smt-batch",false,true,"ESC: Send each run of SMT declarations and assertions to the solver as one block, with :print-success off, instead of one command at a time (default true)",null);
+    public static final JmlOption PIPELINE = new JmlOption("--pipeline",false,true,"ESC: Send SMT commands to the solver without waiting for each response where possible (default true)",null);
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("--esc-max-warnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
         public boolean check(Context context, boolean negate) {
             String limit = JmlOption.ESC_MAX_WARNINGS.value(context);
@@ -534,7 +534,7 @@ public class JmlOption {
 //        map.put("-nullable",NULLABLEBYDEFAULT);
 //    }
 
-    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK, SMT_BATCH };
+    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK, PIPELINE };
     final static private JmlOption[] obsoleteOptions = new JmlOption[] { PURITYCHECK };
     
     /** Holds the name of the option, as it is used in the command-line,

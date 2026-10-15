@@ -63,6 +63,38 @@ public class escoption extends EscBase {
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
+    /** A program verified with and without --pipeline (#1037) */
+    void helpPipeline() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires i > 0;
+                  //@ ensures \\result > 0;
+                  public static int ok(int i) { return i; }
+                  //@ ensures \\result > 0;
+                  public static int bad(int i) { return i; }
+                }
+                """
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method bad",34
+                ,"/tt/TestJava.java:6: verify: Associated declaration",7
+        );
+    }
+
+    @Test // explicit, since OPENJML_pipeline=false (make unittests-par-nopipeline) changes the default
+    public void testPipeline() {
+        addOptions("--pipeline");
+        Assert.assertTrue(JmlOption.PIPELINE.isSet(context));
+        helpPipeline();
+    }
+
+    @Test
+    public void testNoPipeline() {
+        addOptions("--no-pipeline");
+        Assert.assertFalse(JmlOption.PIPELINE.isSet(context));
+        helpPipeline();
+    }
+
     @Test
     public void testOption() {
         addOptions("--normal");

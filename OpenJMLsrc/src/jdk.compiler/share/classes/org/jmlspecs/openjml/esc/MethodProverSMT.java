@@ -394,6 +394,7 @@ public class MethodProverSMT {
 //            log.warning("jml.message","Expected an integer for a seed: " + strseed);
 //        }
         smt.processCommandLine(new String[]{}, smt.smtConfig);
+        smt.smtConfig.pipeline = JmlOption.PIPELINE.isSet(context); // scripts are sent pipelined (IScript.execute)
         Object o = JmlOption.TIMEOUT.value(context);
         if (o != null && !o.toString().isEmpty()) {
             try {
@@ -512,9 +513,7 @@ public class MethodProverSMT {
                     log.report(d);
             	}
             	try {
-            		solverResponse = JmlOption.SMT_BATCH.isSet(context)
-            		        ? SolverBatch.execute(script, solver)
-            		        : script.execute(solver); // Note - the solver knows the smt configuration
+            		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
             	} catch (Exception e) {
                     JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                     log.report(d);
