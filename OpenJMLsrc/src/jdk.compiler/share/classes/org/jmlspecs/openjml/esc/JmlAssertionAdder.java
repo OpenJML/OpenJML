@@ -21718,6 +21718,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					    if (d.type.isIntegral()) {
 					        var r = treeutils.makeRangeCheck(d.sym.type, treeutils.makeIdent(d, d.sym));
 					        range = range == null ? r : treeutils.makeAnd(range, range, r);
+					    } else if (!utils.isJavaOrJmlPrimitiveType(d.type)) {
+					        // the variable ranges over the values of its type (#984)
+					        var r = treeutils.makeDynamicTypeInEquality(d, treeutils.makeIdent(d, d.sym), d.type,
+					                !specs.isNonNullQuantified((JmlVariableDecl)d));
+					        range = range == null ? r : treeutils.makeAnd(range, range, r);
 					    }
 					}
 

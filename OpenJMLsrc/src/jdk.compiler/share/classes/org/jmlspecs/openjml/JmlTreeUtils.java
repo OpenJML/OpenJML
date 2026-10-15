@@ -2027,6 +2027,11 @@ public class JmlTreeUtils {
         
         return makeOr(p,nn,makeNonNullDynamicTypeInEquality(pos, id, type));
     }
+
+    /** As makeDynamicTypeInEquality(pos, id, type) if nullable, else as makeNonNullDynamicTypeInEquality */
+    public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type, boolean nullable) {
+        return nullable ? makeDynamicTypeInEquality(pos, id, type) : makeNonNullDynamicTypeInEquality(pos, id, type);
+    }
     
     /** Returns the AST for \typeof(id) <: \type(type) && id instanceof 'erasure of type' */
     public JCExpression makeNonNullDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type) {
