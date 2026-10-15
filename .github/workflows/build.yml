@@ -229,7 +229,8 @@ jobs:
         echo Uploading $f to id $id at url $upload_url
         curl -sf -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" \
           || { echo "ERROR: upload of $f failed"; exit 1; }
-        ## The draft's target is the commit just built; publishing creates the tag there
-        curl -sf -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "{\"target_commitish\":\"${{ github.sha }}\"}" \
+        ## The draft's target is the commit just built; publishing creates the tag there.
+        ## tag_name is resent: a PATCH without it turns a draft's tag into "untagged-<hash>"
+        curl -sf -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"${{ github.sha }}\"}" \
           "https://api.github.com/repos/OpenJML/OpenJML/releases/$id" > /dev/null \
           || { echo "ERROR: failed to set the release target to ${{ github.sha }}"; exit 1; }
