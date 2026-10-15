@@ -81,8 +81,9 @@ public class escoption extends EscBase {
         );
     }
 
-    @Test
-    public void testPipelineDefault() {
+    @Test // explicit, since OPENJML_pipeline=false (make unittests-par-nopipeline) changes the default
+    public void testPipeline() {
+        addOptions("--pipeline");
         Assert.assertTrue(JmlOption.PIPELINE.isSet(context));
         helpPipeline();
     }
