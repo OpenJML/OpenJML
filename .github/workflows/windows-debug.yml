@@ -43,17 +43,17 @@ jobs:
       with:
         os-label: windows
 
-    ## Per-method ESC cost with and without --smt-batch. Run 38257384690 found ~6.8 s per trivial method
-    ## on Windows (0.6 s on macOS), about 15 ms per solver command; batching should remove most of it.
-    - name: ESC timing, --smt-batch on and off
+    ## Per-method ESC cost with and without --pipeline. Run 38257384690 found ~6.8 s per trivial method
+    ## on Windows (0.6 s on macOS), about 15 ms per solver command; pipelining should remove most of it.
+    - name: ESC timing, --pipeline on and off
       continue-on-error: true
       run: |
         set +e
         mkdir -p timing; cd timing
         { echo "public class G20 {"; for i in $(seq 20); do echo "  //@ requires 0 < x && x < 1000; ensures \result > x;"; echo "  public int m$i(int x) { return x + 1; }"; done; echo "}"; } > G20.java
         O=../OpenJML/OpenJMLsrc/openjml
-        TIMEFORMAT="TIME esc-20-methods-batch %R s"; time $O --esc G20.java
-        TIMEFORMAT="TIME esc-20-methods-nobatch %R s"; time $O --esc --no-smt-batch G20.java
+        TIMEFORMAT="TIME esc-20-methods-pipeline %R s"; time $O --esc G20.java
+        TIMEFORMAT="TIME esc-20-methods-nopipeline %R s"; time $O --esc --no-pipeline G20.java
 
     ## The release launchers with a Linux and a Windows JDK under WSL (#1007)
     - name: Launcher JDK test
