@@ -114,6 +114,12 @@ public class Label {
     
     /** Used to assert well-defindeness of \choosex expressions */
     /*@ non_null*/ public final static Label CHOOSEX = new Label("ChoosexNotDefined");
+
+    /** Used to assert well-definedness of \max expressions (the range is not empty) */
+    /*@ non_null*/ public final static Label MAX = new Label("MaxNotDefined");
+
+    /** Used to assert well-definedness of \min expressions (the range is not empty) */
+    /*@ non_null*/ public final static Label MIN = new Label("MinNotDefined");
     
     /** Used for asserts generated from user-specified reachable statements */
     /*@ non_null*/ public final static Label REACHABLE = new Label("Reachable");

@@ -231,7 +231,8 @@ public class JmlOption {
     public static final JmlOption SPECS = new JmlOption("--specs-path",true,null,"Specifies the directory path to search for specification files",null);
     { map.put("-specspath",SPECS); }
     //public static final JmlOption NEWISPURE = new JmlOption("--new-is-pure",false,false,"Allows object allocation in pure expressions",null);
-    public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,null,"Number of seconds to limit any individual proof attempt (default infinite)",null);
+    public static final JmlOption TIMEOUT = new JmlOption("--timeout",true,"300","Number of seconds to limit each individual solver query (default 300; 0 means no limit); a method's proof may make several queries, see --timeout-method",null);
+    public static final JmlOption TIMEOUT_METHOD = new JmlOption("--timeout-method",true,"0","Number of seconds to limit the solver's total time for each method's proof, over all of its queries including feasibility checks (default 0, no limit)",null);
 
     public static final JmlOption SHOW_NOT_IMPLEMENTED = new JmlOption("--show-not-implemented",false,false,"When on (off by default), warnings about unimplemented constructs are issued",null);
     { map.put("-showNotImplemented",SHOW_NOT_IMPLEMENTED); }
@@ -373,6 +374,7 @@ public class JmlOption {
         }
         return on;
     }
+    public static final JmlOption PIPELINE = new JmlOption("--pipeline",false,true,"ESC: Send SMT commands to the solver without waiting for each response where possible (default true)",null);
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("--esc-max-warnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
         public boolean check(Context context, boolean negate) {
             String limit = JmlOption.ESC_MAX_WARNINGS.value(context);
@@ -532,7 +534,7 @@ public class JmlOption {
 //        map.put("-nullable",NULLABLEBYDEFAULT);
 //    }
 
-    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK };
+    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK, PIPELINE };
     final static private JmlOption[] obsoleteOptions = new JmlOption[] { PURITYCHECK };
     
     /** Holds the name of the option, as it is used in the command-line,

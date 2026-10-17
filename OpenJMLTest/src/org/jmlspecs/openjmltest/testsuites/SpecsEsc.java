@@ -73,7 +73,7 @@ public class SpecsEsc extends EscBaseFiles {
     /** This test tests the file that is named as classname by the constructor */
     @Test
     public void testSpecificationFile() {
-        String subdir = JmlTestSuite.root + "/OpenJML/OpenJMLTest/" + testdir + "/" + foldername;
+        String subdir = JmlTestSuite.repo + "/OpenJMLTest/" + testdir + "/" + foldername;
         // Note that escOnFiles contributes its own options
         escOnFiles(subdir,subdir,"--exclude=main,<init>","--no-show-skipped","--check-feasibility=return");
     }

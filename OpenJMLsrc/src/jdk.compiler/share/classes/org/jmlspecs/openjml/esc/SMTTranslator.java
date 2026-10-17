@@ -214,6 +214,40 @@ public class SMTTranslator extends JmlTreeScanner {
     /** An internal field used to indicate whether we are translating expressions inside a quantified expression */
     boolean inQuant = false;
 
+    /** The variables bound (by quantifiers, \\let and function definitions) around the expression
+     * being translated, innermost last. A recursive function that translates \\sum, \\product or
+     * \\num_of takes them as parameters, since its body may use them (see recursiveQuantifier). */
+    protected final LinkedList<IDeclaration> bindingScope = new LinkedList<>();
+
+    /** A counter that makes the names of the recursive functions for \\sum, \\product and \\num_of unique */
+    protected int recursiveQuantifierCount = 0;
+
+    /** The recursive functions defined in the current script, by their definition (see recursiveQuantifier) */
+    protected final java.util.Map<String,ISymbol> recursiveFunctions = new java.util.HashMap<>();
+
+    /** True when translating the body of a quantified expression that has no explicit triggers, so
+     * that the solver must infer triggers from the body (see quantDivMod) */
+    boolean inUntriggeredQuant = false;
+
+    /** Names of the uninterpreted forms of Java integer / and %, used inside quantifier bodies (see quantDivMod) */
+    static final String cdivq = "|#cdivq#|";
+    static final String cmodq = "|#cmodq#|";
+
+    /** Whether cdivq and cmodq have been declared in the current script */
+    boolean cdivqDeclared = false;
+    boolean cmodqDeclared = false;
+
+    /** A Java integer / or % outside any quantifier: name is cdivq or cmodq, args its operands and
+     * value its (direct) translation */
+    record GroundDivMod(String name, List<IExpr> args, IExpr value) {}
+
+    /** The / and % terms translated outside quantifiers, linked to cdivq and cmodq at the end of convert */
+    List<GroundDivMod> groundDivMods = new LinkedList<>();
+
+    /** Set when the translation contains nonlinear integer arithmetic: a multiplication of two
+     * non-numerals, or a division or remainder whose divisor is not a numeral */
+    public boolean nonlinear = false;
+
     /** A mapping from Java expressions to/from SMT expressions */
     final public BiMap<JCExpression,IExpr> bimap = new BiMap<JCExpression,IExpr>();
 
@@ -869,6 +903,9 @@ public class SMTTranslator extends JmlTreeScanner {
         ICommand c;
         startCommands = new LinkedList<ICommand>();
         commands = new LinkedList<ICommand>();
+        cdivqDeclared = cmodqDeclared = false;
+        groundDivMods.clear();
+        recursiveFunctions.clear();
         
         // FIXME - use factory for the commands?
         // set any options
@@ -1055,12 +1092,21 @@ public class SMTTranslator extends JmlTreeScanner {
 //            // Int arithmetic operations to do wrap-around operations
 //            addCommand(smt,"(define-fun |#addWrap32#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max32#|) (- sum |#big32#|) (ite (< sum |#max32#|) (+ sum |#big32#|) sum)))))");
 //            addCommand(smt,"(define-fun |#addWrap64#| ((x Int) (y Int)) Int (let ((sum (+ x y))) (ite (> sum |#max64#|) (- sum |#big64#|) (ite (< sum |#max64#|) (+ sum |#big64#|) sum)))))");
-            addCommand(smt,"(define-fun |#trunc32s#| ((x Int)) Int (let ((m (mod x |#big32#|))) (ite (<= m |#max32#|) m (- m |#big32#|) )))");
-            addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|) )))");
-            addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|) )))");
+            // Java's narrowing conversions of integral values: the value modulo 2^n, in the target type's range.
+            // A value already in range is returned directly, so that the prover needs no reasoning about mod
+            // when the range is known (#1018)
+            addCommand(smt,"(define-fun |#trunc64s#| ((x Int)) Int (ite (and (<= |#min64#| x) (<= x |#max64#|)) x (let ((m (mod x |#big64#|))) (ite (<= m |#max64#|) m (- m |#big64#|)))))");
+            addCommand(smt,"(define-fun |#trunc32s#| ((x Int)) Int (ite (and (<= |#min32#| x) (<= x |#max32#|)) x (let ((m (mod x |#big32#|))) (ite (<= m |#max32#|) m (- m |#big32#|)))))");
+            addCommand(smt,"(define-fun |#trunc16u#| ((x Int)) Int (ite (and (<= 0 x) (< x |#big16#|)) x (mod x |#big16#|)))"); // char is unsigned
+            addCommand(smt,"(define-fun |#trunc16s#| ((x Int)) Int (ite (and (<= |#min16#| x) (<= x |#max16#|)) x (let ((m (mod x |#big16#|))) (ite (<= m |#max16#|) m (- m |#big16#|)))))");
+            addCommand(smt,"(define-fun |#trunc8s#| ((x Int)) Int (ite (and (<= |#min8#| x) (<= x |#max8#|)) x (let ((m (mod x |#big8#|))) (ite (<= m |#max8#|) m (- m |#big8#|)))))");
+            // Java's conversion of a floating-point (or \real) value, already rounded toward zero, to int or long:
+            // the value clamped to the type's range (#1018)
+            addCommand(smt,"(define-fun |#clamp32#| ((x Int)) Int (ite (< x |#min32#|) |#min32#| (ite (< |#max32#| x) |#max32#| x)))");
+            addCommand(smt,"(define-fun |#clamp64#| ((x Int)) Int (ite (< x |#min64#|) |#min64#| (ite (< |#max64#| x) |#max64#| x)))");
 
             addCommand(smt,"(define-fun |#cdiv#| ((a Int) (b Int)) Int (ite (>= a 0) (div a b) (div (- a) (- b))))");
-            addCommand(smt,"(define-fun |#cmod#| ((a Int) (b Int)) Int (ite (>= a 0) (mod a b) (mod (- a) (- b))))");
+            addCommand(smt,"(define-fun |#cmod#| ((a Int) (b Int)) Int (- a (* b (|#cdiv#| a b))))"); // Java %: the sign of the dividend
             addCommand(smt,"(define-fun |#inRange32#| ((a Int)) Bool (and (<= |#min32#| a) (<= a |#max32#|)))");
             addCommand(smt,"(define-fun |#add32ok#| ((a Int) (b Int)) Bool (|#inRange32#| (+ a b)) )");
             addCommand(smt,"(define-fun |#add32#| ((a Int) (b Int)) Int (let ((p (+ a b))) (ite (|#inRange32#| p) p (ite (< |#max32#| p) (- p |#big32#|) (+ p |#big32#|)))))");
@@ -1178,6 +1224,7 @@ public class SMTTranslator extends JmlTreeScanner {
             commands.add(new C_assert(f));
         }
         addTypeRelationships(loc,smt);
+        linkGroundDivMods();
         
         script.commands().addAll(startCommands);
         script.commands().addAll(commands);
@@ -1916,6 +1963,166 @@ public class SMTTranslator extends JmlTreeScanner {
         throw new JmlBVException();
     }
     
+    /** Reports that quantified expression 'that' is not supported, and returns a new constant for its value */
+    protected IExpr unsupportedQuantifier(JmlQuantifiedExpr that) {
+        notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
+        ISymbol sym = F.symbol(makeBarEnclosedString(that));
+        addConstant(sym,convertSort(that.type),null);
+        return sym;
+    }
+
+    /** Translates (\\sum T x; R; V), (\\product T x; R; V) or (\\num_of T x; R; V) -- given the
+     * translations range (of R) and value (of V), the declaration of x in params, and the variables
+     * bound around the expression in outerScope -- into a call of a recursive function
+     * <pre>
+     *   (define-fun-rec f ((lo Int) (x Int) outer...) S
+     *      (ite (&lt; x lo) base (op (f lo (- x 1) outer...) (ite R V base))))
+     * </pre>
+     * applied to (lo, hi, outer...), where op is + (or * for \\product), base is 0 (or 1), and lo
+     * and hi are the greatest lower and least upper bound on x among the comparisons in R (see
+     * IntegerRangeBounds); \\num_of is the \\sum of 1 over R && V. The solver uses the definition
+     * by unfolding it, not by induction: for a range of known size it in effect computes the
+     * result, and for a symbolic range it can relate f(lo, k) to f(lo, k-1). The recursion is on
+     * the upper end so that one unfolding gives the step a loop that accumulates over increasing
+     * x needs, e.g. (\\sum 0 <= j < k+1) == (\\sum 0 <= j < k) + a[k]. Since R is re-checked for each
+     * x, R may have conjuncts other than its bounds. Returns null, for the caller to report the
+     * expression as not supported, if x is not a single integral variable, if R does not bound x
+     * on both sides, if the result is not an integer, or in bit-vector mode. Based on PR #773 by the
+     * OpenJML Senior Design group. */
+    protected /*@ nullable */ IExpr recursiveQuantifier(JmlQuantifiedExpr that, IExpr range, IExpr value,
+            List<IDeclaration> params, List<IDeclaration> outerScope) {
+        if (useBV || params.size() != 1 || params.get(0).sort() != intSort) return null;
+        ISort resultSort = convertSort(that.type);
+        if (resultSort != intSort) return null;
+        IntegerRangeBounds bounds = IntegerRangeBounds.of(that.decls.head.sym, that.range);
+        IDeclaration x = params.get(0);
+        // The range of x's type is conjoined to every range (JmlAssertionAdder); its bounds are not
+        // bounds the function can recur over (2^32 or more steps), so they do not count toward lo
+        // and hi, but are kept as a guard on each term
+        IExpr guard = null;
+        for (var list: java.util.List.of(bounds.lower, bounds.upper)) {
+            for (var b: list) {
+                if (!IntegerRangeBounds.isTypeExtreme(b.expr())) continue;
+                IExpr e = convertExpr(b.expr());
+                IExpr c = list == bounds.lower ? F.fcn(F.symbol(b.strict() ? "<" : "<="), e, x.parameter())
+                                               : F.fcn(F.symbol(b.strict() ? "<" : "<="), x.parameter(), e);
+                guard = guard == null ? c : F.fcn(andSym, guard, c);
+            }
+        }
+        bounds.lower.removeIf(b -> IntegerRangeBounds.isTypeExtreme(b.expr()));
+        bounds.upper.removeIf(b -> IntegerRangeBounds.isTypeExtreme(b.expr()));
+        if (bounds.lower.isEmpty() || bounds.upper.isEmpty()) return null;
+        // lo is the greatest lower bound, hi the least upper bound; a strict bound is moved by one
+        IExpr lo = null, hi = null;
+        for (var b: bounds.lower) {
+            IExpr e = convertExpr(b.expr());
+            if (b.strict()) e = F.fcn(F.symbol("+"), e, F.numeral(1));
+            lo = lo == null ? e : F.fcn(iteSym, F.fcn(F.symbol(">="), lo, e), lo, e);
+        }
+        for (var b: bounds.upper) {
+            IExpr e = convertExpr(b.expr());
+            if (b.strict()) e = F.fcn(F.symbol("-"), e, F.numeral(1));
+            hi = hi == null ? e : F.fcn(iteSym, F.fcn(F.symbol("<="), hi, e), hi, e);
+        }
+        String kind = that.kind.keyword();
+        boolean isProduct = kind.equals(QuantifiedExpressions.qproductID);
+        IExpr base = F.numeral(isProduct ? 1 : 0);
+        // When R consists only of the bounds, lo <= x <= hi implies it, and the term need not test it
+        // (beyond the guard); then the function does not mention the variables in the bounds (such
+        // as a loop's \\count), and occurrences that differ only in their bounds share it
+        IExpr test = bounds.exact ? guard : range;
+        if (kind.equals(QuantifiedExpressions.qnumofID)) {
+            test = test == null ? value : F.fcn(andSym, test, value);
+            value = F.numeral(1);
+        }
+        IExpr term = test == null ? value : F.fcn(iteSym, test, value, base);
+        ISymbol loSym = F.symbol("|#lo#|");
+        List<IDeclaration> fparams = new LinkedList<>();
+        fparams.add(F.declaration(loSym, intSort));
+        fparams.add(x);
+        fparams.addAll(outerScope);
+        List<IExpr> recursiveArgs = new LinkedList<>();
+        recursiveArgs.add(loSym);
+        recursiveArgs.add(F.fcn(F.symbol("-"), x.parameter(), F.numeral(1)));
+        for (IDeclaration d: outerScope) recursiveArgs.add(d.parameter());
+        java.util.function.Function<ISymbol,IExpr> bodyOf = f -> F.fcn(iteSym, F.fcn(F.symbol("<"), x.parameter(), loSym), base,
+                F.fcn(F.symbol(isProduct ? "*" : "+"), F.fcn(f, recursiveArgs), term));
+        // Occurrences with the same definition (up to the name of x) share one function, so that the
+        // solver can equate, e.g., a loop invariant's \\sum with a postcondition's
+        String xname = java.util.regex.Pattern.quote(x.parameter().toString());
+        String key = (kind + " " + fparams + " " + bodyOf.apply(F.symbol("|#f#|")))
+                .replaceAll("(?<=[\\s(])" + xname + "(?=[\\s)])", "|#x#|");
+        ISymbol f = recursiveFunctions.get(key);
+        if (f == null) {
+            f = F.symbol("|#" + kind.substring(1) + "_" + (++recursiveQuantifierCount) + "#|");
+            recursiveFunctions.put(key, f);
+            commands.add(new C_define_fun_rec(f, fparams, resultSort, bodyOf.apply(f)));
+        }
+        List<IExpr> args = new LinkedList<>();
+        args.add(lo);
+        args.add(hi);
+        for (IDeclaration d: outerScope) args.add(d.parameter());
+        return F.fcn(f, args);
+    }
+
+    /** Whether e is an integer numeral, possibly negated */
+    static boolean isNumeral(IExpr e) {
+        if (e instanceof IExpr.INumeral) return true;
+        return e instanceof IExpr.IFcnExpr f && f.head().toString().equals("-") && f.args().size() == 1
+                && f.args().get(0) instanceof IExpr.INumeral;
+    }
+
+    /** Java integer division (name == cdivq) or remainder (name == cmodq) of args, for use inside the
+     * body of a quantifier without explicit triggers (with explicit triggers, the solver infers none). |#cdiv#| is a define-fun, which the solver expands in place, and % is
+     * translated directly into arithmetic, so neither leaves a term that the solver can use as a
+     * trigger: a quantifier such as (\forall int c; c > 0 && a % c == 0 ...) then has only
+     * arithmetic triggers, such as (* -1 c), which can loop (issue #997). These are declared
+     * (uninterpreted) functions instead, each defined by an axiom whose only trigger is an
+     * application of the function itself, so the axiom creates no new triggering terms. The
+     * declarations are added to the script only when used. */
+    protected IExpr quantDivMod(String name, List<IExpr> args) {
+        String div = "(ite (>= a 0) (div a b) (div (- a) (- b)))";
+        if (name.equals(cdivq)) {
+            if (!cdivqDeclared) {
+                cdivqDeclared = true;
+                startCommands.add(command(smt, "(declare-fun " + cdivq + " (Int Int) Int)"));
+                startCommands.add(command(smt, "(assert (forall ((a Int) (b Int)) (! (= (" + cdivq + " a b) " + div + ") :pattern ((" + cdivq + " a b)))))"));
+            }
+        } else {
+            if (!cmodqDeclared) {
+                cmodqDeclared = true;
+                startCommands.add(command(smt, "(declare-fun " + cmodq + " (Int Int) Int)"));
+                startCommands.add(command(smt, "(assert (forall ((a Int) (b Int)) (! (= (" + cmodq + " a b) (- a (* b " + div + "))) :pattern ((" + cmodq + " a b)))))"));
+            }
+        }
+        return F.fcn(F.symbol(name), args);
+    }
+
+    /** A quantifier body that uses cdivq or cmodq can be instantiated only from ground cdivq or cmodq
+     * terms, but / and % outside quantifiers are translated directly (for instance n % 2, needed to
+     * instantiate (\\forall int k; 2 <= k < n; n % k != 0) with k == 2). So when the script uses
+     * cdivq (cmodq), each ground / (%) term is asserted equal to its cdivq (cmodq) form. Terms that
+     * mention variables bound by a let, a quantifier or a function definition are not ground and are skipped. */
+    protected void linkGroundDivMods() {
+        if (!cdivqDeclared && !cmodqDeclared) return;
+        Set<String> done = new HashSet<>();
+        for (GroundDivMod g: groundDivMods) {
+            if (!(g.name().equals(cdivq) ? cdivqDeclared : cmodqDeclared)) continue;
+            if (g.args().stream().anyMatch(this::mentionsBound)) continue;
+            IExpr q = F.fcn(F.symbol(g.name()), g.args());
+            if (done.add(q.toString())) commands.add(new C_assert(F.fcn(eqSym, q, g.value())));
+        }
+    }
+
+    /** Whether e might mention a bound variable (see boundNames); anything but symbols, literals and
+     * function applications is assumed to */
+    protected boolean mentionsBound(IExpr e) {
+        if (e instanceof IExpr.ISymbol sym) return boundNames.contains(sym.toString());
+        if (e instanceof IExpr.ILiteral) return false;
+        if (e instanceof IExpr.IFcnExpr f) return f.args().stream().anyMatch(this::mentionsBound);
+        return true;
+    }
+
     /** Issues an error message about something not being implemented */
     public void notImplWarn(DiagnosticPosition pos, String msg) {
     	utils.warning(pos, "esc.not.implemented","Not yet supported feature in converting BasicPrograms to SMTLIB: " + msg);
@@ -1977,7 +2184,14 @@ public class SMTTranslator extends JmlTreeScanner {
                 boundNames.add(d.parameter().toString());
                 argDecls.add(d);
             }
-            C_define_fun c = new C_define_fun(n, argDecls, resultSort, convertExpr(expr));
+            bindingScope.addAll(argDecls);
+            IExpr body;
+            try {
+                body = convertExpr(expr);
+            } finally {
+                for (int i = 0; i < argDecls.size(); i++) bindingScope.removeLast();
+            }
+            C_define_fun c = new C_define_fun(n, argDecls, resultSort, body);
             commands.add(c);
         }
         
@@ -2347,6 +2561,8 @@ public class SMTTranslator extends JmlTreeScanner {
                 // skip
             } else if (tree.type.getTag() == TypeTag.BOOLEAN) {
                 TypeTag max = bits(tlhs) > bits(trhs) ? tlhs : trhs;
+                // Numeric operands are promoted to at least int, as in Java, so that a char is compared as unsigned (#1020)
+                if (bits(max) > 0 && bits(max) < 32) max = TypeTag.INT;
                 lhs = castBV(max,tree.lhs.type.getTag(),lhs);
                 rhs = castBV(max,tree.rhs.type.getTag(),rhs);
             } else {
@@ -2448,8 +2664,10 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.fcn(F.symbol("*"), args);
                 } else if (useBV)
             		result = F.fcn(F.symbol("bvmul"), args);
-            	else
+            	else {
+                    if (!isNumeral(lhs) && !isNumeral(rhs)) nonlinear = true;
             		result = F.fcn(F.symbol("*"), args);
+            	}
                 break;
             case DIV:
                 // FIXME - what kinds of primitive types should be expected
@@ -2466,7 +2684,12 @@ public class SMTTranslator extends JmlTreeScanner {
 //                            F.fcn(F.symbol("div"), args),
 //                            F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))
 //                            );
-                    result = F.fcn(F.symbol("|#cdiv#|"), args);
+                    if (!isNumeral(rhs)) nonlinear = true;
+                    if (inUntriggeredQuant && !isNumeral(rhs)) result = quantDivMod(cdivq, args);
+                    else {
+                        result = F.fcn(F.symbol("|#cdiv#|"), args);
+                        if (!inQuant) groundDivMods.add(new GroundDivMod(cdivq, args, result));
+                    }
                 }
                 break;
             case MOD:
@@ -2482,13 +2705,18 @@ public class SMTTranslator extends JmlTreeScanner {
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("/"), args))))),
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("-"), F.fcn(F.symbol("to_real"), F.fcn(F.symbol("to_int"), F.fcn(F.symbol("-"), F.fcn(F.symbol("/"), args)))))))
                             );
+                } else if (inUntriggeredQuant && !isNumeral(rhs)) {
+                    nonlinear = true;
+                    result = quantDivMod(cmodq, args);
                 } else {  // lhs % rhs === lhs >= 0 ? lhs mod rhs : - ( (-lhs) mod rhs )
+                    if (!isNumeral(rhs)) nonlinear = true;
                     result = F.fcn(iteSym, 
                             F.fcn(F.symbol(">="),  args.get(0), zero), 
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), args))),
                             F.fcn(F.symbol("-"), args.get(0), F.fcn(F.symbol("*"), args.get(1), F.fcn(F.symbol("div"), F.fcn(F.symbol("-"), args.get(0)), F.fcn(F.symbol("-"), args.get(1)))))
                             );
                     //result = F.fcn(F.symbol("|#cmod#|"), args);
+                    if (!inQuant) groundDivMods.add(new GroundDivMod(cmodq, args, result));
                 }
 //                result = F.fcn(iteSym, 
 //                        F.fcn(F.symbol(">="),  args.get(0), F.numeral(0)), 
@@ -2747,10 +2975,12 @@ public class SMTTranslator extends JmlTreeScanner {
             } else if (jmltypes.isJmlType(tree.expr.type)) { 
                 if (treeutils.isIntegral(tagr)) {
                     if (tree.expr.type.tsym == REAL) {
-                        // \real to int -- FIXME
-                        result = F.fcn(F.symbol("toward_zero"), result);
+                        // \real to an integral type: as Java converts a double (#1018)
+                        result = realToIntegral(tagr, result);
                     } else if (tree.expr.type.tsym == BIGINT) {
-                        // \bigint to int -- OK
+                        // \bigint to an integral type: narrowed as Java narrows a long (#1018); whether an out-of-range
+                        // value is reported depends on the arithmetic mode and is checked in JmlAssertionAdder
+                        if (!useBV) result = narrowInt(tagr, result);
                     } else {
                         // FIXME - error
                     }
@@ -2777,6 +3007,8 @@ public class SMTTranslator extends JmlTreeScanner {
                     // Both are integral
                 	if (useBV && tage != tagr) {
                 	    result = castBV(tagr, tage, result);
+                   	} else if (!fitsIn(tage, tagr)) {
+                   	    result = narrowInt(tagr, result);
                    	}
                 } else if (!treeutils.isIntegral(tage) && !treeutils.isIntegral(tagr)) {
                     // Both are floating point
@@ -2802,30 +3034,16 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = F.fcn(F.symbol("to_real"), result);
                 } else if (!argIsInt && resultIsInt) {
                     // Requires int and real logic
-                    // real to int
-                    result = F.fcn(F.symbol("toward_zero"), result);
+                    // float or double to an integral type, as Java converts it (#1018)
+                    result = realToIntegral(tagr, result);
                 } else if (argIsInt && resultIsInt) {
                     if (tage != tagr) {
                         int be = bits(tage);
                         int br = bits(tagr);
                         if (useBV) {
-                            if (be > br) {
-                                List<IIndex> args = new LinkedList<>();
-                                args.add(F.numeral(br-1));
-                                args.add(F.numeral(0));
-                                result = F.fcn(F.id(F.symbol("extract"),args),result);
-                            } else if (br > be) {
-                                List<IIndex> args = new LinkedList<>();
-                                args.add(F.numeral(br-be));
-                                result = F.fcn(F.id(F.symbol("sign_extend"),args),result);
-                            }
-                        } else {
-                            if (be > br) {
-                                if (br == 32) result = F.fcn(F.symbol("|#trunc32s#|"), result);
-                                if (br == 16) result = F.fcn(F.symbol("|#trunc16s#|"), result);
-                                if (br == 8) result = F.fcn(F.symbol("|#trunc8s#|"), result);
-                            }
-
+                            result = castBV(tagr, tage, result);
+                        } else if (!fitsIn(tage, tagr)) {
+                            result = narrowInt(tagr, result);
                         }
                     }
 
@@ -2872,12 +3090,48 @@ public class SMTTranslator extends JmlTreeScanner {
         } else if (be < br) {
             List<IIndex> args = new LinkedList<>();
             args.add(F.numeral(br-be));
-            return F.fcn(F.id(F.symbol("sign_extend"),args),expr);
+            // char is unsigned, so it is widened with zeros (#1018)
+            return F.fcn(F.id(F.symbol(exprtag == TypeTag.CHAR ? "zero_extend" : "sign_extend"),args),expr);
         } else {
             return expr;
         }
     }
     
+    /** Whether every value of the integral type 'from' is a value of the integral type 'to' (char is unsigned,
+     * so it neither contains nor is contained in byte or short) */
+    public boolean fitsIn(TypeTag from, TypeTag to) {
+        if (from == to || to == TypeTag.LONG) return true;
+        switch (from) {
+            case BYTE:  return to == TypeTag.SHORT || to == TypeTag.INT;
+            case SHORT: case CHAR: return to == TypeTag.INT;
+            default: return false;
+        }
+    }
+
+    /** The real value r converted to the integral type 'to' as Java converts a double (JLS 5.1.3): rounded toward
+     * zero; for long, clamped to the long range; for every other type, clamped to the int range and then, for
+     * short, char and byte, narrowed from int (#1018) */
+    public IExpr realToIntegral(TypeTag to, IExpr r) {
+        IExpr x = F.fcn(F.symbol("toward_zero"), r);
+        if (useBV) return x;
+        if (to == TypeTag.LONG) return F.fcn(F.symbol("|#clamp64#|"), x);
+        x = F.fcn(F.symbol("|#clamp32#|"), x);
+        return to == TypeTag.INT ? x : narrowInt(to, x);
+    }
+
+    /** The value x narrowed to the integral type 'to', as Java's narrowing conversion does: x modulo 2^n,
+     * in the range of the type (signed, except for char) */
+    public IExpr narrowInt(TypeTag to, IExpr x) {
+        switch (to) {
+            case LONG:  return F.fcn(F.symbol("|#trunc64s#|"), x);
+            case INT:   return F.fcn(F.symbol("|#trunc32s#|"), x);
+            case SHORT: return F.fcn(F.symbol("|#trunc16s#|"), x);
+            case CHAR:  return F.fcn(F.symbol("|#trunc16u#|"), x);
+            case BYTE:  return F.fcn(F.symbol("|#trunc8s#|"), x);
+            default:    return x;
+        }
+    }
+
     public int bits(TypeTag tag) {
     	switch (tag) {
     	case BYTE: return 8;
@@ -2966,7 +3220,7 @@ public class SMTTranslator extends JmlTreeScanner {
             if (typeString.startsWith("org_jmlspecs_lang_")) { // FIXME - find a way to do better than string checking
             	result = F.fcn(selectSym,
             			convertExpr(aa.indexed),
-            			convertExpr(aa.index)
+            			convertIndex(aa.index)
             			);
             } else {
             	IExpr.IFcnExpr sel = F.fcn(selectSym,
@@ -2975,7 +3229,7 @@ public class SMTTranslator extends JmlTreeScanner {
             			);
             	sel = F.fcn(selectSym,
             			sel,
-            			convertExpr(aa.index)
+            			convertIndex(aa.index)
             			);
             	result = sel;
             }
@@ -2984,9 +3238,21 @@ public class SMTTranslator extends JmlTreeScanner {
 
         shouldNotBeCalled(tree);
     }
-    
-    @Override 
-    public void visitConditional(JCConditional that) { 
+
+    /** Translates an array index. A \bigint index converted to int (e.g. a[i] with a \bigint i) is used
+     * without the conversion: the index is checked to be within the array's bounds, hence in the int
+     * range, before the access, so narrowing it would change nothing, but would make quantified
+     * formulas over such indices much harder for the prover (#1018) */
+    protected IExpr convertIndex(JCExpression index) {
+        if (index instanceof JCTypeCast cast && cast.expr.type != null && cast.expr.type.tsym == BIGINT
+                && treeutils.isIntegral(cast.type.getTag())) {
+            return convertExpr(cast.expr);
+        }
+        return convertExpr(index);
+    }
+
+    @Override
+    public void visitConditional(JCConditional that) {
         result = F.fcn(iteSym, 
                 convertExpr(that.cond), 
                 convertExpr(that.truepart), 
@@ -3289,7 +3555,12 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr e = convertExpr(decl.init);
             List<IBinding> bindings = new LinkedList<IBinding>();
             bindings.add(F.binding(sym,e));
-            return F.let(bindings, doLet(iter,expr));
+            bindingScope.add(F.declaration(sym, convertSort(decl.type)));
+            try {
+                return F.let(bindings, doLet(iter,expr));
+            } finally {
+                bindingScope.removeLast();
+            }
         } else {
             return convertExpr(expr);
         }
@@ -3298,9 +3569,11 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         boolean prev = inQuant;
+        boolean prevUntriggered = inUntriggeredQuant;
         try {
             IExpr typeConstraint = null;
             inQuant = true;
+            inUntriggeredQuant = that.triggers == null || that.triggers.isEmpty();
             List<IDeclaration> params = new LinkedList<IDeclaration>();
             for (JCVariableDecl decl: that.decls) {
                 IExpr.ISymbol sym = F.symbol(makeBarEnclosedString(decl.name.toString()));
@@ -3312,10 +3585,17 @@ public class SMTTranslator extends JmlTreeScanner {
                     typeConstraint = typeConstraint == null ? c : F.fcn(andSym, typeConstraint, c);
                 }
             }
-            scan(that.range);
-            IExpr range = result;
-            scan(that.value);
-            IExpr value = result;
+            List<IDeclaration> outerScope = new LinkedList<>(bindingScope);
+            bindingScope.addAll(params);
+            IExpr range, value;
+            try {
+                scan(that.range);
+                range = result;
+                scan(that.value);
+                value = result;
+            } finally {
+                for (int i = 0; i < params.size(); i++) bindingScope.removeLast();
+            }
             switch (that.kind.keyword()) {
             case QuantifiedExpressions.qforallID:
                 if (range != null) value = F.fcn(impliesSym,range,value);
@@ -3333,15 +3613,18 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (that.triggers != null && !that.triggers.isEmpty()) {
                     List<IExpr> triggers = convertExprList(that.triggers);
                     result = F.exists(params,value,triggers);
-                } {
+                } else {
                     result = F.exists(params,value);
                 }
                 break;
+            case QuantifiedExpressions.qsumID:
+            case QuantifiedExpressions.qproductID:
+            case QuantifiedExpressions.qnumofID:
+                result = recursiveQuantifier(that, range, value, params, outerScope);
+                if (result == null) result = unsupportedQuantifier(that); // not a form that can be translated
+                break;
             default:
-                notImplWarn(that, "JML Quantified expression using " + that.kind.keyword());
-                ISymbol sym = F.symbol(makeBarEnclosedString(that));
-                addConstant(sym,convertSort(that.type),null);
-                result = sym;
+                result = unsupportedQuantifier(that);
             }
             // Can't do this, because then the quantified expression is evaluated
             // in the wrong context (I think)
@@ -3362,6 +3645,7 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         } finally {
             inQuant = prev;
+            inUntriggeredQuant = prevUntriggered;
         }
     }
 

@@ -1,0 +1,16 @@
+OUT:
+test/gitbug1018rac/Narrow.java:34: verify: JML argument to numeric cast is out of range of the target type
+        char d = (char)y;           // warned about
+                 ^
+test/gitbug1018rac/Narrow.java:37: verify: JML argument to numeric cast is out of range of the target type
+        char e = (char)z;           // warned about
+                 ^
+test/gitbug1018rac/Narrow.java:39: verify: JML argument to numeric cast is out of range of the target type
+        short s = (short)c;         // warned about
+                  ^
+test/gitbug1018rac/Narrow.java:41: verify: JML argument to numeric cast is out of range of the target type
+        byte b = (byte)c;           // warned about
+                 ^
+DONE
+
+ERR:

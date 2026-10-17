@@ -1056,8 +1056,9 @@ public class Annotate {
     public void annotateTypeSecondStage(JCTree tree, List<JCAnnotation> annotations, Type storeAt) {
         typeAnnotation(() -> {
             List<Attribute.TypeCompound> compounds = fromAnnotations(annotations);
-            if (annotations.size() != compounds.size()) System.out.println("ANNOSASSERT " + annotations.size() + " " + compounds.size() + " " + annotations + " :: " + compounds); // OPENJML
-            Assert.check(annotations.size() == compounds.size());
+            // fromAnnotations keeps only type annotations (OPENJML), so a declaration annotation misplaced on a type -- // OPENJML -- cf Issue 1016
+            // e.g. on an anonymous class's new expression, which OpenJML also annotates here -- is left out; it is // OPENJML -- cf Issue 1016
+            // reported as misplaced by the usual checks, so compounds may be shorter than annotations // OPENJML -- cf Issue 1016
             // the type already has annotation metadata, but it's empty
             Annotations metadata = storeAt.getMetadata(Annotations.class);
             Assert.checkNonNull(metadata);

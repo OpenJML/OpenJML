@@ -1,3 +1,6 @@
+test/escrmloop/SuffixArray.java:9: warning: No term in this quantified expression can serve as an SMT trigger for i: it is used only in arithmetic, comparisons or logical operations, so the solver may not use the quantifier, or may instantiate it without end; consider stating the property with a model function or pure method
+      @           (\forall int i; 0 <= i && i < a.length; 
+                   ^
 Proving methods in LCP
 Starting proof of LCP.LCP() with prover !!!!
 Completed proof of LCP.LCP() with prover !!!! - no warnings
@@ -25,3 +28,4 @@ Proving methods in LRS
 Skipping proof of LRS.LRS(SuffixArray) (excluded by skipesc)
 Skipping proof of LRS.doLRS() (excluded by skipesc)
 Completed proving methods in LRS
+1 warning

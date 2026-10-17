@@ -270,6 +270,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
     // set by the superclass constructor, which is called before all the fields of 
     // this derived class are initialized
     final public Type BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+
+    /** The number of \sum or \product bodies (with integral values) being translated; within them
+     * arithmetic is \bigint, and a nested \sum or \product is not converted to its declared type */
+    protected int bigintQuantifierDepth = 0;
     final public Type REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
     final public Type STRING = JmlPrimitiveTypes.stringTypeKind.getType(context);
     final public Type ARRAY = JmlPrimitiveTypes.arrayTypeKind.getType(context);
@@ -3155,13 +3159,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (!isReturn && methodDecl.sym.isConstructor() && assume && types.isSameType(methodDecl.sym.type, basetype)) {
 			return;
 		}
-		if (!isReturn && startInvariants(basecsym, pos))
+		// The invariants of a return value are always needed, so they ignore completedInvariants
+		if (startInvariants(basecsym, pos, !isReturn))
 			return;
 		// if (basecsym.toString().contains("SassyOption")) System.out.println("START
 		// SassyOption " + (scount++));
 
 		java.util.List<Type> parents = parents(basetype, true);
-		boolean contextIsStatic = receiver == null;
 
 		// Iterate through parent classes and interfaces, assuming relevant axioms and
 		// invariants
@@ -3172,12 +3176,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			ListBuffer<JCStatement> staticStats = stats;
 
 			{
-			    currentEnv.currentReceiver = receiver;
 				for (Type ctype : parents) {
 					if (!(ctype.tsym instanceof ClassSymbol))
 						continue;
 					if (isDataGroup(ctype))
 						continue;
+					// The parents include the enclosing classes, whose instance invariants are about the enclosing
+					// instance, not the receiver (#1012); without one, only their static invariants apply
+					JCExpression ctypeReceiver = invariantReceiver(pos, basetype, receiver, ctype);
+					boolean contextIsStatic = ctypeReceiver == null;
+					currentEnv.currentReceiver = ctypeReceiver;
 
 					typevarMapping = typemapping(ctype, null, null, null);
 					ListBuffer<JCStatement> check = pushBlock();
@@ -3329,11 +3337,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (!onlyComments(bl.stats) && !infer) {
 							if (contextIsStatic) {
 								staticStats.add(bl);
-							} else if (receiver == null) {
+							} else if (ctypeReceiver == null) {
 								// This can be because we are in a constructor
 								staticStats.add(bl);
 							} else {
-								JCExpression ex = treeutils.makeNeqObject(pos.getPreferredPosition(), receiver,
+								JCExpression ex = treeutils.makeNeqObject(pos.getPreferredPosition(), ctypeReceiver,
 										treeutils.nullLit);
 //								pushBlock(staticStats);
 //								ex = newTempIfNeeded(ex);
@@ -3349,8 +3357,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                notImplemented(receiver, "receiver of class " + (receiver == null ? "-null-" : receiver.getClass().getName()));
 			}
 		} finally {
-			if (!isReturn)
-				endInvariants(basecsym);
+			endInvariants(basecsym, !isReturn);
 			if (!translatingJML)
 				clearInvariants();
 			currentStatements = prevStats;
@@ -3358,6 +3365,63 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			typevarMapping = savedTypevarMapping;
 		}
 
+	}
+
+	/** The object on which the instance invariants of ctype are evaluated, when the invariants of basetype
+	 * are gathered for receiver (#1012): receiver itself, if ctype is basetype or one of its supertypes; if
+	 * ctype is an enclosing class of basetype (or a supertype of one), the enclosing instance (Outer.this),
+	 * provided every class between them is an inner (non-static) class. Otherwise null: then only the
+	 * static invariants of ctype apply. RAC can express the enclosing instance only within the code of
+	 * basetype's own class, where it is written Outer.this; ESC models it as a field of the receiver.
+	 */
+	protected JCExpression invariantReceiver(DiagnosticPosition pos, Type basetype, JCExpression receiver, Type ctype) {
+		if (receiver == null) return null;
+		if (types.isSubtype(types.erasure(basetype), types.erasure(ctype))) return receiver;
+		if (!(basetype.tsym instanceof ClassSymbol c)) return null;
+		boolean racThis = receiver instanceof JCIdent id && id.name == names._this && classDecl != null && classDecl.sym == c;
+		JCExpression expr = receiver;
+		while (!types.isSubtype(types.erasure(c.type), types.erasure(ctype))) {
+			if (!c.hasOuterInstance()) return null;
+			Symbol owner = c.owner;
+			while (owner instanceof MethodSymbol) owner = owner.owner;
+			if (!(owner instanceof ClassSymbol outer)) return null;
+			if (rac) {
+				if (!racThis) return null;
+				expr = makeQualifiedThis(pos.getPreferredPosition(), outer);
+			} else {
+				VarSymbol vsym = makeEnclosingSymbol(c, expr);
+				if (vsym == null) return null;
+				expr = treeutils.makeSelect(pos.getPreferredPosition(), expr, vsym);
+			}
+			c = outer;
+		}
+		return expr;
+	}
+
+	/** The receiver, in RAC code, of a (non-static) field of class fieldOwner referenced by its simple name: the
+	 * current receiver, or, when that is 'this' of an inner class and the field belongs to an enclosing class
+	 * (as Java allows), the enclosing instance Outer.this (#1012)
+	 */
+	protected JCExpression racFieldReceiver(int pos, ClassSymbol fieldOwner) {
+		JCExpression receiver = currentEnv.currentReceiver;
+		if (!(receiver instanceof JCIdent id && id.name == names._this && receiver.type != null
+				&& receiver.type.tsym instanceof ClassSymbol c)) return receiver;
+		while (!c.isSubClass(fieldOwner, types)) {
+			Symbol owner = c.owner;
+			while (owner instanceof MethodSymbol) owner = owner.owner;
+			if (!c.hasOuterInstance() || !(owner instanceof ClassSymbol outer)) return receiver;
+			c = outer;
+		}
+		return c == receiver.type.tsym ? receiver : makeQualifiedThis(pos, c);
+	}
+
+	/** Makes Outer.this, the enclosing instance of class outer, for RAC code within an inner class of outer
+	 * (javac's Lower translates it into a reference to the enclosing instance) */
+	protected JCFieldAccess makeQualifiedThis(int pos, ClassSymbol outer) {
+		JCFieldAccess fa = M.at(pos).Select(treeutils.makeType(pos, outer.type), names._this);
+		fa.sym = new VarSymbol(Flags.FINAL | Flags.HASINIT, names._this, outer.type, outer);
+		fa.type = outer.type;
+		return fa;
 	}
 
 	private void addNullnessDynamicTypeConditions(DiagnosticPosition pos, Type basetype, JCExpression receiver,
@@ -3504,6 +3568,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		}
+		// Guards only the translation of the clauses, which is what can recurse: e.g. an invariant
+		// that calls a non-pure method, after which the invariants of fields are assumed (#969)
+		if (startInvariants(csym, d, false)) {
+			currentEnv.currentReceiver = saved;
+			return;
+		}
 		ListBuffer<JCStatement> check = pushBlock();
 		try {
 			for (JmlTypeClause t : specs.getAttrSpecs(csym).clauses) {
@@ -3534,6 +3604,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		} finally {
+			endInvariants(csym, false);
 			JCBlock bl = popBlock(d, check);
 			if (!bl.stats.isEmpty()) {
 				if (staticOnly || types.isJmlType(csym.type)) {
@@ -4114,7 +4185,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     var ee4 = treeutils.makeJmlMethodInvocation(pos, FunctionLikeExpressions.invariantForKind, syms.booleanType, ee3);
                     var ee5 = treeutils.makeNotNull(p, copy(ee3));
                     var ee7 = makeAllocExpression(pos, copy(ee3), null);
-                    var ee6 = treeutils.makeImplies(pos, ee5, treeutils.makeAnd(ee4, ee7));
+                    var ee6 = treeutils.makeImplies(pos, ee5, treeutils.makeAnd(pos, ee4, ee7));
                     var ee8 = treeutils.makeAnd(p, ee1, ee2);
                     var ss = M.at(pos).JmlQuantifiedExpr(QuantifiedExpressions.qforallKind, List.<JCVariableDecl>of(decl), ee8, ee6);
                     ss.type = syms.booleanType;
@@ -5367,7 +5438,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     addStat(comment(sc, "   Checking " + clause, sc.sourcefile));
                     anyClauses = true;
 
-                    var lsexpr = convertAssignableToLocsetExpression(sc, sc.list, (ClassSymbol)parentMethodSym.owner, true); // FIXME - should this be the class of methodDecl or of the parent
+                    // The frame is checked against the body of methodDecl, so its model fields are expanded
+                    // using the in and maps clauses visible from methodDecl's class, not just from the class
+                    // declaring the (possibly inherited) specification case (#980)
+                    var lsexpr = convertAssignableToLocsetExpression(sc, sc.list, (ClassSymbol)methodDecl.sym.owner, true);
                     //System.out.println("MAIN METHOD LIST: " + clause + " :: " + lsexpr);
                     addStat(comment(sc, "     Resulting locset: " + lsexpr, sc.sourcefile));
                     sc.locset = lsexpr;
@@ -5611,6 +5685,33 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// FIXME - what if there is no declaration found?
 	}
 
+	/** Converts an expression of a method specification clause, as convertJML does, but with the log's
+	 * source set to the clause's file: the assertions created along the way (e.g. well-definedness checks)
+	 * take their position from the expression, so they must also take their file from it. The clause may
+	 * be inherited from a different file than the method being checked (#980).
+	 */
+	protected JCExpression convertClauseExpression(JmlMethodClause clause, JCExpression ex, JCExpression condition) {
+		JavaFileObject prev = log.useSource(clause.source());
+		try {
+			return convertJML(ex, condition, true);
+		} finally {
+			log.useSource(prev);
+		}
+	}
+
+	/** As convertClauseExpression, but converting as convertNoSplit does; used for the clauses of a called
+	 * method whose specifications become axioms. Warnings found along the way (e.g. a recursive call without
+	 * a measured_by clause) are positioned in the clause, so must be reported in the clause's file (#738, #980).
+	 */
+	protected JCExpression convertNoSplitClauseExpression(JmlMethodClause clause, JCExpression ex, JCExpression condition) {
+		JavaFileObject prev = log.useSource(clause.source());
+		try {
+			return convertNoSplit(ex, condition, false);
+		} finally {
+			log.useSource(prev);
+		}
+	}
+
 	protected void addPostConditions(ListBuffer<JCStatement> finalizeStats) {
 		assumingPostConditions = false;
 		JCMethodDecl methodDecl = this.methodDecl;
@@ -5721,7 +5822,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     if (specs.isNonNull(d.sym, d)) {
                         //System.out.println("NNFIELD " + d + " " + d.sym + " " + d.sym.type + " " + specs.isNonNull(d.sym, d));
                         JCExpression id = treeutils.makeIdent(d.pos, d.sym);
-                        addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
+                        addAssert(d.sourcefile, d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)), null, null); // d may be in a .jml file (#1006)
                     }
                     if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)
                         continue;
@@ -5751,16 +5852,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 {
                     if (!isHelper(methodDecl.sym)) {
                         for (JCTree dd : classDecl.defs) { // FIXME - review isHelper here, and visibility
-                            if (!(dd instanceof JCVariableDecl))
+                            if (!(dd instanceof JmlVariableDecl d))
                                 continue;
-                            JCVariableDecl d = (JCVariableDecl) dd;
                             if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
                                 continue;
                             if (!utils.isJMLStatic(d.sym))
                                 continue;
                             if (specs.isNonNull(d.sym)) {
                                 JCExpression id = treeutils.makeIdent(d.pos, d.sym);
-                                addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
+                                addAssert(d.sourcefile, d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)), null, null); // d may be in a .jml file (#1006)
                             }
                             if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)
                                 continue;
@@ -5882,16 +5982,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			// can we avoid that
 			if (!isHelper(methodDecl.sym))
 				for (JCTree dd : classDecl.defs) { // FIXME - review isHelper here, and visibility
-					if (!(dd instanceof JCVariableDecl))
+					if (!(dd instanceof JmlVariableDecl d))
 						continue;
-					JCVariableDecl d = (JCVariableDecl) dd;
 					if (utils.isJavaOrJmlPrimitiveType(d.sym.type))
 						continue;
 					if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym))
 						continue;
 					if (specs.isNonNull(d.sym)) {
 						JCExpression id = treeutils.makeIdent(d.pos, d.sym);
-						addAssert(d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)));
+						addAssert(d.sourcefile, d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)), null, null); // d may be in a .jml file (#1006)
 					}
 					if (isHelper(methodDecl.sym) && d.sym.type.tsym == methodDecl.sym.owner.type.tsym)
 						continue;
@@ -5994,7 +6093,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								ListBuffer<JCStatement> ch = pushBlock();
 								try {
 									JCExpression ex = ((JmlMethodClauseExpr) clause).expression;
-									JCExpression convertedex = convertJML(ex, preident, true);
+									JCExpression convertedex = convertClauseExpression(clause, ex, preident);
 									// ex = treeutils.makeImplies(clause.pos, preident, ex);
 									addTraceableComment(ex, clause.toString());
 									// FIXME - if the clause is synthetic, the source file may be null, and for
@@ -6046,7 +6145,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										addStat(vd);
 									}
 
-									ex = convertJML(ex, preident, true);
+									ex = convertClauseExpression(clause, ex, preident);
 									ex = treeutils.makeImplies(clause, preident, ex);
 									addAssert(methodDecl, Label.SIGNALS, ex, clause, clause.sourcefile);
 								} finally {
@@ -6113,8 +6212,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									ListBuffer<JCStatement> ch = pushBlock();
 									try {
 										// addTraceableComment(ex,clause.toString());
-										convertJML(ex, preident, true);
-										convertJML(pred, preident, true);
+										convertClauseExpression(clause, ex, preident);
+										convertClauseExpression(clause, pred, preident);
 										ex = treeutils.makeImplies(clause, preident, ex);
 										// addAssert(methodDecl,Label.SIGNALS,ex,currentStatements,clause,clause.sourcefile);
 									} finally {
@@ -8766,6 +8865,141 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    return false;
 	}
 
+    /** Returns the model field that aa indexes (e.g. elems in elems[n]), or null if aa does not index a model field.
+     * A model field of array type is not included: indexing it denotes an element of the array that is its
+     * value, as for any array (as JmlAttr.checkIndexedStoreRef treats it too) */
+    protected /*@ nullable */ VarSymbol indexedModelField(JCArrayAccess aa) {
+        Symbol sym = treeutils.getSym(aa.indexed);
+        return sym instanceof VarSymbol v && v.owner instanceof TypeSymbol && isModel(v)
+                && !(v.type instanceof Type.ArrayType) ? v : null;
+    }
+
+    /** Makes the store-refs for an indexed model field in a frame, e.g. elems[n] or elems[i..j] (#980).
+     * A model field in a frame stands for what is in it; when it is indexed, the index is applied to what
+     * is mapped into it: 'maps a[*] \into elems' contributes a[n], and 'maps a[lo..hi] \into elems'
+     * contributes a[n] only when lo <= n <= hi (the intersection of the two ranges). Mapped items that are
+     * not array elements (e.g. 'maps x.f \into elems') have no elements to index and contribute nothing,
+     * nor do the fields that are 'in' elems. Maps into model fields that are in elems count as maps into elems.
+     * The model field itself is included as well, so that a caller (which may not see the maps clauses)
+     * treats it as possibly changed; it is marked noContents, so it does not stand for the fields in it.
+     * The maps clauses are those visible from baseClassSym, and are used only if expand is true.
+     */
+    protected List<JmlStoreRef> makeIndexedModelFieldStoreRefs(DiagnosticPosition pos, JCArrayAccess aa, VarSymbol mf,
+            ClassSymbol baseClassSym, boolean expand) {
+        ListBuffer<JmlStoreRef> list = new ListBuffer<>();
+        JCExpression receiver = null;
+        if (!utils.isJMLStatic(mf)) {
+            if (aa.indexed instanceof JCFieldAccess fa) {
+                receiver = newTempIfNeeded(convertJML(fa.selected));
+            } else {
+                JCIdent t = M.at(pos).Ident(names._this);
+                t.sym = baseClassSym;
+                t.setType(baseClassSym.type);
+                receiver = convertJML(t);
+            }
+        }
+        JmlStoreRef sr = M.at(aa.pos).JmlStoreRef(false, null, null, receiver, null, mf, aa.indexed);
+        sr.noContents = true;
+        sr.modelIndex = convertedIndexRange(aa);
+        list.add(sr);
+        if (!expand) return list.toList();
+
+        // The index as a range lo..hi, where null is an absent bound
+        JCExpression lo = null, hi = null;
+        if (aa.index instanceof JmlRange rr) {
+            lo = rr.lo;
+            hi = rr.hi;
+        } else if (aa.index != null) {
+            lo = hi = aa.index;
+        }
+        for (JCExpression mapped : mappedInto(baseClassSym, mf)) {
+            if (!(mapped instanceof JCArrayAccess ma)) continue; // not array elements: nothing to index
+            JCExpression mlo = null, mhi = null;
+            if (ma.index instanceof JmlRange mr) {
+                mlo = mr.lo;
+                mhi = mr.hi;
+            } else if (ma.index != null) {
+                mlo = mhi = ma.index;
+            }
+            int p = aa.getPreferredPosition();
+            JCExpression clo = boundOf(p, lo, mlo, JCTree.Tag.GE);
+            JCExpression chi = boundOf(p, hi, mhi, JCTree.Tag.LE);
+            if (clo == null) clo = treeutils.makeZeroEquivalentLit(aa, BIGINT);
+            if (chi == null) chi = treeutils.makeLengthM1(aa, ma.indexed);
+            // A single index has lo == hi (the same object), which is how a single element is recognized
+            JCExpression cclo = convertJML(clo);
+            JmlRange r = M.at(p).JmlRange(cclo, chi == clo ? cclo : convertJML(chi));
+            r.type = RANGE;
+            var arr = newTempIfNeeded(convertJML(ma.indexed));
+            JmlStoreRef msr = M.at(aa.pos).JmlStoreRef(false, null, null, arr, r, null, mapped);
+            list.add(msr);
+        }
+        return list.toList();
+    }
+
+    /** The converted index of aa as a range: lo..hi, where a single index has lo == hi (the same object)
+     * and an absent bound is null. */
+    protected JmlRange convertedIndexRange(JCArrayAccess aa) {
+        JCExpression lo = null, hi = null;
+        if (aa.index instanceof JmlRange rr) {
+            lo = rr.lo == null ? null : convertJML(rr.lo);
+            hi = rr.hi == null ? null : convertJML(rr.hi);
+        } else if (aa.index != null) {
+            lo = hi = convertJML(aa.index);
+        }
+        JmlRange r = M.at(aa.index != null ? aa.index : aa).JmlRange(lo, hi);
+        r.type = RANGE;
+        return r;
+    }
+
+    /** Whether the (converted) index range 'smaller' lies within 'bigger' (null bounds: from the start, to the end) */
+    protected JCExpression indexRangeWithin(DiagnosticPosition pos, TranslationEnv targetEnv, boolean isSmallerConverted,
+            /*@ nullable */ JmlRange smaller, JmlRange bigger) {
+        if (smaller == null) return treeutils.makeBooleanLiteral(pos, false); // the whole model field is not within an index range
+        JCExpression result = treeutils.makeBooleanLiteral(pos, true);
+        if (bigger.lo != null) {
+            JCExpression slo = smaller.lo == null ? treeutils.makeIntLiteral(pos.getPreferredPosition(), 0)
+                    : isSmallerConverted ? smaller.lo : convertJML(smaller.lo);
+            result = treeutils.makeAndSimp(pos.getPreferredPosition(), result,
+                    treeutils.makeBinary(pos, JCTree.Tag.LE, convertJML(bigger.lo, targetEnv), slo));
+        }
+        if (bigger.hi != null) {
+            if (smaller.hi == null) return treeutils.makeBooleanLiteral(pos, false); // unbounded is not within bounded
+            JCExpression shi = isSmallerConverted ? smaller.hi : convertJML(smaller.hi);
+            result = treeutils.makeAndSimp(pos.getPreferredPosition(), result,
+                    treeutils.makeBinary(pos, JCTree.Tag.LE, shi, convertJML(bigger.hi, targetEnv)));
+        }
+        return result;
+    }
+
+    /** Combines two (unconverted) bounds of an intersection of ranges: the larger of two lower bounds (tag GE)
+     * or the smaller of two upper bounds (tag LE); a null bound is absent. */
+    private /*@ nullable */ JCExpression boundOf(int p, /*@ nullable */ JCExpression a, /*@ nullable */ JCExpression b, JCTree.Tag tag) {
+        if (a == null) return b;
+        if (b == null) return a;
+        return treeutils.makeConditional(p, treeutils.makeBinary(p, tag, a, b), a, b);
+    }
+
+    /** The store-ref expressions mapped (by maps clauses visible from rootClass) into modelField, or into a
+     * model field that is in modelField */
+    protected java.util.List<JCExpression> mappedInto(ClassSymbol rootClass, VarSymbol modelField) {
+        var result = new java.util.ArrayList<JCExpression>();
+        for (Type t : parents(rootClass.type, false)) {
+            if (!jmltypes.isSubtype(t, modelField.owner.type)) continue;
+            for (Symbol s : t.tsym.getEnclosedElements()) {
+                if (!(s instanceof VarSymbol vs)) continue;
+                JmlSpecs.FieldSpecs fs = specs.getAttrSpecs(vs);
+                if (fs == null) continue;
+                for (var cl : fs.list) {
+                    if (cl instanceof JmlTypeClauseMaps m && m.list.stream().anyMatch(g -> isContainedIn(g.sym, modelField))) {
+                        result.addAll(m.expressions);
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
     /* Makes a JmlStoreRef value from a store-ref-expression */
     public List<JmlStoreRef> makeJmlStoreRef(DiagnosticPosition pos, JCExpression e, ClassSymbol baseClassSym, boolean expand) {
         boolean check = true;
@@ -8796,6 +9030,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 }
             }
             list.add(sr);
+        } else if (e instanceof JCArrayAccess aa && indexedModelField(aa) != null) {
+            // An indexed model field, e.g. elems[n]
+            list.addAll(makeIndexedModelFieldStoreRefs(pos, aa, indexedModelField(aa), baseClassSym, expand));
         } else if (e instanceof JCArrayAccess aa) {
             // An array store-ref, perhaps with a range
             //System.out.println("JAA " + aa + " " + hasRanges(aa.indexed));
@@ -9688,12 +9925,27 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public boolean useMethodAxioms;
 
+	// Two kinds of state guard the generation of invariants:
+	// - completedInvariants avoids repeating the invariants of a class; clearInvariants() resets
+	//   it wherever invariants must be generated afresh (e.g. at each method call)
+	// - inProcessInvariants holds the classes whose invariants are being generated right now, so
+	//   that a recursive cycle (an invariant whose translation needs that same invariant again)
+	//   is detected. It is changed only by startInvariants/endInvariants, which nest, and so is
+	//   never cleared: clearing it within a nested translation would hide the cycle (#969)
 	public java.util.List<Symbol> completedInvariants = new LinkedList<Symbol>();
 	public java.util.Set<Symbol> inProcessInvariants = new HashSet<Symbol>();
 
 
 	protected boolean startInvariants(Symbol csym, DiagnosticPosition pos) {
-		if (completedInvariants.contains(csym))
+		return startInvariants(csym, pos, true);
+	}
+
+	/** Returns true if the invariants of csym are to be skipped: because they are in process, i.e. a
+	 * recursive cycle, which is warned about; or, if useCompleted, because they were already generated
+	 * since the last clearInvariants(). Otherwise marks csym as in process.
+	 */
+	protected boolean startInvariants(Symbol csym, DiagnosticPosition pos, boolean useCompleted) {
+		if (useCompleted && completedInvariants.contains(csym))
 			return true; // skip processing
 		if (inProcessInvariants.add(csym))
 			return false; // ok to do processing
@@ -9727,13 +9979,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void endInvariants(Symbol csym) {
+		endInvariants(csym, true);
+	}
+
+	protected void endInvariants(Symbol csym, boolean useCompleted) {
 		inProcessInvariants.remove(csym);
-		completedInvariants.add(csym);
+		if (useCompleted) completedInvariants.add(csym);
 	}
 
 	protected void clearInvariants() {
 		completedInvariants.clear();
-		inProcessInvariants.clear();
 	}
 	
     HeapInfo currentHeap = new HeapInfo(0, null, null);
@@ -13058,7 +13313,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JavaFileObject prev = null;
 				try {
 					if (lambdaSource != null)
-						log.useSource(lambdaSource);
+						prev = log.useSource(lambdaSource); // previously never restored (#1006)
 					// FIXME - push arith mode?
 					result = eresult = inlineConvertBlock(block, replacements, resultType);
 				} finally {
@@ -14333,7 +14588,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			//if (kind == accessibleClauseKind) System.out.println("CA2 " + lhs + " " + lhs.getClass() + " " + methodSym + " " + methodSym.isConstructor() + " " + methodSym.owner);
 			if (lhs instanceof JCIdent id && id.sym.owner instanceof ClassSymbol && methodSym.isConstructor()) return okCondition;// OK to set a field of 'this' inside a constructor
 			// System.out.println("CONVERTING? " + lhsUnconverted + " " + lhs + " " + isConverted + " " + currentEnv.currentReceiver);
-			if (!isConverted) {
+			if (!isConverted && lhsUnconverted instanceof JCArrayAccess uaa && indexedModelField(uaa) != null) {
+			    // An indexed model field (e.g. a callee's assignable elems[n]): the model field itself, with its
+			    // index, compared with the frame by index (#980). convertLHS2 would make it an array access.
+			    JmlStoreRef msr = makeJmlStoreRef(pos, convertLHS2(uaa.indexed), (ClassSymbol)methodSym.owner, false).head;
+			    msr.noContents = true;
+			    msr.modelIndex = convertedIndexRange(uaa);
+			    lhs = msr;
+			    isConverted = true;
+			} else if (!isConverted) {
 			    // This conversion replaces formal ids with their actual expressions and does any other standard conversion
 			    lhs = convertLHS2(lhsUnconverted);
 			    isConverted = true;
@@ -14381,7 +14644,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JCExpression precondition = !comparingToCallee ? preconditions.get(specCase): calleePreconditions.get(specCase); // FIXME - a hack
 							//System.out.println("CALLER SPECCASE PRE " + comparingToCallee + " " + emitAsserts + " " + precondition + " " + specCase);
 							if (precondition == null) {
-								if (!parentMethodSym.owner.isAnonymous()) {
+								// Debugging output only: this is reached in error recovery, e.g. after a non-pure method is used in a precondition
+								if (!parentMethodSym.owner.isAnonymous() && utils.jmlverbose >= Utils.JMLDEBUG) {
 								    System.out.println("NULL PRECONDITION FOR " + methodDecl.sym.owner + "." + methodDecl.sym + " " + methodSym.owner + "." + methodSym + " " + (methodDecl.sym == methodSym) + " " + parentMethodSym.owner + "." + parentMethodSym + " " + (methodSym==parentMethodSym) + " " + specCase);
 								}
 								precondition = treeutils.trueLit; // Not correct, but just error recovery
@@ -16100,9 +16364,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			switch (b) {
 			case BYTE:
 				return 0;
+			case CHAR: // char is unsigned: a negative byte is not a char value (#1018)
+				return 1;
 			case INT:
-			case CHAR:
 			case SHORT:
+			case FLOAT:
+			case DOUBLE:
+			case LONG:
+				return -1;
+			}
+			break;
+		case CHAR: // char is unsigned, so not all of its values are short or byte values (#1018)
+			switch (b) {
+			case CHAR:
+				return 0;
+			case BYTE:
+			case SHORT:
+				return 1;
+			case INT:
 			case FLOAT:
 			case DOUBLE:
 			case LONG:
@@ -16232,7 +16511,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         String s = newtype.toString() + "Value";
                         if (s.contains("BigInteger")) s = "bigValue";
                         try {
-                            JCExpression e = makeMethodInvocation(pos, expr, names.fromString(s));
+                            JCExpression e;
+                            if (types.isSameType(oldtype, BIGINT) && newtype.isIntegral()) {
+                                // A \bigint is narrowed to an integral type as Java narrows, without a range check of
+                                // its own (the range is checked above, or not, according to the arithmetic mode), by
+                                // the conversions of its BigInteger value (#1018)
+                                // (BigInteger declares only longValue and intValue; short, char and byte are narrowed from int)
+                                var big = makeMethodInvocation(pos, expr, names.fromString("bigValue"));
+                                boolean toLong = newtype.getTag() == TypeTag.LONG;
+                                e = makeMethodInvocation(pos, big, names.fromString(toLong ? "longValue" : "intValue"));
+                                if (!toLong && newtype.getTag() != TypeTag.INT) e = M.at(pos).TypeCast(newtype, e).setType(newtype);
+                            } else {
+                                e = makeMethodInvocation(pos, expr, names.fromString(s));
+                            }
                             result = eresult = e;
                         } catch (java.util.NoSuchElementException e) {
                             utils.error(pos, "jml.internal", "There is no conversion to " + newtype + " in the runtime implementation for " + oldtype);
@@ -16384,7 +16675,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 case SHORT:
                 case CHAR:
                 case BYTE:
-                    addRangeConstraints(pos, false, oldtype, expr);
+                    // the range is stated on the widened value: for the bit-vector encoding, which compares a
+                    // narrow value (in particular a char) as signed, it is then an ordinary comparison (#1018)
+                    addRangeConstraints(pos, false, oldtype, castexpr);
                     break;
                 default:
                     utils.error(pos, "jml.internal", "Unimplemented case combination");
@@ -16421,8 +16714,22 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         if (isAssert) {
-            addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emax);
-            addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+            // As for arithmetic operations, --arithmetic-failure says whether a failed check is assumed to hold
+            // afterwards (hard), is only reported (soft), or is not checked but assumed (quiet) (#1018)
+            switch (JmlOption.ARITHMETIC.value(context)) {
+                case "hard" -> {
+                    addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addAssert(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+                case "quiet" -> {
+                    addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+                default -> {
+                    addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emax);
+                    addCheck(pos, Label.ARITHMETIC_CAST_RANGE, emin);
+                }
+            }
         } else {
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emax);
             addAssume(pos, Label.ARITHMETIC_CAST_RANGE, emin);
@@ -17837,6 +18144,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					// FIXME - already tested for static
 					if (utils.isJMLStatic(sym))
 						newfa = treeutils.makeSelect(that.pos, treeutils.makeType(that.pos, sym.owner.type), sym);
+					else if (rac)
+						newfa = treeutils.makeSelect(that.pos, racFieldReceiver(that.pos, (ClassSymbol) sym.owner), sym);
 					else
 						newfa = treeutils.makeSelect(that.pos, currentEnv.currentReceiver, sym);
 				}
@@ -19298,7 +19607,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCVariableDecl indexDecl, List<? extends JCTree> initlist, List<? extends JCTree> steps, JCTree... trees) {
 		ListBuffer<JCExpression> newlist = new ListBuffer<JCExpression>();
 		boolean useDefaultModifies = true;
-		JavaFileObject loopSource = null;
+		JavaFileObject loopSource = log.currentSourceFile(); // the loop's own file, if there is no loop_modifies clause (#1006)
 		JmlStatementLoopModifies foundLoopMod = M.at(pos).JmlStatementLoopModifies(StatementLocationsExtension.loopwritesStatement,
 		        List.<JCExpression>nil());
 		if (loopSpecs != null) {
@@ -21409,15 +21718,31 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					    if (d.type.isIntegral()) {
 					        var r = treeutils.makeRangeCheck(d.sym.type, treeutils.makeIdent(d, d.sym));
 					        range = range == null ? r : treeutils.makeAnd(range, range, r);
+					    } else if (!utils.isJavaOrJmlPrimitiveType(d.type)) {
+					        // the variable ranges over the values of its type (#984); every reference is an Object
+					        boolean nullable = !specs.isNonNullQuantified((JmlVariableDecl)d);
+					        var id = treeutils.makeIdent(d, d.sym);
+					        var r = !types.isSameType(types.erasure(d.type), syms.objectType)
+					                ? treeutils.makeDynamicTypeInEquality(d, id, d.type, nullable)
+					                : nullable ? null : treeutils.makeNotNull(d, id);
+					        if (r != null) range = range == null ? r : treeutils.makeAnd(range, range, r);
 					    }
 					}
 
-					JCExpression value = convertNoSplit(that.value);
+					// The body of a \sum or \product is \bigint arithmetic: an integral body is widened to
+					// \bigint, and a \sum or \product within it is not converted to its declared type
+					boolean bigintBody = (key.equals(qsumID) || key.equals(qproductID)) && that.value.type.isIntegral();
+					if (bigintBody) bigintQuantifierDepth++;
+					JCExpression value;
+					try {
+					    value = convertNoSplit(that.value);
+					} finally {
+					    if (bigintBody) bigintQuantifierDepth--;
+					}
 					Type targetType = that.kind == qforallKind ? syms.booleanType
                             : that.kind == qexistsKind ? syms.booleanType
-							: that.kind == qnumofKind ? syms.booleanType : that.value.type; // FIXME - not sure
-																									// about this
-																									// default
+							: that.kind == qnumofKind ? syms.booleanType
+							: bigintBody ? BIGINT : that.value.type; // FIXME - not sure about this default
 					value = addImplicitConversion(value, targetType, value);
 					JmlQuantifiedExpr q = M.at(that).JmlQuantifiedExpr(that.kind, dd,
 							range, value);
@@ -21529,6 +21854,53 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                             }.copy(value);
 					        result = eresult = value;
 					    }
+                    } else if (key.equals(qmaxID) || key.equals(qminID)) {
+                        // (\max T x; R; V) is well-defined only if some x satisfies R, which is asserted
+                        // (as for \choose). Its value is a new variable m with: every V (for x satisfying R)
+                        // is at most m, and some V equals m. \min is the mirror image.
+                        // The keyword is compared, not the kind, because \max has two kinds (see #987).
+                        boolean isMax = key.equals(qmaxID);
+                        pushBlock();
+                        JCExpression r = range != null ? range : treeutils.trueLit;
+                        JCExpression nonEmpty = nonEmptyIntegerRange(dd, r);
+                        if (nonEmpty == null) {
+                            var ex = M.at(that).JmlQuantifiedExpr(qexistsKind, dd, r, treeutils.trueLit);
+                            ex.setType(syms.booleanType);
+                            nonEmpty = ex;
+                        }
+                        addAssert(that, isMax ? Label.MAX : Label.MIN, nonEmpty);
+                        var ndecl = newTempDecl(that, uniqueTempString(isMax ? "_JMLmax" : "_JMLmin"), that.type);
+                        addStat(ndecl);
+                        JmlQuantifiedExpr bounded = M.at(that).JmlQuantifiedExpr(qforallKind, dd, r,
+                                treeutils.makeBinary(that.pos, isMax ? JCTree.Tag.LE : JCTree.Tag.GE, value,
+                                        treeutils.makeIdent(that.pos, ndecl.sym)));
+                        bounded.setType(syms.booleanType);
+                        addAssume(that, Label.IMPLICIT_ASSUME, bounded);
+                        JmlQuantifiedExpr attained = M.at(that).JmlQuantifiedExpr(qexistsKind, dd, r,
+                                treeutils.makeEquality(that.pos, value, treeutils.makeIdent(that.pos, ndecl.sym)));
+                        attained.setType(syms.booleanType);
+                        addAssume(that, Label.IMPLICIT_ASSUME, attained);
+                        JCBlock bl = popBlock(that);
+                        nonignoredStatements.addAll(bl.stats);
+                        result = eresult = treeutils.makeIdent(that.pos, ndecl.sym);
+                    } else if ((key.equals(qsumID) || key.equals(qproductID)) && that.type.isIntegral()
+                            && dd.size() == 1 && IntegerRangeBounds.of(dd.head.sym, range).boundsRecursion()) {
+                        // (Only for the forms SMTTranslator.recursiveQuantifier translates; others are reported
+                        // there as not supported, and their value is unconstrained)
+                        // The arithmetic within \sum and \product is \bigint arithmetic (the SMT translation
+                        // computes over unbounded integers); a result of a fixed-range type is that value
+                        // converted to the type, with the same check (or wrap-around) as an explicit cast --
+                        // unless it is itself within the body of a \sum or \product, where it stays \bigint
+                        q.setType(BIGINT);
+                        if (bigintQuantifierDepth > 0) {
+                            result = eresult = q;
+                        } else {
+                            pushBlock();
+                            JCExpression converted = addConversion(that, that.type, q, true, true);
+                            JCBlock bl = popBlock(that);
+                            nonignoredStatements.addAll(bl.stats);
+                            result = eresult = converted;
+                        }
                     } else{
 					    result = eresult = q;
 					}
@@ -21578,6 +21950,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (utils.rac && key == qchooseID) decl.init = treeutils.makeZeroEquivalentLit(that, t);
 				addStat(decl);
 				JCBlock failureBlock = null;
+				// \max and \min are not defined when no value satisfies the range (as for \choose): this
+				// flag records whether one did
+				JCVariableDecl foundMaxMin = null;
+				if (key.equals(qmaxID) || key.equals(qminID)) {
+				    foundMaxMin = treeutils.makeVarDef(syms.booleanType, names.fromString("_JML$found$$" + nextUnique()), ownersym, that.pos);
+				    foundMaxMin.init = treeutils.falseLit;
+				    addStat(foundMaxMin);
+				}
 				
 				// Label for the loop, so we can break out of it
 				Name label = names.fromString(Strings.genPrefix + "while_" + nextUnique());
@@ -21750,8 +22130,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 												"RAC not implemented for this type: " + that.type);
 
 									}
-									// FIXME - what about \bigint? should \min and \max be undefined if the range is
-									// empty?
+									// FIXME - what about \bigint?
 									JCExpression tmp = !splitExpressions ? newTemp(val) : val; // Make an ID if not
 																								// already
 									st = treeutils.makeAssignStat(that.pos, id, tmp);
@@ -21759,6 +22138,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											.If(treeutils.makeBinary(that.pos,
 													that.kind != qminKind ? JCTree.Tag.LT : JCTree.Tag.GT, idd, tmp),
 													st, null);
+									// { found = true; if (accumulator </> val) accumulator = val; }
+									st = M.at(that.pos).Block(0, List.<JCStatement>of(
+									        treeutils.makeAssignStat(that.pos, treeutils.makeIdent(that.pos, foundMaxMin.sym), treeutils.trueLit),
+									        st));
 									break;
 
 								default:
@@ -21876,6 +22259,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} finally {
 					addStat(popBlock(that, check)); // B // pops enclosing block
 				}
+				if (foundMaxMin != null) {
+				    addAssert(that, key.equals(qmaxID) ? Label.MAX : Label.MIN, treeutils.makeIdent(that.pos, foundMaxMin.sym));
+				}
 				result = eresult = treeutils.makeIdent(that.pos, decl.sym);
 			}
 		} finally {
@@ -21884,6 +22270,39 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 		}
 		return;
+	}
+
+	/**
+	 * A quantifier-free condition equivalent to (\\exists x; range; true), for a single integral
+	 * variable x and a range that is a conjunction of comparisons, each with x alone on one side
+	 * (e.g. 0 <= x < a.length, conjoined with the range of x's type); null otherwise. An integer x
+	 * satisfying all lower bounds L and upper bounds U exists exactly when every L is at most every
+	 * U, after a strict bound is moved by one: L < U if one of the pair is strict, L + 1 < U if both
+	 * are. The SMT solver proves an existential over integers only by instantiating it, which it
+	 * cannot do here (the range offers no trigger), so a well-definedness check stated as
+	 * (\\exists x; range; true) would fail even for a range such as 0 <= x < 3.
+	 */
+	protected /*@ nullable */ JCExpression nonEmptyIntegerRange(List<JCVariableDecl> decls, JCExpression range) {
+	    if (decls.size() != 1 || range == null) return null;
+	    var x = decls.head.sym;
+	    if (!(x.type.isIntegral() || x.type.tsym == BIGINT.tsym)) return null;
+	    var bounds = IntegerRangeBounds.of(x, range);
+	    if (!bounds.exact) return null;
+	    if (bounds.lower.isEmpty() || bounds.upper.isEmpty()) return null; // unbounded on one side: x exists
+	    JCExpression result = null;
+	    for (var lo: bounds.lower) {
+	        for (var hi: bounds.upper) {
+	            JCExpression c;
+	            if (lo.strict() && hi.strict()) {
+	                c = treeutils.makeBinary(range.pos, JCTree.Tag.LT,
+	                        treeutils.makeBinary(range.pos, JCTree.Tag.PLUS, lo.expr(), treeutils.makeIntLiteral(range.pos, 1)), hi.expr());
+	            } else {
+	                c = treeutils.makeBinary(range.pos, lo.strict() || hi.strict() ? JCTree.Tag.LT : JCTree.Tag.LE, lo.expr(), hi.expr());
+	            }
+	            result = result == null ? c : treeutils.makeAnd(range.pos, result, c);
+	        }
+	    }
+	    return result;
 	}
 
 	// FIXME - duplicate with what is in JmlAttr?
@@ -23548,11 +23967,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (init == null) nn = null; // FIXME - used to use isKnownNonNull
 						JCBlock bl = popBlock(that, check);
 						currentStatements.addAll(bl.stats);
-						if (nn != null && nnDecl)
+						if (nn != null && nnDecl && !rac)
 							addAssert(that, Label.POSSIBLY_NULL_INITIALIZATION, nn, that.name);
 						stat.init = init;
 						// if (splitExpressions) {
 						addStat(stat);
+						// RAC checks the variable after its declaration rather than the initializer before it,
+						// so the variable is always used after it is stored: otherwise its live range can be
+						// empty, and javac then fails writing a RUNTIME type annotation on it (#947)
+						if (nn != null && nnDecl && rac)
+							addAssert(that, Label.POSSIBLY_NULL_INITIALIZATION,
+									treeutils.makeNeqObject(that.pos, treeutils.makeIdent(that.pos, that.sym), treeutils.nullLit), that.name);
 						if (esc && !utils.isJavaOrJmlPrimitiveType(that.type)) {
 							addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeDynamicTypeInEquality(that,
 									treeutils.makeIdent(that.pos, that.sym), that.type));
@@ -24560,7 +24985,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                    if (recvSaved == null && !msym.isStatic()) currentEnv.currentReceiver = explicitThisId;
 	                JCExpression invsc = convertNoSplit(invs);
 //	                currentEnv.currentReceiver = recvSaved;
-					JCExpression pre = treeutils.makeAnd(qthisnn != null ? qthisnn : treeutils.trueLit, invsc);
+					JCExpression pre = treeutils.makeAndSimp(cs, qthisnn, invsc); // the receiver is not null (#1024)
 					if (isPrimitiveType) {
 						pre = invsc;
 					} else if (qthisid != null && classType != syms.objectType) {
@@ -24585,8 +25010,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										mcc = clause;
 									JmlMethodClauseExpr mce = (JmlMethodClauseExpr) clause;
 									// convertJML will use paramActuals
-									JCExpression e = convertNoSplit(mce.expression, pre, false); // Might throw an
-																									// exception
+									JCExpression e = convertNoSplitClauseExpression(clause, mce.expression, pre); // Might throw an exception
 									pre = treeutils.makeAndSimp(pre.pos, pre, e);
 								}
 								if (clause.clauseKind == MethodDeclClauseExtension.oldClause) {
@@ -24623,7 +25047,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 								currentStatements = ignore;
 								// addStat(comment(clause));
 								// Note - convertJML uses resultExpr and currentEnv.currentReceiver and paramActuals
-								JCExpression e = convertNoSplit(enclause.expression, condition, false);
+								JCExpression e = convertNoSplitClauseExpression(clause, enclause.expression, condition);
 								//if (msym.toString().contains("empty")) System.out.println("MAX FOR " + enclause + " IS " + e);
 								if (treeutils.isFalseLit(e)) {
 									JCExpression not = treeutils.makeNot(pre, copy(pre));
@@ -24943,7 +25367,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    }
 
 			    // fields
-			    JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, bigger);
+			    JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, sr.modelIndex, bigger);
 			    //System.out.println("CFIELD " + ft + " " + e);
 			    result = ft == null ? e : treeutils.makeOr(smaller, ft, e);
 			}
@@ -25086,7 +25510,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //                ft = convertJML(ft); // Convert in current envirnment  // FIXME - already converted???
 
                 // fields
-                JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, bigger);
+                JCExpression e = containsField(smaller, targetEnv, isSmallerConverted, sr.receiver, sr.field, sr.modelIndex, bigger);
                 //System.out.println("CHECKED " + sr.field + " VS " + bigger + " " + e);
                 return ft == null ? e : treeutils.makeOr(smaller, ft, e);
             }
@@ -25170,6 +25594,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public JCExpression containsField(DiagnosticPosition pos, TranslationEnv targetEnv, boolean isSmallerConverted,
 			JCExpression receiver, VarSymbol field, JCExpression bigger) {
+		return containsField(pos, targetEnv, isSmallerConverted, receiver, field, null, bigger);
+	}
+
+	/** As above; smallerIndex is the index range of the smaller location if it is an indexed model field
+	 * (e.g. elems[n]), and null otherwise (#980) */
+	public JCExpression containsField(DiagnosticPosition pos, TranslationEnv targetEnv, boolean isSmallerConverted,
+			JCExpression receiver, VarSymbol field, /*@ nullable */ JmlRange smallerIndex, JCExpression bigger) {
 		if (bigger instanceof JmlStoreRef sr) {
 			if (sr.isEverything) {
 				return treeutils.makeBooleanLiteral(pos, true);
@@ -25177,11 +25608,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				// If all model fields were expanded we could just compare field == sr.field, but model field
 			    // definitions can be recursive, so we can't always do that expansion
 			    //System.out.println("FIELDS " + field + " VS " + sr.field);
-				if (field == sr.field || (field != null && isContainedIn(field, sr.field))) {
-					var ee = utils.isJMLStatic(field) ? treeutils.makeBooleanLiteral(pos, true)
+				// A model field from an indexed frame item (sr.noContents) stands only for itself,
+				// not for the fields in it (#980)
+				if (field == sr.field || (field != null && !sr.noContents && isContainedIn(field, sr.field))) {
+					JCExpression ee = utils.isJMLStatic(field) ? treeutils.makeBooleanLiteral(pos, true)
 							: treeutils.makeEqObject(pos.getPreferredPosition(),
 									isSmallerConverted ? receiver : convertJML(receiver),
 											convertJML(sr.receiver, targetEnv));
+					// An indexed model field in the frame contains the same model field only at indices in its range
+					if (sr.noContents && sr.modelIndex != null) {
+						ee = treeutils.makeAndSimp(pos.getPreferredPosition(), ee,
+								indexRangeWithin(pos, targetEnv, isSmallerConverted, smallerIndex, sr.modelIndex));
+					}
 					return ee;
 				} else {
 				    // Now check all the maps clauses   // FIXME !!!
@@ -25215,14 +25653,14 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			} else if (sr.expression != null) {
 			    //System.out.println("BIGGER IS " + sr.expression);
 				return expand(pos, targetEnv, sr.expression,
-						s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, s));
+						s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, smallerIndex, s));
 			} else {
 				return treeutils.makeBooleanLiteral(pos, false);
 			}
 		} else {
             //System.out.println("BIGGER-F IS " + bigger);
             return expand(pos, targetEnv, bigger,
-                    s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, s));
+                    s -> containsField(pos, targetEnv, isSmallerConverted, receiver, field, smallerIndex, s));
 		}
 	}//
 

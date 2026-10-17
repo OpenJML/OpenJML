@@ -1,0 +1,14 @@
+#! /usr/bin/env bash
+
+## Checks the JAVA_VERSION entry of the release's jdk/release file, by running CheckJavaVersion
+## on the release's own JVM (#1012). Meaningful only for a release (zip) build.
+
+cd $(dirname $BASH_SOURCE[0])
+if [ -z "$OJBIN" ] ; then
+  OJBIN=../../../OpenJMLsrc
+fi
+
+rm -rf *.class
+## Any compiler output (e.g. lint warnings about the library specifications, as in #1015) makes the test fail
+"$OJBIN/openjml-compile" CheckJavaVersion.java || exit 1
+"$OJBIN/openjml-java" CheckJavaVersion

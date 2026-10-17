@@ -1,0 +1,30 @@
+Proving methods in Feas
+Starting proof of Feas.Feas() with prover !!!!
+Feasibility check - after static initialization : OK
+Feasibility check - after static initial state assumption : OK
+Feasibility check - after inherited fields : OK
+Feasibility check - after allocation assumption : OK
+Feasibility check - after invariants for receiver of Feas() : OK
+Feasibility check - end of preconditions : OK
+Feasibility check - before call : OK
+Feasibility check - after call : OK
+Feasibility check - at implicit return : OK
+Feasibility check - at program exit : OK
+Completed proof of Feas.Feas() with prover !!!! - no warnings
+Starting proof of Feas.f(long,long,long) with prover !!!!
+Feasibility check - after static initialization : OK
+Feasibility check - after static initial state assumption : OK
+Feasibility check - after inherited fields : OK
+Feasibility check - after field f(long,long,long).x : OK
+Feasibility check - after field f(long,long,long).y : OK
+Feasibility check - after field f(long,long,long).z : OK
+Feasibility check - after allocation assumption : OK
+Feasibility check - after invariants for receiver of f(long,long,long) : OK
+Feasibility check - end of preconditions : OK
+test/gitbug1029f/Feas.java:9:Feasibility check - after explicit assume statement : not decided (the time limit for the method's proof (--timeout-method) was reached)
+test/gitbug1029f/Feas.java:8: verify: Feasibility is unknown - time or memory limit reached: the time limit for the method's proof (--timeout-method) was reached
+    public static void f(long x, long y, long z) {
+                       ^
+Completed proof of Feas.f(long,long,long) with prover !!!! - TIMEOUT
+Completed proving methods in Feas
+1 verification failure

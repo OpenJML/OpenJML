@@ -1,0 +1,7 @@
+public class A {
+    public int k;
+
+    //@ public ghost non_null Object f;
+
+    public A();
+}

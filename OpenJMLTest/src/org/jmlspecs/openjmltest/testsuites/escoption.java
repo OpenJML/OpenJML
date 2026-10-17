@@ -63,6 +63,38 @@ public class escoption extends EscBase {
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
 
+    /** A program verified with and without --pipeline (#1037) */
+    void helpPipeline() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires i > 0;
+                  //@ ensures \\result > 0;
+                  public static int ok(int i) { return i; }
+                  //@ ensures \\result > 0;
+                  public static int bad(int i) { return i; }
+                }
+                """
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method bad",34
+                ,"/tt/TestJava.java:6: verify: Associated declaration",7
+        );
+    }
+
+    @Test // explicit, since OPENJML_pipeline=false (make unittests-par-nopipeline) changes the default
+    public void testPipeline() {
+        addOptions("--pipeline");
+        Assert.assertTrue(JmlOption.PIPELINE.isSet(context));
+        helpPipeline();
+    }
+
+    @Test
+    public void testNoPipeline() {
+        addOptions("--no-pipeline");
+        Assert.assertFalse(JmlOption.PIPELINE.isSet(context));
+        helpPipeline();
+    }
+
     @Test
     public void testOption() {
         addOptions("--normal");
@@ -88,8 +120,8 @@ public class escoption extends EscBase {
         );
         String out = output();
         Assert.assertEquals(
-              "Starting proof of tt.TestJava.bassert2(boolean,boolean) with prover !!!!" + eol + 
-              "Completed proof of tt.TestJava.bassert2(boolean,boolean) with prover !!!! - with warnings" + eol
+              "Starting proof of tt.TestJava.bassert2(boolean,boolean) with prover !!!!\n" + 
+              "Completed proof of tt.TestJava.bassert2(boolean,boolean) with prover !!!! - with warnings\n"
               ,out) ;
         Assert.assertTrue(errorOutput().isEmpty());
     }
@@ -118,14 +150,14 @@ public class escoption extends EscBase {
         );
         String out = output();
         org.junit.Assert.assertEquals(
-                "Proving methods in tt.TestJava" + eol +
-                "Starting proof of tt.TestJava.TestJava() with prover !!!!" + eol +
-                "Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings" + eol +
-                "Starting proof of tt.TestJava.bassert(boolean,boolean) with prover !!!!" + eol + 
-                "Completed proof of tt.TestJava.bassert(boolean,boolean) with prover !!!! - with warnings" + eol +
-                "Starting proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!!" + eol + 
-                "Completed proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!! - with warnings" + eol +
-                "Completed proving methods in tt.TestJava" + eol 
+                "Proving methods in tt.TestJava\n" +
+                "Starting proof of tt.TestJava.TestJava() with prover !!!!\n" +
+                "Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings\n" +
+                "Starting proof of tt.TestJava.bassert(boolean,boolean) with prover !!!!\n" + 
+                "Completed proof of tt.TestJava.bassert(boolean,boolean) with prover !!!! - with warnings\n" +
+                "Starting proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!!\n" + 
+                "Completed proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!! - with warnings\n" +
+                "Completed proving methods in tt.TestJava\n" 
                 ,out) ;
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
@@ -160,14 +192,14 @@ public class escoption extends EscBase {
         );
         String out = output();
         org.junit.Assert.assertEquals(
-                "Proving methods in tt.TestJava" + eol +
-                "Starting proof of tt.TestJava.TestJava() with prover !!!!" + eol +
-                "Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings" + eol +
-                "Starting proof of tt.TestJava.bassert(boolean,boolean) with prover !!!!" + eol + 
-                "Completed proof of tt.TestJava.bassert(boolean,boolean) with prover !!!! - with warnings" + eol + 
-                "Starting proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!!" + eol + 
-                "Completed proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!! - with warnings" + eol +
-                "Completed proving methods in tt.TestJava" + eol 
+                "Proving methods in tt.TestJava\n" +
+                "Starting proof of tt.TestJava.TestJava() with prover !!!!\n" +
+                "Completed proof of tt.TestJava.TestJava() with prover !!!! - no warnings\n" +
+                "Starting proof of tt.TestJava.bassert(boolean,boolean) with prover !!!!\n" + 
+                "Completed proof of tt.TestJava.bassert(boolean,boolean) with prover !!!! - with warnings\n" + 
+                "Starting proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!!\n" + 
+                "Completed proof of tt.TestJava.bassert3(boolean,boolean) with prover !!!! - with warnings\n" +
+                "Completed proving methods in tt.TestJava\n" 
               ,out) ;
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
@@ -197,14 +229,14 @@ public class escoption extends EscBase {
         );
         String out = output();
         org.junit.Assert.assertEquals(
-                "Proving methods in tt.TestJava" + eol +
-                "Skipping proof of tt.TestJava.TestJava() (Skipping tt.TestJava.TestJava because it does not match bassert)" + eol +
-                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (Skipping tt.TestJava.bassert because it matches the exclusion tt.TestJava.bassert(boolean,boolean))" + eol + 
-                "Starting proof of tt.TestJava.bassert() with prover !!!!" + eol + 
-                "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
-                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (Skipping tt.TestJava.bassert2 because it does not match bassert)" + eol + 
-                "Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)" + eol + 
-                "Completed proving methods in tt.TestJava" + eol 
+                "Proving methods in tt.TestJava\n" +
+                "Skipping proof of tt.TestJava.TestJava() (Skipping tt.TestJava.TestJava because it does not match bassert)\n" +
+                "Skipping proof of tt.TestJava.bassert(boolean,boolean) (Skipping tt.TestJava.bassert because it matches the exclusion tt.TestJava.bassert(boolean,boolean))\n" + 
+                "Starting proof of tt.TestJava.bassert() with prover !!!!\n" + 
+                "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings\n" +
+                "Skipping proof of tt.TestJava.bassert2(boolean,boolean) (Skipping tt.TestJava.bassert2 because it does not match bassert)\n" + 
+                "Skipping proof of tt.TestJava.bassert3(boolean,boolean) (excluded by skipesc)\n" + 
+                "Completed proving methods in tt.TestJava\n" 
               ,out) ;
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }
@@ -234,10 +266,10 @@ public class escoption extends EscBase {
         );
         String out = output();
         org.junit.Assert.assertEquals(
-                "Proving methods in tt.TestJava" + eol +
-                "Starting proof of tt.TestJava.bassert() with prover !!!!" + eol + 
-                "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings" + eol +
-                "Completed proving methods in tt.TestJava" + eol 
+                "Proving methods in tt.TestJava\n" +
+                "Starting proof of tt.TestJava.bassert() with prover !!!!\n" + 
+                "Completed proof of tt.TestJava.bassert() with prover !!!! - no warnings\n" +
+                "Completed proving methods in tt.TestJava\n" 
               ,out) ;
         org.junit.Assert.assertTrue(errorOutput().isEmpty());
     }

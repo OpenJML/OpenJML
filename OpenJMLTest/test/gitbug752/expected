@@ -4,15 +4,23 @@ Skipping proof of A.A() (Skipping A.A because it does not match z)
 Skipping proof of A.m() (Skipping A.m because it does not match z)
 Skipping proof of A.q() (Skipping A.q because it does not match z)
 Completed proving methods in A
+warning: No method matches the --method item 'z'
+1 warning
 USING PROPERTIES
 Proving methods in A
 Completed proving methods in A
+warning: No method matches the --method item 'z'
+1 warning
 USING ENV VAR
 Proving methods in A
 Skipping proof of A.A() (Skipping A.A because it does not match z)
 Skipping proof of A.m() (Skipping A.m because it does not match z)
 Skipping proof of A.q() (Skipping A.q because it does not match z)
 Completed proving methods in A
+warning: No method matches the --method item 'z'
+1 warning
 USING ENV VAR
 Proving methods in A
 Completed proving methods in A
+warning: No method matches the --method item 'z'
+1 warning

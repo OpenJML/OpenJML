@@ -5,5 +5,25 @@
 cd "$LOCAL"
 BIN=../../../OpenJMLsrc
 PATH=$BIN:$PATH
-export ROOT=`(cd ../../../.. ; pwd)`
+export REPO=`(cd ../../.. ; pwd)`   ## This checkout (usually named OpenJML)
+export ROOT=`(cd ../../../.. ; pwd)` ## The folder containing it, Specs, Solvers, etc.
 export SPECS=`(cd $ROOT/Specs/specs; pwd)`
+
+## Prints the named expected-output file with $ROOT/OpenJML (this checkout), $ROOT and $SPECS replaced
+expected_output() { sed -e "s%\$ROOT/OpenJML/%$REPO/%g" -e "s%\$ROOT%$ROOT%g" -e "s%\$SPECS%$SPECS%g" "$1"; }
+
+## Classpath separator for the JDK: ';' for a Windows JDK
+CPSEP=":"
+## A Windows JDK under WSL (#1035) writes \r\n line ends, Windows paths, and the Windows code page:
+## diff compares with \n, '/' and WSL (/mnt/x/) paths, and openjml writes UTF-8
+if grep -qsi microsoft /proc/version && ls "$BIN"/build/*/jdk/bin/java.exe >/dev/null 2>&1; then
+    CPSEP=";"
+    winnorm() { perl -pe 's/\r$//; s%\\%/%g; s%\b([A-Za-z]):/%/mnt/\l$1/%g'; }
+    diff() {
+        local a="${@: -2:1}" b="${@: -1}"
+        [ "$a" = - ] && a=/dev/stdin
+        [ "$b" = - ] && b=/dev/stdin
+        command diff "${@:1:$#-2}" <(winnorm < "$a") <(winnorm < "$b")
+    }
+    openjml() { command openjml -J-Dstdout.encoding=UTF-8 -J-Dstderr.encoding=UTF-8 "$@"; }
+fi

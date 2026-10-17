@@ -1,6 +1,18 @@
+// RAC and ESC (primrac.jmlbigint, primesc1.jmlbigint): a cast of a \bigint to an integral type narrows as Java
+// does -- the value modulo 2^n, in the type's range (char is unsigned) -- in every arithmetic mode; the modes
+// differ only in whether an out-of-range argument is reported (#1018):
+//   s0-s4: Safe math (the default): one "argument to numeric cast is out of range" report per cast
+//          (m0-m4 show the same values, as before)
+//   j0-j4: Java math: no report
+//   b0-b4: \bigint math: one report per cast
+// (Long.MIN_VALUE + 49L, not + 49: see #1019.)
+// With z == 50, each argument is just above the type's maximum, so each check tests the narrowed value.
+// m5-m9 call the explicit conversion methods (byteValue() etc.), which check their argument's range.
+// Also: ESC, in test/jmlbigintCasts; casts between Java integral types (including char), in test/gitbug1018.
 public class Tcasts {
   public static void main(String... args) { //-ESC@ set System.out.println("CASTS");
       m1(); m2(); m3(); m4(); m5(); m6(); m7(); m8(); m9(); m10(); p1((short)0); p2((short)0); p3((short)0); p4((short)0);
+      s0(); s1(); s2(); s3(); s4(); j0(); j1(); j2(); j3(); j4(); b0(); b1(); b2(); b3(); b4();
   }
   
   public static void m0() {
@@ -71,5 +83,76 @@ public class Tcasts {
   }
   public static void p4(short s) {
       //@ ghost var ss = (short)(\bigint)s;
+  }
+
+  //@ code_java_math spec_java_math
+  public static void j0() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+  }
+  //@ code_java_math spec_java_math
+  public static void j1() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+  }
+  //@ code_java_math spec_java_math
+  public static void j2() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+  }
+  //@ code_java_math spec_java_math
+  public static void j3() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (int)(z+Integer.MAX_VALUE) == -2147483599;
+  }
+  //@ code_java_math spec_java_math
+  public static void j4() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (long)(z+Long.MAX_VALUE) == Long.MIN_VALUE + 49L;
+  }
+  //@ code_bigint_math spec_bigint_math
+  public static void b0() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+  }
+  //@ code_bigint_math spec_bigint_math
+  public static void b1() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+  }
+  //@ code_bigint_math spec_bigint_math
+  public static void b2() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+  }
+  //@ code_bigint_math spec_bigint_math
+  public static void b3() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (int)(z+Integer.MAX_VALUE) == -2147483599;
+  }
+  //@ code_bigint_math spec_bigint_math
+  public static void b4() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (long)(z+Long.MAX_VALUE) == Long.MIN_VALUE + 49L;
+  }
+  public static void s0() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (byte)(z+Byte.MAX_VALUE) == -79;
+  }
+  public static void s1() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (short)(z+Short.MAX_VALUE) == -32719;
+  }
+  public static void s2() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (char)(z+2*Character.MAX_VALUE) == 48;
+  }
+  public static void s3() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (int)(z+Integer.MAX_VALUE) == -2147483599;
+  }
+  public static void s4() {
+      //@ ghost \bigint z = \bigint.one*50;
+      //@ check (long)(z+Long.MAX_VALUE) == Long.MIN_VALUE + 49L;
   }
 }

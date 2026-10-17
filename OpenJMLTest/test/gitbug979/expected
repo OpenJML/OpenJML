@@ -1,0 +1,10 @@
+Proving methods in SimpleExample
+Starting proof of SimpleExample.SimpleExample() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SimpleExample.SimpleExample() with prover !!!! - no warnings
+Starting proof of SimpleExample.setBoth(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SimpleExample.setBoth(int) with prover !!!! - no warnings
+Completed proving methods in SimpleExample

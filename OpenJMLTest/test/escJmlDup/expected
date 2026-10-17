@@ -1,17 +1,35 @@
-test/escJmlDup/StorageParameters.jml:6: error: the type modifier/annotation is not permitted on a primitive type: long
+test/escJmlDup/StorageParameters.jml:6: warning: the annotation /*@ nullable */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ nullable */ []
     private @org.jmlspecs.annotation.Nullable long[] configurationSizes;
             ^
-test/escJmlDup/StorageParameters.jml:7: error: the type modifier/annotation is not permitted on a primitive type: long
+test/escJmlDup/StorageParameters.jml:7: warning: the annotation /*@ non_null */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ non_null */ []
     //@ ghost private non_null long[] x;
                       ^
-test/escJmlDup/StorageParameters.jml:9: error: the type modifier/annotation is not permitted on a primitive type: long
+test/escJmlDup/StorageParameters.jml:9: warning: the annotation /*@ nullable */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ nullable */ []
 	public StorageParameters( @org.jmlspecs.annotation.Nullable long[] sizes );
 	                          ^
-test/escJmlDup/StorageParameters.jml:12: error: the type modifier/annotation is not permitted on a primitive type: long
+test/escJmlDup/StorageParameters.jml:12: warning: the annotation /*@ nullable */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ nullable */ []
 	/*@ spec_public @*/ @org.jmlspecs.annotation.Nullable long[] getConfigurationSizes();
 	                    ^
-test/escJmlDup/StorageParameters.jml:17: error: the type modifier/annotation is not permitted on a primitive type: long
+test/escJmlDup/StorageParameters.jml:17: warning: the annotation /*@ non_null */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ non_null */ []
     //@ model non_null long[] xx();
               ^
-Operation not performed because of parse or type errors
-5 errors
+Proving methods in StorageParameters
+Starting proof of StorageParameters.StorageParameters(long[]) with prover !!!!
+test/escJmlDup/StorageParameters.jml:7: verify: The prover cannot establish an assertion (NullField) in method StorageParameters
+    //@ ghost private non_null long[] x;
+                                      ^
+Completed proof of StorageParameters.StorageParameters(long[]) with prover !!!! - with warnings
+Starting proof of StorageParameters.getConfigurationSizes() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of StorageParameters.getConfigurationSizes() with prover !!!! - no warnings
+Starting proof of StorageParameters.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of StorageParameters.main(String...) with prover !!!! - no warnings
+Starting proof of StorageParameters.xx() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of StorageParameters.xx() with prover !!!! - no warnings
+Completed proving methods in StorageParameters
+5 warnings
+1 verification failure

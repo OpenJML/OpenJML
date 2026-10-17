@@ -1,0 +1,39 @@
+test/gitbug996/SimpleExample.java:8: warning: the annotation /*@ nullable */ is in the wrong position: the element type int cannot take it; it is used as if written on the array type: int /*@ nullable */ []
+    public boolean isNull(/*@ nullable @*/ int[] a) { // warning; the array is nullable
+                              ^
+test/gitbug996/SimpleExample.java:18: warning: the annotation /*@ non_null */ is in the wrong position: the element type int cannot take it; it is used as if written on the array type: int /*@ non_null */ []
+    public void nonNull(/*@ non_null @*/ int[] a) { // warning; the array is non-null
+                            ^
+test/gitbug996/SimpleExample.java:22: warning: the annotation /*@ nullable */ is in the wrong position: the element type int cannot take it; it is used as if written on the array type: int /*@ nullable */ []
+    public int length(/*@ nullable @*/ int[] a) { // warning
+                          ^
+Proving methods in SimpleExample
+Starting proof of SimpleExample.SimpleExample() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SimpleExample.SimpleExample() with prover !!!! - no warnings
+Starting proof of SimpleExample.isNull(int @Nullable []) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SimpleExample.isNull(int @Nullable []) with prover !!!! - no warnings
+Starting proof of SimpleExample.isNullRight(int @Nullable []) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SimpleExample.isNullRight(int @Nullable []) with prover !!!! - no warnings
+Starting proof of SimpleExample.nonNull(int @NonNull []) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SimpleExample.nonNull(int @NonNull []) with prover !!!! - no warnings
+Starting proof of SimpleExample.length(int @Nullable []) with prover !!!!
+test/gitbug996/SimpleExample.java:23: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method length
+        return a.length; // ERROR: a may be null
+                ^
+Completed proof of SimpleExample.length(int @Nullable []) with prover !!!! - with warnings
+Starting proof of SimpleExample.objects(@Nullable Object[]) with prover !!!!
+test/gitbug996/SimpleExample.java:29: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method objects: o
+        Object o = a[0]; // ERROR: an element may be null, but o is non_null
+               ^
+Completed proof of SimpleExample.objects(@Nullable Object[]) with prover !!!! - with warnings
+Completed proving methods in SimpleExample
+3 warnings
+2 verification failures

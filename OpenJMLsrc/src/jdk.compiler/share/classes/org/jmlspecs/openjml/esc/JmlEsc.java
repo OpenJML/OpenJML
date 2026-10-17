@@ -233,12 +233,14 @@ public class JmlEsc extends JmlTreeScanner {
         // Do any nested classes and methods first (which will recursively call visitMethodDef)
         super.visitMethodDef(methodDecl);
 
+        // filter is applied even to a skipesc method, so that a --method item that selects it is recorded as
+        // matching a method (cf. Utils.warnUnmatchedMethodItems)
+        var reason = utils.filter(methodDecl);
         if (skip(methodDecl)) {
             markMethodSkipped(methodDecl," (excluded by skipesc)"); //$NON-NLS-1$
             return;
         }
 
-        var reason = utils.filter(methodDecl);
         if (reason != null) {
             markMethodSkipped(methodDecl," (" + reason + ")"); //$NON-NLS-1$ // FIXME excluded by -method or -exclude
             return;

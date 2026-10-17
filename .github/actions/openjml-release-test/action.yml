@@ -4,11 +4,6 @@ description: 'A composite action that runs the OpenJML release tests on an exist
 ## Presumes the current working folder is the one containing OpenJML, Specs, Solvers, JMLAnnotations etc.
 ## and that a release build has already been performed in OpenJML/OpenJMLsrc.
 
-inputs:
-  arch:
-    description: 'Target architecture: "x86_64" to build under arch -x86_64 (Rosetta 2) for Intel; anything else builds natively'
-    default: 'default'
-
 runs:
   using: 'composite'
   steps:

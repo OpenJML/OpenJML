@@ -211,10 +211,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     // This class is in the runtime library
     /*@non_null*/ public static String runtimeClassName = "org.jmlspecs.runtime.Utils";
     
-    /** Cached symbol of the org.jmlspecs.runtiome.Runtime class */
+    /** Cached symbol of the runtime utility class (named by the runtimeClassName field) */
     /*@non_null*/ public ClassSymbol runtimeClass;
     
-    /** Cached identifier of the org.jmlspecs.runtime.Runtime class */
+    /** Cached identifier of the runtime utility class (named by the runtimeClassName field) */
     /*@non_null*/ protected JCIdent runtimeClassIdent;
     
     /** Cached value of the datagroup class */
@@ -1942,7 +1942,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.warning(WarningCategory.JML_LINT, t.source, t.pos,"jml.inline.should.be.final",msym.name.toString());
             }
 
-            checkMethodJavaModifiersMatch(javaMethodTree, msym, specDecl, (ClassSymbol)specDecl.sym.owner);
+            // msym is the specification declaration's own symbol when a specification class is attributed as a whole;
+            // the Java annotations and flags to compare against are on the Java (e.g. binary) symbol (#1015)
+            checkMethodJavaModifiersMatch(javaMethodTree, mspecs.javaSym != null ? mspecs.javaSym : msym, specDecl, (ClassSymbol)specDecl.sym.owner);
             
 //
 //      // FIXME - we do need to exclude some anonymous classes,  but all of them?
@@ -4275,6 +4277,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
     }
     
+    /** In a frame, x[i] is a location only if x is an array, or a model field, whose index is applied to the
+     * arrays mapped into it (#980); for a model field, the index (or the bounds of a range) must be integers. */
+    protected void checkIndexedStoreRef(JCArrayAccess aa) {
+        Type t = aa.indexed.type;
+        if (t == null || t.isErroneous() || t instanceof Type.ArrayType) return;
+        if (TreeInfo.symbol(aa.indexed) instanceof VarSymbol v && v.owner instanceof TypeSymbol && utils.isModel(v)) {
+            JCExpression[] bounds = aa.index instanceof JmlRange r ? new JCExpression[]{ r.lo, r.hi } : new JCExpression[]{ aa.index };
+            for (JCExpression b : bounds) {
+                if (b != null && b.type != null && !b.type.isErroneous() && !jmltypes.isAnyIntegral(b.type)) {
+                    log.error(b.pos, "jml.storeref.model.index.not.integral", v.name, b.type);
+                }
+            }
+            return;
+        }
+        log.error(aa.indexed.pos, "jml.storeref.not.indexable", aa.toString(), aa.indexed.toString(), t);
+    }
+
     /** This is an implementation that does the type attribution for 
      * assignable/accessible/captures method specification clauses
      * @param tree the method specification clause being attributed
@@ -4286,6 +4305,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         for (JCTree e: tree.list) {
             attribExpr(e, env, Type.noType);
             if (!isRefining && e instanceof JCIdent) checkIfParameter((JCIdent)e);
+            if (e instanceof JCArrayAccess aa) checkIndexedStoreRef(aa);
             if (jmlenv.currentClauseKind == assignableClauseKind) {
                 if (e instanceof JCFieldAccess fa  && fa.selected.type.tsym instanceof ClassSymbol cs) {
                     if (isImmutable(cs)) {
@@ -5135,7 +5155,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         super.visitConditional(that);
         // The following is primarily to handle cases like b ? 0 : bigint-expression
         // Note -- need to check both as expressions and declaration initializers
-        result = that.type = condType(List.of(that.truepart, that.falsepart), List.of(that.truepart.type, that.falsepart.type));
+        // Only when a branch is \bigint or \real: otherwise javac's type stands, and for a poly
+        // conditional (e.g. a method argument) a branch may still be DEFERRED during speculative
+        // attribution, which condType cannot handle (#671)
+        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
+        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
+        if (that.truepart.type == BIGINT || that.truepart.type == REAL || that.falsepart.type == BIGINT || that.falsepart.type == REAL)
+            result = that.type = condType(List.of(that.truepart, that.falsepart), List.of(that.truepart.type, that.falsepart.type));
 //                ;        var BIGINT = JmlPrimitiveTypes.bigintTypeKind.getType(context);
 //        var REAL = JmlPrimitiveTypes.realTypeKind.getType(context);
 //        if (that.truepart.type == BIGINT && jmltypes.isAnyIntegral(that.falsepart.type)) {
@@ -5183,10 +5209,24 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.error(that, "jml.message", "No allowed implicit conversion permits this operation on JML types: " + left + " " + operator.name + " " + right);
                 }
             }
+            // The operators on generic JML types (e.g. \seq<T> + \seq<T>) are declared with the
+            // operator's own type variables, so the return type is, e.g., \seq<T>; take the type from an
+            // operand of the same JML type instead (whose type arguments may be type variables of the
+            // context, such as a class's E). Otherwise the operator's unresolved T survives into, e.g.,
+            // the type of a conditional expression with such an operand (#963)
+            if (hasTypeVariableArgument(rt)) {
+                if (left.tsym == rt.tsym) rt = left;
+                else if (right.tsym == rt.tsym) rt = right;
+            }
             that.type = rt;
             return rt;
         }
         return null;
+    }
+
+    /** Whether some type argument of t is a type variable */
+    private static boolean hasTypeVariableArgument(Type t) {
+        return t.getTypeArguments().stream().anyMatch(a -> a instanceof Type.TypeVar);
     }
     
     private static int intValue(Type x) { return ((Number)x.constValue()).intValue(); }
@@ -5506,6 +5546,9 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     }
     
     public java.util.List<JmlQuantifiedExpr> quantifiedExprs = new LinkedList<JmlQuantifiedExpr>();
+
+    /** file:position of the quantified expressions already warned about having no trigger (see QuantifiedExpressions.warnIfNoTrigger) */
+    public java.util.Set<String> quantifierTriggerWarnings = new java.util.HashSet<>();
     
     public void visitJmlQuantifiedExpr(JmlQuantifiedExpr that) {
         boolean saved = this.attribJmlDecls;
@@ -7601,9 +7644,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         {
             
             Name defempty = names.fromString("defaultEmpty");
-//        	Type t = runtimeClass.type;
-//        	var tt = jmlMaker.Type(t);
-//        	var eee = utils.nametree(Position.NOPOS, Position.NOPOS, "org.jmlspecs.runtime.Runtime.defaultEmpty", null);
         	
             JCFieldAccess sel = jmlMaker.Select(jmlMaker.Type(runtimeClass.type),defempty);
             JCExpression e = jmlMaker.Apply(List.<JCExpression>of(jmlMaker.Type(boxedVarType)),sel,List.<JCExpression>nil()); 
@@ -9066,7 +9106,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
         public void visitBlock(JmlBlock tree)                          { visitTree(tree); }
         public void visitImport(JCImport tree)                         { visitTree(tree); }
-        public void visitNewClass(JCNewClass tree)                     { visitTree(tree); }
+        // visitNewClass is not overridden: ArgumentAttr's infers a diamond 'new' from the argument's
+        // target type (#878), and attributes any other 'new' as a plain expression, with a fresh
+        // ResultInfo. Delegating to Attr instead, under the method-argument ResultInfo, left a
+        // diamond argument raw, and crashed on an anonymous class argument (MethodAttrInfo.dup)
         public void visitJmlBinary(JmlBinary tree)                     { visitTree(tree); }
         public void visitJmlChained(JmlChained tree)                   { visitTree(tree); }
         public void visitJmlChoose(JmlChoose tree)                     { visitTree(tree); }

@@ -212,22 +212,25 @@ public class MethodProverSMT {
     /** Returns the prover executable given by the --exec option, or null if there is none, in which
      * case jSMTLIB finds the executable from the solver name: the solver's .command or .exec property,
      * or else the solver name itself, in the SMT_SOLVER_DIR folder (set by the openjml scripts).
-     * Reports an error and returns null if the --exec file does not exist. */
+     * Reports an error and returns null if the --exec file does not exist.
+     * A relative --exec path is relative to the current directory; it is returned as an absolute path,
+     * since jSMTLIB takes a relative executable path to be relative to SMT_SOLVER_DIR. */
     public static /*@ nullable */ String pickProverExec(String proverToUse, Context context) {
         String exec = JmlOption.PROVEREXEC.value(context);
         if (exec == null || exec.isEmpty()) return null;
-        if (!new java.io.File(exec).exists()) {
+        java.io.File f = new java.io.File(exec);
+        if (!f.exists()) {
             Utils.instance(context).errorNoSource("jml.message","Specified executable does not exist: \"" + exec + "\"");
             return null;
         }
-        return exec;
+        return f.getAbsolutePath();
     }
 
     /** The executable that will be used for the prover: the --exec value, or else the one jSMTLIB
      * resolves from the solver name (null if the solver is launched by a .command property) */
     public static /*@ nullable */ String proverExec(String proverToUse, Context context) {
         String exec = JmlOption.PROVEREXEC.value(context);
-        if (exec != null && !exec.isEmpty()) return exec;
+        if (exec != null && !exec.isEmpty()) return new java.io.File(exec).getAbsolutePath();
         return solverExec(proverToUse);
     }
 
@@ -258,6 +261,29 @@ public class MethodProverSMT {
         if (solver != null) solver.forceExit();
         if (solver2 != null) solver2.forceExit();
         aborted = true;
+    }
+
+    /** The explanation given when a method's proof is stopped by --timeout-method */
+    static final String methodTimeLimitMessage = "the time limit for the method's proof (--timeout-method) was reached";
+
+    /** True if the solver stopped because the time limit for the method's proof (--timeout-method, the solver's
+     * whole-run limit) was reached: jSMTLIB then answers responseFactory.timeout(), whatever the solver (#1029) */
+    protected boolean methodTimeLimitReached(SMT smt, IResponse response) {
+        return smt.smtConfig.responseFactory.timeout().equals(response);
+    }
+
+    /** Thrown when a solver request gets the timeout response, i.e. the time limit for the method's proof
+     * (--timeout-method) ended the solver while further information was being requested from it (e.g. the values
+     * of a counterexample); the whole-run limit runs on the wall clock, so this can happen at any request.
+     * Caught in prove() (#1029). */
+    static class MethodTimeLimitException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+    }
+
+    /** Returns the response, or throws MethodTimeLimitException if it says the method's time limit ended the solver */
+    protected IResponse checkTimeLimit(SMT smt, IResponse response) {
+        if (methodTimeLimitReached(smt, response)) throw new MethodTimeLimitException();
+        return response;
     }
 
     /** The entry point to initiate proving a method. In the current implementation
@@ -368,12 +394,23 @@ public class MethodProverSMT {
 //            log.warning("jml.message","Expected an integer for a seed: " + strseed);
 //        }
         smt.processCommandLine(new String[]{}, smt.smtConfig);
+        smt.smtConfig.pipeline = JmlOption.PIPELINE.isSet(context); // scripts are sent pipelined (IScript.execute)
         Object o = JmlOption.TIMEOUT.value(context);
         if (o != null && !o.toString().isEmpty()) {
             try {
-                smt.smtConfig.timeout = Double.parseDouble(o.toString());
+                smt.smtConfig.timeout = Double.parseDouble(o.toString()); // 0 (or less) means no timeout
             } catch (NumberFormatException e) {
                 utils.warning("jml.message","Timeout value cannot be parsed as a double: " + o);
+            }
+        }
+        // A method's proof (all of its queries) runs in one solver process, so the solver's whole-run limit
+        // bounds the method (#1029)
+        o = JmlOption.TIMEOUT_METHOD.value(context);
+        if (o != null && !o.toString().isEmpty()) {
+            try {
+                smt.smtConfig.timeoutTotal = Double.parseDouble(o.toString()); // 0 (or less) means no limit
+            } catch (NumberFormatException e) {
+                utils.warning("jml.message","Method timeout value cannot be parsed as a double: " + o);
             }
         }
 
@@ -499,8 +536,15 @@ public class MethodProverSMT {
             log.getWriter(WriterKind.NOTICE).println("Proof result is " + smt.smtConfig.defaultPrinter.toString(solverResponse));
         }
 
-        {
+        boolean checkingFeasibility = false; // for the message if the method's time limit is reached
+        boolean failureReported = false; // whether a verification failure has been completely reported
+        try {
             IResponse unsatResponse = smt.smtConfig.responseFactory.unsat();
+            if (methodTimeLimitReached(smt, solverResponse)) {
+                utils.verify(methodDecl, "esc.resourceout", methodTimeLimitMessage);
+                solver.exit();
+                return factory.makeProverResult(methodDecl,proverToUse,IProverResult.TIMEOUT,start);
+            }
             if (solverResponse.isError()) {
                 if (aborted) {
                     throw new Main.JmlCanceledException("Aborted by user");
@@ -540,7 +584,7 @@ public class MethodProverSMT {
 //                }
                 if (doit || !Strings.feasibilityContains(Strings.feas_none,context)) {
                     if (usePushPop) {
-                        solver.pop(1); // Pop off previous check_sat
+                        checkTimeLimit(smt, solver.pop(1)); // Pop off previous check_sat
                     } else {
                         solver.exit();
                     }
@@ -559,6 +603,8 @@ public class MethodProverSMT {
                         }
                     }
                     String scriptString = program.toString();
+                    boolean warnedNonlinear = false; // the esc.feasibility.nonlinear warning is given at most once per method
+                    checkingFeasibility = true;
                     if (checks != null) for (JmlStatementExpr stat: checks) {
                         if (aborted) {
                         	throw new Main.JmlCanceledException("Aborted by user");
@@ -613,12 +659,12 @@ public class MethodProverSMT {
                         }
                         if (usePushPop) {
                             duration = System.currentTimeMillis();
-                            solver.pop(1); // Pop off previous setting of assumeCheck
-                            solver.push(1); // Mark the top
+                            checkTimeLimit(smt, solver.pop(1)); // Pop off previous setting of assumeCheck
+                            checkTimeLimit(smt, solver.push(1)); // Mark the top
                             JCExpression bin = treeutils.makeBinary(Position.NOPOS,JCTree.Tag.EQ,treeutils.inteqSymbol,
                                     treeutils.makeIdent(Position.NOPOS,jmlesc.assertionAdder.feasCheckSym),
                                     treeutils.makeIntLiteral(Position.NOPOS, feasibilityCheckNumber));
-                            solver.assertExpr(smttrans.convertExpr(bin));
+                            checkTimeLimit(smt, solver.assertExpr(smttrans.convertExpr(bin)));
                             solverResponse = solver.check_sat();
                             duration = (System.currentTimeMillis() - duration)/1000.0;
                         }
@@ -628,6 +674,13 @@ public class MethodProverSMT {
                                 ("Feasibility check #" + feasibilityCheckNumber + " - " + description + " : ")
                                 :("Feasibility check - " + description + " : ");
                         //System.out.println("   SOLVER " + solverResponse);
+                        if (methodTimeLimitReached(smt, solverResponse)) {
+                            // The solver has stopped, so the remaining feasibility checks cannot be made
+                            utils.progress(0,Utils.PROGRESS,fileLocation + msg2 + "not decided (" + methodTimeLimitMessage + ")");
+                            utils.verify(methodDecl, "esc.resourceout.feasibility", methodTimeLimitMessage);
+                            proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.TIMEOUT,start);
+                            break;
+                        }
                         boolean infeasible = solverResponse.equals(unsatResponse);
                         if (utils.testingMode) fileLocation = loc;
                         String msgOK = fileLocation + msg2 + "OK" + (utils.testingMode || !JmlOption.SHOW_SUMMARY.isSet(context) ? "" : String.format(" [%4.2f secs]", duration));
@@ -649,7 +702,7 @@ public class MethodProverSMT {
                             log.report(d);
                             return factory.makeProverResult(methodDecl,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                         } else if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
-                            IResponse unknownReason = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown")); // Not widely supported
+                            IResponse unknownReason = checkTimeLimit(smt, solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown"))); // Not widely supported
                             if (unknownReason.equals(smt.smtConfig.responseFactory.unsupported())) {
                                 // continue
                                 utils.progress(0,Utils.PROGRESS,fileLocation + msg2 + "unknown reason: unsupported");
@@ -667,6 +720,10 @@ public class MethodProverSMT {
                                     String msg4 = smt.smtConfig.defaultPrinter.toString(value);
                                     unknownReason = smt.smtConfig.responseFactory.error(msg2);
                                     boolean timeout = msg4.contains("timeout");
+                                    if (smttrans.nonlinear && !warnedNonlinear) {
+                                        warnedNonlinear = true;
+                                        utils.verify(methodDecl,"esc.feasibility.nonlinear",utils.qualifiedMethodSig(methodDecl.sym));
+                                    }
                                     if (timeout) {
                                         utils.verify(methodDecl,"esc.resourceout.feasibility",": " + msg3 + msg4);
                                         proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.TIMEOUT,start);
@@ -698,6 +755,11 @@ public class MethodProverSMT {
                     	throw new Main.JmlCanceledException("Aborted by user");
                     }
 
+                    if (methodTimeLimitReached(smt, solverResponse)) {
+                        utils.verify(methodDecl, "esc.resourceout", methodTimeLimitMessage);
+                        if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.TIMEOUT,start);
+                        break b;
+                    }
                     if (solverResponse.isError()) {
                         solver.exit();
                         //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
@@ -706,7 +768,7 @@ public class MethodProverSMT {
                         return factory.makeProverResult(methodDecl,proverToUse,IProverResult.ERROR,start).setOtherInfo(d);
                     }
                     if (solverResponse.equals(smt.smtConfig.responseFactory.unknown())) {
-                        IResponse unknownReason = solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown")); // Not widely supported
+                        IResponse unknownReason = checkTimeLimit(smt, solver.get_info(smt.smtConfig.exprFactory.keyword(":reason-unknown"))); // Not widely supported
                         if (unknownReason.equals(smt.smtConfig.responseFactory.unsupported())) {
                             // continue
                         } else if (unknownReason instanceof IResponse.IAttributeList) {
@@ -733,10 +795,10 @@ public class MethodProverSMT {
                         }
                         
                         // Instead, try to get a simple value and see if there is a model
-                        IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
+                        IResponse r = checkTimeLimit(smt, solver.get_value(smt.smtConfig.exprFactory.symbol("NULL")));
                         if (r.isError()) {
                             String msg = ": ";
-                            if (JmlOption.TIMEOUT.value(context) != null) msg = " (possible timeout): ";
+                            if (smt.smtConfig.timeout > 0) msg = " (possible timeout): ";
                             utils.verify(methodDecl,"esc.nomodel","method " + utils.qualifiedName(methodDecl.sym) + " - " + msg + r);
                             if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.UNKNOWN,start);
                             break b;
@@ -745,10 +807,10 @@ public class MethodProverSMT {
                     }
                     
                     // If we don't clearly know the prover failed, we try to get a simple value and see if there is a model
-                    IResponse r = solver.get_value(smt.smtConfig.exprFactory.symbol("NULL"));
+                    IResponse r = checkTimeLimit(smt, solver.get_value(smt.smtConfig.exprFactory.symbol("NULL")));
                     if (r.isError()) {
                         String msg = ": ";
-                        if (JmlOption.TIMEOUT.value(context) != null) msg = " (possible timeout): ";
+                        if (smt.smtConfig.timeout > 0) msg = " (possible timeout): ";
                         utils.verify(methodDecl,"esc.nomodel",msg + r);
                         if (!haveFailedAssertion) proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.UNKNOWN,start);
                         break b;
@@ -785,6 +847,7 @@ public class MethodProverSMT {
                         haveFailedAssertion = hadFailedAssertion;
                         break;
                     }
+                    if (pathCondition != null) failureReported = true;
                     
                     //if (showTrace && pathCondition != null) log.getWriter(WriterKind.NOTICE).println("PATH CONDITION " + pathCondition.toString());
                     if (showTrace) log.getWriter(WriterKind.NOTICE).println(tracer.text());
@@ -818,11 +881,15 @@ public class MethodProverSMT {
 
                     if (--count <= 0) break;
                     
-                    solver.pop(1); // pops off all of the previous check_sat
-                    solver.assertExpr(smttrans.convertExpr(pathCondition));
-                    solver.push(1); // mark the top again
+                    checkTimeLimit(smt, solver.pop(1)); // pops off all of the previous check_sat
+                    checkTimeLimit(smt, solver.assertExpr(smttrans.convertExpr(pathCondition)));
+                    checkTimeLimit(smt, solver.push(1)); // mark the top again
                     solverResponse = solver.check_sat();
 
+                    if (methodTimeLimitReached(smt, solverResponse)) {
+                        utils.verify(methodDecl, "esc.resourceout", methodTimeLimitMessage);
+                        break b;
+                    }
                     if (solverResponse.isError()) {
                         //log.error("jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse)); //$NON-NLS-1$
                         JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), smt.smtConfig.defaultPrinter.toString(solverResponse));
@@ -834,6 +901,9 @@ public class MethodProverSMT {
                 }
                 //pr.accumulateDuration((new Date().getTime() - pr.timestamp().getTime())/1000.);
             }
+        } catch (MethodTimeLimitException e) {
+            utils.verify(methodDecl, checkingFeasibility ? "esc.resourceout.feasibility" : "esc.resourceout", methodTimeLimitMessage);
+            if (!failureReported) proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.TIMEOUT,start);
         }
         if (usePushPop) {
             solver.exit();
@@ -1243,12 +1313,15 @@ public class MethodProverSMT {
                             		|| assertStat.label == Label.POSSIBLY_NULL_RETURN) {  // FIXME - actually - any postcondition check
                                 int p = terminationPos;
                                 if (p != pos || !mainSource.getName().equals(assertStat.sourcefile.getName())) {
+                                    // terminationPos is a position in the method's own file, which differs from
+                                    // mainSource when the failure is reported in an inherited specification (#980)
+                                    JavaFileObject methodSource = ((JmlMethodDecl)info.decl).sourcefile;
                                     if (terminationPos == info.decl.pos) {
-                                    	JavaFileObject pp = log.useSource(mainSource);
+                                    	JavaFileObject pp = log.useSource(methodSource);
                                     	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
                                     	log.useSource(pp);
                                     }
-                                    JavaFileObject prevv = log.useSource(mainSource);
+                                    JavaFileObject prevv = log.useSource(methodSource);
                                     if (p != Position.NOPOS) utils.verify(p, "jml.message", "Associated method exit");
                                     log.useSource(prevv);
                                 }
@@ -1608,12 +1681,14 @@ public class MethodProverSMT {
                         if (tkind == MethodExprClauseExtensions.ensuresClauseKind || tkind == SignalsClauseExtension.signalsClauseKind || tkind == SignalsOnlyClauseExtension.signalsOnlyClauseKind) {  // FIXME - actually - any postcondition check
                             int p = terminationPos;
                             if (p != pos || !mainSource.getName().equals(assertStat.sourcefile.getName())) {
+                                // terminationPos is a position in the method's own file (#980)
+                                JavaFileObject methodSource = ((JmlMethodDecl)info.decl).sourcefile;
                                 if (terminationPos == info.decl.pos) {
-                                	JavaFileObject pr = log.useSource(mainSource);
+                                	JavaFileObject pr = log.useSource(methodSource);
                                 	p = info.decl.getEndPosition(log.currentSource().getEndPosTable());
                                 	log.useSource(pr);
                                 }
-                                JavaFileObject prevv = log.useSource(mainSource);
+                                JavaFileObject prevv = log.useSource(methodSource);
                                 if (p != Position.NOPOS) utils.verify(p, "jml.message", "Associated method exit");
                                 log.useSource(prevv);
                             }
@@ -1764,7 +1839,7 @@ public class MethodProverSMT {
         org.smtlib.IExpr.ISymbol s = smt.smtConfig.exprFactory.symbol(ids);
         IResponse resp = null;
         try {
-            resp = solver.get_value(s);
+            resp = checkTimeLimit(smt, solver.get_value(s));
         } catch (StackOverflowError e) {
             // Cannot call log.error here or we risk StackOverflow again
             String emergencyError = "Stack overflow when querying solver for the value of '" + s + "'";
@@ -2138,7 +2213,7 @@ public class MethodProverSMT {
             
             ee[0] = smtexpr;
             String value = null;
-            IResponse resp = solver.get_value(ee);
+            IResponse resp = checkTimeLimit(smt, solver.get_value(ee));
             // FIXME - need to get a single kind of response
             if (resp instanceof ISexpr.ISeq) {
                 ISexpr pair = ((ISexpr.ISeq)resp).sexprs().get(0);

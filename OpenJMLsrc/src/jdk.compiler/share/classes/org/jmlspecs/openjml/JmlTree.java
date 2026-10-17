@@ -783,7 +783,10 @@ public class JmlTree {
         }
 
         public JmlStoreRef JmlStoreRef(JmlStoreRef that) {
-            return JmlStoreRef(that.isEverything, that.local, that.expression, that.receiver, that.range, that.field, that.originalStoreRef);
+            var sr = JmlStoreRef(that.isEverything, that.local, that.expression, that.receiver, that.range, that.field, that.originalStoreRef);
+            sr.noContents = that.noContents;
+            sr.modelIndex = that.modelIndex;
+            return sr;
         }
 
         @Override
@@ -3739,6 +3742,13 @@ public class JmlTree {
     	/*@ nullable */ public JmlRange range;
     	/*@ nullable */ public VarSymbol field;
     	public JCExpression originalStoreRef = null;
+    	/** True for the store-ref of a model field that comes from an indexed model field in a frame
+    	 * (e.g. elems[n]): it stands for the model field itself, but not for the fields that are 'in' it;
+    	 * the indexed elements are separate store-refs, made from the maps clauses (#980). */
+    	public boolean noContents = false;
+    	/** For a noContents model field store-ref, the index or range it came from (e.g. n in elems[n]),
+    	 * so that two indexed store-refs of the same model field can be compared (#980); null otherwise. */
+    	/*@ nullable */ public JmlRange modelIndex = null;
 
     	@Override
 		public void accept(Visitor v) {

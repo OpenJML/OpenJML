@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Basic rules
 
-Claude must never run 'git push
+Claude must never run 'git push' without an explicit request in that turn.
 
-Claude must never run 'git commit' or other commands that change the git history without explicit permission.
+Claude may commit on a feature or fix branch, at a clear WIP accomplishment or a needed fall-back point.
+Commits or merges to 'dev-21', and especially to 'master-21', happen only on explicit request.
 
-Claude must never run any 'git' commands that change files without explicit permission.
+Claude must never run 'git' commands that discard or overwrite uncommitted work (e.g. 'reset --hard',
+'checkout -- <file>', 'clean', 'stash drop') without explicit permission.
 
 ## Project Overview
 

@@ -14,7 +14,9 @@ name: Nightly test of OpenJML
 ## As a compromise, the workflow uses a build job (per OS) that uploads the built JDK as an artifact,
 ## and separate test jobs (othertests, unittests1/2/3) that download the artifact instead of rebuilding.
 
-## Note: PATH adjustments below use ':' (Linux/macOS/WSL). Windows jobs in these steps are not yet supported.
+## Windows: OpenJML is a Windows build used from WSL. The unit-test jobs run their run: steps under wsl-bash on
+## Windows (bash elsewhere), so those steps must not use Windows environment variables such as GITHUB_WORKSPACE or
+## FOLDER, which do not reach WSL; they use paths relative to the workspace. othertests does not yet run on Windows.
 
 on:
   workflow_dispatch:
@@ -40,8 +42,8 @@ jobs:
     - id: export
       run: |
         ## Edit the list of OSes here
-        ## macos-14 is used twice: once natively (ARM64) and once under Rosetta 2 (x86_64)
-        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64","arch":"default"}, {"os":"macos-14","label":"macos-x86_64","arch":"x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04","arch":"default"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64","arch":"default"}, {"os":"windows-2022","label":"windows","arch":"default"} ]' >> "$GITHUB_OUTPUT"
+        ## macos-15-intel is GitHub's last Intel macOS runner; migrate when it is retired.
+        echo 'oslist=[ {"os":"macos-15","label":"macos-arm64"}, {"os":"macos-15-intel","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-2022","label":"windows"} ]' >> "$GITHUB_OUTPUT"
     
   ## This job builds OpenJML once per OS and uploads the built JDK as an artifact
   build:
@@ -70,7 +72,6 @@ jobs:
       with:
         upload: 'true'
         os-label: ${{ matrix.label }}
-        arch: ${{ matrix.arch }}
 
   ## This job downloads the pre-built artifact and runs various non-unit tests
   othertests:
@@ -137,6 +138,14 @@ jobs:
     - name: Report
       run: |
         if [ -z "$failures" ] ; then echo All tests OK; exit 0; else echo $failures; exit 1; fi
+
+    ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: othertests
+        os-label: ${{ matrix.label }}
         
 
   ## These jobs download the pre-built artifact and run subsets of the unit tests in parallel
@@ -149,6 +158,10 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
+    ## On Windows, run: steps use bash in WSL (see the note at the top)
+    defaults:
+      run:
+        shell: ${{ matrix.label == 'windows' && 'wsl-bash {0}' || 'bash' }}
 
     steps:
     - name: Checkout actions
@@ -172,7 +185,16 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=1 LINES=40 make -C OpenJML/OpenJMLTest unittests-par 
+        cd OpenJML/OpenJMLTest
+        PATH="$(cd ../OpenJMLsrc && pwd):$PATH" START=1 LINES=40 make unittests-par
+
+    ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: unittests1
+        os-label: ${{ matrix.label }}
 
   unittests2:
     ## To revert to self-contained jobs (no artifact sharing): remove 'build' from needs,
@@ -183,6 +205,10 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
+    ## On Windows, run: steps use bash in WSL (see the note at the top)
+    defaults:
+      run:
+        shell: ${{ matrix.label == 'windows' && 'wsl-bash {0}' || 'bash' }}
 
     steps:
     - name: Checkout actions
@@ -206,7 +232,16 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=41 LINES=30 make -C OpenJML/OpenJMLTest unittests-par 
+        cd OpenJML/OpenJMLTest
+        PATH="$(cd ../OpenJMLsrc && pwd):$PATH" START=41 LINES=30 make unittests-par
+
+    ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: unittests2
+        os-label: ${{ matrix.label }}
 
   unittests3:
     ## To revert to self-contained jobs (no artifact sharing): remove 'build' from needs,
@@ -217,6 +252,10 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
+    ## On Windows, run: steps use bash in WSL (see the note at the top)
+    defaults:
+      run:
+        shell: ${{ matrix.label == 'windows' && 'wsl-bash {0}' || 'bash' }}
 
     steps:
     - name: Checkout actions
@@ -240,4 +279,13 @@ jobs:
 
     - name: Run unit tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" START=71 LINES=60 make -C OpenJML/OpenJMLTest unittests-par 
+        cd OpenJML/OpenJMLTest
+        PATH="$(cd ../OpenJMLsrc && pwd):$PATH" START=71 LINES=60 make unittests-par
+
+    ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
+    - name: Report test failures and upload test logs
+      if: always()
+      uses: ./ACTIONS/.github/actions/openjml-test-report/
+      with:
+        job-name: unittests3
+        os-label: ${{ matrix.label }}

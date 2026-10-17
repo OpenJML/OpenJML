@@ -1,0 +1,41 @@
+Proving methods in S
+Starting proof of S.S() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.S() with prover !!!! - no warnings
+Starting proof of S.set(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of S.set(int) with prover !!!! - no warnings
+Starting proof of S.setAll() with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of S.setAll() with prover !!!! - no warnings
+Starting proof of S.ok(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.ok(int) with prover !!!! - no warnings
+Starting proof of S.bad(int) with prover !!!!
+test/gitbug980d/S.java:21: verify: The prover cannot establish an assertion (Assignable) in method bad: s[n]
+    public void bad(int k) { set(0); }
+                                ^
+test/gitbug980d/S.java:20: verify: Associated declaration
+    //@ assignable s[k];
+        ^
+Completed proof of S.bad(int) with prover !!!! - with warnings
+Starting proof of S.okRange(int,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.okRange(int,int) with prover !!!! - no warnings
+Starting proof of S.okWhole() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of S.okWhole() with prover !!!! - no warnings
+Starting proof of S.badWhole(int) with prover !!!!
+test/gitbug980d/S.java:32: verify: The prover cannot establish an assertion (Assignable) in method badWhole: s
+    public void badWhole(int k) { setAll(); }
+                                        ^
+test/gitbug980d/S.java:31: verify: Associated declaration
+    //@ assignable s[k];
+        ^
+Completed proof of S.badWhole(int) with prover !!!! - with warnings
+Completed proving methods in S
+4 verification failures

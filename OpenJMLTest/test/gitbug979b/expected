@@ -1,0 +1,5 @@
+test/gitbug979b/SeparateDecls.java:7: error: Because 'g' reads '_a' in a represents clause, '_a' must be 'in' the model field 'g'
+    //@ private represents g = _a + _b;
+                               ^
+Operation not performed because of parse or type errors
+1 error

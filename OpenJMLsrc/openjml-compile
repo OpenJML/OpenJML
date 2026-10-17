@@ -10,10 +10,12 @@
 FILE=$(realpath "$BASH_SOURCE" ) ## realpath needed to resolve symlinks -- result is the path to this script file
 INSTALL=$(dirname "$FILE") # path of the folder containing this file
 
+if [ -e "$INSTALL/version-info.txt" ]; then _jdkbin="$INSTALL/jdk/bin"; else _jdkbin=$(echo "$INSTALL"/build/*/jdk/bin); fi
 ## Detect platform: set path separator (PS) and path converter (conv).
-## In WSL and native Windows shells, javac is a Windows .exe that needs Windows-format
-## paths and ; as the path-list separator.  On macOS/Linux, : and native paths are used.
-if [ -n "$(grep -si microsoft /proc/version 2>/dev/null)" ]; then
+## A Windows JDK (javac.exe, used from WSL or a native Windows shell) needs Windows-format
+## paths and ; as the path-list separator.  On macOS/Linux, and for a Linux JDK in WSL (#1007),
+## : and native paths are used.
+if grep -qsi microsoft /proc/version && [ -e "$_jdkbin/java.exe" ]; then
     PS=";" ; conv() { wslpath -w "$1"; }
 else
     case "$(uname -s)" in

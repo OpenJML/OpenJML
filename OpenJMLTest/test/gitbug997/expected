@@ -1,0 +1,39 @@
+Proving methods in BigGcd
+Starting proof of BigGcd.BigGcd() with prover !!!!
+Completed proof of BigGcd.BigGcd() with prover !!!! - no warnings
+Starting proof of BigGcd.mygcd(int,int) with prover !!!!
+test/gitbug997/BigGcd.java:7: verify: The prover cannot establish an assertion (Postcondition) in method mygcd
+      return 1; // wrong
+      ^
+test/gitbug997/BigGcd.java:4: verify: Associated declaration
+  //@ ensures \result == Math.gcd((\bigint)x, (\bigint)y);
+      ^
+Completed proof of BigGcd.mygcd(int,int) with prover !!!! - with warnings
+Completed proving methods in BigGcd
+Proving methods in LongGcd
+Starting proof of LongGcd.LongGcd() with prover !!!!
+Completed proof of LongGcd.LongGcd() with prover !!!! - no warnings
+Starting proof of LongGcd.mygcd(long,long) with prover !!!!
+test/gitbug997/LongGcd.java:7: verify: The prover cannot establish an assertion (Postcondition) in method mygcd
+      return 1; // wrong
+      ^
+test/gitbug997/LongGcd.java:4: verify: Associated declaration
+  //@ ensures \result == Math.gcd(x, y);
+      ^
+Completed proof of LongGcd.mygcd(long,long) with prover !!!! - with warnings
+Completed proving methods in LongGcd
+Proving methods in T_Old
+Starting proof of T_Old.T_Old() with prover !!!!
+Completed proof of T_Old.T_Old() with prover !!!! - no warnings
+Starting proof of T_Old.GCD3(int,int) with prover !!!!
+Completed proof of T_Old.GCD3(int,int) with prover !!!! - no warnings
+Starting proof of T_Old.mygcd(int,int) with prover !!!!
+test/gitbug997/T_Old.java:19: verify: The prover cannot establish an assertion (Postcondition) in method mygcd
+      return 1; // placeholder
+      ^
+test/gitbug997/T_Old.java:16: verify: Associated declaration
+  //@ ensures \result == Math.gcd(x,y); // spec from Math library
+      ^
+Completed proof of T_Old.mygcd(int,int) with prover !!!! - with warnings
+Completed proving methods in T_Old
+6 verification failures

@@ -105,12 +105,24 @@ public class escfiles3 extends EscBaseFiles {
     }
     
     @Test
+    public void gitbug671a() {
+        // A conditional with a generic method call as a branch, as a method argument (#671)
+        helpEscSimple();
+    }
+
+    @Test
     public void gitbug963() {
         helpEscSimple();
     }
     
     @Test
     public void gitbug963a() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug963b() {
+        // A conditional with a \seq concatenation as a branch (part of #963)
         helpEscSimple();
     }
     
@@ -126,6 +138,16 @@ public class escfiles3 extends EscBaseFiles {
     
     @Test
     public void gitbug969() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug969a() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug969b() {
         helpEscSimple();
     }
     
@@ -148,6 +170,133 @@ public class escfiles3 extends EscBaseFiles {
     public void gitbug971c() {
         helpEscSimple();
     }
+
+    @Test
+    public void gitbug979() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug979a() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug979b() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug980b() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug980c() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug980() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug980a() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug980d() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug980e() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug996() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug997() {
+        // Only the proofs are of interest here: the feasibility checks of methods whose specifications use
+        // Math.gcd cannot be settled (a model of gcd's quantified specification) and run to the timeout
+        helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
+    public void gitbug1018() {
+        // Casts between Java integral types narrow as Java does; char is unsigned; Safe math warns about an
+        // out-of-range argument, Java math does not (#1018). Casts of \\bigint values: primesc1.jmlbigintCasts
+        helpEscSimple("--check-feasibility=none","--exclude=main");
+    }
+
+    @Test
+    public void specsStringContains() {
+        // String.contains is pure and specified (Specs PR #26)
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug1018modes() {
+        // A failed range check of a cast is hard, soft or quiet according to --arithmetic-failure, as for
+        // arithmetic operations (#1018)
+        helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
+    public void gitbug1018bv() {
+        // As gitbug1018, with the bit-vector encoding, in which a char is widened with zeros (#1018) and compared
+        // as an int (#1020)
+        helpEscSimple("--check-feasibility=none","--exclude=main","--esc-bv=true");
+    }
+
+    @Test
+    public void gitbug1020() {
+        // With the bit-vector encoding, char operands of a comparison are compared as unsigned values (#1020)
+        helpEscSimple("--check-feasibility=none","--esc-bv=true");
+    }
+
+    @Test
+    public void gitbug1024() {
+        // The axioms for a method inherited from Object include that the receiver is not null (#1024)
+        helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
+    public void gitbug1012a() {
+        // An item of --method that matches no method gets a command-line warning (#1012)
+        helpEscSimple("--check-feasibility=none","--method=inc,inx");
+    }
+
+    @Test
+    public void gitbug997a() {
+        // User-written gcd specifications with % and / by a quantified variable: refuted promptly, not
+        // a matching loop; quantified % and / are still instantiated from % and / outside the quantifier
+        helpEscSimple("--check-feasibility=none");
+    }
+
+    @Test
+    public void gitbug1000() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug1001() {
+        // \sum, \product and \num_of, translated into recursive SMT functions (a port of PR #773)
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug1006() {
+        // NullField for a field declared only in the .jml file is reported in the .jml file
+        helpEscSimple();
+    }
+
     
     @Test
     public void byteQuant() {

@@ -34,11 +34,8 @@ jobs:
     - id: export
       run: |
         ## Each entry: os = GitHub runner, label = artifact/zip name suffix.
-        ## Two macOS entries share the macos-14 (ARM) runner; the x86_64 build
-        ## runs under arch -x86_64 (Rosetta 2) to produce an Intel binary.
-        ## Both Ubuntu entries use identical native build commands (configure
-        ## auto-detects the host arch); no arch wrapper is needed for either.
-        echo 'oslist=[ {"os":"macos-14","label":"macos-arm64"}, {"os":"macos-14","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-2022","label":"windows"} ]' >> "$GITHUB_OUTPUT"
+        ## macos-15-intel is GitHub's last Intel macOS runner; migrate when it is retired.
+        echo 'oslist=[ {"os":"macos-15","label":"macos-arm64"}, {"os":"macos-15-intel","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-2022","label":"windows"} ]' >> "$GITHUB_OUTPUT"
 
   prepare:
     runs-on: ubuntu-24.04
@@ -93,7 +90,7 @@ jobs:
       run: |
         export ver=${{ steps.version.outputs.version }}
         echo Version $ver from branch $BRANCH
-        export resp=$(curl -sf -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"$BRANCH\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases")
+        export resp=$(curl -sf -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"${{ github.sha }}\", \"name\":\"OpenJML $ver\", \"draft\":true, \"body\":\"Publishing release $ver\"}" "https://api.github.com/repos/OpenJML/OpenJML/releases")
         export id=$(echo "$resp" | python3 -c "import json,sys; print(json.load(sys.stdin)['id'])")
         [[ -z "$id" ]] && { echo "ERROR: release creation failed; response: $resp"; exit 1; }
         echo Created release $ver with id $id
@@ -125,24 +122,23 @@ jobs:
 
     - name: Build OpenJML
       uses: ./ACTIONS/.github/actions/openjml-build/
-      with:
-        arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
 
     - name: Test OpenJML release
       id: release-test
       continue-on-error: true
       uses: ./ACTIONS/.github/actions/openjml-release-test/
-      with:
-        arch: ${{ contains(matrix.label, 'x86_64') && 'x86_64' || 'default' }}
 
     - name: Check current GitHub release number against version.txt
       shell: bash
       run: |
         export ver=`cat OpenJML/version.txt`
-        export tag=$(curl --silent --fail --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases" | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['tag_name'])")
-        [[ -z "$tag" ]] && { echo "ERROR: could not retrieve release tag from GitHub API"; exit 1; }
-        echo $ver $tag
-        test "$ver" = "$tag" || { echo "Version $ver from version.txt does not match the release tag, which is $tag"; exit 1; }
+        ## Look for the release with this version's tag (draft or published), as the upload job does.
+        ## (The first release in GitHub's list is not reliably the newest: drafts and releases published
+        ## during the build change the order.)
+        export found=$(curl --silent --fail --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases?per_page=100" | python3 -c "import json,sys,os; v=os.environ['ver']; print('yes' if any(r['tag_name']==v for r in json.load(sys.stdin)) else 'no')")
+        [[ -z "$found" ]] && { echo "ERROR: could not retrieve the releases from the GitHub API"; exit 1; }
+        echo "Version $ver; release with tag $ver found: $found"
+        test "$found" = "yes" || { echo "There is no GitHub release with tag $ver (the version in version.txt)"; exit 1; }
 
     - name: Copy zip for upload
       shell: bash
@@ -233,3 +229,8 @@ jobs:
         echo Uploading $f to id $id at url $upload_url
         curl -sf -X POST -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -H "Content-Type: application/zip" --data-binary @$f  "$upload_url?name=$f&label=$f" \
           || { echo "ERROR: upload of $f failed"; exit 1; }
+        ## The draft's target is the commit just built; publishing creates the tag there.
+        ## tag_name is resent: a PATCH without it turns a draft's tag into "untagged-<hash>"
+        curl -sf -X PATCH -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" -d "{\"tag_name\":\"$ver\", \"target_commitish\":\"${{ github.sha }}\"}" \
+          "https://api.github.com/repos/OpenJML/OpenJML/releases/$id" > /dev/null \
+          || { echo "ERROR: failed to set the release target to ${{ github.sha }}"; exit 1; }

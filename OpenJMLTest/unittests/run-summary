@@ -27,7 +27,8 @@ while true; do
   sleep 5
   count=$(( $count + 1 ))
   echo "Retrying (# $count) summary for $@"
-  if [ $count -ge 3 ]; then echo Giving up on $@ ; exit 1; fi
+  ## exit 2: no summary at all, so the log has no FAILED lines for retry to find
+  if [ $count -ge 3 ]; then echo Giving up on $@ ; exit 2; fi
 done
 
 actfailures=`echo $r | sed -e 's/^.*timeouts,//' | sed -e 's/failures,.*$//' | tr -d ' ' `

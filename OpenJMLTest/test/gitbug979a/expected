@@ -1,0 +1,5 @@
+test/gitbug979a/NotInGroup.java:6: error: Because 'g' reads '_c' in a represents clause, '_c' must be 'in' the model field 'g'
+    //@ private represents g = _a + _b + _c;
+                                         ^
+Operation not performed because of parse or type errors
+1 error

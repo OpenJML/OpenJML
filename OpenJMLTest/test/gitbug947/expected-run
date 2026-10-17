@@ -1,0 +1,8 @@
+OUT:
+non-null initializer: OK
+test/gitbug947/RuntimeAnno.java:15: verify: JML null initialization of non_null field kk
+        /*@ non_null */ @Tag Object kk = p; // not used afterwards
+                                    ^
+END
+
+ERR:

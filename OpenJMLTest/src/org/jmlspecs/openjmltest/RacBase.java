@@ -109,7 +109,7 @@ public abstract class RacBase extends JmlTestSuite {
     public static String macstring = "Exception in thread \"main\" ";
 
     public String setupOutdir() {
-        outdir = root + "/OpenJML/OpenJMLTest/testcompiles/" + getTestName();
+        outdir = repo + "/OpenJMLTest/testcompiles/" + getTestName();
         var d = new java.io.File(outdir);
         d.mkdirs();
         defrac[3] = outdir;
@@ -208,6 +208,10 @@ public abstract class RacBase extends JmlTestSuite {
                             expected = expected.replaceFirst(": [^:]*:[0-9]+:$","");
                         //out.println("EXP: " + expected);
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
+                        if (java.io.File.separatorChar == '\\') { // Windows paths (#1035)
+                            actual = actual.replace('\\', '/');
+                            expected = expected.replace('\\', '/');
+                        }
                         //out.println("EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
                     }
@@ -225,6 +229,10 @@ public abstract class RacBase extends JmlTestSuite {
                         if (actual.startsWith(macstring) && !expected.startsWith(macstring)) actual = actual.substring(macstring.length());
                         else if (!actual.startsWith(macstring) && expected.startsWith(macstring)) expected = expected.substring(macstring.length());
                         if (!expected.contains("verify: ")) actual = actual.replace("verify: ", "");
+                        if (java.io.File.separatorChar == '\\') { // Windows paths (#1035)
+                            actual = actual.replace('\\', '/');
+                            expected = expected.replace('\\', '/');
+                        }
                         //out.println("ERR-EXP: " + expected);
                         assertEquals("Output line " + i, expected, actual);
                     }
@@ -359,7 +367,8 @@ public abstract class RacBase extends JmlTestSuite {
                 }
                 String output = out.input().replaceAll("@[0-9abcdef]+", "@########");
                 ex = p.exitValue();
-                output = "OUT:" + eol + output + eol + "ERR:" + eol + err.input();
+                // "\n", not eol: after a program's bare "\r", Windows' "\r\n" would add an empty line (#1035)
+                output = "OUT:\n" + output + "\nERR:\n" + err.input();
                 if (print) this.out.println(output);
                 String diffs = "";
                 for (String file: new File(outputdir).list()) {

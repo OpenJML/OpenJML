@@ -1,0 +1,13 @@
+OUT:
+test/gitbug1010/FirstTest.java:17: verify: JML precondition is false
+        x.setA(10); // ERROR: Precondition failure
+              ^
+test/gitbug1010/FirstTest.java:7: verify: Associated declaration: test/gitbug1010/FirstTest.java:17:
+    public void setA(int a) { // ERROR: expcts an invariant failure at end of constructor
+                ^
+test/gitbug1010/FirstTest.java:6: verify: JML precondition is false
+    //@ requires a < 0;
+        ^
+x: 10
+
+ERR:

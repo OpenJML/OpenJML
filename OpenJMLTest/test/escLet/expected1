@@ -1,3 +1,6 @@
+test/escLet/Test.java:71: warning: No term in this quantified expression can serve as an SMT trigger for i: it is used only in arithmetic, comparisons or logical operations, so the solver may not use the quantifier, or may instantiate it without end; consider stating the property with a model function or pure method
+		//@ assert (\forall \bigint i; \let \bigint ii = i+i; ii == ii);
+		            ^
 Proving methods in Test
 Starting proof of Test.Test(int) with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -40,4 +43,5 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mm(int) with prover !!!! - no warnings
 Completed proving methods in Test
+1 warning
 4 verification failures

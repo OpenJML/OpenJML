@@ -1,0 +1,20 @@
+#! /usr/bin/env bash
+
+## Compiles type-annotated code with the release's javac in plain-javac mode (NOJML=1), which must behave
+## as stock javac: a valid program compiles, and a misplaced annotation is a compile error, not a crash (#1016)
+
+cd $(dirname $BASH_SOURCE[0])
+if [ -z "$OJBIN" ] ; then
+  OJBIN=../../../OpenJMLsrc
+fi
+INSTALL=$(cd "$OJBIN" && pwd -P)
+. "$INSTALL/setup-vars"
+
+rm -rf out
+export NOJML=1
+export WSLENV="${WSLENV:+$WSLENV:}NOJML"
+"$BINJAVAC" -XDrawDiagnostics -d out AnnoTypeVarBounds.java
+echo "exit $?"
+"$BINJAVAC" -XDrawDiagnostics -d out TypeOnAnonClass.java
+echo "exit $?"
+rm -rf out

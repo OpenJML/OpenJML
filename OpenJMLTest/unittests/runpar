@@ -61,13 +61,17 @@ fi
 for d in $testlist; do rm -f log-${d%.java}; done
 
 RUNERR=0
+## Set when a testsuite produced no summary (run-summary exits 2); retry cannot see such a suite
+GAVEUP=0
+note() { case $1 in 0) ;; 2) RUNERR=1; GAVEUP=1 ;; *) RUNERR=1 ;; esac; }
 if [ $numjobs -eq 0 ]; then
     echo Running $(echo $testlist | wc -w) testsuites sequentially
     sync
     for d in $testlist; do
         nm=${d%.java}
         #echo Starting $nm
-        ./run-summary log-$nm $nm || RUNERR=1
+        ./run-summary log-$nm $nm
+        note $?
     done
 else
     echo Running $(echo $testlist | wc -w) testsuites with $numjobs concurrent jobs
@@ -82,11 +86,20 @@ else
         wt
     done
     for pid in "${pids[@]}"; do
-        wait "$pid" || RUNERR=1
+        wait "$pid"
+        note $?
     done
 fi
 echo Completed
 sync
+## Per-test coverage (make cov-test-by-test): no retries. A retry runs a test a second time,
+## in another JVM, which would add that run's coverage to the test's file and a second row to
+## the index -- and the retry list also takes in failures from other suites' old log files.
+if [ -n "${COV_BY_TEST++}" ]; then
+    echo "Per-test coverage: retries skipped"
+    echo END `date`
+    exit $RUNERR
+fi
 set -o pipefail
 echo MID `date`
 ./retry -run  2>&1 | tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
@@ -100,7 +113,7 @@ else
     FAILURES=`grep -E 'FAILED' logretry | sed -e 's/^.*testsuites.//' | sort -u`
     echo "LIST:" $FAILURES
     echo "Second round retrys"
-    runtests $FAILURES 2>&1 | tee logretry | grep  --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout'
+    ./runtests $FAILURES 2>&1 | tee logretry | grep  --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout'
     ERR=$?
     if [ $ERR -eq 0 ]; then 
         echo Completed all retrys successfully
@@ -112,5 +125,6 @@ else
         echo "LIST:" $FAILURES
     fi
 fi
+if [ $GAVEUP -ne 0 ]; then echo "Some testsuites produced no results (see 'Giving up' above)"; fi
 echo END `date`
-exit $(( ERR || RUNERR ))
+exit $(( ERR || GAVEUP ))

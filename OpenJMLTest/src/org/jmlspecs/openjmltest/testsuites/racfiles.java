@@ -53,10 +53,9 @@ public class racfiles extends RacBase {
         helpCompileRun("Bug1");
     }
 
-    @Test // Originally a Stack overflow because of recursive check of invariant
+    @Test // Originally a stack overflow because of recursive invariant checks; now warned about at compile time (#1009)
     public void racbug1() {
-        expectedRACExit = 1;
-        helpCompileRun("Add");
+        helpCompileOnly();
     }
 
     @Test // Originally a Stack overflow because of recursive check of invariant
@@ -74,8 +73,8 @@ public class racfiles extends RacBase {
         helpCompileRun("Point");
     }
 
-    @Test
-    public void firstTest() {
+    @Test // Issue #1010 -- the same directory is an ESC test (escfileslist) for toString postconditions
+    public void gitbug1010() {
         helpCompileRun("FirstTest","--rac-java-checks","--rac-check-assumptions");
     }
 
@@ -506,6 +505,12 @@ public class racfiles extends RacBase {
         helpCompileRun("Main");
     }
 
+    @Test
+    public void gitbug1000rac() {
+        // \max and \min with an empty range are reported as not defined
+        helpCompileRun("MinMaxRac");
+    }
+
     @Test @Ignore // not a complete program; appears to be an abandoned demo
     public void racRM1() {
         helpCompileRun("MaxSumArray","-code-math=java","-spec-math=java");
@@ -536,6 +541,30 @@ public class racfiles extends RacBase {
     @Test
     public void returnNullity() {
         helpCompileRun("ReturnNullable");
+    }
+
+    @Test
+    public void gitbug1019() {
+        // Constant expressions with converted operands (e.g. Long.MIN_VALUE + 49) evaluate as javac does (#1019)
+        helpCompileRun("ConstExpr");
+    }
+
+    @Test
+    public void gitbug1012() {
+        // Inner classes: enclosing-class fields and invariants belong to Outer.this (#1012)
+        helpCompileRun("InnerInv");
+    }
+
+    @Test
+    public void gitbug1018rac() {
+        // Casts to integral types narrow as Java does, also from \bigint; char is unsigned (#1018)
+        helpCompileRun("Narrow");
+    }
+
+    @Test
+    public void gitbug947() {
+        // A non_null local with a RUNTIME type annotation, unused after its declaration (#947)
+        helpCompileRun("RuntimeAnno");
     }
     
     // Only these two textBlock tests have main methods (FIXME - is that OK?)

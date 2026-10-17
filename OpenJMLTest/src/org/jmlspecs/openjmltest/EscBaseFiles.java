@@ -158,35 +158,12 @@ public abstract class EscBaseFiles extends EscBase {
                 if (diffs == null) {
                     if (files.length != 1) this.out.println("Matched: " + name);
                     new File(actCompile).delete();
+                    // The expected exit code follows from the summary line of the expected output
+                    // (in Java, not grep, so that this works where there is no /bin/bash, e.g. Windows)
                     if (expectedExit == -1) {
-                        String[] command = {"/bin/bash", "-c", "grep -q -E '^[0-9]* error[s]?$'  " + expectedFile };
-                        ProcessBuilder processBuilder = new ProcessBuilder(command);
-                        Process process = processBuilder.start();
-                        int exitCode = process.waitFor();
-                        if (exitCode == 0) {
-                            //System.out.println("Found errors " + expectedFile);
-                            expectedExit = 1;
-                        }
-                    }
-                    if (expectedExit == -1) {
-                        String[] command = {"/bin/bash", "-c", "grep -q -E '^[0-9]* verification failure[s]?$' " + expectedFile };
-                        ProcessBuilder processBuilder = new ProcessBuilder(command);
-                        Process process = processBuilder.start();
-                        int exitCode = process.waitFor();
-                        if (exitCode == 0) {
-                            //System.out.println("Found verification failures " + expectedFile);
-                            expectedExit = 6;
-                        }
-                    }
-                    if (expectedExit == -1) {
-                        String[] command = {"/bin/bash", "-c", "grep -q -E '^[0-9]* warning[s]?$'  " + expectedFile };
-                        ProcessBuilder processBuilder = new ProcessBuilder(command);
-                        Process process = processBuilder.start();
-                        int exitCode = process.waitFor();
-                        if (exitCode == 0) {
-                            //System.out.println("Found warnings " + expectedFile);
-                            expectedExit = 0;
-                        }
+                        var lines = java.nio.file.Files.readAllLines(java.nio.file.Path.of(expectedFile));
+                        if (lines.stream().anyMatch(l -> l.matches("[0-9]* errors?"))) expectedExit = 1;
+                        else if (lines.stream().anyMatch(l -> l.matches("[0-9]* verification failures?"))) expectedExit = 6;
                     }
                     if (expectedExit == -1) {
                         expectedExit = 0;

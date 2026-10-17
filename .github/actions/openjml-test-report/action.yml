@@ -1,0 +1,74 @@
+name: 'OpenJML test report'
+description: 'Reports the unit tests that failed (with their output) in the job log, and uploads the test logs and outputs as an artifact'
+
+## Presumes the current working folder is the one containing OpenJML. Meant to run after the test steps
+## whatever their outcome (use 'if: always()' on the step that uses this action), so that failures can be
+## diagnosed without rerunning: CI otherwise keeps none of the test output.
+
+inputs:
+  job-name:
+    description: 'Name of the test job, used to name the artifact (e.g. unittests1)'
+    required: true
+  os-label:
+    description: 'Unique OS label, used to name the artifact (pass matrix.label)'
+    default: ${{ runner.os }}
+
+runs:
+  using: 'composite'
+  steps:
+    ## For each test that still failed after runpar's retries (listed in logretry), prints the test's output
+    ## from its suite log and, for file-based tests, the differences between each expected and actual file.
+    ## Each test is a collapsible group in the job log. Never fails the job.
+    - name: Report failed tests
+      shell: bash
+      run: |
+        cd OpenJML/OpenJMLTest 2>/dev/null || { echo "No OpenJMLTest folder"; exit 0; }
+        U=unittests
+        if [ ! -f $U/logretry ]; then echo "No unit-test retry log ($U/logretry): no unit tests were run, or none failed"; exit 0; fi
+        echo "=== Summary from runpar (logretry) ==="
+        grep -E '^(Unexpected|Retrying|Completed|LIST:)' $U/logretry || true
+        FAILED=$(grep -o 'testsuites\.[^ ]*' $U/logretry | sed 's/^testsuites\.//' | sort -u || true)
+        for t in $FAILED; do
+          suite=${t%%.*}; name=${t#*.}
+          echo "::group::FAILED $t"
+          if [ -f "$U/log-$suite" ]; then
+            ## the test's output: from 'Testing class ...<t> using' to its 'Test FAILED' line (at most 200 lines)
+            awk -v start="testsuites.$t using" -v fail="testsuites.$t" '
+              index($0, start) { p = 1 }
+              p { print; n++ }
+              p && index($0, "Test FAILED") && index($0, fail) { exit }
+              n >= 200 { print "... (truncated)"; exit }' "$U/log-$suite"
+          fi
+          ## a file-based test's folder: the test name, or for escfileslist-style tests the name in test[...]
+          base=$name
+          case "$name" in test\[*\]) base=${name#test[}; base=${base%]} ;; esac
+          if [ -d "test/$base" ]; then
+            for a in test/$base/actual*; do
+              [ -f "$a" ] || continue
+              e=${a/actual/expected}
+              if [ -f "$e" ]; then
+                echo "--- diff $e $a"
+                diff "$e" "$a" | head -100 || true  # diff exits 1 when the files differ (shell has -e -o pipefail)
+              else
+                echo "--- $a (no matching $e; first 100 lines)"
+                head -100 "$a"
+              fi
+            done
+          fi
+          echo "::endgroup::"
+        done
+        exit 0
+
+    ## The full logs and outputs, for anything the report above does not show
+    - name: Upload test logs
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: test-logs-${{ inputs.job-name }}-${{ inputs.os-label }}
+        path: |
+          OpenJML/OpenJMLTest/unittests/log-*
+          OpenJML/OpenJMLTest/unittests/logretry
+          OpenJML/OpenJMLTest/test/**/actual*
+          OpenJML/OpenJMLTest/releaseTests/**/actual*
+        if-no-files-found: ignore
+        retention-days: 14

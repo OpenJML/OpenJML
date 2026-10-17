@@ -1,0 +1,53 @@
+#! /usr/bin/env bash
+
+## Checks that the release launchers (openjml, openjml-compile) and os-name.sh go by the JDK the release contains:
+## a Linux JDK (bin/javac) or, under WSL, a Windows JDK (bin/javac.exe). Issue #1007: under WSL,
+## setup-vars assumed a Windows JDK even for a Linux release.
+## Builds a fake release whose javac is a script that prints how it was called. Under WSL both
+## cases run; elsewhere only the Linux-JDK case. Exits non-zero if a check fails.
+
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../OpenJMLsrc" && pwd -P)"
+WSL=""; grep -qi microsoft /proc/version 2>/dev/null && WSL=1
+FAILS=0
+T=$(cd "$(mktemp -d)" && pwd -P)
+trap 'rm -rf "$T"' EXIT
+
+## $1 = suffix of the fake JDK's executables ("" or ".exe")
+make_release() {
+    local R="$T/release$1"
+    mkdir -p "$R/jdk/bin" "$R/jdk/modules/java.base" "$R/libs" "$R/Solvers-x"
+    cp "$SRC"/openjml "$SRC"/openjml-compile "$SRC"/setup-vars "$SRC"/setup-exports "$SRC"/os-name.sh "$R"
+    touch "$R/version-info.txt" "$R/libs/jSMTLIB.jar"
+    for p in java javac; do
+        ## printf, not echo: dash's echo turns the \\ and \t of Windows paths into \ and a tab
+        printf '#!/bin/sh\nprintf "%%s\\n" "%s$*"\n' "$p$1 " > "$R/jdk/bin/$p$1"
+        chmod +x "$R/jdk/bin/$p$1"
+    done
+    echo "$R"
+}
+
+## $1 = description, $2 = output, $3 = extended regex the output must match
+check() {
+    if echo "$2" | grep -Eq -- "$3"; then echo "PASS $1"
+    else echo "FAIL $1: expected /$3/ in: $2"; FAILS=$((FAILS+1)); fi
+}
+
+R=$(make_release "")
+OUT=$("$R/openjml" --version 2>&1)
+check "Linux JDK: openjml runs javac" "$OUT" "^javac -J--patch-module=jdk.compiler=$R/libs/jSMTLIB.jar --version"
+OUT=$(cd "$T" && "$R/openjml-compile" X.java 2>&1)
+check "Linux JDK: openjml-compile uses Linux paths" "$OUT" "-p $R/jdk/modules "
+
+if [ -n "$WSL" ]; then
+    check "Linux JDK under WSL: os-name.sh names a Linux Solvers folder" "$("$SRC/os-name.sh" "$T/release/jdk/bin")" '^linux'
+    R=$(make_release ".exe")
+    check "Windows JDK under WSL: os-name.sh says windows" "$("$SRC/os-name.sh" "$R/jdk/bin")" '^windows$'
+
+    OUT=$("$R/openjml" --version 2>&1)
+    check "Windows JDK under WSL: openjml runs javac.exe with a Windows path" "$OUT" '^javac\.exe -J--patch-module=jdk\.compiler=\\\\'
+    OUT=$(cd "$T" && "$R/openjml-compile" X.java 2>&1)
+    check "Windows JDK under WSL: openjml-compile uses Windows paths" "$OUT" '-p \\\\'
+fi
+
+[ $FAILS -eq 0 ] && echo "All launcher checks passed" || echo "$FAILS launcher check(s) failed"
+exit $FAILS

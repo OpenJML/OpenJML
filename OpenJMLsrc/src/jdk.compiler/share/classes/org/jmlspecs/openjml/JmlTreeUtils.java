@@ -96,7 +96,6 @@ public class JmlTreeUtils {
     
     /** The qualified name of the Utils class that contains runtime utility methods */
     /*@non_null*/ final public static String utilsClassQualifiedName = "org.jmlspecs.runtime.Utils";
-   // /*@non_null*/ final public static String runtimeClassQualifiedName = "org.jmlspecs.runtime.Runtime";
    // /*@non_null*/ final public static String TYPEClassQualifiedName = "org.jmlspecs.runtime.internal.TYPE";
 
     /** The Context in which this object was constructed */ 
@@ -860,6 +859,9 @@ public class JmlTreeUtils {
         if (ltag == TypeTag.FLOAT || rtag == TypeTag.FLOAT) return syms.floatType;
         if (ltag == TypeTag.LONG || rtag == TypeTag.LONG) return syms.longType;
         if (ltag == TypeTag.INT || rtag == TypeTag.INT) return syms.intType;
+        // char is unsigned, so neither it nor byte or short holds all values of the other: Java promotes to int (#1018)
+        if ((ltag == TypeTag.CHAR && (rtag == TypeTag.BYTE || rtag == TypeTag.SHORT))
+                || (rtag == TypeTag.CHAR && (ltag == TypeTag.BYTE || ltag == TypeTag.SHORT))) return syms.intType;
         if (ltag == TypeTag.SHORT || rtag == TypeTag.SHORT) return syms.shortType;
         if (ltag == TypeTag.CHAR || rtag == TypeTag.CHAR) return syms.charType;
         if (ltag == TypeTag.BYTE || rtag == TypeTag.BYTE) return syms.byteType;
@@ -1124,14 +1126,20 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for a short-circuit boolean AND expression */
-    public JCExpression makeAnd(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
+    public JCExpression makeAnd(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs, JCExpression ... more) {
+        // At least one rhs, so that a call without a position, makeAnd(a,b), does not compile: a JCExpression is
+        // also a DiagnosticPosition, and that call would silently drop a (#1024)
+        lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
+        for (JCExpression r: more) {
             lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,r);
         }
         return lhs;
     }
-    public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
+    public JCExpression makeAnd(int pos, JCExpression lhs, JCExpression rhs, JCExpression ... more) {
+        // At least one rhs, so that a call without a position, makeAnd(a,b), does not compile: a JCExpression is
+        // also a DiagnosticPosition, and that call would silently drop a (#1024)
+        lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,rhs);
+        for (JCExpression r: more) {
             lhs = makeBinary(pos,JCTree.Tag.AND,andSymbol,lhs,r);
         }
         return lhs;
@@ -1154,16 +1162,22 @@ public class JmlTreeUtils {
     }
 
     /** Makes an attributed AST for a short-circuit boolean OR expression */
-    public JCExpression makeOr(int pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
+    public JCExpression makeOr(int pos, JCExpression lhs, JCExpression rhs, JCExpression ... more) {
+        // At least one rhs, so that a call without a position, makeOr(a,b), does not compile: a JCExpression is
+        // also a DiagnosticPosition, and that call would silently drop a (#1024)
+        lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+        for (JCExpression r: more) {
             lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,r);
         }
         return lhs;
     }
 
     /** Makes an attributed AST for a short-circuit boolean OR expression */
-    public JCExpression makeOr(DiagnosticPosition pos, JCExpression lhs, JCExpression ... rhs) {
-        for (JCExpression r: rhs) {
+    public JCExpression makeOr(DiagnosticPosition pos, JCExpression lhs, JCExpression rhs, JCExpression ... more) {
+        // At least one rhs, so that a call without a position, makeOr(a,b), does not compile: a JCExpression is
+        // also a DiagnosticPosition, and that call would silently drop a (#1024)
+        lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,rhs);
+        for (JCExpression r: more) {
             lhs = makeBinary(pos,JCTree.Tag.OR,orSymbol,lhs,r);
         }
         return lhs;
@@ -2012,6 +2026,11 @@ public class JmlTreeUtils {
         JCExpression nn = makeEqObject(p,id,nullLit);
         
         return makeOr(p,nn,makeNonNullDynamicTypeInEquality(pos, id, type));
+    }
+
+    /** As makeDynamicTypeInEquality(pos, id, type) if nullable, else as makeNonNullDynamicTypeInEquality */
+    public JCExpression makeDynamicTypeInEquality(DiagnosticPosition pos, JCExpression id, Type type, boolean nullable) {
+        return nullable ? makeDynamicTypeInEquality(pos, id, type) : makeNonNullDynamicTypeInEquality(pos, id, type);
     }
     
     /** Returns the AST for \typeof(id) <: \type(type) && id instanceof 'erasure of type' */

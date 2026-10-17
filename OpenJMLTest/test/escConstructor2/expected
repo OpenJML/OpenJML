@@ -3,6 +3,9 @@ Starting proof of Child.Child(@NonNull Object) with prover !!!!
 test/escConstructor2/Parent.java:5: verify: The prover cannot establish an assertion (UndefinedNullDeReference) in method Child
   //@ ensures o.equals(oo);
                ^
+test/escConstructor2/Child.java:5: verify: Associated method exit
+  }
+   ^
 Completed proof of Child.Child(@NonNull Object) with prover !!!! - with warnings
 Completed proving methods in Child
 Proving methods in Parent
@@ -11,4 +14,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Parent.Parent(@NonNull Object) with prover !!!! - no warnings
 Completed proving methods in Parent
-1 verification failure
+2 verification failures

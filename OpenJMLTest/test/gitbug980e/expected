@@ -1,0 +1,8 @@
+test/gitbug980e/S.java:9: error: g[n] is not a location: g has type \seq<Integer>, which is not an array; in a frame clause only an array, or a model field, may be indexed
+    //@ assignable g[n];
+                   ^
+test/gitbug980e/S.java:12: error: The index of the model field m in a frame clause must be an integer, since it is applied to the arrays mapped into m, but it has type String
+    //@ assignable m["a"];
+                     ^
+Operation not performed because of parse or type errors
+2 errors

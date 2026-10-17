@@ -1,0 +1,22 @@
+Proving methods in Cond
+Starting proof of Cond.Cond() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Cond.Cond() with prover !!!! - no warnings
+Starting proof of Cond.<T>not(java.util.function.Predicate<? super T>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Cond.<T>not(java.util.function.Predicate<? super T>) with prover !!!! - no warnings
+Starting proof of Cond.<C>filter(Iterable<C>,java.util.function.@Nullable Predicate<? super C>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Cond.<C>filter(Iterable<C>,java.util.function.@Nullable Predicate<? super C>) with prover !!!! - no warnings
+Starting proof of Cond.<C>m(Iterable<C>,java.util.function.@Nullable Predicate<? super C>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Cond.<C>m(Iterable<C>,java.util.function.@Nullable Predicate<? super C>) with prover !!!! - no warnings
+Starting proof of Cond.bigintBranch(boolean,long) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Cond.bigintBranch(boolean,long) with prover !!!! - no warnings
+Completed proving methods in Cond

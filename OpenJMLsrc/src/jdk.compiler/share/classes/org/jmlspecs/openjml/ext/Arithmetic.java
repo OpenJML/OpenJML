@@ -174,6 +174,7 @@ abstract public class Arithmetic extends JmlExtension {
      */
     public JCExpression makeUnaryOp(JmlAssertionAdder rewriter, JCUnary that, Type newtype, boolean implementOverflow, boolean warnOverflow) {
         JCExpression arg = rewriter.convertExpr(that.getExpression());
+        newtype = newtype.baseType(); // without the value of a constant expression, as in makeBinaryOp (#1019)
         arg = rewriter.addImplicitConversion(arg,newtype,arg);
         JCTree.Tag optag = that.getTag();
         TypeTag typetag = that.type.getTag();
@@ -260,7 +261,11 @@ abstract public class Arithmetic extends JmlExtension {
 
         JCTree.Tag optag = that.getTag();
         if (newtype == null) newtype = that.type;
-        
+        // The type in which the operands are combined: for a constant expression (e.g. Long.MIN_VALUE + 49) the
+        // expression's type carries its value, which must not be given to the converted operands, or they would be
+        // compiled as that constant (#1019)
+        newtype = newtype.baseType();
+
         JCExpression lhs = alreadyConverted ? that.getLeftOperand() : rewriter.convertExpr(that.getLeftOperand());
         JCExpression rhs = alreadyConverted ? that.getRightOperand() : rewriter.convertExpr(that.getRightOperand());
 

@@ -87,6 +87,10 @@ public class release extends JmlTestSuite {
         actualOutput = actualOutput.replace("\r", "");
         errOutput = errOutput.replace("\r", "");
         expected = expected.replace("\r", "");
+        if (java.io.File.separatorChar == '\\') { // Windows paths in diagnostics (#1035), as in OutputCompare
+            actualOutput = actualOutput.replace('\\', '/');
+            expected = expected.replace('\\', '/');
+        }
 
         if (print) this.out.println("EXPECTING: " + expected);
         if (print) this.out.println("ACTUAL OUT: " + actualOutput);
@@ -231,12 +235,15 @@ public class release extends JmlTestSuite {
                 );
     }
 
+    // Same as testEsc2A, but with --exec naming a solver binary other than the default prover's
     @Test
     public void testEsc2B() throws Exception {
         expectedFile = "releaseTests/testEsc2/expected";
+        String exe = System.getenv("SMT_SOLVER_DIR") + "/z3-4.16.0"
+                + (System.getProperty("os.name").startsWith("Windows") ? ".exe" : "");
         helper(new String[]
                 { "--esc", relsrc + "/testEsc/B.java", "-classpath", relsrc + "/testEsc",
-                        "--exec=" + JmlTestSuite.root + "/Solvers/Solvers-macos/z3-4.3.1"
+                        "--exec=" + exe
                 },0
                 );
     }
@@ -308,7 +315,7 @@ public class release extends JmlTestSuite {
     @Test
     public void testPath9() throws Exception {
         helper(new String[]
-                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data:" + relsrc + "/testPath/data-specs"
+                { "-jmltesting", relsrc + "/testPath/data/TestPath.java", "-classpath", relsrc + "/testPath/data" + java.io.File.pathSeparator + relsrc + "/testPath/data-specs"
                 },1
                 );
     }

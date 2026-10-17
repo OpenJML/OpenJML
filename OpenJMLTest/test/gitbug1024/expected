@@ -1,0 +1,20 @@
+Proving methods in NullEquals
+Starting proof of NullEquals.NullEquals() with prover !!!!
+Completed proof of NullEquals.NullEquals() with prover !!!! - no warnings
+Starting proof of NullEquals.m1() with prover !!!!
+test/gitbug1024/NullEquals.java:8: verify: The prover cannot establish an assertion (Assert) in method m1
+        //@ check false;
+            ^
+Completed proof of NullEquals.m1() with prover !!!! - with warnings
+Starting proof of NullEquals.m2() with prover !!!!
+test/gitbug1024/NullEquals.java:13: verify: The prover cannot establish an assertion (Assert) in method m2
+        //@ check false;
+            ^
+Completed proof of NullEquals.m2() with prover !!!! - with warnings
+Starting proof of NullEquals.m3(@Nullable String) with prover !!!!
+test/gitbug1024/NullEquals.java:18: verify: The prover cannot establish an assertion (Assert) in method m3
+        //@ check s != null;
+            ^
+Completed proof of NullEquals.m3(@Nullable String) with prover !!!! - with warnings
+Completed proving methods in NullEquals
+3 verification failures

@@ -1,0 +1,87 @@
+Proving methods in SumProductNumOf
+Starting proof of SumProductNumOf.SumProductNumOf() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.SumProductNumOf() with prover !!!! - no warnings
+Starting proof of SumProductNumOf.concrete(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.concrete(int[]) with prover !!!! - no warnings
+Starting proof of SumProductNumOf.constantRanges() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.constantRanges() with prover !!!! - no warnings
+Starting proof of SumProductNumOf.emptyRanges() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.emptyRanges() with prover !!!! - no warnings
+Starting proof of SumProductNumOf.longAndBigint() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.longAndBigint() with prover !!!! - no warnings
+Starting proof of SumProductNumOf.nested() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.nested() with prover !!!! - no warnings
+Starting proof of SumProductNumOf.inLet() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.inLet() with prover !!!! - no warnings
+Starting proof of SumProductNumOf.freeVariable(int[],int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.freeVariable(int[],int) with prover !!!! - no warnings
+Starting proof of SumProductNumOf.sumLoop(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.sumLoop(int[]) with prover !!!! - no warnings
+Starting proof of SumProductNumOf.countLoop(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.countLoop(int[]) with prover !!!! - no warnings
+Starting proof of SumProductNumOf.whileLoop(int[]) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.whileLoop(int[]) with prover !!!! - no warnings
+Starting proof of SumProductNumOf.rangeChecks() with prover !!!!
+test/gitbug1001/SumProductNumOf.java:87: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method rangeChecks
+        //@ ghost int g = (\sum int i; 0 <= i < 2; 2000000000); // FAILS: ArithmeticCastRange
+                           ^
+Completed proof of SumProductNumOf.rangeChecks() with prover !!!! - with warnings
+Starting proof of SumProductNumOf.bigintSum() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.bigintSum() with prover !!!! - no warnings
+Starting proof of SumProductNumOf.internalBigint() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of SumProductNumOf.internalBigint() with prover !!!! - no warnings
+Starting proof of SumProductNumOf.wrongSum(int[]) with prover !!!!
+test/gitbug1001/SumProductNumOf.java:102: verify: The prover cannot establish an assertion (Assert) in method wrongSum
+        //@ assert (\sum int i; 0 <= i < a.length; a[i]) == 7; // FAILS
+            ^
+Completed proof of SumProductNumOf.wrongSum(int[]) with prover !!!! - with warnings
+Starting proof of SumProductNumOf.wrongProduct() with prover !!!!
+test/gitbug1001/SumProductNumOf.java:106: verify: The prover cannot establish an assertion (Assert) in method wrongProduct
+        //@ assert (\product int i; 1 <= i <= 3; i) == 7; // FAILS
+            ^
+Completed proof of SumProductNumOf.wrongProduct() with prover !!!! - with warnings
+Starting proof of SumProductNumOf.twoVariables() with prover !!!!
+test/gitbug1001/SumProductNumOf.java:110: warning: Not implemented for static checking: Not yet supported feature in converting BasicPrograms to SMTLIB: JML Quantified expression using \sum
+        //@ assert (\sum int i, j; 0 <= i < 2 && 0 <= j < 2; i + j) == 4; // UNSUPPORTED (two variables)
+                    ^
+test/gitbug1001/SumProductNumOf.java:110: verify: The prover cannot establish an assertion (Assert) in method twoVariables
+        //@ assert (\sum int i, j; 0 <= i < 2 && 0 <= j < 2; i + j) == 4; // UNSUPPORTED (two variables)
+            ^
+Completed proof of SumProductNumOf.twoVariables() with prover !!!! - with warnings
+Starting proof of SumProductNumOf.unbounded(int) with prover !!!!
+test/gitbug1001/SumProductNumOf.java:114: warning: Not implemented for static checking: Not yet supported feature in converting BasicPrograms to SMTLIB: JML Quantified expression using \sum
+        //@ assert (\sum int i; 0 <= i; 0) == 0; // UNSUPPORTED (no upper bound)
+                    ^
+test/gitbug1001/SumProductNumOf.java:114: verify: The prover cannot establish an assertion (Assert) in method unbounded
+        //@ assert (\sum int i; 0 <= i; 0) == 0; // UNSUPPORTED (no upper bound)
+            ^
+Completed proof of SumProductNumOf.unbounded(int) with prover !!!! - with warnings
+Completed proving methods in SumProductNumOf
+2 warnings
+5 verification failures

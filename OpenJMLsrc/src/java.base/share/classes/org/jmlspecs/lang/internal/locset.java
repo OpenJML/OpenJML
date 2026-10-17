@@ -18,5 +18,5 @@ public class locset implements IJmlPrimitiveType {
 
     public locset add(locset x) { return this; }
 
-    public locset remove(location x)  { return this; }
+    public locset remove(locset x)  { return this; }
 }

@@ -72,9 +72,10 @@ public class compiler extends JmlTestSuite{
                 expectedErr = JmlTestSuite.doReplacements(output[1]);
             }
         }
-        actualOutput = actualOutput.replace("\r", "");
-        actualErr = actualErr.replace("\r", "");
-        expected = expected.replace("\r", "");
+        // Line ends and path separators as on Linux and macOS (as OutputCompare.compareFiles does)
+        actualOutput = actualOutput.replace("\r", "").replace('\\', '/');
+        actualErr = actualErr.replace("\r", "").replace('\\', '/');
+        expected = expected.replace("\r", "").replace('\\', '/');
         actualOutput = removeNotes(actualOutput);
 
         if (print) this.out.println("EXPECTING: " + expected);
@@ -91,7 +92,7 @@ public class compiler extends JmlTestSuite{
                 fail("Output does not contain: " + expected + eol + "Instead is: " + actualOutput);
             }
             if (output.length > 1) {
-                expectedErr = expectedErr.replaceAll("\r", "");
+                expectedErr = expectedErr.replaceAll("\r", "").replace('\\', '/');
                 if (all == 0) {
                     assertEquals("The err out is wrong", expectedErr, actualErr);
                 } else if (all == 1 && (actualErr.indexOf(expectedErr) == -1)) {
@@ -457,7 +458,7 @@ public class compiler extends JmlTestSuite{
                         "-classpath", "ZZZZZ", // does not exist, but is not part of the specs path
                         src + "testWarnings/A.java"
                 },1,0
-                ,"warning: [missing-specs-path] A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.root + "/OpenJML/OpenJMLTest)"+eol
+                ,"warning: [missing-specs-path] A specification path directory does not exist: ZZZZZ (" + JmlTestSuite.repo + "/OpenJMLTest)"+eol
                 +"error: warnings found and -Werror specified"+eol
                 +"1 error"+eol
                 +"1 warning"+eol
@@ -486,6 +487,8 @@ public class compiler extends JmlTestSuite{
     @Test 
     public void testSourcePath4() throws Exception {
         if (!new java.io.File("../OpenJMLsrc/release-temp/jmlruntime.jar").exists()) {
+            // setUp redirected System.out/err for capturing; helper, which restores them, is not called here
+            if (capture) collectSystemOutput(false);
             this.err = savederr;  // FIXME
             this.out = savedout;
             this.out.println("The testSourcePath4 test depends on having a release version of jmlruntime.jar in the jars directory.  It will not be run until a release has been built.");
@@ -728,6 +731,21 @@ public class compiler extends JmlTestSuite{
                 "                                                                                   ^" + eol +
                 "4 errors" + eol
                 );
+    }
+
+    /** ESC proof attempts are limited to 300 s by default (#997) */
+    @Test
+    public void testTimeoutDefault() {
+        // setUp redirected System.out/err for capturing; helper, which restores them, is not called here
+        if (capture) collectSystemOutput(false);
+        org.junit.Assert.assertEquals("300", org.jmlspecs.openjml.JmlOption.TIMEOUT.defaultValue());
+    }
+
+    /** --timeout=0 still means no limit: accepted, and ESC runs as usual (#997) */
+    @Test
+    public void testTimeoutZero() {
+        helper(new String[] {"--esc","--timeout=0","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"}, 0, 0,
+                "");
     }
 
     @Test
@@ -1105,7 +1123,6 @@ public class compiler extends JmlTestSuite{
     public void testExtension1() throws Exception {
         helper(new String[]
                 { "-sourcepath",src + "testNoErrors",
-                        "--specs-path","../OpenJMLsrc/release-temp",
                         "-lang=jml",
                         "--extensions=X", // Ignored when strict
                         src + "testNoErrors/A.java"
@@ -1124,6 +1141,44 @@ public class compiler extends JmlTestSuite{
                 ,"error: Failed to load extension X: No such package found"
                 ,""
                 );
+    }
+
+    /** --extensions is processed by every compilation in a JVM, not just the first (#1026) */
+    @Test
+    public void testExtension3() throws Exception {
+        org.jmlspecs.openjml.Main.execute(new String[] { "-sourcepath",src + "testNoErrors", src + "testNoErrors/A.java" });
+        collectSystemOutput(false); // discard the first compilation's output
+        collectSystemOutput(true);
+        helper(new String[]
+                { "-sourcepath",src + "testNoErrors",
+                        "--extensions=X",
+                        src + "testNoErrors/A.java"
+                },2,1
+                ,"error: Failed to load extension X: No such package found"
+                ,""
+                );
+    }
+
+    /** A source file that cannot be read gives the ordinary 'error reading' error, not an internal error */
+    @Test
+    public void testUnreadableSource() throws Exception {
+        java.io.File dir = java.nio.file.Files.createTempDirectory("unreadable").toFile();
+        java.io.File f = new java.io.File(dir, "A.java");
+        java.nio.file.Files.writeString(f.toPath(), "public class A {}\n");
+        try {
+            f.setReadable(false);
+            // Where a file cannot be made unreadable (e.g. on Windows, or as root) there is nothing to test.
+            // (A plain return: OpenJMLTestRunner would count an Assume failure as a test failure.)
+            if (f.canRead()) {
+                if (capture) collectSystemOutput(false); // as helper would; otherwise later output, including the summary, is lost
+                return;
+            }
+            helper(new String[] { "--check", f.getPath() }, 1, 2, "error: error reading " + f.getPath());
+        } finally {
+            f.setReadable(true);
+            f.delete();
+            dir.delete();
+        }
     }
 
     @Test @Ignore // FIXME - have not yet fixed how extensions are found

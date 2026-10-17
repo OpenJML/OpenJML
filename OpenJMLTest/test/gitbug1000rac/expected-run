@@ -1,0 +1,19 @@
+OUT:
+nonempty ok
+test/gitbug1000rac/MinMaxRac.java:10: verify: JML there is no value satisfying the range of the \max expression
+        //@ assert (\max int i; 0 <= i < e.length; e[i]) == 0;
+                    ^
+test/gitbug1000rac/MinMaxRac.java:10: verify: JML assertion is false
+        //@ assert (\max int i; 0 <= i < e.length; e[i]) == 0;
+            ^
+after empty max
+guarded ok
+test/gitbug1000rac/MinMaxRac.java:14: verify: JML there is no value satisfying the range of the \min expression
+        //@ assert (\min int i; 0 <= i < e.length; e[i]) == 0;
+                    ^
+test/gitbug1000rac/MinMaxRac.java:14: verify: JML assertion is false
+        //@ assert (\min int i; 0 <= i < e.length; e[i]) == 0;
+            ^
+end
+
+ERR:

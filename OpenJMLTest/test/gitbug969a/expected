@@ -1,0 +1,49 @@
+test/gitbug969a/A.java:7: warning: A non-pure method is being called where it is not permitted: B.ok(A)
+    //@ public invariant b.ok(this);
+                             ^
+test/gitbug969a/A.java:5: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+public class A {
+       ^
+test/gitbug969a/A.java:5: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+public class A {
+       ^
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+test/gitbug969a/A.java:7: verify: The prover cannot establish an assertion (Assignable) in method A: \everything
+    //@ public invariant b.ok(this);
+                             ^
+test/gitbug969a/A.java:5: verify: Associated declaration
+public class A {
+       ^
+test/gitbug969a/A.java:5: verify: The prover cannot establish an assertion (InvariantExit) in method A
+public class A {
+       ^
+test/gitbug969a/A.java:7: verify: Associated declaration
+    //@ public invariant b.ok(this);
+               ^
+Completed proof of A.A() with prover !!!! - with warnings
+Completed proving methods in A
+test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+    public boolean ok(A x) { return x != null; }
+                        ^
+test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+    public boolean ok(A x) { return x != null; }
+                        ^
+test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+    public boolean ok(A x) { return x != null; }
+                        ^
+test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+    public boolean ok(A x) { return x != null; }
+                        ^
+Proving methods in B
+Starting proof of B.B() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.B() with prover !!!! - no warnings
+Starting proof of B.ok(A) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.ok(A) with prover !!!! - no warnings
+Completed proving methods in B
+7 warnings
+4 verification failures

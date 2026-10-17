@@ -261,7 +261,7 @@ public abstract class Buffer {
       @   assignable \nothing;
       @   signals_only IllegalArgumentException;
       @*/
-    public final Buffer position(int newPosition);
+    public Buffer position(int newPosition);
 
     /**
      * Returns this buffer's limit. </p>
@@ -308,7 +308,7 @@ public abstract class Buffer {
       @   assignable \nothing;
       @   signals_only IllegalArgumentException;
       @*/
-    public final Buffer limit(int newLimit);
+    public Buffer limit(int newLimit);
 
     /**
      * Sets this buffer's mark at its position. </p>
@@ -321,7 +321,7 @@ public abstract class Buffer {
       @   ensures mark == position;
       @   ensures_redundantly mark >= 0;
       @*/
-    public final Buffer mark();
+    public Buffer mark();
 
     /**
      * Resets this buffer's position to the previously-marked position.
@@ -345,7 +345,7 @@ public abstract class Buffer {
       @   requires mark < 0;
       @   signals_only InvalidMarkException;
       @*/
-    public final Buffer reset();
+    public Buffer reset();
 
     /**
      * Clears this buffer.  The position is set to zero, the limit is set to
@@ -371,7 +371,7 @@ public abstract class Buffer {
       @   ensures mark < 0;
       @   ensures \result == this;
       @*/
-    public final Buffer clear();
+    public Buffer clear();
 
     /**
      * Flips this buffer.  The limit is set to the current position and then
@@ -399,7 +399,7 @@ public abstract class Buffer {
       @   ensures limit == \old(position) && position == 0 && mark < 0 && \result == this;
       @   ensures_redundantly limit <= capacity;
       @*/
-    public final Buffer flip();
+    public Buffer flip();
 
     /**
      * Rewinds this buffer.  The position is set to zero and the mark is
@@ -420,7 +420,7 @@ public abstract class Buffer {
       @   assignable position, mark;
       @   ensures position == 0 && mark < 0 && \result == this;
       @*/
-    public final Buffer rewind();
+    public Buffer rewind();
 
     /**
      * Returns the number of elements between the current position and the

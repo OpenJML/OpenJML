@@ -490,13 +490,40 @@ public class JmlParser extends JavacParser {
             } else if (vartype instanceof JCArrayTypeTree || vartype instanceof JCAnnotatedType) {
                 //System.out.println("START " + prtype(vartype) + " " + talist);
                 var type = vartype;
+                JCExpression parent = null; // the array or annotated type that contains 'type' (null for vartype itself)
                 while (true) {
                     if (type instanceof JCArrayTypeTree atype) {
+                        JCExpression atypeParent = parent;
+                        parent = atype;
                         type = atype.elemtype;
                         if (type instanceof JCArrayTypeTree || (type instanceof JCAnnotatedType a && a.underlyingType instanceof JCArrayTypeTree)) continue;
+                        if (type instanceof JCPrimitiveTypeTree || type.toString().startsWith("\\")) {
+                            // A type annotation before an array type belongs to the element type, but a
+                            // primitive element type cannot take it: the user presumably meant the array
+                            // ('int /*@ nullable */ [] a', not '/*@ nullable */ int[] a'). Warn, and use it
+                            // there (#996).
+                            for (var an: talist) {
+                                String written = an instanceof JmlAnnotation ja && ja.kind != null
+                                        ? "/*@ " + ja.kind.keyword() + " */"
+                                        : "@" + an.annotationType.toString().replaceFirst(".*\\.", "");
+                                utils.warning(an.pos, "jml.message", "the annotation " + written
+                                        + " is in the wrong position: the element type " + type
+                                        + " cannot take it; it is used as if written on the array type: "
+                                        + type + " " + written + " []");
+                            }
+                            if (atypeParent instanceof JCAnnotatedType pa) {
+                                pa.annotations = pa.annotations.appendList(talist);
+                            } else {
+                                JCExpression annotatedArray = jmlF.at(atype.pos).AnnotatedType(talist, atype);
+                                if (atypeParent == null) vartype = annotatedArray;
+                                else ((JCArrayTypeTree)atypeParent).elemtype = annotatedArray;
+                            }
+                            break;
+                        }
                         atype.elemtype = makeAnnotated(type, talist);
                         break;
                     } else if (type instanceof JCAnnotatedType antype) {
+                        parent = antype;
                         type = antype.getUnderlyingType();
                         if (type instanceof JCArrayTypeTree) continue;
                         vartype = makeAnnotated(vartype, antype.annotations.appendList(talist));
@@ -1160,6 +1187,40 @@ public class JmlParser extends JavacParser {
     public /*@nullable*/ JmlMethodSpecs currentMethodSpecs = null;
     /** The most recent field declaration within a class body. */
     public /*@nullable*/ JmlVariableDecl currentVariableDecl = null;
+    /** All the fields of the most recent field declaration within a class body: several for a
+     *  declaration such as 'int a, b;', of which currentVariableDecl is the last */
+    public List<JmlVariableDecl> currentVariableDecls = List.nil();
+
+    /** Attaches an 'in' or 'maps' clause to the field declaration it follows. An 'in' clause
+     *  applies to every field of a declaration of several fields ('int a, b; //@ in g;'), so each
+     *  of them gets its own clause, whose parentVar is that field (#979). A 'maps' clause stays
+     *  with the last field. */
+    protected void attachFieldClause(JmlTypeClause clause, /*@nullable*/ JmlVariableDecl last, List<JmlVariableDecl> group) {
+        if (last == null) {
+            if (clause instanceof JmlTypeClauseIn in) in.parentVar = null;
+            utils.error(clause.pos(), "jml.misplaced.var.spec", clause.keyword);
+            return;
+        }
+        List<JmlVariableDecl> targets = clause instanceof JmlTypeClauseIn && group.contains(last) ? group : List.of(last);
+        boolean first = true;
+        for (JmlVariableDecl vd: targets) {
+            JmlTypeClause c = clause;
+            if (!first) {
+                JmlTypeClauseIn in = (JmlTypeClauseIn)clause;
+                JmlTypeClauseIn copy = jmlF.at(in.pos).JmlTypeClauseIn(in.list);
+                copy.modifiers = in.modifiers;
+                copy.sourcefile = in.sourcefile;
+                copy.clauseType = in.clauseType;
+                c = copy;
+            }
+            first = false;
+            if (c instanceof JmlTypeClauseIn in) in.parentVar = vd;
+            if (vd.fieldSpecs == null) vd.fieldSpecs = new JmlSpecs.FieldSpecs(vd);
+            vd.fieldSpecs.list.append(c);
+        }
+        currentVariableDecl = last;
+        currentVariableDecls = group;
+    }
 
     /** Returns true if the argument is a possible beginning of a
      * method specs, after any modifiers */
@@ -1208,7 +1269,9 @@ public class JmlParser extends JavacParser {
             	continue;
             }
             JmlVariableDecl mostRecentVarDecl = currentVariableDecl; // Just saves the current value so it can be set to null in most cases
+            List<JmlVariableDecl> mostRecentVarDecls = currentVariableDecls;
             currentVariableDecl = null;
+            currentVariableDecls = List.nil();
 
             Comment dc = token.comment(CommentStyle.JAVADOC);
 
@@ -1261,21 +1324,7 @@ public class JmlParser extends JavacParser {
                     }
                     if (tc instanceof JmlTypeClauseIn
                             || tc instanceof JmlTypeClauseMaps) {
-                        JCTree tree = tc;
-                        if (tree instanceof JmlTypeClauseIn inclause) {
-                            inclause.parentVar = mostRecentVarDecl;
-                        }
-                        if (mostRecentVarDecl == null) {
-                            utils.error(tree.pos(), "jml.misplaced.var.spec",
-                                    ((JmlTypeClause) tree).keyword);
-                        } else {
-                            if (mostRecentVarDecl.fieldSpecs == null) {
-                                mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-                                        mostRecentVarDecl);
-                            }
-                            mostRecentVarDecl.fieldSpecs.list.append((JmlTypeClause) tree);
-                            currentVariableDecl = mostRecentVarDecl;
-                        }
+                        attachFieldClause((JmlTypeClause)tc, mostRecentVarDecl, mostRecentVarDecls);
                     } else {
                         list.append(tc);
                     }
@@ -1391,6 +1440,7 @@ public class JmlParser extends JavacParser {
                             attach(vd, dc);
                             if (startsInJml) Utils.setJML(vd.mods);
                             currentVariableDecl = vd;
+                            currentVariableDecls = currentVariableDecls.append(vd);
                             currentVariableDecl.fieldSpecs = new JmlSpecs.FieldSpecs(currentVariableDecl);
                         } else if (tr instanceof JCErroneous) {
                             // error messages already given; ignore any specs
@@ -1419,24 +1469,11 @@ public class JmlParser extends JavacParser {
                     attach(vd, dc);
                     list.append(vd);
                     currentVariableDecl = vd;
+                    currentVariableDecls = currentVariableDecls.append(vd);
                    
                 } else if (t.head instanceof JmlTypeClauseIn
                         || t.head instanceof JmlTypeClauseMaps) {
-                    JCTree tree = t.head;
-                    if (tree instanceof JmlTypeClauseIn) {
-                        ((JmlTypeClauseIn) tree).parentVar = mostRecentVarDecl;
-                    }
-                    if (mostRecentVarDecl == null) {
-                        utils.error(tree.pos(), "jml.misplaced.var.spec",
-                                ((JmlTypeClause) tree).keyword);
-                    } else {
-//                        if (mostRecentVarDecl.fieldSpecs == null) {
-//                            mostRecentVarDecl.fieldSpecs = new JmlSpecs.FieldSpecs(
-//                                    mostRecentVarDecl);
-//                        }
-                        mostRecentVarDecl.fieldSpecs.list.append((JmlTypeClause) tree);
-                        currentVariableDecl = mostRecentVarDecl;
-                    }
+                    attachFieldClause((JmlTypeClause)t.head, mostRecentVarDecl, mostRecentVarDecls);
 
                 } else if (t.head instanceof JmlMethodSpecs) {
                     currentMethodSpecs = (JmlMethodSpecs)t.head;
