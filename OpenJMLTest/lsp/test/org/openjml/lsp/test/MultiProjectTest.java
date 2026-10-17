@@ -59,7 +59,7 @@ public class MultiProjectTest extends ProtocolTestBase {
     public void tearDown() {
         // Drain background executor tasks (e.g. workspace reindex) before deleting
         // temp directories, so OpenJML does not access paths mid-deletion.
-        if (server != null) server.awaitIdle(10, java.util.concurrent.TimeUnit.SECONDS);
+        if (server != null) server.awaitIdle(TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
         super.tearDown();
         if (tmpDir != null && Files.exists(tmpDir)) {
             try {
@@ -149,6 +149,21 @@ public class MultiProjectTest extends ProtocolTestBase {
     // -----------------------------------------------------------------------
     // Test 1: single project configuration applied to checkJML
     // -----------------------------------------------------------------------
+
+    /**
+     * {@code awaitIdle} must wait for a check that is still in its debounce delay, so a
+     * test's tearDown cannot delete files that a pending check then reads.
+     */
+    @Test
+    public void testAwaitIdleWaitsForDebouncedCheck() throws Exception {
+        configureOneProject("projA", absDir("ProjectA"));
+
+        sendCheckJml(absPath("ProjectA", "ProjAError.java"));
+        server.awaitIdle(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        assertNotNull("awaitIdle returned before the debounced check published its diagnostics",
+                nextDiagsFor("ProjAError", 100, TimeUnit.MILLISECONDS));
+    }
 
     /**
      * Configure a single project whose {@code rootPaths} includes

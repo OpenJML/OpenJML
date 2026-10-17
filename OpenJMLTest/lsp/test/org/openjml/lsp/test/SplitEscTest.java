@@ -80,7 +80,7 @@ public class SplitEscTest {
 
     @AfterClass
     public static void stopServer() throws Exception {
-        if (server != null) server.awaitIdle(10, java.util.concurrent.TimeUnit.SECONDS);
+        if (server != null) server.awaitIdle(TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
         if (client != null) client.stop();
         if (tmpDir != null && Files.exists(tmpDir)) {
             Files.walk(tmpDir)
