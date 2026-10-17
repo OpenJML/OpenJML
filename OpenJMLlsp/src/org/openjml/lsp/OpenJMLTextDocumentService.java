@@ -66,9 +66,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -196,14 +194,26 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final java.util.Set<String> shownDialogMessages =
             java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
+    /** Executor tasks submitted and not finished, plus scheduler tasks running (see awaitIdle). */
     private final java.util.concurrent.atomic.AtomicInteger activeTaskCount = new java.util.concurrent.atomic.AtomicInteger(0);
     private final ExecutorService executor = new java.util.concurrent.ThreadPoolExecutor(
             0, Integer.MAX_VALUE, 60L, java.util.concurrent.TimeUnit.SECONDS,
             new java.util.concurrent.SynchronousQueue<>()) {
+        // Counted from submission, not from the start of the run
+        @Override public void execute(Runnable r) {
+            activeTaskCount.incrementAndGet();
+            try { super.execute(r); }
+            catch (RuntimeException e) { activeTaskCount.decrementAndGet(); throw e; }
+        }
+        @Override protected void afterExecute(Runnable r, Throwable t) { activeTaskCount.decrementAndGet(); }
+    };
+    /** Runs the debounce delays; a cancelled delay leaves the queue at once, so awaitIdle does not wait for it. */
+    private final java.util.concurrent.ScheduledThreadPoolExecutor scheduler =
+            new java.util.concurrent.ScheduledThreadPoolExecutor(1) {
         @Override protected void beforeExecute(Thread t, Runnable r) { activeTaskCount.incrementAndGet(); }
         @Override protected void afterExecute(Runnable r, Throwable t) { activeTaskCount.decrementAndGet(); }
     };
-    private final ScheduledExecutorService scheduler     = Executors.newSingleThreadScheduledExecutor();
+    { scheduler.setRemoveOnCancelPolicy(true); }
 
     /** Pending debounce futures for --check, keyed by URI. */
     private final Map<String, ScheduledFuture<?>> pendingCheck = new ConcurrentHashMap<>();
@@ -3703,14 +3713,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Block until all currently queued executor tasks have completed (or the timeout elapses).
+     * Block until no executor task is pending or running and no debounced task is waiting in the
+     * scheduler (or the timeout elapses).
      * Used by tests to drain background tasks (e.g. workspace reindex) before tearing down
      * temp directories, avoiding TOCTOU races where OpenJML accesses a path mid-deletion.
+     * Idle must hold on two polls in a row: a scheduler task is briefly neither queued nor
+     * counted between leaving the queue and starting.
      */
     void awaitIdle(long timeout, java.util.concurrent.TimeUnit unit) {
         long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (activeTaskCount.get() > 0 && System.nanoTime() < deadline) {
-            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+        int idlePolls = 0;
+        while (idlePolls < 2 && System.nanoTime() < deadline) {
+            boolean idle = activeTaskCount.get() == 0 && scheduler.getQueue().isEmpty();
+            idlePolls = idle ? idlePolls + 1 : 0;
+            if (idlePolls < 2) {
+                try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+            }
         }
     }
 

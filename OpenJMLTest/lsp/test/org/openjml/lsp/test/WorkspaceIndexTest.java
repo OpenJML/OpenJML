@@ -59,7 +59,7 @@ public class WorkspaceIndexTest extends ProtocolTestBase {
     @After
     @Override
     public void tearDown() {
-        if (server != null) server.awaitIdle(10, java.util.concurrent.TimeUnit.SECONDS);
+        if (server != null) server.awaitIdle(TIMEOUT_SECONDS, java.util.concurrent.TimeUnit.SECONDS);
         super.tearDown();
         if (tmpDir != null && Files.exists(tmpDir)) {
             try {
