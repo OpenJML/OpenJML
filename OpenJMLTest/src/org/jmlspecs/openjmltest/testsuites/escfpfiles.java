@@ -112,7 +112,7 @@ public class escfpfiles extends EscBaseFiles {
 
     @Test public void sfbug414() { // FIXME - is the code-math option needed? Why?
         expectedExit = 0;
-        helpEscFile("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5", "--code-math=bigint");
+        helpEscFile("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5", "--code-math=bigint", "--fpreal"); // times out with the FloatingPoint theory
     }
 
     @Test public void sfbug414n() { // FIXME - is the code-math option needed? Why?

@@ -1104,6 +1104,23 @@ public class JmlTreeUtils {
         return tree;
     }
 
+    /** Copies of the float and double == and != operator symbols. ESC gives a source == or != on float or double
+     * one of these, and translates it with IEEE equality (fp.eq) when using the SMT FloatingPoint theory; every
+     * other floating-point equality (e.g. one for an assignment) means identity, the SMT =. The copies keep the
+     * name, type and opcode, so they act as the original operators elsewhere. */
+    private final java.util.Map<Symbol.OperatorSymbol,Symbol.OperatorSymbol> ieeeOperators = new java.util.HashMap<>();
+
+    /** The IEEE-equality copy of op (see ieeeOperators) */
+    public Symbol.OperatorSymbol ieeeOperator(Symbol.OperatorSymbol op) {
+        if (ieeeOperators.containsValue(op)) return op;
+        return ieeeOperators.computeIfAbsent(op, o -> new Symbol.OperatorSymbol(o.name, o.type, o.opcode, o.owner));
+    }
+
+    /** Whether op is an IEEE-equality operator symbol made by ieeeOperator */
+    public boolean isIEEEOperator(Symbol op) {
+        return op instanceof Symbol.OperatorSymbol os && ieeeOperators.containsValue(os);
+    }
+
     /** Makes a JML binary operator node (with boolean result)
      * @param pos the pseudo source code location of the node
      * @param op the binary operator (producing a boolean result), e.g. JmlToken.IMPLIES

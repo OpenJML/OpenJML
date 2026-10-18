@@ -347,6 +347,38 @@ public class JmlOption {
     	}
     };
     { map.put("-escBV",ESC_BV); }
+    public static final JmlOption FPREAL = new JmlOption("--fpreal",true,"auto","ESC: If true, reason about float and double as SMT reals; if false, with the SMT FloatingPoint theory (auto, the default: false if the prover supports FloatingPoint)",null,"true") {
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
+            var nm = JmlOption.FPREAL.optionName();
+            if (negate) options.put(nm, "false");
+            String val = options.get(nm);
+            if (!"auto".equals(val) && !"true".equals(val) && !"false".equals(val)) {
+                clWarning(context, "Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
+                options.put(nm,(String)JmlOption.FPREAL.defaultValue());
+                return false;
+            }
+            return true;
+        }
+    };
+
+    /** Whether ESC models float and double with the SMT FloatingPoint theory (rather than as reals), per --fpreal and the prover */
+    public static boolean useFPTheory(Context context) {
+        String val = FPREAL.value(context);
+        if ("true".equals(val)) return false;
+        if ("false".equals(val)) return true;
+        String logic = LOGIC.value(context); // a logic other than ALL must name FP for the FloatingPoint theory
+        if (logic != null && !logic.equals("ALL") && !logic.contains("FP")) return false;
+        return proverSupportsFP(PROVER.value(context));
+    }
+
+    /** Whether the named prover implements the SMT FloatingPoint theory */
+    public static boolean proverSupportsFP(/*@ nullable */ String prover) {
+        if (prover == null) return false;
+        String p = prover.toLowerCase();
+        if (p.startsWith("z3")) return !p.startsWith("z3-4.3") && !p.startsWith("z3_4_3"); // FloatingPoint is in z3 since 4.4
+        return p.startsWith("cvc5") || p.startsWith("cvc4") || p.startsWith("bitwuzla");
+    }
     public static final JmlOption Z3 = new JmlOption("--z3",true,"","ESC: Comma-separated z3 settings: mbqi, autoconf (turn on model-based quantifier instantiation / z3's auto-configuration), no-mbqi, no-autoconf (turn them off, the default)",null) {
         public boolean check(Context context, boolean negate) {
             String val = JmlOption.Z3.value(context);

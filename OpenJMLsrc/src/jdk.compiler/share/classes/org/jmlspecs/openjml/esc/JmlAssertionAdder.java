@@ -418,6 +418,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public boolean useBV;
 
+	/** Whether ESC models float and double with the SMT FloatingPoint theory (cf. --fpreal) */
+	public boolean useFP;
+
 	/**
 	 * A map from formal parameter to actual argument, used when translating methods
 	 * called within a method body; also used to map formals in inherited method
@@ -665,6 +668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// this.reader.init(syms); // FIXME?
 		this.utilsClass = !rac ? null : reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
 		this.closeableType = syms.enterClass("java.io.Closeable");
+		this.useFP = esc && JmlOption.useFPTheory(context);
 
 		initialize();
 
@@ -16096,7 +16100,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
             addBinaryChecks(that,optag,lhs,rhs,null);
-			result = eresult = makeBin(that, optag, that.getOperator(), lhs, rhs, maxJmlType);
+			result = eresult = makeBin(that, optag, sourceOperator(that, lhs, rhs), lhs, rhs, maxJmlType);
 			if (!rac && splitExpressions)
 				result = eresult = newTemp(eresult);
 
@@ -16178,13 +16182,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 
 			addBinaryChecks(that, optag, lhs, rhs, null);
-			JCBinary bin = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+			JCBinary bin = treeutils.makeBinary(that.pos, optag, sourceOperator(that, lhs, rhs), lhs, rhs);
 			result = eresult = splitExpressions ? newTemp(bin) : bin;
 		}
 		if (splitExpressions)
 			eresult.pos = that.getStartPosition(); // Need to make the start of the temporary Ident the same as the
 													// start of the expression it represents
 		treeutils.copyEndPosition(eresult, that);
+	}
+
+	/** The operator for the translation of the source binary expression that, with converted operands lhs and rhs:
+	 * for == and != on float or double under the SMT FloatingPoint theory, the IEEE-equality copy of the operator
+	 * (see JmlTreeUtils.ieeeOperator) */
+	protected OperatorSymbol sourceOperator(JCBinary that, JCExpression lhs, JCExpression rhs) {
+		OperatorSymbol op = that.getOperator();
+		if (useFP && op != null && (that.hasTag(JCTree.Tag.EQ) || that.hasTag(JCTree.Tag.NE))
+				&& (isFloating(lhs.type) || isFloating(rhs.type))) {
+			return treeutils.ieeeOperator(op);
+		}
+		return op;
+	}
+
+	protected boolean isFloating(Type t) {
+		return t.getTag() == TypeTag.FLOAT || t.getTag() == TypeTag.DOUBLE;
 	}
 
 	public void visitJmlChained(JmlChained that) {
@@ -18254,7 +18274,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		makeCopy = makeCopy || stringType; // FIXM - really shjould make variables in the prologue for all string values
 
 		JCExpression etype = null;
-		if (!encapsulated) {
+		if (!encapsulated && !useFP) { // A floating-point literal is finite when it models a real (not so for a constant such as Double.NaN)
 			if (types.isSameType(that.type, syms.doubleType)) {
 				etype = M.Ident(names.fromString("Double")); // FIXME - should use fully qualified type
 			} else if (types.isSameType(that.type, syms.floatType)) {
