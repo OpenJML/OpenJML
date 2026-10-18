@@ -570,6 +570,45 @@ public class escfp extends EscBase {
     }
 
     @Test
+    public void testVacuityFails() {
+        // the translation of each operation is consistent: assert false must fail after each
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void add(double a, double b) {
+                    double c = a + b, d = a - b, e = -a;
+                    //@ assert false;
+                  }
+                  public void compare(float a, float b) {
+                    boolean c = a < b, d = a <= b, e = a == b, f = a != b;
+                    int g = Float.compare(a, b);
+                    //@ assert false;
+                  }
+                  public void cast(double a, int i, long k) {
+                    int j = (int)a; long m = (long)a; float f = (float)a; double d = i; float g = k;
+                    //@ assert false;
+                  }
+                  //@ requires !Double.isNaN(a) && !Double.isNaN(b); // for copySign
+                  public void math(double a, double b) {
+                    double c = Math.abs(a), d = Math.floor(a), e = Math.ceil(a), f = Math.rint(a), g = Math.min(a, b), h = Math.max(a, b), x = Math.copySign(a, b);
+                    //@ assert false;
+                  }
+                  public void box(double a, Double b) {
+                    Double x = a; double y = b;
+                    //@ assert false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method add",9
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method compare",9
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method cast",9
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Assert) in method math",9
+                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Assert) in method box",9
+                );
+    }
+
+    @Test
     public void testBoxingNaNFails() {
         // boxing a NaN must not make the assumptions inconsistent (each assert false must fail)
         helpEsc("tt.TestJava",

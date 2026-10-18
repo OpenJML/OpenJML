@@ -16,6 +16,23 @@ public class escfpreal extends escfp {
         return "--fpreal";
     }
 
+    @Test
+    public void testVacuityMulDivFails() {
+        // as escfp.testVacuityFails, for the operations that are slow with the FloatingPoint theory
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m(double a, double b) {
+                    double c = a * b, d = a / b, e = a % b;
+                    //@ assert false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
     @Test @Override
     public void testAddDouble() {
         // differs from escfp (exact sums): 0.1 + 0.2 is not rounded to 0.30000000000000004

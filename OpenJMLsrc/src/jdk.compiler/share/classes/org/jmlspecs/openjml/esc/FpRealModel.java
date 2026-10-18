@@ -53,16 +53,23 @@ public class FpRealModel {
         tr.addReal();
         String F = SORT;
         if (datatype) {
-            add("(declare-datatypes ((" + F + " 0)) (((" + NAN + ") (" + PINF + ") (" + NINF + ") (" + PZERO + ") (" + NZERO + ") (" + VAL + " (|#fpV#| Real)))))");
-            add("(define-fun |#fpIsNaN#| ((a " + F + ")) Bool ((_ is " + NAN + ") a))");
-            add("(define-fun |#fpIsPInf#| ((a " + F + ")) Bool ((_ is " + PINF + ") a))");
-            add("(define-fun |#fpIsNInf#| ((a " + F + ")) Bool ((_ is " + NINF + ") a))");
-            add("(define-fun |#fpIsPZero#| ((a " + F + ")) Bool ((_ is " + PZERO + ") a))");
-            add("(define-fun |#fpIsNZero#| ((a " + F + ")) Bool ((_ is " + NZERO + ") a))");
-            add("(define-fun |#fpIsVal#| ((a " + F + ")) Bool ((_ is " + VAL + ") a))");
-            add("(define-fun " + VALUE + " ((a " + F + ")) Real (ite (|#fpIsVal#| a) (|#fpV#| a) 0.0))");
-            // A nonzero value is never |#fpVal#| 0 (the zeros are the two constants)
-            add("(assert (forall ((a " + F + ")) (! (=> (|#fpIsVal#| a) (not (= (|#fpV#| a) 0.0))) :pattern ((|#fpV#| a)))))");
+            // A finite value is |#fpFin#| r negz; it is built only as |#fpFin#| r false or as a zero, so every built
+            // value meets the axiom below by construction (an axiom excluding a built junk value would also
+            // apply to the junk term in an untaken ite branch). Equality with a constructor rather than a tester,
+            // since cvc5 does not accept a quoted constructor name in (_ is C).
+            add("(declare-datatypes ((" + F + " 0)) (((" + NAN + ") (" + PINF + ") (" + NINF + ") (|#fpFin#| (" + VALUE + " Real) (|#fpNegZ#| Bool)))))");
+            add("(define-fun " + PZERO + " () " + F + " (|#fpFin#| 0.0 false))");
+            add("(define-fun " + NZERO + " () " + F + " (|#fpFin#| 0.0 true))");
+            add("(define-fun " + VAL + " ((r Real)) " + F + " (|#fpFin#| r false))");
+            add("(define-fun |#fpIsNaN#| ((a " + F + ")) Bool (= a " + NAN + "))");
+            add("(define-fun |#fpIsPInf#| ((a " + F + ")) Bool (= a " + PINF + "))");
+            add("(define-fun |#fpIsNInf#| ((a " + F + ")) Bool (= a " + NINF + "))");
+            add("(define-fun |#fpIsFin#| ((a " + F + ")) Bool (not (or (= a " + NAN + ") (= a " + PINF + ") (= a " + NINF + "))))");
+            add("(define-fun |#fpIsPZero#| ((a " + F + ")) Bool (and (|#fpIsFin#| a) (= (" + VALUE + " a) 0.0) (not (|#fpNegZ#| a))))");
+            add("(define-fun |#fpIsNZero#| ((a " + F + ")) Bool (and (|#fpIsFin#| a) (= (" + VALUE + " a) 0.0) (|#fpNegZ#| a)))");
+            add("(define-fun |#fpIsVal#| ((a " + F + ")) Bool (and (|#fpIsFin#| a) (not (= (" + VALUE + " a) 0.0))))");
+            // Only a zero has a sign flag, so SMT equality is identity
+            add("(assert (forall ((a " + F + ")) (! (=> (|#fpIsVal#| a) (not (|#fpNegZ#| a))) :pattern ((|#fpNegZ#| a)) :pattern ((" + VALUE + " a)))))");
         } else {
             String K = "|#FpKind#|";
             String[] kinds = { "|#FP_NAN#|", "|#FP_PINF#|", "|#FP_NINF#|", "|#FP_PZERO#|", "|#FP_NZERO#|", "|#FP_VALUE#|" };
