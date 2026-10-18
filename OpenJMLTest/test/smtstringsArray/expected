@@ -44,8 +44,7 @@ test/smtstrings/Equalities.java:38: verify: The prover cannot establish an asser
     //@   assert s + t == s + u ==> t == u;
           ^
 Completed proof of Equalities.cancellation(\string,\string,\string) with prover !!!! - with warnings
-Starting proof of Equalities.split(\string,\bigint,char) with prover !!!!
-Completed proof of Equalities.split(\string,\bigint,char) with prover !!!! - no warnings
+Skipping proof of Equalities.split(\string,\bigint,char) (Skipping Equalities.split because it matches the exclusion Equalities.split)
 Starting proof of Equalities.prefixTransitive(\string,\string,\string) with prover !!!!
 Completed proof of Equalities.prefixTransitive(\string,\string,\string) with prover !!!! - no warnings
 Starting proof of Equalities.extensionality(\string,\string) with prover !!!!

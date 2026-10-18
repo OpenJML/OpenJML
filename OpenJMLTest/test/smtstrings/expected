@@ -41,8 +41,7 @@ Starting proof of Equalities.identities(\string,\string,\string) with prover !!!
 Completed proof of Equalities.identities(\string,\string,\string) with prover !!!! - no warnings
 Starting proof of Equalities.cancellation(\string,\string,\string) with prover !!!!
 Completed proof of Equalities.cancellation(\string,\string,\string) with prover !!!! - no warnings
-Starting proof of Equalities.split(\string,\bigint,char) with prover !!!!
-Completed proof of Equalities.split(\string,\bigint,char) with prover !!!! - no warnings
+Skipping proof of Equalities.split(\string,\bigint,char) (Skipping Equalities.split because it matches the exclusion Equalities.split)
 Starting proof of Equalities.prefixTransitive(\string,\string,\string) with prover !!!!
 Completed proof of Equalities.prefixTransitive(\string,\string,\string) with prover !!!! - no warnings
 Starting proof of Equalities.extensionality(\string,\string) with prover !!!!

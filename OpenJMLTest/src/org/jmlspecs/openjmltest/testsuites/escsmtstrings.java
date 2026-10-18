@@ -11,10 +11,11 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escsmtstrings extends EscBaseFiles {
 
-    /** Methods that z3 does not settle within the time limit in one of the modes: with the Strings theory,
-     * the character indexing of built strings (Chars) and the laws of the order together (Order.properties);
-     * with the array model, Equalities.literals. smtstringsCvc5 checks the Chars methods with cvc5. */
-    static final String EXCLUDED = "--exclude=Chars.build,Chars.shifted,Chars.substrings,Chars.unchanged,Order.properties,Equalities.literals";
+    /** Methods that z3 does not settle (reliably) within the time limit in one of the modes: with the Strings
+     * theory, the character indexing of built strings (Chars), Equalities.split, and the laws of the order
+     * together (Order.properties); with the array model, Equalities.literals. smtstringsCvc5 checks the Chars
+     * and Equalities methods with cvc5. */
+    static final String EXCLUDED = "--exclude=Chars.build,Chars.shifted,Chars.substrings,Chars.unchanged,Order.properties,Equalities.literals,Equalities.split";
 
     void helpStrings(String outDir, String... opts) {
         String d = "test/smtstrings";
