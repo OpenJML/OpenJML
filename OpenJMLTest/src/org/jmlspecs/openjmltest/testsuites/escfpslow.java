@@ -288,7 +288,7 @@ public class escfpslow extends EscBase {
 
     @Test
     public void testUnderflowFails() {
-        // a nonzero product can underflow to zero (gitbug735)
+        // a nonzero product can underflow to zero (gitbug735; with --fpreal m2 verifies: escfp.testRealSemantics)
         helpEsc("tt.TestJava",
                 """
                 package tt;

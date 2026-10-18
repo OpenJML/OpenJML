@@ -12,7 +12,7 @@ public class IsInfinite {
   //@ requires !Double.isFinite(a);
   public static void isInfiniteTestAnomalies(double a)
   {
-    boolean staticResult = Double.isFinite(a);
+    boolean staticResult = Double.isInfinite(a);
     Double instance = a;
     boolean instanceResult = instance.isInfinite();
     //@ assert Double.isNaN(a) ==> (staticResult == false);

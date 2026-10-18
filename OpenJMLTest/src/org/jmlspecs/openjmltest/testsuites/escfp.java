@@ -530,6 +530,36 @@ public class escfp extends EscBase {
     }
 
     @Test
+    public void testWrapperPitfallsFails() {
+        // plausible but wrong claims from the old escDouble/escFloat tests: ==, compare and equals differ on
+        // -0.0/+0.0, max propagates NaN, and !isFinite includes the infinities
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void equalsZero(double a, double b) {
+                    Double x = a, y = b;
+                    //@ assert (a == b) ==> x.equals(y);
+                  }
+                  public void compareZero(float a, float b) {
+                    //@ assert (a == b) ==> Float.compare(a, b) == 0;
+                  }
+                  public void maxNaN(double a, double b) {
+                    //@ assert Double.isNaN(a) ==> Double.max(a, b) == b;
+                  }
+                  public void notFinite(float a) {
+                    //@ assert !Float.isFinite(a) ==> Float.isNaN(a);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method equalsZero",9
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method compareZero",9
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method maxNaN",9
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method notFinite",9
+                );
+    }
+
+    @Test
     public void testDoubleFloatMethods() {
         // Double/Float compare, sum, min, max are translated exactly
         helpEsc("tt.TestJava",
@@ -555,6 +585,43 @@ public class escfp extends EscBase {
     }
 
     // Conversions
+
+    @Test
+    public void testStringConversions() {
+        // Float/Double valueOf, toString and parse specs for the special values (from escFloat/escDouble StringTests);
+        // decimal digits are not specified
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void valueOf(float f, double d) {
+                    Float b = Float.valueOf(f);
+                    Double c = Double.valueOf(d);
+                    //@ assert Float.identical(b.floatValue(), f) && Double.identical(c.doubleValue(), d);
+                  }
+                  public void toStringF(float f) {
+                    String s = Float.toString(f);
+                    //@ assert Float.isNaN(f) <==> s.equals("NaN");
+                    //@ assert (f == Float.POSITIVE_INFINITY) <==> s.equals("Infinity");
+                    //@ assert Float.isNegativeZero(f) <==> s.equals("-0.0");
+                    //@ assert Float.identical(Float.parseFloat(s), f);
+                  }
+                  public void toStringD(double d) {
+                    String s = Double.toHexString(d);
+                    //@ assert (d == Double.NEGATIVE_INFINITY) <==> s.equals("-Infinity");
+                    //@ assert Double.isPositiveZero(d) <==> s.equals("0x0.0p0");
+                    //@ assert (d < 0) ==> s.charAt(0) == '-';
+                  }
+                  public void parse() {
+                    //@ assert Float.isNaN(Float.parseFloat("NaN"));
+                    //@ assert Double.parseDouble("-Infinity") == Double.NEGATIVE_INFINITY;
+                    Float b = Float.valueOf("+Infinity");
+                    //@ assert b.floatValue() == Float.POSITIVE_INFINITY;
+                  }
+                }
+                """
+                );
+    }
 
     @Test
     public void testCasts() {
@@ -668,6 +735,10 @@ public class escfp extends EscBase {
                   //@ requires Double.isFinite(a) && Double.isFinite(b) && Double.isFinite(c);
                   //@ ensures (a + b) + c == a + (b + c);
                   public void m(double a, double b, double c) {
+                  }
+                  // gitbug735: no underflow with reals (with FloatingPoint it fails: escfpslow.testUnderflowFails)
+                  public void m2(double a, double b, double c, double d) {
+                    //@ assert ((a - b) * (c - d) == 0) ==> (a == b || c == d);
                   }
                 }
                 """
