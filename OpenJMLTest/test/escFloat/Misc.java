@@ -55,11 +55,13 @@ public class Misc
         Float b = Float.intBitsToFloat(a);
         int sign = ((a >> 31) == 0) ? 1 : -1;
         int exponent = ((a >> 23) & 0xff);
-        int mantissa = (exponent == 0) ? (a & 0x7fffff) << 1 : (a & 0x7fffff) | 0x800000;
-        //@ assert exponent == 0xff && sign == 1 && mantissa == 0 ==> b == Float.NEGATIVE_INFINITY;
-        //@ assert exponent == 0xff && sign == -1 && mantissa == 0 ==> b == Float.POSITIVE_INFINITY;
-        //@ assert exponent == 0xff && mantissa != 0  ==> Float.isNaN(b);
-        //@ assert exponent != 0xff ==> Math.abs(b - (2 * (sign | 0x800000)*Math.pow(2,exponent-150))) < .1;
+        int fraction = a & 0x7fffff;
+        //@ assert exponent == 0xff && sign == 1 && fraction == 0 ==> b == Float.POSITIVE_INFINITY;
+        //@ assert exponent == 0xff && sign == -1 && fraction == 0 ==> b == Float.NEGATIVE_INFINITY;
+        //@ assert exponent == 0xff && fraction != 0  ==> Float.isNaN(b);
+        //@ assert exponent != 0xff ==> Float.isFinite(b);
+        //@ assert exponent == 0 && fraction == 0 ==> b == 0;
+        //@ assert exponent == 0x7f && fraction == 0 ==> b == sign;
     }
 
     // Should throw a warning about possible lossy of accuracy with Infinites

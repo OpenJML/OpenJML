@@ -239,6 +239,8 @@ public class SMTTranslator extends JmlTreeScanner {
 
     /** Whether cdivq and cmodq have been declared in the current script */
     boolean cdivqDeclared = false;
+    /** Whether the bit-pattern functions of Float32 (index 0) and Float64 (index 1) are declared in this script */
+    boolean[] fpBitsDeclared = new boolean[2];
     boolean cmodqDeclared = false;
 
     /** A Java integer / or % outside any quantifier: name is cdivq or cmodq, args its operands and
@@ -911,6 +913,7 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands = new LinkedList<ICommand>();
         commands = new LinkedList<ICommand>();
         cdivqDeclared = cmodqDeclared = false;
+        fpBitsDeclared[0] = fpBitsDeclared[1] = false;
         groundDivMods.clear();
         recursiveFunctions.clear();
         
@@ -3181,12 +3184,7 @@ public class SMTTranslator extends JmlTreeScanner {
         if (!useBV) {
             // Via a bit-vector, which is exact since the value is in the range of its type: solvers do much better
             // with this than with rounding a symbolic real (to_fp of to_real)
-            List<IIndex> w = new LinkedList<>();
-            w.add(F.numeral(bits(from)));
-            // int_to_bv is the SMT-LIB 2.7 name, which strict cvc5 requires; z3 before 4.13 knows only int2bv
-            String prover = JmlOption.PROVER.value(context);
-            String int2bv = prover != null && prover.startsWith("cvc") ? "int_to_bv" : "int2bv";
-            e = F.fcn(F.id(F.symbol(int2bv), w), e);
+            e = intToBV(bits(from), e);
         }
         return F.fcn(fpId(from == TypeTag.CHAR ? "to_fp_unsigned" : "to_fp", to), rne, e);
     }
@@ -3324,6 +3322,15 @@ public class SMTTranslator extends JmlTreeScanner {
                 case "isFinite": return F.fcn(notSym, F.fcn(orSym, F.fcn(F.symbol("fp.isNaN"), a), F.fcn(F.symbol("fp.isInfinite"), a)));
                 case "isPositiveZero": return F.fcn(andSym, F.fcn(F.symbol("fp.isZero"), a), F.fcn(F.symbol("fp.isPositive"), a));
                 case "isNegativeZero": return F.fcn(andSym, F.fcn(F.symbol("fp.isZero"), a), F.fcn(F.symbol("fp.isNegative"), a));
+                case "intBitsToFloat": case "longBitsToDouble": {
+                    bitPatternsNeedBV();
+                    TypeTag t = owner.equals("java.lang.Float") ? TypeTag.FLOAT : TypeTag.DOUBLE;
+                    return F.fcn(fpId("to_fp", t), useBV ? a : intToBV(bits(t == TypeTag.FLOAT ? TypeTag.INT : TypeTag.LONG), a));
+                }
+                case "floatToRawIntBits": return fpBits(TypeTag.FLOAT, a);
+                case "doubleToRawLongBits": return fpBits(TypeTag.DOUBLE, a);
+                case "floatToIntBits": return F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), a), integralConstant(TypeTag.INT, 0x7fc00000), fpBits(TypeTag.FLOAT, a));
+                case "doubleToLongBits": return F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), a), integralConstant(TypeTag.LONG, 0x7ff8000000000000L), fpBits(TypeTag.DOUBLE, a));
                 default: return null;
             }
         } else if (args.size() == 2) {
@@ -3347,6 +3354,55 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         }
         return null;
+    }
+
+    /** The bit pattern of the float or double (type t) value e, as Double.doubleToRawLongBits and
+     * Float.floatToRawIntBits give it. The theory has no such operation, so this is a declared function, defined as
+     * a (right) inverse of to_fp from a bit-vector: that fixes the result except for NaN, which has many bit patterns
+     * in Java but only one value in the theory. In integer (not bit-vector) mode, which solvers handle badly here,
+     * the result is a signed Int. */
+    protected IExpr fpBits(TypeTag t, IExpr e) {
+        bitPatternsNeedBV();
+        boolean isFloat = t == TypeTag.FLOAT;
+        int w = isFloat ? 32 : 64;
+        String fcn = isFloat ? "|#floatBits#|" : "|#doubleBits#|";
+        int k = isFloat ? 0 : 1;
+        if (!fpBitsDeclared[k]) {
+            fpBitsDeclared[k] = true;
+            String fpSort = isFloat ? "Float32" : "Float64";
+            String toFP = isFloat ? "(_ to_fp 8 24)" : "(_ to_fp 11 53)";
+            String app = "(" + fcn + " x)";
+            if (useBV) {
+                startCommands.add(command(smt, "(declare-fun " + fcn + " (" + fpSort + ") (_ BitVec " + w + "))"));
+                if (quantOK) startCommands.add(command(smt, "(assert (forall ((x " + fpSort + ")) (! (= (" + toFP + " " + app + ") x) :pattern (" + app + "))))"));
+            } else {
+                String big = isFloat ? "2147483648" : "9223372036854775808";
+                String bv = "((_ " + intToBVName() + " " + w + ") " + app + ")";
+                startCommands.add(command(smt, "(declare-fun " + fcn + " (" + fpSort + ") Int)"));
+                if (quantOK) startCommands.add(command(smt, "(assert (forall ((x " + fpSort + ")) (! (and (<= (- " + big + ") " + app + ") (< " + app + " " + big + ") (= (" + toFP + " " + bv + ") x)) :pattern (" + app + "))))"));
+            }
+        }
+        return F.fcn(F.symbol(fcn), e);
+    }
+
+    /** With --esc-bv=auto, switches to bit-vector arithmetic: solvers time out relating a bit pattern held as an Int
+     * to its float or double value, even for bv2nat(int2bv(i)) */
+    protected void bitPatternsNeedBV() {
+        if (!useBV && "auto".equals(JmlOption.ESC_BV.value(context))) throw new JmlBVException();
+    }
+
+    /** The name of the Int to bit-vector conversion: int_to_bv is the SMT-LIB 2.7 name, which strict cvc5 requires;
+     * z3 before 4.13 knows only int2bv */
+    protected String intToBVName() {
+        String prover = JmlOption.PROVER.value(context);
+        return prover != null && prover.startsWith("cvc") ? "int_to_bv" : "int2bv";
+    }
+
+    /** The Int e converted to a bit-vector of width w (modulo 2^w) */
+    protected IExpr intToBV(int w, IExpr e) {
+        List<IIndex> wi = new LinkedList<>();
+        wi.add(F.numeral(w));
+        return F.fcn(F.id(F.symbol(intToBVName()), wi), e);
     }
 
     /** The SMT constant for the value k of the integral type t */

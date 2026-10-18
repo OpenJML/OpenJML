@@ -16193,10 +16193,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	/** The operator for the translation of the source binary expression that, with converted operands lhs and rhs:
 	 * for == and != on float or double under the SMT FloatingPoint theory, the IEEE-equality copy of the operator
-	 * (see JmlTreeUtils.ieeeOperator) */
+	 * (see JmlTreeUtils.ieeeOperator); an equality made by JmlTreeUtils keeps its identity operator */
 	protected OperatorSymbol sourceOperator(JCBinary that, JCExpression lhs, JCExpression rhs) {
 		OperatorSymbol op = that.getOperator();
-		if (useFP && op != null && (that.hasTag(JCTree.Tag.EQ) || that.hasTag(JCTree.Tag.NE))
+		if (useFP && op != null && !treeutils.isIdentityOperator(op) && (that.hasTag(JCTree.Tag.EQ) || that.hasTag(JCTree.Tag.NE))
 				&& (isFloating(lhs.type) || isFloating(rhs.type))) {
 			return treeutils.ieeeOperator(op);
 		}

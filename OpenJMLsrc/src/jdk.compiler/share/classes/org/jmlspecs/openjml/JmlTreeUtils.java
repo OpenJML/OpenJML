@@ -1033,11 +1033,11 @@ public class JmlTreeUtils {
         
     }
     public JCBinary makeBinary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        return makeBinary(pos,optag,identityOperator(findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType()))),lhs,rhs);
     }
     // FIXME - we need these to be the operator for the converted types
     public JCBinary makeBinary(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        return makeBinary(pos,optag,identityOperator(findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType()))),lhs,rhs);
     }
     
 //    public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
@@ -1099,7 +1099,7 @@ public class JmlTreeUtils {
         JCBinary tree = factory.at(pos).Binary(JCTree.Tag.EQ, lhs, rhs);
         Type t = lhs.type;
         if (t.isPrimitive() && TypeTag.SHORT.ordinal() >= t.getTag().ordinal()) t = syms.intType;   // Perhaps should just presume the types are the same
-        tree.operator = findBinOpSymbol(JCTree.Tag.EQ, t, t);
+        tree.operator = identityOperator(findBinOpSymbol(JCTree.Tag.EQ, t, t));
         tree.type = syms.booleanType;
         return tree;
     }
@@ -1119,6 +1119,24 @@ public class JmlTreeUtils {
     /** Whether op is an IEEE-equality operator symbol made by ieeeOperator */
     public boolean isIEEEOperator(Symbol op) {
         return op instanceof Symbol.OperatorSymbol os && ieeeOperators.containsValue(os);
+    }
+
+    /** Copies of the float and double == and != operator symbols, for equalities made here (e.g. by makeEquality):
+     * these mean identity even when ESC converts them as it does source expressions (see ieeeOperators) */
+    private final java.util.Map<Symbol.OperatorSymbol,Symbol.OperatorSymbol> identityOperators = new java.util.HashMap<>();
+
+    /** The identity-equality copy of op, if op is == or != on float or double; otherwise op */
+    public Symbol.OperatorSymbol identityOperator(Symbol.OperatorSymbol op) {
+        if (op == null || identityOperators.containsValue(op)) return op;
+        if (op.name != names.fromString("==") && op.name != names.fromString("!=")) return op;
+        TypeTag t = op.type.getParameterTypes().head.getTag();
+        if (t != TypeTag.FLOAT && t != TypeTag.DOUBLE) return op;
+        return identityOperators.computeIfAbsent(op, o -> new Symbol.OperatorSymbol(o.name, o.type, o.opcode, o.owner));
+    }
+
+    /** Whether op is an identity-equality operator symbol made by identityOperator */
+    public boolean isIdentityOperator(Symbol op) {
+        return op instanceof Symbol.OperatorSymbol os && identityOperators.containsValue(os);
     }
 
     /** Makes a JML binary operator node (with boolean result)

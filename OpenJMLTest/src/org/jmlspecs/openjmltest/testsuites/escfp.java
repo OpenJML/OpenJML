@@ -532,7 +532,7 @@ public class escfp extends EscBase {
     @Test
     public void testWrapperPitfallsFails() {
         // plausible but wrong claims from the old escDouble/escFloat tests: ==, compare and equals differ on
-        // -0.0/+0.0, max propagates NaN, and !isFinite includes the infinities
+        // -0.0/+0.0, max propagates NaN, !isFinite includes the infinities, and longValue is not the bit pattern
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -550,12 +550,113 @@ public class escfp extends EscBase {
                   public void notFinite(float a) {
                     //@ assert !Float.isFinite(a) ==> Float.isNaN(a);
                   }
+                  public void longValueNotBits(double a) {
+                    Double x = a;
+                    //@ assert Double.isNaN(a) ==> x.longValue() == Double.doubleToLongBits(a);
+                  }
                 }
                 """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method equalsZero",9
                 ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assert) in method compareZero",9
                 ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method maxNaN",9
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method notFinite",9
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method longValueNotBits",9
+                );
+    }
+
+    @Test
+    public void testBoxingNaNFails() {
+        // boxing a NaN must not make the assumptions inconsistent (each assert false must fail)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires Double.isNaN(a);
+                  public void box(double a) {
+                    Double x = a;
+                    //@ assert false;
+                  }
+                  //@ requires Float.isNaN(a);
+                  public void boxUnbox(float a) {
+                    Float x = a;
+                    float b = x;
+                    //@ assert Float.isNaN(b);
+                    //@ assert false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method box",9
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method boxUnbox",9
+                );
+    }
+
+    @Test
+    public void testBitPatterns() {
+        // intBitsToFloat/longBitsToDouble are to_fp of a bit-vector; the raw-bits methods are its inverse
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void lit() {
+                    //@ assert Float.intBitsToFloat(0x3f800000) == 1.0f && Float.isNaN(Float.intBitsToFloat(0xff800001));
+                    //@ assert Float.floatToIntBits(1.0f) == 0x3f800000 && Float.floatToRawIntBits(-0.0f) == 0x80000000;
+                    //@ assert Double.longBitsToDouble(0x3ff0000000000000L) == 1.0 && Double.doubleToLongBits(-2.0) == 0xc000000000000000L;
+                    //@ assert Double.longBitsToDouble(0xfff0000000000000L) == Double.NEGATIVE_INFINITY;
+                  }
+                  public void roundTrip(float f, double d) {
+                    //@ assert Float.identical(Float.intBitsToFloat(Float.floatToRawIntBits(f)), f);
+                    //@ assert Double.identical(Double.longBitsToDouble(Double.doubleToLongBits(d)), d);
+                  }
+                  public void injective(float f, float g, double d, double e) {
+                    //@ assert (Float.floatToIntBits(f) == Float.floatToIntBits(g)) == Float.identical(f, g);
+                    //@ assert (Double.doubleToLongBits(d) == Double.doubleToLongBits(e)) == Double.identical(d, e);
+                  }
+                  public void back(int i, long k) {
+                    //@ assert !Float.isNaN(Float.intBitsToFloat(i)) ==> Float.floatToRawIntBits(Float.intBitsToFloat(i)) == i;
+                    //@ assert !Double.isNaN(Double.longBitsToDouble(k)) ==> Double.doubleToRawLongBits(Double.longBitsToDouble(k)) == k;
+                  }
+                  public void fields(float f, double d) {
+                    //@ assert !Double.isNaN(d) ==> ((Double.doubleToRawLongBits(d) < 0) == (d < 0 || Double.isNegativeZero(d)));
+                    //@ assert Double.isNaN(d) ==> Double.doubleToLongBits(d) == 0x7ff8000000000000L;
+                    //@ assert Float.isInfinite(f) ==> (Float.floatToRawIntBits(f) & 0x7fffffff) == 0x7f800000;
+                    //@ assert Float.isNaN(Float.intBitsToFloat(Float.floatToRawIntBits(f) | 0x7fc00000));
+                  }
+                  public void javaCode(float f) {
+                    int i = Float.floatToIntBits(f);
+                    float g = Float.intBitsToFloat(i);
+                    //@ assert Float.identical(f, g);
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testBitPatternsFails() {
+        // a NaN has many bit patterns, and -0.0 == 0.0; the last is a vacuity check
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void rawNotCanonical(float f) {
+                    //@ assert Float.floatToRawIntBits(f) == Float.floatToIntBits(f);
+                  }
+                  public void rawNaN(double d) {
+                    //@ assert Double.isNaN(d) ==> Double.doubleToRawLongBits(d) == 0x7ff8000000000000L;
+                  }
+                  public void notInjective(int i, int j) {
+                    //@ assert Float.intBitsToFloat(i) == Float.intBitsToFloat(j) ==> i == j;
+                  }
+                  public void vacuity(float f, int i) {
+                    int b = Float.floatToRawIntBits(f); int c = Float.floatToIntBits(f); float g = Float.intBitsToFloat(i);
+                    //@ assert false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method rawNotCanonical",9
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method rawNaN",9
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method notInjective",9
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method vacuity",9
                 );
     }
 
