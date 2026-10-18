@@ -76,6 +76,7 @@ public class escfp extends EscBase {
 
     @Test
     public void testMixedTypes() {
+        addOptions("--prover=cvc5-1.3.2"); // z3 times out on int to float conversions (int2bv and FloatingPoint)
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -88,6 +89,30 @@ public class escfp extends EscBase {
                     //@ assert d == 16777217.0;
                     double e = f + 0.25;  // float promoted to double
                     //@ assert e == 0.75;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testLiterals() {
+        // literal translation, incl. scientific notation and digits beyond the precision (from escfpPrimitiveOps)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires f == 1.2345678e7f && g == 1.23456789e7f && d == 1.23456789e7 && e == 9.99999e-7;
+                  public void m(float f, float g, double d, double e) {
+                    //@ assert f == 12345678.0f && g == 12345678.9f && g != f;
+                    //@ assert d == 12345678.9 && d != f;
+                    //@ assert e == 0.000000999999;
+                    //@ assert f < 1.2345679e7f && 3.0f < 3.000001f && -5194.333f > -5483.456f;
+                  }
+                  //@ requires x == 12345678912345678.9 && y == 234243E20;
+                  public void m2(double x, double y) {
+                    //@ assert x == 12345678912345678.0 && x != 12345678912345679.0;
+                    //@ assert y == 2.34243e25 && y < Double.POSITIVE_INFINITY;
                   }
                 }
                 """
@@ -133,15 +158,82 @@ public class escfp extends EscBase {
     }
 
     @Test
+    public void testRelationLaws() {
+        // ==, <=, < on finite values (from escfpPrimitiveOps)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires Double.isFinite(a) && Double.isFinite(b) && Double.isFinite(c);
+                  public void m(double a, double b, double c) {
+                    //@ assert a == a && ((a == b) <==> (b == a)) && ((a == b && b == c) ==> a == c);
+                    //@ assert ((a == b) <==> !(a != b)) && ((a != b) ==> (a > b || a < b));
+                    //@ assert a <= a && ((a <= b && b <= c) ==> a <= c) && ((a <= b) || (b <= a));
+                    //@ assert ((a <= b) <==> (b >= a)) && ((a <= b) <==> !(a > b));
+                    //@ assert !(a < a) && ((a < b) ==> !(b < a)) && ((a < b && b < c) ==> a < c);
+                    //@ assert ((a <= b && b <= a) ==> a == b) && ((a <= b && b < c) ==> a < c);
+                  }
+                  //@ requires Float.isFinite(a) && Float.isFinite(b) && Float.isFinite(c);
+                  public void mf(float a, float b, float c) {
+                    //@ assert a == a && ((a == b && b == c) ==> a == c) && ((a <= b) || (b <= a));
+                    //@ assert ((a <= b) <==> !(a > b)) && ((a < b && b < c) ==> a < c);
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testRelationLawsNaNFails() {
+        // without finiteness, NaN is unordered
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m(double a, double b) {
+                    //@ assert (a <= b) || (b <= a);
+                  }
+                  public void m2(double a, double b) {
+                    //@ assert (a <= b) <==> !(a > b);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",9
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m2",9
+                );
+    }
+
+    @Test
+    public void testAdditionLaws() {
+        // laws of + that do hold for finite values (from escfpPrimitiveOps); associativity does not (testNotAssociative);
+        // monotonicity is in escfpslow
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires Double.isFinite(a) && Double.isFinite(b) && Double.isFinite(c) && Double.isFinite(d);
+                  public void m(double a, double b, double c, double d) {
+                    //@ assert a + 0 == a && a + 0.0f == a;
+                    //@ assert a - a == 0 && a + -a == 0;
+                    //@ assert a + b == b + a;
+                    //@ assert (a == b ==> a + c == b + c) && (a == b ==> a - c == b - c);
+                    //@ assert ((a > 0 && b > 0) ==> a + b > 0) && ((a <= 0 && b <= 0) ==> a + b <= 0);
+                  }
+                  //@ requires Float.isFinite(a) && Float.isFinite(b) && Float.isFinite(c) && Float.isFinite(d);
+                  public void mf(float a, float b, float c, float d) {
+                    //@ assert a + 0 == a && a - a == 0 && a + b == b + a;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
     public void testMonotonicity() {
         helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava {
-                  //@ requires a <= b && Double.isFinite(c);
-                  //@ ensures a + c <= b + c;
-                  public void m(double a, double b, double c) {
-                  }
                   //@ requires a <= b;
                   //@ ensures a + a <= b + b;
                   public void m2(double a, double b) {
@@ -317,6 +409,52 @@ public class escfp extends EscBase {
     }
 
     @Test
+    public void testNaNComparisons() {
+        // comparisons with Double.NaN and finiteness of the constants (from escfpPrimitiveOps)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m(double a) {
+                    //@ assert a != Double.NaN && Double.NaN != a;
+                    //@ assert !(a < Double.NaN) && !(a >= Double.NaN) && !(Double.NaN <= a);
+                    //@ assert !Double.isNaN(0.0) && !Double.isNaN(-32049234.23423);
+                    //@ assert !Double.isNaN(Double.MAX_VALUE) && !Double.isNaN(-Double.MIN_VALUE);
+                    //@ assert Double.isFinite(Double.MAX_VALUE) && Double.MIN_VALUE > 0;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testInfinityComparisons() {
+        // (from escfpPrimitiveOps)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires p == Double.POSITIVE_INFINITY && n == Double.NEGATIVE_INFINITY && !Double.isNaN(a);
+                  public void m(double p, double n, double a) {
+                    //@ assert p != n && p > n && p == -n && n == -p;
+                    //@ assert 0.0 < p && 0 > n && -23489348.23482934829348 > n;
+                    //@ assert Double.MAX_VALUE < p && -Double.MAX_VALUE > n;
+                    //@ assert n <= a && a <= p && (a != p ==> a < p) && (a != n ==> a > n);
+                  }
+                  //@ requires !Double.isNaN(a) && !Double.isNaN(b);
+                  public void m2(double a, double b) {
+                    //@ assert (a == Double.POSITIVE_INFINITY && b != Double.NEGATIVE_INFINITY) ==> (a + b) == Double.POSITIVE_INFINITY;
+                    //@ assert (a != Double.POSITIVE_INFINITY && b == Double.NEGATIVE_INFINITY) ==> (a + b) == Double.NEGATIVE_INFINITY;
+                    //@ assert (a == Double.POSITIVE_INFINITY && b == Double.NEGATIVE_INFINITY) ==> Double.isNaN(a + b);
+                    //@ assert (a == Double.POSITIVE_INFINITY && b != Double.POSITIVE_INFINITY) ==> (a - b) == Double.POSITIVE_INFINITY;
+                    //@ assert (a == Double.POSITIVE_INFINITY && b == Double.POSITIVE_INFINITY) ==> Double.isNaN(a - b);
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
     public void testNaNConstant() {
         helpEsc("tt.TestJava",
                 """
@@ -388,6 +526,31 @@ public class escfp extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
+    @Test
+    public void testDoubleFloatMethods() {
+        // Double/Float compare, sum, min, max are translated exactly
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires Double.isNaN(n) && Double.isPositiveZero(z) && x == 1.5;
+                  public void m(double n, double z, double x) {
+                    //@ assert Double.compare(-z, z) < 0 && Double.compare(z, -z) > 0 && Double.compare(z, z) == 0;
+                    //@ assert Double.compare(n, n) == 0 && Double.compare(n, Double.POSITIVE_INFINITY) > 0;
+                    //@ assert Double.compare(x, n) < 0 && Double.compare(x, 2.0) < 0 && Double.compare(x, -x) > 0;
+                    //@ assert Double.sum(x, x) == 3.0 && Double.isNaN(Double.sum(x, n));
+                    //@ assert Double.max(x, -x) == x && Double.isNegativeZero(Double.min(z, -z));
+                  }
+                  //@ requires f == 1.5f;
+                  public void mf(float f) {
+                    //@ assert Float.compare(f, 2.0f) < 0 && Float.compare(-0.0f, 0.0f) < 0;
+                    //@ assert Float.sum(f, f) == 3.0f && Float.min(f, -f) == -f;
+                  }
+                }
+                """
                 );
     }
 

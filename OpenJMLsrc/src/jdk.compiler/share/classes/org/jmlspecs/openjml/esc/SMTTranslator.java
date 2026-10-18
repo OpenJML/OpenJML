@@ -3183,7 +3183,10 @@ public class SMTTranslator extends JmlTreeScanner {
             // with this than with rounding a symbolic real (to_fp of to_real)
             List<IIndex> w = new LinkedList<>();
             w.add(F.numeral(bits(from)));
-            e = F.fcn(F.id(F.symbol("int2bv"), w), e);
+            // int_to_bv is the SMT-LIB 2.7 name, which strict cvc5 requires; z3 before 4.13 knows only int2bv
+            String prover = JmlOption.PROVER.value(context);
+            String int2bv = prover != null && prover.startsWith("cvc") ? "int_to_bv" : "int2bv";
+            e = F.fcn(F.id(F.symbol(int2bv), w), e);
         }
         return F.fcn(fpId(from == TypeTag.CHAR ? "to_fp_unsigned" : "to_fp", to), rne, e);
     }
@@ -3303,13 +3306,14 @@ public class SMTTranslator extends JmlTreeScanner {
     }
 
     /** The FloatingPoint-theory translation of a call of one of the predicates of java.lang.Double or Float, or of
-     * Math.abs or StrictMath.abs on float or double, that the theory has; or null if msym is not one */
+     * a java.lang.Math or StrictMath method on float or double, that the theory defines exactly; or null if msym is
+     * not one */
     protected /*@ nullable */ IExpr fpPredicate(Symbol msym, List<IExpr> args) {
         if (!(msym instanceof Symbol.MethodSymbol ms) || !msym.isStatic()) return null;
         String owner = msym.owner.getQualifiedName().toString();
-        if ((owner.equals("java.lang.Math") || owner.equals("java.lang.StrictMath")) && msym.name.toString().equals("abs")
-                && args.size() == 1 && isFloating(ms.params().head.type.getTag())) {
-            return F.fcn(F.symbol("fp.abs"), args.get(0));
+        if (owner.equals("java.lang.Math") || owner.equals("java.lang.StrictMath")) {
+            for (var p: ms.params()) if (!isFloating(p.type.getTag())) return null;
+            return fpMath(msym.name.toString(), args);
         }
         if (!owner.equals("java.lang.Double") && !owner.equals("java.lang.Float")) return null;
         if (args.size() == 1) {
@@ -3322,8 +3326,25 @@ public class SMTTranslator extends JmlTreeScanner {
                 case "isNegativeZero": return F.fcn(andSym, F.fcn(F.symbol("fp.isZero"), a), F.fcn(F.symbol("fp.isNegative"), a));
                 default: return null;
             }
-        } else if (args.size() == 2 && msym.name.toString().equals("identical")) {
-            return F.fcn(eqSym, args.get(0), args.get(1));
+        } else if (args.size() == 2) {
+            IExpr a = args.get(0), b = args.get(1);
+            switch (msym.name.toString()) {
+                case "identical": return F.fcn(eqSym, a, b);
+                case "sum": return F.fcn(F.symbol("fp.add"), F.symbol("RNE"), a, b);
+                case "min": case "max": return fpMath(msym.name.toString(), args);
+                case "compare": {
+                    // Java's total order: -0.0 below +0.0, NaN equal to itself and above everything else
+                    IExpr lt = integralConstant(TypeTag.INT, -1), eq = integralConstant(TypeTag.INT, 0), gt = integralConstant(TypeTag.INT, 1);
+                    IExpr nanA = F.fcn(F.symbol("fp.isNaN"), a), nanB = F.fcn(F.symbol("fp.isNaN"), b);
+                    IExpr negA = F.fcn(F.symbol("fp.isNegative"), a), negB = F.fcn(F.symbol("fp.isNegative"), b);
+                    return F.fcn(iteSym, nanA, F.fcn(iteSym, nanB, eq, gt),
+                            F.fcn(iteSym, nanB, lt,
+                            F.fcn(iteSym, F.fcn(F.symbol("fp.lt"), a, b), lt,
+                            F.fcn(iteSym, F.fcn(F.symbol("fp.gt"), a, b), gt,
+                            F.fcn(iteSym, F.fcn(eqSym, negA, negB), eq, F.fcn(iteSym, negA, lt, gt))))));
+                }
+                default: return null;
+            }
         }
         return null;
     }
@@ -3334,6 +3355,47 @@ public class SMTTranslator extends JmlTreeScanner {
         int digits = bits(t)/4;
         String hex = String.format("%016x", k);
         return F.hex(hex.substring(16 - digits));
+    }
+
+    /** The translation of the java.lang.Math method 'name' on float or double arguments, for those methods whose
+     * Java definition is an IEEE operation (correctly rounded, so the same as the theory's); or null */
+    protected /*@ nullable */ IExpr fpMath(String name, List<IExpr> args) {
+        IExpr a = args.get(0);
+        switch (args.size()) {
+            case 1:
+                switch (name) {
+                    case "abs": return F.fcn(F.symbol("fp.abs"), a);
+                    case "sqrt": return F.fcn(F.symbol("fp.sqrt"), F.symbol("RNE"), a);
+                    case "floor": return F.fcn(F.symbol("fp.roundToIntegral"), F.symbol("RTN"), a);
+                    case "ceil": return F.fcn(F.symbol("fp.roundToIntegral"), F.symbol("RTP"), a);
+                    case "rint": return F.fcn(F.symbol("fp.roundToIntegral"), F.symbol("RNE"), a);
+                    default: return null;
+                }
+            case 2: {
+                IExpr b = args.get(1);
+                switch (name) {
+                    case "copySign": // a NaN sign argument counts as positive, as in StrictMath
+                        return F.fcn(iteSym, F.fcn(F.symbol("fp.isNegative"), b),
+                                F.fcn(F.symbol("fp.neg"), F.fcn(F.symbol("fp.abs"), a)), F.fcn(F.symbol("fp.abs"), a));
+                    case "min": case "max": {
+                        // NaN if either is NaN; -0.0 is less than +0.0 (the theory leaves fp.min/fp.max of zeros of
+                        // opposite signs unspecified)
+                        boolean min = name.equals("min");
+                        IExpr less = F.fcn(F.symbol(min ? "fp.lt" : "fp.gt"), a, b);
+                        IExpr more = F.fcn(F.symbol(min ? "fp.lt" : "fp.gt"), b, a);
+                        IExpr aSign = F.fcn(F.symbol(min ? "fp.isNegative" : "fp.isPositive"), a);
+                        return F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), a), a,
+                                F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), b), b,
+                                F.fcn(iteSym, less, a, F.fcn(iteSym, more, b, F.fcn(iteSym, aSign, a, b)))));
+                    }
+                    default: return null;
+                }
+            }
+            case 3:
+                return name.equals("fma") ? F.fcn(F.symbol("fp.fma"), F.symbol("RNE"), a, args.get(1), args.get(2)) : null;
+            default:
+                return null;
+        }
     }
 
     /** The value x narrowed to the integral type 'to', as Java's narrowing conversion does: x modulo 2^n,

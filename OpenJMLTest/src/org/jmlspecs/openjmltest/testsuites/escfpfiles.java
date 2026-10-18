@@ -30,22 +30,11 @@ import org.openjml.runners.ParameterizedWithNames;
 public class escfpfiles extends EscBaseFiles {
 
     @Test @Ignore
-    public void gitbug732() {
-        helpEscSimple();
-    }
-
-    @Test @Ignore
-    public void gitbug735() {
-        expectedExit = 0;
-        helpEscSimple();
-    }
-    
-    @Test @Ignore
     public void escDouble() {
         helpEscSimple();
     }
 
-    @Test @Ignore
+    @Test
     public void escDouble1() {
         helpEscSimple();
     }
@@ -72,11 +61,6 @@ public class escfpfiles extends EscBaseFiles {
 
     @Test @Ignore
     public void escfpMath() {
-        helpEscSimple();
-    }
-
-    @Test @Ignore
-    public void escfpPrimitiveOps() {
         helpEscSimple();
     }
 
