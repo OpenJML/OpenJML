@@ -44,6 +44,30 @@ public class Narrow {
         //@ check w == 65535;
     }
 
+    // In-range casts between char and short or byte are not warned about (#1045)
+    //@ code_safe_math spec_safe_math
+    public static void inRange() {
+        char c = 'a';
+        byte b = (byte)c;
+        //@ check b == 97;
+        short s = (short)c;
+        //@ check s == 97;
+        char m = 127;
+        byte bm = (byte)m;
+        //@ check bm == 127;
+        char n = 32767;
+        short sn = (short)n;
+        //@ check sn == 32767;
+        char o = 128;
+        byte bo = (byte)o;          // warned about
+        byte y = 5;
+        char cy = (char)y;
+        //@ check cy == 5;
+        short z = 300;
+        char cz = (char)z;
+        //@ check cz == 300;
+    }
+
     public static void main(String... args) {
         javaMode();
         safeMode();
