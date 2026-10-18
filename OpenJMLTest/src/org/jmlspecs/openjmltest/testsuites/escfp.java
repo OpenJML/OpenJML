@@ -16,7 +16,12 @@ public class escfp extends EscBase {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        addOptions("--no-fpreal");
+        addOptions(fpOption());
+    }
+
+    /** The option that selects the model of float and double (escfpreal runs these tests with --fpreal) */
+    protected String fpOption() {
+        return "--no-fpreal";
     }
 
     // Arithmetic computations

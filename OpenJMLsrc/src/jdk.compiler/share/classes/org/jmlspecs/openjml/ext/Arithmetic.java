@@ -271,8 +271,8 @@ abstract public class Arithmetic extends JmlExtension {
 
         // Need to do this operation before any implicit conversions, because those conversions may convert
         // to bigint or real, which complicates this test
-        // Floating-point division by zero is defined in Java (and in the SMT FloatingPoint theory)
-        boolean fpOp = rewriter.useFP && (newtype.getTag() == TypeTag.FLOAT || newtype.getTag() == TypeTag.DOUBLE);
+        // Floating-point division by zero is defined in Java (it gives an infinity or NaN)
+        boolean fpOp = newtype.getTag() == TypeTag.FLOAT || newtype.getTag() == TypeTag.DOUBLE;
         if ((optag == JCTree.Tag.DIV || optag == JCTree.Tag.MOD) && !fpOp) {
             /*@nullable*/ JCExpression nonzero = rewriter.nonZeroCheck(that,rhs);
             if (nonzero != null) rewriter.addJavaCheck(that,nonzero,

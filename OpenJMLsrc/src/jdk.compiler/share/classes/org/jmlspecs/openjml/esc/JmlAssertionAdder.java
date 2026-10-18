@@ -15349,7 +15349,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Add any assertions to check for problems with binary operations. */
 	public void addBinaryChecks(JCExpression that, JCTree.Tag op, JCExpression lhs, JCExpression rhs, Type maxJmlType) {
 
-		if (op == JCTree.Tag.DIV || op == JCTree.Tag.MOD) {
+		// Floating-point division and remainder by zero are not errors (they give an infinity or NaN)
+		if ((op == JCTree.Tag.DIV || op == JCTree.Tag.MOD) && !isFloating(lhs.type) && !isFloating(rhs.type)) {
 			/* @nullable */ JCExpression nonzero = nonZeroCheck(that, rhs);
 			if (methodEnv.javaChecks && nonzero != null)
 				addAssert(that, Label.POSSIBLY_DIV0, nonzero);
@@ -16192,11 +16193,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	/** The operator for the translation of the source binary expression that, with converted operands lhs and rhs:
-	 * for == and != on float or double under the SMT FloatingPoint theory, the IEEE-equality copy of the operator
+	 * for == and != on float or double in ESC, the IEEE-equality copy of the operator
 	 * (see JmlTreeUtils.ieeeOperator); an equality made by JmlTreeUtils keeps its identity operator */
 	protected OperatorSymbol sourceOperator(JCBinary that, JCExpression lhs, JCExpression rhs) {
 		OperatorSymbol op = that.getOperator();
-		if (useFP && op != null && !treeutils.isIdentityOperator(op) && (that.hasTag(JCTree.Tag.EQ) || that.hasTag(JCTree.Tag.NE))
+		if (esc && op != null && !treeutils.isIdentityOperator(op) && (that.hasTag(JCTree.Tag.EQ) || that.hasTag(JCTree.Tag.NE))
 				&& (isFloating(lhs.type) || isFloating(rhs.type))) {
 			return treeutils.ieeeOperator(op);
 		}
@@ -18272,23 +18273,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean stringType = esc && types.isSameType(that.type, syms.stringType);
 		boolean makeCopy = !splitExpressions && (traceInfo || fullTranslation || stringType);
 		makeCopy = makeCopy || stringType; // FIXM - really shjould make variables in the prologue for all string values
-
-		JCExpression etype = null;
-		if (!encapsulated && !useFP) { // A floating-point literal is finite when it models a real (not so for a constant such as Double.NaN)
-			if (types.isSameType(that.type, syms.doubleType)) {
-				etype = M.Ident(names.fromString("Double")); // FIXME - should use fully qualified type
-			} else if (types.isSameType(that.type, syms.floatType)) {
-				etype = M.Ident(names.fromString("Float")); // FIXME - should use fully qualified type
-			}
-			if (etype != null && splitExpressions) { // FIXME - still need the assumption even if !splitExpressions
-				JCFieldAccess fa = M.Select(etype, names.fromString("isFinite")); // FIXME _ what in the world is this for
-				JCMethodInvocation app = M.Apply(null, fa, List.<JCExpression>of(that));
-				encapsulated = true;
-				attr.attribExpr(app, Enter.instance(context).getTopLevelEnv(classDecl.toplevel)); // FIXME - just topLevelEnv I think
-				addAssume(that, Label.IMPLICIT_ASSUME, convertExpr(app));
-				encapsulated = false;
-			}
-		}
 
 		JCIdent id = null;
 		if (makeCopy) {

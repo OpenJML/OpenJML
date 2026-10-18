@@ -135,6 +135,9 @@ public class SMTTranslator extends JmlTreeScanner {
     public boolean useBV;
     /** Whether float and double are modeled with the SMT FloatingPoint theory (rather than as reals); cf. --fpreal */
     public boolean useFP;
+
+    /** The model of float and double as reals with special values, when not using the FloatingPoint theory */
+    protected /*@ nullable */ FpRealModel fpr;
     public boolean quantOK = true;
 
     // These are strings that are part of our modeling of Java+JML and are
@@ -911,6 +914,8 @@ public class SMTTranslator extends JmlTreeScanner {
         script = new Script();
         this.useBV = useBV;
         this.useFP = JmlOption.useFPTheory(context);
+        this.fpr = useFP ? null : new FpRealModel(this, "datatype".equals(JmlOption.FPREAL_ENCODING.value(context)));
+        fpValueDeclared = false;
         ICommand c;
         startCommands = new LinkedList<ICommand>();
         commands = new LinkedList<ICommand>();
@@ -1921,12 +1926,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 return useBV ? bv64Sort : intSort;
             } else if (tag == TypeTag.FLOAT) { 
                 if (useFP) return float32Sort;
-                addReal();
-                return realSort;
+                return fpr.sort();
             } else if (tag == TypeTag.DOUBLE) { 
                 if (useFP) return float64Sort;
-                addReal();
-                return realSort;
+                return fpr.sort();
             } else if (tag == TypeTag.ARRAY) {
                 return refSort;
 //                ArrayType at = (ArrayType)t;
@@ -2229,6 +2232,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 newargs.add(convertExpr(arg));
             }
             if (useFP && (result = fpPredicate(fpCallee(((JCIdent)m).sym, newargs), newargs)) != null) return;
+            if (!useFP && (result = fprMethod(fpCallee(((JCIdent)m).sym, newargs), newargs)) != null) return;
             if (newargs.isEmpty()) result = F.symbol(newname);
             else result = F.fcn(F.symbol(newname),newargs);
             return;
@@ -2485,11 +2489,23 @@ public class SMTTranslator extends JmlTreeScanner {
             // Built-in methods
             String n = that.meth.toString();
             if (n.equals("shortValue") || n.equals("byteValue") || n.equals("charValue") || n.equals("longValue")) n = "intValue";
-            else if ((n.equals("floatValue") || n.equals("doubleValue")) && !useFP) n = "realValue";
+            else if ((n.equals("floatValue") || n.equals("doubleValue")) && !useFP) declareFpValue();
             result = F.fcn(F.symbol(n),newargs);
         } else {
             result = newargs.get(0); // FIXME - this is needed for \old and \pre but a better solution should be found (cf. testLabeled)
         }
+    }
+
+    /** Whether floatValue and doubleValue (the unboxed value of a Float or Double) are declared (for --fpreal) */
+    boolean fpValueDeclared;
+
+    protected void declareFpValue() {
+        if (fpValueDeclared) return;
+        fpValueDeclared = true;
+        List<ISort> args = Arrays.asList(refSort);
+        ISort s = fpr.sort();
+        startCommands.add(new C_declare_fun(F.symbol("floatValue"), args, s));
+        startCommands.add(new C_declare_fun(F.symbol("doubleValue"), args, s));
     }
 
     @Override
@@ -2529,6 +2545,8 @@ public class SMTTranslator extends JmlTreeScanner {
             case NEG:
                 if (useFP && isFloating(tree.arg.type.getTag()))
                     result = F.fcn(F.symbol("fp.neg"), args);
+                else if (isFloating(tree.arg.type.getTag()))
+                    result = fpr.neg(arg);
                 else if (useBV) 
                     result = F.fcn(F.symbol("bvneg"), args);
                 else
@@ -2578,8 +2596,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 tlhs == TypeTag.FLOAT || trhs == TypeTag.FLOAT) {
             if (useFP) {
                 result = fpBinary(tree, lhs, rhs);
-                return;
+            } else {
+                result = fprBinary(tree, lhs, rhs);
             }
+            if (result != null) return;
             isReal = true;
         }
         if (useBV) {
@@ -2923,6 +2943,12 @@ public class SMTTranslator extends JmlTreeScanner {
                     result = makeFPValue((Number)lit.getValue(), tagr);
                     return;
                 }
+                if (isFloating(tagr)) { // the value Java's cast gives
+                    Number n = (Number)lit.getValue();
+                    boolean fromFP = n instanceof Double || n instanceof Float;
+                    result = fpr.literal(tagr == TypeTag.FLOAT ? (fromFP ? n.floatValue() : (float)n.longValue()) : (fromFP ? n.doubleValue() : (double)n.longValue()));
+                    return;
+                }
                 if (tagr == TypeTag.DOUBLE || tagr == TypeTag.FLOAT || ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && tree.type.tsym == REAL)) {
                     double d = ((Number)lit.getValue()).doubleValue();
                     result = makeRealValue(d);
@@ -2993,7 +3019,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         // FIXME - error
                     }
                 } else {
-                    if (useFP) result = fpToReal(result); // float/double to \real or \bigint
+                    result = useFP ? fpToReal(result) : fpr.toReal(result); // float/double to \real or \bigint
                     if (tree.type.tsym == REAL) {
                         // float/double to \real -- OK
                     } else if (tree.type.tsym == BIGINT) {
@@ -3018,11 +3044,11 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else {
                     if (tree.expr.type.tsym == REAL) {
                         // \real to float/double -- OK
-                        if (useFP) result = realToFP(tagr, result);
+                        result = useFP ? realToFP(tagr, result) : fpr.fromReal(result);
                     } else if (tree.expr.type.tsym == BIGINT) {
                         // \bigint to float/double -- FIXME
                         result = F.fcn(F.symbol("to_real"), result);
-                        if (useFP) result = realToFP(tagr, result);
+                        result = useFP ? realToFP(tagr, result) : fpr.fromReal(result);
                     } else {
                         // FIXME - error
                     }
@@ -3047,10 +3073,11 @@ public class SMTTranslator extends JmlTreeScanner {
                     // Both are floating point
                     // OK -- no change in SMT type
                     if (useFP && tage != tagr) result = makeFPValue((Number)v, tagr);
+                    else if (tage != tagr) result = fpr.literal(tagr == TypeTag.FLOAT ? ((Number)v).floatValue() : ((Number)v).doubleValue());
                 } else if (treeutils.isIntegral(tage)) {
                     // integral to real literal
                     java.math.BigInteger val = ((IExpr.INumeral)result).value();
-                    result = useFP ? makeFPValue(val.longValue(), tagr) : makeRealValue(val.doubleValue());
+                    result = useFP ? makeFPValue(val.longValue(), tagr) : fpr.literal(tagr == TypeTag.FLOAT ? (float)val.longValue() : (double)val.longValue());
                 } else if (!treeutils.isIntegral(tage)) {
                     // float or double literal to an integral type: folded as Java converts it (JLS 5.1.3)
                     double d = ((Number)v).doubleValue();
@@ -3065,7 +3092,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (tagr.ordinal() == TypeTag.DOUBLE.ordinal() || tagr.ordinal() == TypeTag.FLOAT.ordinal()) {
                     // Cast to real FIXME - already done?
                     Double d = Double.valueOf(v.toString());
-                    result = makeRealValue(d.doubleValue());
+                    result = fpr.literal(d.doubleValue());
                 }
             } else {
                 // cast from primitive to primitive for an expression
@@ -3073,6 +3100,10 @@ public class SMTTranslator extends JmlTreeScanner {
                 boolean resultIsInt = treeutils.isIntegral(tagr);
                 if (useFP && (isFloating(tage) || isFloating(tagr))) {
                     result = !resultIsInt ? toFP(tagr, tage, result) : fpToIntegral(tagr, tage, result);
+                } else if (isFloating(tage) || isFloating(tagr)) {
+                    // float and double have the same values (no rounding in this model)
+                    if (argIsInt) result = fpr.fromIntegral(tage, result);
+                    else if (resultIsInt) result = fpr.toIntegral(tagr, result);
                 } else if (argIsInt && !resultIsInt) {
                     // Requires int and real logic
                     // integral to real
@@ -3267,6 +3298,16 @@ public class SMTTranslator extends JmlTreeScanner {
         return sym;
     }
 
+    /** The --fpreal translation of a binary operation on float or double values (at least one operand is float or
+     * double; an integral operand is converted exactly), or null if the operation is not arithmetic or a comparison */
+    protected /*@ nullable */ IExpr fprBinary(JCBinary tree, IExpr lhs, IExpr rhs) {
+        TypeTag tl = tree.lhs.type.getTag();
+        TypeTag tr = tree.rhs.type.getTag();
+        if (!isFloating(tl)) lhs = fpr.fromIntegral(tl, lhs);
+        if (!isFloating(tr)) rhs = fpr.fromIntegral(tr, rhs);
+        return fpr.binary(tree.getTag(), treeutils.isIEEEOperator(tree.operator), lhs, rhs);
+    }
+
     /** The translation of a binary operation on float or double values (at least one operand is float or double) */
     protected IExpr fpBinary(JCBinary tree, IExpr lhs, IExpr rhs) {
         TypeTag tl = tree.lhs.type.getTag();
@@ -3361,7 +3402,7 @@ public class SMTTranslator extends JmlTreeScanner {
 
     /** The method of which sym is the logical function, if that method is Float.floatToRawIntBits or
      * Double.doubleToRawLongBits (with the same arguments); otherwise sym. These are then translated as a direct
-     * call is, so that the logical function cannot give every NaN the same bits (see fpBits). */
+     * call is, so that the logical function cannot give every NaN the same bits (see fpBits, FpRealModel.rawBits). */
     protected Symbol fpCallee(Symbol sym, List<IExpr> args) {
         Symbol.MethodSymbol orig = treeutils.calleeOriginals.get(sym);
         if (orig == null || orig.params().size() != args.size()) return sym;
@@ -3418,6 +3459,21 @@ public class SMTTranslator extends JmlTreeScanner {
         List<IIndex> wi = new LinkedList<>();
         wi.add(F.numeral(w));
         return F.fcn(F.id(F.symbol(intToBVName()), wi), e);
+    }
+
+    /** The --fpreal translation of a call of the static method msym of java.lang.Double or Float, or of java.lang.Math
+     * or StrictMath on float or double arguments, if the model defines it exactly; otherwise null */
+    protected /*@ nullable */ IExpr fprMethod(Symbol msym, List<IExpr> args) {
+        if (!(msym instanceof Symbol.MethodSymbol ms) || !msym.isStatic() || args.isEmpty()) return null;
+        String owner = msym.owner.getQualifiedName().toString();
+        if (owner.equals("java.lang.Math") || owner.equals("java.lang.StrictMath")) {
+            for (var p: ms.params()) if (!isFloating(p.type.getTag())) return null;
+        } else if (!owner.equals("java.lang.Double") && !owner.equals("java.lang.Float")) {
+            return null;
+        } else {
+            for (var p: ms.params()) if (!isFloating(p.type.getTag())) return null;
+        }
+        return fpr.method(owner, msym.name.toString(), args);
     }
 
     /** The SMT constant for the value k of the integral type t */
@@ -3778,7 +3834,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = sym;
             }
         } else if (tree.typetag == TypeTag.FLOAT || tree.typetag == TypeTag.DOUBLE) {
-            result = useFP ? makeFPValue((Number)v, tree.typetag) : makeRealValue(((Number)v).doubleValue());
+            result = useFP ? makeFPValue((Number)v, tree.typetag) : fpr.literal(((Number)v).doubleValue());
         } else {
             notImpl(tree);
             super.visitLiteral(tree);

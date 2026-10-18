@@ -347,7 +347,7 @@ public class JmlOption {
     	}
     };
     { map.put("-escBV",ESC_BV); }
-    public static final JmlOption FPREAL = new JmlOption("--fpreal",true,"auto","ESC: If true, reason about float and double as SMT reals; if false, with the SMT FloatingPoint theory (auto, the default: false if the prover supports FloatingPoint)",null,"true") {
+    public static final JmlOption FPREAL = new JmlOption("--fpreal",true,"auto","ESC: If true, reason about float and double as SMT reals (exact arithmetic, with NaN, infinities and signed zeros); if false, with the SMT FloatingPoint theory (auto, the default: false if the prover supports FloatingPoint)",null,"true") {
         public boolean check(Context context, boolean negate) {
             JmlOptions options = JmlOptions.instance(context);
             var nm = JmlOption.FPREAL.optionName();
@@ -356,6 +356,20 @@ public class JmlOption {
             if (!"auto".equals(val) && !"true".equals(val) && !"false".equals(val)) {
                 clWarning(context, "Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
                 options.put(nm,(String)JmlOption.FPREAL.defaultValue());
+                return false;
+            }
+            return true;
+        }
+    };
+
+    public static final JmlOption FPREAL_ENCODING = new JmlOption("--fpreal-encoding",true,"uf","ESC: With --fpreal, how the SMT sort of float and double values is encoded: uf (uninterpreted sorts and functions, the default) or datatype (an SMT datatype)",null) {
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
+            var nm = JmlOption.FPREAL_ENCODING.optionName();
+            String val = options.get(nm);
+            if (!"uf".equals(val) && !"datatype".equals(val)) {
+                clWarning(context, "Command-line argument error: Expected 'uf' or 'datatype' for "+nm+": " + val);
+                options.put(nm,(String)JmlOption.FPREAL_ENCODING.defaultValue());
                 return false;
             }
             return true;
