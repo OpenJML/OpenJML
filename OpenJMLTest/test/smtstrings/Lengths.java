@@ -54,4 +54,8 @@ public class Lengths {
     //@ model public static void bad3(\string s) {
     //@   assert s.isEmpty(); // fails (with cvc5 in array mode: unknown, the model is not a counterexample)
     //@ }
+
+    //@ model public static void bad4(\string s, char c) {
+    //@   assert s.put(s.length(), c).length() == s.length(); // fails: put's index must be within s
+    //@ }
 }

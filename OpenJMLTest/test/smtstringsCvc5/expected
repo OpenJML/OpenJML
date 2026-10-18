@@ -48,6 +48,7 @@ Skipping proof of Lengths.removePut(\string,\bigint,char) (Skipping Lengths.remo
 Skipping proof of Lengths.bad1(\string) (Skipping Lengths.bad1 because it does not match Chars.build,Chars.shifted,Chars.substrings,Chars.unchanged,Equalities.literals,Equalities.split)
 Skipping proof of Lengths.bad2(\string,\string) (Skipping Lengths.bad2 because it does not match Chars.build,Chars.shifted,Chars.substrings,Chars.unchanged,Equalities.literals,Equalities.split)
 Skipping proof of Lengths.bad3(\string) (Skipping Lengths.bad3 because it does not match Chars.build,Chars.shifted,Chars.substrings,Chars.unchanged,Equalities.literals,Equalities.split)
+Skipping proof of Lengths.bad4(\string,char) (Skipping Lengths.bad4 because it does not match Chars.build,Chars.shifted,Chars.substrings,Chars.unchanged,Equalities.literals,Equalities.split)
 Completed proving methods in Lengths
 Proving methods in Order
 Skipping proof of Order.Order() (Skipping Order.Order because it does not match Chars.build,Chars.shifted,Chars.substrings,Chars.unchanged,Equalities.literals,Equalities.split)

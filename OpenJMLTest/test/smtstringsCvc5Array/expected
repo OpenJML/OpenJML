@@ -54,6 +54,7 @@ test/smtstrings/Lengths.java:54: verify: Validity is unknown - the prover gave u
     //@ model public static void bad3(\string s) {
                                  ^
 Completed proof of Lengths.bad3(\string) with prover !!!! - UNKNOWN
+Skipping proof of Lengths.bad4(\string,char) (Skipping Lengths.bad4 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
 Completed proving methods in Lengths
 Proving methods in Order
 Skipping proof of Order.Order() (Skipping Order.Order because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)

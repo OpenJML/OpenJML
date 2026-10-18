@@ -20,10 +20,10 @@ Starting proof of Chars.bad2(\string,\bigint) with prover !!!!
 test/smtstrings/Chars.java:69: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method bad2
     //@   ghost char c = s.get(i); // fails: precondition of get (i may be out of range)
                               ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration
     public char get(bigint i);
                 ^
-/Users/davidcok/projects/OpenJML21/Specs/specs/org/jmlspecs/lang/internal/string.jml:82: verify: Precondition conjunct is false: 0 <= i < length
+$SPECS/org/jmlspecs/lang/internal/string.jml:82: verify: Precondition conjunct is false: 0 <= i < length
     //-RAC@   requires 0 <= i < length;
                               ^
 Completed proof of Chars.bad2(\string,\bigint) with prover !!!! - with warnings
@@ -115,6 +115,17 @@ test/smtstrings/Lengths.java:55: verify: The prover cannot establish an assertio
     //@   assert s.isEmpty(); // fails (with cvc5 in array mode: unknown, the model is not a counterexample)
           ^
 Completed proof of Lengths.bad3(\string) with prover !!!! - with warnings
+Starting proof of Lengths.bad4(\string,char) with prover !!!!
+test/smtstrings/Lengths.java:59: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method bad4
+    //@   assert s.put(s.length(), c).length() == s.length(); // fails: put's index must be within s
+                      ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:200: verify: Associated declaration
+    public string put(bigint i, char v);
+                  ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:196: verify: Precondition conjunct is false: 0 <= i < length
+    //-RAC@   requires 0 <= i < length;
+                              ^
+Completed proof of Lengths.bad4(\string,char) with prover !!!! - with warnings
 Completed proving methods in Lengths
 Proving methods in Order
 Starting proof of Order.Order() with prover !!!!
@@ -133,4 +144,4 @@ test/smtstrings/Order.java:33: verify: The prover cannot establish an assertion 
           ^
 Completed proof of Order.bad2(\string,\string) with prover !!!! - with warnings
 Completed proving methods in Order
-16 verification failures
+19 verification failures
