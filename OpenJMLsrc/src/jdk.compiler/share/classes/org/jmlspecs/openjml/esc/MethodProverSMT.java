@@ -447,6 +447,7 @@ public class MethodProverSMT {
                     if (utils.progress() && methodDecl.usedBitVectors && !"true".equals(escbv)) {
                     	utils.note("Using bit-vector arithmetic");
                     }
+                    smttrans.useStrings = methodDecl.usedSmtStrings && !methodDecl.usedBitVectors;
                     script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
                 } catch (SMTTranslator.JmlBVException e) {
                     if ("false".equals(escbv)) {

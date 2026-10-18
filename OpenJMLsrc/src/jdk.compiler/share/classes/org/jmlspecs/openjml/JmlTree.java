@@ -1400,6 +1400,7 @@ public class JmlTree {
                                         // valid after attribution
         
         public boolean usedBitVectors = false;
+        public boolean usedSmtStrings = false;
         public boolean isInitializer = false;
 
         /** Source position of the method name identifier token; Position.NOPOS if not set. */
