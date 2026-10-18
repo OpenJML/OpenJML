@@ -16702,8 +16702,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         var loval = Long.valueOf(minValue(pos, rangeType.getTag()));
         var hi = treeutils.makeLit(pos, syms.longType, hival);
         var lo = treeutils.makeLit(pos, syms.longType, loval);
-        JCExpression emax = treeutils.makeTrBinary(pos, JCTree.Tag.LE, expr, addConversion(pos, expr.type, hi, true, false));
-        JCExpression emin = treeutils.makeTrBinary(pos, JCTree.Tag.LE, addConversion(pos, expr.type, lo, true, false), expr);
+        // Compare in long, which holds the value and both bounds; converting the bounds to a narrower type of
+        // the value could wrap them, e.g. (char)-128 == 65408 (#1045)
+        JCExpression wexpr = expr;
+        switch (expr.type.getTag()) {
+            case BYTE, SHORT, CHAR, INT -> wexpr = M.at(pos).TypeCast(syms.longType, expr).setType(syms.longType);
+            default -> {}
+        }
+        JCExpression emax = treeutils.makeTrBinary(pos, JCTree.Tag.LE, wexpr, addConversion(pos, wexpr.type, hi, true, false));
+        JCExpression emin = treeutils.makeTrBinary(pos, JCTree.Tag.LE, addConversion(pos, wexpr.type, lo, true, false), wexpr);
         if (expr instanceof JCLiteral lit && lit.value instanceof Number num) {
             var val = num.longValue();
             if (loval <= val && val <= hival) {
