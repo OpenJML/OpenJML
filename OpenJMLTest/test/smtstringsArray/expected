@@ -96,10 +96,7 @@ Completed proof of Lengths.Lengths() with prover !!!! - no warnings
 Starting proof of Lengths.literals() with prover !!!!
 Completed proof of Lengths.literals() with prover !!!! - no warnings
 Starting proof of Lengths.nonNegative(\string) with prover !!!!
-test/smtstrings/Lengths.java:17: verify: The prover cannot establish an assertion (Assert) in method nonNegative
-    //@   assert s.length() >= 0;
-          ^
-Completed proof of Lengths.nonNegative(\string) with prover !!!! - with warnings
+Completed proof of Lengths.nonNegative(\string) with prover !!!! - no warnings
 Starting proof of Lengths.concat(\string,\string,char) with prover !!!!
 Completed proof of Lengths.concat(\string,\string,char) with prover !!!! - no warnings
 Starting proof of Lengths.parts(\string,\bigint,\bigint,char) with prover !!!!
@@ -116,6 +113,11 @@ test/smtstrings/Lengths.java:51: verify: The prover cannot establish an assertio
     //@   assert (s + t).length() > s.length(); // fails: t may be empty
           ^
 Completed proof of Lengths.bad2(\string,\string) with prover !!!! - with warnings
+Starting proof of Lengths.bad3(\string) with prover !!!!
+test/smtstrings/Lengths.java:55: verify: The prover cannot establish an assertion (Assert) in method bad3
+    //@   assert s.isEmpty(); // fails (with cvc5 in array mode: unknown, the model is not a counterexample)
+          ^
+Completed proof of Lengths.bad3(\string) with prover !!!! - with warnings
 Completed proving methods in Lengths
 Proving methods in Order
 Starting proof of Order.Order() with prover !!!!

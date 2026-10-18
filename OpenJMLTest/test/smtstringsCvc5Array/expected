@@ -1,0 +1,65 @@
+Proving methods in Chars
+Skipping proof of Chars.Chars() (Skipping Chars.Chars because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.literal() (Skipping Chars.literal because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.conversions() (Skipping Chars.conversions because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.special() (Skipping Chars.special because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.build(\string,\bigint,char) (Skipping Chars.build because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.unchanged(\string,\bigint,\bigint,char) (Skipping Chars.unchanged because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.shifted(\string,\bigint,\bigint,char) (Skipping Chars.shifted because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.substrings(\string,\bigint,\bigint,\bigint) (Skipping Chars.substrings because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.bad1(\string) (Skipping Chars.bad1 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.bad2(\string,\bigint) (Skipping Chars.bad2 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Chars.bad3() (Skipping Chars.bad3 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Completed proving methods in Chars
+Proving methods in Equalities
+Skipping proof of Equalities.Equalities() (Skipping Equalities.Equalities because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.literals() (Skipping Equalities.literals because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.identities(\string,\string,\string) (Skipping Equalities.identities because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.cancellation(\string,\string,\string) (Skipping Equalities.cancellation because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.split(\string,\bigint,char) (Skipping Equalities.split because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.prefixTransitive(\string,\string,\string) (Skipping Equalities.prefixTransitive because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.extensionality(\string,\string) (Skipping Equalities.extensionality because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.bad1(\string,\string) (Skipping Equalities.bad1 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.bad2(\string) (Skipping Equalities.bad2 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Equalities.bad3(\string,\string) (Skipping Equalities.bad3 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Completed proving methods in Equalities
+Proving methods in JavaStrings
+Skipping proof of JavaStrings.JavaStrings() (Skipping JavaStrings.JavaStrings because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of JavaStrings.literal() (Skipping JavaStrings.literal because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of JavaStrings.equal() (Skipping JavaStrings.equal because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of JavaStrings.first(String) (Skipping JavaStrings.first because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of JavaStrings.starts() (Skipping JavaStrings.starts because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of JavaStrings.concat(String,String) (Skipping JavaStrings.concat because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Starting proof of JavaStrings.bad() with prover !!!!
+test/smtstrings/JavaStrings.java:37: verify: The prover cannot establish an assertion (Postcondition) in method bad
+        return x.charAt(1) == 'c'; // fails
+        ^
+test/smtstrings/JavaStrings.java:34: verify: Associated declaration
+    //@ ensures \result;
+        ^
+Completed proof of JavaStrings.bad() with prover !!!! - with warnings
+Completed proving methods in JavaStrings
+Proving methods in Lengths
+Skipping proof of Lengths.Lengths() (Skipping Lengths.Lengths because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Lengths.literals() (Skipping Lengths.literals because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Starting proof of Lengths.nonNegative(\string) with prover !!!!
+Completed proof of Lengths.nonNegative(\string) with prover !!!! - no warnings
+Skipping proof of Lengths.concat(\string,\string,char) (Skipping Lengths.concat because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Lengths.parts(\string,\bigint,\bigint,char) (Skipping Lengths.parts because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Lengths.removePut(\string,\bigint,char) (Skipping Lengths.removePut because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Lengths.bad1(\string) (Skipping Lengths.bad1 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Lengths.bad2(\string,\string) (Skipping Lengths.bad2 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Starting proof of Lengths.bad3(\string) with prover !!!!
+test/smtstrings/Lengths.java:54: verify: Validity is unknown - the prover gave up and its model is not a counterexample: method Lengths.bad3
+    //@ model public static void bad3(\string s) {
+                                 ^
+Completed proof of Lengths.bad3(\string) with prover !!!! - UNKNOWN
+Completed proving methods in Lengths
+Proving methods in Order
+Skipping proof of Order.Order() (Skipping Order.Order because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Order.literals() (Skipping Order.literals because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Order.properties(\string,\string,\string) (Skipping Order.properties because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Order.bad1(\string,\string) (Skipping Order.bad1 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Skipping proof of Order.bad2(\string,\string) (Skipping Order.bad2 because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
+Completed proving methods in Order
+3 verification failures

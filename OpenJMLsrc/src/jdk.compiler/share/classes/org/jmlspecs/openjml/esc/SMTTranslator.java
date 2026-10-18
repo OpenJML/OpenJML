@@ -915,6 +915,10 @@ public class SMTTranslator extends JmlTreeScanner {
         // set any options
         c = new C_set_option(F.keyword(":produce-models"),F.symbol("true"));
         startCommands.add(c);
+        String prover = JmlOption.PROVER.value(context);
+        // In cvc5's default array mode, the model after an 'unknown' answer can contradict the assertions,
+        // so no failing assertion is found (#1043)
+        if (prover != null && prover.startsWith("cvc5")) startCommands.add(command(smt,"(set-option :arrays-exp true)"));
         
         // set the logic
         String s = JmlOption.LOGIC.value(context);
@@ -923,7 +927,6 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands.add(c);
         
         // z3 options (both off unless --z3 turns them on); other solvers do not use them
-        String prover = JmlOption.PROVER.value(context);
         if (prover == null || prover.startsWith("z3")) {
             startCommands.add(command(smt,"(set-option :AUTO_CONFIG " + JmlOption.z3Setting(context, "autoconf") + ")"));
             startCommands.add(command(smt,"(set-option :smt.MBQI " + JmlOption.z3Setting(context, "mbqi") + ")"));
@@ -1025,11 +1028,11 @@ public class SMTTranslator extends JmlTreeScanner {
 //        			F.createSortExpression(arraySym,stringSort,useBV ? bv32Sort : intSort)
 //        			);
 //        	commands.add(c);  // FIXME - is this a duplicate ?
-            // string lengths are always non-negative
-//        	if (quantOK) {
-//        	    if (useBV) addCommand(smt,"(assert (forall ((o "+stringSort+")) (bvsge (select "+stringLengthSym+" o) #x00000000)))");
-//        	    else addCommand(smt,"(assert (forall ((o "+stringSort+")) (>= (select "+stringLengthSym+" o) 0)))");
-//        	}
+            // string lengths are always non-negative (the Strings theory's str.len is so by definition)
+        	if (quantOK && !useStrings) {
+        	    if (useBV) addCommand(smt,"(assert (forall ((o STRINGJML)) (bvsge ("+stringLengthSym+" o) #x00000000)))");
+        	    else addCommand(smt,"(assert (forall ((o STRINGJML)) (>= ("+stringLengthSym+" o) 0)))");
+        	}
         }
 
             // result of string concatenation is always non-null

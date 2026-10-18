@@ -42,4 +42,12 @@ public class escsmtstrings extends EscBaseFiles {
         helpStrings("smtstringsCvc5", "--smt-strings", "--prover=cvc5-1.3.2",
                 "--method=Chars.build,Chars.shifted,Chars.substrings,Chars.unchanged,Equalities.literals,Equalities.split");
     }
+
+    @Test
+    public void smtstringsCvc5Array() {
+        // cvc5 answers 'unknown' for these; its model must identify the failure (JavaStrings.bad), or else the
+        // model is reported as not a counterexample (Lengths.bad3); Lengths.nonNegative needs the length axiom
+        helpStrings("smtstringsCvc5Array", "--no-smt-strings", "--prover=cvc5-1.3.2",
+                "--method=Lengths.nonNegative,Lengths.bad3,JavaStrings.bad");
+    }
 }

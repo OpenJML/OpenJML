@@ -50,4 +50,8 @@ public class Lengths {
     //@ model public static void bad2(\string s, \string t) {
     //@   assert (s + t).length() > s.length(); // fails: t may be empty
     //@ }
+
+    //@ model public static void bad3(\string s) {
+    //@   assert s.isEmpty(); // fails (with cvc5 in array mode: unknown, the model is not a counterexample)
+    //@ }
 }
