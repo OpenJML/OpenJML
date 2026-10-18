@@ -25247,6 +25247,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// Save the symbol
 		mm.put(msym, newsym);
+		treeutils.calleeOriginals.put(newsym, msym);
 		if (Utils.debug("trans"))
 			System.out.println("NEW METHOD NAME " + currentEnv.stateLabel + " " + hc + " " + msym.owner + " " + msym + " " + newsym + " " + returnType + " " + newsym.getReturnType() + " " + (newsym.type instanceof Type.MethodType mt ? mt.getReturnType() : "---") + " " + newmods);
 		return newsym;

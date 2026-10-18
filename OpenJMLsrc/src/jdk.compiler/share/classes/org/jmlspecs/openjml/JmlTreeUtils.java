@@ -1121,6 +1121,9 @@ public class JmlTreeUtils {
         return op instanceof Symbol.OperatorSymbol os && ieeeOperators.containsValue(os);
     }
 
+    /** Maps the symbol of each logical function that ESC makes for a pure method to that method */
+    public final java.util.Map<Symbol,Symbol.MethodSymbol> calleeOriginals = new java.util.HashMap<>();
+
     /** Copies of the float and double == and != operator symbols, for equalities made here (e.g. by makeEquality):
      * these mean identity even when ESC converts them as it does source expressions (see ieeeOperators) */
     private final java.util.Map<Symbol.OperatorSymbol,Symbol.OperatorSymbol> identityOperators = new java.util.HashMap<>();

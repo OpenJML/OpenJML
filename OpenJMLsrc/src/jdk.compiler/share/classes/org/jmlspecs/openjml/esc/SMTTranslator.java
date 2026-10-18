@@ -241,6 +241,8 @@ public class SMTTranslator extends JmlTreeScanner {
     boolean cdivqDeclared = false;
     /** Whether the bit-pattern functions of Float32 (index 0) and Float64 (index 1) are declared in this script */
     boolean[] fpBitsDeclared = new boolean[2];
+    /** The number of occurrences of the bit-pattern functions in this script (see fpBits) */
+    int fpBitsCount = 0;
     boolean cmodqDeclared = false;
 
     /** A Java integer / or % outside any quantifier: name is cdivq or cmodq, args its operands and
@@ -914,6 +916,7 @@ public class SMTTranslator extends JmlTreeScanner {
         commands = new LinkedList<ICommand>();
         cdivqDeclared = cmodqDeclared = false;
         fpBitsDeclared[0] = fpBitsDeclared[1] = false;
+        fpBitsCount = 0;
         groundDivMods.clear();
         recursiveFunctions.clear();
         
@@ -2225,7 +2228,7 @@ public class SMTTranslator extends JmlTreeScanner {
             for (JCExpression arg: tree.args) {
                 newargs.add(convertExpr(arg));
             }
-            if (useFP && (result = fpPredicate(((JCIdent)m).sym, newargs)) != null) return;
+            if (useFP && (result = fpPredicate(fpCallee(((JCIdent)m).sym, newargs), newargs)) != null) return;
             if (newargs.isEmpty()) result = F.symbol(newname);
             else result = F.fcn(F.symbol(newname),newargs);
             return;
@@ -3356,11 +3359,22 @@ public class SMTTranslator extends JmlTreeScanner {
         return null;
     }
 
+    /** The method of which sym is the logical function, if that method is Float.floatToRawIntBits or
+     * Double.doubleToRawLongBits (with the same arguments); otherwise sym. These are then translated as a direct
+     * call is, so that the logical function cannot give every NaN the same bits (see fpBits). */
+    protected Symbol fpCallee(Symbol sym, List<IExpr> args) {
+        Symbol.MethodSymbol orig = treeutils.calleeOriginals.get(sym);
+        if (orig == null || orig.params().size() != args.size()) return sym;
+        String name = orig.owner.getQualifiedName() + "." + orig.name;
+        return name.equals("java.lang.Float.floatToRawIntBits") || name.equals("java.lang.Double.doubleToRawLongBits") ? orig : sym;
+    }
+
     /** The bit pattern of the float or double (type t) value e, as Double.doubleToRawLongBits and
      * Float.floatToRawIntBits give it. The theory has no such operation, so this is a declared function, defined as
      * a (right) inverse of to_fp from a bit-vector: that fixes the result except for NaN, which has many bit patterns
-     * in Java but only one value in the theory. In integer (not bit-vector) mode, which solvers handle badly here,
-     * the result is a signed Int. */
+     * in Java but only one value in the theory. So that different NaNs need not have the same bits, the function
+     * also takes an index unique to each occurrence; two occurrences on the same NaN are then unrelated (cf. #1047).
+     * In integer (not bit-vector) mode, which solvers handle badly here, the result is a signed Int. */
     protected IExpr fpBits(TypeTag t, IExpr e) {
         bitPatternsNeedBV();
         boolean isFloat = t == TypeTag.FLOAT;
@@ -3371,18 +3385,19 @@ public class SMTTranslator extends JmlTreeScanner {
             fpBitsDeclared[k] = true;
             String fpSort = isFloat ? "Float32" : "Float64";
             String toFP = isFloat ? "(_ to_fp 8 24)" : "(_ to_fp 11 53)";
-            String app = "(" + fcn + " x)";
+            String app = "(" + fcn + " x k)";
+            String vars = "((x " + fpSort + ") (k Int))";
             if (useBV) {
-                startCommands.add(command(smt, "(declare-fun " + fcn + " (" + fpSort + ") (_ BitVec " + w + "))"));
-                if (quantOK) startCommands.add(command(smt, "(assert (forall ((x " + fpSort + ")) (! (= (" + toFP + " " + app + ") x) :pattern (" + app + "))))"));
+                startCommands.add(command(smt, "(declare-fun " + fcn + " (" + fpSort + " Int) (_ BitVec " + w + "))"));
+                if (quantOK) startCommands.add(command(smt, "(assert (forall " + vars + " (! (= (" + toFP + " " + app + ") x) :pattern (" + app + "))))"));
             } else {
                 String big = isFloat ? "2147483648" : "9223372036854775808";
                 String bv = "((_ " + intToBVName() + " " + w + ") " + app + ")";
-                startCommands.add(command(smt, "(declare-fun " + fcn + " (" + fpSort + ") Int)"));
-                if (quantOK) startCommands.add(command(smt, "(assert (forall ((x " + fpSort + ")) (! (and (<= (- " + big + ") " + app + ") (< " + app + " " + big + ") (= (" + toFP + " " + bv + ") x)) :pattern (" + app + "))))"));
+                startCommands.add(command(smt, "(declare-fun " + fcn + " (" + fpSort + " Int) Int)"));
+                if (quantOK) startCommands.add(command(smt, "(assert (forall " + vars + " (! (and (<= (- " + big + ") " + app + ") (< " + app + " " + big + ") (= (" + toFP + " " + bv + ") x)) :pattern (" + app + "))))"));
             }
         }
-        return F.fcn(F.symbol(fcn), e);
+        return F.fcn(F.symbol(fcn), e, F.numeral(fpBitsCount++));
     }
 
     /** With --esc-bv=auto, switches to bit-vector arithmetic: solvers time out relating a bit pattern held as an Int

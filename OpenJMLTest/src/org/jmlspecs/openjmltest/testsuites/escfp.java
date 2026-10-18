@@ -633,7 +633,7 @@ public class escfp extends EscBase {
 
     @Test
     public void testBitPatternsFails() {
-        // a NaN has many bit patterns, and -0.0 == 0.0; the last is a vacuity check
+        // a NaN has many bit patterns, and -0.0 == 0.0; vacuity is a vacuity check; sameNaN is incomplete by design
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -651,12 +651,31 @@ public class escfp extends EscBase {
                     int b = Float.floatToRawIntBits(f); int c = Float.floatToIntBits(f); float g = Float.intBitsToFloat(i);
                     //@ assert false;
                   }
+                  public void payload() {
+                    float f = Float.intBitsToFloat(0x7fc00001), g = Float.intBitsToFloat(0x7fc00002);
+                    //@ assert Float.floatToRawIntBits(f) == Float.floatToRawIntBits(g);
+                  }
+                  public void twoNaNs(double a, double b) {
+                    //@ assert Double.isNaN(a) && Double.isNaN(b) ==> Double.doubleToRawLongBits(a) == Double.doubleToRawLongBits(b);
+                  }
+                  public void twoNaNsJava(float a, float b) {
+                    int x = Float.floatToRawIntBits(a);
+                    int y = Float.floatToRawIntBits(b);
+                    //@ assert Float.isNaN(a) && Float.isNaN(b) ==> x == y;
+                  }
+                  public void sameNaN(float a) { // true, but each occurrence's bits of a NaN are unrelated (#1047)
+                    //@ assert Float.floatToRawIntBits(a) == Float.floatToRawIntBits(a);
+                  }
                 }
                 """
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method rawNotCanonical",9
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method rawNaN",9
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method notInjective",9
                 ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assert) in method vacuity",9
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method payload",9
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method twoNaNs",9
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assert) in method twoNaNsJava",9
+                ,"/tt/TestJava.java:29: verify: The prover cannot establish an assertion (Assert) in method sameNaN",9
                 );
     }
 
