@@ -2795,4 +2795,19 @@ public class escnew extends EscBase {
                 """);
     }
 
+    // gitbug751: a callee spec that inlines a model program (StrictMath.max calls Float.compare)
+    @Test
+    public void testInlinedModelProgram() {
+        helpEsc("tt.TestJava", """
+                package tt;
+                public class TestJava {
+                  //@ requires !Float.isNaN(a) && !Float.isNaN(b);
+                  //@ ensures \\result == StrictMath.max(a, b);
+                  public static float m(float a, float b) {
+                    return StrictMath.max(a, b);
+                  }
+                }
+                """);
+    }
+
 }

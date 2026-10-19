@@ -13447,7 +13447,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						if (pre == null) {
 							pre = treeutils.trueLit;
 							for (JmlMethodClause clause : cs.clauses) {
-								if (clause.clauseKind == accessibleClauseKind) {
+								if (clause.clauseKind == requiresClauseKind) {
 									JmlTree.JmlMethodClauseExpr cl = (JmlTree.JmlMethodClauseExpr) clause;
 									pre = treeutils.makeAndSimp(clause.pos, pre, copy(cl.expression));
 								}
