@@ -253,14 +253,26 @@ public class MethodProverSMT {
         return false;
     }
 
-    protected ISolver solver = null;
-    protected ISolver solver2 = null;
-    protected boolean aborted = false;
+    protected volatile ISolver solver = null;
+    protected volatile ISolver solver2 = null;
+    protected volatile boolean aborted = false;
     
+    /** Called from another thread. aborted is set first: prove() checks it after starting a solver,
+     *  so either that check or the kill here stops the proof. */
     public void abort() {
-        if (solver != null) solver.forceExit();
-        if (solver2 != null) solver2.forceExit();
         aborted = true;
+        ISolver s = solver;
+        if (s != null) s.forceExit();
+        s = solver2;
+        if (s != null) s.forceExit();
+    }
+
+    /** Stops a just-started solver if the proof was aborted before the solver could be killed */
+    private void checkAbortedAfterStart(ISolver s) {
+        if (aborted) {
+            if (s != null) s.forceExit();
+            throw new Main.JmlCanceledException("Aborted by user");
+        }
     }
 
     /** The explanation given when a method's proof is stopped by --timeout-method */
@@ -482,6 +494,7 @@ public class MethodProverSMT {
             //setBenchmark(proverToUse,methodDecl.name.toString(),smt.smtConfig);
             String smtProver = smtSolverName(proverToUse);
             solver = smt.startSolver(smt.smtConfig,smtProver,exec); // Argument is the SMT library adapter
+            checkAbortedAfterStart(solver);
             if (solver == null) { 
             	//log.error("jml.solver.failed.to.start",exec);
                 JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.solver.failed.to.start",exec != null ? exec : smtProver);
@@ -515,6 +528,8 @@ public class MethodProverSMT {
             	try {
             		solverResponse = script.execute(solver); // Note - the solver knows the smt configuration
             	} catch (Exception e) {
+            	    // An abort kills the solver mid-command; that failure is not a script error
+            	    if (aborted) throw new Main.JmlCanceledException("Aborted by user");
                     JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
                     log.report(d);
             	    solver.exit();
@@ -625,6 +640,7 @@ public class MethodProverSMT {
                        
                         if (!usePushPop) {
                             solver2 = smt.startSolver(smt.smtConfig,smtSolverName(proverToUse),exec);
+                            checkAbortedAfterStart(solver2);
                             if (JmlAssertionAdder.useAssertCount) {
                                 List<ICommand> commands = script.commands();
                                 commands.remove(commands.size()-1);
@@ -646,6 +662,7 @@ public class MethodProverSMT {
                             try {
                                 solverResponse = script.execute(solver2); // Note - the solver knows the smt configuration
                             } catch (Exception e) {
+                                if (aborted) throw new Main.JmlCanceledException("Aborted by user");
                                 // Not sure there is anything to worry about, but just in case
                                 //log.error("jml.esc.badscript", methodDecl.getName(), e.toString()); //$NON-NLS-1$
                                 JCDiagnostic d = utils.errorDiag(log.currentSource(), null, "jml.esc.badscript", methodDecl.getName(), e.toString());
