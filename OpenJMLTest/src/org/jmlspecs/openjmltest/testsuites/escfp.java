@@ -609,6 +609,138 @@ public class escfp extends EscBase {
     }
 
     @Test
+    public void testMathSpecsVacuityFails() {
+        // Math specs that contradicted themselves for NaN or infinite arguments (assert false must fail)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires Double.isNaN(a);
+                  public void sinh(double a) {
+                    double r = Math.sinh(a);
+                    //@ assert false;
+                  }
+                  //@ requires Double.isNaN(a);
+                  public void cosh(double a) {
+                    double r = Math.cosh(a);
+                    //@ assert false;
+                  }
+                  //@ requires Double.isNaN(a);
+                  public void hypot(double a) {
+                    double r = Math.hypot(a, 1.0);
+                    //@ assert false;
+                  }
+                  //@ requires Double.isNaN(a);
+                  public void ulp(double a) {
+                    double r = Math.ulp(a);
+                    //@ assert false;
+                  }
+                  //@ requires Double.isNaN(a);
+                  public void nextUp(double a) {
+                    double r = Math.nextUp(a);
+                    //@ assert false;
+                  }
+                  //@ requires Double.isNaN(a);
+                  public void remainder(double a) {
+                    double r = Math.IEEEremainder(a, Double.POSITIVE_INFINITY);
+                    //@ assert false;
+                  }
+                  //@ requires a == Double.NEGATIVE_INFINITY;
+                  public void exponent(double a) {
+                    int r = Math.getExponent(a);
+                    //@ assert false;
+                  }
+                  //@ requires Double.isNaN(a);
+                  public void pow(double a) {
+                    double r = Math.pow(a, 1.0);
+                    //@ assert false;
+                  }
+                  //@ requires a == Double.MIN_VALUE;
+                  public void nextAfter(double a) {
+                    double r = Math.nextAfter(a, -1.0);
+                    //@ assert false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method sinh",9
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method cosh",9
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method hypot",9
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method ulp",9
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assert) in method nextUp",9
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Assert) in method remainder",9
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assert) in method exponent",9
+                ,"/tt/TestJava.java:41: verify: The prover cannot establish an assertion (Assert) in method pow",9
+                ,"/tt/TestJava.java:46: verify: The prover cannot establish an assertion (Assert) in method nextAfter",9
+                );
+    }
+
+    @Test
+    public void testMathSpecs() {
+        // claims that wrong Math specs made unprovable or contradictory
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires -1.0 <= a && a <= 1.0;
+                  public void m(double a) {
+                    //@ assert Math.acos(a) >= 0;
+                    //@ assert Math.nextAfter(5.0, 1.0) < 5.0;
+                    //@ assert Math.getExponent(-5.0) >= Double.MIN_EXPONENT;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testMathRound() {
+        // round is floor(a + 1/2) computed exactly (a + 0.5 rounds up to 1.0 here); z3 times out mixing long and
+        // FloatingPoint, cvc5 takes under a second
+        addOptions("--prover=cvc5");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    //@ assert Math.round(0.49999999999999994) == 0;
+                  }
+                  public void mf() {
+                    //@ assert Math.round(0.49999997f) == 0;
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testMathSpecsFails() {
+        // false claims that wrong Math specs made provable: a negative base, underflow to 0, the range of acos
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m1() {
+                    //@ assert !Double.isNaN(Math.pow(-2.0, 0.5));
+                  }
+                  public void m2() {
+                    //@ assert Math.pow(1e-200, 2.0) > 0;
+                  }
+                  public void m3() {
+                    //@ assert Math.scalb(Double.MIN_VALUE, -1) > 0;
+                  }
+                  public void m4() {
+                    //@ assert Math.acos(-1.0) <= Math.PI / 2;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m1",9
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Assert) in method m2",9
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m3",9
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method m4",9
+                );
+    }
+
+    @Test
     public void testBoxingNaNFails() {
         // boxing a NaN must not make the assumptions inconsistent (each assert false must fail)
         helpEsc("tt.TestJava",
