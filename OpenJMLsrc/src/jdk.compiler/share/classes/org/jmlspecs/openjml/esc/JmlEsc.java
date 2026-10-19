@@ -359,10 +359,10 @@ public class JmlEsc extends JmlTreeScanner {
         try {
             try {
                 {
-                    // Check again immediately before starting the prover, closing the race
-                    // window between the visitMethodDef check and currentMethodProver being set.
-                    if (Main.instance(context).canceled) throw new Main.JmlCanceledException("");
+                    // Set the prover before checking canceled: either this check sees a cancel,
+                    // or cancelEsc() sees the prover and aborts it.
                     currentMethodProver = new MethodProverSMT(this);
+                    if (Main.instance(context).canceled) throw new Main.JmlCanceledException("");
                     res = currentMethodProver.prove(methodDecl,proverToUse);
                     currentMethodProver = null;
                 }

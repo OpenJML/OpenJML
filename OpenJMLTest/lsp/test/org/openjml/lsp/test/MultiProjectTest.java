@@ -166,6 +166,23 @@ public class MultiProjectTest extends ProtocolTestBase {
     }
 
     /**
+     * {@code awaitIdle} must wait for an ESC job, which runs on the ESC pool rather than
+     * the server's executor.
+     */
+    @Test
+    public void testAwaitIdleWaitsForEscJob() throws Exception {
+        configureOneProject("projA", absDir("ProjectA"));
+
+        client.sendRequest("workspace/executeCommand", "{\"command\":\"" + OpenJMLCommands.RUN_ESC
+                + "\",\"arguments\":[\"projA\",\"" + jsonEscapePath(absPath("ProjectA", "ProjAError.java")) + "\"]}");
+        client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        server.awaitIdle(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        assertNotNull("awaitIdle returned before the ESC job published its diagnostics",
+                nextDiagsFor("ProjAError", 100, TimeUnit.MILLISECONDS));
+    }
+
+    /**
      * Configure a single project whose {@code rootPaths} includes
      * {@code tmpDir/ProjectA}.  Send {@code openjml.checkJML} for a file with a
      * type error in that directory; verify that a non-empty
