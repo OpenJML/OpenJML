@@ -8,7 +8,7 @@ public class Sqrt {
       requires x >= 0.0 && precision > 0;
       //ensures org.jmlspecs.models.JMLDouble.approximatelyEqualTo(x, \result * \result, eps);
     */
-        //@ requires x >= 0;
+        //@ requires x >= 0 && Double.isFinite(x) && precision > 0; // an infinite x or a NaN precision ends the loop with a NaN difference
 	public double sqrt(double x) {
 		double a = 0, b = x+1, m = 0;
 		//@ loop_invariant b >= m && m >= a && a >= 0;
