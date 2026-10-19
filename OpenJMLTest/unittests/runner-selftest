@@ -1,19 +1,24 @@
 #! /bin/bash
 
-## Checks OpenJMLTestRunner's timeout handling and counting, using the testrunner fixture suite.
-## Exits 0 if the runner behaves as expected.
+## Checks OpenJMLTestRunner's timeout handling and counting, using the testrunner fixture suite, and its
+## reporting of harness errors (a suite and a method that do not exist).
+## Exits 0, printing OK, if the runner behaves as expected.
 
 cd "$(dirname "$0")"
-out=$(RUNNERSELFTEST=1 ./runtests -s=4 testrunner 2>&1)
+out=$(RUNNERSELFTEST=1 ./runtests -s=4 testrunner nosuchsuite testrunner.noSuchMethod 2>&1)
+EXIT=$?
 echo "$out"
 ERR=0
+if [ $EXIT -ne 1 ]; then echo "runner-selftest: runner exit code $EXIT, expected 1"; ERR=1; fi
 function check() {
     if ! echo "$out" | grep -qE "$1" ; then echo "runner-selftest: missing: $1"; ERR=1; fi
 }
 function checknot() {
     if echo "$out" | grep -qE "$1" ; then echo "runner-selftest: unexpected: $1"; ERR=1; fi
 }
-check '^4 successes, 1 timeouts, 1 failures, 0 ignored'
+check '^4 successes, 1 timeouts, 1 failures, 0 ignored, 2 harness errors$'
+check '^Error: There is no test suite named nosuchsuite$'
+check '^NO METHOD FOUND FOR noSuchMethod$'
 check '^Test FAILED \(timeout\): .*testsuites[.]testrunner[.]aHang$'
 check '^Test FAILED: .*testsuites[.]testrunner[.]cFail$'
 check '^Testing .*testrunner[.]bQuick'
