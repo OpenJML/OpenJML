@@ -6,7 +6,7 @@ import org.junit.*;
 /** Fixture for OpenJMLTestRunner's timeout handling and counting, checked by unittests/runner-selftest.
  * The tests do nothing unless the environment variable RUNNERSELFTEST is set. With RUNNERSELFTEST set and -s=4,
  * the expected outcome is 4 successes, 1 timeout, 1 failure: aHang times out (it ignores interrupts, as an
- * ESC run does) and fails only after the later tests have run; bQuick must not queue behind it. */
+ * ESC run does) and fails when the runner kills its child process; bQuick must not queue behind it. */
 public class testrunner extends JmlTestSuite {
 
     static boolean run = System.getenv("RUNNERSELFTEST") != null;
@@ -20,10 +20,12 @@ public class testrunner extends JmlTestSuite {
         }
     }
 
+    /** Blocks reading the output of a child process, as ESC does reading a solver's (an interrupt does not end the read) */
     @Test
-    public void aHang() {
+    public void aHang() throws Exception {
         if (!run) return;
-        busy(10000);
+        var p = new ProcessBuilder("sleep", "10").start();
+        p.getInputStream().read();
         Assert.fail("late failure of a timed-out test");
     }
 

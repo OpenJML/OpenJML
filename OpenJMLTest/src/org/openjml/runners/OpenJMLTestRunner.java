@@ -331,7 +331,9 @@ public class OpenJMLTestRunner {
                 synchronized(stimeouts) { timeouts++; }
                 future.cancel(true);
                 synchronized (System.out) { System.out.println("timeout cancelled " + future.isCancelled()); }
-                // A running test usually ignores the interrupt; later tests get a new thread rather than queue behind it
+                // A running test usually ignores the interrupt. Kill its solver processes (tests run one at a time,
+                // so all child processes are its), which usually ends it; later tests get a new thread in any case.
+                ProcessHandle.current().descendants().forEach(ProcessHandle::destroyForcibly);
                 eservice.shutdownNow();
                 eservice = newPool();
             } catch (Exception e) {
