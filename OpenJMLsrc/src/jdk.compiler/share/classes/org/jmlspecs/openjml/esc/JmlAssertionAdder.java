@@ -21464,11 +21464,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Name label;
 		if (arg == null) {
 		    label = defaultLabel;
-		} else if (arg.toString().startsWith("\\Loop")) {
-		    IJmlLoop loop = loopStack.getFirst();
-		    label = names.fromString(arg.toString() + "`" + loop.pos().getPreferredPosition());
 		} else {
 		    label = ((JCIdent)arg).name;
+		    String s = label.toString();
+		    // A predefined label written without its backslash (e.g. LoopInit), unless a user label has that name
+		    if (labelPropertiesStore.get(label) == null && Arrays.stream(attr.predefinedLabels).anyMatch(ss->ss.equals(s))) {
+		        label = names.fromString("\\" + s);
+		    }
+		    if (label.toString().startsWith("\\Loop")) {
+		        IJmlLoop loop = loopStack.getFirst();
+		        label = names.fromString(label.toString() + "`" + loop.pos().getPreferredPosition());
+		    }
 		}
         if (label == attr.preLabel) label = currentPreLabel;
         if (label == attr.oldLabel) label = currentOldLabel;
