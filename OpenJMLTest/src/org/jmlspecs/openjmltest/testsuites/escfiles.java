@@ -439,11 +439,6 @@ public class escfiles extends EscBaseFiles {
 
 
     
-    @Test @Ignore // FIXME - ignore for now; implement with real specs
-    public void escRawding() {
-        helpEscSimple("-specspath=test/escRawding","-code-math=safe");
-    }
-    
     // The following are really just typecheck problems
 
     @Test

@@ -50,6 +50,7 @@ if [ -z "$*" ]; then
         testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | tail -n +$START | head -n $LINES | sed -e 's/\.java//')
     else 
         testlist=$(cd ../src/org/jmlspecs/openjmltest/testsuites ; ls *.java | sed -e 's/\.java//')
+        FULLRUN=1
         ## A full run: remove all old logs, including those of suites that no longer exist,
         ## so that retry sees only this run's results
         rm -f log-*
@@ -100,6 +101,13 @@ if [ -n "${COV_BY_TEST++}" ]; then
     echo END `date`
     exit $RUNERR
 fi
+## A full run also checks the runner's own timeout handling and counting. Its output is not in a log-* file,
+## because retry would take the fixture's intended failures as real ones.
+SELFTESTERR=0
+if [ -n "$FULLRUN" ]; then
+    if ./runner-selftest > runner-selftest.out 2>&1 ; then echo "runner-selftest: OK"
+    else echo "runner-selftest FAILED (see unittests/runner-selftest.out)"; SELFTESTERR=1; fi
+fi
 set -o pipefail
 echo MID `date`
 ./retry -run  2>&1 | tee logretry | grep --line-buffered -E 'Retrying|FAILED|Unexpected|TIMEOUT|timeout' 
@@ -127,4 +135,4 @@ else
 fi
 if [ $GAVEUP -ne 0 ]; then echo "Some testsuites produced no results (see 'Giving up' above)"; fi
 echo END `date`
-exit $(( ERR || GAVEUP ))
+exit $(( ERR || GAVEUP || SELFTESTERR ))

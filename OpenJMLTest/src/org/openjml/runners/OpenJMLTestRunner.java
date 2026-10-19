@@ -79,7 +79,7 @@ public class OpenJMLTestRunner {
         coverage = PerTestCoverage.init(); // null unless setup-coverage asked for per-test coverage
 
         try {
-            eservice = Executors.newFixedThreadPool(numThreads==0?1:numThreads); // argument required to be positive
+            eservice = newPool();
         } catch (Exception e) {
             System.out.println("Failed to create thread pool for " + numThreads + " threads: " + e);
             System.exit(1);
@@ -124,14 +124,14 @@ public class OpenJMLTestRunner {
                 clazz = (Class<JmlTestSuite>)Class.forName("org.jmlspecs.openjmltest.testsuites." + suiteName);
             } catch (ClassNotFoundException e) {
                 System.out.println("Error: There is no test suite named " + suiteName);
-                failures++;
+                errors++;
                 continue;
             }
 
             if (verbose) System.out.println("Queueing " + clazz);
             var cons = clazz.getConstructors();
             if (cons.length != 1) {
-                failures++;
+                errors++;
                 System.out.println("ERROR: Class " + clazz + " should have just one public constructor");
                 continue;
             }
@@ -162,7 +162,7 @@ public class OpenJMLTestRunner {
                         }
                     }
                 }
-                failures++;
+                errors++;
                 System.out.println("NO METHOD FOUND FOR " + testName);
             }
             
@@ -246,11 +246,26 @@ public class OpenJMLTestRunner {
             }
         }
         eservice.shutdownNow(); // Program won't exit without calling this
-        System.out.println((tests-timeouts-failures) + " successes, " + timeouts + " timeouts, " + failures + " failures, " + ignores + " ignored");
-        System.exit((failures+timeouts > 0 || tests == 0 )? 1 : 0);
+        // run-summary parses this line
+        System.out.println(passes + " successes, " + timeouts + " timeouts, " + failures + " failures, " + ignores + " ignored"
+                + (errors > 0 ? ", " + errors + " harness errors" : ""));
+        System.exit((failures+timeouts+errors > 0 || tests == 0 )? 1 : 0);
     }
 
+    /** A pool of daemon threads, so that a timed-out test that is still running does not keep the runner alive */
+    static ExecutorService newPool() {
+        return Executors.newFixedThreadPool(numThreads==0?1:numThreads, r -> { // argument required to be positive
+            var t = new Thread(r);
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
+    // Each test submitted gets exactly one outcome: a pass, a failure or a timeout
     static Integer tests = 0; static Object stests = new Object();
+    static Integer passes = 0;
+    /** Problems in finding the tests to run (not test results) */
+    static Integer errors = 0;
     static Integer timeouts = 0; static Object stimeouts = new Object();
     static Integer failures = 0; static Object sfailures = new Object();
     static Integer ignores = 0;
@@ -283,6 +298,8 @@ public class OpenJMLTestRunner {
         final Method method;
         final Constructor constr;
         final Object[] params;
+        /** Set when the test timed out; its thread may still finish later, but its result no longer counts */
+        volatile boolean abandoned;
 
         public UnitTest(final Class<? extends JmlTestSuite> clazz, final Method method, final Constructor constr, final Object[] params) {
             this.clazz = clazz;
@@ -296,15 +313,29 @@ public class OpenJMLTestRunner {
             String name = method.getName() + (params==null||params.length==0?"":Arrays.toString(params));
             String status = "FAIL";
             if (coverage != null) coverage.start(clazz, name);
+            synchronized (stests) { tests++; }
             try {
                 future = eservice.submit(()->doMethod(clazz, method, constr, params));
-                if (future.get(seconds, TimeUnit.SECONDS)) status = "PASS";
+                if (future.get(seconds, TimeUnit.SECONDS)) {
+                    status = "PASS";
+                    synchronized (stests) { passes++; }
+                } else {
+                    synchronized (sfailures) { failures++; }
+                }
             } catch (TimeoutException e) {
                 status = "TIMEOUT";
+                abandoned = true;
                 synchronized (System.out) { System.out.println("TIMEOUT: " + method + " in thread " + Thread.currentThread().getName()); }
+                // A FAILED line, so that retry finds timeouts too
+                synchronized (System.out) { System.out.println("Test FAILED (timeout): " + clazz + "." + name); }
                 synchronized(stimeouts) { timeouts++; }
                 future.cancel(true);
                 synchronized (System.out) { System.out.println("timeout cancelled " + future.isCancelled()); }
+                // A running test usually ignores the interrupt. Kill its solver processes (tests run one at a time,
+                // so all child processes are its), which usually ends it; later tests get a new thread in any case.
+                ProcessHandle.current().descendants().forEach(ProcessHandle::destroyForcibly);
+                eservice.shutdownNow();
+                eservice = newPool();
             } catch (Exception e) {
                 synchronized (System.out) { System.out.println("EXCEPTION: " + method + " " + e); }
                 synchronized(sfailures) { failures++; }
@@ -328,7 +359,6 @@ public class OpenJMLTestRunner {
         public boolean doMethod(Class<? extends JmlTestSuite> clazz, Method method, Constructor constr, Object[] params) {
             String fullname = method.getName() + (params==null||params.length==0?"":Arrays.toString(params));
             String qualname = clazz + "." + fullname;
-            synchronized (stests) { tests++; }
             try {
                 { System.out.println("Testing " + clazz + "." + method.getName() + (params==null||params.length==0?"":Arrays.toString(params)) + " using " + Thread.currentThread().getName()); }
                 JmlTestSuite t = null;
@@ -350,9 +380,8 @@ public class OpenJMLTestRunner {
                 return true;
             } catch (Throwable e) {
                 if (e.getCause() != null) e = e.getCause();
-                synchronized (sfailures) { failures++; }
                 { 
-                    System.out.println("Test FAILED: " + qualname);
+                    System.out.println((abandoned ? "Late result of a timed-out test: " : "Test FAILED: ") + qualname);
                     System.out.println("  [Show stack using STACK= ]");
                     System.out.println(e);
                     if (System.getenv("STACK") != null) e.printStackTrace(System.out);
