@@ -22,8 +22,8 @@ public class Equals
   {
     Double a = new Double(d1);
     Double b = new Double(d2);
-    //@ assert (d1 == d2) ==> a.equals(b);
-    //@ assert (d1 == d2) ==> b.equals(a);
+    //@ assert (d1 == d2 && d1 != 0) ==> a.equals(b);
+    //@ assert (d1 == d2 && d1 != 0) ==> b.equals(a);
     //@ assert (d1 != d2) ==> !a.equals(b);
     //@ assert (d1 != d2) ==> !b.equals(a);
   }

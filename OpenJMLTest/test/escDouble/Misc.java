@@ -44,8 +44,8 @@ public class Misc
         int b = (int)a;
         //@ assert (a == Double.POSITIVE_INFINITY) || (a >= Integer.MAX_VALUE) ==> b == Integer.MAX_VALUE;
         //@ assert (a == Double.NEGATIVE_INFINITY) || (a <= Integer.MIN_VALUE) ==> b == Integer.MIN_VALUE;
-        //@ assert Double.isFinite(a) && a > 0.0f && !(b == Integer.MAX_VALUE)  ==> a-b > -1 && a-b <= 0;
-        //@ assert Double.isFinite(a) && a < 0.0f && !(b == Integer.MIN_VALUE) ==> a-b < 1 && a-b >= 0;
+        //@ assert Double.isFinite(a) && a > 0.0f && !(b == Integer.MAX_VALUE) ==> a-b < 1 && a-b >= 0;
+        //@ assert Double.isFinite(a) && a < 0.0f && !(b == Integer.MIN_VALUE) ==> a-b > -1 && a-b <= 0;
     }
 
 

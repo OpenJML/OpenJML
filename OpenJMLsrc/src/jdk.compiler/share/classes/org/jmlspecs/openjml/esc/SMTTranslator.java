@@ -97,6 +97,8 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected ISort intSort;
     final protected ISort boolSort;
           protected ISort realSort;
+    final protected ISort float32Sort;
+    final protected ISort float64Sort;
     final protected ISort stringSort;
     final protected ISort intsetSort;
           protected ISort rangeSort;
@@ -133,6 +135,11 @@ public class SMTTranslator extends JmlTreeScanner {
     public boolean useBV;
     /** Whether \string is the SMT-LIB String sort and its operations are the Strings theory's (#1043) */
     public boolean useStrings;
+    /** Whether float and double are modeled with the SMT FloatingPoint theory (rather than as reals); cf. --fpreal */
+    public boolean useFP;
+
+    /** The model of float and double as reals with special values, when not using the FloatingPoint theory */
+    protected /*@ nullable */ FpRealModel fpr;
     public boolean quantOK = true;
 
     // These are strings that are part of our modeling of Java+JML and are
@@ -239,6 +246,10 @@ public class SMTTranslator extends JmlTreeScanner {
 
     /** Whether cdivq and cmodq have been declared in the current script */
     boolean cdivqDeclared = false;
+    /** Whether the bit-pattern functions of Float32 (index 0) and Float64 (index 1) are declared in this script */
+    boolean[] fpBitsDeclared = new boolean[2];
+    /** The number of occurrences of the bit-pattern functions in this script (see fpBits) */
+    int fpBitsCount = 0;
     boolean cmodqDeclared = false;
 
     /** A Java integer / or % outside any quantifier: name is cdivq or cmodq, args its operands and
@@ -290,6 +301,8 @@ public class SMTTranslator extends JmlTreeScanner {
             bits = new LinkedList<IIndex>(); bits.add(F.numeral(8));
             bv8Sort = F.createSortExpression(F.id(F.symbol("BitVec"), bits));
         }
+        float32Sort = F.createSortExpression(F.symbol("Float32")); // From SMT FloatingPoint theory
+        float64Sort = F.createSortExpression(F.symbol("Float64"));
         arraySym = F.symbol("Array"); // From SMT Array theory
         seqSym = F.symbol("SEQ");
         setSym = F.symbol("SET");
@@ -904,10 +917,15 @@ public class SMTTranslator extends JmlTreeScanner {
     	this.smt = smt;
         script = new Script();
         this.useBV = useBV;
+        this.useFP = JmlOption.useFPTheory(context);
+        this.fpr = useFP ? null : new FpRealModel(this, "datatype".equals(JmlOption.FPREAL_ENCODING.value(context)));
+        fpValueDeclared = false;
         ICommand c;
         startCommands = new LinkedList<ICommand>();
         commands = new LinkedList<ICommand>();
         cdivqDeclared = cmodqDeclared = false;
+        fpBitsDeclared[0] = fpBitsDeclared[1] = false;
+        fpBitsCount = 0;
         groundDivMods.clear();
         recursiveFunctions.clear();
         
@@ -1052,6 +1070,10 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         c = new C_declare_fun(F.symbol("booleanValue"),args, boolSort);
         commands.add(c);
+        if (useFP) {
+            commands.add(new C_declare_fun(F.symbol("floatValue"),args, float32Sort));
+            commands.add(new C_declare_fun(F.symbol("doubleValue"),args, float64Sort));
+        }
 //        if (!useBV) {
 //        	c = new C_declare_fun(lengthSym,
 //        			Arrays.asList(new ISort[]{refSort}), 
@@ -1924,11 +1946,11 @@ public class SMTTranslator extends JmlTreeScanner {
             } else if (tag == TypeTag.LONG) { 
                 return useBV ? bv64Sort : intSort;
             } else if (tag == TypeTag.FLOAT) { 
-                addReal();
-                return realSort;
+                if (useFP) return float32Sort;
+                return fpr.sort();
             } else if (tag == TypeTag.DOUBLE) { 
-                addReal();
-                return realSort;
+                if (useFP) return float64Sort;
+                return fpr.sort();
             } else if (tag == TypeTag.ARRAY) {
                 return refSort;
 //                ArrayType at = (ArrayType)t;
@@ -2323,6 +2345,8 @@ public class SMTTranslator extends JmlTreeScanner {
             for (JCExpression arg: tree.args) {
                 newargs.add(convertExpr(arg));
             }
+            if (useFP && (result = fpPredicate(fpCallee(((JCIdent)m).sym, newargs), newargs)) != null) return;
+            if (!useFP && (result = fprMethod(fpCallee(((JCIdent)m).sym, newargs), newargs)) != null) return;
             if (newargs.isEmpty()) result = F.symbol(newname);
             else result = F.fcn(F.symbol(newname),newargs);
             return;
@@ -2579,11 +2603,23 @@ public class SMTTranslator extends JmlTreeScanner {
             // Built-in methods
             String n = that.meth.toString();
             if (n.equals("shortValue") || n.equals("byteValue") || n.equals("charValue") || n.equals("longValue")) n = "intValue";
-            else if (n.equals("floatValue") || n.equals("doubleValue")) n = "realValue";
+            else if ((n.equals("floatValue") || n.equals("doubleValue")) && !useFP) declareFpValue();
             result = F.fcn(F.symbol(n),newargs);
         } else {
             result = newargs.get(0); // FIXME - this is needed for \old and \pre but a better solution should be found (cf. testLabeled)
         }
+    }
+
+    /** Whether floatValue and doubleValue (the unboxed value of a Float or Double) are declared (for --fpreal) */
+    boolean fpValueDeclared;
+
+    protected void declareFpValue() {
+        if (fpValueDeclared) return;
+        fpValueDeclared = true;
+        List<ISort> args = Arrays.asList(refSort);
+        ISort s = fpr.sort();
+        startCommands.add(new C_declare_fun(F.symbol("floatValue"), args, s));
+        startCommands.add(new C_declare_fun(F.symbol("doubleValue"), args, s));
     }
 
     @Override
@@ -2621,7 +2657,11 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = F.fcn(notSym, args);
                 break;
             case NEG:
-                if (useBV) 
+                if (useFP && isFloating(tree.arg.type.getTag()))
+                    result = F.fcn(F.symbol("fp.neg"), args);
+                else if (isFloating(tree.arg.type.getTag()))
+                    result = fpr.neg(arg);
+                else if (useBV) 
                     result = F.fcn(F.symbol("bvneg"), args);
                 else
                     result = F.fcn(F.symbol("-"), args);
@@ -2668,6 +2708,12 @@ public class SMTTranslator extends JmlTreeScanner {
             isInt = true;
         } else if (tlhs == TypeTag.DOUBLE || trhs == TypeTag.DOUBLE ||
                 tlhs == TypeTag.FLOAT || trhs == TypeTag.FLOAT) {
+            if (useFP) {
+                result = fpBinary(tree, lhs, rhs);
+            } else {
+                result = fprBinary(tree, lhs, rhs);
+            }
+            if (result != null) return;
             isReal = true;
         }
         if (useBV) {
@@ -3009,6 +3055,16 @@ public class SMTTranslator extends JmlTreeScanner {
         Number value = null;
         if (tree.expr instanceof JCLiteral lit) {
             if (lit.getValue() instanceof Number) {
+                if (useFP && isFloating(tagr)) {
+                    result = makeFPValue((Number)lit.getValue(), tagr);
+                    return;
+                }
+                if (isFloating(tagr)) { // the value Java's cast gives
+                    Number n = (Number)lit.getValue();
+                    boolean fromFP = n instanceof Double || n instanceof Float;
+                    result = fpr.literal(tagr == TypeTag.FLOAT ? (fromFP ? n.floatValue() : (float)n.longValue()) : (fromFP ? n.doubleValue() : (double)n.longValue()));
+                    return;
+                }
                 if (tagr == TypeTag.DOUBLE || tagr == TypeTag.FLOAT || ((tagr == TypeTag.NONE || tagr == TypeTag.UNKNOWN) && tree.type.tsym == REAL)) {
                     double d = ((Number)lit.getValue()).doubleValue();
                     result = makeRealValue(d);
@@ -3079,6 +3135,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         // FIXME - error
                     }
                 } else {
+                    result = useFP ? fpToReal(result) : fpr.toReal(result); // float/double to \real or \bigint
                     if (tree.type.tsym == REAL) {
                         // float/double to \real -- OK
                     } else if (tree.type.tsym == BIGINT) {
@@ -3103,9 +3160,11 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else {
                     if (tree.expr.type.tsym == REAL) {
                         // \real to float/double -- OK
+                        result = useFP ? realToFP(tagr, result) : fpr.fromReal(result);
                     } else if (tree.expr.type.tsym == BIGINT) {
                         // \bigint to float/double -- FIXME
                         result = F.fcn(F.symbol("to_real"), result);
+                        result = useFP ? realToFP(tagr, result) : fpr.fromReal(result);
                     } else {
                         // FIXME - error
                     }
@@ -3129,22 +3188,39 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (!treeutils.isIntegral(tage) && !treeutils.isIntegral(tagr)) {
                     // Both are floating point
                     // OK -- no change in SMT type
+                    if (useFP && tage != tagr) result = makeFPValue((Number)v, tagr);
+                    else if (tage != tagr) result = fpr.literal(tagr == TypeTag.FLOAT ? ((Number)v).floatValue() : ((Number)v).doubleValue());
                 } else if (treeutils.isIntegral(tage)) {
                     // integral to real literal
                     java.math.BigInteger val = ((IExpr.INumeral)result).value();
-                    result = makeRealValue(val.doubleValue());
+                    result = useFP ? makeFPValue(val.longValue(), tagr) : fpr.literal(tagr == TypeTag.FLOAT ? (float)val.longValue() : (double)val.longValue());
                 } else if (!treeutils.isIntegral(tage)) {
-                    // FIXME - cast from double to integral
+                    // float or double literal to an integral type: folded as Java converts it (JLS 5.1.3)
+                    double d = ((Number)v).doubleValue();
+                    long k = switch (tagr) {
+                        case LONG -> (long)d;
+                        case SHORT -> (short)(int)d;
+                        case CHAR -> (char)(int)d;
+                        case BYTE -> (byte)(int)d;
+                        default -> (int)d;
+                    };
+                    result = integralConstant(tagr, k);
                 } else if (tagr.ordinal() == TypeTag.DOUBLE.ordinal() || tagr.ordinal() == TypeTag.FLOAT.ordinal()) {
                     // Cast to real FIXME - already done?
                     Double d = Double.valueOf(v.toString());
-                    result = makeRealValue(d.doubleValue());
+                    result = fpr.literal(d.doubleValue());
                 }
             } else {
                 // cast from primitive to primitive for an expression
                 boolean argIsInt = treeutils.isIntegral(tage);
                 boolean resultIsInt = treeutils.isIntegral(tagr);
-                if (argIsInt && !resultIsInt) {
+                if (useFP && (isFloating(tage) || isFloating(tagr))) {
+                    result = !resultIsInt ? toFP(tagr, tage, result) : fpToIntegral(tagr, tage, result);
+                } else if (isFloating(tage) || isFloating(tagr)) {
+                    // float and double have the same values (no rounding in this model)
+                    if (argIsInt) result = fpr.fromIntegral(tage, result);
+                    else if (resultIsInt) result = fpr.toIntegral(tagr, result);
+                } else if (argIsInt && !resultIsInt) {
                     // Requires int and real logic
                     // integral to real
                     result = F.fcn(F.symbol("to_real"), result);
@@ -3233,6 +3309,336 @@ public class SMTTranslator extends JmlTreeScanner {
         if (to == TypeTag.LONG) return F.fcn(F.symbol("|#clamp64#|"), x);
         x = F.fcn(F.symbol("|#clamp32#|"), x);
         return to == TypeTag.INT ? x : narrowInt(to, x);
+    }
+
+    // Translation of float and double with the SMT FloatingPoint theory (useFP)
+
+    protected boolean isFloating(TypeTag t) {
+        return t == TypeTag.FLOAT || t == TypeTag.DOUBLE;
+    }
+
+    /** The indexed identifier (_ name eb sb) for the FloatingPoint sort of float or double */
+    protected IExpr.IIdentifier fpId(String name, TypeTag t) {
+        List<IIndex> indices = new LinkedList<>();
+        indices.add(F.numeral(t == TypeTag.FLOAT ? 8 : 11));
+        indices.add(F.numeral(t == TypeTag.FLOAT ? 24 : 53));
+        return F.id(F.symbol(name), indices);
+    }
+
+    /** The value e of the integral, float or double type 'from' converted to float or double 'to', as Java converts
+     * it (rounding to nearest, ties to even) */
+    protected IExpr toFP(TypeTag to, TypeTag from, IExpr e) {
+        if (from == to) return e;
+        IExpr rne = F.symbol("RNE");
+        if (isFloating(from)) return F.fcn(fpId("to_fp", to), rne, e);
+        if (!useBV) {
+            // Via a bit-vector, which is exact since the value is in the range of its type: solvers do much better
+            // with this than with rounding a symbolic real (to_fp of to_real)
+            e = intToBV(bits(from), e);
+        }
+        return F.fcn(fpId(from == TypeTag.CHAR ? "to_fp_unsigned" : "to_fp", to), rne, e);
+    }
+
+    /** The real r rounded to float or double 'to' */
+    protected IExpr realToFP(TypeTag to, IExpr r) {
+        return F.fcn(fpId("to_fp", to), F.symbol("RNE"), r);
+    }
+
+    /** The real value of the float or double e; unspecified (but a real) if e is NaN or infinite */
+    protected IExpr fpToReal(IExpr e) {
+        return F.fcn(F.symbol("fp.to_real"), e);
+    }
+
+    /** The float or double e (of type 'from') converted to the integral type 'to' as Java converts it (JLS 5.1.3):
+     * NaN to 0; otherwise rounded toward zero and clamped to the long range (for long) or else the int range,
+     * then for short, char and byte narrowed from int */
+    protected IExpr fpToIntegral(TypeTag to, TypeTag from, IExpr e) {
+        boolean isLong = to == TypeTag.LONG;
+        IExpr r;
+        if (useBV) {
+            int w = isLong ? 64 : 32;
+            IExpr zero = F.hex(isLong ? "0000000000000000" : "00000000");
+            IExpr max = F.hex(isLong ? "7fffffffffffffff" : "7fffffff");
+            IExpr min = F.hex(isLong ? "8000000000000000" : "80000000");
+            IExpr bound = makeFPValue(isLong ? 0x1p63 : 0x1p31, from); // exact in float and double
+            IExpr negbound = makeFPValue(isLong ? -0x1p63 : -0x1p31, from);
+            List<IIndex> wi = new LinkedList<>();
+            wi.add(F.numeral(w));
+            r = F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), e), zero,
+                    F.fcn(iteSym, F.fcn(F.symbol("fp.geq"), e, bound), max,
+                    F.fcn(iteSym, F.fcn(F.symbol("fp.leq"), e, negbound), min,
+                    F.fcn(F.id(F.symbol("fp.to_sbv"), wi), F.symbol("RTZ"), e))));
+            return isLong || to == TypeTag.INT ? r : castBV(to, TypeTag.INT, r);
+        } else {
+            addReal(); // toward_zero is defined when reals are used
+            IExpr max = F.symbol(isLong ? "|#max64#|" : "|#max32#|");
+            IExpr min = F.symbol(isLong ? "|#min64#|" : "|#min32#|");
+            r = F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), e), zero,
+                    F.fcn(iteSym, F.fcn(F.symbol("fp.isInfinite"), e),
+                            F.fcn(iteSym, F.fcn(F.symbol("fp.isPositive"), e), max, min),
+                            realToIntegral(isLong ? TypeTag.LONG : TypeTag.INT, fpToReal(e))));
+            return isLong || to == TypeTag.INT ? r : narrowInt(to, r);
+        }
+    }
+
+    /** Maps (float or double type, bit pattern) to the SMT constant for that value */
+    protected Map<String,ISymbol> fpValues = new HashMap<>();
+
+    /** The SMT constant for the Java value n (e.g. of a literal) converted to float or double 't' */
+    protected ISymbol makeFPValue(Number n, TypeTag t) {
+        boolean fromFP = n instanceof Double || n instanceof Float;
+        String text;
+        long bits;
+        int eb, sb;
+        if (t == TypeTag.FLOAT) {
+            float f = fromFP ? n.floatValue() : (float)n.longValue();
+            text = f + "f";
+            bits = Float.floatToRawIntBits(f) & 0xffffffffL;
+            eb = 8; sb = 24;
+        } else {
+            double d = fromFP ? n.doubleValue() : (double)n.longValue();
+            text = d + "d";
+            bits = Double.doubleToRawLongBits(d);
+            eb = 11; sb = 53;
+        }
+        String key = t + ":" + bits;
+        ISymbol sym = fpValues.get(key);
+        if (sym == null) {
+            sym = F.symbol("|#" + text + "#|");
+            fpValues.put(key, sym);
+            int total = eb + sb;
+            String b = String.format("%" + total + "s", Long.toBinaryString(bits)).replace(' ', '0');
+            IExpr value = F.fcn(F.symbol("fp"), F.binary(b.substring(0,1)), F.binary(b.substring(1,1+eb)), F.binary(b.substring(1+eb)));
+            commands.add(new C_define_fun(sym, emptyDeclList, t == TypeTag.FLOAT ? float32Sort : float64Sort, value));
+        }
+        return sym;
+    }
+
+    /** The --fpreal translation of a binary operation on float or double values (at least one operand is float or
+     * double; an integral operand is converted exactly), or null if the operation is not arithmetic or a comparison */
+    protected /*@ nullable */ IExpr fprBinary(JCBinary tree, IExpr lhs, IExpr rhs) {
+        TypeTag tl = tree.lhs.type.getTag();
+        TypeTag tr = tree.rhs.type.getTag();
+        if (!isFloating(tl)) lhs = fpr.fromIntegral(tl, lhs);
+        if (!isFloating(tr)) rhs = fpr.fromIntegral(tr, rhs);
+        return fpr.binary(tree.getTag(), treeutils.isIEEEOperator(tree.operator), lhs, rhs);
+    }
+
+    /** The translation of a binary operation on float or double values (at least one operand is float or double) */
+    protected IExpr fpBinary(JCBinary tree, IExpr lhs, IExpr rhs) {
+        TypeTag tl = tree.lhs.type.getTag();
+        TypeTag tr = tree.rhs.type.getTag();
+        TypeTag t = tl == TypeTag.DOUBLE || tr == TypeTag.DOUBLE ? TypeTag.DOUBLE : TypeTag.FLOAT; // binary numeric promotion
+        lhs = toFP(t, tl, lhs);
+        rhs = toFP(t, tr, rhs);
+        IExpr rne = F.symbol("RNE");
+        boolean ieee = treeutils.isIEEEOperator(tree.operator);
+        switch (tree.getTag()) {
+            case EQ: return ieee ? F.fcn(F.symbol("fp.eq"), lhs, rhs) : F.fcn(eqSym, lhs, rhs);
+            case NE: return ieee ? F.fcn(notSym, F.fcn(F.symbol("fp.eq"), lhs, rhs)) : F.fcn(distinctSym, lhs, rhs);
+            case LT: return F.fcn(F.symbol("fp.lt"), lhs, rhs);
+            case LE: return F.fcn(F.symbol("fp.leq"), lhs, rhs);
+            case GT: return F.fcn(F.symbol("fp.gt"), lhs, rhs);
+            case GE: return F.fcn(F.symbol("fp.geq"), lhs, rhs);
+            case PLUS: return F.fcn(F.symbol("fp.add"), rne, lhs, rhs);
+            case MINUS: return F.fcn(F.symbol("fp.sub"), rne, lhs, rhs);
+            case MUL: return F.fcn(F.symbol("fp.mul"), rne, lhs, rhs);
+            case DIV: return F.fcn(F.symbol("fp.div"), rne, lhs, rhs);
+            case MOD: {
+                // Java's % truncates the quotient (like C's fmod); fp.rem is the IEEE remainder, which rounds it to
+                // nearest. They differ by |rhs| exactly when the IEEE remainder has the opposite sign to lhs, and
+                // the sum is then exact.
+                IExpr r = F.fcn(F.symbol("fp.rem"), lhs, rhs);
+                IExpr absr = F.fcn(F.symbol("fp.abs"), rhs);
+                IExpr zero = makeFPValue(0.0, t);
+                return F.fcn(iteSym, F.fcn(andSym, F.fcn(F.symbol("fp.isNegative"), lhs), F.fcn(F.symbol("fp.gt"), r, zero)),
+                        F.fcn(F.symbol("fp.sub"), rne, r, absr),
+                        F.fcn(iteSym, F.fcn(andSym, F.fcn(F.symbol("fp.isPositive"), lhs), F.fcn(F.symbol("fp.lt"), r, zero)),
+                                F.fcn(F.symbol("fp.add"), rne, r, absr),
+                                r));
+            }
+            default:
+                log.error("jml.internal","Don't know how to translate floating-point expression to SMTLIB: " + JmlPretty.write(tree));
+                throw new RuntimeException();
+        }
+    }
+
+    /** The FloatingPoint-theory translation of a call of one of the predicates of java.lang.Double or Float, or of
+     * a java.lang.Math or StrictMath method on float or double, that the theory defines exactly; or null if msym is
+     * not one */
+    protected /*@ nullable */ IExpr fpPredicate(Symbol msym, List<IExpr> args) {
+        if (!(msym instanceof Symbol.MethodSymbol ms) || !msym.isStatic()) return null;
+        String owner = msym.owner.getQualifiedName().toString();
+        if (owner.equals("java.lang.Math") || owner.equals("java.lang.StrictMath")) {
+            for (var p: ms.params()) if (!isFloating(p.type.getTag())) return null;
+            return fpMath(msym.name.toString(), args);
+        }
+        if (!owner.equals("java.lang.Double") && !owner.equals("java.lang.Float")) return null;
+        if (args.size() == 1) {
+            IExpr a = args.get(0);
+            switch (msym.name.toString()) {
+                case "isNaN": return F.fcn(F.symbol("fp.isNaN"), a);
+                case "isInfinite": return F.fcn(F.symbol("fp.isInfinite"), a);
+                case "isFinite": return F.fcn(notSym, F.fcn(orSym, F.fcn(F.symbol("fp.isNaN"), a), F.fcn(F.symbol("fp.isInfinite"), a)));
+                case "isPositiveZero": return F.fcn(andSym, F.fcn(F.symbol("fp.isZero"), a), F.fcn(F.symbol("fp.isPositive"), a));
+                case "isNegativeZero": return F.fcn(andSym, F.fcn(F.symbol("fp.isZero"), a), F.fcn(F.symbol("fp.isNegative"), a));
+                case "intBitsToFloat": case "longBitsToDouble": {
+                    bitPatternsNeedBV();
+                    TypeTag t = owner.equals("java.lang.Float") ? TypeTag.FLOAT : TypeTag.DOUBLE;
+                    return F.fcn(fpId("to_fp", t), useBV ? a : intToBV(bits(t == TypeTag.FLOAT ? TypeTag.INT : TypeTag.LONG), a));
+                }
+                case "floatToRawIntBits": return fpBits(TypeTag.FLOAT, a);
+                case "doubleToRawLongBits": return fpBits(TypeTag.DOUBLE, a);
+                case "floatToIntBits": return F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), a), integralConstant(TypeTag.INT, 0x7fc00000), fpBits(TypeTag.FLOAT, a));
+                case "doubleToLongBits": return F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), a), integralConstant(TypeTag.LONG, 0x7ff8000000000000L), fpBits(TypeTag.DOUBLE, a));
+                default: return null;
+            }
+        } else if (args.size() == 2) {
+            IExpr a = args.get(0), b = args.get(1);
+            switch (msym.name.toString()) {
+                case "identical": return F.fcn(eqSym, a, b);
+                case "sum": return F.fcn(F.symbol("fp.add"), F.symbol("RNE"), a, b);
+                case "min": case "max": return fpMath(msym.name.toString(), args);
+                case "compare": {
+                    // Java's total order: -0.0 below +0.0, NaN equal to itself and above everything else
+                    IExpr lt = integralConstant(TypeTag.INT, -1), eq = integralConstant(TypeTag.INT, 0), gt = integralConstant(TypeTag.INT, 1);
+                    IExpr nanA = F.fcn(F.symbol("fp.isNaN"), a), nanB = F.fcn(F.symbol("fp.isNaN"), b);
+                    IExpr negA = F.fcn(F.symbol("fp.isNegative"), a), negB = F.fcn(F.symbol("fp.isNegative"), b);
+                    return F.fcn(iteSym, nanA, F.fcn(iteSym, nanB, eq, gt),
+                            F.fcn(iteSym, nanB, lt,
+                            F.fcn(iteSym, F.fcn(F.symbol("fp.lt"), a, b), lt,
+                            F.fcn(iteSym, F.fcn(F.symbol("fp.gt"), a, b), gt,
+                            F.fcn(iteSym, F.fcn(eqSym, negA, negB), eq, F.fcn(iteSym, negA, lt, gt))))));
+                }
+                default: return null;
+            }
+        }
+        return null;
+    }
+
+    /** The method of which sym is the logical function, if that method is Float.floatToRawIntBits or
+     * Double.doubleToRawLongBits (with the same arguments); otherwise sym. These are then translated as a direct
+     * call is, so that the logical function cannot give every NaN the same bits (see fpBits, FpRealModel.rawBits). */
+    protected Symbol fpCallee(Symbol sym, List<IExpr> args) {
+        Symbol.MethodSymbol orig = treeutils.calleeOriginals.get(sym);
+        if (orig == null || orig.params().size() != args.size()) return sym;
+        String name = orig.owner.getQualifiedName() + "." + orig.name;
+        return name.equals("java.lang.Float.floatToRawIntBits") || name.equals("java.lang.Double.doubleToRawLongBits") ? orig : sym;
+    }
+
+    /** The bit pattern of the float or double (type t) value e, as Double.doubleToRawLongBits and
+     * Float.floatToRawIntBits give it. The theory has no such operation, so this is a declared function, defined as
+     * a (right) inverse of to_fp from a bit-vector: that fixes the result except for NaN, which has many bit patterns
+     * in Java but only one value in the theory. So that different NaNs need not have the same bits, the function
+     * also takes an index unique to each occurrence; two occurrences on the same NaN are then unrelated (cf. #1047).
+     * In integer (not bit-vector) mode, which solvers handle badly here, the result is a signed Int. */
+    protected IExpr fpBits(TypeTag t, IExpr e) {
+        bitPatternsNeedBV();
+        boolean isFloat = t == TypeTag.FLOAT;
+        int w = isFloat ? 32 : 64;
+        String fcn = isFloat ? "|#floatBits#|" : "|#doubleBits#|";
+        int k = isFloat ? 0 : 1;
+        if (!fpBitsDeclared[k]) {
+            fpBitsDeclared[k] = true;
+            String fpSort = isFloat ? "Float32" : "Float64";
+            String toFP = isFloat ? "(_ to_fp 8 24)" : "(_ to_fp 11 53)";
+            String app = "(" + fcn + " x k)";
+            String vars = "((x " + fpSort + ") (k Int))";
+            if (useBV) {
+                startCommands.add(command(smt, "(declare-fun " + fcn + " (" + fpSort + " Int) (_ BitVec " + w + "))"));
+                if (quantOK) startCommands.add(command(smt, "(assert (forall " + vars + " (! (= (" + toFP + " " + app + ") x) :pattern (" + app + "))))"));
+            } else {
+                String big = isFloat ? "2147483648" : "9223372036854775808";
+                String bv = "((_ " + intToBVName() + " " + w + ") " + app + ")";
+                startCommands.add(command(smt, "(declare-fun " + fcn + " (" + fpSort + " Int) Int)"));
+                if (quantOK) startCommands.add(command(smt, "(assert (forall " + vars + " (! (and (<= (- " + big + ") " + app + ") (< " + app + " " + big + ") (= (" + toFP + " " + bv + ") x)) :pattern (" + app + "))))"));
+            }
+        }
+        return F.fcn(F.symbol(fcn), e, F.numeral(fpBitsCount++));
+    }
+
+    /** With --esc-bv=auto, switches to bit-vector arithmetic: solvers time out relating a bit pattern held as an Int
+     * to its float or double value, even for bv2nat(int2bv(i)) */
+    protected void bitPatternsNeedBV() {
+        if (!useBV && "auto".equals(JmlOption.ESC_BV.value(context))) throw new JmlBVException();
+    }
+
+    /** The name of the Int to bit-vector conversion: int_to_bv is the SMT-LIB 2.7 name, which strict cvc5 requires;
+     * z3 before 4.13 knows only int2bv */
+    protected String intToBVName() {
+        String prover = JmlOption.PROVER.value(context);
+        return prover != null && prover.startsWith("cvc") ? "int_to_bv" : "int2bv";
+    }
+
+    /** The Int e converted to a bit-vector of width w (modulo 2^w) */
+    protected IExpr intToBV(int w, IExpr e) {
+        List<IIndex> wi = new LinkedList<>();
+        wi.add(F.numeral(w));
+        return F.fcn(F.id(F.symbol(intToBVName()), wi), e);
+    }
+
+    /** The --fpreal translation of a call of the static method msym of java.lang.Double or Float, or of java.lang.Math
+     * or StrictMath on float or double arguments, if the model defines it exactly; otherwise null */
+    protected /*@ nullable */ IExpr fprMethod(Symbol msym, List<IExpr> args) {
+        if (!(msym instanceof Symbol.MethodSymbol ms) || !msym.isStatic() || args.isEmpty()) return null;
+        String owner = msym.owner.getQualifiedName().toString();
+        if (owner.equals("java.lang.Math") || owner.equals("java.lang.StrictMath")) {
+            for (var p: ms.params()) if (!isFloating(p.type.getTag())) return null;
+        } else if (!owner.equals("java.lang.Double") && !owner.equals("java.lang.Float")) {
+            return null;
+        } else {
+            for (var p: ms.params()) if (!isFloating(p.type.getTag())) return null;
+        }
+        return fpr.method(owner, msym.name.toString(), args);
+    }
+
+    /** The SMT constant for the value k of the integral type t */
+    protected IExpr integralConstant(TypeTag t, long k) {
+        if (!useBV) return numeral(k);
+        int digits = bits(t)/4;
+        String hex = String.format("%016x", k);
+        return F.hex(hex.substring(16 - digits));
+    }
+
+    /** The translation of the java.lang.Math method 'name' on float or double arguments, for those methods whose
+     * Java definition is an IEEE operation (correctly rounded, so the same as the theory's); or null */
+    protected /*@ nullable */ IExpr fpMath(String name, List<IExpr> args) {
+        IExpr a = args.get(0);
+        switch (args.size()) {
+            case 1:
+                switch (name) {
+                    case "abs": return F.fcn(F.symbol("fp.abs"), a);
+                    case "sqrt": return F.fcn(F.symbol("fp.sqrt"), F.symbol("RNE"), a);
+                    case "floor": return F.fcn(F.symbol("fp.roundToIntegral"), F.symbol("RTN"), a);
+                    case "ceil": return F.fcn(F.symbol("fp.roundToIntegral"), F.symbol("RTP"), a);
+                    case "rint": return F.fcn(F.symbol("fp.roundToIntegral"), F.symbol("RNE"), a);
+                    default: return null;
+                }
+            case 2: {
+                IExpr b = args.get(1);
+                switch (name) {
+                    case "copySign": // a NaN sign argument counts as positive, as in StrictMath
+                        return F.fcn(iteSym, F.fcn(F.symbol("fp.isNegative"), b),
+                                F.fcn(F.symbol("fp.neg"), F.fcn(F.symbol("fp.abs"), a)), F.fcn(F.symbol("fp.abs"), a));
+                    case "min": case "max": {
+                        // NaN if either is NaN; -0.0 is less than +0.0 (the theory leaves fp.min/fp.max of zeros of
+                        // opposite signs unspecified)
+                        boolean min = name.equals("min");
+                        IExpr less = F.fcn(F.symbol(min ? "fp.lt" : "fp.gt"), a, b);
+                        IExpr more = F.fcn(F.symbol(min ? "fp.lt" : "fp.gt"), b, a);
+                        IExpr aSign = F.fcn(F.symbol(min ? "fp.isNegative" : "fp.isPositive"), a);
+                        return F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), a), a,
+                                F.fcn(iteSym, F.fcn(F.symbol("fp.isNaN"), b), b,
+                                F.fcn(iteSym, less, a, F.fcn(iteSym, more, b, F.fcn(iteSym, aSign, a, b)))));
+                    }
+                    default: return null;
+                }
+            }
+            case 3:
+                return name.equals("fma") ? F.fcn(F.symbol("fp.fma"), F.symbol("RNE"), a, args.get(1), args.get(2)) : null;
+            default:
+                return null;
+        }
     }
 
     /** The value x narrowed to the integral type 'to', as Java's narrowing conversion does: x modulo 2^n,
@@ -3556,7 +3962,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 result = sym;
             }
         } else if (tree.typetag == TypeTag.FLOAT || tree.typetag == TypeTag.DOUBLE) {
-            result = makeRealValue(((Number)v).doubleValue());
+            result = useFP ? makeFPValue((Number)v, tree.typetag) : fpr.literal(((Number)v).doubleValue());
         } else {
             notImpl(tree);
             super.visitLiteral(tree);
