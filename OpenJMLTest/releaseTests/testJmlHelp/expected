@@ -122,6 +122,8 @@ JML options:
   --show                     Show intermediate programs
   --split                    Split proof into sections
   --esc-bv                   ESC: If enabled, use bit-vector arithmetic (auto, true, false)
+  --fpreal                   ESC: If true, reason about float and double as SMT reals (exact arithmetic, with NaN, infinities and signed zeros); if false, with the SMT FloatingPoint theory (auto, the default: false if the prover supports FloatingPoint)
+  --fpreal-encoding          ESC: With --fpreal, how the SMT sort of float and double values is encoded: uf (uninterpreted sorts and functions, the default) or datatype (an SMT datatype)
   --z3                       ESC: Comma-separated z3 settings: mbqi, autoconf (turn on model-based quantifier instantiation / z3's auto-configuration), no-mbqi, no-autoconf (turn them off, the default)
   --smt-strings              ESC: Use the SMT-LIB Strings theory for \string if the solver supports it (default true)
   --esc-max-warnings         ESC: Maximum number of warnings to find per method
