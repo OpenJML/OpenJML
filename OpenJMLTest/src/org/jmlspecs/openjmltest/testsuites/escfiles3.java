@@ -360,7 +360,7 @@ public class escfiles3 extends EscBaseFiles {
         helpEscSimple();
     }
     
-    @Test @Ignore // not working yet
+    @Test @Ignore // lambda specs not yet implemented
     public void escFPcompose() {
         helpEscSimple();
     }
