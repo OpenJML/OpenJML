@@ -1,2 +1,2 @@
-ARGS+=" -specspath=test/escRawding -code-math=safe"
+ARGS+=" -specspath=test/escRawding2 -code-math=safe"
 EXIT=1
