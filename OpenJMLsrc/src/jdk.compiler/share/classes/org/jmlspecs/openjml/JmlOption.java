@@ -423,10 +423,12 @@ public class JmlOption {
     public static final JmlOption PIPELINE = new JmlOption("--pipeline",false,true,"ESC: Send SMT commands to the solver without waiting for each response where possible (default true)",null);
     public static final JmlOption SMT_STRINGS = new JmlOption("--smt-strings",false,true,"ESC: Use the SMT-LIB Strings theory for \\string if the solver supports it (default true)",null);
 
-    /** Whether ESC uses the SMT-LIB Strings theory for \string: --smt-strings is on and the solver supports
-     * the theory (z3 after 4.3, cvc4, cvc5); bit-vector mode never uses it (#1043) */
+    /** Whether ESC uses the SMT-LIB Strings theory for \string: --smt-strings is on, the logic includes the theory,
+     * and the solver supports it (z3 after 4.3, cvc4, cvc5); bit-vector mode never uses it (#1043) */
     public static boolean useSmtStrings(Context context) {
         if (!SMT_STRINGS.isSet(context)) return false;
+        String logic = LOGIC.value(context); // a logic other than ALL must have the S (Strings) component
+        if (logic != null && !logic.equals("ALL") && !logic.replace("QF_","").contains("S")) return false;
         String prover = PROVER.value(context);
         if (prover == null) return true;
         return (prover.startsWith("z3") && !prover.startsWith("z3_4_3") && !prover.startsWith("z3-4.3"))
