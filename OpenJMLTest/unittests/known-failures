@@ -178,3 +178,5 @@ escfiles2.gitbug890                   # z3-5.1.0 lost proof in model_test; MBQI 
 escfiles3.gitbug963a                  # no expected output file yet (partial fix for #963)
 escfiles3.buggyCalculatorBV           # times out (bit-vector arithmetic)
 escfiles3.gitbug971a                  # Associated declaration reported at ScreenPoint.java:7, expected :6
+escfpfiles.sfbug414                   # asserts at Sqrt.java:29-30 not proved (--fpreal)
+escfpfiles.sfbug414n                  # asserts at Sqrt.java:29-30 not proved (AUFNIRA)
