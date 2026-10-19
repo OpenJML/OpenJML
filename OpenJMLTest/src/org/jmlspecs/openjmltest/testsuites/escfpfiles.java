@@ -86,7 +86,6 @@ public class escfpfiles extends EscBaseFiles {
         helpEscSimple();
     }
     
-    @Ignore // FIXME 
     @Test
     public void gitbug751() {
         expectedExit = 0;
