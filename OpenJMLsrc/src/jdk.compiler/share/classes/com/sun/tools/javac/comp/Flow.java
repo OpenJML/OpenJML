@@ -1917,6 +1917,9 @@ public class Flow {
         public void visitLambda(JCLambda tree) {
             //skip
         }
+        @Override
+        public void visitTree(JCTree tree) { // OPENJML -- cf Issue 1052: JML-only expressions do not affect liveness
+        }
         public boolean isAlive() {
             return super.alive != Liveness.DEAD;
         }
@@ -1933,6 +1936,10 @@ public class Flow {
         @Override
         public void visitBreak(JCBreak tree) {
             breaksTo |= breakTo == tree.target && super.alive == Liveness.ALIVE;
+        }
+
+        @Override
+        public void visitTree(JCTree tree) { // OPENJML -- cf Issue 1052: JML-only expressions do not affect liveness
         }
 
         public boolean breaksTo() {
