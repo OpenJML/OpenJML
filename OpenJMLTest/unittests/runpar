@@ -41,7 +41,8 @@ if [ "$1" == "-retrylog" ]; then OPT=$1 ; shift; fi
 
 make -C .. prep
 
-alias lsc="jobs | wc -l"
+## Count only running jobs: in this $(...) subshell, plain jobs also lists finished ones, so JOBS=1 waited forever
+alias lsc="jobs -r | wc -l"
 alias wtv="while [ \$(lsc) -ge $numjobs ]; do echo Waiting \$(lsc); sleep 10; done; echo proceeding \$(lsc)"
 alias wt="while [ \$(lsc) -ge $numjobs ]; do sleep 10; done"
 
