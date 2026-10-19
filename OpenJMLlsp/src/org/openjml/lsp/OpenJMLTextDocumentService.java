@@ -194,7 +194,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final java.util.Set<String> shownDialogMessages =
             java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
-    /** Executor tasks submitted and not finished, plus scheduler tasks running (see awaitIdle). */
+    /** Executor and ESC-pool tasks submitted and not finished, plus scheduler tasks running (see awaitIdle). */
     private final java.util.concurrent.atomic.AtomicInteger activeTaskCount = new java.util.concurrent.atomic.AtomicInteger(0);
     private final ExecutorService executor = new java.util.concurrent.ThreadPoolExecutor(
             0, Integer.MAX_VALUE, 60L, java.util.concurrent.TimeUnit.SECONDS,
@@ -2511,22 +2511,38 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         var futureRef = new java.util.concurrent.atomic.AtomicReference<Future<?>>();
         var apiRef    = new java.util.concurrent.atomic.AtomicReference<IAPI>();
-        Future<?> f = pool.submit(() -> {
+        java.util.concurrent.FutureTask<Void> f = new java.util.concurrent.FutureTask<>(() -> {
             long myGen = sessionCounter.incrementAndGet();
             runningSessions.put(key, new RunningSession(myGen, futureRef.get(), apiRef, true, projectId));
             java.util.function.Consumer<IAPI> hook = api -> {
                 apiRef.set(api);
                 RunningSession rs = runningSessions.get(key);
                 if (rs != null) rs.api().set(api);
+                // A cancel that came after the task started but before api existed (see abortEscForKey).
+                // Not api.cancelEsc(): Main.compile, called next, resets the canceled flag.
+                if (futureRef.get().isCancelled()) {
+                    throw new java.util.concurrent.CancellationException("ESC cancelled before it started");
+                }
             };
             try {
                 body.run(myGen, hook, futureRef);
             } finally {
                 runningSessions.remove(key);
             }
-        });
+        }, null);
         futureRef.set(f);
         runningSessions.putIfAbsent(key, new RunningSession(-1L, f, apiRef, true, projectId));
+        // Counted until the task has run or been skipped as cancelled, for awaitIdle
+        activeTaskCount.incrementAndGet();
+        try {
+            pool.execute(() -> {
+                try { f.run(); }
+                finally { activeTaskCount.decrementAndGet(); }
+            });
+        } catch (RuntimeException e) {
+            activeTaskCount.decrementAndGet();
+            throw e;
+        }
     }
 
 
@@ -3391,7 +3407,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 ServerLog.serverLog("[OpenJML] ESC cancelled for " + name);
                 api.cancelEsc();
             } else {
-                ServerLog.serverLog("[OpenJML] ESC task cancelled (queued, not yet running) for " + name);
+                // A task already running cancels its IAPI once it creates it (see submitEscJob)
+                ServerLog.serverLog("[OpenJML] ESC task cancelled before it started proving for " + name);
             }
         }
     }
@@ -3710,7 +3727,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Block until no executor task is pending or running and no debounced task is waiting in the
+     * Block until no executor or ESC job is pending or running and no debounced task is waiting in the
      * scheduler (or the timeout elapses).
      * Used by tests to drain background tasks (e.g. workspace reindex) before tearing down
      * temp directories, avoiding TOCTOU races where OpenJML accesses a path mid-deletion.
