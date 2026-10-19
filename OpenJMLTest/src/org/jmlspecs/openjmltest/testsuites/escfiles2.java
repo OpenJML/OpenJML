@@ -213,7 +213,8 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug894() {
-        helpEscSimple("--method=Test3.*");
+        // With the Strings theory Test3.uniqueCharS1 times out in z3 and cvc5 (#1043)
+        helpEscSimple("--method=Test3.*", "--no-smt-strings");
     }
     
     @Test
