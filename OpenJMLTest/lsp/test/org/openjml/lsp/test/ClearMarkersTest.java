@@ -234,4 +234,39 @@ public class ClearMarkersTest extends ProtocolTestBase {
         }
         assertTrue("clearMarkersForUris must publish empty for untracked URI", clearedA);
     }
+
+    /**
+     * A client that clears markers as soon as it receives diagnostics must get the
+     * empty publication: the URI is recorded as marked before its diagnostics are sent.
+     * The stub client below clears from inside the publish callback, which makes the
+     * nightly race (a fast client's clearAndReindex arriving first) deterministic.
+     */
+    @Test
+    public void testClearMarkersFromPublishCallback() throws Exception {
+        String uri = "file:///ClearFromCallback.java";
+        org.openjml.lsp.OpenJMLLanguageServer inproc = new org.openjml.lsp.OpenJMLLanguageServer();
+        java.util.List<org.eclipse.lsp4j.PublishDiagnosticsParams> published =
+                java.util.Collections.synchronizedList(new java.util.ArrayList<>());
+        java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        inproc.connect(new TestLanguageClient() {
+            @Override
+            public void publishDiagnostics(org.eclipse.lsp4j.PublishDiagnosticsParams params) {
+                published.add(params);
+                if (!uri.equals(params.getUri())) return;
+                if (params.getDiagnostics().isEmpty()) { done.countDown(); return; }
+                inproc.getWorkspaceService().executeCommand(new org.eclipse.lsp4j.ExecuteCommandParams(
+                        OpenJMLCommands.CLEAR_MARKERS, java.util.List.of()));
+            }
+        });
+        try {
+            inproc.initialize(new org.eclipse.lsp4j.InitializeParams()).get(SHORT_TIMEOUT, TimeUnit.SECONDS);
+            inproc.initialized(new org.eclipse.lsp4j.InitializedParams());
+            inproc.getTextDocumentService().didOpen(new org.eclipse.lsp4j.DidOpenTextDocumentParams(
+                    new org.eclipse.lsp4j.TextDocumentItem(uri, "java", 1, errSrc("ClearFromCallback"))));
+            assertTrue("clearMarkers from the publish callback must publish empty diagnostics; got "
+                    + published, done.await(TIMEOUT_SECONDS, TimeUnit.SECONDS));
+        } finally {
+            inproc.shutdown().get(SHORT_TIMEOUT, TimeUnit.SECONDS);
+        }
+    }
 }

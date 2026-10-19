@@ -187,37 +187,48 @@ public class SymlinkWorkspaceTest extends ProtocolTestBase {
     }
 
     /**
-     * A symlink cycle inside the workspace must not cause an infinite loop.
-     * The check must complete within the timeout and files discovered before
-     * the cycle must produce diagnostics.
+     * A symlink cycle inside the workspace must not cause an infinite loop, and
+     * must not stop the walk: files in other directories are still checked.
      *
      * <p>Layout:
      * <pre>
      *   projDir/
      *     Sentinel.java  (valid — makes snapshot non-empty)
-     *     sub  ->  cycleDir/
+     *     sub   ->  cycleDir/
+     *     sub2  ->  cycleDir2/
      *   cycleDir/
      *     CycleMarker.java  (type error)
      *     loop  ->  cycleDir/  (self-referential cycle)
+     *   cycleDir2/
+     *     CycleMarker2.java  (type error)
+     *     loop  ->  cycleDir2/
      * </pre>
+     * Whichever cycle directory the walk enters first, its loop is reached before
+     * the other directory, so both markers are checked only if a loop is skipped.
      */
     @Test
     public void testSymlinkCycleDoesNotHang() throws Exception {
         Path rootDir = tmp.getRoot().toPath().toRealPath();
 
-        // cycleDir contains CycleMarker.java and a self-referential cycle.
+        // Each cycle directory contains a marker and a self-referential cycle.
         Path cycleDir = rootDir.resolve("cycleDir");
         Files.createDirectories(cycleDir);
         Files.writeString(cycleDir.resolve("CycleMarker.java"),
                 String.format(TYPE_ERROR_SOURCE, "CycleMarker"), StandardCharsets.UTF_8);
         trySymlink(cycleDir.resolve("loop"), cycleDir);
+        Path cycleDir2 = rootDir.resolve("cycleDir2");
+        Files.createDirectories(cycleDir2);
+        Files.writeString(cycleDir2.resolve("CycleMarker2.java"),
+                String.format(TYPE_ERROR_SOURCE, "CycleMarker2"), StandardCharsets.UTF_8);
+        trySymlink(cycleDir2.resolve("loop"), cycleDir2);
 
-        // projDir/ is the workspace root: Sentinel.java (real) + sub -> cycleDir/.
+        // projDir/ is the workspace root: Sentinel.java (real) + links to both cycle dirs.
         Path projDir = rootDir.resolve("proj2");
         Files.createDirectories(projDir);
         Files.writeString(projDir.resolve("Sentinel.java"),
                 String.format(VALID_SOURCE, "Sentinel"), StandardCharsets.UTF_8);
         trySymlink(projDir.resolve("sub"), cycleDir);
+        trySymlink(projDir.resolve("sub2"), cycleDir2);
 
         configureRoots(projDir.toString());
 
@@ -230,10 +241,22 @@ public class SymlinkWorkspaceTest extends ProtocolTestBase {
                 "{\"command\":\"" + OpenJMLCommands.INDEX_PROJECT + "\",\"arguments\":[]}");
         client.nextResponse(SHORT_TIMEOUT, TimeUnit.SECONDS);
 
-        // Must complete within TIMEOUT_SECONDS (no infinite loop).
-        // CycleMarker.java must be found before the cycle is hit.
-        assertNotNull("Check must complete despite symlink cycle — CycleMarker.java not found",
-                nextNonEmptyDiagsFor("CycleMarker", TIMEOUT_SECONDS, TimeUnit.SECONDS));
+        // Must complete within TIMEOUT_SECONDS (no infinite loop), with both markers checked,
+        // in either order.
+        java.util.Set<String> missing = new java.util.HashSet<>(
+                java.util.List.of("/CycleMarker.java", "/CycleMarker2.java"));
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(TIMEOUT_SECONDS);
+        while (!missing.isEmpty() && System.nanoTime() < deadline) {
+            JsonObject msg = client.nextNotification("textDocument/publishDiagnostics",
+                    deadline - System.nanoTime(), TimeUnit.NANOSECONDS);
+            if (msg == null) break;
+            JsonObject params = msg.getAsJsonObject("params");
+            if (params.getAsJsonArray("diagnostics").isEmpty()) continue;
+            String uri = params.get("uri").getAsString();
+            missing.removeIf(uri::endsWith);
+        }
+        assertTrue("A symlink cycle must neither hang nor stop the walk; no diagnostics for " + missing,
+                missing.isEmpty());
     }
 
     /**
