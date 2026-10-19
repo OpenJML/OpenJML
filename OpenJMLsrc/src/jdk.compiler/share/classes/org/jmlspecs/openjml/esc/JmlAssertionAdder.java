@@ -418,6 +418,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	public boolean useBV;
 
+	/** Whether ESC models float and double with the SMT FloatingPoint theory (cf. --fpreal) */
+	public boolean useFP;
+
 	/**
 	 * A map from formal parameter to actual argument, used when translating methods
 	 * called within a method body; also used to map formals in inherited method
@@ -665,6 +668,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// this.reader.init(syms); // FIXME?
 		this.utilsClass = !rac ? null : reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
 		this.closeableType = syms.enterClass("java.io.Closeable");
+		this.useFP = esc && JmlOption.useFPTheory(context);
 
 		initialize();
 
@@ -15345,7 +15349,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Add any assertions to check for problems with binary operations. */
 	public void addBinaryChecks(JCExpression that, JCTree.Tag op, JCExpression lhs, JCExpression rhs, Type maxJmlType) {
 
-		if (op == JCTree.Tag.DIV || op == JCTree.Tag.MOD) {
+		// Floating-point division and remainder by zero are not errors (they give an infinity or NaN)
+		if ((op == JCTree.Tag.DIV || op == JCTree.Tag.MOD) && !isFloating(lhs.type) && !isFloating(rhs.type)) {
 			/* @nullable */ JCExpression nonzero = nonZeroCheck(that, rhs);
 			if (methodEnv.javaChecks && nonzero != null)
 				addAssert(that, Label.POSSIBLY_DIV0, nonzero);
@@ -16096,7 +16101,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
             addBinaryChecks(that,optag,lhs,rhs,null);
-			result = eresult = makeBin(that, optag, that.getOperator(), lhs, rhs, maxJmlType);
+			result = eresult = makeBin(that, optag, sourceOperator(that, lhs, rhs), lhs, rhs, maxJmlType);
 			if (!rac && splitExpressions)
 				result = eresult = newTemp(eresult);
 
@@ -16178,13 +16183,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 
 			addBinaryChecks(that, optag, lhs, rhs, null);
-			JCBinary bin = treeutils.makeBinary(that.pos, optag, that.getOperator(), lhs, rhs);
+			JCBinary bin = treeutils.makeBinary(that.pos, optag, sourceOperator(that, lhs, rhs), lhs, rhs);
 			result = eresult = splitExpressions ? newTemp(bin) : bin;
 		}
 		if (splitExpressions)
 			eresult.pos = that.getStartPosition(); // Need to make the start of the temporary Ident the same as the
 													// start of the expression it represents
 		treeutils.copyEndPosition(eresult, that);
+	}
+
+	/** The operator for the translation of the source binary expression that, with converted operands lhs and rhs:
+	 * for == and != on float or double in ESC, the IEEE-equality copy of the operator
+	 * (see JmlTreeUtils.ieeeOperator); an equality made by JmlTreeUtils keeps its identity operator */
+	protected OperatorSymbol sourceOperator(JCBinary that, JCExpression lhs, JCExpression rhs) {
+		OperatorSymbol op = that.getOperator();
+		if (esc && op != null && !treeutils.isIdentityOperator(op) && (that.hasTag(JCTree.Tag.EQ) || that.hasTag(JCTree.Tag.NE))
+				&& (isFloating(lhs.type) || isFloating(rhs.type))) {
+			return treeutils.ieeeOperator(op);
+		}
+		return op;
+	}
+
+	protected boolean isFloating(Type t) {
+		return t.getTag() == TypeTag.FLOAT || t.getTag() == TypeTag.DOUBLE;
 	}
 
 	public void visitJmlChained(JmlChained that) {
@@ -18252,23 +18273,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		boolean stringType = esc && types.isSameType(that.type, syms.stringType);
 		boolean makeCopy = !splitExpressions && (traceInfo || fullTranslation || stringType);
 		makeCopy = makeCopy || stringType; // FIXM - really shjould make variables in the prologue for all string values
-
-		JCExpression etype = null;
-		if (!encapsulated) {
-			if (types.isSameType(that.type, syms.doubleType)) {
-				etype = M.Ident(names.fromString("Double")); // FIXME - should use fully qualified type
-			} else if (types.isSameType(that.type, syms.floatType)) {
-				etype = M.Ident(names.fromString("Float")); // FIXME - should use fully qualified type
-			}
-			if (etype != null && splitExpressions) { // FIXME - still need the assumption even if !splitExpressions
-				JCFieldAccess fa = M.Select(etype, names.fromString("isFinite")); // FIXME _ what in the world is this for
-				JCMethodInvocation app = M.Apply(null, fa, List.<JCExpression>of(that));
-				encapsulated = true;
-				attr.attribExpr(app, Enter.instance(context).getTopLevelEnv(classDecl.toplevel)); // FIXME - just topLevelEnv I think
-				addAssume(that, Label.IMPLICIT_ASSUME, convertExpr(app));
-				encapsulated = false;
-			}
-		}
 
 		JCIdent id = null;
 		if (makeCopy) {
@@ -25227,6 +25231,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 		// Save the symbol
 		mm.put(msym, newsym);
+		treeutils.calleeOriginals.put(newsym, msym);
 		if (Utils.debug("trans"))
 			System.out.println("NEW METHOD NAME " + currentEnv.stateLabel + " " + hc + " " + msym.owner + " " + msym + " " + newsym + " " + returnType + " " + newsym.getReturnType() + " " + (newsym.type instanceof Type.MethodType mt ? mt.getReturnType() : "---") + " " + newmods);
 		return newsym;

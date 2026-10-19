@@ -108,6 +108,7 @@ public class escswitch extends EscBase {
     /** Exhaustive binding-pattern switch over a sealed interface. */
     @Test
     public void testSealedBindingPatternExhaustive() {
+        addOptions("--fpreal"); // the SMT FloatingPoint theory makes the double multiplications slow to verify
         helpEsc("A", """
                 class A {
                     sealed interface Shape permits Circle, Rect {}

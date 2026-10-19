@@ -1864,7 +1864,38 @@ public class MethodProverSMT {
             return null;
 
         }
+        if (out.contains("#FpReal#") || out.contains("|#fp")) return fpRealValue(s, smt, solver);
         return ((Tracer)tracer).normalizeConstant(out); // FIXME - fix interface
+    }
+
+    /** The value of the --fpreal float or double e in the current model, as Java writes the special values, or
+     * else the solver's real; null if the solver does not say */
+    protected /*@ nullable */ String fpRealValue(org.smtlib.IExpr e, SMT smt, ISolver solver) {
+        var F = smt.smtConfig.exprFactory;
+        String[][] kinds = { {"|#fpIsNaN#|", "NaN"}, {"|#fpIsPInf#|", "Infinity"}, {"|#fpIsNInf#|", "-Infinity"},
+                {"|#fpIsPZero#|", "0.0"}, {"|#fpIsNZero#|", "-0.0"} };
+        for (String[] k: kinds) {
+            IResponse r = checkTimeLimit(smt, solver.get_value(F.fcn(F.symbol(k[0]), e)));
+            if (!(r instanceof IResponse.IValueResponse v)) return null;
+            if (v.values().get(0).second().toString().equals("true")) return k[1];
+        }
+        IResponse r = checkTimeLimit(smt, solver.get_value(F.fcn(F.symbol(org.jmlspecs.openjml.esc.FpRealModel.VALUE), e)));
+        if (!(r instanceof IResponse.IValueResponse v)) return null;
+        return decimal(((Tracer)tracer).normalizeConstant(v.values().get(0).second().toString()));
+    }
+
+    /** The SMT real s, such as (/ 15.0 8.0) or (- 2.5), as a decimal if it has a finite one; otherwise s */
+    protected static String decimal(String s) {
+        var m = java.util.regex.Pattern.compile("\\(\\s*(-\\s*)?\\(?\\s*(?:/\\s+)?([0-9.]+)(?:\\s+([0-9.]+))?\\s*\\)?\\s*\\)").matcher(s.trim());
+        if (!m.matches()) return s;
+        try {
+            java.math.BigDecimal x = new java.math.BigDecimal(m.group(2));
+            if (m.group(3) != null) x = x.divide(new java.math.BigDecimal(m.group(3))); // exact, or ArithmeticException
+            if (m.group(1) != null) x = x.negate();
+            return x.stripTrailingZeros().toPlainString();
+        } catch (ArithmeticException | NumberFormatException ex) {
+            return s;
+        }
     }
     
 
