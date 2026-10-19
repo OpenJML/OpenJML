@@ -131,6 +131,8 @@ public class SMTTranslator extends JmlTreeScanner {
     final protected IExpr.ISymbol stringLengthSym;
     
     public boolean useBV;
+    /** Whether \string is the SMT-LIB String sort and its operations are the Strings theory's (#1043) */
+    public boolean useStrings;
     public boolean quantOK = true;
 
     // These are strings that are part of our modeling of Java+JML and are
@@ -152,6 +154,8 @@ public class SMTTranslator extends JmlTreeScanner {
     public static final String arrayLength = "__JMLlength"; // array length -- this is the encoded name produced in BasicBlocker2
     public static final String arrays_ = BasicBlocker2.ARRAY_BASE_NAME; // Must match BasicBlocker2
     public static final String concat = "stringConcat";
+    public static final String stringAt = "stringAt";
+    public static final String stringOOB = "stringOOB";
     public static final String nonnullelements = "nonnullelements";
     public static final String arrayElemType = "__arrayElemType";
     public static final String isarray = "__isarray";
@@ -911,6 +915,10 @@ public class SMTTranslator extends JmlTreeScanner {
         // set any options
         c = new C_set_option(F.keyword(":produce-models"),F.symbol("true"));
         startCommands.add(c);
+        String prover = JmlOption.PROVER.value(context);
+        // In cvc5's default array mode, the model after an 'unknown' answer can contradict the assertions,
+        // so no failing assertion is found (#1043)
+        if (prover != null && prover.startsWith("cvc5")) startCommands.add(command(smt,"(set-option :arrays-exp true)"));
         
         // set the logic
         String s = JmlOption.LOGIC.value(context);
@@ -919,7 +927,6 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands.add(c);
         
         // z3 options (both off unless --z3 turns them on); other solvers do not use them
-        String prover = JmlOption.PROVER.value(context);
         if (prover == null || prover.startsWith("z3")) {
             startCommands.add(command(smt,"(set-option :AUTO_CONFIG " + JmlOption.z3Setting(context, "autoconf") + ")"));
             startCommands.add(command(smt,"(set-option :smt.MBQI " + JmlOption.z3Setting(context, "mbqi") + ")"));
@@ -957,18 +964,31 @@ public class SMTTranslator extends JmlTreeScanner {
         startCommands.add(c);
         c = command(smt, useBV ? "(define-sort ARRAY (E) (Array |#BV32#| E))" : "(define-sort ARRAY (E) (Array Int E))");
         startCommands.add(c);
-        c = command(smt, useBV ? "(define-sort STRINGJML ( ) (Array |#BV32#| |#BV16#| ))" : "(define-sort STRINGJML ( ) (Array Int Int))");
-        startCommands.add(c);
+        if (useStrings) {
+            startCommands.add(command(smt, "(define-sort STRINGJML () String)"));
+        } else {
+            c = command(smt, useBV ? "(define-sort STRINGJML ( ) (Array |#BV32#| |#BV16#| ))" : "(define-sort STRINGJML ( ) (Array Int Int))");
+            startCommands.add(c);
+        }
         c = new C_declare_fun(nullStringSym,emptyList, stringSort);
         startCommands.add(c);
 //        // define THIS 
 //        c = new C_declare_fun(thisSym,emptyList, convertSort());
 //        startCommands.add(c);
-        // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
-        c = new C_declare_fun(F.symbol(concat),Arrays.asList(stringSort,stringSort), stringSort);
-        startCommands.add(c);
-        c = new C_declare_fun(F.symbol(stringlt),Arrays.asList(stringSort,stringSort), boolSort);
-        startCommands.add(c);
+        if (useStrings) {
+            // A character of a \string is its code; out of range it is unspecified, as in the array model,
+            // though the same for every string, as string.jml's invariant says
+            startCommands.add(command(smt, "(define-fun " + concat + " ((a String)(b String)) String (str.++ a b))"));
+            startCommands.add(command(smt, "(define-fun " + stringlt + " ((a String)(b String)) Bool (str.< a b))"));
+            startCommands.add(command(smt, "(declare-fun " + stringOOB + " (Int) Int)"));
+            startCommands.add(command(smt, "(define-fun " + stringAt + " ((s String)(i Int)) Int (ite (and (<= 0 i) (< i (str.len s))) (str.to_code (str.at s i)) (" + stringOOB + " i)))"));
+        } else {
+            // define stringConcat: (declare-fun stringConcat (REF,REF) REF)
+            c = new C_declare_fun(F.symbol(concat),Arrays.asList(stringSort,stringSort), stringSort);
+            startCommands.add(c);
+            c = new C_declare_fun(F.symbol(stringlt),Arrays.asList(stringSort,stringSort), boolSort);
+            startCommands.add(c);
+        }
         {
             var decls = new LinkedList<IDeclaration>();
             decls.add(F.declaration(F.symbol("i"), stringSort));
@@ -982,7 +1002,8 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         {
         	// define stringLength: (declare-fun stringLength (String) Int)
-        	c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(stringSort), useBV ? bv32Sort : intSort); // FIXME - not sure this =is used
+        	if (useStrings) c = command(smt, "(define-fun stringLength ((s String)) Int (str.len s))");
+        	else c = new C_declare_fun(F.symbol("stringLength"),Arrays.asList(stringSort), useBV ? bv32Sort : intSort); // FIXME - not sure this =is used
         	startCommands.add(c);
         }
         // THIS != NULL: (assert (distinct THIS NULL))
@@ -1007,11 +1028,11 @@ public class SMTTranslator extends JmlTreeScanner {
 //        			F.createSortExpression(arraySym,stringSort,useBV ? bv32Sort : intSort)
 //        			);
 //        	commands.add(c);  // FIXME - is this a duplicate ?
-            // string lengths are always non-negative
-//        	if (quantOK) {
-//        	    if (useBV) addCommand(smt,"(assert (forall ((o "+stringSort+")) (bvsge (select "+stringLengthSym+" o) #x00000000)))");
-//        	    else addCommand(smt,"(assert (forall ((o "+stringSort+")) (>= (select "+stringLengthSym+" o) 0)))");
-//        	}
+            // string lengths are always non-negative (the Strings theory's str.len is so by definition)
+        	if (quantOK && !useStrings) {
+        	    if (useBV) addCommand(smt,"(assert (forall ((o STRINGJML)) (bvsge ("+stringLengthSym+" o) #x00000000)))");
+        	    else addCommand(smt,"(assert (forall ((o STRINGJML)) (>= ("+stringLengthSym+" o) 0)))");
+        	}
         }
 
             // result of string concatenation is always non-null
@@ -2197,10 +2218,103 @@ public class SMTTranslator extends JmlTreeScanner {
         
     }
     
+    /** Whether sym is the class of \string (compared by name, as there may be more than one symbol for it) */
+    public static boolean isStringClass(Symbol sym) {
+        return sym != null && sym.toString().equals("org.jmlspecs.lang.internal.string");
+    }
+
+    /** The \string methods that the SMT-LIB Strings theory defines directly (#1043) */
+    public static boolean isStringBuiltin(Symbol.MethodSymbol msym) {
+        if (!isStringClass(msym.owner)) return false;
+        var params = msym.type.getParameterTypes();
+        return switch (msym.name.toString()) {
+            case "empty", "isEmpty", "length", "eq", "ne", "lt", "le", "gt", "ge", "head", "tail", "prepend", "put",
+                    "insert", "remove", "substring", "startsWith", "endsWith", "get", "getUnchecked" -> true;
+            case "equals" -> params.size() == 1 && params.head.tsym == msym.owner;
+            case "of" -> params.size() == 1 && params.head.getTag() == TypeTag.CHAR;
+            // not append(String), whose argument is a reference
+            case "append" -> params.size() == 1 && (params.head.getTag() == TypeTag.CHAR || params.head.tsym == msym.owner);
+            default -> false;
+        };
+    }
+
+    /** The Strings theory expression for a call of msym (see isStringBuiltin); args has the receiver first,
+     * unless msym is static */
+    protected IExpr stringBuiltin(Symbol.MethodSymbol msym, List<IExpr> args) {
+        IExpr s = args.isEmpty() ? null : args.get(0);
+        IExpr a = args.size() > 1 ? args.get(1) : null;
+        IExpr b = args.size() > 2 ? args.get(2) : null;
+        IExpr len = s == null ? null : F.fcn(F.symbol("str.len"), s);
+        var oneArg = msym.type.getParameterTypes().size() == 1;
+        return switch (msym.name.toString()) {
+            case "empty" -> F.unquotedString("");
+            case "isEmpty" -> F.fcn(eqSym, s, F.unquotedString(""));
+            case "length" -> len;
+            case "eq", "equals" -> F.fcn(eqSym, s, a);
+            case "ne" -> F.fcn(distinctSym, s, a);
+            case "lt" -> F.fcn(F.symbol("str.<"), s, a);
+            case "le" -> F.fcn(F.symbol("str.<="), s, a);
+            case "gt" -> F.fcn(F.symbol("str.<"), a, s);
+            case "ge" -> F.fcn(F.symbol("str.<="), a, s);
+            case "get", "getUnchecked" -> F.fcn(F.symbol(stringAt), s, a);
+            case "head" -> oneArg ? substr(s, zero, a) : F.fcn(F.symbol(stringAt), s, zero);
+            case "tail" -> oneArg ? substr(s, a, F.fcn(F.symbol("-"), len, a)) : substr(s, F.numeral(1), F.fcn(F.symbol("-"), len, F.numeral(1)));
+            case "of" -> F.fcn(F.symbol("str.from_code"), s);
+            case "prepend" -> F.fcn(F.symbol("str.++"), F.fcn(F.symbol("str.from_code"), a), s);
+            case "append" -> F.fcn(F.symbol("str.++"), s, msym.type.getParameterTypes().head.getTag() == TypeTag.CHAR ? F.fcn(F.symbol("str.from_code"), a) : a);
+            case "put" -> F.fcn(F.symbol("str.++"), substr(s, zero, a), F.fcn(F.symbol("str.from_code"), b),
+                    substrFrom(s, F.fcn(F.symbol("+"), a, F.numeral(1))));
+            case "insert" -> F.fcn(F.symbol("str.++"), substr(s, zero, a), F.fcn(F.symbol("str.from_code"), b), substrFrom(s, a));
+            case "remove" -> F.fcn(F.symbol("str.++"), substr(s, zero, a), substrFrom(s, F.fcn(F.symbol("+"), a, F.numeral(1))));
+            case "substring" -> substr(s, a, F.fcn(F.symbol("-"), b, a));
+            case "startsWith" -> F.fcn(F.symbol("str.prefixof"), a, s);
+            case "endsWith" -> F.fcn(F.symbol("str.suffixof"), a, s);
+            default -> throw new IllegalArgumentException("Not a \\string builtin: " + msym);
+        };
+    }
+
+    private IExpr substr(IExpr s, IExpr start, IExpr length) {
+        return F.fcn(F.symbol("str.substr"), s, start, length);
+    }
+
+    /** The rest of s from position start */
+    private IExpr substrFrom(IExpr s, IExpr start) {
+        return substr(s, start, F.fcn(F.symbol("-"), F.fcn(F.symbol("str.len"), s), start));
+    }
+
+    /** An SMT-LIB string literal for v: printable ASCII other than backslash is written as is, and every
+     * other character as str.from_code, so that no escape conventions matter */
+    protected IExpr stringLiteral(String v) {
+        List<IExpr> parts = new LinkedList<IExpr>();
+        StringBuilder sb = new StringBuilder();
+        for (char ch: v.toCharArray()) {
+            if (ch >= ' ' && ch <= '~' && ch != '\\') {
+                sb.append(ch);
+            } else {
+                if (sb.length() > 0) parts.add(F.unquotedString(sb.toString()));
+                sb.setLength(0);
+                parts.add(F.fcn(F.symbol("str.from_code"), F.numeral(ch)));
+            }
+        }
+        if (sb.length() > 0 || parts.isEmpty()) parts.add(F.unquotedString(sb.toString()));
+        return parts.size() == 1 ? parts.get(0) : F.fcn(F.symbol("str.++"), parts);
+    }
+
     // FIXME - review this
     @Override
     public void visitApply(JCMethodInvocation tree) {
         JCExpression m = tree.meth;
+        if (useStrings && m instanceof JCIdent mid && mid.sym instanceof Symbol.MethodSymbol msym && isStringBuiltin(msym)) {
+            List<IExpr> newargs = new LinkedList<IExpr>();
+            for (JCExpression arg: tree.args) {
+                newargs.add(convertExpr(arg));
+            }
+            // A leading heap argument, if any, is not used
+            int n = (Utils.instance(context).isJMLStatic(msym) ? 0 : 1) + msym.type.getParameterTypes().size();
+            while (newargs.size() > n) newargs.remove(0);
+            result = stringBuiltin(msym, newargs);
+            return;
+        }
         if (m instanceof JCIdent) {
             String name = makeBarEnclosedString(((JCIdent)m).name.toString());
             String newname = name;
@@ -2642,7 +2756,9 @@ public class SMTTranslator extends JmlTreeScanner {
                 } else if (isInt) {
                     result = F.fcn(F.symbol("+"), args);
                 } else if (isString) {
-                    if (tree.rhs.type.getTag() == TypeTag.CHAR) {
+                    if (useStrings) {
+                        result = F.fcn(F.symbol("str.++"), lhs, tree.rhs.type.getTag() == TypeTag.CHAR ? F.fcn(F.symbol("str.from_code"), rhs) : rhs);
+                    } else if (tree.rhs.type.getTag() == TypeTag.CHAR) {
                         result = F.fcn(F.symbol("store"), lhs, F.fcn(selectSym,lengthSym,lhs), rhs);
                     } else {
                         result = F.fcn(F.symbol(concat), args);
@@ -3217,7 +3333,9 @@ public class SMTTranslator extends JmlTreeScanner {
             String typeString = typeString(aa.indexed.type);
             //System.out.println("AACCESS " + tree + " " + tree.indexed.type + " " + tree.indexed.type.getClass() + " " + typeString );
             
-            if (typeString.startsWith("org_jmlspecs_lang_")) { // FIXME - find a way to do better than string checking
+            if (useStrings && aa.indexed.type.tsym == STRING) {
+                result = F.fcn(F.symbol(stringAt), convertExpr(aa.indexed), convertIndex(aa.index));
+            } else if (typeString.startsWith("org_jmlspecs_lang_")) { // FIXME - find a way to do better than string checking
             	result = F.fcn(selectSym,
             			convertExpr(aa.indexed),
             			convertIndex(aa.index)
@@ -3299,6 +3417,10 @@ public class SMTTranslator extends JmlTreeScanner {
                     encName = makeBarEnclosedString(tree.sym.owner.toString() + "_" + tree.name.toString());
                 }
                 IExpr.ISymbol name = F.symbol(encName);
+                if (useStrings && field.name.toString().equals("empty") && isStringClass(field.owner)) {
+                    result = stringLiteral("");
+                    return;
+                }
                 if (defined.add(encName)) {
                     ISort arrsort = F.createSortExpression(arraySym,convertSort(object.type),convertSort(field.type));
                     ICommand c = new C_declare_fun(name,emptyList,arrsort);
@@ -3358,6 +3480,10 @@ public class SMTTranslator extends JmlTreeScanner {
     @Override
     public void visitIdent(JCIdent tree) {
         String n = tree.name.toString();
+        if (useStrings && (n.equals("org.jmlspecs.lang.internal.string_empty") || (n.equals("empty") && tree.sym != null && isStringClass(tree.sym.owner)))) {
+            result = stringLiteral("");
+            return;
+        }
 //        if (n.equals("length")) { // FIXME - not sure about this - length as array length is always a field name
 //            System.out.println("IDENT " + tree + " " + tree.type);
 //            result = F.symbol(arrayLength);
@@ -3411,6 +3537,8 @@ public class SMTTranslator extends JmlTreeScanner {
             }
         } else if (tree.typetag == TypeTag.BOT) {
             result = nullSym;
+        } else if (tree.typetag == TypeTag.CLASS && useStrings && tree.type != null && tree.type.tsym == STRING) {
+            result = stringLiteral((String)tree.value);
         } else if (tree.typetag == TypeTag.CLASS) {
             // FIXME - every literal is different and we don't remember the value
             // FIXME _ literals are now different, but should they alwasy be?

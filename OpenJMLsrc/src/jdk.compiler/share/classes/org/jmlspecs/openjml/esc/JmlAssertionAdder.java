@@ -417,6 +417,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public int nextUnique() { if (uniqueCount == uniqueCountCheck) Utils.dumpStack("TMP UNIQUE " + uniqueCount); return uniqueCount++; }
 
 	public boolean useBV;
+	/** Whether \string is translated with the SMT Strings theory (#1043) */
+	public boolean useSmtStrings;
 
 	/**
 	 * A map from formal parameter to actual argument, used when translating methods
@@ -937,6 +939,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			String bv = JmlOption.ESC_BV.value(context);
 			useBV = !rac && ((collector.useBV && "auto".equals(bv)) || "true".equals(bv));
 			pmethodDecl.usedBitVectors = useBV;
+			useSmtStrings = esc && !useBV && JmlOption.useSmtStrings(context);
+			pmethodDecl.usedSmtStrings = useSmtStrings;
 		}
 		if (!isModel) addAxioms(-1, null);
 		assumingPostConditions = true;
@@ -9487,6 +9491,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			that.args.forEach(a-> System.out.println("  ARG " + a + " " + a.type));
 			return;
 		}
+	    if (useSmtStrings && methsym.owner == STRING.tsym && methsym.name.toString().equals("append")
+	            && methsym.type.getParameterTypes().head.tsym == syms.stringType.tsym && that.meth instanceof JCFieldAccess fa) {
+	        // With the Strings theory s.append(t), for a String t, is s.append(\string.of(t)), which the theory defines (#1043)
+	        JCExpression arg = makeMethodInvocation(that, treeutils.makeType(that, STRING), stringMethod("of", syms.stringType.tsym), that.args.head);
+	        result = eresult = convertExpr(makeMethodInvocation(that, fa.selected, stringMethod("append", STRING.tsym), arg));
+	        return;
+	    }
 	    if (esc && that.meth instanceof JCIdent id && id.name == names._super && id.sym.owner == syms.recordType.tsym) {
 	        // Calling the constructor of java.lang.Record has no effect. If we did process this call, we would
 	        // have to be sure that the constructor was properly specified as pure and normal_behavior.
@@ -12507,7 +12518,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							JavaFileObject prevSource = null;
 							try {
 								IJmlClauseKind ct = clause.clauseKind;
-								if (ct == MethodExprClauseExtensions.ensuresClauseKind) {
+								if (ct == MethodExprClauseExtensions.ensuresClauseKind
+								        && !skipStringPostcondition(calleeMethodSym, clause)) {
 									currentStatements = ensuresStats;
 									LinkedList<ListBuffer<JCStatement>> temp = markBlock();
 									ListBuffer<JCStatement> check7 = pushBlock();
@@ -13034,6 +13046,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	public JCExpression makeDeterminismCall(JCExpression that, MethodSymbol calleeMethodSym, JCExpression newThisExpr,
 			List<JCExpression> extendedArgs) {
 
+		// The SMT translation of a call of the original symbol is the Strings theory's operation (#1043)
+		if (useSmtStrings && SMTTranslator.isStringBuiltin(calleeMethodSym)) {
+		    return treeutils.makeMethodInvocation(that, null, calleeMethodSym, extendedArgs);
+		}
 		MethodSymbol newCalleeSym = getNewMethodSymbol(calleeMethodSym);
 		if (newCalleeSym == null) {
 			utils.error(that, "jml.internal", "No logical function for method " + that + " " + calleeMethodSym);
@@ -16702,8 +16718,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         var loval = Long.valueOf(minValue(pos, rangeType.getTag()));
         var hi = treeutils.makeLit(pos, syms.longType, hival);
         var lo = treeutils.makeLit(pos, syms.longType, loval);
-        JCExpression emax = treeutils.makeTrBinary(pos, JCTree.Tag.LE, expr, addConversion(pos, expr.type, hi, true, false));
-        JCExpression emin = treeutils.makeTrBinary(pos, JCTree.Tag.LE, addConversion(pos, expr.type, lo, true, false), expr);
+        // Compare in long, which holds the value and both bounds; converting the bounds to a narrower type of
+        // the value could wrap them, e.g. (char)-128 == 65408 (#1045)
+        JCExpression wexpr = expr;
+        switch (expr.type.getTag()) {
+            case BYTE, SHORT, CHAR, INT -> wexpr = M.at(pos).TypeCast(syms.longType, expr).setType(syms.longType);
+            default -> {}
+        }
+        JCExpression emax = treeutils.makeTrBinary(pos, JCTree.Tag.LE, wexpr, addConversion(pos, wexpr.type, hi, true, false));
+        JCExpression emin = treeutils.makeTrBinary(pos, JCTree.Tag.LE, addConversion(pos, wexpr.type, lo, true, false), wexpr);
         if (expr instanceof JCLiteral lit && lit.value instanceof Number num) {
             var val = num.longValue();
             if (loval <= val && val <= hival) {
@@ -18303,6 +18326,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     // chs is null if we don't have specs for CharSequence,
                     // or if the chars model field has been renamed or moved
                     utils.error("jml.internal", "Failed to find necessary model field java.lang.Object.chars");
+                } else if (useSmtStrings) {
+                    // With the Strings theory the literal's characters are one \string value (#1043)
+                    JCExpression ex = convertJML(treeutils.makeSelect(that.pos, id, chs));
+                    JCLiteral lit = M.at(that.pos).Literal(TypeTag.CLASS, str);
+                    lit.type = STRING;
+                    addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeEquality(that.pos, ex, lit));
                 } else {
                     JCExpression fa = M.at(id).Select(id, chs);
                     fa = treeutils.makeLength(id, fa);
@@ -21573,6 +21602,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			/* @non_null */ Type t, /* @nullable */ JCExpression obj, boolean considerVisibility) {
 		if (!(t.tsym instanceof ClassSymbol))
 			return null;
+		// With the Strings theory the invariants of \string hold by construction (#1043)
+		if (useSmtStrings && t.tsym == STRING.tsym)
+			return null;
 		TypeSpecs tspecs = specs.getAttrSpecs((ClassSymbol) t.tsym);
 		JCExpression saved = currentEnv.currentReceiver;
 		// FIXME - if obj is already converted and is an expression containing a method call, we can get unbounded recursion
@@ -24663,6 +24695,24 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		public boolean alltrue;
 	}
 
+	/** The \string method with the given name and one parameter of the given type */
+	protected MethodSymbol stringMethod(String name, TypeSymbol paramType) {
+	    for (var m: STRING.tsym.members().getSymbolsByName(names.fromString(name))) {
+	        if (m instanceof MethodSymbol ms && ms.type.getParameterTypes().size() == 1
+	                && ms.type.getParameterTypes().head.tsym == paramType) return ms;
+	    }
+	    throw new IllegalStateException("No \\string method " + name + "(" + paramType + ")");
+	}
+
+	/** Whether a postcondition of msym is not used because the Strings theory makes it unnecessary (#1043):
+	 * all of those of an operation the theory defines, and the quantified (character-by-character) ones of
+	 * the other \string methods, which only slow the prover */
+	protected boolean skipStringPostcondition(MethodSymbol msym, JmlMethodClause clause) {
+	    if (!useSmtStrings || msym.owner != STRING.tsym) return false;
+	    return SMTTranslator.isStringBuiltin(msym)
+	            || (clause instanceof JmlMethodClauseExpr ce && ce.expression instanceof JmlQuantifiedExpr);
+	}
+
 	protected Name newNameForCallee(int pos, MethodSymbol msym, boolean useheap) {
 		int heap = currentEnv.stateLabel != null ? labelPropertiesStore.get(currentEnv.stateLabel).heap.heapID : currentHeap.heapID;
 //		if (msym.getTypeParameters().size() != 0) {
@@ -25039,7 +25089,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						// FIXME - clause.sourceFile should never be null?
 						JavaFileObject clauseSource = clause.sourcefile == null ? log.currentSourceFile()
 								: clause.sourcefile;
-						if (clause.clauseKind == MethodExprClauseExtensions.ensuresClauseKind) {
+						if (clause.clauseKind == MethodExprClauseExtensions.ensuresClauseKind
+						        && !skipStringPostcondition(msym, clause)) {
 							JmlMethodClauseExpr enclause = (JmlMethodClauseExpr) clause;
 							// localVariables.put(heapSym,heapSym); // FIXME - explain
 

@@ -447,6 +447,7 @@ public class MethodProverSMT {
                     if (utils.progress() && methodDecl.usedBitVectors && !"true".equals(escbv)) {
                     	utils.note("Using bit-vector arithmetic");
                     }
+                    smttrans.useStrings = methodDecl.usedSmtStrings && !methodDecl.usedBitVectors;
                     script = smttrans.convert(program,smt,methodDecl.usedBitVectors);
                 } catch (SMTTranslator.JmlBVException e) {
                     if ("false".equals(escbv)) {
@@ -828,6 +829,15 @@ public class MethodProverSMT {
                     Map<JCTree,String> cemap = constructCounterexample(jmlesc.assertionAdder,basicBlocker,smttrans,smt,solver);
                     BiMap<JCTree,JCExpression> jmap = jmlesc.assertionAdder.exprBiMap.compose(basicBlocker.bimap);
                     tracer = tracerFactory.makeTracer(context,smt,solver,cemap,jmap);
+                    if (resultUnknown && Boolean.TRUE.equals(getBoolValue(program.startBlock().id.name.toString(),smt,solver))) {
+                        // The model contradicts the asserted falsity of the start block, so it is no counterexample
+                        if (!hadFailedAssertion) {
+                            utils.verify(methodDecl,"esc.unknown.inconsistent","method " + utils.qualifiedName(methodDecl.sym));
+                            proofResult = factory.makeProverResult(methodDecl,proverToUse,IProverResult.UNKNOWN,start);
+                        }
+                        haveFailedAssertion = hadFailedAssertion;
+                        break;
+                    }
 
                     // Report JML-labeled values and the path to the failed invariant
                     {

@@ -17,6 +17,11 @@ test/gitbug1018bv/Narrow.java:39: verify: The prover cannot establish an asserti
         short s = (short)c;         // warned about
                   ^
 Completed proof of Narrow.safeMode() with prover !!!! - with warnings
+Starting proof of Narrow.inRange() with prover !!!!
+test/gitbug1018bv/Narrow.java:62: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method inRange
+        byte bo = (byte)o;          // warned about
+                  ^
+Completed proof of Narrow.inRange() with prover !!!! - with warnings
 Skipping proof of Narrow.main(String...) (Skipping Narrow.main because it matches the exclusion main)
 Completed proving methods in Narrow
-4 verification failures
+5 verification failures
