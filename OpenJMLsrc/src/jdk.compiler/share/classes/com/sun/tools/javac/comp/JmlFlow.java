@@ -1303,7 +1303,8 @@ public class JmlFlow extends Flow  {
                 // skip this because one argument might be a label and the other is
                 // evaluated at that label
             } else {
-                IJmlVisitor.super.visitJmlMethodInvocation(tree);
+                // Skip unattributed args, e.g. the label in \fresh(e, L)
+                tree.args.forEach(a -> { if (a.type != null) scan(a); });
             }
         }
 
