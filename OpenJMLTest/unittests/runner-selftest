@@ -1,0 +1,22 @@
+#! /bin/bash
+
+## Checks OpenJMLTestRunner's timeout handling and counting, using the testrunner fixture suite.
+## Exits 0 if the runner behaves as expected.
+
+cd "$(dirname "$0")"
+out=$(RUNNERSELFTEST=1 ./runtests -s=4 testrunner 2>&1)
+echo "$out"
+ERR=0
+function check() {
+    if ! echo "$out" | grep -qE "$1" ; then echo "runner-selftest: missing: $1"; ERR=1; fi
+}
+function checknot() {
+    if echo "$out" | grep -qE "$1" ; then echo "runner-selftest: unexpected: $1"; ERR=1; fi
+}
+check '^4 successes, 1 timeouts, 1 failures, 0 ignored'
+check '^Test FAILED \(timeout\): .*testsuites[.]testrunner[.]aHang$'
+check '^Test FAILED: .*testsuites[.]testrunner[.]cFail$'
+check '^Testing .*testrunner[.]bQuick'
+checknot '^Test FAILED: .*aHang'
+if [ $ERR -eq 0 ]; then echo "runner-selftest: OK"; fi
+exit $ERR
