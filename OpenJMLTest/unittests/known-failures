@@ -167,6 +167,7 @@ SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 escwebexamples.HeapSort
 
 escsf3.gitbug712                      # String literal ("Alice") problem
+escsf3.gitbug718x4                    # flaky: proving countDown(50) == 0 unrolls 50 recursive calls; z3 sometimes gives up
 
 escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
 escfiles2.gitbug726                   # OLList problem

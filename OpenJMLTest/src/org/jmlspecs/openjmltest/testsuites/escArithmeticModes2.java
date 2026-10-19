@@ -597,13 +597,12 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME -- long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in java mode
     public void testDivJava() {
         helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
-                @CodeJavaMath @SpecSafeMath @Options("-escMaxWarnings=1") public class TestJava {
+                @CodeJavaMath @SpecBigintMath @Options("--esc-max-warnings=1") public class TestJava {
                   //@ requires j != 0;
                   //@ requires i != Integer.MIN_VALUE || j != -1;
                   public void ma(int i, int j) {
@@ -612,7 +611,7 @@ public class escArithmeticModes2 extends EscBase {
                     //@ show i,j,q,m,j*q,j*(q+1),j*(q-1),j*q+m;
                     if (i >= 0 && j >= 0) { /*@ check q >= 0; check i >= j*q; check i < j*(q+1); check m >= 0 && m < j; check i == (j*q) + m; */ }
                     if (i >= 0 && j < 0) { /*@ check q <= 0; check i >= j*q; check i < j*(q-1);  check m >= 0 && m < -j; check i == (j*q) + m; */ }
-                    if (i < 0 && j >= 0) { /*@ check q <= 0; check i <= j*q; check i > j*(q-1); check m <= 0 && m < -j; check i == (j*q) + m; */ }
+                    if (i < 0 && j >= 0) { /*@ check q <= 0; check i <= j*q; check i > j*(q-1); check m <= 0 && m > -j; check i == (j*q) + m; */ }
                     if (i < 0 && j < 0) { /*@ check q >= 0; check i <= j*q; check i > j*(q+1); check m <= 0 && m > j; check i == (j*q) + m; */ }
                   }
                 }
@@ -620,13 +619,12 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME -- long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in safe mode
     public void testDivSafe() {
         helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
-                @CodeSafeMath @SpecSafeMath @Options("-escMaxWarnings=1") public class TestJava {
+                @CodeSafeMath @SpecBigintMath @Options("--esc-max-warnings=1") public class TestJava {
                   //@ requires j != 0;
                   //@ requires i != Integer.MIN_VALUE || j != -1;
                   public void ma(int i, int j) {
@@ -636,7 +634,7 @@ public class escArithmeticModes2 extends EscBase {
                     //@ show q,m,j*q,j*(q+1),j*(q-1),j*q+m;
                     if (i >= 0 && j >= 0) { /*@ check q >= 0; check i >= j*q; check m >= 0 && m < j; check i == (j*q) + m; */ }
                     if (i >= 0 && j < 0) { /*@ check q <= 0; check i >= j*q;  check m >= 0 && m < -j; check i == (j*q) + m; */ }
-                    if (i < 0 && j >= 0) { /*@ check q <= 0; check i <= j*q; check m <= 0 && m < -j; check i == (j*q) + m; */ }
+                    if (i < 0 && j >= 0) { /*@ check q <= 0; check i <= j*q; check m <= 0 && m > -j; check i == (j*q) + m; */ }
                     if (i < 0 && j < 0) { /*@ check q >= 0; check i <= j*q; check m <= 0 && m > j; check i == (j*q) + m; */ }
                   }
                 }
