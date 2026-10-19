@@ -3221,9 +3221,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void publishDiags(String uri, List<Diagnostic> diags) {
         if (client == null) return;
         ServerLog.serverLog("[publishDiagnostics] uri=" + uri + " count=" + diags.size());
-        client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
+        // Before publishing: a client reacting to the publish (e.g. with clearMarkers) must find uri marked
         if (diags.isEmpty()) markedUris.remove(uri);
         else                 markedUris.add(uri);
+        client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
+    }
+
+    /** Removes and returns all of {@link #markedUris}; a URI marked concurrently is either returned or kept. */
+    private List<String> takeMarkedUris() {
+        List<String> taken = new ArrayList<>();
+        for (var it = markedUris.iterator(); it.hasNext(); ) {
+            taken.add(it.next());
+            it.remove();
+        }
+        return taken;
     }
 
     /**
@@ -3498,9 +3509,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 + (markedUris.isEmpty() ? " (no markers to clear)" : ""));
         checkDiags.clear();
         proofResults.clear();
-        // Snapshot markedUris before clearing so we don't modify the set while iterating.
-        List<String> toClean = new ArrayList<>(markedUris);
-        markedUris.clear();
+        List<String> toClean = takeMarkedUris();
         for (String uri : toClean) {
             publishDiags(uri, List.of());
         }
@@ -3628,8 +3637,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         projectNavDirty.values().forEach(d -> d.set(true));
 
         // Publish empty diagnostics for all marked URIs so stale markers disappear.
-        List<String> toClean = new ArrayList<>(markedUris);
-        markedUris.clear();
+        List<String> toClean = takeMarkedUris();
         for (String uri : toClean) {
             publishDiags(uri, List.of());
         }
