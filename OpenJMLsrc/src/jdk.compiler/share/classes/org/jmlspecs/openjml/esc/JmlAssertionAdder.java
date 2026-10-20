@@ -22681,9 +22681,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		} else if (k == valuesKind) {
 			if (that.info == null) {
 				log.error(that.pos, "esc.internal.error", "No loop index found for this use of " + valuesKind.keyword);
-				result = null;
+				eresult = null;
 			} else {
-				result = M.at(that.pos).Ident((VarSymbol) that.info);
+				eresult = M.at(that.pos).Ident((VarSymbol) that.info);
 			}
 
 //            case BSLOCKSET:
