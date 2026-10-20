@@ -517,6 +517,72 @@ public class racnew extends RacBase {
                 );
     }
 
+    // #1050: at a call site, a callee's signals (E e) P applies only to exceptions of type E, even when P folds to false
+    @Test public void testSignalsCallSite() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public static void main(String[] args) {
+                        try { m(1L); } catch (InterruptedException e) { System.out.println("m ok"); }
+                        try { n(1L); } catch (InterruptedException e) { System.out.println("n ok"); }
+                        try { bad(1L); } catch (Exception e) { System.out.println("bad caught"); }
+                        System.out.println("END");
+                    }
+                    /*@ public behavior
+                      @   signals_only IllegalArgumentException, InterruptedException;
+                      @   signals (IllegalArgumentException e) x <= 0;
+                      @*/
+                    public static void m(long x) throws InterruptedException {
+                        if (x <= 0) throw new IllegalArgumentException();
+                        throw new InterruptedException();
+                    }
+                    /*@ public behavior
+                      @   signals_only IllegalArgumentException, InterruptedException;
+                      @   signals (IllegalArgumentException) x <= 0;
+                      @*/
+                    public static void n(long x) throws InterruptedException {
+                        if (x <= 0) throw new IllegalArgumentException();
+                        throw new InterruptedException();
+                    }
+                    /*@ public behavior
+                      @   signals (IllegalArgumentException e) x <= 0;
+                      @*/
+                    public static void bad(long x) {
+                        throw new IllegalArgumentException();
+                    }
+                }
+                """
+                ,"m ok"
+                ,"n ok"
+                ,"/tt/TestJava.java:28: JML signals condition is false"
+                ,"/tt/TestJava.java:26: Associated declaration"
+                ,"/tt/TestJava.java:6: JML signals condition is false"
+                ,"/tt/TestJava.java:26: Associated declaration"
+                ,"bad caught"
+                ,"END"
+                );
+    }
+
+    // #1050: a clause skipped for an uncompiled model method is reported once, without a stack trace
+    @Test public void testSkippedClauseOnce() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    public static void main(String[] args) {
+                        byte[] src = new byte[16];
+                        byte[] dst = new byte[16];
+                        for (int i = 0; i < 3; i++) System.arraycopy(src, 0, dst, 0, src.length);
+                        System.out.println("END");
+                    }
+                }
+                """
+                ,"Skipping a specification clause because it contains an uncompiled model method: 'boolean java.util.Arrays.equalArrays"
+                ,"END"
+                );
+    }
+
     @Test public void testSignals2() {
         helpRacText("tt.TestJava",
                 """
