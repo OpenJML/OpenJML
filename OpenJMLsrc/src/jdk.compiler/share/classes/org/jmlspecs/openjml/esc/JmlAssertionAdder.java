@@ -11621,10 +11621,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                         if (!doSpecificationCase(methodDecl, calleeMethodSym, parentSym, cs, true)) continue;
                         //if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
 
-                        JavaFileObject prev = log.useSource(cs.source());
                         JCExpression pre = calleePreconditions.get(cs);
                         if (pre == null) continue; // anonymous class without specs
                         if (treeutils.isFalseLit(pre)) continue;
+                        JavaFileObject prev = log.useSource(cs.source()); // after the continues, so the finally restores it (#1046)
                         var check8 = pushBlock();
                         try {
                             if (cs.block == null) { // FIXME - not quite sure of this guard // FIXME - what
@@ -11740,11 +11740,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							//if (!utils.jmlvisible(mpsym, classDecl.sym, mpsym.owner, cs.modifiers.flags, methodDecl.mods.flags)) continue;
 							//if (translatingJML && cs.token == exceptionalBehaviorClause) continue;
 							//if (mpsym != calleeMethodSym && cs.code) continue;
-							JavaFileObject prev = log.useSource(cs.source());
 							JCExpression pre = calleePreconditions.get(cs);
 							if (pre == null) continue; // anonymous class without specs
 							//System.out.println("CS-Q " + mpsym.owner + " " + mpsym + " " + pre);
 							if (treeutils.isFalseLit(pre)) continue;
+							JavaFileObject prev = log.useSource(cs.source()); // after the continues, so the finally restores it (#1046)
 							//System.out.println("PUSHING BLOCK FOR " + pre);
 							var check8 = pushBlock();
 							try {

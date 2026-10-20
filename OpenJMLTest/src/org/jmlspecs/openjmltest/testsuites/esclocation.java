@@ -201,6 +201,37 @@ public class esclocation extends EscBase {
                 );
     }
 
+    @Test
+    public void testLocationCalleeFalsePrecondition() {
+        // A callee spec case with a false precondition must not leave the callee's spec file as the
+        // reported source of a failed assert containing the call (#1046)
+        addMockFile("$A/tt/TestJava.jml",
+                """
+                package tt; public class TestJava {
+                  //@ requires i > 0;
+                  //@ ensures \\result == 1;
+                  //@ also
+                  //@ requires false;
+                  //@ ensures \\result == 2;
+                  public static /*@ pure */ int f(int i);
+                  public void m();
+                }
+                """
+                );
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static int f(int i) { return 1; }
+                  public void m() {
+                    //@ assert f(1) == 2;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
     // TODO: represents, non_null field, non_null parameter, non_null method
     // TODO: non_null local, any local
     // TODO: signals_only, diverges, assignable
