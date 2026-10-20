@@ -8,13 +8,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import org.jmlspecs.openjml.JmlSpecs;
 import org.jmlspecs.openjmltest.EscBaseFiles;
-import org.jmlspecs.openjmltest.JmlTestSuite;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
@@ -31,11 +29,13 @@ import com.sun.tools.javac.util.Names;
 /** Verifies JDK library implementations (the java.base sources in OpenJMLsrc, which are what OpenJML's JDK is
  * built from) against their specifications in Specs. Each subfolder of OpenJMLTest/testspecs-verify names one
  * class, with '.' replaced by '-'; its 'expected' file is the golden ESC output, and an optional 'unspecified' file
- * lists, one per line, the public methods known to have no specification (none, if absent).
+ * lists, one per line, the public and protected methods known to have no specification (none, if absent).
  * Implementation-level annotations (loop invariants etc.) belong in the java.base source itself.
  *
- * For each class, the source is copied into the folder's 'actual-patch' subfolder (git-ignored) and checked
- * with --patch-module=java.base. Patching from the source tree itself does not work: it holds module-info.java.
+ * The source file is checked in place, as part of java.base, by patching java.base with the file's own package
+ * folder. javac reads a patch folder as a source path for the module, so patching with the whole source tree
+ * would compile every java.base source the class refers to; from the package folder, implicit lookups
+ * (folder/java/lang/X.java) find nothing and all other classes come from the built JDK.
  */
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
 @RunWith(ParameterizedWithNames.class)
@@ -44,8 +44,8 @@ public class SpecsVerify extends EscBaseFiles {
     /** The subfolder of OpenJMLTest that holds the data for this suite */
     public static final String testdir = "testspecs-verify";
 
-    /** The java.base sources */
-    public static final String javaBase = JmlTestSuite.repo + "/OpenJMLsrc/src/java.base/share/classes";
+    /** The java.base sources, relative to OpenJMLTest */
+    public static final String javaBase = "../OpenJMLsrc/src/java.base/share/classes";
 
     @Parameters
     static public Collection<String[]> datax() {
@@ -76,41 +76,36 @@ public class SpecsVerify extends EscBaseFiles {
         return testdir + "/" + foldername;
     }
 
-    String patchDir() {
-        return outDir() + "/actual-patch";
-    }
-
     String className() {
         return foldername.replace('-', '.');
     }
 
-    /** Copies the class's java.base source into the patch folder; returns the copy's path */
-    String preparePatch() throws java.io.IOException {
-        String rel = className().replace('.', '/') + ".java";
-        Path src = Path.of(javaBase, rel);
-        assertTrue("No java.base source for " + className() + ": " + src, Files.isRegularFile(src));
-        Path dest = Path.of(patchDir(), rel);
-        Files.createDirectories(dest.getParent());
-        Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
-        return dest.toString();
+    /** The class's java.base source file */
+    String sourceFile() {
+        String file = javaBase + "/" + className().replace('.', '/') + ".java";
+        assertTrue("No java.base source for " + className() + ": " + file, new File(file).isFile());
+        return file;
+    }
+
+    /** The option that makes the source file part of java.base */
+    String patchOption() {
+        return "--patch-module=java.base=" + new File(sourceFile()).getParent();
     }
 
     /** ESC of the implementation against its specs */
     @Test
     public void testVerify() throws Exception {
-        String file = preparePatch();
-        escOnFiles(file, outDir(), "--patch-module=java.base=" + patchDir(), "--check-feasibility=return");
+        escOnFiles(sourceFile(), outDir(), patchOption(), "--check-feasibility=return");
     }
 
-    /** Every public method and constructor of the class, other than those listed in 'unspecified',
+    /** Every public and protected method and constructor of the class, other than those listed in 'unspecified',
      * has a specification case in its .jml file */
     @Test
-    public void testPublicMethodsSpecified() throws Exception {
-        String file = preparePatch();
+    public void testMethodsSpecified() throws Exception {
         StringWriter sw = new StringWriter();
         var main = new org.jmlspecs.openjml.Main("openjml", new PrintWriter(sw, true));
         Context ctx = main.initialize(null);
-        int ex = main.compile(new String[]{ "--check", "--patch-module=java.base=" + patchDir(), file }, ctx).exitCode;
+        int ex = main.compile(new String[]{ "--check", patchOption(), sourceFile() }, ctx).exitCode;
         assertEquals("Type-checking failed:\n" + sw, 0, ex);
 
         Symtab syms = Symtab.instance(ctx);
@@ -121,7 +116,7 @@ public class SpecsVerify extends EscBaseFiles {
         int count = 0;
         for (Symbol s: csym.members().getSymbols()) {
             if (!(s instanceof MethodSymbol msym)) continue;
-            if ((msym.flags() & Flags.PUBLIC) == 0 || (msym.flags() & (Flags.SYNTHETIC|Flags.BRIDGE)) != 0) continue;
+            if ((msym.flags() & (Flags.PUBLIC|Flags.PROTECTED)) == 0 || (msym.flags() & (Flags.SYNTHETIC|Flags.BRIDGE)) != 0) continue;
             count++;
             var ms = specs.getLoadedSpecs(msym);
             boolean specified = ms != null && ms.specDecl != null && ms.specDecl.sourcefile != null
@@ -137,6 +132,6 @@ public class SpecsVerify extends EscBaseFiles {
             for (String line: Files.readAllLines(known)) if (!line.isBlank()) expected.add(line.trim());
         }
         expected.sort(null);
-        assertEquals("Public methods of " + className() + " without specifications", expected, missing);
+        assertEquals("Public and protected methods of " + className() + " without specifications", expected, missing);
     }
 }
