@@ -2849,4 +2849,47 @@ public class esc1 extends EscBase {
                 ,"/tt/TestJava.java:4: verify: Associated declaration",23
                 );
     }
+
+    // #1050: a callee's signals (E e) P constrains only exceptions of type E, even when P folds to false
+    @Test
+    public void testSignalsCallSite() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                    /*@ public behavior
+                      @   signals_only IllegalArgumentException, InterruptedException;
+                      @   signals (IllegalArgumentException e) x <= 0;
+                      @*/
+                    public static void m(long x) throws InterruptedException {
+                        if (x <= 0) throw new IllegalArgumentException();
+                        throw new InterruptedException();
+                    }
+                    /*@ public behavior
+                      @   signals_only IllegalArgumentException, InterruptedException;
+                      @   signals (IllegalArgumentException) x <= 0;
+                      @*/
+                    public static void n(long x) throws InterruptedException {
+                        if (x <= 0) throw new IllegalArgumentException();
+                        throw new InterruptedException();
+                    }
+                    public static void callerLong() {
+                        try { m(1L); } catch (InterruptedException e) { //@ assert false;
+                        }
+                    }
+                    public static void callerInt() {
+                        try { m(1); } catch (InterruptedException e) { //@ assert false;
+                        }
+                    }
+                    public static void callerNoName() {
+                        try { n(1L); } catch (InterruptedException e) { //@ assert false;
+                        }
+                    }
+                }
+                """
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (Assert) in method callerLong",61
+                ,"/tt/TestJava.java:24: verify: The prover cannot establish an assertion (Assert) in method callerInt",60
+                ,"/tt/TestJava.java:28: verify: The prover cannot establish an assertion (Assert) in method callerNoName",61
+                );
+    }
 }

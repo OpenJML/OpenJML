@@ -12589,7 +12589,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										if (ex instanceof JmlSingleton)
 											ex = treeutils.trueLit;
 										JCVariableDecl vdo = ((JmlMethodClauseSignals) clause).vardef;
-										Type vdtype = syms.exceptionType;
+										Type vdtype = vdo != null && vdo.type != null ? vdo.type : syms.exceptionType;
 										if (vdo != null && vdo.name != null && !treeutils.isFalseLit(ex)
 												&& exceptionDeclCall != null) {
 											JCIdent exceptionId = treeutils.makeIdent(clause.pos,
@@ -12609,7 +12609,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										log.useSource(prevSource);
 										addAssume(that, Label.SIGNALS, e, clause, clauseSource);
 										ex = treeutils.trueLit;
-										if (vdo != null && !treeutils.isFalseLit(e) && exceptionDeclCall != null) {
+										// The clause applies only to exceptions of the declared type, even when e is false (#1050)
+										if (vdo != null && exceptionDeclCall != null) {
 											ex = M.at(clause)
 													.TypeTest(treeutils.makeIdent(clause.pos, exceptionDeclCall.sym),
 															treeutils.makeType(clause.pos, vdtype))
