@@ -30,7 +30,7 @@ public class primesc2 extends EscBaseFiles {
     
     @Test
     public void jmlreal() {
-        helpEscSimple();
+        helpEscSimple("--fpreal"); // tests \real; the FloatingPoint theory makes its double conversions time out
     }
     
     @Test

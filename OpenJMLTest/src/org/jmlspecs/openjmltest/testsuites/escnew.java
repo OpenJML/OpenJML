@@ -2795,4 +2795,40 @@ public class escnew extends EscBase {
                 """);
     }
 
+    // gitbug627: a label in \fresh (with or without the backslash) in a loop invariant
+    @Test
+    public void testFreshLoopInit() {
+        helpEsc("tt.TestJava", """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    Object[] a = new Object[10];
+                    //@ maintaining 0 <= i <= 10 && a.length == 10;
+                    //@ loop_invariant (\\forall int j; 0<=j && j<i; \\fresh(a[j], LoopInit));
+                    //@ loop_invariant (\\forall int j; 0<=j && j<i; \\fresh(a[j], \\LoopInit));
+                    //@ loop_modifies a[*];
+                    //@ decreasing 10 - i;
+                    for (int i = 0; i < 10; ++i) {
+                      a[i] = new Object();
+                    }
+                  }
+                }
+                """);
+    }
+
+    // gitbug751: a callee spec that inlines a model program (StrictMath.max calls Float.compare)
+    @Test
+    public void testInlinedModelProgram() {
+        helpEsc("tt.TestJava", """
+                package tt;
+                public class TestJava {
+                  //@ requires !Float.isNaN(a) && !Float.isNaN(b);
+                  //@ ensures \\result == StrictMath.max(a, b);
+                  public static float m(float a, float b) {
+                    return StrictMath.max(a, b);
+                  }
+                }
+                """);
+    }
+
 }

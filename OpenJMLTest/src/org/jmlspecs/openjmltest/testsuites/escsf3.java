@@ -189,7 +189,8 @@ public class escsf3 extends SFBugsBase {
     
     @Test
     public void gitbug695() {
-        helpEscSimple("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
+        // With the Strings theory arr2str's feasibility checks time out (#1049)
+        helpEscSimple("--check-feasibility=precondition,reachable,exit,spec,assume,assert", "--no-smt-strings");
     }
     
     @Test

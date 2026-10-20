@@ -83,6 +83,10 @@ jobs:
       matrix:
         include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
+    ## On Windows, run: steps use bash in WSL (see the note at the top)
+    defaults:
+      run:
+        shell: ${{ matrix.label == 'windows' && 'wsl-bash {0}' || 'bash' }}
 
     steps:
     - name: Checkout actions

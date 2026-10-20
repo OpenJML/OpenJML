@@ -1,0 +1,150 @@
+Proving methods in Chars
+Starting proof of Chars.Chars() with prover !!!!
+Completed proof of Chars.Chars() with prover !!!! - no warnings
+Starting proof of Chars.literal() with prover !!!!
+Completed proof of Chars.literal() with prover !!!! - no warnings
+Starting proof of Chars.conversions() with prover !!!!
+Completed proof of Chars.conversions() with prover !!!! - no warnings
+Starting proof of Chars.special() with prover !!!!
+Completed proof of Chars.special() with prover !!!! - no warnings
+Skipping proof of Chars.build(\string,\bigint,char) (Skipping Chars.build because it matches the exclusion Chars.build)
+Skipping proof of Chars.unchanged(\string,\bigint,\bigint,char) (Skipping Chars.unchanged because it matches the exclusion Chars.unchanged)
+Skipping proof of Chars.shifted(\string,\bigint,\bigint,char) (Skipping Chars.shifted because it matches the exclusion Chars.shifted)
+Skipping proof of Chars.substrings(\string,\bigint,\bigint,\bigint) (Skipping Chars.substrings because it matches the exclusion Chars.substrings)
+Starting proof of Chars.bad1(\string) with prover !!!!
+test/smtstrings/Chars.java:65: verify: The prover cannot establish an assertion (Assert) in method bad1
+    //@   assert s[0] == 'a'; // fails
+          ^
+Completed proof of Chars.bad1(\string) with prover !!!! - with warnings
+Starting proof of Chars.bad2(\string,\bigint) with prover !!!!
+test/smtstrings/Chars.java:69: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method bad2
+    //@   ghost char c = s.get(i); // fails: precondition of get (i may be out of range)
+                              ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration
+    public char get(bigint i);
+                ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:82: verify: Precondition conjunct is false: 0 <= i < length
+    //-RAC@   requires 0 <= i < length;
+                              ^
+Completed proof of Chars.bad2(\string,\bigint) with prover !!!! - with warnings
+Starting proof of Chars.bad3() with prover !!!!
+test/smtstrings/Chars.java:74: verify: The prover cannot establish an assertion (Assert) in method bad3
+    //@   assert s[1] == 'c'; // fails
+          ^
+Completed proof of Chars.bad3() with prover !!!! - with warnings
+Completed proving methods in Chars
+Proving methods in Equalities
+Starting proof of Equalities.Equalities() with prover !!!!
+Completed proof of Equalities.Equalities() with prover !!!! - no warnings
+Skipping proof of Equalities.literals() (Skipping Equalities.literals because it matches the exclusion Equalities.literals)
+Starting proof of Equalities.identities(\string,\string,\string) with prover !!!!
+Completed proof of Equalities.identities(\string,\string,\string) with prover !!!! - no warnings
+Starting proof of Equalities.cancellation(\string,\string,\string) with prover !!!!
+test/smtstrings/Equalities.java:38: verify: The prover cannot establish an assertion (Assert) in method cancellation
+    //@   assert s + t == s + u ==> t == u;
+          ^
+Completed proof of Equalities.cancellation(\string,\string,\string) with prover !!!! - with warnings
+Skipping proof of Equalities.split(\string,\bigint,char) (Skipping Equalities.split because it matches the exclusion Equalities.split)
+Starting proof of Equalities.prefixTransitive(\string,\string,\string) with prover !!!!
+Completed proof of Equalities.prefixTransitive(\string,\string,\string) with prover !!!! - no warnings
+Starting proof of Equalities.extensionality(\string,\string) with prover !!!!
+test/smtstrings/Equalities.java:57: verify: The prover cannot establish an assertion (Assert) in method extensionality
+    //@   assert s == t;
+          ^
+Completed proof of Equalities.extensionality(\string,\string) with prover !!!! - with warnings
+Starting proof of Equalities.bad1(\string,\string) with prover !!!!
+test/smtstrings/Equalities.java:61: verify: The prover cannot establish an assertion (Assert) in method bad1
+    //@   assert s + t == t + s; // fails
+          ^
+Completed proof of Equalities.bad1(\string,\string) with prover !!!! - with warnings
+Starting proof of Equalities.bad2(\string) with prover !!!!
+test/smtstrings/Equalities.java:65: verify: The prover cannot establish an assertion (Assert) in method bad2
+    //@   assert s + (\string)"a" == (\string)"a" + s; // fails
+          ^
+Completed proof of Equalities.bad2(\string) with prover !!!! - with warnings
+Starting proof of Equalities.bad3(\string,\string) with prover !!!!
+test/smtstrings/Equalities.java:69: verify: The prover cannot establish an assertion (Assert) in method bad3
+    //@   assert s.startsWith(t) ==> s == t; // fails
+          ^
+Completed proof of Equalities.bad3(\string,\string) with prover !!!! - with warnings
+Completed proving methods in Equalities
+Proving methods in JavaStrings
+Starting proof of JavaStrings.JavaStrings() with prover !!!!
+Completed proof of JavaStrings.JavaStrings() with prover !!!! - no warnings
+Starting proof of JavaStrings.literal() with prover !!!!
+Completed proof of JavaStrings.literal() with prover !!!! - no warnings
+Starting proof of JavaStrings.equal() with prover !!!!
+Completed proof of JavaStrings.equal() with prover !!!! - no warnings
+Starting proof of JavaStrings.first(String) with prover !!!!
+Completed proof of JavaStrings.first(String) with prover !!!! - no warnings
+Starting proof of JavaStrings.starts() with prover !!!!
+Completed proof of JavaStrings.starts() with prover !!!! - no warnings
+Starting proof of JavaStrings.concat(String,String) with prover !!!!
+Completed proof of JavaStrings.concat(String,String) with prover !!!! - no warnings
+Starting proof of JavaStrings.bad() with prover !!!!
+test/smtstrings/JavaStrings.java:37: verify: The prover cannot establish an assertion (Postcondition) in method bad
+        return x.charAt(1) == 'c'; // fails
+        ^
+test/smtstrings/JavaStrings.java:34: verify: Associated declaration
+    //@ ensures \result;
+        ^
+Completed proof of JavaStrings.bad() with prover !!!! - with warnings
+Completed proving methods in JavaStrings
+Proving methods in Lengths
+Starting proof of Lengths.Lengths() with prover !!!!
+Completed proof of Lengths.Lengths() with prover !!!! - no warnings
+Starting proof of Lengths.literals() with prover !!!!
+Completed proof of Lengths.literals() with prover !!!! - no warnings
+Starting proof of Lengths.nonNegative(\string) with prover !!!!
+Completed proof of Lengths.nonNegative(\string) with prover !!!! - no warnings
+Starting proof of Lengths.concat(\string,\string,char) with prover !!!!
+Completed proof of Lengths.concat(\string,\string,char) with prover !!!! - no warnings
+Starting proof of Lengths.parts(\string,\bigint,\bigint,char) with prover !!!!
+Completed proof of Lengths.parts(\string,\bigint,\bigint,char) with prover !!!! - no warnings
+Starting proof of Lengths.removePut(\string,\bigint,char) with prover !!!!
+Completed proof of Lengths.removePut(\string,\bigint,char) with prover !!!! - no warnings
+Starting proof of Lengths.bad1(\string) with prover !!!!
+test/smtstrings/Lengths.java:47: verify: The prover cannot establish an assertion (Assert) in method bad1
+    //@   assert s.length() > 0; // fails: s may be empty
+          ^
+Completed proof of Lengths.bad1(\string) with prover !!!! - with warnings
+Starting proof of Lengths.bad2(\string,\string) with prover !!!!
+test/smtstrings/Lengths.java:51: verify: The prover cannot establish an assertion (Assert) in method bad2
+    //@   assert (s + t).length() > s.length(); // fails: t may be empty
+          ^
+Completed proof of Lengths.bad2(\string,\string) with prover !!!! - with warnings
+Starting proof of Lengths.bad3(\string) with prover !!!!
+test/smtstrings/Lengths.java:55: verify: The prover cannot establish an assertion (Assert) in method bad3
+    //@   assert s.isEmpty(); // fails (with cvc5 in array mode: unknown, the model is not a counterexample)
+          ^
+Completed proof of Lengths.bad3(\string) with prover !!!! - with warnings
+Starting proof of Lengths.bad4(\string,char) with prover !!!!
+test/smtstrings/Lengths.java:59: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method bad4
+    //@   assert s.put(s.length(), c).length() == s.length(); // fails: put's index must be within s
+                      ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:200: verify: Associated declaration
+    public string put(bigint i, char v);
+                  ^
+$SPECS/org/jmlspecs/lang/internal/string.jml:196: verify: Precondition conjunct is false: 0 <= i < length
+    //-RAC@   requires 0 <= i < length;
+                              ^
+Completed proof of Lengths.bad4(\string,char) with prover !!!! - with warnings
+Completed proving methods in Lengths
+Proving methods in Order
+Starting proof of Order.Order() with prover !!!!
+Completed proof of Order.Order() with prover !!!! - no warnings
+Starting proof of Order.literals() with prover !!!!
+Completed proof of Order.literals() with prover !!!! - no warnings
+Skipping proof of Order.properties(\string,\string,\string) (Skipping Order.properties because it matches the exclusion Order.properties)
+Starting proof of Order.bad1(\string,\string) with prover !!!!
+test/smtstrings/Order.java:29: verify: The prover cannot establish an assertion (Assert) in method bad1
+    //@   assert s <= t; // fails
+          ^
+Completed proof of Order.bad1(\string,\string) with prover !!!! - with warnings
+Starting proof of Order.bad2(\string,\string) with prover !!!!
+test/smtstrings/Order.java:33: verify: The prover cannot establish an assertion (Assert) in method bad2
+    //@   assert s.length() < t.length() ==> s < t; // fails: "b" > "ab"
+          ^
+Completed proof of Order.bad2(\string,\string) with prover !!!! - with warnings
+Completed proving methods in Order
+20 verification failures

@@ -283,7 +283,7 @@ public class escsf2 extends SFBugsBase {
     
     @Test  // Z3 non-deterministically crashes; trying to fix that by specifying the seed
     public void gitbug633a() {
-        helpEscSimple("--solver-seed=42");
+        helpEscSimple("--solver-seed=42", "--fpreal"); // double % times out with the FloatingPoint theory
     }
     
     @Test

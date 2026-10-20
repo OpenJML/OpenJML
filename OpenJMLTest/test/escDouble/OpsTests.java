@@ -117,7 +117,7 @@ public static void sum_NaN_tests(double a, double b)
 	double c = Double.sum(Double.NaN, a);
 	//@ assert Double.isNaN(c);
 	c = Double.sum(a, b);
-	//@ assert Double.isNaN(c) <==> (Double.isNaN(a) || Double.isNaN(b));
+	//@ assert (Double.isNaN(a) || Double.isNaN(b)) ==> Double.isNaN(c);
 	c = Double.sum(Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
 	//@ assert Double.isNaN(c);
 }
@@ -216,11 +216,11 @@ public static void min_NaN_tests(double a, double b)
 public static void min_inf_tests(double a, double b)
 {
 	double c = Double.min(Double.NEGATIVE_INFINITY, a);
-	//@ assert Double.isInfinite(c);
+	//@ assert !Double.isNaN(a) ==> Double.isInfinite(c);
 	
 	c = Double.min(Double.POSITIVE_INFINITY, a);
 	//@ assert Double.isFinite(a) ==> Double.isFinite(c);
-	//@ assert (a > Double.NEGATIVE_INFINITY) ==> Double.isFinite(c);
+	//@ assert (a > Double.NEGATIVE_INFINITY && a < Double.POSITIVE_INFINITY) ==> Double.isFinite(c);
 
 	c = Double.min(a, b);
 	//@ assert (Double.isFinite(a) && Double.isFinite(b)) ==> Double.isFinite(c);

@@ -129,10 +129,7 @@ escfiles3.sfbug420eOK
 escfiles.valuestrings           # string specs
 escfiles3.gitbug814d              # variable output: which warning is reported first varies from run to run (12 accepted expected files, still not all)
 escfiles.bag                     # warning order nondeterministic under --esc-max-warnings=1; test source is the original submission
-escfunction.testMethodAxioms2    # z3 MBQI answers unknown; outcome flips with unrelated changes to the SMT text (#1018)
-escfiles2.escRawding2
-escfiles2.escRawdingA
-escfiles2.escRawdingB
+escfunction.testMethodAxioms2    # intermittent: z3 MBQI answers unknown; outcome flips with unrelated changes to the SMT text
 escfiles2.gitbug450b		#	ArrayList contains
 escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfileslist1.test[choose-repeat]
@@ -170,6 +167,7 @@ SpecsEsc.testSpecificationFile[java-util-ArrayList] ## Times out
 escwebexamples.HeapSort
 
 escsf3.gitbug712                      # String literal ("Alice") problem
+escsf3.gitbug718x4                    # flaky: proving countDown(50) == 0 unrolls 50 recursive calls; z3 sometimes gives up
 
 escfiles.enums                        # Controdictory preconditions ? <<<<<<<<<<<<<<<<<<<<<<
 escfiles2.gitbug726                   # OLList problem
@@ -181,4 +179,5 @@ escfiles2.gitbug890                   # z3-5.1.0 lost proof in model_test; MBQI 
 escfiles3.gitbug963a                  # no expected output file yet (partial fix for #963)
 escfiles3.buggyCalculatorBV           # times out (bit-vector arithmetic)
 escfiles3.gitbug971a                  # Associated declaration reported at ScreenPoint.java:7, expected :6
-release.testEsc2B                     # times out
+escfpfiles.sfbug414                   # asserts at Sqrt.java:29-30 not proved (--fpreal)
+escfpfiles.sfbug414n                  # asserts at Sqrt.java:29-30 not proved (AUFNIRA)

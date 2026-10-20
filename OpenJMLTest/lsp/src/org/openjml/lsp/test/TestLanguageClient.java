@@ -99,4 +99,14 @@ public class TestLanguageClient implements LanguageClient {
             ApplyWorkspaceEditParams params) {
         return CompletableFuture.completedFuture(new ApplyWorkspaceEditResponse(false));
     }
+
+    @Override
+    public CompletableFuture<Void> refreshCodeLenses() {
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<Void> refreshSemanticTokens() {
+        return CompletableFuture.completedFuture(null);
+    }
 }

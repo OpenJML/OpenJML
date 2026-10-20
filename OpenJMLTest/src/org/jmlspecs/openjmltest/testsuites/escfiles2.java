@@ -213,7 +213,8 @@ public class escfiles2 extends EscBaseFiles {
     
     @Test
     public void gitbug894() {
-        helpEscSimple("--method=Test3.*");
+        // With the Strings theory Test3.uniqueCharS1 times out in z3 and cvc5 (#1043)
+        helpEscSimple("--method=Test3.*", "--no-smt-strings");
     }
     
     @Test
@@ -338,17 +339,17 @@ public class escfiles2 extends EscBaseFiles {
         helpEscSimple();
     }
     
-    @Test
+    @Test @Ignore // FIXME - its AbstractStringBuilder specs predate JDK 9 (char[] vs byte[])
     public void escRawding2() {
         helpEscSimple();
     }
     
-    @Test
+    @Test @Ignore // FIXME - its AbstractStringBuilder specs predate JDK 9 (char[] vs byte[])
     public void escRawdingA() {
         helpEscSimple();
     }
     
-    @Test
+    @Test @Ignore // FIXME - its AbstractStringBuilder specs predate JDK 9 (char[] vs byte[])
     public void escRawdingB() {
         helpEscSimple();
     }

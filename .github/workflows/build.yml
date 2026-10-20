@@ -1,7 +1,8 @@
 name: Build OpenJML
 
 ## This workflow builds and creates a new OpenJML release.
-## The release number is taken from the OpenJML/version.txt file.
+## The release number is taken from the OpenJML/version.txt file; a build from a dev-* branch adds "-dev" (#1041),
+## so dev and master builds fill separate drafts (e.g. 21.0.28a-dev and 21.0.28a). openjml --version is unchanged.
 ## The workflow clones the master branch of all the OpenJML components, builds the release, running the release tests, packaging it into a zip file,
 ## creates a GitHub release entry in the OpenJML project and uploads the zip file to the release.
 ## If a published release with the current release number already exists, the workflow fails.
@@ -56,6 +57,7 @@ jobs:
       run: |
         ls -laR
         export ver=`cat version.txt`
+        [[ "$BRANCH" == dev-* ]] && ver=$ver-dev
         echo Building release $ver
         echo "version=$ver" >> "$GITHUB_OUTPUT"
 
@@ -132,18 +134,20 @@ jobs:
       shell: bash
       run: |
         export ver=`cat OpenJML/version.txt`
+        [[ "$BRANCH" == dev-* ]] && ver=$ver-dev
         ## Look for the release with this version's tag (draft or published), as the upload job does.
         ## (The first release in GitHub's list is not reliably the newest: drafts and releases published
         ## during the build change the order.)
         export found=$(curl --silent --fail --header 'Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' "https://api.github.com/repos/OpenJML/OpenJML/releases?per_page=100" | python3 -c "import json,sys,os; v=os.environ['ver']; print('yes' if any(r['tag_name']==v for r in json.load(sys.stdin)) else 'no')")
         [[ -z "$found" ]] && { echo "ERROR: could not retrieve the releases from the GitHub API"; exit 1; }
         echo "Version $ver; release with tag $ver found: $found"
-        test "$found" = "yes" || { echo "There is no GitHub release with tag $ver (the version in version.txt)"; exit 1; }
+        test "$found" = "yes" || { echo "There is no GitHub release with tag $ver (version.txt, plus -dev on a dev branch)"; exit 1; }
 
     - name: Copy zip for upload
       shell: bash
       run: |
         export ver=`cat OpenJML/version.txt`
+        [[ "$BRANCH" == dev-* ]] && ver=$ver-dev
         export f=openjml-${{ matrix.label }}-${ver}.zip
         ## The Makefile always produces openjml.zip; use an explicit path to avoid glob surprises
         cp OpenJML/$FOLDER/release-temp/openjml.zip $f

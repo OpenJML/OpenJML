@@ -291,6 +291,24 @@ public class esc1 extends EscBase {
     }
 
     @Test
+    public void testForEachValues() { // \values crashed the translation; it is not yet modeled (cf. testForEach3)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    Integer[] a = { 1,2,3,4};
+                    //@ loop_invariant \\values == \\values;
+                    for (Integer k: a) {
+                      //@ assert \\values == \\values;
+                    }
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
     public void testForEach2() {
         //addOptions("--smt=esc1a.smt","--method=m2bad");
         helpEsc("tt.TestJava",

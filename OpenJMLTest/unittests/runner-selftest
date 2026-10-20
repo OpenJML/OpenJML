@@ -1,0 +1,31 @@
+#! /bin/bash
+
+## Checks OpenJMLTestRunner's timeout handling and counting, using the testrunner fixture suite, and its
+## reporting of harness errors (a suite and a method that do not exist).
+## Exits 0, printing OK, if the runner behaves as expected.
+
+cd "$(dirname "$0")"
+out=$(RUNNERSELFTEST=1 ./runtests -s=4 testrunner nosuchsuite testrunner.noSuchMethod 2>&1)
+EXIT=$?
+echo "$out"
+ERR=0
+if [ $EXIT -ne 1 ]; then echo "runner-selftest: runner exit code $EXIT, expected 1"; ERR=1; fi
+function check() {
+    if ! echo "$out" | grep -qE "$1" ; then echo "runner-selftest: missing: $1"; ERR=1; fi
+}
+function checknot() {
+    if echo "$out" | grep -qE "$1" ; then echo "runner-selftest: unexpected: $1"; ERR=1; fi
+}
+check '^4 successes, 1 timeouts, 1 failures, 0 ignored, 2 harness errors$'
+check '^Error: There is no test suite named nosuchsuite$'
+check '^NO METHOD FOUND FOR noSuchMethod$'
+check '^Test FAILED \(timeout\): .*testsuites[.]testrunner[.]aHang$'
+check '^Test FAILED: .*testsuites[.]testrunner[.]cFail$'
+check '^Testing .*testrunner[.]bQuick'
+checknot '^Test FAILED: .*aHang'
+## The timed-out test's child process is killed at the timeout, so its late result comes before eSlow starts
+late=$(echo "$out" | grep -n '^Late result of a timed-out test: .*aHang' | cut -d: -f1)
+estart=$(echo "$out" | grep -n '^Testing .*testrunner[.]eSlow' | cut -d: -f1)
+if [ -z "$late" ] || [ -z "$estart" ] || [ "$late" -gt "$estart" ]; then echo "runner-selftest: child process of the timed-out test was not killed"; ERR=1; fi
+if [ $ERR -eq 0 ]; then echo "runner-selftest: OK"; fi
+exit $ERR

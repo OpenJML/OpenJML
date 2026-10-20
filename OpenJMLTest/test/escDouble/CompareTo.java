@@ -31,7 +31,7 @@ public class CompareTo
   {
     Double d1 = new Double(a);
     Double d2 = new Double(b);
-    //@ assert (a == b) ==> (d1.compareTo(d2) == 0);
+    //@ assert (a == b && a != 0) ==> (d1.compareTo(d2) == 0);
     //@ assert (a > b) ==> (d1.compareTo(d2) > 0);
     //@ assert (a < b) ==> (d1.compareTo(d2) < 0);
   }

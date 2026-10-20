@@ -82,7 +82,7 @@ public class escnew3 extends EscBase {
     }
 
     // Test well-definedness within the implicit old
-    @Test @Ignore // Times out
+    @Test 
     public void testNonNullElements2() {
         helpEsc("tt.TestJava",
                 """
@@ -785,7 +785,7 @@ public class escnew3 extends EscBase {
                 );
     }
 
-    @Test @Ignore // times out
+    @Test
     public void testVarargs3() {
         helpEsc("tt.TestJava",
                 """

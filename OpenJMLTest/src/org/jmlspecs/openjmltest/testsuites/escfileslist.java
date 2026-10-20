@@ -30,8 +30,10 @@ import org.openjml.runners.ParameterizedWithNames;
 
 public class escfileslist extends EscBaseFiles implements Utils {
     
-    static double split1 = 0.24;
-    static double split2 = 0.40;
+    /** The split points by test name: escfileslist1 runs the tests named before split1, escfileslist2 those from
+     * split1 up to split2, and escfileslist3 the rest, so adding a test directory does not move other tests */
+    static String split1 = "escSimpleStringWithAsserts";
+    static String split2 = "gitbug768";
     
     /** A list of test suites whose test are excluded from the list generated here */
     public static String[] testsuites = new String[]{
@@ -51,7 +53,8 @@ public class escfileslist extends EscBaseFiles implements Utils {
             "org.jmlspecs.openjmltest.testsuites.primesc2",
             "org.jmlspecs.openjmltest.testsuites.escsf1",
             "org.jmlspecs.openjmltest.testsuites.escsf2",
-            "org.jmlspecs.openjmltest.testsuites.escsf3"
+            "org.jmlspecs.openjmltest.testsuites.escsf3",
+            "org.jmlspecs.openjmltest.testsuites.escsmtstrings"
     };
     
     /** A routine that computes a List of one-element String arrays, where each of those elements is a 

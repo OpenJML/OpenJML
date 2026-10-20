@@ -620,7 +620,7 @@ public class esclambdas extends EscBase {
                 );
     }
     
-    @Test @Ignore // has developped a timeout, so ignorig for now -- FIXME
+    @Test
     public void testBindLambda() {
         addOptions("--method=mm"); // Part of test
         addOptions("--code-math=bigint","--spec-math=bigint");  // Part of test

@@ -893,6 +893,19 @@ public class JmlSpecs {
         return defaultNullity((ClassSymbol)owner) == Modifiers.NON_NULL;
     }
     
+    /** Whether a quantified variable is non-null: as declared, else by default, except that a variable whose
+     *  type is a type variable is nullable, since the type variable may stand for a nullable type (#984) */
+    public boolean isNonNullQuantified(JmlVariableDecl decl) {
+        if (!decl.type.isReference() || utils.isJavaOrJmlPrimitiveType(decl.type)) return false;
+        var mods = (JmlModifiers)decl.mods;
+        if (findModifier(decl, Modifiers.NULLABLE) || findAnnotation(mods.annotations, Modifiers.NULLABLE) != null
+                || hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
+        if (findModifier(decl, Modifiers.NON_NULL) || findAnnotation(mods.annotations, Modifiers.NON_NULL) != null
+                || hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
+        if (decl.type instanceof Type.TypeVar) return false;
+        return computeVarNullness(decl, decl.sym.enclClass());
+    }
+
     /** Retrieves the attributed specs for a given method, possibly default specs;
      *  these will be attributed but not desugared specs.
      * @param m the MethodSymbol of the method whose specs are wanted

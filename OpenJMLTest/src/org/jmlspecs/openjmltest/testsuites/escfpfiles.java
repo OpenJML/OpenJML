@@ -30,22 +30,11 @@ import org.openjml.runners.ParameterizedWithNames;
 public class escfpfiles extends EscBaseFiles {
 
     @Test @Ignore
-    public void gitbug732() {
-        helpEscSimple();
-    }
-
-    @Test @Ignore
-    public void gitbug735() {
-        expectedExit = 0;
-        helpEscSimple();
-    }
-    
-    @Test @Ignore
     public void escDouble() {
         helpEscSimple();
     }
 
-    @Test @Ignore
+    @Test
     public void escDouble1() {
         helpEscSimple();
     }
@@ -75,11 +64,6 @@ public class escfpfiles extends EscBaseFiles {
         helpEscSimple();
     }
 
-    @Test @Ignore
-    public void escfpPrimitiveOps() {
-        helpEscSimple();
-    }
-
 
     
     @Ignore // FIXME -  Needs more double specs
@@ -102,7 +86,6 @@ public class escfpfiles extends EscBaseFiles {
         helpEscSimple();
     }
     
-    @Ignore // FIXME 
     @Test
     public void gitbug751() {
         expectedExit = 0;
@@ -112,7 +95,7 @@ public class escfpfiles extends EscBaseFiles {
 
     @Test public void sfbug414() { // FIXME - is the code-math option needed? Why?
         expectedExit = 0;
-        helpEscFile("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5", "--code-math=bigint");
+        helpEscFile("test/sfbug414","test/sfbug414", "-cp", "test/sfbug414", "--esc","--progress","--logic=ALL","--esc-max-warnings=5", "--code-math=bigint", "--fpreal"); // times out with the FloatingPoint theory
     }
 
     @Test public void sfbug414n() { // FIXME - is the code-math option needed? Why?

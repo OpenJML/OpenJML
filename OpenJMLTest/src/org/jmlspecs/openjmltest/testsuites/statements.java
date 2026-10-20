@@ -240,5 +240,27 @@ public class statements extends TCBase {
     }
 
 
+    // A ghost declaration initialized with a JML expression in an if branch crashed javac's preFlow (#1052)
+    @Test public void testGhostOldInIf() {
+        helpTCText("A.java"," public class A { int x; void m(boolean b) { \n if (b) { //@ ghost int y = \\old(x); \n } \n}}"
+                );
+    }
+
+    @Test public void testGhostOldInIfErr() {
+        helpTCText("A.java"," public class A { int x; void m(boolean b) { \n if (b) { //@ ghost int y = \\old(this.z); \n } \n}}"
+                ,"/A.java:2: error: cannot find symbol\n  symbol: variable z",38
+                );
+    }
+
+    @Test public void testGhostOldInSwitch() {
+        helpTCText("A.java"," public class A { int x; void m(int k) { \n switch (k) { case 0: //@ ghost int y = \\old(x); \n break; } \n}}"
+                );
+    }
+
+    @Test public void testGhostOldInLoopWithBinding() {
+        helpTCText("A.java"," public class A { int x; void m(Object o) { \n while (!(o instanceof String s)) { //@ ghost int y = \\old(x); \n o = \"\"; } \n}}"
+                );
+    }
+
 // TODO - need tests for hence_by; test for local specification cases; tests for pure methods in expressions
 }
