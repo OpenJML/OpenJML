@@ -244,6 +244,52 @@ public class escswitch extends EscBase {
                 );
     }
 
+    /** A later case is reached only when the guards of earlier matching cases are false (#1044) */
+    @Test
+    public void testGuardExcludesLaterCase() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    //@ ensures (n == 0 && b) ==> \\result == 1;
+                    //@ ensures \\result == 0 ==> !b;
+                    public static int coerce2(Integer n, boolean b) {
+                        return switch (n) {
+                            case Integer i when b -> 1;
+                            case Integer i -> 0;
+                        };
+                    }
+
+                    //@ ensures \\result == 0 ==> !(o instanceof String s && s.isEmpty());
+                    public static int dflt(Object o) {
+                        return switch (o) {
+                            case String s when s.isEmpty() -> 1;
+                            default -> 0;
+                        };
+                    }
+                }
+                """);
+    }
+
+    /** The exclusion of earlier guarded cases is not too strong (#1044) */
+    @Test
+    public void testGuardExcludesLaterCaseFail() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    //@ ensures \\result == 0 ==> b;
+                    public static int coerce2(Integer n, boolean b) {
+                        return switch (n) {
+                            case Integer i when b -> 1;
+                            case Integer i -> 0;
+                        };
+                    }
+                }
+                """
+                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method coerce2", 9
+                ,"/tt/A.java:3: verify: Associated declaration", 9
+                );
+    }
+
     // -----------------------------------------------------------------------
     //  Pattern switch expression: mixed constant + pattern labels
     // -----------------------------------------------------------------------
