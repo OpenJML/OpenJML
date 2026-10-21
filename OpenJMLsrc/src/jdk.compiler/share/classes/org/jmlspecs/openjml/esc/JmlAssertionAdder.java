@@ -17573,10 +17573,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					treeutils.makeIntLiteral(that, Integer.MAX_VALUE));
 			addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeAnd(that, bina, binb));
 		}
-		if (that.sym != null && that.sym.name != names._class) {
+		boolean isType = that.sym instanceof TypeSymbol; // e.g. Map.Entry in an extends clause: nothing is read
+		if (that.sym != null && that.sym.name != names._class && !isType) {
 		    checkRW(readableClause, that.sym, trexpr, that);
 		}
-		if (!convertingAssignable && checkAccessEnabled) {
+		if (!convertingAssignable && checkAccessEnabled && !isType) {
 			checkAccess2(accessibleClauseKind, that, that, newfa, true, treeutils.trueLit, true, null, false); // FIXME - condition?
 		}
         if (print) System.out.println("VISITSELECT-B " + that + " " + trexpr + " " + newfa);
