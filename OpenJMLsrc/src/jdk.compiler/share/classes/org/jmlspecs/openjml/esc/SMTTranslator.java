@@ -489,6 +489,8 @@ public class SMTTranslator extends JmlTreeScanner {
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (= ( "+arrayElemType+" ("+MAKEJMLARRAYTYPE+" T)) T)))");
             addCommand(smt,"(assert (forall ((T "+JAVATYPESORT+")) (_isArrayType ("+MAKEJAVAARRAYTYPE+" T)) ))");
             addCommand(smt,"(assert (forall ((T "+JMLTYPESORT+")) (_isJMLArrayType ("+MAKEJMLARRAYTYPE+" T)) ))");
+            // A subtype of an array type is an array type (#743)
+            addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+")) (! (=> (and ("+JAVASUBTYPE+" T1 T2) (_isArrayType T2)) (_isArrayType T1)) :pattern (("+JAVASUBTYPE+" T1 T2)))))");
             addCommand(smt,"(assert (forall ((T1 "+JAVATYPESORT+")(T2 "+JAVATYPESORT+"))  (! (= ("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1)("+MAKEJAVAARRAYTYPE+" T2)) ("+JAVASUBTYPE+" T1 T2)) :pattern (("+JAVASUBTYPE+" ("+MAKEJAVAARRAYTYPE+" T1) ("+MAKEJAVAARRAYTYPE+" T2))))))");
             addCommand(smt,"(assert (forall ((T1 "+JMLTYPESORT+")(T2 "+JMLTYPESORT+"))  (! (= ("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1)("+MAKEJMLARRAYTYPE+" T2)) ("+JMLSUBTYPE+" T1 T2)) :pattern (("+JMLSUBTYPE+" ("+MAKEJMLARRAYTYPE+" T1) ("+MAKEJMLARRAYTYPE+" T2))))))");
         }
@@ -691,6 +693,11 @@ public class SMTTranslator extends JmlTreeScanner {
             // (assert (= (|`erasure| tjml) tjava))
             ISymbol tisym = (ISymbol)javaTypeSymbol(ti);
             tcommands.add(new C_assert(F.fcn(notSym,F.fcn(F.symbol("_isArrayType"), javaTypeSymbol(ti))) ));
+            // Arrays are subtypes only of Object, Cloneable and Serializable, so subtypes of other types are not arrays (#743)
+            if (quantOK && ti.tsym != syms.objectType.tsym && ti.tsym != syms.cloneableType.tsym
+                    && ti.tsym != syms.serializableType.tsym) {
+                addCommand(smt,"(assert (forall ((t "+JAVATYPESORT+")) (! (=> ("+JAVASUBTYPE+" t "+tisym.toString()+") (not (_isArrayType t))) :pattern (("+JAVASUBTYPE+" t "+tisym.toString()+")))))");
+            }
             if ((ti.tsym.flags() & Flags.FINAL) != 0) {
             	if (quantOK) addCommand(smt,"(assert (forall ((t "+JAVATYPESORT+")) (=> ("+JAVASUBTYPE+" t "+tisym.toString()+")  (= t "+tisym.toString()+"))))");
             }
