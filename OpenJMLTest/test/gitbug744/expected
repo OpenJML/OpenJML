@@ -1,0 +1,65 @@
+test/gitbug744/JMLFloatingApprox.java:7: warning: [strictfp] as of release 17, all floating-point expressions are evaluated strictly and 'strictfp' is not required
+public /*@ pure @*/ strictfp class JMLFloatingApprox {
+                             ^
+Proving methods in JMLFloatingApprox
+Starting proof of JMLFloatingApprox.JMLFloatingApprox() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.JMLFloatingApprox() with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.withinEpsilonOf(double,double,double) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.withinEpsilonOf(double,double,double) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.relativelyEqualTo(double,double,double) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.relativelyEqualTo(double,double,double) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.approximatelyEqualTo(double,double,double) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.approximatelyEqualTo(double,double,double) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.withinEpsilonOf(float,float,float) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.withinEpsilonOf(float,float,float) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.relativelyEqualTo(float,float,float) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.relativelyEqualTo(float,float,float) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.approximatelyEqualTo(float,float,float) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.approximatelyEqualTo(float,float,float) with prover !!!! - no warnings
+Completed proving methods in JMLFloatingApprox
+Proving methods in JMLFloatingApproxBad
+Starting proof of JMLFloatingApproxBad.JMLFloatingApproxBad() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApproxBad.JMLFloatingApproxBad() with prover !!!! - no warnings
+Starting proof of JMLFloatingApproxBad.withinEpsilonOf(double,double,double) with prover !!!!
+test/gitbug744/JMLFloatingApproxBad.java:7: verify: The prover cannot establish an assertion (Postcondition) in method withinEpsilonOf
+        return StrictMath.abs(d - d2) <= epsilon;
+        ^
+test/gitbug744/JMLFloatingApproxBad.java:5: verify: Associated declaration
+    //@   ensures \result;
+          ^
+Completed proof of JMLFloatingApproxBad.withinEpsilonOf(double,double,double) with prover !!!! - with warnings
+Starting proof of JMLFloatingApproxBad.withinEpsilonOf(float,float,float) with prover !!!!
+test/gitbug744/JMLFloatingApproxBad.java:13: verify: The prover cannot establish an assertion (Postcondition) in method withinEpsilonOf
+        return StrictMath.abs(f - f2) <= epsilon;
+        ^
+test/gitbug744/JMLFloatingApproxBad.java:11: verify: Associated declaration
+    //@   ensures \result <==> StrictMath.abs(f - f2) < epsilon;
+          ^
+Completed proof of JMLFloatingApproxBad.withinEpsilonOf(float,float,float) with prover !!!! - with warnings
+Starting proof of JMLFloatingApproxBad.relativelyEqualTo(double,double,double) with prover !!!!
+test/gitbug744/JMLFloatingApproxBad.java:21: verify: The prover cannot establish an assertion (Postcondition) in method relativelyEqualTo
+        return StrictMath.abs(d - d2) <= tolerance;
+        ^
+test/gitbug744/JMLFloatingApproxBad.java:18: verify: Associated declaration
+    //@   ensures \result <==> StrictMath.abs(d - d2) <= epsilon;
+          ^
+Completed proof of JMLFloatingApproxBad.relativelyEqualTo(double,double,double) with prover !!!! - with warnings
+Completed proving methods in JMLFloatingApproxBad
+1 warning
+6 verification failures
