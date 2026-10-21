@@ -270,6 +270,35 @@ public class escswitch extends EscBase {
                 """);
     }
 
+    /** A record-pattern binding is the value of the record's accessor (#1044) */
+    @Test
+    public void testRecordPatternBindingIsAccessor() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    record Box(int x) {}
+
+                    //@ requires bx != null;
+                    //@ ensures \\result == bx.x();
+                    public static int b(Box bx) {
+                        return switch (bx) {
+                            case Box(int x) -> x;
+                        };
+                    }
+
+                    //@ requires bx != null;
+                    //@ ensures bx.x() > 0 ==> \\result == 1;
+                    //@ ensures \\result == 0 ==> bx.x() <= 0;
+                    public static int g(Box bx) {
+                        return switch (bx) {
+                            case Box(int x) when x > 0 -> 1;
+                            case Box(int x) -> 0;
+                        };
+                    }
+                }
+                """);
+    }
+
     /** The exclusion of earlier guarded cases is not too strong (#1044) */
     @Test
     public void testGuardExcludesLaterCaseFail() {

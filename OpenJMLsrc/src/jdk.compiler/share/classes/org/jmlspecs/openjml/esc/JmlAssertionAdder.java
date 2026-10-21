@@ -7255,7 +7255,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        }
 	        var stat = convert(bpat.var);
 	        JCTree clazz = treeutils.makeType(pattern.pos, types.erasure(bpat.type));
-	        if (bpat.type.isReference()) {
+	        // An unconditional type pattern needs no type test; nested in a record pattern it also matches null
+	        if (bpat.type.isReference() && !isUnconditionalTypePattern(bpat, expr.type)) {
 	            JCExpression typeTest = M.at(pattern).TypeTest(copy(expr), clazz);
 	            typeTest.setType(syms.booleanType);
 	            addAssume(pattern, Label.IMPLICIT_ASSUME, typeTest);
@@ -7293,7 +7294,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    while (components.nonEmpty() && nestedPatterns.nonEmpty()) {
 	        RecordComponent component = components.head;
 	        JCPattern nestedPattern = nestedPatterns.head;
-	        JCExpression accessorCall = createAccessorCall(recPat, recTemp, component);
+	        // Converted, so that the binding is the same term as a call of the accessor in a specification
+	        JCExpression accessorCall = convertExpr(createAccessorCall(recPat, recTemp, component));
 	        JCIdent compTemp = newTemp(accessorCall);
 	        translatePattern(nestedPattern, compTemp);
 	        components = components.tail;
@@ -7310,6 +7312,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    JCMethodInvocation call = M.at(pos).Apply(List.<JCExpression>nil(), select, List.<JCExpression>nil());
 	    call.setType(types.erasure(accessor.getReturnType()));
 	    return call;
+	}
+
+	/** True if 'pattern' is a type pattern that every value of type 't' matches (as a nested pattern, including null) */
+	protected boolean isUnconditionalTypePattern(JCPattern pattern, Type t) {
+	    return pattern instanceof JCBindingPattern bpat && t != null
+	            && types.isSubtype(types.erasure(t), types.erasure(bpat.type));
 	}
 
 	protected JCExpression buildPatternCondition(JCPattern pattern, JCExpression expr) {
@@ -7331,7 +7339,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        while (components.nonEmpty() && nestedPatterns.nonEmpty()) {
 	            RecordComponent component = components.head;
 	            JCPattern nested = nestedPatterns.head;
-	            if (!(nested instanceof JCAnyPattern)) {
+	            if (!(nested instanceof JCAnyPattern) && !isUnconditionalTypePattern(nested, component.accessor.getReturnType())) {
 	                JCExpression accessorCall = createAccessorCall(recPat, recTemp, component);
 	                JCExpression nestedCond = buildPatternCondition(nested, accessorCall);
 	                condition = treeutils.makeAnd(pattern, condition, nestedCond);
