@@ -30,6 +30,7 @@ import com.sun.tools.javac.util.Names;
  * built from) against their specifications in Specs. Each subfolder of OpenJMLTest/testspecs-verify names one
  * class, with '.' replaced by '-'; its 'expected' file is the golden ESC output, and an optional 'unspecified' file
  * lists, one per line, the public and protected methods known to have no specification (none, if absent).
+ * An optional 'options' file gives extra ESC options, one per line (e.g. a --method selection for a large class).
  * Implementation-level annotations (loop invariants etc.) belong in the java.base source itself.
  *
  * The source file is checked in place, as part of java.base, by patching java.base with the file's own package
@@ -99,7 +100,13 @@ public class SpecsVerify extends EscBaseFiles {
     /** ESC of the implementation against its specs */
     @Test
     public void testVerify() throws Exception {
-        escOnFiles(sourceFile(), outDir(), patchOption(), "--check-feasibility=return", "--exclude=" + serializationMethods);
+        var args = new ArrayList<String>(java.util.List.of(patchOption(), "--check-feasibility=return",
+                "--exclude=" + serializationMethods));
+        Path options = Path.of(outDir(), "options");
+        if (Files.exists(options)) {
+            for (String line: Files.readAllLines(options)) if (!line.isBlank()) args.add(line.trim());
+        }
+        escOnFiles(sourceFile(), outDir(), args.toArray(new String[0]));
     }
 
     /** Every public and protected method and constructor of the class, other than those listed in 'unspecified',

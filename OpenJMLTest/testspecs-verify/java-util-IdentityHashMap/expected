@@ -1,0 +1,51 @@
+Proving methods in java.util.IdentityHashMap
+Starting proof of java.util.IdentityHashMap.maskNull(Object) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IdentityHashMap.maskNull(Object) with prover !!!! - no warnings
+Starting proof of java.util.IdentityHashMap.unmaskNull(Object) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IdentityHashMap.unmaskNull(Object) with prover !!!! - no warnings
+Starting proof of java.util.IdentityHashMap.capacity(int) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IdentityHashMap.capacity(int) with prover !!!! - no warnings
+Starting proof of java.util.IdentityHashMap.init(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.IdentityHashMap.init(int) with prover !!!! - no warnings
+Starting proof of java.util.IdentityHashMap.hash(Object,int) with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Completed proof of java.util.IdentityHashMap.hash(Object,int) with prover !!!! - no warnings
+Starting proof of java.util.IdentityHashMap.nextKeyIndex(int,int) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IdentityHashMap.nextKeyIndex(int,int) with prover !!!! - no warnings
+Starting proof of java.util.IdentityHashMap.containsMapping(Object,Object) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.util.IdentityHashMap.containsMapping(Object,Object) with prover !!!! - no warnings
+Proving methods in java.util.IdentityHashMap.IdentityHashMapIterator
+Completed proving methods in java.util.IdentityHashMap.IdentityHashMapIterator
+Proving methods in java.util.IdentityHashMap.KeyIterator
+Completed proving methods in java.util.IdentityHashMap.KeyIterator
+Proving methods in java.util.IdentityHashMap.ValueIterator
+Completed proving methods in java.util.IdentityHashMap.ValueIterator
+Proving methods in java.util.IdentityHashMap.EntryIterator
+Proving methods in java.util.IdentityHashMap.EntryIterator.Entry
+Completed proving methods in java.util.IdentityHashMap.EntryIterator.Entry
+Completed proving methods in java.util.IdentityHashMap.EntryIterator
+Proving methods in java.util.IdentityHashMap.KeySet
+Completed proving methods in java.util.IdentityHashMap.KeySet
+Proving methods in java.util.IdentityHashMap.Values
+Completed proving methods in java.util.IdentityHashMap.Values
+Proving methods in java.util.IdentityHashMap.EntrySet
+Completed proving methods in java.util.IdentityHashMap.EntrySet
+Proving methods in java.util.IdentityHashMap.IdentityHashMapSpliterator
+Completed proving methods in java.util.IdentityHashMap.IdentityHashMapSpliterator
+Proving methods in java.util.IdentityHashMap.KeySpliterator
+Completed proving methods in java.util.IdentityHashMap.KeySpliterator
+Proving methods in java.util.IdentityHashMap.ValueSpliterator
+Completed proving methods in java.util.IdentityHashMap.ValueSpliterator
+Proving methods in java.util.IdentityHashMap.EntrySpliterator
+Completed proving methods in java.util.IdentityHashMap.EntrySpliterator
+Completed proving methods in java.util.IdentityHashMap
+Note: $SPECS/java/util/IdentityHashMap.jml uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
