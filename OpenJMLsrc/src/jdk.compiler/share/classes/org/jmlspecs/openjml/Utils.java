@@ -1437,7 +1437,23 @@ public class Utils {
         ann.sourcefile = log().currentSourceFile();
         ann.kind = jt;
         ann.annotationType.type = ann.type = jt.annotationType(context);
-        // FIXME - attribute field is not set
+        // javac's Check reads the attribute and name symbols of every annotation, e.g. under -Xlint:exports (#857)
+        if (ann.type != null) {
+            ann.attribute = new com.sun.tools.javac.code.Attribute.Compound(ann.type,
+                    com.sun.tools.javac.util.List.nil());
+            Symbol s = ann.type.tsym;
+            JCTree t = ann.annotationType;
+            while (t instanceof JCFieldAccess fa && s != null) {
+                fa.sym = s;
+                fa.type = s.type;
+                s = s.owner;
+                t = fa.selected;
+            }
+            if (t instanceof JCIdent id && s != null) {
+                id.sym = s;
+                id.type = s.type;
+            }
+        }
         return ann;
     }
     
