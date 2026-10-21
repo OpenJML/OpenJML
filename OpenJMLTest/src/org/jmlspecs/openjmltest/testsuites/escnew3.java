@@ -2222,4 +2222,31 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m", 9
                 );
     }
+
+    /** An object of a class type is not an array, so Object.clone's array cases do not apply to an override (#743) */
+    @Test
+    public void testCloneOverrideNotArray() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava implements Cloneable {
+                  public int k;
+                  //@ also public normal_behavior
+                  //@   ensures \\result instanceof TestJava;
+                  public Object clone() {
+                    return new TestJava();
+                  }
+                  public void m(Object o) {
+                    //@ assume o instanceof TestJava;
+                    //@ check !(o instanceof int[]) && !(o instanceof Object[]);
+                  }
+                  public void n(Object o) {
+                    //@ assume o instanceof int[];
+                    //@ check o instanceof TestJava;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method n", 9
+                );
+    }
 }
