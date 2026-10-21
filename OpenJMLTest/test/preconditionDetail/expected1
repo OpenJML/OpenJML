@@ -35,13 +35,13 @@ test/preconditionDetail/TestA.java:22: verify: The prover cannot establish an as
 test/preconditionDetail/TestA.java:11: verify: Associated declaration
     public void m( /*@ non_null */Integer pq, int q,  /*@ non_null */Integer r) {
                 ^
-test/preconditionDetail/TestC.java:13: verify: Precondition conjunct is false: _JML__tmp`18 != null
-}
-^
-test/preconditionDetail/TestB.java:8: verify: Precondition conjunct is false: _JML__tmp`18 != null
-}
-^
-test/preconditionDetail/TestA.java:22: verify: Precondition conjunct is false: _JML__tmp`18 != null
+test/preconditionDetail/TestA.java:22: verify: Precondition conjunct is false: _JML__tmp`20 != null
+        a.m(k,100,100);
+            ^
+test/preconditionDetail/TestA.java:22: verify: Precondition conjunct is false: _JML__tmp`20 != null
+        a.m(k,100,100);
+            ^
+test/preconditionDetail/TestA.java:22: verify: Precondition conjunct is false: _JML__tmp`20 != null
         a.m(k,100,100);
             ^
 test/preconditionDetail/TestA.java:9: verify: Precondition conjunct is false: pq >= 15
@@ -55,16 +55,16 @@ test/preconditionDetail/TestA.java:27: verify: The prover cannot establish an as
 test/preconditionDetail/TestA.java:11: verify: Associated declaration
     public void m( /*@ non_null */Integer pq, int q,  /*@ non_null */Integer r) {
                 ^
-test/preconditionDetail/TestC.java:13: verify: Precondition conjunct is false: _JML__tmp`108 != null
-}
-^
+test/preconditionDetail/TestA.java:27: verify: Precondition conjunct is false: _JML__tmp`112 != null
+        a.m(100,100,kk);
+                    ^
 test/preconditionDetail/TestC.java:8: verify: Precondition conjunct is false: r >= 15
     //@   requires r >= 15;
                      ^
-test/preconditionDetail/TestB.java:8: verify: Precondition conjunct is false: _JML__tmp`108 != null
-}
-^
-test/preconditionDetail/TestA.java:27: verify: Precondition conjunct is false: _JML__tmp`108 != null
+test/preconditionDetail/TestA.java:27: verify: Precondition conjunct is false: _JML__tmp`112 != null
+        a.m(100,100,kk);
+                    ^
+test/preconditionDetail/TestA.java:27: verify: Precondition conjunct is false: _JML__tmp`112 != null
         a.m(100,100,kk);
                     ^
 Completed proof of TestA.m2(TestAA,@Nullable Integer) with prover !!!! - with warnings
