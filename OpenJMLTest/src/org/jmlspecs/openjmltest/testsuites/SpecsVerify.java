@@ -44,6 +44,10 @@ public class SpecsVerify extends EscBaseFiles {
     /** The subfolder of OpenJMLTest that holds the data for this suite */
     public static final String testdir = "testspecs-verify";
 
+    /** Serialization hooks, which are called only by the serialization machinery; they are not verified
+     * until the java.io serialization classes are specified */
+    public static final String serializationMethods = "readObject,writeObject,readObjectNoData,readResolve,writeReplace";
+
     /** The java.base sources, relative to OpenJMLTest */
     public static final String javaBase = "../OpenJMLsrc/src/java.base/share/classes";
 
@@ -95,7 +99,7 @@ public class SpecsVerify extends EscBaseFiles {
     /** ESC of the implementation against its specs */
     @Test
     public void testVerify() throws Exception {
-        escOnFiles(sourceFile(), outDir(), patchOption(), "--check-feasibility=return");
+        escOnFiles(sourceFile(), outDir(), patchOption(), "--check-feasibility=return", "--exclude=" + serializationMethods);
     }
 
     /** Every public and protected method and constructor of the class, other than those listed in 'unspecified',

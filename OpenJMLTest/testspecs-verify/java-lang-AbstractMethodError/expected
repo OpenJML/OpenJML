@@ -1,0 +1,8 @@
+Proving methods in java.lang.AbstractMethodError
+Starting proof of AbstractMethodError.AbstractMethodError() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AbstractMethodError.AbstractMethodError() with prover !!!! - no warnings
+Starting proof of AbstractMethodError.AbstractMethodError(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AbstractMethodError.AbstractMethodError(String) with prover !!!! - no warnings
+Completed proving methods in java.lang.AbstractMethodError

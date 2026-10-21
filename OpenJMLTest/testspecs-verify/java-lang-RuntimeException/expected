@@ -1,0 +1,17 @@
+Proving methods in java.lang.RuntimeException
+Starting proof of RuntimeException.RuntimeException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of RuntimeException.RuntimeException() with prover !!!! - no warnings
+Starting proof of RuntimeException.RuntimeException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of RuntimeException.RuntimeException(String) with prover !!!! - no warnings
+Starting proof of RuntimeException.RuntimeException(String,Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of RuntimeException.RuntimeException(String,Throwable) with prover !!!! - no warnings
+Starting proof of RuntimeException.RuntimeException(Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of RuntimeException.RuntimeException(Throwable) with prover !!!! - no warnings
+Starting proof of RuntimeException.RuntimeException(String,Throwable,boolean,boolean) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of RuntimeException.RuntimeException(String,Throwable,boolean,boolean) with prover !!!! - no warnings
+Completed proving methods in java.lang.RuntimeException
