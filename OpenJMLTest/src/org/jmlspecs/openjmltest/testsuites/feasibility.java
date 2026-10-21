@@ -518,4 +518,24 @@ public class feasibility extends EscBase {
                 """
                 );
     }
+
+    @Test
+    public void freturnInlinedInfeasible() {
+        // An infeasible return in an inlined model program is reported
+        helpFeas("return",
+                """
+                package tt;
+                public class TestJava {
+                  //@ public normal_behavior
+                  //@   { if (b) return 1; else return 0; }
+                  //@ pure
+                  public static int f(boolean b) { return b ? 1 : 0; }
+                  public void m() {
+                    int k = f(true);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: There is no feasible path to program point at return statement in method tt.TestJava.m()", 33
+                );
+    }
 }
