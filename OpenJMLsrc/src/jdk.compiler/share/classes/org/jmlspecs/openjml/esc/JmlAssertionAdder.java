@@ -8323,12 +8323,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		if (breakName != null) {
+			addFeasibilityCheck(that, currentStatements, Strings.feas_return, "at return statement"); // before the break, else unreachable
 			JCBreak br = addStat(M.at(p).Break(breakName));
 			br.target = breakNames.get(breakName);
 			if (br.target == null) {
 				// FIXME - error
 			}
-			addFeasibilityCheck(that, currentStatements, Strings.feas_return, "at return statement");
 			result = br;
 			return;
 

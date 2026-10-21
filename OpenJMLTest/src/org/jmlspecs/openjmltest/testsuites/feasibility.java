@@ -499,4 +499,23 @@ public class feasibility extends EscBase {
                 ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at throw statement in method tt.TestJava.m(int)", 7
                 );
     }
+
+    @Test
+    public void freturnInlined() {
+        // A return in an inlined model program becomes a break; its feasibility check must precede the break
+        helpFeas("return",
+                """
+                package tt;
+                public class TestJava {
+                  //@ public normal_behavior
+                  //@   { return b ? 1 : 0; }
+                  //@ pure
+                  public static int f(boolean b) { return b ? 1 : 0; }
+                  public void m(boolean b) {
+                    int k = f(b);
+                  }
+                }
+                """
+                );
+    }
 }
