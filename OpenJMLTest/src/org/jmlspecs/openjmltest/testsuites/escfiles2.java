@@ -127,7 +127,7 @@ public class escfiles2 extends EscBaseFiles {
         helpEscSimple("--method=marray");
     }
     
-    @Test @Ignore // FIXME - times out in attempting to prove
+    @Test // the postcondition is false for num < 2
     public void gitbug802() {
         helpEscSimple();
     }

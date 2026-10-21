@@ -1,0 +1,25 @@
+Proving methods in PrimeTester
+Starting proof of PrimeTester.PrimeTester() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of PrimeTester.PrimeTester() with prover !!!! - no warnings
+Starting proof of PrimeTester.isPrime(int) with prover !!!!
+test/gitbug802/PrimeTester.java:8: verify: The prover cannot establish an assertion (Postcondition) in method isPrime
+            return false;
+            ^
+test/gitbug802/PrimeTester.java:4: verify: Associated declaration
+      @ ensures \result <==> (\forall int i; 2 <= i < num; num % i != 0);
+        ^
+Completed proof of PrimeTester.isPrime(int) with prover !!!! - with warnings
+Completed proving methods in PrimeTester
+Proving methods in PrimeTesterFixed
+Starting proof of PrimeTesterFixed.PrimeTesterFixed() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of PrimeTesterFixed.PrimeTesterFixed() with prover !!!! - no warnings
+Starting proof of PrimeTesterFixed.isPrime(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of PrimeTesterFixed.isPrime(int) with prover !!!! - no warnings
+Completed proving methods in PrimeTesterFixed
+2 verification failures
