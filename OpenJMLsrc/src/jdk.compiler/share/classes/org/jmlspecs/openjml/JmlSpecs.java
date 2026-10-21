@@ -272,11 +272,11 @@ public class JmlSpecs {
     public void initializeSpecsPath() {
         Options options = Options.instance(context);
         String s = JmlOption.SPECS.value(context);
-        if (debugSpecs) System.out.println("specs: specspath option: " + s);
+        if (debugSpecs) Utils.debugOut().println("specs: specspath option: " + s);
         if (s == null || s.isEmpty()) s = System.getProperty(Strings.specsPathEnvironmentPropertyName);
-        if (debugSpecs) System.out.println("specs: system property: " + s);
+        if (debugSpecs) Utils.debugOut().println("specs: system property: " + s);
         if (s == null || s.isEmpty()) s = getSourcePathString();
-        if (debugSpecs) System.out.println("specs: sourcepath value: " + s);
+        if (debugSpecs) Utils.debugOut().println("specs: sourcepath value: " + s);
         setSpecsPath(s);
     }
     
@@ -350,9 +350,9 @@ public class JmlSpecs {
         boolean p = Utils.debug("paths");
         Options options = Options.instance(context);
         String s = options.get(Strings.sourcepathOptionName);
-        if (p) System.out.println("sourcepath: option: " + s);
+        if (p) Utils.debugOut().println("sourcepath: option: " + s);
         if (s == null || s.isEmpty()) s = getClassPathString();
-        if (p) System.out.println("sourcepath: cp: " + s);
+        if (p) Utils.debugOut().println("sourcepath: cp: " + s);
         return s;
     }
     public String[] getSourcePath() {
@@ -363,11 +363,11 @@ public class JmlSpecs {
         boolean p = Utils.debug("paths");
         Options options = Options.instance(context);
         String s = options.get(Strings.classpathOptionName);
-        if (p) System.out.println("classpath: option: " + s);
+        if (p) Utils.debugOut().println("classpath: option: " + s);
         if (s == null) s = System.getProperty("java.class.path"); // This is empty if not set rather than null
-        if (p) System.out.println("classpath: java.class.path: " + s);
+        if (p) Utils.debugOut().println("classpath: java.class.path: " + s);
         if (s == null || s.isEmpty()) s = ".";
-        if (p) System.out.println("classpath: default: " + s);
+        if (p) Utils.debugOut().println("classpath: default: " + s);
         return s;
     }
     public String[] getClassPath() {
@@ -553,7 +553,7 @@ public class JmlSpecs {
         String s = classFlatName.replace('.','/') + suffix;
         for (Dir dir: getSpecsPath()) {
             JavaFileObject j = dir.findFile(s, context);
-            if (print) System.out.println("parser+: TRYING " + dir + " " + s + " FOUND " + j);
+            if (print) Utils.debugOut().println("parser+: TRYING " + dir + " " + s + " FOUND " + j);
             if (j != null) return withMockOverride(j, context);
         }
         return null;
@@ -720,7 +720,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the type
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
-        if (utils.verbose()) System.out.println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec);
+        if (utils.verbose()) Utils.debugOut().println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec);
         //if (type.toString().contains("Shape")) { System.out.println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec); Utils.dumpStack(); }
         spec.csymbol = type;
         specsTypes.put(type,spec);
@@ -739,19 +739,19 @@ public class JmlSpecs {
      */
     public void putSpecs(MethodSymbol specSym, MethodSpecs spec) {
         boolean print = false;//specSym.toString().contains("? extends U") && specSym.toString().contains("mapToObj");
-        if (print) { System.out.println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
+        if (print) { Utils.debugOut().println("SAVE " + specSym.owner + " " + specSym + " " + spec);  Utils.dumpStack(); }
         spec.specSym = specSym;
         specsMethods.put(specSym,spec);
         int i = 0;
         var decl = spec.specDecl == null ? spec.javaDecl : spec.specDecl;
         if (decl != null) {
-            if (specSym.params == null) System.out.println("NULL PARAMS " + specSym);
+            if (specSym.params == null) Utils.debugOut().println("NULL PARAMS " + specSym);
             var iter = specSym.params.iterator();
             for (JCVariableDecl d: decl.params) {
                 boolean nn = isNonNullFormal(d.type, i++, spec.cases, specSym, d.type, null); // FIXME - do not store nn -- it can vary with call site
                 var f = new LocalSpecs((JmlVariableDecl)d, nn, specSym);
                 var jsym = iter.next();
-                if (print) System.out.println("   PARAM " + d + " " + nn + " " + jsym + " " + f);
+                if (print) Utils.debugOut().println("   PARAM " + d + " " + nn + " " + jsym + " " + f);
                 specsFormals.put(jsym, f);
                 // System.out.println("    Formal specs " + d.sym + " " + jsym.hashCode() + " " +  specSym + " " + f.isNonNull + " " + f.mods);
             }
@@ -935,15 +935,15 @@ public class JmlSpecs {
     //@ nullable // FIXME - really?
     public MethodSpecs getLoadedSpecs(MethodSymbol m) {
         boolean print = false; // m.owner.toString().equals("java.lang.Object") && m.toString().contains("toString");
-        if (m.enclClass() != m.owner) System.out.println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
-        if (print) System.out.println(" STATUS " + m.owner + " " + m + " " + status(m.owner));
+        if (m.enclClass() != m.owner) Utils.debugOut().println("Unexpected difference - method " + m + " " + m.owner + " " + m.enclClass());
+        if (print) Utils.debugOut().println(" STATUS " + m.owner + " " + m + " " + status(m.owner));
         if (status(m.owner).less(SpecsStatus.SPECS_LOADED)) {
             var ms = getLoadedSpecs((ClassSymbol)m.owner);
-            if (print) System.out.println(" GOT CLASS SPECS " + m.owner );
+            if (print) Utils.debugOut().println(" GOT CLASS SPECS " + m.owner );
             if (ms == null) setStatus(m, SpecsStatus.SPECS_LOADED); // FIXME - why this?
         }
         var ms = get(m);
-        if (print) System.out.println(" GLS " + m.owner + " " + m + " " + ms);
+        if (print) Utils.debugOut().println(" GLS " + m.owner + " " + m + " " + ms);
         //        if (ms == null) System.out.println("Null specs returned from getLoadedSpecs (no default) for " + m.owner + " " + m + " " + status(m) + " " + m.hashCode());
         return ms;
     }
@@ -1640,25 +1640,25 @@ public class JmlSpecs {
     public boolean isNonNullFormal(Type type, int i, JmlMethodSpecs calleeSpecs, MethodSymbol msym, Type argtype, MethodSymbol caller) {
         //System.out.println("NNFP " + calleeSpecs.decl.params.get(i)); // msym.params.get(i).toString());
         boolean pr = false;//msym.toString().contains("m1");
-        if (pr) System.out.println("NNF " + calleeSpecs.decl.params.get(i) + " : " + type + " : " + argtype + " : " + type.getAnnotationMirrors() + " : " + argtype.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
+        if (pr) Utils.debugOut().println("NNF " + calleeSpecs.decl.params.get(i) + " : " + type + " : " + argtype + " : " + type.getAnnotationMirrors() + " : " + argtype.getAnnotationMirrors() + " " + i + " " + msym + " " + msym.enclClass() + " " + defaultNullity(msym.enclClass()) + " " + calleeSpecs);
         if (!type.isReference()) return false;
         if (jmltypes.isJmlType(type)) return true;
-        if (pr) System.out.println("NNF-A1 " + argtype + " " + findAnnotation(argtype, Modifiers.NULLABLE) + " " + findAnnotation(argtype, Modifiers.NON_NULL));
-        if (pr) System.out.println("NNF-A2 " + type + " " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
+        if (pr) Utils.debugOut().println("NNF-A1 " + argtype + " " + findAnnotation(argtype, Modifiers.NULLABLE) + " " + findAnnotation(argtype, Modifiers.NON_NULL));
+        if (pr) Utils.debugOut().println("NNF-A2 " + type + " " + findAnnotation(type, Modifiers.NULLABLE) + " " + findAnnotation(type, Modifiers.NON_NULL));
         // type is the declared type of the callee parameter
         if (findAnnotation(type, Modifiers.NULLABLE)) return false;
         if (findAnnotation(type, Modifiers.NON_NULL)) return true;
 //        if (findAnnotation(argtype, Modifiers.NULLABLE)) return false;
 //        if (findAnnotation(argtype, Modifiers.NON_NULL)) return true;
         //if (type instanceof Type.TypeVar) return false; 
-        if (pr) System.out.println("SPECS " + calleeSpecs + " # " + calleeSpecs.decl);
+        if (pr) Utils.debugOut().println("SPECS " + calleeSpecs + " # " + calleeSpecs.decl);
         if (!(type instanceof Type.TypeVar) && calleeSpecs.decl != null) {
             var decl = (JmlVariableDecl)calleeSpecs.decl.params.get(i);
             JmlModifiers mods = (JmlModifiers)decl.mods;
-            if (pr) System.out.println("ARG " + i + " " + decl + " # " + decl.type + " " + mods + "::" + decl.vartype);
+            if (pr) Utils.debugOut().println("ARG " + i + " " + decl + " # " + decl.type + " " + mods + "::" + decl.vartype);
             if (hasTypeAnnotation(decl.vartype, Modifiers.NULLABLE)) return false;
             if (hasTypeAnnotation(decl.vartype, Modifiers.NON_NULL)) return true;
-            if (pr) System.out.println("NNF-B " + mods + " " + utils.hasModOrAnn(mods, Modifiers.NULLABLE) + " " + utils.hasModOrAnn(mods, Modifiers.NON_NULL));
+            if (pr) Utils.debugOut().println("NNF-B " + mods + " " + utils.hasModOrAnn(mods, Modifiers.NULLABLE) + " " + utils.hasModOrAnn(mods, Modifiers.NON_NULL));
             if (utils.hasModOrAnn(mods, Modifiers.NULLABLE)) return false;
             if (utils.hasModOrAnn(mods, Modifiers.NON_NULL)) return true;
         }
@@ -1673,7 +1673,7 @@ public class JmlSpecs {
             // of the caller, because the caller is specifying the value of the type variable
             return defaultNullity((ClassSymbol)caller.owner) == Modifiers.NON_NULL;
         }
-        if (pr) System.out.println("NNF-C " + msym.enclClass()+ " " + defaultNullity(msym.enclClass()));
+        if (pr) Utils.debugOut().println("NNF-C " + msym.enclClass()+ " " + defaultNullity(msym.enclClass()));
         // The default nullity is the default in the class that declares the callee
         return defaultNullity(msym.enclClass()) == Modifiers.NON_NULL;
     }
@@ -1826,27 +1826,27 @@ public class JmlSpecs {
 
     public boolean isPureMethod(MethodSymbol symbol) {
         boolean print = false;//symbol.toString().contains("ok(");
-        if (print) System.out.println("IPM " + symbol.owner + " " + symbol  );
+        if (print) Utils.debugOut().println("IPM " + symbol.owner + " " + symbol  );
         java.util.List<MethodSymbol> overrideList = Utils.instance(context).parents(symbol,true);
         java.util.ListIterator<MethodSymbol> iter = overrideList.listIterator(overrideList.size());
         while (iter.hasPrevious()) {
             MethodSymbol msym = iter.previous();
-            if (print) System.out.println("  CHECKING " + symbol + " " + msym.owner + "." + msym);
+            if (print) Utils.debugOut().println("  CHECKING " + symbol + " " + msym.owner + "." + msym);
             MethodSpecs mspecs = getLoadedSpecs(msym); // Could be null if we are in the middle of generating defaultSpecs
-            if (print) System.out.println("  IPMA " + symbol.owner + "." + symbol + " " + msym.owner + "." + msym + " " + mspecs);
+            if (print) Utils.debugOut().println("  IPMA " + symbol.owner + "." + symbol + " " + msym.owner + "." + msym + " " + mspecs);
             if (mspecs == null) {  // FIXME - observed to happen for in gitbug498 for JMLObjectBag.insert
                 // FIXME - A hack - the .jml file should have been read for org.jmlspecs.lang.JMLList
                 if (msym.toString().equals("size()") && msym.owner.toString().equals(Strings.jmlSpecsPackage + ".JMLList")) return true;
                 boolean isPure =  isPureClass((ClassSymbol)msym.owner);
-                if (isPure && print) System.out.println("  ISPURE-N " + symbol.owner + " " + symbol);
+                if (isPure && print) Utils.debugOut().println("  ISPURE-N " + symbol.owner + " " + symbol);
                 if (isPure) return true;
             } else {
                 boolean isPure = isPureLocal(msym); // Also checks enclosing class
-                if (isPure && print) System.out.println("  ISPURE " + symbol.owner + " " + symbol +  " " + msym.owner + "." + msym);
+                if (isPure && print) Utils.debugOut().println("  ISPURE " + symbol.owner + " " + symbol +  " " + msym.owner + "." + msym);
                 if (isPure) return true;
             }
         }
-        if (print) System.out.println("  NOTPURE " + symbol.owner + " " + symbol);
+        if (print) Utils.debugOut().println("  NOTPURE " + symbol.owner + " " + symbol);
         return false;
     }
 
@@ -1942,10 +1942,10 @@ public class JmlSpecs {
     public JmlToken determinePurity(MethodSymbol msym) {
         boolean print = false && msym.owner.toString().equals("java.util.Collection");
         JmlModifiers mods = getSpecsModifiers(msym);
-        if (print) System.out.println("DP_REQUEST " + msym.owner + " " + msym + " " + mods);
+        if (print) Utils.debugOut().println("DP_REQUEST " + msym.owner + " " + msym + " " + mods);
         if (mods != null) {
             var a = utils.findModifier(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
-            if (print) System.out.println("DIRECT  " + msym.owner + " " + msym + " " + a);
+            if (print) Utils.debugOut().println("DIRECT  " + msym.owner + " " + msym + " " + a);
             if (a != null) return a;
             var an = utils.findMod(mods,  Modifiers.SPEC_PURE, Modifiers.STRICTLY_PURE, Modifiers.PURE, Modifiers.NO_STATE);
             if (an != null) {
@@ -1957,18 +1957,18 @@ public class JmlSpecs {
         JmlToken best = null;
         for (var mp: utils.parents(msym, false)) {
             var p = determinePurity(mp);
-            if (print) System.out.println("DET  " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + p);
+            if (print) Utils.debugOut().println("DET  " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + p);
             if (p == null) continue;
             if (best == null) best = p;
             else if (p.jmlclausekind == Modifiers.NO_STATE) best = p;
             else if (p.jmlclausekind == Modifiers.STRICTLY_PURE) { if (best.jmlclausekind != Modifiers.NO_STATE) best = p; }
             else if (p.jmlclausekind == Modifiers.SPEC_PURE && best.jmlclausekind == Modifiers.PURE) best = p;
-            if (print) System.out.println("OVER " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + best);
+            if (print) Utils.debugOut().println("OVER " + msym.owner + " " + msym + " " + mp.owner + " " + mp + " " + best);
         }
         JmlToken enclosingPurity = null;
         if (msym.owner instanceof ClassSymbol owner) {
             enclosingPurity = determinePurity(owner);
-            if (print) System.out.println("TOCLASS " + msym.owner + " " + msym + " " + enclosingPurity);
+            if (print) Utils.debugOut().println("TOCLASS " + msym.owner + " " + msym + " " + enclosingPurity);
         }
         if (best != null && enclosingPurity != null && best.jmlclausekind != enclosingPurity.jmlclausekind) {
             utils.warning(enclosingPurity.pos, "jml.message",

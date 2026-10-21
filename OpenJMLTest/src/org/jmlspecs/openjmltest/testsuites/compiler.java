@@ -6,6 +6,8 @@ import java.io.ByteArrayOutputStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 import org.junit.*;
 import org.junit.rules.TestName;
 
@@ -1195,4 +1197,29 @@ public class compiler extends JmlTestSuite{
     // FIXME - testAPI
     // FIXME - jmldoc and prettyprinting
 
+    /** --help=warn output goes to the writer given to Main.execute, not System.out (#918) */
+    @Test
+    public void testHelpWarnToWriter() {
+        var sw = new java.io.StringWriter();
+        org.jmlspecs.openjml.Main.execute(new java.io.PrintWriter(sw, true), null, null,
+                new String[] {"--help=warn","-sourcepath",src + "testNoErrors",src + "testNoErrors/A.java"});
+        if (capture) collectSystemOutput(false);
+        assertTrue("Help is missing from the writer: " + sw, sw.toString().contains("missing-measured-by"));
+        assertFalse("Help went to System.out", output().contains("missing-measured-by"));
+    }
+
+    /** Debugging output can be redirected (#918) */
+    @Test
+    public void testDebugOutRedirect() {
+        var bout = new java.io.ByteArrayOutputStream();
+        org.jmlspecs.openjml.Utils.setDebugOut(new java.io.PrintStream(bout, true));
+        try {
+            org.jmlspecs.openjml.Utils.dumpStack("redirected");
+        } finally {
+            org.jmlspecs.openjml.Utils.setDebugOut(null);
+        }
+        if (capture) collectSystemOutput(false);
+        assertTrue(bout.toString().contains("DUMP redirected"));
+        assertFalse(output().contains("DUMP redirected"));
+    }
 }
