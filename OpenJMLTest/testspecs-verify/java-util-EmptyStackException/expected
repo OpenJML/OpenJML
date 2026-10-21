@@ -1,0 +1,5 @@
+Proving methods in java.util.EmptyStackException
+Starting proof of java.util.EmptyStackException.EmptyStackException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.EmptyStackException.EmptyStackException() with prover !!!! - no warnings
+Completed proving methods in java.util.EmptyStackException

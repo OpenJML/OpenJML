@@ -213,11 +213,6 @@ public class escsf3 extends SFBugsBase {
         helpEscSimple();
     }
 
-    @Test @Ignore // FIXME: Bug fixed, but the specs are not complete
-    public void gitbug710() {
-        helpEscFile("test/gitbug710/java/util/IdentityHashMap.java", "test/gitbug710","-cp","test/gitbug710","-no-staticInitWarning","--timeout=300");
-    }
-    
     @Test
     public void gitbug711() {
         helpEscSimple();

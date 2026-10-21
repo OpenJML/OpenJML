@@ -499,4 +499,62 @@ public class feasibility extends EscBase {
                 ,"/tt/TestJava.java:6: verify: There is no feasible path to program point at throw statement in method tt.TestJava.m(int)", 7
                 );
     }
+
+    @Test
+    public void freturnInlined() {
+        // A return in an inlined model program becomes a break; its feasibility check must precede the break
+        helpFeas("return",
+                """
+                package tt;
+                public class TestJava {
+                  //@ public normal_behavior
+                  //@   { return b ? 1 : 0; }
+                  //@ pure
+                  public static int f(boolean b) { return b ? 1 : 0; }
+                  public void m(boolean b) {
+                    int k = f(b);
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void freturnInlinedInfeasible() {
+        // An infeasible return in an inlined model program is reported
+        helpFeas("return",
+                """
+                package tt;
+                public class TestJava {
+                  //@ public normal_behavior
+                  //@   { if (b) return 1; else return 0; }
+                  //@ pure
+                  public static int f(boolean b) { return b ? 1 : 0; }
+                  public void m() {
+                    int k = f(true);
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: There is no feasible path to program point at return statement in method tt.TestJava.m()", 33
+                );
+    }
+
+    @Test
+    public void freturnInfiniteLoop() {
+        // The end of a non-void method cannot be reached, so there is no implicit return to check
+        helpFeas("return",
+                """
+                package tt;
+                public class TestJava {
+                  public int m(int x) {
+                    while (true) {
+                      if (x == 1) return 1;
+                      if (x == 2) return 2;
+                      x = 1;
+                    }
+                  }
+                }
+                """
+                );
+    }
 }

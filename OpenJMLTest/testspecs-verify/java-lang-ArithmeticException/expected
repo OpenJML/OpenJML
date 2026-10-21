@@ -1,0 +1,8 @@
+Proving methods in java.lang.ArithmeticException
+Starting proof of ArithmeticException.ArithmeticException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of ArithmeticException.ArithmeticException() with prover !!!! - no warnings
+Starting proof of ArithmeticException.ArithmeticException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of ArithmeticException.ArithmeticException(String) with prover !!!! - no warnings
+Completed proving methods in java.lang.ArithmeticException

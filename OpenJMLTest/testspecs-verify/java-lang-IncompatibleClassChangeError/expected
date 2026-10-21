@@ -1,0 +1,8 @@
+Proving methods in java.lang.IncompatibleClassChangeError
+Starting proof of IncompatibleClassChangeError.IncompatibleClassChangeError() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of IncompatibleClassChangeError.IncompatibleClassChangeError() with prover !!!! - no warnings
+Starting proof of IncompatibleClassChangeError.IncompatibleClassChangeError(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of IncompatibleClassChangeError.IncompatibleClassChangeError(String) with prover !!!! - no warnings
+Completed proving methods in java.lang.IncompatibleClassChangeError

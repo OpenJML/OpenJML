@@ -1349,7 +1349,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
-				if (continuation == Continuation.CONTINUE) {
+				// javac ensures that the end of a non-void method is not reachable (loops do not update continuation)
+				if (continuation == Continuation.CONTINUE && methodDecl.sym.getReturnType().getTag() == TypeTag.VOID) {
                     addFeasibilityCheck(endpos(methodDecl.body), currentStatements, Strings.feas_return, "at implicit return");
 				}
 				// FIXME - why this continue -- and why only for methods in secondary classes?
@@ -8323,12 +8324,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 
 		if (breakName != null) {
+			addFeasibilityCheck(that, currentStatements, Strings.feas_return, "at return statement"); // before the break, else unreachable
 			JCBreak br = addStat(M.at(p).Break(breakName));
 			br.target = breakNames.get(breakName);
 			if (br.target == null) {
 				// FIXME - error
 			}
-			addFeasibilityCheck(that, currentStatements, Strings.feas_return, "at return statement");
 			result = br;
 			return;
 
@@ -17573,10 +17574,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					treeutils.makeIntLiteral(that, Integer.MAX_VALUE));
 			addAssume(that, Label.IMPLICIT_ASSUME, treeutils.makeAnd(that, bina, binb));
 		}
-		if (that.sym != null && that.sym.name != names._class) {
+		boolean isType = that.sym instanceof TypeSymbol; // e.g. Map.Entry in an extends clause: nothing is read
+		if (that.sym != null && that.sym.name != names._class && !isType) {
 		    checkRW(readableClause, that.sym, trexpr, that);
 		}
-		if (!convertingAssignable && checkAccessEnabled) {
+		if (!convertingAssignable && checkAccessEnabled && !isType) {
 			checkAccess2(accessibleClauseKind, that, that, newfa, true, treeutils.trueLit, true, null, false); // FIXME - condition?
 		}
         if (print) System.out.println("VISITSELECT-B " + that + " " + trexpr + " " + newfa);

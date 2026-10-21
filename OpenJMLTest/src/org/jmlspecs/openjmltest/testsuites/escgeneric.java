@@ -734,4 +734,20 @@ public class escgeneric extends EscBase {
                 """
                 );
     }
+
+    @Test
+    public void testQualifiedGenericSupertype() {
+        // A nested class whose supertype is a class-qualified generic type crashed ESC (EmptyStackException)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                import java.util.AbstractMap;
+                public class TestJava {
+                  static class B extends AbstractMap.SimpleEntry<String,String> {
+                    B() { super("a", "b"); }
+                  }
+                }
+                """
+                );
+    }
 }

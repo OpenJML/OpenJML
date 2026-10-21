@@ -1,0 +1,8 @@
+Proving methods in java.lang.NegativeArraySizeException
+Starting proof of NegativeArraySizeException.NegativeArraySizeException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of NegativeArraySizeException.NegativeArraySizeException() with prover !!!! - no warnings
+Starting proof of NegativeArraySizeException.NegativeArraySizeException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of NegativeArraySizeException.NegativeArraySizeException(String) with prover !!!! - no warnings
+Completed proving methods in java.lang.NegativeArraySizeException

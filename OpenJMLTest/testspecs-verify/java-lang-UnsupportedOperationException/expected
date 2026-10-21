@@ -1,0 +1,14 @@
+Proving methods in java.lang.UnsupportedOperationException
+Starting proof of UnsupportedOperationException.UnsupportedOperationException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of UnsupportedOperationException.UnsupportedOperationException() with prover !!!! - no warnings
+Starting proof of UnsupportedOperationException.UnsupportedOperationException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of UnsupportedOperationException.UnsupportedOperationException(String) with prover !!!! - no warnings
+Starting proof of UnsupportedOperationException.UnsupportedOperationException(String,Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of UnsupportedOperationException.UnsupportedOperationException(String,Throwable) with prover !!!! - no warnings
+Starting proof of UnsupportedOperationException.UnsupportedOperationException(Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of UnsupportedOperationException.UnsupportedOperationException(Throwable) with prover !!!! - no warnings
+Completed proving methods in java.lang.UnsupportedOperationException

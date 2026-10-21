@@ -388,7 +388,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
  
     /** Returns (creating if necessary) a class symbol for a given fully-qualified name */
     public ClassSymbol createClass(String fqName) {
-        return classReader.enterClass(Names.instance(context).fromString(fqName));
+        // All such classes are in java.base; ClassReader.currentModule is whatever module was last read, or null
+        return syms.enterClass(syms.java_base, Names.instance(context).fromString(fqName));
     }
     
     protected Env<AttrContext> getAppropriateClassEnv(ClassSymbol sym) {
