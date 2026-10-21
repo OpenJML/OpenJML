@@ -130,6 +130,7 @@ escfiles.valuestrings           # string specs
 escfiles3.gitbug814d              # variable output: which warning is reported first varies from run to run (12 accepted expected files, still not all)
 escfiles.bag                     # warning order nondeterministic under --esc-max-warnings=1; test source is the original submission
 escfunction.testMethodAxioms2    # intermittent: z3 MBQI answers unknown; outcome flips with unrelated changes to the SMT text
+escfiles3.gitbug1018             # nondeterministic: the order of the four ArithmeticCastRange warnings in safeMode varies (#1028); expected/expected2 hold two orders
 escfiles2.gitbug450b		#	ArrayList contains
 escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfileslist1.test[choose-repeat]

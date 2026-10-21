@@ -31,9 +31,9 @@ test/jmlTYPE/Test.java:79: verify: The prover cannot establish an assertion (Und
 $SPECS/org/jmlspecs/lang/internal/TYPE.jml:145: verify: Associated declaration
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/TYPE.jml:76: verify: Precondition conjunct is false: null != null
-    //@ public normal_behavior
-                            ^
+test/jmlTYPE/Test.java:79: verify: Precondition conjunct is false: null != null
+            //@ check \type(Integer).equals(null); // ERROR
+                                            ^
 Completed proof of Test.errors5() with prover !!!! - with warnings
 Starting proof of Test.errors6() with prover !!!!
 test/jmlTYPE/Test.java:87: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors6
@@ -89,9 +89,9 @@ test/jmlTYPE/Test.java:168: verify: The prover cannot establish an assertion (Un
 $SPECS/org/jmlspecs/lang/internal/TYPE.jml:23: verify: Associated declaration
     public static TYPE of(Class<?> h);
                        ^
-$SPECS/org/jmlspecs/lang/internal/TYPE.jml:147: verify: Precondition conjunct is false: _JML__tmp`2842 != null
-}
-^
+test/jmlTYPE/Test.java:168: verify: Precondition conjunct is false: _JML__tmp`2672 != null
+            //@ ghost \TYPE tt = \TYPE.of(c); // ERROR -- c is null
+                                          ^
 Completed proof of Test.misc2() with prover !!!! - with warnings
 Skipping proof of Test.misc3() (excluded by skipesc)
 Starting proof of Test.typelcTests() with prover !!!!

@@ -14,9 +14,9 @@ test/jmlrange/Trange.java:28: verify: The prover cannot establish an assertion (
 $SPECS/org/jmlspecs/lang/internal/range.jml:83: verify: Associated declaration
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/range.jml:33: verify: Precondition conjunct is false: null != null
-    //-RAC@   ensures \result.lo == lo;
-                       ^
+test/jmlrange/Trange.java:28: verify: Precondition conjunct is false: null != null
+            //@ check r1.equals(null); // ERROR
+                                ^
 Completed proof of Trange.misc() with prover !!!! - with warnings
 Starting proof of Trange.equality(int,int) with prover !!!!
 Feasibility check - end of preconditions : OK

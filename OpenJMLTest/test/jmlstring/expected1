@@ -40,9 +40,9 @@ test/jmlstring/TString.java:32: verify: The prover cannot establish an assertion
 $SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration
     public static string of(String s);  // s is non_null by default
                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:31: verify: Precondition conjunct is false: _JML__tmp`416 != null
-    //@ private normal_behavior
-                           ^
+test/jmlstring/TString.java:32: verify: Precondition conjunct is false: _JML__tmp`416 != null
+        //@ ghost \string ss = sn;
+                               ^
 Completed proof of TString.errors4() with prover !!!! - with warnings
 Starting proof of TString.errors5() with prover !!!!
 test/jmlstring/TString.java:41: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
@@ -51,9 +51,9 @@ test/jmlstring/TString.java:41: verify: The prover cannot establish an assertion
 $SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration
     public static string of(String s);  // s is non_null by default
                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:36: verify: Precondition conjunct is false: _JML__tmp`704 != null
-    private string(String s);  // s is non_null by default
-                                           ^
+test/jmlstring/TString.java:41: verify: Precondition conjunct is false: _JML__tmp`704 != null
+        //@ ghost \string ss = (\string)sn;
+                                        ^
 Completed proof of TString.errors5() with prover !!!! - with warnings
 Starting proof of TString.errors6() with prover !!!!
 test/jmlstring/TString.java:50: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors6
@@ -62,9 +62,9 @@ test/jmlstring/TString.java:50: verify: The prover cannot establish an assertion
 $SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration
     public static string of(String s);  // s is non_null by default
                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:46: verify: Precondition conjunct is false: _JML__tmp`998 != null
-    //-RAC@   ensures \result <==> this.length == \bigint.zero;
-     ^
+test/jmlstring/TString.java:50: verify: Precondition conjunct is false: _JML__tmp`998 != null
+        //@ ghost \string ss = \string.of(sn);
+                                          ^
 Completed proof of TString.errors6() with prover !!!! - with warnings
 Starting proof of TString.errors7() with prover !!!!
 test/jmlstring/TString.java:58: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors7
@@ -73,9 +73,9 @@ test/jmlstring/TString.java:58: verify: The prover cannot establish an assertion
 $SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration
     public static string of(String s);  // s is non_null by default
                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:53: verify: Precondition conjunct is false: null != null
-    //-RAC@   ensures \result == length;
-                ^
+test/jmlstring/TString.java:58: verify: Precondition conjunct is false: null != null
+        //@ ghost \string ss = \string.of(null);
+                                          ^
 Completed proof of TString.errors7() with prover !!!! - with warnings
 Starting proof of TString.errors8() with prover !!!!
 test/jmlstring/TString.java:67: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8

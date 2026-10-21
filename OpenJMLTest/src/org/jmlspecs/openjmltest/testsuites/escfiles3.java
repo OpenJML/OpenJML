@@ -462,6 +462,11 @@ public class escfiles3 extends EscBaseFiles {
     public void argnullity() {
         helpEscSimple();
     }
+
+    @Test
+    public void nonnullFormalPosition() {
+        helpEscFile("test/nonnullFormalPosition/TestJava.java", "test/nonnullFormalPosition", "-sourcepath", "test/nonnullFormalPosition", "--method=m");
+    }
     
     @Test
     public void returnNullity() {

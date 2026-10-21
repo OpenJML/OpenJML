@@ -327,7 +327,7 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
-    public void escPatchModuleInfo() {
+    public void patchModuleInfo() {
         // A --patch-module folder holding a module-info.java crashed OpenJML at startup
         helpEscFile("test/patchModuleInfo/java/lang/PatchTiny.java","test/patchModuleInfo","--patch-module=java.base=test/patchModuleInfo");
     }

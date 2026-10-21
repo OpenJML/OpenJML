@@ -7,12 +7,12 @@ Starting proof of ArgNullity.m1(@Nullable Integer) with prover !!!!
 test/argnullity/ArgNullity.java:12: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m1
     //@ ghost var s1 = zznn.insert(0,in); // FAILS
                                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:109: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:14: verify: Precondition conjunct is false: _JML__tmp`40 != null
-    public final bigint length;
-                         ^
+test/argnullity/ArgNullity.java:12: verify: Precondition conjunct is false: _JML__tmp`40 != null
+    //@ ghost var s1 = zznn.insert(0,in); // FAILS
+                                     ^
 Completed proof of ArgNullity.m1(@Nullable Integer) with prover !!!! - with warnings
 Starting proof of ArgNullity.m2(@Nullable Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -30,12 +30,12 @@ Starting proof of ArgNullity.m5(Integer) with prover !!!!
 test/argnullity/ArgNullity.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m5
     //@ ghost var s5 = zznn.insert(0,in); // FAILS
                                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:109: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:37: verify: Precondition conjunct is false: _JML__tmp`228 != null
-    //@   reads t[*], t.length;
-                   ^
+test/argnullity/ArgNullity.java:28: verify: Precondition conjunct is false: _JML__tmp`228 != null
+    //@ ghost var s5 = zznn.insert(0,in); // FAILS
+                                     ^
 Completed proof of ArgNullity.m5(Integer) with prover !!!! - with warnings
 Completed proving methods in ArgNullity
 Proving methods in ArgNullity2
@@ -47,12 +47,12 @@ Starting proof of ArgNullity2.mm1(@Nullable Integer) with prover !!!!
 test/argnullity/ArgNullity.java:42: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm1
     //@ ghost var s1 = zznn.insert(0,in); // FAILS
                                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:109: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:45: verify: Precondition conjunct is false: _JML__tmp`40 != null
-    //-RAC@   ensures \result.length == t.length;
-                                      ^
+test/argnullity/ArgNullity.java:42: verify: Precondition conjunct is false: _JML__tmp`40 != null
+    //@ ghost var s1 = zznn.insert(0,in); // FAILS
+                                     ^
 Completed proof of ArgNullity2.mm1(@Nullable Integer) with prover !!!! - with warnings
 Starting proof of ArgNullity2.mm2(@Nullable Integer) with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -62,11 +62,11 @@ Starting proof of ArgNullity2.mm3(@Nullable Integer) with prover !!!!
 test/argnullity/ArgNullity.java:50: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm3
     //@ ghost var s3 = zz.insert(0,in); // FAILS
                                 ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:108: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:109: verify: Associated declaration
     public seq<T> insert(bigint j, T v);
                   ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:53: verify: Precondition conjunct is false: _JML__tmp`134 != null
-    //-RAC@  ensures \result == this[i];
+test/argnullity/ArgNullity.java:50: verify: Precondition conjunct is false: _JML__tmp`134 != null
+    //@ ghost var s3 = zz.insert(0,in); // FAILS
                                    ^
 Completed proof of ArgNullity2.mm3(@Nullable Integer) with prover !!!! - with warnings
 Starting proof of ArgNullity2.mm4(@NonNull Integer) with prover !!!!
