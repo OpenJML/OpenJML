@@ -86,6 +86,17 @@ public class escfpfiles extends EscBaseFiles {
         helpEscSimple();
     }
     
+    // JMLFloatingApprox verifies; each claim in JMLFloatingApproxBad is false and must fail
+    @Test
+    public void gitbug744() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug744real() {
+        helpEscName("gitbug744", "--fpreal");
+    }
+
     @Test
     public void gitbug751() {
         expectedExit = 0;
