@@ -50,7 +50,7 @@ public class DatatypeExt extends JmlExtension {
             parser.nextToken();
             Name datatypeName = parser.ident(); // Simple name of the datatype
             List<JCTypeParameter> typarams = parser.typeParametersOpt();
-            System.out.println("Parsing datatype named " + datatypeName.toString());
+            Utils.debugOut().println("Parsing datatype named " + datatypeName.toString());
             parser.accept(TokenKind.LBRACE);
             Names names = Names.instance(parser.context);
             ListBuffer<JCTree> defs = new ListBuffer<>();
@@ -110,7 +110,7 @@ public class DatatypeExt extends JmlExtension {
             d.pos = pos;
             Utils.setJML(d.mods);
             while (parser.isEndJml()) parser.nextToken();
-            System.out.println(d.toString());
+            Utils.debugOut().println(d.toString());
             return d;
             
             // No upper or lower bounds on type parameters

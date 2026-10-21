@@ -338,7 +338,7 @@ public class MethodProverSMT {
             return factory.makeProverResult(methodDecl,proverToUse,IProverResult.ERROR,null).setOtherInfo(d);
         }
         String exec = pickProverExec(proverToUse, context); // null: jSMTLIB finds it from the solver name
-        if (debugSMT) System.out.println("Solver in use: " + proverExec(proverToUse, context));
+        if (debugSMT) Utils.debugOut().println("Solver in use: " + proverExec(proverToUse, context));
         
         IProverResult proofResultAccumulated = null;
         IProverResult proofResult = null;
@@ -1254,7 +1254,7 @@ public class MethodProverSMT {
                     if (s.id == null || !s.id.startsWith("ACHECK")) continue;
                     if (s.optionalExpression != null) {
                         log.getWriter(WriterKind.NOTICE).println("FOUND " + s.id);
-                        System.out.println("FOUND " + s.id + " " + pathCondition);
+                        Utils.debugOut().println("FOUND " + s.id + " " + pathCondition);
                         return pathCondition;
                     }
                 }
@@ -1467,7 +1467,7 @@ public class MethodProverSMT {
     public JCExpression reportInvalidAssertion(BasicProgram.BasicBlock block, Info info, int terminationPos, JCExpression pathCondition) {
         String id = block.id.name.toString();
         Boolean value = getBoolValue(id,info.smt,info.solver);
-        System.out.println("Block " + id + " is " + value );
+        Utils.debugOut().println("Block " + id + " is " + value );
         if (value == null) {
             // FIXME - error and what to do ?
             return null;
@@ -1481,7 +1481,7 @@ public class MethodProverSMT {
         }
         terminationPos = checkTerminationPosition(id,terminationPos);
         pathCondition = JmlTreeUtils.instance(context).makeOr(Position.NOPOS,pathCondition,block.id);
-        System.out.println("Block " + id + " is " + value + " # " + pathCondition);
+        Utils.debugOut().println("Block " + id + " is " + value + " # " + pathCondition);
         
         //showTrace = true;
         // FIXME - would like to have a range, not just a single position point,
@@ -1508,7 +1508,7 @@ public class MethodProverSMT {
                         String b = getValue(ns,info.smt,info.solver);
                         String label = ns.substring(prefix_lbl.length(),k); 
                         JCExpression eshow = jmlesc.assertionAdder.showExpressions.get(label);
-                        System.out.println(label + " " + eshow);
+                        Utils.debugOut().println(label + " " + eshow);
                         if (b == null) utils.verify(stat,"esc.label.value",label,"is unknown"); //$NON-NLS-1$
                         else if (eshow == null) utils.verify(stat,"esc.label.value",label,b); //$NON-NLS-1$
                         else utils.verify(stat,"esc.label.value",eshow.toString(),b);

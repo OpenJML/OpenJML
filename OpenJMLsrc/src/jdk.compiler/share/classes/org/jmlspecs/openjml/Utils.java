@@ -215,7 +215,7 @@ public class Utils {
      * @param context The compilation context
      */
     protected Utils(Context context) {
-        if (Utils.debugInst) System.out.println("UTILS");
+        if (Utils.debugInst) Utils.debugOut().println("UTILS");
         this.context = context;
         context.put(utilsKey, this);
         init();
@@ -1511,7 +1511,7 @@ public class Utils {
 
     /** This is a predicate that can be used in a debugging condition */
     public static boolean print(String s) {
-        if (s != null) System.out.println(s);
+        if (s != null) Utils.debugOut().println(s);
         return true;
     }
     
@@ -2114,7 +2114,7 @@ public class Utils {
     
     public void unexpectedException(Throwable e, String msg) {
         error("jml.internal","Unexpected exception: " + msg + " " + e);
-        e.printStackTrace(System.out);
+        Utils.conditionalPrintStack(e);
     }
 
     /** This method checks that a condition that is expected to always be tree is actually true.
@@ -2154,20 +2154,41 @@ public class Utils {
         return jmlverbose >= Utils.PROGRESS;
     }
 
+    /** Where debugging output goes (OJ and verbose tracing, internal-error details); null means the current System.out */
+    private static volatile java.io.PrintStream debugStream = null;
+
+    /** The destination for debugging output; by default the current System.out (#918) */
+    public static java.io.PrintStream debugOut() {
+        var s = debugStream;
+        return s != null ? s : System.out;
+    }
+
+    /** Redirects debugging output; null restores the default (the current System.out) */
+    public static void setDebugOut(java.io.PrintStream s) {
+        debugStream = s;
+    }
+
     public static void dumpStack() {
-        new RuntimeException().printStackTrace(System.out); // Thread.dumpStack() goes to Stderr
+        new RuntimeException().printStackTrace(debugOut()); // Thread.dumpStack() goes to Stderr
     }
     
     public static void dumpStack(String message) {
-        System.out.println("DUMP " + message);
+        debugOut().println("DUMP " + message);
         dumpStack();
     }
 
+    static final boolean showStacks = System.getenv("STACK") != null;
+
     public static void conditionalPrintStack(String heading, Throwable e) {
-        if (System.getenv("STACK") != null) {
-            System.out.println(heading);
-            e.printStackTrace(System.out);
+        if (showStacks) {
+            debugOut().println(heading);
+            e.printStackTrace(debugOut());
         }
+    }
+
+    /** Prints the stack trace of an internal error only if the STACK environment variable is set */
+    public static void conditionalPrintStack(Throwable e) {
+        if (showStacks) e.printStackTrace(debugOut());
     }
 
 //    // FIXME - move this

@@ -250,7 +250,7 @@ public class JmlOption {
                 Log.instance(context).error("jml.internal", "null option value in JmlOption.WARN.check");
             } else {
                 if ("list".equals(val)) {
-                    System.out.print(warnings.list()); System.out.flush(); // FIXME - use Log.out() or something like that?
+                    Utils.debugOut().print(warnings.list()); Utils.debugOut().flush(); // FIXME - use Log.out() or something like that?
                 } else if ("reset".equals(val) || val.isEmpty()) {
                     warnings.reset();
                 } else if ("all".equals(val)) {
@@ -282,7 +282,7 @@ public class JmlOption {
                 Log.instance(context).error("jml.internal", "null option value in JmlOption.INFER.check");
             } else {
                 if ("list".equals(val)) {
-                    System.out.print(infermap.list()); System.out.flush(); // FIXME - use Log.out() or something like that?
+                    Utils.debugOut().print(infermap.list()); Utils.debugOut().flush(); // FIXME - use Log.out() or something like that?
                 } else if ("reset".equals(val) || val.isEmpty()) {
                     infermap.reset();
                 } else if ("all".equals(val)) {

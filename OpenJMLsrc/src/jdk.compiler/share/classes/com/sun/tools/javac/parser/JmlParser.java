@@ -128,7 +128,7 @@ public class JmlParser extends JavacParser {
         }
         this.S = S;
         this.jmlF = (JmlTree.Maker) F;
-        if (org.jmlspecs.openjml.Utils.debug("scanner")) System.out.println("NEW JmlParser id=" + System.identityHashCode(this) + " scanner-id=" + System.identityHashCode(S) + " context-id=" + System.identityHashCode(S.context) + " thread=" + Thread.currentThread().getName());
+        if (org.jmlspecs.openjml.Utils.debug("scanner")) Utils.debugOut().println("NEW JmlParser id=" + System.identityHashCode(this) + " scanner-id=" + System.identityHashCode(S) + " context-id=" + System.identityHashCode(S.context) + " thread=" + Thread.currentThread().getName());
     }
     
     public int getStartPos(JCTree tree) {

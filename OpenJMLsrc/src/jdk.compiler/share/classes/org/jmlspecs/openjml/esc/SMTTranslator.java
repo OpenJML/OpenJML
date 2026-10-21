@@ -1352,7 +1352,7 @@ public class SMTTranslator extends JmlTreeScanner {
             ICommand c = cf.smtFactory.createParser(cf,cf.smtFactory.createSource(command,null)).parseCommand();
             return c;
         } catch (Exception e) {
-            System.out.println("BAD COMMAND: " + command);
+            Utils.debugOut().println("BAD COMMAND: " + command);
             throw new RuntimeException(e);
         }
     }
@@ -1364,7 +1364,7 @@ public class SMTTranslator extends JmlTreeScanner {
             IExpr e = cf.smtFactory.createParser(cf,cf.smtFactory.createSource(expr,null)).parseExpr();
             return e;
         } catch (Exception e) {
-            System.out.println("BAD EXPR: " + expr);
+            Utils.debugOut().println("BAD EXPR: " + expr);
             throw new RuntimeException(e);
         }
     }
@@ -1933,7 +1933,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 ISymbol sss = (ISymbol)jmlTypeSymbol(t);
                 return F.createSortExpression( sss, sorts);
             } else {
-                System.out.println("ADDING TYPE " + t);
+                Utils.debugOut().println("ADDING TYPE " + t);
                 addType(t);
 //                return F.createSortExpression((ISymbol)jmlTypeSymbol(t));
                 return F.createSortExpression((ISymbol)javaTypeSymbol(t));            }
@@ -2508,7 +2508,7 @@ public class SMTTranslator extends JmlTreeScanner {
               case 2: result = F.fcn(F.symbol("_JMLT_" + n), head, newargs.get(1), newargs.get(2)); break;
               case 3: result = F.fcn(F.symbol("_JMLT_" + n), head, newargs.get(1), newargs.get(2), newargs.get(3)); break;
               default: {
-                System.out.println("SMTTranslator not implemented for more than 3 type arguments: " + n);
+                Utils.debugOut().println("SMTTranslator not implemented for more than 3 type arguments: " + n);
                 result = F.fcn(F.symbol("_JMLT_" + n), newargs.get(0), newargs.get(1), newargs.get(2));
                 break;
               }
@@ -2695,10 +2695,10 @@ public class SMTTranslator extends JmlTreeScanner {
 
     @Override
     public void visitBinary(JCBinary tree) {
-    	if (tree.lhs == null) System.out.println("NULL LHS IN " + tree);
-    	else if (tree.lhs.type == null) System.out.println("NULL LHS TYPE IN " + tree);
-    	if (tree.rhs == null) System.out.println("NULL RHS IN " + tree);
-    	else if (tree.rhs.type == null) System.out.println("NULL RHS TYPE IN " + tree);
+    	if (tree.lhs == null) Utils.debugOut().println("NULL LHS IN " + tree);
+    	else if (tree.lhs.type == null) Utils.debugOut().println("NULL LHS TYPE IN " + tree);
+    	if (tree.rhs == null) Utils.debugOut().println("NULL RHS IN " + tree);
+    	else if (tree.rhs.type == null) Utils.debugOut().println("NULL RHS TYPE IN " + tree);
     	try {
         JCTree.Tag op = tree.getTag();
         IExpr lhs = convertExpr(tree.lhs);
@@ -2970,7 +2970,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         result = F.fcn(F.symbol("div"), args);
                     }
                 } else {
-                    System.out.println("SMT SL BAD " + tree);
+                    Utils.debugOut().println("SMT SL BAD " + tree);
                     notImplBV(tree, "Bit-operation " + op);
                 }
                 break;
@@ -3039,8 +3039,8 @@ public class SMTTranslator extends JmlTreeScanner {
     	    throw e;
         } catch (Exception e) {
             log.error("jml.internal","Exception while translating expression to SMTLIB: " + JmlPretty.write(tree));
-        	System.out.println("EXCEPTION IN SUBEXPR OF " + tree);
-        	e.printStackTrace(System.out);
+        	Utils.debugOut().println("EXCEPTION IN SUBEXPR OF " + tree);
+        	Utils.conditionalPrintStack(e);
         	throw e;
         }
     }
@@ -3251,12 +3251,12 @@ public class SMTTranslator extends JmlTreeScanner {
                 }
             }
         } else if (!treeIsPrim) {
-            System.out.println("TYPECAST-A " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
+            Utils.debugOut().println("TYPECAST-A " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
             // Cast from primitive to object
         	utils.error(tree,"jml.internal","Do not expect casts to reference type in expressions: " + JmlPretty.write(tree));
         } else {
             // unboxing cast from object to primitive
-            System.out.println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
+            Utils.debugOut().println("TYPECAST " + tree.expr.type + " TO " + tree.type + " " + exprIsPrim + " " + treeIsPrim);
         	utils.error(tree,"jml.internal","Do not expect casts from reference type in expressions: " + tage + " -> " + tagr + " in " + JmlPretty.write(tree));
             TypeTag tag = tree.type.getTag();
             switch (tag) {

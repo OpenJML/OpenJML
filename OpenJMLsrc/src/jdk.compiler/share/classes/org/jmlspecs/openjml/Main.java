@@ -210,8 +210,8 @@ public class Main extends com.sun.tools.javac.main.Main {
                 newargs[2] = "org.jmlspecs.openjml.Main";
                 method.invoke(null, new Object[] { newargs });
             } catch (Exception e) {
-                System.out.println("Main exiting with exception");
-                e.printStackTrace(System.out);
+                Utils.debugOut().println("Main exiting with exception");
+                e.printStackTrace(Utils.debugOut());
                 System.exit(Result.SYSERR.exitCode);
             }
         } else {
@@ -520,7 +520,7 @@ public class Main extends com.sun.tools.javac.main.Main {
             return compile(args, context());
         } catch (JmlInternalAbort e) {
             log.error("jml.message", "Unrecoverable compilation problem");
-            if (System.getenv("STACK") != null) e.printStackTrace(System.out);
+            if (System.getenv("STACK") != null) Utils.conditionalPrintStack(e);
             return Main.Result.CMDERR;
         } finally {
             this.mockFiles = new org.openjml.MockFiles();
@@ -664,7 +664,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         appln.accept("Prover:           " + org.jmlspecs.openjml.esc.JmlEsc.pickProver(context));
         appln.accept("Prover exec:      " + org.jmlspecs.openjml.esc.MethodProverSMT.proverExec(org.jmlspecs.openjml.esc.JmlEsc.pickProver(context), context));
         appln.accept("CWD:              " + System.getProperty("user.name"));
-        System.out.print(sb.toString());
+        Utils.debugOut().print(sb.toString());
     }
 
 

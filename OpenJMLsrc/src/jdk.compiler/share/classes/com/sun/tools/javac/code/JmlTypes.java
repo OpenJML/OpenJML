@@ -411,7 +411,7 @@ public class JmlTypes extends Types {
         try {
             return ClassReader.instance(context).enterClass(Names.instance(context).fromString(fqName));
         } catch (Throwable t) {
-            t.printStackTrace(System.out);
+            Utils.conditionalPrintStack(t);
             return null;
         }
     }

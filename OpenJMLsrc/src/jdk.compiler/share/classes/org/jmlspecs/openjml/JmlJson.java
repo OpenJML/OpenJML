@@ -311,7 +311,7 @@ public class JmlJson {
         } else if (f.isJsonObject()) {
             return fromJsonObject(f.getAsJsonObject());
         } else if (f.isJsonPrimitive()) {
-            System.out.println("PRIMITIVE FOR " + f.getAsJsonPrimitive());
+            Utils.debugOut().println("PRIMITIVE FOR " + f.getAsJsonPrimitive());
             return null;
         } else if (f.isJsonNull()) {
             return null;
@@ -347,8 +347,8 @@ public class JmlJson {
                 return p.isJsonNull() ? null : p.getAsJsonPrimitive().getAsString();
             } else {
                 log.error("jml.message","Failed to create an object for a given Json object, with class field \"" + s + "\": " + e);
-                System.out.println(json);
-                e.printStackTrace(System.out);
+                Utils.debugOut().println(json);
+                Utils.conditionalPrintStack(e);
                 return null;
             }
         }
@@ -447,7 +447,7 @@ public class JmlJson {
                     }
                 }
             } catch (IllegalAccessException e) {
-                System.out.println(e);
+                Utils.debugOut().println(e);
             }
         }
         
@@ -488,7 +488,7 @@ public class JmlJson {
                 }
             } catch (Exception e) {
                 log.error("jml.internal", "Failure to serialize an input of type " + src.getClass() + ": " + e);
-                e.printStackTrace(System.out);
+                Utils.conditionalPrintStack(e);
             }
             return null;
         }

@@ -179,7 +179,7 @@ public class JmlCompiler extends JavaCompiler {
         k = s.indexOf('.');
         s = s.substring(0,k); // filename without suffix or directory
         name += s; // fully qualified class name
-        if (debugParse) System.out.println("parser: Seeking specfile for name: " + name);
+        if (debugParse) Utils.debugOut().println("parser: Seeking specfile for name: " + name);
         var specFile = JmlSpecs.instance(context).findSpecFile(name); // returns null if not found
         if (specFile == null) {
             // No spec file on specspath. Last resort is to look for a sibling of the source file.
@@ -189,7 +189,7 @@ public class JmlCompiler extends JavaCompiler {
                     new Dir.FileSystemDir(path.getParent().toString()).findFile(path.getFileName().toString().replace(".java",".jml"), context),
                     context);
         }
-        if (debugParse) System.out.println("parser:     Found " + specFile);
+        if (debugParse) Utils.debugOut().println("parser:     Found " + specFile);
         return specFile;
     }
     
@@ -200,9 +200,9 @@ public class JmlCompiler extends JavaCompiler {
                             Iterable<? extends Processor> processors,
                             Collection<String> addModules) {
         if (Utils.debug("paths")) {
-            System.out.println("classpath:  " + Utils.join(":",JmlSpecs.instance(context).getClassPath()));
-            System.out.println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
-            System.out.println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
+            Utils.debugOut().println("classpath:  " + Utils.join(":",JmlSpecs.instance(context).getClassPath()));
+            Utils.debugOut().println("sourcepath: " + Utils.join(":",JmlSpecs.instance(context).getSourcePath()));
+            Utils.debugOut().println("specspath:  " + Utils.join(":",JmlSpecs.instance(context).getSpecsPath()));
         }
 
         super.compile(sourceFileObjects, classnames, processors, addModules);
@@ -215,7 +215,7 @@ public class JmlCompiler extends JavaCompiler {
             var compunits = super.parseFiles(fileObjects);
             if (JmlOption.SHOW.includes(context,"ast")) {
                 for (var cu: compunits) {
-                    System.out.println(JmlAstPrinter.print(cu, context));
+                    Utils.debugOut().println(JmlAstPrinter.print(cu, context));
                     //                        if (specCU != null) {
                     //                            System.out.println(JmlAstPrinter.print(specCU, context));
                     //                        }
@@ -420,7 +420,7 @@ public class JmlCompiler extends JavaCompiler {
         var charSeq = readSource(filename);
         boolean sourceRead = charSeq != null; // false if the file could not be read (readSource reported the error)
         try {
-            if (debugParse) System.out.println("parser: About to parse: " + filename + (noJML?" (ignoring JML)":""));
+            if (debugParse) Utils.debugOut().println("parser: About to parse: " + filename + (noJML?" (ignoring JML)":""));
             // charSeq is null if the file could not be read; readSource has then reported the error, and
             // the source is parsed (by javac) as an empty compilation unit, without looking for a specs file
             if (sourceRead && filename.getKind() == JavaFileObject.Kind.SOURCE) {
@@ -449,7 +449,7 @@ public class JmlCompiler extends JavaCompiler {
         		javaCU.specsCompilationUnit = javaCU;
                 javaCU.sourceCU = javaCU;
         	}
-        	if (debugParse) System.out.println("parser: Parsed " + filename + " " + specFile + " " + " Classes: " + Utils.join(" ",javaCU.defs.stream().filter(d->d instanceof JmlClassDecl).map(d->((JmlClassDecl)d).name.toString())));
+        	if (debugParse) Utils.debugOut().println("parser: Parsed " + filename + " " + specFile + " " + " Classes: " + Utils.join(" ",javaCU.defs.stream().filter(d->d instanceof JmlClassDecl).map(d->((JmlClassDecl)d).name.toString())));
             
             // A file that could not be read is parsed as an empty stand-in; there is no AST to check
         	if (sourceRead) org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, javaCU, filename);
@@ -457,9 +457,9 @@ public class JmlCompiler extends JavaCompiler {
             String ss = JmlOption.SHOW.value(context);
             if (javaCU != null && ss != null) {
                 if (ss.contains("ast") && filename.toString().contains("Test.java")) { // FIXME - fix this to show user-designated file
-                    System.out.println(JmlAstPrinter.print(javaCU, context));
+                    Utils.debugOut().println(JmlAstPrinter.print(javaCU, context));
                     if (specCU != null) {
-                        System.out.println(JmlAstPrinter.print(specCU, context));
+                        Utils.debugOut().println(JmlAstPrinter.print(specCU, context));
                     }
                 }
             }
@@ -488,9 +488,9 @@ public class JmlCompiler extends JavaCompiler {
     /*@Nullable*/
     public JmlCompilationUnit parseSpecs(ClassSymbol typeSymbol) {
     	// TODO - what output writer to use?
-        if (debugParse) System.out.println("parser: Seeking specfile for type symbol: " + typeSymbol + " " + typeSymbol.hashCode());
+        if (debugParse) Utils.debugOut().println("parser: Seeking specfile for type symbol: " + typeSymbol + " " + typeSymbol.hashCode());
         JavaFileObject specFile = JmlSpecs.instance(context).findSpecFile(typeSymbol);
-    	if (debugParse) System.out.println("parser: Parsing specs " + typeSymbol + " " + specFile);
+    	if (debugParse) Utils.debugOut().println("parser: Parsing specs " + typeSymbol + " " + specFile);
         if (specFile == null) return null;
 
         JmlCompilationUnit specCU = null;
@@ -509,7 +509,7 @@ public class JmlCompiler extends JavaCompiler {
             specCU = (JmlCompilationUnit)super.parse(specFile);
         }
 
-    	if (debugParse && specCU == null) System.out.println("parser: Parsing failed: " + specFile);
+    	if (debugParse && specCU == null) Utils.debugOut().println("parser: Parsing failed: " + specFile);
         if (specCU == null) return null;
         
         // Successful parse. Check that the package is correct.
@@ -535,7 +535,7 @@ public class JmlCompiler extends JavaCompiler {
         specCU.specsCompilationUnit = specCU;
         specCU.sourceCU = null;
         org.jmlspecs.openjml.visitors.JmlCheckParsedAST.check(context, specCU, specFile);
-        if (debugParse) System.out.println("parser: Parsed specs " + typeSymbol + " " + specFile);
+        if (debugParse) Utils.debugOut().println("parser: Parsed specs " + typeSymbol + " " + specFile);
         return specCU;
     }
 
@@ -574,7 +574,7 @@ public class JmlCompiler extends JavaCompiler {
 //        }
 
         if (JmlOption.SHOW.includes(context, "typed-ast")) {
-            for (var env: results) if (((JmlCompilationUnit)env.toplevel).sourcefile.toString().contains(".java")) System.out.println(JmlAstPrinter.print(env.toplevel, context));
+            for (var env: results) if (((JmlCompilationUnit)env.toplevel).sourcefile.toString().contains(".java")) Utils.debugOut().println(JmlAstPrinter.print(env.toplevel, context));
         }
 
         if (JmlOption.SHOW.includes(context, "typed-json")) {
@@ -622,7 +622,7 @@ public class JmlCompiler extends JavaCompiler {
         if (utils.check) {
             if (JmlOption.SHOW.includes(context,"program","all")) { 
                 //envs.stream().forEach(e->System.out.println(e.toplevel.sourcefile));
-                envs.stream().filter(e->e.toplevel.sourcefile.getKind() == JavaFileObject.Kind.SOURCE).forEach(e->System.out.println(e.toplevel.toString()));
+                envs.stream().filter(e->e.toplevel.sourcefile.getKind() == JavaFileObject.Kind.SOURCE).forEach(e->Utils.debugOut().println(e.toplevel.toString()));
             }
             return noresults; // Empty list - do nothing more
         } else if (utils.doc) {
@@ -678,7 +678,7 @@ public class JmlCompiler extends JavaCompiler {
     // FIXME _ review
     /** Does the RAC processing on the argument. */
     protected Env<AttrContext> rac(Env<AttrContext> env) {
-        if (debugCompiler) System.out.println("Starting rac");
+        if (debugCompiler) Utils.debugOut().println("Starting rac");
         JCTree tree = env.tree;
         PrintWriter noticeWriter = log.getWriter(WriterKind.NOTICE);
         //System.out.println("RACING " + env.tree.getClass() + " " + env.toplevel.sourcefile);
@@ -795,7 +795,7 @@ public class JmlCompiler extends JavaCompiler {
      * @param env the env for a class
      */ // FIXME - check that we always get classes, not CUs and adjust the logic accordingly
     protected void esc(Env<AttrContext> env) {
-        if (debugCompiler) System.out.println("[compiler] Starting esc");
+        if (debugCompiler) Utils.debugOut().println("[compiler] Starting esc");
         // Only run ESC on source files (.jml files are Kind.OTHER)
     	if (env.toplevel.sourcefile.getKind() != JavaFileObject.Kind.SOURCE) return;
     	
