@@ -538,4 +538,23 @@ public class feasibility extends EscBase {
                 ,"/tt/TestJava.java:4: verify: There is no feasible path to program point at return statement in method tt.TestJava.m()", 33
                 );
     }
+
+    @Test
+    public void freturnInfiniteLoop() {
+        // The end of a non-void method cannot be reached, so there is no implicit return to check
+        helpFeas("return",
+                """
+                package tt;
+                public class TestJava {
+                  public int m(int x) {
+                    while (true) {
+                      if (x == 1) return 1;
+                      if (x == 2) return 2;
+                      x = 1;
+                    }
+                  }
+                }
+                """
+                );
+    }
 }

@@ -1349,7 +1349,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
-				if (continuation == Continuation.CONTINUE) {
+				// javac ensures that the end of a non-void method is not reachable (loops do not update continuation)
+				if (continuation == Continuation.CONTINUE && methodDecl.sym.getReturnType().getTag() == TypeTag.VOID) {
                     addFeasibilityCheck(endpos(methodDecl.body), currentStatements, Strings.feas_return, "at implicit return");
 				}
 				// FIXME - why this continue -- and why only for methods in secondary classes?
