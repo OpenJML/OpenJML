@@ -11194,6 +11194,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JmlMethodClauseExpr nnRequires = null;
                     if (!treeutils.isTrueLit(nnFormals)) {
                         nnRequires = M.at(nnFormals).JmlMethodClauseExpr("requires",requiresClauseKind, nnFormals);
+                        // Its conjuncts are positioned at the arguments, so they are reported in the caller's file
+                        nnRequires.sourcefile = log.currentSourceFile();
                     }
 
 					// FIXME - meth is null for constructors - fix that also; also generic types
@@ -11301,6 +11303,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 							    clauses = clauses.prepend(nnRequires);
 							}
 							for (JmlMethodClause clause : clauses) {
+                              JavaFileObject prevClauseSource = clause == nnRequires ? log.useSource(clause.source()) : null;
+                              try {
                                 if (skipRemainder) continue;
 								IJmlClauseKind ct = clause.clauseKind;
 								if (ct == MethodDeclClauseExtension.oldClause) {
@@ -11483,6 +11487,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										checkAccessEnabled = pv;
 									}
 								}
+                              } finally {
+                                if (clause == nnRequires) log.useSource(prevClauseSource);
+                              }
 							}
 							pre = prex;
 							if (diverges != null) {
