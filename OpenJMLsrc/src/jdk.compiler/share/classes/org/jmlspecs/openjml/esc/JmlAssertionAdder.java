@@ -7194,6 +7194,51 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    }
 	}
 
+	/** Assumes that none of the given (earlier) cases of a pattern switch matched the selector; Java selects the
+	 *  first case that matches (#1044). A case whose condition cannot be expressed here (a constant label) is
+	 *  skipped, which loses completeness only.
+	 */
+	protected void assumeEarlierCasesNotMatched(java.util.List<JCCase> earlier, JCExpression selector) {
+	    for (JCCase c: earlier) {
+	        JCExpression cond = null;
+	        boolean expressible = true;
+	        for (JCCaseLabel label: c.labels) {
+	            JCExpression e;
+	            if (label instanceof JCPatternCaseLabel patLabel) {
+	                e = buildPatternCondition(patLabel.pat, selector);
+	            } else if (TreeInfo.isNullCaseLabel(label)) {
+	                e = treeutils.makeEqNull(label.pos, copy(selector));
+	            } else {
+	                expressible = false;
+	                break;
+	            }
+	            cond = cond == null ? e : treeutils.makeOr(label, cond, e);
+	        }
+	        if (!expressible || cond == null) continue;
+	        if (c.guard != null) {
+	            // The guard may use the case's bindings and is evaluated only if the labels match
+	            Name name = names.fromString(Strings.conditionalResult + nextUnique());
+	            JCVariableDecl vdecl = treeutils.makeVarDef(syms.booleanType, name,
+	                    methodDecl == null ? classDecl.sym : methodDecl.sym, c.guard.pos);
+	            addStat(vdecl);
+	            ListBuffer<JCStatement> check = pushBlock();
+	            JCBlock thenBlock;
+	            try {
+	                translatePatternBindings(c, selector);
+	                JCExpression g = addImplicitConversion(c.guard, syms.booleanType, convertExpr(c.guard));
+	                addStat(treeutils.makeAssignStat(c.guard.pos, treeutils.makeIdent(c.guard.pos, vdecl.sym), g));
+	            } finally {
+	                thenBlock = popBlock(c.guard, check);
+	            }
+	            JCStatement elseStat = treeutils.makeAssignStat(c.guard.pos,
+	                    treeutils.makeIdent(c.guard.pos, vdecl.sym), treeutils.makeBooleanLiteral(c.guard.pos, false));
+	            addStat(M.at(c.guard).If(cond, thenBlock, elseStat));
+	            cond = treeutils.makeIdent(c.guard.pos, vdecl.sym);
+	        }
+	        addAssume(c, Label.IMPLICIT_ASSUME, treeutils.makeNot(c, cond));
+	    }
+	}
+
 	protected void translatePatternLabels(JCCase caze, JCExpression selector) {
 	    translatePatternBindings(caze, selector);
 	    if (caze.guard != null) {
@@ -7211,7 +7256,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        }
 	        var stat = convert(bpat.var);
 	        JCTree clazz = treeutils.makeType(pattern.pos, types.erasure(bpat.type));
-	        if (bpat.type.isReference()) {
+	        // An unconditional type pattern needs no type test; nested in a record pattern it also matches null
+	        if (bpat.type.isReference() && !isUnconditionalTypePattern(bpat, expr.type)) {
 	            JCExpression typeTest = M.at(pattern).TypeTest(copy(expr), clazz);
 	            typeTest.setType(syms.booleanType);
 	            addAssume(pattern, Label.IMPLICIT_ASSUME, typeTest);
@@ -7249,7 +7295,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    while (components.nonEmpty() && nestedPatterns.nonEmpty()) {
 	        RecordComponent component = components.head;
 	        JCPattern nestedPattern = nestedPatterns.head;
-	        JCExpression accessorCall = createAccessorCall(recPat, recTemp, component);
+	        // Converted, so that the binding is the same term as a call of the accessor in a specification
+	        JCExpression accessorCall = convertExpr(createAccessorCall(recPat, recTemp, component));
 	        JCIdent compTemp = newTemp(accessorCall);
 	        translatePattern(nestedPattern, compTemp);
 	        components = components.tail;
@@ -7266,6 +7313,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    JCMethodInvocation call = M.at(pos).Apply(List.<JCExpression>nil(), select, List.<JCExpression>nil());
 	    call.setType(types.erasure(accessor.getReturnType()));
 	    return call;
+	}
+
+	/** True if 'pattern' is a type pattern that every value of type 't' matches (as a nested pattern, including null) */
+	protected boolean isUnconditionalTypePattern(JCPattern pattern, Type t) {
+	    return pattern instanceof JCBindingPattern bpat && t != null
+	            && types.isSubtype(types.erasure(t), types.erasure(bpat.type));
 	}
 
 	protected JCExpression buildPatternCondition(JCPattern pattern, JCExpression expr) {
@@ -7287,7 +7340,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        while (components.nonEmpty() && nestedPatterns.nonEmpty()) {
 	            RecordComponent component = components.head;
 	            JCPattern nested = nestedPatterns.head;
-	            if (!(nested instanceof JCAnyPattern)) {
+	            if (!(nested instanceof JCAnyPattern) && !isUnconditionalTypePattern(nested, component.accessor.getReturnType())) {
 	                JCExpression accessorCall = createAccessorCall(recPat, recTemp, component);
 	                JCExpression nestedCond = buildPatternCondition(nested, accessorCall);
 	                condition = treeutils.makeAnd(pattern, condition, nestedCond);
@@ -7416,6 +7469,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            if (((JCTree)pos instanceof JCSwitch sw && sw.patternSwitch)
 	                    || ((JCTree)pos instanceof JCSwitchExpression swexpr && swexpr.patternSwitch)
 	                    || _case.labels.stream().anyMatch(l -> l instanceof JCPatternCaseLabel)) {
+	                // A case reached by falling through does not imply that the earlier cases did not match
+	                if (esc && splitExpressions && (isArrow || caseIndex == 0 || !cases.get(caseIndex-1).completesNormally)) {
+	                    assumeEarlierCasesNotMatched(cases.subList(0, caseIndex), selector);
+	                }
 	                translatePatternLabels(_case, selector);
 //                    if (!rac) {
 //                        addAssume(pos, Label.IMPLICIT_ASSUME, treeutils.makeBinary(p, JCTree.Tag.LE, caseIndexID, treeutils.makeIntLiteral(p, caseIndex)));
