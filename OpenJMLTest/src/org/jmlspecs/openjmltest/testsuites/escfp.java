@@ -1053,4 +1053,25 @@ public class escfp extends EscBase {
                 ,"warning: Command-line argument error: Expected 'auto', 'true' or 'false' for --fpreal: maybe",-1
                 );
     }
+
+    @Test
+    public void testCopySignIntLiterals() {
+        // gitbug732: int literal arguments once caused an internal error (MISMATCHED BLOCKS)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    double a = Math.copySign(64, -128);
+                    //@ assert a == -64.0;
+                  }
+                  public void m2() {
+                    double a = Math.copySign(64, -128);
+                    //@ assert a == 64.0;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method m2",9
+                );
+    }
 }
