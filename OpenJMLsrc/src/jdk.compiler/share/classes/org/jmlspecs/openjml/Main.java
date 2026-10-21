@@ -459,8 +459,9 @@ public class Main extends com.sun.tools.javac.main.Main {
 
         // Note that the Java option processing happens in compile method call below.
         // All the JML tool registration has to happen before compile is called (which should have happened in initialize()).
-        canceled = false;
- 
+        // 'canceled' is reset when the run ends, not when it starts, so that a cancel made
+        // before this point is honored by this run (#1048).
+
         // This is the method that spawns all the work
         // 'args' must contain just Java options and filepaths; JML options have been processed above
         // The exit result will be Result.OK if there are no outright errors
@@ -468,13 +469,16 @@ public class Main extends com.sun.tools.javac.main.Main {
         Main.Result exit;
         try {
             exit = super.compile(args, context);
+            // Cancel fired mid-method: PropagatedException was caught inside check(), which set
+            // canceled=true and returned normally; super.compile() completed, but the run was aborted.
+            if (canceled) exit = Result.CANCELLED;
         } catch (JmlCanceledException e) {
             // Cancel fired between methods: JmlCanceledException escaped check() via rethrow.
-            return Result.CANCELLED;
+            exit = Result.CANCELLED;
+        } finally {
+            canceled = false;
         }
-        // Cancel fired mid-method: PropagatedException was caught inside check(), which set
-        // canceled=true and returned normally; super.compile() completed, but the run was aborted.
-        if (canceled) return Result.CANCELLED;
+        if (exit == Result.CANCELLED) return exit;
 
         // Adjust the javac output to include verification failures, and adjust the exit code as well
         int numVerifyWarnings = Utils.instance(context).verifyWarnings;

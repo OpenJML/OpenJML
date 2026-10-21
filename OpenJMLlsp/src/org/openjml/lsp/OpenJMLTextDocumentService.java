@@ -2519,7 +2519,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 RunningSession rs = runningSessions.get(key);
                 if (rs != null) rs.api().set(api);
                 // A cancel that came after the task started but before api existed (see abortEscForKey).
-                // Not api.cancelEsc(): Main.compile, called next, resets the canceled flag.
+                // Skips execute entirely (api.cancelEsc() would also work since #1048, but still parses and type-checks).
                 if (futureRef.get().isCancelled()) {
                     throw new java.util.concurrent.CancellationException("ESC cancelled before it started");
                 }

@@ -634,6 +634,9 @@ public class JmlCompiler extends JavaCompiler {
         	    for (Env<AttrContext> env: envs) esc(env); // Transforms and proves
         	} catch (PropagatedException e) {
         		// cancellation or error in specifications parsed on demand - catch and continue // TODO: Review
+        	} catch (org.jmlspecs.openjml.Main.JmlCanceledException e) {
+        	    // Canceled between methods; Main.canceled is set, so Main.compile reports CANCELLED.
+        	    // Letting it escape makes javac's Main report an internal error.
         	} finally {
                 utils.warnUnmatchedMethodItems();
                 String summary = esc.reportCounts();
