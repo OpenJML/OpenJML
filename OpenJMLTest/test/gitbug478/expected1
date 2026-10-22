@@ -11,24 +11,24 @@ Completed proof of SB.remaining() with prover !!!! - no warnings
 Completed proving methods in SB
 Proving methods in SBB
 Starting proof of SBB.SBB(java.nio.ByteBuffer,int) with prover !!!!
-test/gitbug478/SBB.java:13: verify: The prover cannot establish an assertion (Postcondition) in method SBB
+test/gitbug478/SBB.java:13: verify: The prover cannot establish an assertion (Postcondition: test/gitbug478/SBB.jml:26:) in method SBB
     private SBB(ByteBuffer buf, int size) {
             ^
-test/gitbug478/SBB.jml:26: verify: Associated declaration
+test/gitbug478/SBB.jml:26: verify: Associated declaration: test/gitbug478/SBB.java:13:
       @   ensures buf.mark < 0;
           ^
-test/gitbug478/SBB.java:13: verify: The prover cannot establish an assertion (Postcondition) in method SBB
+test/gitbug478/SBB.java:13: verify: The prover cannot establish an assertion (Postcondition: test/gitbug478/SBB.jml:25:) in method SBB
     private SBB(ByteBuffer buf, int size) {
             ^
-test/gitbug478/SBB.jml:25: verify: Associated declaration
+test/gitbug478/SBB.jml:25: verify: Associated declaration: test/gitbug478/SBB.java:13:
       @   ensures buf.position == 0;
           ^
 Completed proof of SBB.SBB(java.nio.ByteBuffer,int) with prover !!!! - with warnings
 Starting proof of SBB.allocateDirect(int) with prover !!!!
-test/gitbug478/SBB.java:21: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method allocateDirect
+test/gitbug478/SBB.java:21: verify: The prover cannot establish an assertion (PossiblyNullReturn: test/gitbug478/SBB.java:21:) in method allocateDirect
     public static SBB allocateDirect(int n) {
                   ^
-test/gitbug478/SBB.java:21: verify: Associated declaration
+test/gitbug478/SBB.java:21: verify: Associated declaration: test/gitbug478/SBB.java:21:
     public static SBB allocateDirect(int n) {
                       ^
 test/gitbug478/SBB.java:22: verify: Associated method exit

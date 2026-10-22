@@ -1289,7 +1289,7 @@ public class MethodProverSMT {
                         }
                         JavaFileObject mainSource = log.currentSourceFile();
                         String associatedLocation = Strings.empty;
-                        if (assertStat.associatedPos != Position.NOPOS && !utils.testingMode) {
+                        if (assertStat.associatedPos != Position.NOPOS) { // also when testing (#916)
                             associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                             // FIXME - can this adjustment be pushed into locationString()?
                             associatedLocation = associatedLocation.trim();
@@ -1330,7 +1330,7 @@ public class MethodProverSMT {
                         
                         if (assertStat.associatedPos != Position.NOPOS) {
                             utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
-                                    utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+                                    "jml.associated.decl.cf",
                                     loc);
                             tracer.appendln(associatedLocation + " Associated location");
                         }
@@ -1665,7 +1665,7 @@ public class MethodProverSMT {
                     }
                     JavaFileObject mainSource = log.currentSourceFile();
                     String associatedLocation = Strings.empty;
-                    if (assertStat.associatedPos != Position.NOPOS && !utils.testingMode) {
+                    if (assertStat.associatedPos != Position.NOPOS) { // also when testing (#916)
                         associatedLocation = ": " + utils.locationString(assertStat.associatedPos,assertStat.associatedSource); 
                     }
                     String extra = Strings.empty;
@@ -1698,7 +1698,7 @@ public class MethodProverSMT {
                     if (assertStat.associatedPos != Position.NOPOS) {
                         //if (assertStat.associatedSource != null) prev = log.useSource(assertStat.associatedSource);
                         utils.verify(assertStat.associatedSource, assertStat.associatedPos, 
-                                utils.testingMode ? "jml.associated.decl" : "jml.associated.decl.cf",
+                                "jml.associated.decl.cf",
                                 loc);
                         tracer.appendln(associatedLocation + " Associated location");
                         //if (assertStat.associatedSource != null) log.useSource(prev);

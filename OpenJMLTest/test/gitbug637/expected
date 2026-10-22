@@ -9,10 +9,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of B.havocX() with prover !!!! - no warnings
 Starting proof of B.m() with prover !!!!
-test/gitbug637/B.java:22: verify: The prover cannot establish an assertion (Postcondition) in method m
+test/gitbug637/B.java:22: verify: The prover cannot establish an assertion (Postcondition: test/gitbug637/B.java:21:) in method m
     public void m() {
                 ^
-test/gitbug637/B.java:21: verify: Associated declaration
+test/gitbug637/B.java:21: verify: Associated declaration: test/gitbug637/B.java:22:
     //@ ensures b == \old(b); // This also should not be valid
         ^
 Completed proof of B.m() with prover !!!! - with warnings

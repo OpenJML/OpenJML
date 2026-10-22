@@ -4,10 +4,10 @@ Completed proof of sv_esc.Bag.Bag(int[]) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!!
 Completed proof of sv_esc.Bag.Bag(sv_esc.Bag) with prover !!!! - no warnings
 Starting proof of sv_esc.Bag.removeOnce(int) with prover !!!!
-test/bag/Bag.java:28: verify: The prover cannot establish an assertion (InvariantExit) in method removeOnce
+test/bag/Bag.java:28: verify: The prover cannot establish an assertion (InvariantExit: test/bag/Bag.java:13:) in method removeOnce
   void removeOnce(int elt) {
        ^
-test/bag/Bag.java:13: verify: Associated declaration
+test/bag/Bag.java:13: verify: Associated declaration: test/bag/Bag.java:28:
   //@ invariant n <= contents.length;
       ^
 Completed proof of sv_esc.Bag.removeOnce(int) with prover !!!! - with warnings

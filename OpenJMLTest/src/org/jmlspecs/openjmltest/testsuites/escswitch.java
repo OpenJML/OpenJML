@@ -59,8 +59,8 @@ public class escswitch extends EscBase {
     public void testResultGet() {
         addOptions("--method=get");
         helpEsc("com.example.Result", RESULT_SOURCE
-                ,"/com/example/Result.java:15: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method <T,E>get", 19
-                ,"/com/example/Result.java:15: verify: Associated declaration", 21
+                ,"/com/example/Result.java:15: verify: The prover cannot establish an assertion (PossiblyNullReturn: /com/example/Result.java:15:) in method <T,E>get", 19
+                ,"/com/example/Result.java:15: verify: Associated declaration: /com/example/Result.java:15:", 21
                 ,"/com/example/Result.java:16: verify: Associated method exit", 9
                 );
     }
@@ -100,8 +100,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition) in method m", 9
-                ,"/A.java:2: verify: Associated declaration", 9
+                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition: /A.java:2:) in method m", 9
+                ,"/A.java:2: verify: Associated declaration: /A.java:4:", 9
                 );
     }
 
@@ -173,8 +173,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:8: verify: The prover cannot establish an assertion (Postcondition) in method show", 9
-                ,"/A.java:6: verify: Associated declaration", 9
+                ,"/A.java:8: verify: The prover cannot establish an assertion (Postcondition: /A.java:6:) in method show", 9
+                ,"/A.java:6: verify: Associated declaration: /A.java:8:", 9
                 );
     }
 
@@ -239,8 +239,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:6: verify: The prover cannot establish an assertion (Postcondition) in method classify", 9
-                ,"/A.java:4: verify: Associated declaration", 9
+                ,"/A.java:6: verify: The prover cannot establish an assertion (Postcondition: /A.java:4:) in method classify", 9
+                ,"/A.java:4: verify: Associated declaration: /A.java:6:", 9
                 );
     }
 
@@ -314,8 +314,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method coerce2", 9
-                ,"/tt/A.java:3: verify: Associated declaration", 9
+                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/A.java:3:) in method coerce2", 9
+                ,"/tt/A.java:3: verify: Associated declaration: /tt/A.java:5:", 9
                 );
     }
 
@@ -355,8 +355,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition) in method describe", 9
-                ,"/A.java:2: verify: Associated declaration", 9
+                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition: /A.java:2:) in method describe", 9
+                ,"/A.java:2: verify: Associated declaration: /A.java:4:", 9
                 );
     }
 
@@ -442,8 +442,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition) in method measure", 9
-                ,"/A.java:2: verify: Associated declaration", 9
+                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition: /A.java:2:) in method measure", 9
+                ,"/A.java:2: verify: Associated declaration: /A.java:4:", 9
                 );
     }
 
@@ -528,8 +528,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method describe", 9
-                ,"/tt/A.java:3: verify: Associated declaration", 9
+                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/A.java:3:) in method describe", 9
+                ,"/tt/A.java:3: verify: Associated declaration: /tt/A.java:5:", 9
                 );
     }
 
@@ -601,8 +601,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition) in method depth", 9
-                ,"/tt/A.java:7: verify: Associated declaration", 9
+                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition: /tt/A.java:7:) in method depth", 9
+                ,"/tt/A.java:7: verify: Associated declaration: /tt/A.java:9:", 9
                 );
     }
 

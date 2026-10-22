@@ -16,10 +16,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.mm() with prover !!!! - no warnings
 Starting proof of Test.mmbad() with prover !!!!
-test/varargs/Test.java:28: verify: The prover cannot establish an assertion (Precondition) in method mmbad
+test/varargs/Test.java:28: verify: The prover cannot establish an assertion (Precondition: test/varargs/Test.java:16:) in method mmbad
         Object p = mk(1,o2,null);
                      ^
-test/varargs/Test.java:16: verify: Associated declaration
+test/varargs/Test.java:16: verify: Associated declaration: test/varargs/Test.java:28:
     public Object mk(Object o, Object ... oo) {
                   ^
 test/varargs/Test.java:13: verify: Precondition conjunct is false: \nonnullelements(oo)
@@ -27,10 +27,10 @@ test/varargs/Test.java:13: verify: Precondition conjunct is false: \nonnulleleme
                                    ^
 Completed proof of Test.mmbad() with prover !!!! - with warnings
 Starting proof of Test.mmbad2() with prover !!!!
-test/varargs/Test.java:33: verify: The prover cannot establish an assertion (Precondition) in method mmbad2
+test/varargs/Test.java:33: verify: The prover cannot establish an assertion (Precondition: test/varargs/Test.java:16:) in method mmbad2
         Object p = mk(1);
                      ^
-test/varargs/Test.java:16: verify: Associated declaration
+test/varargs/Test.java:16: verify: Associated declaration: test/varargs/Test.java:33:
     public Object mk(Object o, Object ... oo) {
                   ^
 test/varargs/Test.java:12: verify: Precondition conjunct is false: oo.length > 1

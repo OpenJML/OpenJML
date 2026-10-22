@@ -14,10 +14,10 @@ Completed proof of Tmap.test5() with prover !!!! - no warnings
 Starting proof of Tmap.test6() with prover !!!!
 Completed proof of Tmap.test6() with prover !!!! - no warnings
 Starting proof of Tmap.errors5() with prover !!!!
-test/jmlmap/Tmap.java:91: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
+test/jmlmap/Tmap.java:91: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/map.jml:127:) in method errors5
             //@ check !s.equals(o);
                                ^
-$SPECS/org/jmlspecs/lang/internal/map.jml:127: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/map.jml:127: verify: Associated declaration: test/jmlmap/Tmap.java:91:
     public boolean equals(Object o);
                    ^
 $SPECS/org/jmlspecs/lang/internal/map.jml:125: verify: Precondition conjunct is false: false

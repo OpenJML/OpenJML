@@ -34,29 +34,28 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of JMLFloatingApproxBad.JMLFloatingApproxBad() with prover !!!! - no warnings
 Starting proof of JMLFloatingApproxBad.withinEpsilonOf(double,double,double) with prover !!!!
-test/gitbug744/JMLFloatingApproxBad.java:7: verify: The prover cannot establish an assertion (Postcondition) in method withinEpsilonOf
+test/gitbug744/JMLFloatingApproxBad.java:7: verify: The prover cannot establish an assertion (Postcondition: test/gitbug744/JMLFloatingApproxBad.java:5:) in method withinEpsilonOf
         return StrictMath.abs(d - d2) <= epsilon;
         ^
-test/gitbug744/JMLFloatingApproxBad.java:5: verify: Associated declaration
+test/gitbug744/JMLFloatingApproxBad.java:5: verify: Associated declaration: test/gitbug744/JMLFloatingApproxBad.java:7:
     //@   ensures \result;
           ^
 Completed proof of JMLFloatingApproxBad.withinEpsilonOf(double,double,double) with prover !!!! - with warnings
 Starting proof of JMLFloatingApproxBad.withinEpsilonOf(float,float,float) with prover !!!!
-test/gitbug744/JMLFloatingApproxBad.java:13: verify: The prover cannot establish an assertion (Postcondition) in method withinEpsilonOf
+test/gitbug744/JMLFloatingApproxBad.java:13: verify: The prover cannot establish an assertion (Postcondition: test/gitbug744/JMLFloatingApproxBad.java:11:) in method withinEpsilonOf
         return StrictMath.abs(f - f2) <= epsilon;
         ^
-test/gitbug744/JMLFloatingApproxBad.java:11: verify: Associated declaration
+test/gitbug744/JMLFloatingApproxBad.java:11: verify: Associated declaration: test/gitbug744/JMLFloatingApproxBad.java:13:
     //@   ensures \result <==> StrictMath.abs(f - f2) < epsilon;
           ^
 Completed proof of JMLFloatingApproxBad.withinEpsilonOf(float,float,float) with prover !!!! - with warnings
 Starting proof of JMLFloatingApproxBad.relativelyEqualTo(double,double,double) with prover !!!!
-test/gitbug744/JMLFloatingApproxBad.java:21: verify: The prover cannot establish an assertion (Postcondition) in method relativelyEqualTo
+test/gitbug744/JMLFloatingApproxBad.java:21: verify: The prover cannot establish an assertion (Postcondition: test/gitbug744/JMLFloatingApproxBad.java:18:) in method relativelyEqualTo
         return StrictMath.abs(d - d2) <= tolerance;
         ^
-test/gitbug744/JMLFloatingApproxBad.java:18: verify: Associated declaration
+test/gitbug744/JMLFloatingApproxBad.java:18: verify: Associated declaration: test/gitbug744/JMLFloatingApproxBad.java:21:
     //@   ensures \result <==> StrictMath.abs(d - d2) <= epsilon;
           ^
 Completed proof of JMLFloatingApproxBad.relativelyEqualTo(double,double,double) with prover !!!! - with warnings
 Completed proving methods in JMLFloatingApproxBad
-1 warning
 6 verification failures

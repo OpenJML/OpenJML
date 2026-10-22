@@ -13,10 +13,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FindMaxElemImpl.FindMaxElemImpl() with prover !!!! - no warnings
 Starting proof of FindMaxElemImpl.maxElem(int[]) with prover !!!!
-test/gitbug850/FindMaxElemImpl.java:15: verify: The prover cannot establish an assertion (Postcondition) in method maxElem
+test/gitbug850/FindMaxElemImpl.java:15: verify: The prover cannot establish an assertion (Postcondition: test/gitbug850/FindMaxElem.java:8:) in method maxElem
      public void maxElem(int a[])
                  ^
-test/gitbug850/FindMaxElem.java:8: verify: Associated declaration
+test/gitbug850/FindMaxElem.java:8: verify: Associated declaration: test/gitbug850/FindMaxElemImpl.java:15:
      /*@ ensures (\forall int i; 0 <= i && i < a.length;
          ^
 Completed proof of FindMaxElemImpl.maxElem(int[]) with prover !!!! - with warnings

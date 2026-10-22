@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TString.TString() with prover !!!! - no warnings
 Starting proof of TString.errors1() with prover !!!!
-test/jmlstring/TString.java:7: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors1
+test/jmlstring/TString.java:7: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:85:) in method errors1
         //@ check s.get(-1) == 'A';
                        ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration: test/jmlstring/TString.java:7:
     public char get(bigint i);
                 ^
 $SPECS/org/jmlspecs/lang/internal/string.jml:82: verify: Precondition conjunct is false: 0 <= i < length
@@ -15,10 +15,10 @@ $SPECS/org/jmlspecs/lang/internal/string.jml:82: verify: Precondition conjunct i
                               ^
 Completed proof of TString.errors1() with prover !!!! - with warnings
 Starting proof of TString.errors2() with prover !!!!
-test/jmlstring/TString.java:16: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors2
+test/jmlstring/TString.java:16: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:85:) in method errors2
         //@ check s.get(4) == 'A';
                        ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration: test/jmlstring/TString.java:16:
     public char get(bigint i);
                 ^
 Completed proof of TString.errors2() with prover !!!! - with warnings
@@ -31,10 +31,10 @@ test/jmlstring/TString.java:25: verify: The prover cannot establish an assertion
             ^
 Completed proof of TString.errors3() with prover !!!! - with warnings
 Starting proof of TString.errors4() with prover !!!!
-test/jmlstring/TString.java:32: verify: The prover cannot establish an assertion (Precondition) in method errors4
+test/jmlstring/TString.java:32: verify: The prover cannot establish an assertion (Precondition: $SPECS/org/jmlspecs/lang/internal/string.jml:71:) in method errors4
         //@ ghost \string ss = sn;
                                ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration: test/jmlstring/TString.java:32:
     public static string of(String s);  // s is non_null by default
                          ^
 test/jmlstring/TString.java:32: verify: Precondition conjunct is false: _JML__tmp`387 != null
@@ -42,10 +42,10 @@ test/jmlstring/TString.java:32: verify: Precondition conjunct is false: _JML__tm
                                ^
 Completed proof of TString.errors4() with prover !!!! - with warnings
 Starting proof of TString.errors5() with prover !!!!
-test/jmlstring/TString.java:41: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
+test/jmlstring/TString.java:41: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:71:) in method errors5
         //@ ghost \string ss = (\string)sn;
                                ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration: test/jmlstring/TString.java:41:
     public static string of(String s);  // s is non_null by default
                          ^
 test/jmlstring/TString.java:41: verify: Precondition conjunct is false: _JML__tmp`672 != null
@@ -53,10 +53,10 @@ test/jmlstring/TString.java:41: verify: Precondition conjunct is false: _JML__tm
                                         ^
 Completed proof of TString.errors5() with prover !!!! - with warnings
 Starting proof of TString.errors6() with prover !!!!
-test/jmlstring/TString.java:50: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors6
+test/jmlstring/TString.java:50: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:71:) in method errors6
         //@ ghost \string ss = \string.of(sn);
                                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration: test/jmlstring/TString.java:50:
     public static string of(String s);  // s is non_null by default
                          ^
 test/jmlstring/TString.java:50: verify: Precondition conjunct is false: _JML__tmp`960 != null
@@ -64,10 +64,10 @@ test/jmlstring/TString.java:50: verify: Precondition conjunct is false: _JML__tm
                                           ^
 Completed proof of TString.errors6() with prover !!!! - with warnings
 Starting proof of TString.errors7() with prover !!!!
-test/jmlstring/TString.java:58: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors7
+test/jmlstring/TString.java:58: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:71:) in method errors7
         //@ ghost \string ss = \string.of(null);
                                          ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:71: verify: Associated declaration: test/jmlstring/TString.java:58:
     public static string of(String s);  // s is non_null by default
                          ^
 test/jmlstring/TString.java:58: verify: Precondition conjunct is false: null != null
@@ -75,10 +75,10 @@ test/jmlstring/TString.java:58: verify: Precondition conjunct is false: null != 
                                           ^
 Completed proof of TString.errors7() with prover !!!! - with warnings
 Starting proof of TString.errors8() with prover !!!!
-test/jmlstring/TString.java:67: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8
+test/jmlstring/TString.java:67: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:233:) in method errors8
         //@ check s.equals("ABCD");
                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:233: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:233: verify: Associated declaration: test/jmlstring/TString.java:67:
     public boolean equals(Object o);
                    ^
 $SPECS/org/jmlspecs/lang/internal/string.jml:232: verify: Precondition conjunct is false: false
@@ -86,10 +86,10 @@ $SPECS/org/jmlspecs/lang/internal/string.jml:232: verify: Precondition conjunct 
                  ^
 Completed proof of TString.errors8() with prover !!!! - with warnings
 Starting proof of TString.errors9() with prover !!!!
-test/jmlstring/TString.java:77: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors9
+test/jmlstring/TString.java:77: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:144:) in method errors9
             //@ check \string.empty().head() == ' ';
                                           ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:144: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:144: verify: Associated declaration: test/jmlstring/TString.java:77:
     public char head();
                 ^
 Completed proof of TString.errors9() with prover !!!! - with warnings

@@ -2407,7 +2407,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				int showSource = methodEnv.showRacSource;
 				diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
 				    showSource == 2 ? ds : DiagnosticSource.NO_SOURCE, associatedPos,
-						utils.testingMode && showSource != 2 ? "jml.associated.decl" : "jml.associated.decl.cf",
+						"jml.associated.decl.cf",
 						utils.locationString(codepos.getPreferredPosition()));
 				String loc = (showSource != 1) ? "" : (utils.locationString(associatedPos, ds.getFile()) + " ");
 				String msg2 = JmlTree.eol + loc + diag.toString().replace("warning: ", "verify: ").trim(); 
@@ -2987,8 +2987,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(), vd.sym);
 			JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(),
 					utils.locationString(pos, log.currentSourceFile()));
-			if (utils.testingMode)
-				location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 			JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "reportNoSuchField", id,
 					location);
 			catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
@@ -6340,8 +6338,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(), vd.sym);
 					JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(),
 							utils.locationString(pos, log.currentSourceFile()));
-					if (utils.testingMode)
-						location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 					JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),
 							"reportNoSuchField", id, location);
 					catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
@@ -6395,8 +6391,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(), vd.sym);
 					JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(),
 							utils.locationString(pos, log.currentSourceFile()));
-					if (utils.testingMode)
-						location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 					JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),
 							"reportNoSuchField", id, location);
 					catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
@@ -21740,8 +21734,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(), vd.sym);
 			JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(),
 					utils.locationString(pos, log.currentSourceFile()));
-			if (utils.testingMode)
-				location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 			JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "reportNoSuchField", id,
 					location);
 			catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));

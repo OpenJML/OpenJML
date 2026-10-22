@@ -18,10 +18,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of FreshBugs.ok_test0() with prover !!!! - no warnings
 Starting proof of FreshBugs.fail_test0() with prover !!!!
-test/gitbug722/FreshBugs.java:43: verify: The prover cannot establish an assertion (Postcondition) in method fail_test0
+test/gitbug722/FreshBugs.java:43: verify: The prover cannot establish an assertion (Postcondition: test/gitbug722/FreshBugs.java:39:) in method fail_test0
        return n;
        ^
-test/gitbug722/FreshBugs.java:39: verify: Associated declaration
+test/gitbug722/FreshBugs.java:39: verify: Associated declaration: test/gitbug722/FreshBugs.java:43:
      ensures \fresh(\result.payload_); // ERROR
      ^
 Completed proof of FreshBugs.fail_test0() with prover !!!! - with warnings
