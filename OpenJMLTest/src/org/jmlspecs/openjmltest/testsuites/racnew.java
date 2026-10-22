@@ -53,7 +53,7 @@ public class racnew extends RacBase {
                 }
                 """
                 ,"verify: JML diverges assertion is false"
-                ,"verify: Associated declaration: <location>"
+                ,"verify: Associated declaration: $SPECS/java/lang/System.jml:383:"
                 );
     }
 
@@ -326,7 +326,7 @@ public class racnew extends RacBase {
 //                ,"/tt/TestJava.java:4: verify: JML actual argument may not be null: o in m(java.lang.@org.jmlspecs.annotation.NonNull Object,int)"
 //                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
                 ,"/tt/TestJava.java:4: verify: JML precondition is false"
-                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:1:"
+                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:4:"
                 ,"/tt/TestJava.java:7: verify: JML precondition is false"
                 ,"END"
                 );
@@ -345,7 +345,7 @@ public class racnew extends RacBase {
                 }
                 """
                 ,"/tt/TestJava.java:7: verify: JML null return value from method m"
-                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:4:"
+                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:7:"
                 ,"/tt/TestJava.java:4: verify: JML null return value from method m(java.lang.@org.jmlspecs.annotation.Nullable Object,int), checked in caller main(java.lang.String[])"
                 ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:4:"
                 ,"END"
