@@ -4077,7 +4077,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (owner instanceof MethodSymbol)
 			owner = owner.owner;
 		if (!utils.isJavaOrJmlPrimitiveType(sym.type)) {
-			isNonNull = specs.isNonNull(sym);
+			// A pattern binding is not non-null by default: a nested type pattern binds a null component (#1061)
+			isNonNull = (sym.flags() & Flags.MATCH_BINDING) == 0 && specs.isNonNull(sym);
 		}
 		return addNullnessAllocationTypeCondition(pos, sym, isNonNull, instanceBeingConstructed, false, null);
 	}
