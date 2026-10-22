@@ -1349,7 +1349,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
-				// javac ensures that the end of a non-void method is not reachable (loops do not update continuation)
+				// javac ensures that the end of a non-void method is not reachable
 				if (continuation == Continuation.CONTINUE && methodDecl.sym.getReturnType().getTag() == TypeTag.VOID) {
                     addFeasibilityCheck(endpos(methodDecl.body), currentStatements, Strings.feas_return, "at implicit return");
 				}
@@ -6864,12 +6864,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JmlLabeledStatement stat2 = M.at(that).JmlLabeledStatement(label2, null, ss);
 				((JCBlock) s).stats = len == 1 ? List.<JCStatement>of(list.get(0), stat2)
 						: List.<JCStatement>of(list.get(0), list.get(1), stat2);
-				result = addStat(block);
 				recordLabel(label2, stat2);
-			} else {
-				stat.body = block;
-				result = addStat(stat);
 			}
+			// The outer label is kept for a labeled loop too: it is the target of 'break label' (#1065)
+			stat.body = block;
+			result = addStat(stat);
+			// A break that exits the labeled statement makes the code after it reachable (#1058)
+			if (hasBreakTo(that.body, that)) continuation = Continuation.CONTINUE;
 		} finally {
 			treeMap.remove(that); // Remove the statement because we are leaving the scope of the label
 		}
@@ -19274,6 +19275,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         loopHelperFinish(loop, that);
 		addStat(popBlock(that, loopBlockCheck));
+        continuation = splitInfo != null && splitInfo ? Continuation.HALT : loopContinuation(that, that.cond);
 
         currentEnv = currentEnv.popEnv();
         resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
@@ -19672,8 +19674,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperFinish(loop, that); // Does a popBlock operation
 		JCBlock bl = popBlock(that, loopBlockCheck);
 		addStat(bl);
-		if (splitInfo != null && splitInfo)
-			continuation = Continuation.HALT;
+		continuation = splitInfo != null && splitInfo ? Continuation.HALT : Continuation.CONTINUE;
 //        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
 //        labelPropertiesStore.pop(loopinitLabelName);
         currentEnv = currentEnv.popEnv();
@@ -20147,6 +20148,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	}
 
+    /** True if a break statement within 'tree' exits 'target', a loop or a labeled statement */
+    protected boolean hasBreakTo(JCTree tree, JCTree target) {
+        boolean[] found = { false };
+        new JmlTreeScanner() {
+            @Override
+            public void visitBreak(JCBreak b) {
+                if (b.target == target
+                        || (b.target instanceof JCLabeledStatement ls && TreeInfo.referencedStatement(ls) == target)) {
+                    found[0] = true;
+                }
+            }
+        }.scan(tree);
+        return found[0];
+    }
+
+    /** The continuation after a while, for or do loop: code after the loop is reachable unless the condition is
+     *  absent or constant true and no break exits the loop (JLS 14.22); the continuation left by the body does not
+     *  carry past the loop (#1058) */
+    protected Continuation loopContinuation(JCTree loop, /*@ nullable */ JCExpression cond) {
+        boolean constTrue = cond == null || TreeInfo.skipParens(cond).type.constValue() instanceof Integer i && i != 0;
+        return constTrue && !hasBreakTo(loop, loop) ? Continuation.HALT : Continuation.CONTINUE;
+    }
+
 	/** Completes the loop */
     protected void loopHelperFinish(JmlWhileLoop loop, JCTree that) {
         JCBlock bl = popBlock(that);
@@ -20331,8 +20355,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		loopHelperFinish(loop, that); // pops the loop body block
 		JCBlock bl = popBlock(that, loopBlockCheck);
 		addStat(bl);
-		if (splitInfo != null && splitInfo)
-			continuation = Continuation.HALT;
+		continuation = splitInfo != null && splitInfo ? Continuation.HALT : loopContinuation(that, that.cond);
 //		if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
 //		labelPropertiesStore.pop(loopinitLabelName);
 		currentEnv = currentEnv.popEnv();
@@ -24211,8 +24234,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperFinish(loop, that);
         JCBlock bl = popBlock(that, loopBlockCheck);
         addStat(bl);
-        if (splitInfo != null && splitInfo)
-            continuation = Continuation.HALT;
+        continuation = splitInfo != null && splitInfo ? Continuation.HALT : loopContinuation(that, that.cond);
 
         currentEnv = currentEnv.popEnv();
         resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
