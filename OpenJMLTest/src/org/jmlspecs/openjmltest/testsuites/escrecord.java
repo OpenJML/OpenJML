@@ -445,4 +445,33 @@ public class escrecord extends EscBase {
                 """);
     }
 
+    /** Record patterns in instanceof, including nested and conditional nested patterns (#1062) */
+    @Test
+    public void testInstanceofRecordPattern() {
+        helpEsc("tt.R2", """
+                package tt;
+                public class R2 {
+                    record Box(int x) {}
+                    record Pair(Object a, Object b) {}
+                    //@ ensures \\result == (o instanceof Box ? ((Box)o).x() : 0);
+                    public static int d(/*@ nullable */ Object o) {
+                        if (o instanceof Box(int x)) return x;
+                        return 0;
+                    }
+                    //@ ensures \\result == (o instanceof Pair && ((Pair)o).a() instanceof Box ? ((Box)((Pair)o).a()).x() : -1);
+                    public static int e(/*@ nullable */ Object o) {
+                        if (o instanceof Pair(Box(int x), Object y)) return x;
+                        return -1;
+                    }
+                    public static void f(Object o) {
+                        if (!(o instanceof Box(int x))) return;
+                        //@ check x == ((Box)o).x();
+                        //@ check x == 0;
+                    }
+                }
+                """
+                ,"/tt/R2.java:18: verify: The prover cannot establish an assertion (Assert) in method f", 13
+                );
+    }
+
 }
