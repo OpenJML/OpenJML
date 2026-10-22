@@ -1,6 +1,3 @@
-test/gitbug744/JMLFloatingApprox.java:7: warning: [strictfp] as of release 17, all floating-point expressions are evaluated strictly and 'strictfp' is not required
-public /*@ pure @*/ strictfp class JMLFloatingApprox {
-                             ^
 Proving methods in JMLFloatingApprox
 Starting proof of JMLFloatingApprox.JMLFloatingApprox() with prover !!!!
 Feasibility check - end of preconditions : OK

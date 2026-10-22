@@ -4,7 +4,7 @@
  *
  * @author Gary T. Leavens
  */
-public /*@ pure @*/ strictfp class JMLFloatingApprox {
+public /*@ pure @*/ class JMLFloatingApprox {
 
     /** Tell whether absolute value of difference of d and d2
      *  is within the given epsilon.  If the difference of d and d2 is NaN,
