@@ -2249,4 +2249,35 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method n", 9
                 );
     }
+
+    /** A type-use nullness modifier on an array field declared in a .jml applies to the element type, as it does in
+     *  a .java (#1057) */
+    @Test
+    public void testJmlFieldElementNullness() {
+        addMockFile("$A/tt/TestJava.jml",
+                """
+                package tt;
+                //@ non_null_by_default
+                public class TestJava {
+                  /*@ nullable */ Object[] t;
+                  //@ requires t != null && t.length > 0;
+                  //@ ensures t[0] != null;
+                  void m();
+                }
+                """
+                );
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  Object[] t;
+                  void m() {}
+                }
+                """
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (NullField) in method TestJava", 12
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition) in method m", 8
+                ,"/$A/tt/TestJava.jml:6: verify: Associated declaration", 7
+                );
+    }
+
 }
