@@ -1,0 +1,20 @@
+src/p/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method m
+    public void m(Object[] a) {}
+                ^
+specs/p/A.jml:7: verify: Associated declaration
+    //@ ensures a[0] != null;
+        ^
+src/p/C.java:7: verify: The prover cannot establish an assertion (Assert) in method f
+        //@ assert x.f[0] != null; // fails: elements nullable
+            ^
+src/p/C.java:15: verify: The prover cannot establish an assertion (Assert) in method r
+        //@ assert x.r()[0] != null; // fails: elements nullable
+            ^
+4 verification failures
+src/p/C.java:7: verify: The prover cannot establish an assertion (Assert) in method f
+        //@ assert x.f[0] != null; // fails: elements nullable
+            ^
+src/p/C.java:15: verify: The prover cannot establish an assertion (Assert) in method r
+        //@ assert x.r()[0] != null; // fails: elements nullable
+            ^
+2 verification failures

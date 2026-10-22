@@ -45,9 +45,7 @@ import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
 import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 
-import com.sun.tools.javac.code.Attribute;
 import com.sun.tools.javac.code.Attribute.Compound;
-import com.sun.tools.javac.code.TypeAnnotationPosition;
 import com.sun.tools.javac.code.Flags;
 import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Lint;
@@ -65,7 +63,6 @@ import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.tree.JCTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotatedType;
-import com.sun.tools.javac.tree.JCTree.JCArrayTypeTree;
 import com.sun.tools.javac.tree.JCTree.JCAnnotation;
 import com.sun.tools.javac.tree.JCTree.JCClassDecl;
 import com.sun.tools.javac.tree.JCTree.JCCompilationUnit;
@@ -301,7 +298,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         						specVarDecl.sym = javaVarDecl.sym;
         						specVarDecl.type = javaVarDecl.type;
         						specVarDecl.vartype.type = javaVarDecl.type;
-        						applyElementNullness(specVarDecl, javaVarDecl.sym);
+        						javaVarDecl.sym.type = specs.withSpecElementNullness(specVarDecl.vartype, javaVarDecl.sym.type);
         						specs.putSpecs(javaVarDecl.sym, specVarDecl.fieldSpecs);
             					//System.out.println("MATCHED JAVA FIELD " + cd.name + " " + vd.name);
                         	}
@@ -367,6 +364,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		msp.javaDecl = javaMethodDecl;
                         		msp.javaEnv = msp.specsEnv = env;
         						specs.putSpecs(javaMethodDecl.sym, msp);
+        						specs.applySpecElementNullness(specMethodDecl, javaMethodDecl.sym);
             					//System.out.println("MATCHED JAVA METHOD " + cd.name + " " + specMethodDecl.sym + " " + specMethodDecl.sym.hashCode() + " " + specMethodDecl.restype + " " + javaMethodDecl.sym + " " + javaMethodDecl.sym.hashCode());
                         	}
     					} else {
@@ -1314,29 +1312,6 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             resolve.setAllowJML(prev);
             resolve.setInJMLCU(prevcu);
     	}
-    }
-
-    /** A nullness modifier before an array type applies to the element type (the parser moves it there); javac does
-     *  not see that of a .jml declaration, so it is applied here to the Java field's type (#1057) */
-    protected void applyElementNullness(JmlVariableDecl specDecl, VarSymbol sym) {
-        if (!(sym.type instanceof Type.ArrayType)) return;
-        JCTree vt = specDecl.vartype;
-        while (vt instanceof JCArrayTypeTree at) vt = at.elemtype;
-        if (!(vt instanceof JCAnnotatedType ann)) return;
-        JmlAttr jattr = JmlAttr.instance(context);
-        ClassSymbol annSym = specs.findAnnotation(ann.annotations, Modifiers.NULLABLE) != null ? jattr.nullableAnnotationSymbol
-                : specs.findAnnotation(ann.annotations, Modifiers.NON_NULL) != null ? jattr.nonnullAnnotationSymbol : null;
-        if (annSym == null) return;
-        Type elem = sym.type;
-        while (elem instanceof Type.ArrayType at) elem = at.elemtype;
-        if (specs.findAnnotation(elem, Modifiers.NULLABLE) || specs.findAnnotation(elem, Modifiers.NON_NULL)) return;
-        var tc = new Attribute.TypeCompound(annSym.type, List.nil(), TypeAnnotationPosition.field(specDecl.pos));
-        sym.type = annotateInnermost(sym.type, tc);
-    }
-
-    private Type annotateInnermost(Type t, Attribute.TypeCompound tc) {
-        if (t instanceof Type.ArrayType at) return new Type.ArrayType(annotateInnermost(at.elemtype, tc), at.tsym);
-        return t.annotatedType(List.of(tc));
     }
 
     @Override
