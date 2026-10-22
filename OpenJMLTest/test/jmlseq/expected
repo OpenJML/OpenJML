@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TSeq.TSeq() with prover !!!! - no warnings
 Starting proof of TSeq.errors1() with prover !!!!
-test/jmlseq/TSeq.java:8: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors1
+test/jmlseq/TSeq.java:8: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:56:) in method errors1
             //@ ghost var o = s.get(-1);
                                    ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:56: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:56: verify: Associated declaration: test/jmlseq/TSeq.java:8:
     public T get(bigint i);
              ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:53: verify: Precondition conjunct is false: 0 <= i < length
@@ -15,18 +15,18 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:53: verify: Precondition conjunct is f
                           ^
 Completed proof of TSeq.errors1() with prover !!!! - with warnings
 Starting proof of TSeq.errors2() with prover !!!!
-test/jmlseq/TSeq.java:18: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors2
+test/jmlseq/TSeq.java:18: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:56:) in method errors2
             //@ ghost var o = s.get(5);
                                    ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:56: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:56: verify: Associated declaration: test/jmlseq/TSeq.java:18:
     public T get(bigint i);
              ^
 Completed proof of TSeq.errors2() with prover !!!! - with warnings
 Starting proof of TSeq.errors3() with prover !!!!
-test/jmlseq/TSeq.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors3
+test/jmlseq/TSeq.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:153:) in method errors3
             //@ ghost var o = s.put(-1, oo);
                                    ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:153: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:153: verify: Associated declaration: test/jmlseq/TSeq.java:28:
     public seq<T> put(bigint i, T c);
                   ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:147: verify: Precondition conjunct is false: 0 <= i < this.length
@@ -34,18 +34,18 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:147: verify: Precondition conjunct is 
                           ^
 Completed proof of TSeq.errors3() with prover !!!! - with warnings
 Starting proof of TSeq.errors4() with prover !!!!
-test/jmlseq/TSeq.java:38: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors4
+test/jmlseq/TSeq.java:38: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:153:) in method errors4
             //@ ghost var o = s.put(5, oo);
                                    ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:153: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:153: verify: Associated declaration: test/jmlseq/TSeq.java:38:
     public seq<T> put(bigint i, T c);
                   ^
 Completed proof of TSeq.errors4() with prover !!!! - with warnings
 Starting proof of TSeq.errors5() with prover !!!!
-test/jmlseq/TSeq.java:48: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors5
+test/jmlseq/TSeq.java:48: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:144:) in method errors5
             //@ ghost var o = s.remove(-1);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:144: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:144: verify: Associated declaration: test/jmlseq/TSeq.java:48:
     public seq<T> remove(bigint j);
                   ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:138: verify: Precondition conjunct is false: 0 <= j < this.length
@@ -53,10 +53,10 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:138: verify: Precondition conjunct is 
                           ^
 Completed proof of TSeq.errors5() with prover !!!! - with warnings
 Starting proof of TSeq.errors6() with prover !!!!
-test/jmlseq/TSeq.java:58: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors6
+test/jmlseq/TSeq.java:58: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:144:) in method errors6
             //@ ghost var o = s.remove(5);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:144: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:144: verify: Associated declaration: test/jmlseq/TSeq.java:58:
     public seq<T> remove(bigint j);
                   ^
 Completed proof of TSeq.errors6() with prover !!!! - with warnings
@@ -65,10 +65,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TSeq.errors7() with prover !!!! - no warnings
 Starting proof of TSeq.errors8() with prover !!!!
-test/jmlseq/TSeq.java:80: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors8
+test/jmlseq/TSeq.java:80: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:109:) in method errors8
             //@ ghost var o = s.insert(-1, oo);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:109: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:109: verify: Associated declaration: test/jmlseq/TSeq.java:80:
     public seq<T> insert(bigint j, T v);
                   ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:104: verify: Precondition conjunct is false: 0 <= j <= this.length
@@ -76,26 +76,26 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:104: verify: Precondition conjunct is 
                               ^
 Completed proof of TSeq.errors8() with prover !!!! - with warnings
 Starting proof of TSeq.errors9() with prover !!!!
-test/jmlseq/TSeq.java:90: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors9
+test/jmlseq/TSeq.java:90: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:109:) in method errors9
             //@ ghost var o = s.insert(6, oo);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:109: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:109: verify: Associated declaration: test/jmlseq/TSeq.java:90:
     public seq<T> insert(bigint j, T v);
                   ^
 Completed proof of TSeq.errors9() with prover !!!! - with warnings
 Starting proof of TSeq.errors10() with prover !!!!
-test/jmlseq/TSeq.java:100: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors10
+test/jmlseq/TSeq.java:100: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:166:) in method errors10
             //@ ghost var t = \seq.<Object>empty().head();
                                                        ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:166: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:166: verify: Associated declaration: test/jmlseq/TSeq.java:100:
     public T head();
              ^
 Completed proof of TSeq.errors10() with prover !!!! - with warnings
 Starting proof of TSeq.errors11() with prover !!!!
-test/jmlseq/TSeq.java:110: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors11
+test/jmlseq/TSeq.java:110: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:175:) in method errors11
             //@ ghost var o = s.head(-1);
                                     ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:175: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:175: verify: Associated declaration: test/jmlseq/TSeq.java:110:
     public seq<T> head(bigint i);
                   ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:169: verify: Precondition conjunct is false: 0 <= i <= this.length
@@ -103,18 +103,18 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:169: verify: Precondition conjunct is 
                           ^
 Completed proof of TSeq.errors11() with prover !!!! - with warnings
 Starting proof of TSeq.errors12() with prover !!!!
-test/jmlseq/TSeq.java:120: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors12
+test/jmlseq/TSeq.java:120: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:175:) in method errors12
             //@ ghost var o = s.head(s.length()+1);
                                     ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:175: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:175: verify: Associated declaration: test/jmlseq/TSeq.java:120:
     public seq<T> head(bigint i);
                   ^
 Completed proof of TSeq.errors12() with prover !!!! - with warnings
 Starting proof of TSeq.errors13() with prover !!!!
-test/jmlseq/TSeq.java:130: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors13
+test/jmlseq/TSeq.java:130: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:192:) in method errors13
             //@ ghost var o = s.tail(-1);
                                     ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:192: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:192: verify: Associated declaration: test/jmlseq/TSeq.java:130:
     public seq<T> tail(bigint i);
                   ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:186: verify: Precondition conjunct is false: 0 <= i <= this.length
@@ -122,18 +122,18 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:186: verify: Precondition conjunct is 
                           ^
 Completed proof of TSeq.errors13() with prover !!!! - with warnings
 Starting proof of TSeq.errors14() with prover !!!!
-test/jmlseq/TSeq.java:140: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors14
+test/jmlseq/TSeq.java:140: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:192:) in method errors14
             //@ ghost var o = s.tail(s.length()+1);
                                     ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:192: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:192: verify: Associated declaration: test/jmlseq/TSeq.java:140:
     public seq<T> tail(bigint i);
                   ^
 Completed proof of TSeq.errors14() with prover !!!! - with warnings
 Starting proof of TSeq.errors15() with prover !!!!
-test/jmlseq/TSeq.java:150: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors15
+test/jmlseq/TSeq.java:150: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:160:) in method errors15
             //@ ghost var o = s.subseq(-1,s.length());
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:160: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:160: verify: Associated declaration: test/jmlseq/TSeq.java:150:
     public seq<T> subseq(bigint i, bigint j);
                   ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:156: verify: Precondition conjunct is false: 0 <= i <= j <= this.length
@@ -141,18 +141,18 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:156: verify: Precondition conjunct is 
                                ^
 Completed proof of TSeq.errors15() with prover !!!! - with warnings
 Starting proof of TSeq.errors16() with prover !!!!
-test/jmlseq/TSeq.java:160: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors16
+test/jmlseq/TSeq.java:160: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:160:) in method errors16
             //@ ghost var o = s.subseq(0,s.length()+1);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:160: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:160: verify: Associated declaration: test/jmlseq/TSeq.java:160:
     public seq<T> subseq(bigint i, bigint j);
                   ^
 Completed proof of TSeq.errors16() with prover !!!! - with warnings
 Starting proof of TSeq.errors17() with prover !!!!
-test/jmlseq/TSeq.java:170: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors17
+test/jmlseq/TSeq.java:170: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:160:) in method errors17
             //@ ghost var o = s.subseq(1,0);
                                       ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:160: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:160: verify: Associated declaration: test/jmlseq/TSeq.java:170:
     public seq<T> subseq(bigint i, bigint j);
                   ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:156: verify: Precondition conjunct is false: 0 <= i <= j <= this.length
@@ -160,10 +160,10 @@ $SPECS/org/jmlspecs/lang/internal/seq.jml:156: verify: Precondition conjunct is 
                                ^
 Completed proof of TSeq.errors17() with prover !!!! - with warnings
 Starting proof of TSeq.errors18() with prover !!!!
-test/jmlseq/TSeq.java:181: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method errors18
+test/jmlseq/TSeq.java:181: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/seq.jml:66:) in method errors18
             //@ assert s.equals(o);
                                ^
-$SPECS/org/jmlspecs/lang/internal/seq.jml:66: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/seq.jml:66: verify: Associated declaration: test/jmlseq/TSeq.java:181:
     public boolean equals(Object o);
                    ^
 $SPECS/org/jmlspecs/lang/internal/seq.jml:65: verify: Precondition conjunct is false: false

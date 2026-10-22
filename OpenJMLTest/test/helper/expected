@@ -20,18 +20,18 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of A.A() with prover !!!! - no warnings
 Starting proof of A.m() with prover !!!!
-test/helper/Helper.java:17: verify: The prover cannot establish an assertion (Assignable) in method m: k
+test/helper/Helper.java:17: verify: The prover cannot establish an assertion (Assignable: test/helper/Helper.java:4:) in method m: k
     k = 0;
       ^
-test/helper/Helper.java:4: verify: Associated declaration
+test/helper/Helper.java:4: verify: Associated declaration: test/helper/Helper.java:17:
   //@ helper spec_pure
              ^
 Completed proof of A.m() with prover !!!! - with warnings
 Starting proof of A.mm() with prover !!!!
-test/helper/Helper.java:21: verify: The prover cannot establish an assertion (InvariantExit) in method mm
+test/helper/Helper.java:21: verify: The prover cannot establish an assertion (InvariantExit: test/helper/Helper.java:13:) in method mm
   public void mm() {
               ^
-test/helper/Helper.java:13: verify: Associated declaration
+test/helper/Helper.java:13: verify: Associated declaration: test/helper/Helper.java:21:
   //@ public invariant k >= 0;
              ^
 Completed proof of A.mm() with prover !!!! - with warnings

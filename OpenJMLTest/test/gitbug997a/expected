@@ -18,10 +18,10 @@ Starting proof of UserGcd.UserGcd() with prover !!!!
 Completed proof of UserGcd.UserGcd() with prover !!!! - no warnings
 Skipping proof of UserGcd.gcd(int,int) (because the method has no body)
 Starting proof of UserGcd.mygcd(int,int) with prover !!!!
-test/gitbug997a/UserGcd.java:16: verify: The prover cannot establish an assertion (Postcondition) in method mygcd
+test/gitbug997a/UserGcd.java:16: verify: The prover cannot establish an assertion (Postcondition: test/gitbug997a/UserGcd.java:13:) in method mygcd
       return 1; // wrong
       ^
-test/gitbug997a/UserGcd.java:13: verify: Associated declaration
+test/gitbug997a/UserGcd.java:13: verify: Associated declaration: test/gitbug997a/UserGcd.java:16:
   //@ ensures \result == gcd(x, y);
       ^
 Completed proof of UserGcd.mygcd(int,int) with prover !!!! - with warnings
@@ -31,10 +31,10 @@ Starting proof of UserGcdDiv.UserGcdDiv() with prover !!!!
 Completed proof of UserGcdDiv.UserGcdDiv() with prover !!!! - no warnings
 Skipping proof of UserGcdDiv.gcd(int,int) (because the method has no body)
 Starting proof of UserGcdDiv.mygcd(int,int) with prover !!!!
-test/gitbug997a/UserGcdDiv.java:14: verify: The prover cannot establish an assertion (Postcondition) in method mygcd
+test/gitbug997a/UserGcdDiv.java:14: verify: The prover cannot establish an assertion (Postcondition: test/gitbug997a/UserGcdDiv.java:11:) in method mygcd
       return 1; // wrong
       ^
-test/gitbug997a/UserGcdDiv.java:11: verify: Associated declaration
+test/gitbug997a/UserGcdDiv.java:11: verify: Associated declaration: test/gitbug997a/UserGcdDiv.java:14:
   //@ ensures \result == gcd(x, y);
       ^
 Completed proof of UserGcdDiv.mygcd(int,int) with prover !!!! - with warnings

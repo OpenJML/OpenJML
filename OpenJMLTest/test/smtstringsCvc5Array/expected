@@ -31,10 +31,10 @@ Skipping proof of JavaStrings.first(String) (Skipping JavaStrings.first because 
 Skipping proof of JavaStrings.starts() (Skipping JavaStrings.starts because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
 Skipping proof of JavaStrings.concat(String,String) (Skipping JavaStrings.concat because it does not match Lengths.nonNegative,Lengths.bad3,JavaStrings.bad)
 Starting proof of JavaStrings.bad() with prover !!!!
-test/smtstrings/JavaStrings.java:37: verify: The prover cannot establish an assertion (Postcondition) in method bad
+test/smtstrings/JavaStrings.java:37: verify: The prover cannot establish an assertion (Postcondition: test/smtstrings/JavaStrings.java:34:) in method bad
         return x.charAt(1) == 'c'; // fails
         ^
-test/smtstrings/JavaStrings.java:34: verify: Associated declaration
+test/smtstrings/JavaStrings.java:34: verify: Associated declaration: test/smtstrings/JavaStrings.java:37:
     //@ ensures \result;
         ^
 Completed proof of JavaStrings.bad() with prover !!!! - with warnings

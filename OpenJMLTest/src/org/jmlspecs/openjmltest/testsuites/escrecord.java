@@ -287,8 +287,8 @@ public class escrecord extends EscBase {
                     }
                 }
                 """
-                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition) in method NonEmpty", 9
-                ,"/tt/A.java:7: verify: Associated declaration", 13
+                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition: /tt/A.java:7:) in method NonEmpty", 9
+                ,"/tt/A.java:7: verify: Associated declaration: /tt/A.java:9:", 13
                 );
     }
 
@@ -330,8 +330,8 @@ public class escrecord extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method x", 38
-                ,"/A.java:4: verify: Associated declaration", 13
+                ,"/A.java:5: verify: The prover cannot establish an assertion (Postcondition: /A.java:4:) in method x", 38
+                ,"/A.java:4: verify: Associated declaration: /A.java:5:", 13
                 );
     }
 

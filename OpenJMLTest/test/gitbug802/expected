@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of PrimeTester.PrimeTester() with prover !!!! - no warnings
 Starting proof of PrimeTester.isPrime(int) with prover !!!!
-test/gitbug802/PrimeTester.java:8: verify: The prover cannot establish an assertion (Postcondition) in method isPrime
+test/gitbug802/PrimeTester.java:8: verify: The prover cannot establish an assertion (Postcondition: test/gitbug802/PrimeTester.java:4:) in method isPrime
             return false;
             ^
-test/gitbug802/PrimeTester.java:4: verify: Associated declaration
+test/gitbug802/PrimeTester.java:4: verify: Associated declaration: test/gitbug802/PrimeTester.java:8:
       @ ensures \result <==> (\forall int i; 2 <= i < num; num % i != 0);
         ^
 Completed proof of PrimeTester.isPrime(int) with prover !!!! - with warnings

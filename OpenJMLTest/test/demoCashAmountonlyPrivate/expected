@@ -4,10 +4,10 @@ Completed proof of CashAmountOnlyPrivate.CashAmountOnlyPrivate(int,int) with pro
 Starting proof of CashAmountOnlyPrivate.negate() with prover !!!!
 Completed proof of CashAmountOnlyPrivate.negate() with prover !!!! - no warnings
 Starting proof of CashAmountOnlyPrivate.increase(CashAmountOnlyPrivate) with prover !!!!
-../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:93: verify: The prover cannot establish an assertion (Precondition) in method increase
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:93: verify: The prover cannot establish an assertion (Precondition: ../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:51:) in method increase
     return new CashAmountOnlyPrivate(new_dollars, new_cents);
            ^
-../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:51: verify: Associated declaration
+../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:51: verify: Associated declaration: ../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:93:
   /*@ pure */ public CashAmountOnlyPrivate(final int the_dollars, final int the_cents) {
                      ^
 ../../OpenJMLDemo/src/openjml/demo/CashAmountOnlyPrivate.java:40: verify: Precondition conjunct is false: the_cents < 100

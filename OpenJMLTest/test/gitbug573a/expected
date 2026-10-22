@@ -5,10 +5,10 @@ test/gitbug573a/pckg/A.java:5: verify: The prover cannot establish an assertion 
 	         ^
 Completed proof of pckg.A.A() with prover !!!! - with warnings
 Starting proof of pckg.A.test() with prover !!!!
-test/gitbug573a/pckg/A.java:8: verify: The prover cannot establish an assertion (Postcondition) in method test
+test/gitbug573a/pckg/A.java:8: verify: The prover cannot establish an assertion (Postcondition: test/gitbug573a/pckg/A.jml:5:) in method test
 	  return 0;
 	  ^
-test/gitbug573a/pckg/A.jml:5: verify: Associated declaration
+test/gitbug573a/pckg/A.jml:5: verify: Associated declaration: test/gitbug573a/pckg/A.java:8:
 	//@ensures \result == 1;
 	   ^
 Completed proof of pckg.A.test() with prover !!!! - with warnings

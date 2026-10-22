@@ -85,8 +85,8 @@ public class escTrace extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",8
-                ,"/tt/TestJava.java:5: verify: Associated declaration",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:5:) in method m1",8
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:8:",7
                 );
         String output = output();
         String error = errorOutput();

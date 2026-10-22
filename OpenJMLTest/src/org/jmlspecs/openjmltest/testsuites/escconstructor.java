@@ -43,8 +43,8 @@ public class escconstructor extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-                ,"/tt/TestJava.java:5: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:5:) in method TestJava: b", 7
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:8:", 7
                 );
     }
 
@@ -64,8 +64,8 @@ public class escconstructor extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-                ,"/tt/TestJava.java:6: verify: Associated declaration", 10
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:6:) in method TestJava: b", 7
+                ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:8:", 10
                 );
     }
 
@@ -84,8 +84,8 @@ public class escconstructor extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method TestJava: b", 7
-                ,"/tt/TestJava.java:5: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:5:) in method TestJava: b", 7
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:8:", 7
                 );
     }
 
