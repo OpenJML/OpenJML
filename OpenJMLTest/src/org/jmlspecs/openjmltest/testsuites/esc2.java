@@ -33,9 +33,9 @@ public class esc2 extends EscBase {
                   public TestJava() {}}
                 """
                 ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Precondition) in method m4", 15
-                ,"$SPECS/java/util/List.jml:119: verify: Associated declaration", 13
+                ,"$SPECS/java/util/List.jml:120: verify: Associated declaration", 13
                 ,"$SPECS/java/util/Collection.jml:141: verify: Precondition conjunct is false: containsNull || o != null", 33
-                ,"$SPECS/java/util/List.jml:109: verify: Precondition conjunct is false: containsNull || o != null", 33
+                ,"$SPECS/java/util/List.jml:110: verify: Precondition conjunct is false: containsNull || o != null", 33
                 );
 
     }
