@@ -460,8 +460,8 @@ public class escrecord extends EscBase {
                 """
                 ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method sum: overflow in int sum", 46
                 ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method sum: underflow in int sum", 46
-                ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (Postcondition) in method sum", 37
-                ,"/tt/Pt.java:3: verify: Associated declaration", 9
+                ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (Postcondition: /tt/Pt.java:3:) in method sum", 37
+                ,"/tt/Pt.java:3: verify: Associated declaration: /tt/Pt.java:4:", 9
                 );
     }
 
@@ -533,14 +533,14 @@ public class escrecord extends EscBase {
                     }
                 }
                 """
-                ,"/tt/N.java:5: verify: The prover cannot establish an assertion (Postcondition) in method t", 26
-                ,"/tt/N.java:4: verify: Associated declaration", 13
-                ,"/tt/N.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m", 9
-                ,"/tt/N.java:10: verify: Associated declaration", 9
-                ,"/tt/N.java:18: verify: The prover cannot establish an assertion (Postcondition) in method k", 9
-                ,"/tt/N.java:15: verify: Associated declaration", 9
-                ,"/tt/N.java:26: verify: The prover cannot establish an assertion (Postcondition) in method m2", 9
-                ,"/tt/N.java:23: verify: Associated declaration", 9
+                ,"/tt/N.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/N.java:4:) in method t", 26
+                ,"/tt/N.java:4: verify: Associated declaration: /tt/N.java:5:", 13
+                ,"/tt/N.java:13: verify: The prover cannot establish an assertion (Postcondition: /tt/N.java:10:) in method m", 9
+                ,"/tt/N.java:10: verify: Associated declaration: /tt/N.java:13:", 9
+                ,"/tt/N.java:18: verify: The prover cannot establish an assertion (Postcondition: /tt/N.java:15:) in method k", 9
+                ,"/tt/N.java:15: verify: Associated declaration: /tt/N.java:18:", 9
+                ,"/tt/N.java:26: verify: The prover cannot establish an assertion (Postcondition: /tt/N.java:23:) in method m2", 9
+                ,"/tt/N.java:23: verify: Associated declaration: /tt/N.java:26:", 9
                 );
     }
 

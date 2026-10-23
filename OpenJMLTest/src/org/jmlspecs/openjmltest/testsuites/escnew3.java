@@ -2332,8 +2332,8 @@ public class escnew3 extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (NullField) in method TestJava", 12
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition) in method m", 8
-                ,"/$A/tt/TestJava.jml:6: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition: /$A/tt/TestJava.jml:6:) in method m", 8
+                ,"/$A/tt/TestJava.jml:6: verify: Associated declaration: /tt/TestJava.java:4:", 7
                 );
     }
 }
