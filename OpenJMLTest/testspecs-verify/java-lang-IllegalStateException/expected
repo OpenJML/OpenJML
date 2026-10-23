@@ -5,10 +5,10 @@ Completed proof of IllegalStateException.IllegalStateException() with prover !!!
 Starting proof of IllegalStateException.IllegalStateException(String) with prover !!!!
 Feasibility check - at implicit return : OK
 Completed proof of IllegalStateException.IllegalStateException(String) with prover !!!! - no warnings
-Starting proof of IllegalStateException.IllegalStateException(String,Throwable) with prover !!!!
+Starting proof of IllegalStateException.IllegalStateException(String,@Nullable Throwable) with prover !!!!
 Feasibility check - at implicit return : OK
-Completed proof of IllegalStateException.IllegalStateException(String,Throwable) with prover !!!! - no warnings
-Starting proof of IllegalStateException.IllegalStateException(Throwable) with prover !!!!
+Completed proof of IllegalStateException.IllegalStateException(String,@Nullable Throwable) with prover !!!! - no warnings
+Starting proof of IllegalStateException.IllegalStateException(@Nullable Throwable) with prover !!!!
 Feasibility check - at implicit return : OK
-Completed proof of IllegalStateException.IllegalStateException(Throwable) with prover !!!! - no warnings
+Completed proof of IllegalStateException.IllegalStateException(@Nullable Throwable) with prover !!!! - no warnings
 Completed proving methods in java.lang.IllegalStateException
