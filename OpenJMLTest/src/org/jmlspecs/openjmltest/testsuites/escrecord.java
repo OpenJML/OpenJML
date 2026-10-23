@@ -445,4 +445,24 @@ public class escrecord extends EscBase {
                 """);
     }
 
+    /** A postcondition of a public record method that calls the implicit accessors (#954, was a crash) */
+    @Test
+    public void testAccessorsInPostcondition() {
+        helpEsc("tt.Pt", """
+                package tt;
+                public record Pt(int x, int y) {
+                    //@ ensures \\result == x() + y();
+                    public /*@ pure @*/ int sum() { return x + y; }
+                    //@ requires -1000 < x && x < 1000 && -1000 < y && y < 1000;
+                    //@ ensures \\result == x() + y();
+                    public /*@ pure @*/ int sumInRange() { return x + y; }
+                }
+                """
+                ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method sum: overflow in int sum", 46
+                ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method sum: underflow in int sum", 46
+                ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (Postcondition) in method sum", 37
+                ,"/tt/Pt.java:3: verify: Associated declaration", 9
+                );
+    }
+
 }
