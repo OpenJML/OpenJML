@@ -470,6 +470,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * A stack of labeled statements that might be targets of continue statements
 	 */
 	java.util.Stack<JCLabeledStatement> continueStack = new java.util.Stack<JCLabeledStatement>();
+	/** The labeled block holding the translation of each loop body being translated, keyed by the original body */
+	java.util.Map<JCStatement, JCLabeledStatement> loopBodyLabels = new java.util.HashMap<>();
 
 	/**
 	 * Stack of the synthetic index (trip count) variables for loops enclosing the
@@ -6862,8 +6864,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCStatement ss = list.last();
 				Name label2 = names.fromString("_$" + that.label.toString());
 				JmlLabeledStatement stat2 = M.at(that).JmlLabeledStatement(label2, null, ss);
-				((JCBlock) s).stats = len == 1 ? List.<JCStatement>of(list.get(0), stat2)
-						: List.<JCStatement>of(list.get(0), list.get(1), stat2);
+				// Only the loop itself (the last statement) is relabeled; the statements before it (initializers,
+				// the loop index declaration) are kept (#1065)
+				ListBuffer<JCStatement> nstats = new ListBuffer<>();
+				for (int k = 0; k < len - 1; k++) nstats.add(list.get(k));
+				nstats.add(stat2);
+				((JCBlock) s).stats = nstats.toList();
 				recordLabel(label2, stat2);
 			}
 			// The outer label is kept for a labeled loop too: it is the target of 'break label' (#1065)
@@ -8408,6 +8414,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			st.target = continueStack.peek();
 			result = addStat(st);
 		} else {
+			// Like an unlabeled continue, exits the body of the target loop, so that the loop's step and
+			// invariant checks are done (a Java continue to the translated loop crashed RAC) (#1065)
+			JCStatement body = that.target instanceof JCWhileLoop w ? w.body
+			        : that.target instanceof JCForLoop f ? f.body
+			        : that.target instanceof JCDoWhileLoop d ? d.body
+			        : that.target instanceof JCEnhancedForLoop e ? e.body : null;
+			JCLabeledStatement lab = body == null ? null : loopBodyLabels.get(body);
+			if (lab != null) {
+				JCBreak st = M.at(that).Break(lab.getLabel());
+				st.setType(that.type);
+				st.target = lab;
+				result = addStat(st);
+				return;
+			}
 			JCContinue st = M.at(that).Continue(that.label);
 			st.setType(that.type);
 			st.target = treeMap.get(that.target);
@@ -20068,6 +20088,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		Name label = names.fromString("loopBody_" + body.pos + "_" + nextUnique());
 		JCLabeledStatement lab = M.at(body).JmlLabeledStatement(label, null, bodyBlock);
 		continueStack.push(lab);
+		loopBodyLabels.put(body, lab);
 		addStat(lab);
 
 		try {
@@ -20079,6 +20100,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		    Utils.conditionalPrintStack(e);
 		} finally {
 			continueStack.pop();
+			loopBodyLabels.remove(body);
 		}
 	}
 

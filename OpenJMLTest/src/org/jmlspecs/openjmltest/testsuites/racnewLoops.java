@@ -505,7 +505,41 @@ public class racnewLoops extends RacBase {
                 );
     }
 
-
-
+    /** A labeled continue out of a nested loop, and a labeled for loop (#1065) */
+    @Test public void testLabeledContinue() {
+        helpRacText("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static void main(String[] args) {
+                    int n = 0;
+                    b: for (int i = 0; i < 3; i++) {
+                      for (int j = 0; j < 3; j++) {
+                        if (j == 1) continue b;
+                        n++;
+                      }
+                    }
+                    int k = 0, m = 0;
+                    w: while (k < 3) {
+                      k++;
+                      do {
+                        if (k == 2) continue w;
+                        m++;
+                      } while (false);
+                    }
+                    int p = 0;
+                    x: for (int i = 0; ; i++) {
+                      if (i == 4) break x;
+                      p++;
+                    }
+                    System.out.println(n + " " + m + " " + p);
+                    System.out.println("END");
+                  }
+                }
+                """
+                ,"3 2 4"
+                ,"END"
+                );
+    }
 
 }

@@ -2336,4 +2336,34 @@ public class escnew3 extends EscBase {
                 ,"/$A/tt/TestJava.jml:6: verify: Associated declaration: /tt/TestJava.java:4:", 7
                 );
     }
+
+    /** A labeled continue out of a nested loop runs the step of the labeled loop (#1065) */
+    @Test
+    public void testLabeledContinue() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    int n = 0;
+                    b:
+                    //@ loop_invariant 0 <= i && i <= 3 && n == i;
+                    //@ decreases 3 - i;
+                    for (int i = 0; i < 3; i++) {
+                      //@ loop_invariant 0 <= j && j <= 1 && n == i + j;
+                      //@ decreases 3 - j;
+                      for (int j = 0; j < 3; j++) {
+                        if (j == 1) continue b;
+                        n++;
+                      }
+                    }
+                    //@ check n == 3;
+                    //@ check n == 4;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method m", 9
+                );
+    }
+
 }
