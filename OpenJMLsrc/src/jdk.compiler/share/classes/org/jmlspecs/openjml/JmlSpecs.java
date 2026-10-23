@@ -1677,9 +1677,30 @@ public class JmlSpecs {
         return n.endsWith(Modifiers.NULLABLE.fullAnnotation) || n.endsWith(Modifiers.NON_NULL.fullAnnotation);
     }
 
+    /** Reports conflicting nullness annotations at any position of the type tree 't' of a .jml declaration; a
+     *  .java declaration's are checked when it is attributed (#1067) */
+    public void checkConflictingNullness(/*@ nullable */ JCTree t, JavaFileObject source) {
+        while (t instanceof JCAnnotatedType at) {
+            var prev = log.useSource(source);
+            try {
+                attr.checkForConflictingNullity(at.annotations);
+            } finally {
+                log.useSource(prev);
+            }
+            t = at.underlyingType;
+        }
+        if (t instanceof JCArrayTypeTree a) checkConflictingNullness(a.elemtype, source);
+        else if (t instanceof JCTypeApply ta) for (var x: ta.arguments) checkConflictingNullness(x, source);
+        else if (t instanceof JCWildcard w) checkConflictingNullness(w.inner, source);
+    }
+
     /** Applies withSpecNullness to the parameter and result types of 'msym', from its .jml declaration */
     public void applySpecNullness(JCMethodDecl specDecl, MethodSymbol msym) {
         if (msym.type == null) return;
+        if (specDecl instanceof JmlMethodDecl md) {
+            checkConflictingNullness(md.restype, md.sourcefile);
+            for (var p: md.params) checkConflictingNullness(p.vartype, md.sourcefile);
+        }
         var mt = msym.type.asMethodType();
         var params = msym.params();
         boolean changed = false;

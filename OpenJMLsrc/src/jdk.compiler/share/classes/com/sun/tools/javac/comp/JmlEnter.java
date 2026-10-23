@@ -1441,6 +1441,7 @@ public class JmlEnter extends Enter {
 					return false;
 				}
 				ok = true;
+				JmlSpecs.instance(context).checkConflictingNullness(vdecl.vartype, vdecl.sourcefile);
 				vsym.type = JmlSpecs.instance(context).withSpecNullness(vdecl.vartype, vsym.type);
 				vdecl.type = vdecl.vartype.type = vsym.type;
 				vdecl.sym = vsym;

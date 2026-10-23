@@ -485,6 +485,9 @@ public class JmlParser extends JavacParser {
         if (!taAnnotations.isEmpty()) {
             mods.jmlmods = nonTAModifiers;
             var talist = taAnnotations.toList();
+            // Moved to the type, so not also on the declaration (else a declaration with a spec case could appear to be
+            // both nullable and non_null) (#1067)
+            if (vartype != null) mods.annotations = nonTAAnnotations.toList();
             if (vartype == null) {
                 mods.annotations = mods.annotations.appendList(talist);
             } else if (vartype instanceof JCArrayTypeTree || vartype instanceof JCAnnotatedType) {

@@ -2280,4 +2280,53 @@ public class escnew3 extends EscBase {
                 );
     }
 
+    /** 'nullable T non_null []' is a non-null array of nullable elements, also on a method with a specification
+     *  (#1067) */
+    @Test
+    public void testNonNullArrayOfNullable() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public /*@ nullable */ String /*@ non_null */ [] s = new String[1];
+                  //@ ensures \\result.length == 1;
+                  public /*@ nullable */ String /*@ non_null */ [] r() { return new String[1]; }
+                  public void m() {
+                    s = null;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m", 7
+                );
+    }
+
+    /** The same, declared in a .jml (#1067) */
+    @Test
+    public void testNonNullArrayOfNullableJml() {
+        addMockFile("$A/tt/TestJava.jml",
+                """
+                package tt;
+                public class TestJava {
+                  public /*@ nullable */ String /*@ non_null */ [] s;
+                  //@ ensures \\result.length == 1;
+                  public /*@ nullable */ String /*@ non_null */ [] r();
+                  public void m();
+                }
+                """
+                );
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public String[] s = new String[1];
+                  public String[] r() { return new String[1]; }
+                  public void m() {
+                    s = null;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m", 7
+                );
+    }
+
 }

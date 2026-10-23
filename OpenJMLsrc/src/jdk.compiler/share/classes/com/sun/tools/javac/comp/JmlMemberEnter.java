@@ -299,6 +299,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         						specVarDecl.type = javaVarDecl.type;
         						specVarDecl.vartype.type = javaVarDecl.type;
         						specs.checkNullnessRepeated(javaVarDecl.vartype, javaVarDecl.sourcefile, specVarDecl.vartype, specVarDecl.sourcefile);
+        						specs.checkConflictingNullness(specVarDecl.vartype, specVarDecl.sourcefile);
         						javaVarDecl.sym.type = specs.withSpecNullness(specVarDecl.vartype, javaVarDecl.sym.type);
         						specs.putSpecs(javaVarDecl.sym, specVarDecl.fieldSpecs);
             					//System.out.println("MATCHED JAVA FIELD " + cd.name + " " + vd.name);

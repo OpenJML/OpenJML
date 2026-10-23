@@ -130,5 +130,5 @@ rule1specs/q/B.jml:6: error: The nullness modifier nullable of the Java declarat
                                     ^
 rule1src/q/B.java:7: error: Associated declaration: rule1specs/q/B.jml:6:
     public @Nullable Object k(@Nullable Object[] p) { return null; }
-                              ^
+                                        ^
 6 errors
