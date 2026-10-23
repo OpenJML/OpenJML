@@ -60,6 +60,7 @@ import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.code.Symbol.VarSymbol;
 import com.sun.tools.javac.code.Symtab;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.TypeAnnotationPosition;
 import com.sun.tools.javac.code.TypeTag;
 import com.sun.tools.javac.code.Types;
 import com.sun.tools.javac.comp.Annotate;
@@ -1618,6 +1619,57 @@ public class JmlSpecs {
             if (a.toString().endsWith(kind.fullAnnotation)) return true; // FIXME - there has to be a better way
         }
         return false;
+    }
+
+    /** Returns 'javaType' with the nullness annotation that the type tree 'specType' of a .jml declaration puts on the
+     *  innermost element type of an array, if the Java type's element has none; otherwise 'javaType' itself. The parser
+     *  moves a nullness modifier written before an array type onto its element type; javac applies that for a .java
+     *  declaration, but a .jml declaration takes the type of the Java (source or binary) declaration (#1057). */
+    public Type withSpecElementNullness(/*@ nullable */ JCTree specType, Type javaType) {
+        if (specType == null || !(javaType instanceof Type.ArrayType)) return javaType;
+        JCTree t = specType;
+        while (true) {
+            if (t instanceof JCArrayTypeTree at) t = at.elemtype;
+            else if (t instanceof JCAnnotatedType ant && ant.underlyingType instanceof JCArrayTypeTree) t = ant.underlyingType;
+            else break;
+        }
+        if (!(t instanceof JCAnnotatedType ann)) return javaType;
+        ClassSymbol annSym = findAnnotation(ann.annotations, Modifiers.NULLABLE) != null ? attr.nullableAnnotationSymbol
+                : findAnnotation(ann.annotations, Modifiers.NON_NULL) != null ? attr.nonnullAnnotationSymbol : null;
+        if (annSym == null) return javaType;
+        Type elem = javaType;
+        while (elem instanceof Type.ArrayType at) elem = at.elemtype;
+        if (findAnnotation(elem, Modifiers.NULLABLE) || findAnnotation(elem, Modifiers.NON_NULL)) return javaType;
+        var tc = new Attribute.TypeCompound(annSym.type, com.sun.tools.javac.util.List.nil(), TypeAnnotationPosition.unknown);
+        return annotateInnermost(javaType, tc);
+    }
+
+    private Type annotateInnermost(Type t, Attribute.TypeCompound tc) {
+        if (t instanceof Type.ArrayType at) return new Type.ArrayType(annotateInnermost(at.elemtype, tc), at.tsym);
+        return t.annotatedType(com.sun.tools.javac.util.List.of(tc));
+    }
+
+    /** Applies withSpecElementNullness to the parameter and result types of 'msym', from its .jml declaration */
+    public void applySpecElementNullness(JCMethodDecl specDecl, MethodSymbol msym) {
+        if (msym.type == null) return;
+        var mt = msym.type.asMethodType();
+        var params = msym.params();
+        boolean changed = false;
+        ListBuffer<Type> argtypes = new ListBuffer<>();
+        int k = 0;
+        for (Type t: mt.argtypes) {
+            Type nt = k < specDecl.params.size() ? withSpecElementNullness(specDecl.params.get(k).vartype, t) : t;
+            if (nt != t) {
+                changed = true;
+                if (params != null && k < params.size()) params.get(k).type = nt;
+            }
+            argtypes.add(nt);
+            k++;
+        }
+        Type restype = withSpecElementNullness(specDecl.restype, mt.restype);
+        if (!changed && restype == mt.restype) return;
+        var nmt = new Type.MethodType(argtypes.toList(), restype, mt.thrown, mt.tsym);
+        msym.type = msym.type instanceof Type.ForAll fa ? new Type.ForAll(fa.tvars, nmt) : nmt;
     }
 
     public JCAnnotation findAnnotation(List<JCAnnotation> annotations, ModifierKind kind) {

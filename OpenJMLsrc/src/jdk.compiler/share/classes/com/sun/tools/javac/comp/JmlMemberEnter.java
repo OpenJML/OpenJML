@@ -298,6 +298,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         						specVarDecl.sym = javaVarDecl.sym;
         						specVarDecl.type = javaVarDecl.type;
         						specVarDecl.vartype.type = javaVarDecl.type;
+        						javaVarDecl.sym.type = specs.withSpecElementNullness(specVarDecl.vartype, javaVarDecl.sym.type);
         						specs.putSpecs(javaVarDecl.sym, specVarDecl.fieldSpecs);
             					//System.out.println("MATCHED JAVA FIELD " + cd.name + " " + vd.name);
                         	}
@@ -363,6 +364,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		msp.javaDecl = javaMethodDecl;
                         		msp.javaEnv = msp.specsEnv = env;
         						specs.putSpecs(javaMethodDecl.sym, msp);
+        						specs.applySpecElementNullness(specMethodDecl, javaMethodDecl.sym);
             					//System.out.println("MATCHED JAVA METHOD " + cd.name + " " + specMethodDecl.sym + " " + specMethodDecl.sym.hashCode() + " " + specMethodDecl.restype + " " + javaMethodDecl.sym + " " + javaMethodDecl.sym.hashCode());
                         	}
     					} else {
