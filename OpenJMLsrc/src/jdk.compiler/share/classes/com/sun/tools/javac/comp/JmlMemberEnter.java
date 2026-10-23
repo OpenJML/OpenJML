@@ -298,6 +298,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         						specVarDecl.sym = javaVarDecl.sym;
         						specVarDecl.type = javaVarDecl.type;
         						specVarDecl.vartype.type = javaVarDecl.type;
+        						javaVarDecl.sym.type = specs.withSpecElementNullness(specVarDecl.vartype, javaVarDecl.sym.type);
         						specs.putSpecs(javaVarDecl.sym, specVarDecl.fieldSpecs);
             					//System.out.println("MATCHED JAVA FIELD " + cd.name + " " + vd.name);
                         	}
@@ -363,6 +364,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		msp.javaDecl = javaMethodDecl;
                         		msp.javaEnv = msp.specsEnv = env;
         						specs.putSpecs(javaMethodDecl.sym, msp);
+        						specs.applySpecElementNullness(specMethodDecl, javaMethodDecl.sym);
             					//System.out.println("MATCHED JAVA METHOD " + cd.name + " " + specMethodDecl.sym + " " + specMethodDecl.sym.hashCode() + " " + specMethodDecl.restype + " " + javaMethodDecl.sym + " " + javaMethodDecl.sym.hashCode());
                         	}
     					} else {
@@ -1306,6 +1308,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 jtree.originalType = attr.attribType(jtree.originalVartype, env); // FIXME - not correct if static
             }
             if (JmlEnter.debugEnter) Utils.debugOut().println("enter: Entered field " + tree.sym.owner + " " + tree.name);
+            // javac enters a record component's field on its own, so its specs (e.g. nullness) are saved here (#1061)
+            if ((tree.mods.flags & Flags.RECORD) != 0 && tree.sym != null && tree.sym.owner instanceof ClassSymbol
+                    && specs.get(tree.sym) == null) {
+                if (jtree.fieldSpecs == null) jtree.fieldSpecs = new JmlSpecs.FieldSpecs(jtree);
+                specs.putSpecs(tree.sym, jtree.fieldSpecs);
+            }
         } finally {
             resolve.setAllowJML(prev);
             resolve.setInJMLCU(prevcu);

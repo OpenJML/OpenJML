@@ -557,4 +557,19 @@ public class feasibility extends EscBase {
                 """
                 );
     }
+    @Test
+    public void freturnInfiniteLoopVoid() {
+        // The end of a void method that follows a loop that cannot complete normally is unreachable (#1058)
+        helpFeas("return",
+                """
+                package tt;
+                public class TestJava {
+                  public void m(int x) { while (true) { if (x > 0) return; x++; } }
+                  public void n(int x) { for (;;) { if (x > 0) return; x++; } }
+                  public void p(int x) { do { if (x > 0) return; x++; } while (true); }
+                  public void q(int x) { while (true) { while (true) { if (x > 0) break; x++; } if (x > 5) return; x++; } }
+                }
+                """
+                );
+    }
 }

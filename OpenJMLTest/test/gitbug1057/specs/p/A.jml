@@ -1,0 +1,11 @@
+package p;
+//@ non_null_by_default
+public class A {
+    public /*@ nullable */ Object[] f;
+    public Object /*@ nullable */ [] g;
+    //@ requires a.length > 0;
+    //@ ensures a[0] != null;
+    public void m(/*@ nullable */ Object[] a);
+    //@ spec_pure
+    public /*@ nullable */ Object[] r();
+}

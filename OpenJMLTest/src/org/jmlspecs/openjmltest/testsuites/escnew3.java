@@ -2249,4 +2249,91 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method n", 9
                 );
     }
+    /** Code after a loop is checked even if the loop body ends in a return, and a loop exited by a labeled break
+     *  can complete normally (#1058) */
+    @Test
+    public void testCodeAfterLoopChecked() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m(boolean c) {
+                    while (c) { return; }
+                    //@ check false;
+                  }
+                  public void n(int k) {
+                    for (int i = 0; i < k; i++) { return; }
+                    //@ check false;
+                  }
+                  public void p(int[] a) {
+                    for (int i: a) { return; }
+                    //@ check false;
+                  }
+                  public void q(boolean c) {
+                    do { if (c) return; } while (c);
+                    //@ check false;
+                  }
+                  public void r(int x) {
+                    a: while (true) { while (true) { if (x > 0) break a; x++; } }
+                    //@ check false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m", 9
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method n", 9
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method p", 9
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method q", 9
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method r", 9
+                );
+    }
+
+    /** A signals_only clause naming NullPointerException does not make the field assumptions made before the body
+     *  throw outside the method's try statement (#1056) */
+    @Test
+    public void testSignalsOnlyFieldAssumptions() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  /*@ spec_public non_null */ Object[] t = new Object[4];
+                  //@ public invariant t.length == 4;
+                  //@ public behavior
+                  //@   signals_only NullPointerException;
+                  public boolean has(Object o) {
+                    return t[0] == o;
+                  }
+                }
+                """
+                );
+    }
+
+    /** A type-use nullness modifier on an array field declared in a .jml applies to the element type, as it does in
+     *  a .java (#1057) */
+    @Test
+    public void testJmlFieldElementNullness() {
+        addMockFile("$A/tt/TestJava.jml",
+                """
+                package tt;
+                //@ non_null_by_default
+                public class TestJava {
+                  /*@ nullable */ Object[] t;
+                  //@ requires t != null && t.length > 0;
+                  //@ ensures t[0] != null;
+                  void m();
+                }
+                """
+                );
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  Object[] t;
+                  void m() {}
+                }
+                """
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (NullField) in method TestJava", 12
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition: /$A/tt/TestJava.jml:6:) in method m", 8
+                ,"/$A/tt/TestJava.jml:6: verify: Associated declaration: /tt/TestJava.java:4:", 7
+                );
+    }
 }
