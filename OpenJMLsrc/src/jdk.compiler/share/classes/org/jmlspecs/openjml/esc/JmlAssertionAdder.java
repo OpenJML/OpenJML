@@ -909,6 +909,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         nestedCallSource = null;
 		
 		Set<Type> savedActiveExceptions = activeExceptions;
+		// Found here, since looking up the specs also creates them, but active only in the body (#1056)
+		activeExceptions = new HashSet<>();
+		findActiveExceptions(pmethodDecl);
+		Set<Type> bodyActiveExceptions = activeExceptions;
 		activeExceptions = new HashSet<>();
 
         if (pmethodDecl.body == null && utils.esc && !org.jmlspecs.openjml.JmlOption.FEASIBILITY.includes(context, org.jmlspecs.openjml.Strings.feas_none)) {
@@ -1284,7 +1288,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addStat(initialStatements, preconditionAssumeCheck);
 
             // Exceptions allowed by signals_only are thrown only from within the try statement (#1056)
-            findActiveExceptions(pmethodDecl);
+            activeExceptions = bodyActiveExceptions;
             addStat(comment(methodDecl, "Method Body", null));
 
 			if (methodDecl.body != null) {
