@@ -2,10 +2,10 @@ Proving methods in AC
 Starting proof of AC.AC() with prover !!!!
 Completed proof of AC.AC() with prover !!!! - no warnings
 Starting proof of AC.mm() with prover !!!!
-test/specspath/AC.java:5: verify: The prover cannot establish an assertion (Assignable) in method mm: \everything
+test/specspath/AC.java:5: verify: The prover cannot establish an assertion (Assignable: test/specspath/AC.java:3:) in method mm: \everything
     m();
      ^
-test/specspath/AC.java:3: verify: Associated declaration
+test/specspath/AC.java:3: verify: Associated declaration: test/specspath/AC.java:5:
   //@ pure
       ^
 Completed proof of AC.mm() with prover !!!! - with warnings
