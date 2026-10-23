@@ -21,10 +21,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.A.mmc(int[]) with prover !!!! - no warnings
 Starting proof of Test.A.mm1() with prover !!!!
-test/gitbug998/Test.java:11: verify: The prover cannot establish an assertion (Precondition) in method mm1
+test/gitbug998/Test.java:11: verify: The prover cannot establish an assertion (Precondition: test/gitbug998/Test.java:6:) in method mm1
             mma(null); // ERROR
                ^
-test/gitbug998/Test.java:6: verify: Associated declaration
+test/gitbug998/Test.java:6: verify: Associated declaration: test/gitbug998/Test.java:11:
         public void mma(int /*@ non_null @*/[] x) {}
                     ^
 test/gitbug998/Test.java:11: verify: Precondition conjunct is false: null != null
@@ -36,10 +36,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.A.mm2() with prover !!!! - no warnings
 Starting proof of Test.A.mm3() with prover !!!!
-test/gitbug998/Test.java:19: verify: The prover cannot establish an assertion (Precondition) in method mm3
+test/gitbug998/Test.java:19: verify: The prover cannot establish an assertion (Precondition: test/gitbug998/Test.java:8:) in method mm3
             mmc(null); // ERROR
                ^
-test/gitbug998/Test.java:8: verify: Associated declaration
+test/gitbug998/Test.java:8: verify: Associated declaration: test/gitbug998/Test.java:19:
         public void mmc(int                 [] x) {}
                     ^
 test/gitbug998/Test.java:19: verify: Precondition conjunct is false: null != null
@@ -65,10 +65,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.B.nnc(int[]) with prover !!!! - no warnings
 Starting proof of Test.B.nn1() with prover !!!!
-test/gitbug998/Test.java:31: verify: The prover cannot establish an assertion (Precondition) in method nn1
+test/gitbug998/Test.java:31: verify: The prover cannot establish an assertion (Precondition: test/gitbug998/Test.java:26:) in method nn1
             nna(null); // ERROR
                ^
-test/gitbug998/Test.java:26: verify: Associated declaration
+test/gitbug998/Test.java:26: verify: Associated declaration: test/gitbug998/Test.java:31:
         public void nna(int /*@ non_null @*/[] x) {}
                     ^
 test/gitbug998/Test.java:31: verify: Precondition conjunct is false: null != null

@@ -126,10 +126,10 @@ STARTING PROOF OF Test.m3c()
 {
   m3(null, 0);
 }
-test/recommends/Test.java:24: verify: The prover cannot establish an assertion (Precondition) in method m3c
+test/recommends/Test.java:24: verify: The prover cannot establish an assertion (Precondition: test/recommends/Test.java:18:) in method m3c
         m3(null, 0);
           ^
-test/recommends/Test.java:18: verify: Associated declaration
+test/recommends/Test.java:18: verify: Associated declaration: test/recommends/Test.java:24:
     public void m3(Test o, int i) {
                 ^
 test/recommends/Test.java:16: verify: Precondition conjunct is false: o != null

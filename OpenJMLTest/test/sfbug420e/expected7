@@ -14,10 +14,10 @@ Skipping proof of stack.StackImpl.count() (Skipping stack.StackImpl.count becaus
 Skipping proof of stack.StackImpl.itemAt(int) (Skipping stack.StackImpl.itemAt because it does not match push)
 Skipping proof of stack.StackImpl.isEmpty() (Skipping stack.StackImpl.isEmpty because it does not match push)
 Starting proof of stack.StackImpl.push(int) with prover !!!!
-test/sfbug420e/StackImpl.java:34: verify: The prover cannot establish an assertion (Assignable) in method push: internalStack[stackCounter]
+test/sfbug420e/StackImpl.java:34: verify: The prover cannot establish an assertion (Assignable: test/sfbug420e/Stack.java:24:) in method push: internalStack[stackCounter]
 		internalStack[stackCounter] = item; // ERROR - index might be too large
 		                            ^
-test/sfbug420e/Stack.java:24: verify: Associated declaration
+test/sfbug420e/Stack.java:24: verify: Associated declaration: test/sfbug420e/StackImpl.java:34:
 	//-RAC@ assignable count;
 	        ^
 test/sfbug420e/StackImpl.java:34: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method push
@@ -26,16 +26,16 @@ test/sfbug420e/StackImpl.java:34: verify: The prover cannot establish an asserti
 test/sfbug420e/StackImpl.java:33: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method push: overflow in int sum
 		if(stackCounter + 1 > maxSize) return false; // ERROR - spec does not say what happens when \result is false
 		                ^
-test/sfbug420e/StackImpl.java:36: verify: The prover cannot establish an assertion (Postcondition) in method push
+test/sfbug420e/StackImpl.java:36: verify: The prover cannot establish an assertion (Postcondition: test/sfbug420e/Stack.java:27:) in method push
 		return true; // ERROR - no spec for top()
 		^
-test/sfbug420e/Stack.java:27: verify: Associated declaration
+test/sfbug420e/Stack.java:27: verify: Associated declaration: test/sfbug420e/StackImpl.java:36:
 	//@ ensures (\forall int i; 1<=i && i<=\old(count()); itemAt(i)==\old(itemAt(i)));
 	    ^
-test/sfbug420e/StackImpl.java:36: verify: The prover cannot establish an assertion (Postcondition) in method push
+test/sfbug420e/StackImpl.java:36: verify: The prover cannot establish an assertion (Postcondition: test/sfbug420e/Stack.java:26:) in method push
 		return true; // ERROR - no spec for top()
 		^
-test/sfbug420e/Stack.java:26: verify: Associated declaration
+test/sfbug420e/Stack.java:26: verify: Associated declaration: test/sfbug420e/StackImpl.java:36:
 	//@ ensures \result ==> item==(top());
 	    ^
 Completed proof of stack.StackImpl.push(int) with prover !!!! - with warnings

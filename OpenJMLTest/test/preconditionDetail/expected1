@@ -29,10 +29,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.TestA() with prover !!!! - no warnings
 Starting proof of TestA.m1(TestAA,@Nullable Integer) with prover !!!!
-test/preconditionDetail/TestA.java:22: verify: The prover cannot establish an assertion (Precondition) in method m1
+test/preconditionDetail/TestA.java:22: verify: The prover cannot establish an assertion (Precondition: test/preconditionDetail/TestA.java:11:) in method m1
         a.m(k,100,100);
            ^
-test/preconditionDetail/TestA.java:11: verify: Associated declaration
+test/preconditionDetail/TestA.java:11: verify: Associated declaration: test/preconditionDetail/TestA.java:22:
     public void m( /*@ non_null */Integer pq, int q,  /*@ non_null */Integer r) {
                 ^
 test/preconditionDetail/TestA.java:22: verify: Precondition conjunct is false: _JML__tmp`20 != null
@@ -49,10 +49,10 @@ test/preconditionDetail/TestA.java:9: verify: Precondition conjunct is false: pq
                       ^
 Completed proof of TestA.m1(TestAA,@Nullable Integer) with prover !!!! - with warnings
 Starting proof of TestA.m2(TestAA,@Nullable Integer) with prover !!!!
-test/preconditionDetail/TestA.java:27: verify: The prover cannot establish an assertion (Precondition) in method m2
+test/preconditionDetail/TestA.java:27: verify: The prover cannot establish an assertion (Precondition: test/preconditionDetail/TestA.java:11:) in method m2
         a.m(100,100,kk);
            ^
-test/preconditionDetail/TestA.java:11: verify: Associated declaration
+test/preconditionDetail/TestA.java:11: verify: Associated declaration: test/preconditionDetail/TestA.java:27:
     public void m( /*@ non_null */Integer pq, int q,  /*@ non_null */Integer r) {
                 ^
 test/preconditionDetail/TestA.java:27: verify: Precondition conjunct is false: _JML__tmp`112 != null

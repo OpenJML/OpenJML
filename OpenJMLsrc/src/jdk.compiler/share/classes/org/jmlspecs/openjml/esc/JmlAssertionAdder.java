@@ -909,8 +909,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         nestedCallSource = null;
 		
 		Set<Type> savedActiveExceptions = activeExceptions;
+		// Found here, since looking up the specs also creates them, but active only in the body (#1056)
 		activeExceptions = new HashSet<>();
 		findActiveExceptions(pmethodDecl);
+		Set<Type> bodyActiveExceptions = activeExceptions;
+		activeExceptions = new HashSet<>();
 
         if (pmethodDecl.body == null && utils.esc && !org.jmlspecs.openjml.JmlOption.FEASIBILITY.includes(context, org.jmlspecs.openjml.Strings.feas_none)) {
             // This block is added to enable checking that perconditions are consistent in methods without bodies
@@ -1284,6 +1287,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCStatement preconditionAssumeCheck = popBlock(methodDecl, check3);
             addStat(initialStatements, preconditionAssumeCheck);
 
+            // Exceptions allowed by signals_only are thrown only from within the try statement (#1056)
+            activeExceptions = bodyActiveExceptions;
             addStat(comment(methodDecl, "Method Body", null));
 
 			if (methodDecl.body != null) {
@@ -1349,7 +1354,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 // FIXME - don't know whether execution is still alive here
 				// addAssumeCheck(methodDecl.body, currentStatements, Strings.feas_return, "at fall-through return");
-				// javac ensures that the end of a non-void method is not reachable (loops do not update continuation)
+				// javac ensures that the end of a non-void method is not reachable
 				if (continuation == Continuation.CONTINUE && methodDecl.sym.getReturnType().getTag() == TypeTag.VOID) {
                     addFeasibilityCheck(endpos(methodDecl.body), currentStatements, Strings.feas_return, "at implicit return");
 				}
@@ -2407,7 +2412,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				int showSource = methodEnv.showRacSource;
 				diag = JCDiagnostic.Factory.instance(context).create(JCDiagnostic.DiagnosticType.WARNING,
 				    showSource == 2 ? ds : DiagnosticSource.NO_SOURCE, associatedPos,
-						utils.testingMode && showSource != 2 ? "jml.associated.decl" : "jml.associated.decl.cf",
+						"jml.associated.decl.cf",
 						utils.locationString(codepos.getPreferredPosition()));
 				String loc = (showSource != 1) ? "" : (utils.locationString(associatedPos, ds.getFile()) + " ");
 				String msg2 = JmlTree.eol + loc + diag.toString().replace("warning: ", "verify: ").trim(); 
@@ -2987,8 +2992,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(), vd.sym);
 			JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(),
 					utils.locationString(pos, log.currentSourceFile()));
-			if (utils.testingMode)
-				location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 			JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "reportNoSuchField", id,
 					location);
 			catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
@@ -4077,7 +4080,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		if (owner instanceof MethodSymbol)
 			owner = owner.owner;
 		if (!utils.isJavaOrJmlPrimitiveType(sym.type)) {
-			isNonNull = specs.isNonNull(sym);
+			// A pattern binding is not non-null by default: a nested type pattern binds a null component (#1061)
+			isNonNull = (sym.flags() & Flags.MATCH_BINDING) == 0 && specs.isNonNull(sym);
 		}
 		return addNullnessAllocationTypeCondition(pos, sym, isNonNull, instanceBeingConstructed, false, null);
 	}
@@ -6342,8 +6346,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(), vd.sym);
 					JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(),
 							utils.locationString(pos, log.currentSourceFile()));
-					if (utils.testingMode)
-						location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 					JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),
 							"reportNoSuchField", id, location);
 					catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
@@ -6397,8 +6399,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(), vd.sym);
 					JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(),
 							utils.locationString(pos, log.currentSourceFile()));
-					if (utils.testingMode)
-						location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 					JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(),
 							"reportNoSuchField", id, location);
 					catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.Exec(m))));
@@ -6866,12 +6866,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JmlLabeledStatement stat2 = M.at(that).JmlLabeledStatement(label2, null, ss);
 				((JCBlock) s).stats = len == 1 ? List.<JCStatement>of(list.get(0), stat2)
 						: List.<JCStatement>of(list.get(0), list.get(1), stat2);
-				result = addStat(block);
 				recordLabel(label2, stat2);
-			} else {
-				stat.body = block;
-				result = addStat(stat);
 			}
+			// The outer label is kept for a labeled loop too: it is the target of 'break label' (#1065)
+			stat.body = block;
+			result = addStat(stat);
+			// A break that exits the labeled statement makes the code after it reachable (#1058)
+			if (hasBreakTo(that.body, that)) continuation = Continuation.CONTINUE;
 		} finally {
 			treeMap.remove(that); // Remove the statement because we are leaving the scope of the label
 		}
@@ -7303,6 +7304,68 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	        translatePattern(nestedPattern, compTemp);
 	        components = components.tail;
 	        nestedPatterns = nestedPatterns.tail;
+	    }
+	}
+
+	/** Declares the binding variables of a pattern, which stay in scope after an instanceof that introduces them */
+	protected void declarePatternBindings(JCPattern pattern) {
+	    if (pattern instanceof JCBindingPattern bpat) {
+	        if (bpat.var.sym == null || !bpat.var.sym.isUnnamedVariable()) convert(bpat.var);
+	    } else if (pattern instanceof JCRecordPattern recPat) {
+	        for (JCPattern p: recPat.nested) declarePatternBindings(p);
+	    }
+	}
+
+	/** Returns a boolean expression that is true iff 'expr' matches 'pattern' (as in an instanceof), assuming that
+	 *  the binding variables (already declared) equal the matched values if it does. The components of a record
+	 *  are evaluated only if the value is an instance of the record class (#1062). */
+	protected JCExpression matchPattern(JCPattern pattern, JCExpression expr) {
+	    if (pattern instanceof JCBindingPattern bpat) {
+	        JCExpression cond = null;
+	        if (!isUnconditionalTypePattern(bpat, expr.type)) {
+	            JCTree clazz = treeutils.makeType(pattern.pos, types.erasure(bpat.type));
+	            cond = M.at(pattern).TypeTest(copy(expr), clazz).setType(syms.booleanType);
+	        }
+	        if (bpat.var.sym != null && !bpat.var.sym.isUnnamedVariable()) {
+	            JCExpression eq = treeutils.makeEquality(pattern.getPreferredPosition(),
+	                    treeutils.makeIdent(pattern.pos, bpat.var.sym), expr);
+	            addAssume(pattern, Label.IMPLICIT_ASSUME, cond == null ? eq : treeutils.makeImplies(pattern, copy(cond), eq));
+	        }
+	        return cond == null ? treeutils.makeBooleanLiteral(pattern, true) : cond;
+	    } else if (pattern instanceof JCRecordPattern recPat) {
+	        Type recordType = types.erasure(recPat.record.type);
+	        JCVariableDecl vdecl = treeutils.makeVarDef(syms.booleanType,
+	                names.fromString(Strings.conditionalResult + nextUnique()),
+	                methodDecl == null ? classDecl.sym : methodDecl.sym, recPat.pos);
+	        addStat(vdecl);
+	        ListBuffer<JCStatement> check = pushBlock();
+	        JCBlock thenBlock;
+	        try {
+	            JCExpression castExpr = M.at(recPat).TypeCast(recordType, copy(expr)).setType(recordType);
+	            JCIdent recTemp = newTemp(castExpr);
+	            JCExpression cond = treeutils.makeBooleanLiteral(recPat, true);
+	            List<? extends RecordComponent> components = recPat.record.getRecordComponents();
+	            for (JCPattern nested: recPat.nested) {
+	                if (components.isEmpty()) break;
+	                JCIdent compTemp = newTemp(convertExpr(createAccessorCall(recPat, recTemp, components.head)));
+	                cond = treeutils.makeAnd(nested, cond, matchPattern(nested, compTemp));
+	                components = components.tail;
+	            }
+	            addStat(treeutils.makeAssignStat(recPat.pos, treeutils.makeIdent(recPat.pos, vdecl.sym), cond));
+	        } finally {
+	            thenBlock = popBlock(recPat, check);
+	        }
+	        JCExpression typeTest = M.at(recPat).TypeTest(copy(expr), treeutils.makeType(recPat.pos, recordType))
+	                .setType(syms.booleanType);
+	        JCStatement elseStat = treeutils.makeAssignStat(recPat.pos, treeutils.makeIdent(recPat.pos, vdecl.sym),
+	                treeutils.makeBooleanLiteral(recPat, false));
+	        addStat(M.at(recPat).If(typeTest, thenBlock, elseStat));
+	        return treeutils.makeIdent(recPat.pos, vdecl.sym);
+	    } else if (pattern instanceof JCAnyPattern) {
+	        return treeutils.makeBooleanLiteral(pattern, true);
+	    } else {
+	        notImplemented(pattern, "unsupported pattern kind: " + pattern.getClass().getSimpleName());
+	        throw new JmlNotImplementedException(pattern, "unsupported pattern kind: " + pattern.getClass().getSimpleName());
 	    }
 	}
 
@@ -17198,6 +17261,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCIdent id = M.at(stat).Ident(bpat.var.sym);
                     bindingAssumption = treeutils.makeEquality(pat.getPreferredPosition(), id, lhs);
                 }
+            } else if (pat instanceof JCRecordPattern recPat && splitExpressions) {
+                declarePatternBindings(recPat);
+                result = eresult = matchPattern(recPat, lhs);
+                return;
             } else {
                 notImplemented(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
                 throw new JmlNotImplementedException(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
@@ -19276,6 +19343,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
         loopHelperFinish(loop, that);
 		addStat(popBlock(that, loopBlockCheck));
+        continuation = splitInfo != null && splitInfo ? Continuation.HALT : loopContinuation(that, that.cond);
 
         currentEnv = currentEnv.popEnv();
         resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop
@@ -19674,8 +19742,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperFinish(loop, that); // Does a popBlock operation
 		JCBlock bl = popBlock(that, loopBlockCheck);
 		addStat(bl);
-		if (splitInfo != null && splitInfo)
-			continuation = Continuation.HALT;
+		continuation = splitInfo != null && splitInfo ? Continuation.HALT : Continuation.CONTINUE;
 //        if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
 //        labelPropertiesStore.pop(loopinitLabelName);
         currentEnv = currentEnv.popEnv();
@@ -20149,6 +20216,29 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	}
 
+    /** True if a break statement within 'tree' exits 'target', a loop or a labeled statement */
+    protected boolean hasBreakTo(JCTree tree, JCTree target) {
+        boolean[] found = { false };
+        new JmlTreeScanner() {
+            @Override
+            public void visitBreak(JCBreak b) {
+                if (b.target == target
+                        || (b.target instanceof JCLabeledStatement ls && TreeInfo.referencedStatement(ls) == target)) {
+                    found[0] = true;
+                }
+            }
+        }.scan(tree);
+        return found[0];
+    }
+
+    /** The continuation after a while, for or do loop: code after the loop is reachable unless the condition is
+     *  absent or constant true and no break exits the loop (JLS 14.22); the continuation left by the body does not
+     *  carry past the loop (#1058) */
+    protected Continuation loopContinuation(JCTree loop, /*@ nullable */ JCExpression cond) {
+        boolean constTrue = cond == null || TreeInfo.skipParens(cond).type.constValue() instanceof Integer i && i != 0;
+        return constTrue && !hasBreakTo(loop, loop) ? Continuation.HALT : Continuation.CONTINUE;
+    }
+
 	/** Completes the loop */
     protected void loopHelperFinish(JmlWhileLoop loop, JCTree that) {
         JCBlock bl = popBlock(that);
@@ -20333,8 +20423,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		loopHelperFinish(loop, that); // pops the loop body block
 		JCBlock bl = popBlock(that, loopBlockCheck);
 		addStat(bl);
-		if (splitInfo != null && splitInfo)
-			continuation = Continuation.HALT;
+		continuation = splitInfo != null && splitInfo ? Continuation.HALT : loopContinuation(that, that.cond);
 //		if (doRemainderOfLoop) labelPropertiesStore.pop(loopbodyLabelName);
 //		labelPropertiesStore.pop(loopinitLabelName);
 		currentEnv = currentEnv.popEnv();
@@ -21742,8 +21831,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			JCExpression id = treeutils.makeIdent(pos.getPreferredPosition(), vd.sym);
 			JCExpression location = treeutils.makeStringLiteral(pos.getPreferredPosition(),
 					utils.locationString(pos, log.currentSourceFile()));
-			if (utils.testingMode)
-				location = treeutils.makeNullLiteral(pos.getPreferredPosition());
 			JCMethodInvocation m = treeutils.makeUtilsMethodCall(pos.getPreferredPosition(), "reportNoSuchField", id,
 					location);
 			catcher2 = M.at(pos).Catch(vd, M.Block(0L, List.<JCStatement>of(M.at(pos.getPreferredPosition()).Exec(m))));
@@ -24213,8 +24300,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
         loopHelperFinish(loop, that);
         JCBlock bl = popBlock(that, loopBlockCheck);
         addStat(bl);
-        if (splitInfo != null && splitInfo)
-            continuation = Continuation.HALT;
+        continuation = splitInfo != null && splitInfo ? Continuation.HALT : loopContinuation(that, that.cond);
 
         currentEnv = currentEnv.popEnv();
         resetState(savedExitHeap); // FIXME - only if no break statements targeted the end of the loop

@@ -17,10 +17,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Super.Super() with prover !!!! - no warnings
 Starting proof of Super.m() with prover !!!!
-test/gitbug932a/M.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m
+test/gitbug932a/M.java:16: verify: The prover cannot establish an assertion (Postcondition: test/gitbug932a/M.java:13:) in method m
     return super.m();
     ^
-test/gitbug932a/M.java:13: verify: Associated declaration
+test/gitbug932a/M.java:13: verify: Associated declaration: test/gitbug932a/M.java:16:
   //@ ensures \result == 43; // ERROR
       ^
 Completed proof of Super.m() with prover !!!! - with warnings

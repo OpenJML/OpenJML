@@ -32,8 +32,8 @@ public class escinclause extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable) in method m1bad: y",7
-                ,"/tt/TestJava.java:6: verify: Associated declaration",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:6:) in method m1bad: y",7
+                ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:8:",7
                 );
     }
 }

@@ -92,19 +92,19 @@ public class racreadable extends RacBase {
                 }
                 """
                 ,"/tt/TestJava.java:12: JML readable clause is false for variable tt.TestJava.x"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:12:"
                 ,"/tt/TestJava.java:16: JML readable clause is false for variable tt.TestJava.x"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:16:"
                 ,"/tt/TestJava.java:24: JML readable clause is false for variable tt.TestJava.y"
-                ,"/tt/TestJava.java:5: Associated declaration"
+                ,"/tt/TestJava.java:5: Associated declaration: /tt/TestJava.java:24:"
                 ,"/tt/TestJava.java:28: JML readable clause is false for variable tt.TestJava.y"
-                ,"/tt/TestJava.java:5: Associated declaration"
+                ,"/tt/TestJava.java:5: Associated declaration: /tt/TestJava.java:28:"
                 ,"/tt/TestJava.java:36: JML readable clause is false for variable tt.TestJava.z"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:36:"
                 ,"/tt/TestJava.java:40: JML readable clause is false for variable tt.TestJava.z"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:40:"
                 ,"/tt/TestJava.java:48: JML readable clause is false for variable tt.TestJava.z"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:48:"
                 );
     }
 
@@ -182,19 +182,19 @@ public class racreadable extends RacBase {
                 }
                 """
                 ,"/tt/TestJava.java:13: JML writable clause is false for variable tt.TestJava.x"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:13:"
                 ,"/tt/TestJava.java:17: JML writable clause is false for variable tt.TestJava.x"
-                ,"/tt/TestJava.java:4: Associated declaration"
+                ,"/tt/TestJava.java:4: Associated declaration: /tt/TestJava.java:17:"
                 ,"/tt/TestJava.java:26: JML writable clause is false for variable tt.TestJava.y"
-                ,"/tt/TestJava.java:5: Associated declaration"
+                ,"/tt/TestJava.java:5: Associated declaration: /tt/TestJava.java:26:"
                 ,"/tt/TestJava.java:30: JML writable clause is false for variable tt.TestJava.y"
-                ,"/tt/TestJava.java:5: Associated declaration"
+                ,"/tt/TestJava.java:5: Associated declaration: /tt/TestJava.java:30:"
                 ,"/tt/TestJava.java:38: JML writable clause is false for variable tt.TestJava.z"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:38:"
                 ,"/tt/TestJava.java:42: JML writable clause is false for variable tt.TestJava.z"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:42:"
                 ,"/tt/TestJava.java:50: JML writable clause is false for variable tt.TestJava.z"
-                ,"/tt/TestJava.java:3: Associated declaration"
+                ,"/tt/TestJava.java:3: Associated declaration: /tt/TestJava.java:50:"
                 );
     }
 }

@@ -1315,6 +1315,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                 jtree.originalType = attr.attribType(jtree.originalVartype, env); // FIXME - not correct if static
             }
             if (JmlEnter.debugEnter) Utils.debugOut().println("enter: Entered field " + tree.sym.owner + " " + tree.name);
+            // javac enters a record component's field on its own, so its specs (e.g. nullness) are saved here (#1061)
+            if ((tree.mods.flags & Flags.RECORD) != 0 && tree.sym != null && tree.sym.owner instanceof ClassSymbol
+                    && specs.get(tree.sym) == null) {
+                if (jtree.fieldSpecs == null) jtree.fieldSpecs = new JmlSpecs.FieldSpecs(jtree);
+                specs.putSpecs(tree.sym, jtree.fieldSpecs);
+            }
         } finally {
             resolve.setAllowJML(prev);
             resolve.setInJMLCU(prevcu);

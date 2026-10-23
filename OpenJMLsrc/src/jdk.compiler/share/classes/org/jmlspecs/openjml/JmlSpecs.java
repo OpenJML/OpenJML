@@ -793,6 +793,16 @@ public class JmlSpecs {
 //                // FIXME would like to have positions for the conflicting modifiers and annotations
 //            }
         }
+        if (!explicitNonNull && !explicitNullable && (sym.flags() & Flags.GENERATED_MEMBER) != 0
+                && sym.owner instanceof ClassSymbol cs && cs.isRecord() && sym.params().isEmpty()) {
+            // An implicit record accessor has the nullness of its record component (#1061)
+            var field = cs.members().findFirst(sym.name, s -> s instanceof VarSymbol && (s.flags() & Flags.RECORD) != 0);
+            var fspecs = field == null ? null : specsFields.get((VarSymbol)field);
+            if (fspecs != null) {
+                explicitNonNull = fspecs.isNonNull;
+                explicitNullable = !fspecs.isNonNull;
+            }
+        }
         spec.returnExplicitlyNonNull = explicitNonNull;
         spec.returnExplicitlyNullable = !explicitNonNull && explicitNullable;
     }
@@ -1069,7 +1079,9 @@ public class JmlSpecs {
                 ListBuffer<JmlMethodClause> clauses = new ListBuffer<>();
                 if (decl != null) for (JCVariableDecl param: decl.params) {
                     VarSymbol field = (VarSymbol)sym.owner.members().findFirst(param.name, s->(s instanceof VarSymbol));
-                    var fieldSpecs = new FieldSpecs((JmlVariableDecl)param);
+                    // Keep the specs of the record component, e.g. its nullness, rather than those of the generated parameter (#1061)
+                    var fieldSpecs = specsFields.get(field);
+                    if (fieldSpecs == null) fieldSpecs = new FieldSpecs((JmlVariableDecl)param);
                     fieldSpecs.mods.jmlmods.add(new JmlToken(Modifiers.SPEC_PUBLIC, param.pos, param.pos+1)); // FIXME - actually would like the token corresponding to the name, or at least its positions
                     putSpecs(field, fieldSpecs);
                 }

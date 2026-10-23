@@ -1,7 +1,7 @@
-src/p/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method m
+src/p/A.java:5: verify: The prover cannot establish an assertion (Postcondition: specs/p/A.jml:7:) in method m
     public void m(Object[] a) {}
                 ^
-specs/p/A.jml:7: verify: Associated declaration
+specs/p/A.jml:7: verify: Associated declaration: src/p/A.java:5:
     //@ ensures a[0] != null;
         ^
 src/p/C.java:7: verify: The prover cannot establish an assertion (Assert) in method f

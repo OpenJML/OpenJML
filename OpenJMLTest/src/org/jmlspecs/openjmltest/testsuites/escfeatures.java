@@ -48,7 +48,7 @@ public class escfeatures extends EscBaseFiles {
     public void helpFeatures() {
         expectedExit = 6;
         String n = getTestName();
-        helpEscFile(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress","--verify-exit=6");
+        helpEscFile(OpenJMLDemoPath + "/src/features/"+n+".java","test/features/"+n,"--check-feasibility=basic","--progress");
     }
 
 

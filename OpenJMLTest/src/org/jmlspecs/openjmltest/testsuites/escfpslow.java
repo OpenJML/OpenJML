@@ -132,8 +132,8 @@ public class escfpslow extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition) in method m",15
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m",15
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:5:",7
                 );
     }
 
@@ -378,10 +378,10 @@ public class escfpslow extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition) in method sum",5
-                ,"/tt/TestJava.java:3: verify: Associated declaration",7
-                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Postcondition) in method average",5
-                ,"/tt/TestJava.java:13: verify: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:3:) in method sum",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:5:",7
+                ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:13:) in method average",5
+                ,"/tt/TestJava.java:13: verify: Associated declaration: /tt/TestJava.java:15:",7
                 );
     }
 }

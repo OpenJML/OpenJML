@@ -43,8 +43,8 @@ public class esclocation extends EscBase {
                   public void mm() {}
                 }
                 """
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition) in method m",7
-                ,"/$A/tt/TestJava.jml:3: verify: Associated declaration",15
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Precondition: /$A/tt/TestJava.jml:3:) in method m",7
+                ,"/$A/tt/TestJava.jml:3: verify: Associated declaration: /tt/TestJava.java:4:",15
                 ,"/$A/tt/TestJava.jml:2: verify: Precondition conjunct is false: false",18
                 ,"/tt/TestJava.java:6: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.mm()",15
                 );
@@ -68,8 +68,8 @@ public class esclocation extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Postcondition) in method m",15
-                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",9
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (Postcondition: /$A/tt/TestJava.jml:2:) in method m",15
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration: /tt/TestJava.java:3:",9
                 );
     }
 
@@ -92,8 +92,8 @@ public class esclocation extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition) in method m",5
-                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",9
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition: /$A/tt/TestJava.jml:2:) in method m",5
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration: /tt/TestJava.java:4:",9
                 );
     }
 
@@ -116,8 +116,8 @@ public class esclocation extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m",5
-                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",9
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ExceptionalPostcondition: /$A/tt/TestJava.jml:2:) in method m",5
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration: /tt/TestJava.java:4:",9
                 );
     }
 
@@ -142,8 +142,8 @@ public class esclocation extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (InvariantExit) in method m",13
-                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",21
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (InvariantExit: /$A/tt/TestJava.jml:2:) in method m",13
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration: /tt/TestJava.java:5:",21
                 );
     }
 
@@ -168,8 +168,8 @@ public class esclocation extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Initially) in method TestJava",13
-                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",14
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Initially: /$A/tt/TestJava.jml:2:) in method TestJava",13
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration: /tt/TestJava.java:5:",14
                 );
     }
 
@@ -196,8 +196,8 @@ public class esclocation extends EscBase {
                 }
                 """
                 // FIXME - normalize column
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Constraint) in method m",13
-                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration",14
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Constraint: /$A/tt/TestJava.jml:2:) in method m",13
+                ,"/$A/tt/TestJava.jml:2: verify: Associated declaration: /tt/TestJava.java:5:",14
                 );
     }
 
