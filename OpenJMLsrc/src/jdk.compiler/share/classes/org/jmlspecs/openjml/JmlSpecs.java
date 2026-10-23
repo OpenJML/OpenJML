@@ -1672,8 +1672,11 @@ public class JmlSpecs {
     private Type withNullness(Type t, /*@ nullable */ ModifierKind kind) {
         var current = t.getAnnotationMirrors();
         var kept = current.stream().filter(a -> !isNullnessAnnotation(a)).toList();
-        ClassSymbol annSym = kind == Modifiers.NULLABLE ? attr.nullableAnnotationSymbol
-                : kind == Modifiers.NON_NULL ? attr.nonnullAnnotationSymbol : null;
+        // The annotation classes are in java.base; a symbol in another module (attr's are entered in the unnamed module)
+        // cannot be completed from code in java.base, e.g. with --patch-module=java.base
+        Symtab syms = Symtab.instance(context);
+        ClassSymbol annSym = kind == null ? null
+                : syms.enterClass(syms.java_base, Names.instance(context).fromString(kind.fullAnnotation));
         boolean same = annSym == null ? kept.size() == current.size()
                 : kept.size() == current.size() - 1 && current.stream().anyMatch(a -> a.type.tsym == annSym);
         if (same) return t;
