@@ -7299,6 +7299,68 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	    }
 	}
 
+	/** Declares the binding variables of a pattern, which stay in scope after an instanceof that introduces them */
+	protected void declarePatternBindings(JCPattern pattern) {
+	    if (pattern instanceof JCBindingPattern bpat) {
+	        if (bpat.var.sym == null || !bpat.var.sym.isUnnamedVariable()) convert(bpat.var);
+	    } else if (pattern instanceof JCRecordPattern recPat) {
+	        for (JCPattern p: recPat.nested) declarePatternBindings(p);
+	    }
+	}
+
+	/** Returns a boolean expression that is true iff 'expr' matches 'pattern' (as in an instanceof), assuming that
+	 *  the binding variables (already declared) equal the matched values if it does. The components of a record
+	 *  are evaluated only if the value is an instance of the record class (#1062). */
+	protected JCExpression matchPattern(JCPattern pattern, JCExpression expr) {
+	    if (pattern instanceof JCBindingPattern bpat) {
+	        JCExpression cond = null;
+	        if (!isUnconditionalTypePattern(bpat, expr.type)) {
+	            JCTree clazz = treeutils.makeType(pattern.pos, types.erasure(bpat.type));
+	            cond = M.at(pattern).TypeTest(copy(expr), clazz).setType(syms.booleanType);
+	        }
+	        if (bpat.var.sym != null && !bpat.var.sym.isUnnamedVariable()) {
+	            JCExpression eq = treeutils.makeEquality(pattern.getPreferredPosition(),
+	                    treeutils.makeIdent(pattern.pos, bpat.var.sym), expr);
+	            addAssume(pattern, Label.IMPLICIT_ASSUME, cond == null ? eq : treeutils.makeImplies(pattern, copy(cond), eq));
+	        }
+	        return cond == null ? treeutils.makeBooleanLiteral(pattern, true) : cond;
+	    } else if (pattern instanceof JCRecordPattern recPat) {
+	        Type recordType = types.erasure(recPat.record.type);
+	        JCVariableDecl vdecl = treeutils.makeVarDef(syms.booleanType,
+	                names.fromString(Strings.conditionalResult + nextUnique()),
+	                methodDecl == null ? classDecl.sym : methodDecl.sym, recPat.pos);
+	        addStat(vdecl);
+	        ListBuffer<JCStatement> check = pushBlock();
+	        JCBlock thenBlock;
+	        try {
+	            JCExpression castExpr = M.at(recPat).TypeCast(recordType, copy(expr)).setType(recordType);
+	            JCIdent recTemp = newTemp(castExpr);
+	            JCExpression cond = treeutils.makeBooleanLiteral(recPat, true);
+	            List<? extends RecordComponent> components = recPat.record.getRecordComponents();
+	            for (JCPattern nested: recPat.nested) {
+	                if (components.isEmpty()) break;
+	                JCIdent compTemp = newTemp(convertExpr(createAccessorCall(recPat, recTemp, components.head)));
+	                cond = treeutils.makeAnd(nested, cond, matchPattern(nested, compTemp));
+	                components = components.tail;
+	            }
+	            addStat(treeutils.makeAssignStat(recPat.pos, treeutils.makeIdent(recPat.pos, vdecl.sym), cond));
+	        } finally {
+	            thenBlock = popBlock(recPat, check);
+	        }
+	        JCExpression typeTest = M.at(recPat).TypeTest(copy(expr), treeutils.makeType(recPat.pos, recordType))
+	                .setType(syms.booleanType);
+	        JCStatement elseStat = treeutils.makeAssignStat(recPat.pos, treeutils.makeIdent(recPat.pos, vdecl.sym),
+	                treeutils.makeBooleanLiteral(recPat, false));
+	        addStat(M.at(recPat).If(typeTest, thenBlock, elseStat));
+	        return treeutils.makeIdent(recPat.pos, vdecl.sym);
+	    } else if (pattern instanceof JCAnyPattern) {
+	        return treeutils.makeBooleanLiteral(pattern, true);
+	    } else {
+	        notImplemented(pattern, "unsupported pattern kind: " + pattern.getClass().getSimpleName());
+	        throw new JmlNotImplementedException(pattern, "unsupported pattern kind: " + pattern.getClass().getSimpleName());
+	    }
+	}
+
 	protected JCExpression createAccessorCall(DiagnosticPosition pos, JCExpression receiver,
 	        RecordComponent component) {
 	    MethodSymbol accessor = component.accessor;
@@ -17191,6 +17253,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     JCIdent id = M.at(stat).Ident(bpat.var.sym);
                     bindingAssumption = treeutils.makeEquality(pat.getPreferredPosition(), id, lhs);
                 }
+            } else if (pat instanceof JCRecordPattern recPat && splitExpressions) {
+                declarePatternBindings(recPat);
+                result = eresult = matchPattern(recPat, lhs);
+                return;
             } else {
                 notImplemented(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
                 throw new JmlNotImplementedException(pat, "this kind of binding pattern: " + pat + " " + pat.getClass());
