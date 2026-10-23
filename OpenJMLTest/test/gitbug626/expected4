@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.findFirstSetLoop(boolean[]) with prover !!!!
-test/gitbug626/Test.java:13: verify: The prover cannot establish an assertion (Postcondition) in method findFirstSetLoop
+test/gitbug626/Test.java:13: verify: The prover cannot establish an assertion (Postcondition: test/gitbug626/Test.java:8:) in method findFirstSetLoop
         return -1;
         ^
-test/gitbug626/Test.java:8: verify: Associated declaration
+test/gitbug626/Test.java:8: verify: Associated declaration: test/gitbug626/Test.java:13:
     //@ensures (\result==-1)==>(\forall int i; (0<=i) && (i<4); !x[i]);
        ^
 

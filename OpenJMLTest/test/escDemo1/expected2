@@ -1,9 +1,9 @@
 Proving methods in openjml.clock.TickTockClock1
 Starting proof of openjml.clock.TickTockClock1.TickTockClock1() with prover !!!!
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:15: verify: The prover cannot establish an assertion (Postcondition) in method TickTockClock1
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:15: verify: The prover cannot establish an assertion (Postcondition: ..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:14:) in method TickTockClock1
 	public /*@ pure @*/ TickTockClock1() {
 	                    ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:14: verify: Associated declaration
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:14: verify: Associated declaration: ..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:15:
 	//@ ensures getHour() == 12 && getMinute() == 0 && getSecond() == 0;
 	    ^
 Completed proof of openjml.clock.TickTockClock1.TickTockClock1() with prover !!!! - with warnings
@@ -20,10 +20,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of openjml.clock.TickTockClock1.getSecond() with prover !!!! - no warnings
 Starting proof of openjml.clock.TickTockClock1.tick() with prover !!!!
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:39: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method tick
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:39: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: ..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42:) in method tick
       @  ensures getSecond() == 0;
                           ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: verify: Associated declaration
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:42: verify: Associated declaration: ..\..\OpenJMLDemo\src\openjml\clock\TickTockClock1.java:39:
 	public void tick() {
 	            ^
 Completed proof of openjml.clock.TickTockClock1.tick() with prover !!!! - with warnings

@@ -9,16 +9,16 @@ public class A {
        ^
 Proving methods in A
 Starting proof of A.A() with prover !!!!
-test/gitbug969a/A.java:7: verify: The prover cannot establish an assertion (Assignable) in method A: \everything
+test/gitbug969a/A.java:7: verify: The prover cannot establish an assertion (Assignable: test/gitbug969a/A.java:5:) in method A: \everything
     //@ public invariant b.ok(this);
                              ^
-test/gitbug969a/A.java:5: verify: Associated declaration
+test/gitbug969a/A.java:5: verify: Associated declaration: test/gitbug969a/A.java:7:
 public class A {
        ^
-test/gitbug969a/A.java:5: verify: The prover cannot establish an assertion (InvariantExit) in method A
+test/gitbug969a/A.java:5: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug969a/A.java:7:) in method A
 public class A {
        ^
-test/gitbug969a/A.java:7: verify: Associated declaration
+test/gitbug969a/A.java:7: verify: Associated declaration: test/gitbug969a/A.java:5:
     //@ public invariant b.ok(this);
                ^
 Completed proof of A.A() with prover !!!! - with warnings

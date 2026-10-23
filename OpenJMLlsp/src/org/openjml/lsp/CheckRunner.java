@@ -1573,25 +1573,35 @@ public class CheckRunner {
      * symlinked subdirectories (e.g. Eclipse linked folders) are entered.
      * Deduplication by {@link java.nio.file.Path#toRealPath()} prevents the same
      * physical file from being compiled twice when it is reachable via multiple
-     * symlink paths.  A {@link java.nio.file.FileSystemLoopException} (cycle) or
-     * other {@link IOException} terminates the walk early but does not propagate,
-     * so files discovered before the cycle are still compiled.
+     * symlink paths.  A symlink cycle ({@link java.nio.file.FileSystemLoopException})
+     * or an unreadable entry is logged and skipped; the rest of the tree is still walked.
      *
      * @param seenRealPaths mutable set shared across all roots in one check run
      */
-    private static void walkSourceFiles(java.nio.file.Path dir,
+    static void walkSourceFiles(java.nio.file.Path dir,
             java.util.Set<String> seenRealPaths, String label,
             java.util.function.Consumer<java.nio.file.Path> consumer) {
-        try (var stream = Files.walk(dir, java.nio.file.FileVisitOption.FOLLOW_LINKS)) {
-            stream.filter(f -> { String s = f.toString(); return s.endsWith(".java") || s.endsWith(".jml"); })
-                  .forEach(f -> {
-                      String realPath;
-                      try { realPath = f.toRealPath().toString(); }
-                      catch (IOException e) { realPath = f.normalize().toAbsolutePath().toString(); }
-                      if (!seenRealPaths.add(realPath)) return;
-                      consumer.accept(f);
-                  });
-        } catch (IOException | java.io.UncheckedIOException ex) {
+        try {
+            Files.walkFileTree(dir, java.util.EnumSet.of(java.nio.file.FileVisitOption.FOLLOW_LINKS),
+                    Integer.MAX_VALUE, new java.nio.file.SimpleFileVisitor<>() {
+                @Override
+                public java.nio.file.FileVisitResult visitFile(java.nio.file.Path f,
+                        java.nio.file.attribute.BasicFileAttributes attrs) {
+                    String s = f.toString();
+                    if (!s.endsWith(".java") && !s.endsWith(".jml")) return java.nio.file.FileVisitResult.CONTINUE;
+                    String realPath;
+                    try { realPath = f.toRealPath().toString(); }
+                    catch (IOException e) { realPath = f.normalize().toAbsolutePath().toString(); }
+                    if (seenRealPaths.add(realPath)) consumer.accept(f);
+                    return java.nio.file.FileVisitResult.CONTINUE;
+                }
+                @Override
+                public java.nio.file.FileVisitResult visitFileFailed(java.nio.file.Path f, IOException ex) {
+                    ServerLog.serverLog("[CheckRunner." + label + "] skipped " + f + ": " + ex);
+                    return java.nio.file.FileVisitResult.CONTINUE;
+                }
+            });
+        } catch (IOException ex) {
             ServerLog.serverLog("[CheckRunner." + label + "] walk failed for " + dir + ": " + ex);
         }
     }

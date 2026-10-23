@@ -12,16 +12,16 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of openjml.clock.TickTockClockB3.getMinute() with prover !!!! - no warnings
 Starting proof of openjml.clock.TickTockClockB3.getSecond() with prover !!!!
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:40: verify: The prover cannot establish an assertion (Postcondition) in method getSecond
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:40: verify: The prover cannot establish an assertion (Postcondition: ..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:36:) in method getSecond
 	public /*@ pure @*/ int getSecond() { return second; }
 	                                      ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:36: verify: Associated declaration
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:36: verify: Associated declaration: ..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:40:
 	//@ ensures 0 <= \result;
 	    ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:40: verify: The prover cannot establish an assertion (Postcondition) in method getSecond
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:40: verify: The prover cannot establish an assertion (Postcondition: ..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:37:) in method getSecond
 	public /*@ pure @*/ int getSecond() { return second; }
 	                                      ^
-..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:37: verify: Associated declaration
+..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:37: verify: Associated declaration: ..\..\OpenJMLDemo\src\openjml\clock\TickTockClockB3.java:40:
 	//@ ensures \result <= 59;
 	    ^
 Completed proof of openjml.clock.TickTockClockB3.getSecond() with prover !!!! - with warnings

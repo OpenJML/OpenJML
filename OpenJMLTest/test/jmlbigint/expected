@@ -13,10 +13,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Tbigint.inits() with prover !!!! - no warnings
 Starting proof of Tbigint.misc(int) with prover !!!!
-test/jmlbigint/Tbigint.java:49: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method misc
+test/jmlbigint/Tbigint.java:49: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/bigint.jml:258:) in method misc
             //@ check a.equals(null);
                               ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:258: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:258: verify: Associated declaration: test/jmlbigint/Tbigint.java:49:
     public boolean equals(/*@ nullable */ Object o);
                    ^
 $SPECS/org/jmlspecs/lang/internal/bigint.jml:256: verify: Precondition conjunct is false: false
@@ -136,10 +136,10 @@ test/jmlbigint/Tcasts.java:36: verify: The prover cannot establish an assertion 
                ^
 Completed proof of Tcasts.m4() with prover !!!! - with warnings
 Starting proof of Tcasts.m5() with prover !!!!
-test/jmlbigint/Tcasts.java:40: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m5
+test/jmlbigint/Tcasts.java:40: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/bigint.jml:213:) in method m5
       /*@ show (z+Byte.MAX_VALUE).byteValue(); */
                                            ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:213: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:213: verify: Associated declaration: test/jmlbigint/Tcasts.java:40:
     public byte byteValue();
                 ^
 $SPECS/org/jmlspecs/lang/internal/bigint.jml:210: verify: Precondition conjunct is false: Byte.MIN_VALUE <= this <= Byte.MAX_VALUE
@@ -147,10 +147,10 @@ $SPECS/org/jmlspecs/lang/internal/bigint.jml:210: verify: Precondition conjunct 
                                           ^
 Completed proof of Tcasts.m5() with prover !!!! - with warnings
 Starting proof of Tcasts.m6() with prover !!!!
-test/jmlbigint/Tcasts.java:44: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m6
+test/jmlbigint/Tcasts.java:44: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/bigint.jml:207:) in method m6
       /*@ show (z+Short.MAX_VALUE).shortValue(); */
                                              ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:207: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:207: verify: Associated declaration: test/jmlbigint/Tcasts.java:44:
     public short shortValue();
                  ^
 $SPECS/org/jmlspecs/lang/internal/bigint.jml:204: verify: Precondition conjunct is false: Short.MIN_VALUE <= this <= Short.MAX_VALUE
@@ -158,10 +158,10 @@ $SPECS/org/jmlspecs/lang/internal/bigint.jml:204: verify: Precondition conjunct 
                                            ^
 Completed proof of Tcasts.m6() with prover !!!! - with warnings
 Starting proof of Tcasts.m7() with prover !!!!
-test/jmlbigint/Tcasts.java:48: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m7
+test/jmlbigint/Tcasts.java:48: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/bigint.jml:219:) in method m7
       /*@ show (z+2*Character.MAX_VALUE).charValue(); */
                                                   ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:219: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:219: verify: Associated declaration: test/jmlbigint/Tcasts.java:48:
     public char charValue();
                 ^
 $SPECS/org/jmlspecs/lang/internal/bigint.jml:216: verify: Precondition conjunct is false: Character.MIN_VALUE <= this <= Character.MAX_VALUE
@@ -169,10 +169,10 @@ $SPECS/org/jmlspecs/lang/internal/bigint.jml:216: verify: Precondition conjunct 
                                                ^
 Completed proof of Tcasts.m7() with prover !!!! - with warnings
 Starting proof of Tcasts.m8() with prover !!!!
-test/jmlbigint/Tcasts.java:52: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m8
+test/jmlbigint/Tcasts.java:52: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/bigint.jml:201:) in method m8
       /*@ show (z+Integer.MAX_VALUE).intValue(); */
                                              ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:201: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:201: verify: Associated declaration: test/jmlbigint/Tcasts.java:52:
     public int intValue();
                ^
 $SPECS/org/jmlspecs/lang/internal/bigint.jml:197: verify: Precondition conjunct is false: Integer.MIN_VALUE <= this <= Integer.MAX_VALUE
@@ -180,10 +180,10 @@ $SPECS/org/jmlspecs/lang/internal/bigint.jml:197: verify: Precondition conjunct 
                                              ^
 Completed proof of Tcasts.m8() with prover !!!! - with warnings
 Starting proof of Tcasts.m9() with prover !!!!
-test/jmlbigint/Tcasts.java:56: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m9
+test/jmlbigint/Tcasts.java:56: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/bigint.jml:194:) in method m9
       /*@ show (z+Long.MAX_VALUE).longValue(); */
                                            ^
-$SPECS/org/jmlspecs/lang/internal/bigint.jml:194: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/bigint.jml:194: verify: Associated declaration: test/jmlbigint/Tcasts.java:56:
     public long longValue();
                 ^
 $SPECS/org/jmlspecs/lang/internal/bigint.jml:190: verify: Precondition conjunct is false: Long.MIN_VALUE <= this <= Long.MAX_VALUE

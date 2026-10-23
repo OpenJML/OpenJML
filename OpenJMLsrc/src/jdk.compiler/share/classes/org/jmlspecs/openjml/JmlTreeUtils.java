@@ -294,7 +294,7 @@ public class JmlTreeUtils {
         	z.storeEnd(newnode, end);
         }
         } catch (StackOverflowError e) {
-            System.out.println();
+            Utils.debugOut().println();
         }
     }
     
@@ -327,7 +327,7 @@ public class JmlTreeUtils {
     		OperatorSymbol sym = operators.resolveUnary(null, optag, argtype);
     		if (sym != null) return sym;
     	} catch (Exception e) {
-    		System.out.println("FUOPSYM " + e);
+    		Utils.debugOut().println("FUOPSYM " + e);
     		// fall through
     	}
         throw new JmlInternalException("The operation symbol " + Pretty.operatorName(optag) + " for type " + argtype + " could not be resolved");
@@ -358,7 +358,7 @@ public class JmlTreeUtils {
             return m;
         } catch (Exception e) {
             utils.error("jml.internal", "Exception on forming a call to " + methodName);
-            e.printStackTrace(System.out);
+            Utils.conditionalPrintStack(e);
             return null;
         }
     }
@@ -380,7 +380,7 @@ public class JmlTreeUtils {
             return m;
         } catch (Exception e) {
             utils.error("jml.internal", "Exception on forming a call to " + methodName);
-            e.printStackTrace(System.out);
+            Utils.conditionalPrintStack(e);
             return null;
         }
     }
@@ -1033,11 +1033,11 @@ public class JmlTreeUtils {
         
     }
     public JCBinary makeBinary(DiagnosticPosition pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        return makeBinary(pos,optag,identityOperator(findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType()))),lhs,rhs);
     }
     // FIXME - we need these to be the operator for the converted types
     public JCBinary makeBinary(int pos, JCTree.Tag optag, JCExpression lhs, JCExpression rhs) {
-        return makeBinary(pos,optag,findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType())),lhs,rhs);
+        return makeBinary(pos,optag,identityOperator(findBinOpSymbol(optag,opType(lhs.type.baseType(),rhs.type.baseType()))),lhs,rhs);
     }
     
 //    public /*@ nullable */ String opname(Type t, JCTree.Tag tag) {
@@ -1099,9 +1099,47 @@ public class JmlTreeUtils {
         JCBinary tree = factory.at(pos).Binary(JCTree.Tag.EQ, lhs, rhs);
         Type t = lhs.type;
         if (t.isPrimitive() && TypeTag.SHORT.ordinal() >= t.getTag().ordinal()) t = syms.intType;   // Perhaps should just presume the types are the same
-        tree.operator = findBinOpSymbol(JCTree.Tag.EQ, t, t);
+        tree.operator = identityOperator(findBinOpSymbol(JCTree.Tag.EQ, t, t));
         tree.type = syms.booleanType;
         return tree;
+    }
+
+    /** Copies of the float and double == and != operator symbols. ESC gives a source == or != on float or double
+     * one of these, and translates it with IEEE equality (fp.eq) when using the SMT FloatingPoint theory; every
+     * other floating-point equality (e.g. one for an assignment) means identity, the SMT =. The copies keep the
+     * name, type and opcode, so they act as the original operators elsewhere. */
+    private final java.util.Map<Symbol.OperatorSymbol,Symbol.OperatorSymbol> ieeeOperators = new java.util.HashMap<>();
+
+    /** The IEEE-equality copy of op (see ieeeOperators) */
+    public Symbol.OperatorSymbol ieeeOperator(Symbol.OperatorSymbol op) {
+        if (ieeeOperators.containsValue(op)) return op;
+        return ieeeOperators.computeIfAbsent(op, o -> new Symbol.OperatorSymbol(o.name, o.type, o.opcode, o.owner));
+    }
+
+    /** Whether op is an IEEE-equality operator symbol made by ieeeOperator */
+    public boolean isIEEEOperator(Symbol op) {
+        return op instanceof Symbol.OperatorSymbol os && ieeeOperators.containsValue(os);
+    }
+
+    /** Maps the symbol of each logical function that ESC makes for a pure method to that method */
+    public final java.util.Map<Symbol,Symbol.MethodSymbol> calleeOriginals = new java.util.HashMap<>();
+
+    /** Copies of the float and double == and != operator symbols, for equalities made here (e.g. by makeEquality):
+     * these mean identity even when ESC converts them as it does source expressions (see ieeeOperators) */
+    private final java.util.Map<Symbol.OperatorSymbol,Symbol.OperatorSymbol> identityOperators = new java.util.HashMap<>();
+
+    /** The identity-equality copy of op, if op is == or != on float or double; otherwise op */
+    public Symbol.OperatorSymbol identityOperator(Symbol.OperatorSymbol op) {
+        if (op == null || identityOperators.containsValue(op)) return op;
+        if (op.name != names.fromString("==") && op.name != names.fromString("!=")) return op;
+        TypeTag t = op.type.getParameterTypes().head.getTag();
+        if (t != TypeTag.FLOAT && t != TypeTag.DOUBLE) return op;
+        return identityOperators.computeIfAbsent(op, o -> new Symbol.OperatorSymbol(o.name, o.type, o.opcode, o.owner));
+    }
+
+    /** Whether op is an identity-equality operator symbol made by identityOperator */
+    public boolean isIdentityOperator(Symbol op) {
+        return op instanceof Symbol.OperatorSymbol os && identityOperators.containsValue(os);
     }
 
     /** Makes a JML binary operator node (with boolean result)
@@ -1680,7 +1718,7 @@ public class JmlTreeUtils {
         String s = "\tFor " + receiver.type + " " + (nargs.length==0? "" : (nargs[0].type.toString() + " ...")) + "\n";
         try {
             Scope sc = ts.members();
-            if (sc == null || print) System.out.println("MMI  " + receiver + " " + receiver.type + " " + name + " " + sc);
+            if (sc == null || print) Utils.debugOut().println("MMI  " + receiver + " " + receiver.type + " " + name + " " + sc);
             MethodSymbol exactMatch = null;
             MethodSymbol exactMatchWithVarargs = null;
             var iter = sc.getSymbolsByName(name).iterator();
@@ -1699,7 +1737,7 @@ public class JmlTreeUtils {
                     boolean isVarArgs = ms.isVarArgs();
                     int nformals = ms.getParameters().size();
                     if (!(isVarArgs ? nargs.length >= nformals-1 : nformals == nargs.length)) continue;
-                    if (print) System.out.println("MATCHING-A " + ms + " " + java.util.Arrays.toString(nargs));
+                    if (print) Utils.debugOut().println("MATCHING-A " + ms + " " + java.util.Arrays.toString(nargs));
                     int k = 0;
                     // First try for exact match
                     VarSymbol last = null;
@@ -1709,7 +1747,7 @@ public class JmlTreeUtils {
                         Type t1 = p.type;
                         Type t2 = nargs[k].type;
                         boolean match = types.isSameType(t2, t1);
-                        if (print) System.out.println("ARG " + t2 + " " + t1 + " " + match);
+                        if (print) Utils.debugOut().println("ARG " + t2 + " " + t1 + " " + match);
                         if (!match && t1.isParameterized() && t2.isParameterized()) {
 //                            if (print) System.out.println("DETAILS " + types.isSameType(t2, t1) + " " + 
 //                                    // types.isSameType(((Type.ForAll)t1).erasure(), t2.erasure()) + " " + // Need to compare head types
@@ -1724,20 +1762,20 @@ public class JmlTreeUtils {
                         exactMatch = ms; 
                     } else {
                         var t1 = ((Type.ArrayType)last.type).getComponentType();
-                        if (print) System.out.println("MATCHING VARARGS " + t1);
+                        if (print) Utils.debugOut().println("MATCHING VARARGS " + t1);
                         while (k < nargs.length) {
                             var t2 = nargs[k].type;
-                            if (print) System.out.println("   COMP " + t2 + " " + t1 + " " + types.isSameType(t2, t1));
+                            if (print) Utils.debugOut().println("   COMP " + t2 + " " + t1 + " " + types.isSameType(t2, t1));
                             if (!types.isSameType(t2, t1)) continue x;
                             ++k;
                         }
                         exactMatchWithVarargs = ms;
                     }
-                    if (print) System.out.println("  MATCHED? " + ms.owner + " " + ms + " " + exactMatch + " " + exactMatchWithVarargs);
+                    if (print) Utils.debugOut().println("  MATCHED? " + ms.owner + " " + ms + " " + exactMatch + " " + exactMatchWithVarargs);
                 }
-                if (print) System.out.println("NOPE ON " + sym);
+                if (print) Utils.debugOut().println("NOPE ON " + sym);
             }
-            if (print) System.out.println("  MATCHED?? " + exactMatch + " " + exactMatchWithVarargs);
+            if (print) Utils.debugOut().println("  MATCHED?? " + exactMatch + " " + exactMatchWithVarargs);
             if (exactMatch != null) return makeMethodInvocation(pos, receiver, exactMatch, nargs);
             if (exactMatchWithVarargs != null) return makeMethodInvocation(pos, receiver, exactMatchWithVarargs, nargs);
             iter = sc.getSymbolsByName(name).iterator();
@@ -1745,25 +1783,25 @@ public class JmlTreeUtils {
                 Symbol sym = iter.next();
                 s += "\t\t" + sym.toString();
                 if (sym instanceof MethodSymbol ms && ms.getParameters().size() == nargs.length) {
-                    if (print) System.out.println("MATCHING-B " + ms + " " + java.util.Arrays.toString(nargs));
+                    if (print) Utils.debugOut().println("MATCHING-B " + ms + " " + java.util.Arrays.toString(nargs));
                     int k = 0;
                     // Then try for matches with implicit conversions
                     for (var p: ms.getParameters()) {
                         var t1 = p.type;
                         var t2 = nargs[k].type;
                         ++k;
-                        if (print) System.out.println("   COMPX " + t2 + " " + t1+ " " + types.isAssignable(utils.rac, t2, t1, null));
+                        if (print) Utils.debugOut().println("   COMPX " + t2 + " " + t1+ " " + types.isAssignable(utils.rac, t2, t1, null));
                         if (t2.tsym != t1.tsym && !types.isAssignable(t2, t1)) continue y; // FIXME - this is first match, not best match
                     }
-                    if (print) System.out.println("  MATCHED " + ms.owner + " " + ms);
+                    if (print) Utils.debugOut().println("  MATCHED " + ms.owner + " " + ms);
                     return makeMethodInvocation(pos, receiver, ms, nargs);
                 }
-                if (print) System.out.println("NOPE-B ON " + sym);
+                if (print) Utils.debugOut().println("NOPE-B ON " + sym);
             }
         } catch (java.util.NoSuchElementException e) {
             // fall through to error message
         }
-        System.out.println("NO MATCH " + name + " " + receiver + " " + receiver.type + " " + nargs + " " + (nargs.length > 0 ? nargs[0].type.toString() : ""));
+        Utils.debugOut().println("NO MATCH " + name + " " + receiver + " " + receiver.type + " " + nargs + " " + (nargs.length > 0 ? nargs[0].type.toString() : ""));
         utils.error(pos, "jml.internal", "No method " + name + " with " + nargs.length + " parameters of the requested types found in type " + receiver.type + "\n" + s);
         Utils.dumpStack();
         return null;

@@ -327,6 +327,12 @@ public class escfiles extends EscBaseFiles {
     }
 
     @Test
+    public void patchModuleInfo() {
+        // A --patch-module folder holding a module-info.java crashed OpenJML at startup
+        helpEscFile("test/patchModuleInfo/java/lang/PatchTiny.java","test/patchModuleInfo","--patch-module=java.base=test/patchModuleInfo");
+    }
+
+    @Test
     public void escSeparateJml() {
         helpEscFile("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");
     }
@@ -438,11 +444,6 @@ public class escfiles extends EscBaseFiles {
 
 
 
-    
-    @Test @Ignore // FIXME - ignore for now; implement with real specs
-    public void escRawding() {
-        helpEscSimple("-specspath=test/escRawding","-code-math=safe");
-    }
     
     // The following are really just typecheck problems
 

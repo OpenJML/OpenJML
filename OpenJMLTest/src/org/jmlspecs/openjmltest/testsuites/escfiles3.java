@@ -360,7 +360,7 @@ public class escfiles3 extends EscBaseFiles {
         helpEscSimple();
     }
     
-    @Test @Ignore // not working yet
+    @Test @Ignore // lambda specs not yet implemented
     public void escFPcompose() {
         helpEscSimple();
     }
@@ -461,6 +461,11 @@ public class escfiles3 extends EscBaseFiles {
     @Test
     public void argnullity() {
         helpEscSimple();
+    }
+
+    @Test
+    public void nonnullFormalPosition() {
+        helpEscFile("test/nonnullFormalPosition/TestJava.java", "test/nonnullFormalPosition", "-sourcepath", "test/nonnullFormalPosition", "--method=m");
     }
     
     @Test

@@ -176,12 +176,12 @@ public class escsf1 extends SFBugsBase {
 
     // FIXME - problem in 503 is that various subtests non-deterministically timeout
     // This seems particularly the case with A1 and A4, which have an extraneous template argument
-    @Ignore // times out
+    // @Ignore // times out
     @Test public void gitbug503() {
         helpEscSimple("--code-math=java","--timeout=600","--solver-seed=142"); // java math just to avoid overflow error messages
     }
 
-    @Ignore // times out
+    // @Ignore // times out
     @Test public void gitbug503a() {
         helpEscSimple("--code-math=java","--timeout=600","--solver-seed=42"); // java math just to avoid overflow error messages
     }

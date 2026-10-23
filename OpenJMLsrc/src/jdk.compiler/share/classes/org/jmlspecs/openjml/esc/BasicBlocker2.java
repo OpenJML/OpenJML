@@ -1611,7 +1611,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         // Nested classes are found in JmlEsc.  We get to this point if there is a local
         // class declaration within method body.
         
-        System.out.println("GOT HERE!");
+        Utils.debugOut().println("GOT HERE!");
         JmlEsc.instance(context).visitClassDef(that);
     }
 
@@ -2452,7 +2452,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
         public /*@non_null*/ Name getCurrentName(VarSymbol vsym) {
             Name s = mapname.get(vsym);
             boolean print = false; //vsym.name.toString().equals("i");
-            if (print) System.out.println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
+            if (print) Utils.debugOut().println("GETCURRENTNAME " +  vsym + " " + s + " " + + System.identityHashCode(vsym) + " " + System.identityHashCode(lengthSym)
             + " " + vsym.owner + " " + vsym.owner.getClass() + " " + lengthSym.owner + " " + lengthSym.owner.getClass() + " " + vsym.isFinal());
             if (vsym == lengthSym) {
                 return vsym.name; // Just for Java array lengths

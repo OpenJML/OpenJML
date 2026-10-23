@@ -1,0 +1,2 @@
+# With the Strings theory the string-reverse loops time out (#1049)
+ARGS="--no-smt-strings"

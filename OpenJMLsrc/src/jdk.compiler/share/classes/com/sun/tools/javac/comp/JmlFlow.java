@@ -601,7 +601,7 @@ public class JmlFlow extends Flow  {
 //        }
 
         public void visitJmlMatchExpression(JmlMatchExpression that) {
-        	System.out.println("visitJmlMatchExpression");
+        	Utils.debugOut().println("visitJmlMatchExpression");
             scanExpr(that.expression);
             for (JmlMatchExpression.MatchCase c: that.cases) {
                 //scan(c.caseExpression);
@@ -677,8 +677,8 @@ public class JmlFlow extends Flow  {
                     super.visitVarDef(that);
                 }
             } catch (Exception e) {
-                System.out.println("Exception flow-checking " + that);
-                e.printStackTrace(System.out);
+                Utils.debugOut().println("Exception flow-checking " + that);
+                Utils.conditionalPrintStack(e);
             }
         }
 
@@ -721,7 +721,7 @@ public class JmlFlow extends Flow  {
         
         @Override
         public void visitIdent(JCIdent that) {
-            if (that.sym == null) System.out.println("NULL SYM FOR " + that);
+            if (that.sym == null) Utils.debugOut().println("NULL SYM FOR " + that);
             super.visitIdent(that);
         }
 
@@ -1303,7 +1303,8 @@ public class JmlFlow extends Flow  {
                 // skip this because one argument might be a label and the other is
                 // evaluated at that label
             } else {
-                IJmlVisitor.super.visitJmlMethodInvocation(tree);
+                // Skip unattributed args, e.g. the label in \fresh(e, L)
+                tree.args.forEach(a -> { if (a.type != null) scan(a); });
             }
         }
 

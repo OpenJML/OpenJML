@@ -272,7 +272,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     				// Specification field is a Java declaration (in the .jml file)
     				if (match.isEmpty()) {
     				    if (sourceDecl.sym.isRecord()) {
-    				    System.out.println("NO MATCH " + sourceDecl.sym + " " + sourceDecl.sym.isRecord() + " " + t + " " + sourceDecl);
+    				    Utils.debugOut().println("NO MATCH " + sourceDecl.sym + " " + sourceDecl.sym.isRecord() + " " + t + " " + sourceDecl);
     				    } else {
     				        // Error: but there is no match for it
     				        utils.error(specVarDecl.sourcefile, specVarDecl, "jml.message", "There is no field to match this Java declaration in the specification file: " + sourceDecl.sym.flatname + "." + specVarDecl.name);
@@ -298,6 +298,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         						specVarDecl.sym = javaVarDecl.sym;
         						specVarDecl.type = javaVarDecl.type;
         						specVarDecl.vartype.type = javaVarDecl.type;
+        						javaVarDecl.sym.type = specs.withSpecElementNullness(specVarDecl.vartype, javaVarDecl.sym.type);
         						specs.putSpecs(javaVarDecl.sym, specVarDecl.fieldSpecs);
             					//System.out.println("MATCHED JAVA FIELD " + cd.name + " " + vd.name);
                         	}
@@ -344,7 +345,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         }
     				} else {
     				    boolean print = false;//specMethodDecl.name.toString().equals("of");
-    				    if (print) System.out.println("SME " + matchSym + (javaMethodDecl.specsDecl == null));
+    				    if (print) Utils.debugOut().println("SME " + matchSym + (javaMethodDecl.specsDecl == null));
     					if (javaMethodDecl.specsDecl == null) {
                         	// FIXME - fix matching of method types
     						Type specResultType = (specMethodDecl.restype == null) ? null : attr.attribType(specMethodDecl.restype, env); // FIXME - should use the env for the specCU
@@ -363,6 +364,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		msp.javaDecl = javaMethodDecl;
                         		msp.javaEnv = msp.specsEnv = env;
         						specs.putSpecs(javaMethodDecl.sym, msp);
+        						specs.applySpecElementNullness(specMethodDecl, javaMethodDecl.sym);
             					//System.out.println("MATCHED JAVA METHOD " + cd.name + " " + specMethodDecl.sym + " " + specMethodDecl.sym.hashCode() + " " + specMethodDecl.restype + " " + javaMethodDecl.sym + " " + javaMethodDecl.sym.hashCode());
                         	}
     					} else {
@@ -477,7 +479,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	JmlEnter.instance(context).methodEnv = localEnv;
     	if (!enterJML) return true; // FIXME - enterJML can be done away with, I think
     	boolean b = super.visitMethodDefHelper(tree, m, enclScope, localEnv);
-    	if (JmlEnter.debugEnter && b) System.out.println("enter: entered method " + m + " " + org.jmlspecs.openjml.Utils.isJML(m.flags()));
+    	if (JmlEnter.debugEnter && b) Utils.debugOut().println("enter: entered method " + m + " " + org.jmlspecs.openjml.Utils.isJML(m.flags()));
         return b;
     }
     
@@ -707,7 +709,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             modelMethodNames.put(vsym.name,vdecl);
             JmlMethodDecl mr = makeModelFieldMethod(vdecl,tsp);
             boolean print = false;//vdecl.name.toString().equals("i");
-            if (print) System.out.println("MM " + vdecl + " " + mr);
+            if (print) Utils.debugOut().println("MM " + vdecl + " " + mr);
             newdefs.add(mr);
             if (vdecl.init == null) mr.mods.flags |= Utils.JMLADDED; // Marks this as needing a representation
             
@@ -850,7 +852,7 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
 //        Env<AttrContext> localEnvSpec = null;
         Type computedResultType = null;
 //        Env<AttrContext> savedEnv = null;
-        if (print) System.out.println("MATCHMETHOD " + msym + " "  + msym.type);
+        if (print) Utils.debugOut().println("MATCHMETHOD " + msym + " "  + msym.type);
         if (msym != null) {
             localEnv = methodEnv(tree, env); // FIXME - or getMethodEnv?
             computedResultType = msym.getReturnType();
@@ -1305,7 +1307,13 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
             if (jtree.originalVartype != null) {
                 jtree.originalType = attr.attribType(jtree.originalVartype, env); // FIXME - not correct if static
             }
-            if (JmlEnter.debugEnter) System.out.println("enter: Entered field " + tree.sym.owner + " " + tree.name);
+            if (JmlEnter.debugEnter) Utils.debugOut().println("enter: Entered field " + tree.sym.owner + " " + tree.name);
+            // javac enters a record component's field on its own, so its specs (e.g. nullness) are saved here (#1061)
+            if ((tree.mods.flags & Flags.RECORD) != 0 && tree.sym != null && tree.sym.owner instanceof ClassSymbol
+                    && specs.get(tree.sym) == null) {
+                if (jtree.fieldSpecs == null) jtree.fieldSpecs = new JmlSpecs.FieldSpecs(jtree);
+                specs.putSpecs(tree.sym, jtree.fieldSpecs);
+            }
         } finally {
             resolve.setAllowJML(prev);
             resolve.setInJMLCU(prevcu);

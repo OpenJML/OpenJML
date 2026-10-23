@@ -66,9 +66,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -196,14 +194,26 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private final java.util.Set<String> shownDialogMessages =
             java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
+    /** Executor and ESC-pool tasks submitted and not finished, plus scheduler tasks running (see awaitIdle). */
     private final java.util.concurrent.atomic.AtomicInteger activeTaskCount = new java.util.concurrent.atomic.AtomicInteger(0);
     private final ExecutorService executor = new java.util.concurrent.ThreadPoolExecutor(
             0, Integer.MAX_VALUE, 60L, java.util.concurrent.TimeUnit.SECONDS,
             new java.util.concurrent.SynchronousQueue<>()) {
+        // Counted from submission, not from the start of the run
+        @Override public void execute(Runnable r) {
+            activeTaskCount.incrementAndGet();
+            try { super.execute(r); }
+            catch (RuntimeException e) { activeTaskCount.decrementAndGet(); throw e; }
+        }
+        @Override protected void afterExecute(Runnable r, Throwable t) { activeTaskCount.decrementAndGet(); }
+    };
+    /** Runs the debounce delays; a cancelled delay leaves the queue at once, so awaitIdle does not wait for it. */
+    private final java.util.concurrent.ScheduledThreadPoolExecutor scheduler =
+            new java.util.concurrent.ScheduledThreadPoolExecutor(1) {
         @Override protected void beforeExecute(Thread t, Runnable r) { activeTaskCount.incrementAndGet(); }
         @Override protected void afterExecute(Runnable r, Throwable t) { activeTaskCount.decrementAndGet(); }
     };
-    private final ScheduledExecutorService scheduler     = Executors.newSingleThreadScheduledExecutor();
+    { scheduler.setRemoveOnCancelPolicy(true); }
 
     /** Pending debounce futures for --check, keyed by URI. */
     private final Map<String, ScheduledFuture<?>> pendingCheck = new ConcurrentHashMap<>();
@@ -1284,19 +1294,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         for (String p : paths) {
             java.nio.file.Path root = java.nio.file.Path.of(p);
             if (!java.nio.file.Files.exists(root)) continue;
-            try (var stream = java.nio.file.Files.walk(root,
-                    java.nio.file.FileVisitOption.FOLLOW_LINKS)) {
-                stream.filter(f -> java.nio.file.Files.isRegularFile(f)
-                                && f.toString().endsWith(".java"))
-                      .forEach(f -> {
-                          String realPath;
-                          try { realPath = f.toRealPath().toString(); }
-                          catch (java.io.IOException e) { realPath = f.normalize().toAbsolutePath().toString(); }
-                          if (seenRealPaths.add(realPath)) result.add(f);
-                      });
-            } catch (java.io.IOException | java.io.UncheckedIOException e) {
-                ServerLog.serverLog("[collectJavaFiles] error walking " + p + ": " + e);
-            }
+            CheckRunner.walkSourceFiles(root, seenRealPaths, "collectJavaFiles",
+                    f -> { if (f.toString().endsWith(".java")) result.add(f); });
         }
         return result;
     }
@@ -2512,22 +2511,38 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         var futureRef = new java.util.concurrent.atomic.AtomicReference<Future<?>>();
         var apiRef    = new java.util.concurrent.atomic.AtomicReference<IAPI>();
-        Future<?> f = pool.submit(() -> {
+        java.util.concurrent.FutureTask<Void> f = new java.util.concurrent.FutureTask<>(() -> {
             long myGen = sessionCounter.incrementAndGet();
             runningSessions.put(key, new RunningSession(myGen, futureRef.get(), apiRef, true, projectId));
             java.util.function.Consumer<IAPI> hook = api -> {
                 apiRef.set(api);
                 RunningSession rs = runningSessions.get(key);
                 if (rs != null) rs.api().set(api);
+                // A cancel that came after the task started but before api existed (see abortEscForKey).
+                // Skips execute entirely (api.cancelEsc() would also work since #1048, but still parses and type-checks).
+                if (futureRef.get().isCancelled()) {
+                    throw new java.util.concurrent.CancellationException("ESC cancelled before it started");
+                }
             };
             try {
                 body.run(myGen, hook, futureRef);
             } finally {
                 runningSessions.remove(key);
             }
-        });
+        }, null);
         futureRef.set(f);
         runningSessions.putIfAbsent(key, new RunningSession(-1L, f, apiRef, true, projectId));
+        // Counted until the task has run or been skipped as cancelled, for awaitIdle
+        activeTaskCount.incrementAndGet();
+        try {
+            pool.execute(() -> {
+                try { f.run(); }
+                finally { activeTaskCount.decrementAndGet(); }
+            });
+        } catch (RuntimeException e) {
+            activeTaskCount.decrementAndGet();
+            throw e;
+        }
     }
 
 
@@ -3222,9 +3237,20 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     private void publishDiags(String uri, List<Diagnostic> diags) {
         if (client == null) return;
         ServerLog.serverLog("[publishDiagnostics] uri=" + uri + " count=" + diags.size());
-        client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
+        // Before publishing: a client reacting to the publish (e.g. with clearMarkers) must find uri marked
         if (diags.isEmpty()) markedUris.remove(uri);
         else                 markedUris.add(uri);
+        client.publishDiagnostics(new PublishDiagnosticsParams(uri, diags));
+    }
+
+    /** Removes and returns all of {@link #markedUris}; a URI marked concurrently is either returned or kept. */
+    private List<String> takeMarkedUris() {
+        List<String> taken = new ArrayList<>();
+        for (var it = markedUris.iterator(); it.hasNext(); ) {
+            taken.add(it.next());
+            it.remove();
+        }
+        return taken;
     }
 
     /**
@@ -3381,7 +3407,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 ServerLog.serverLog("[OpenJML] ESC cancelled for " + name);
                 api.cancelEsc();
             } else {
-                ServerLog.serverLog("[OpenJML] ESC task cancelled (queued, not yet running) for " + name);
+                // A task already running cancels its IAPI once it creates it (see submitEscJob)
+                ServerLog.serverLog("[OpenJML] ESC task cancelled before it started proving for " + name);
             }
         }
     }
@@ -3499,9 +3526,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                 + (markedUris.isEmpty() ? " (no markers to clear)" : ""));
         checkDiags.clear();
         proofResults.clear();
-        // Snapshot markedUris before clearing so we don't modify the set while iterating.
-        List<String> toClean = new ArrayList<>(markedUris);
-        markedUris.clear();
+        List<String> toClean = takeMarkedUris();
         for (String uri : toClean) {
             publishDiags(uri, List.of());
         }
@@ -3629,8 +3654,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         projectNavDirty.values().forEach(d -> d.set(true));
 
         // Publish empty diagnostics for all marked URIs so stale markers disappear.
-        List<String> toClean = new ArrayList<>(markedUris);
-        markedUris.clear();
+        List<String> toClean = takeMarkedUris();
         for (String uri : toClean) {
             publishDiags(uri, List.of());
         }
@@ -3703,14 +3727,22 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     }
 
     /**
-     * Block until all currently queued executor tasks have completed (or the timeout elapses).
+     * Block until no executor or ESC job is pending or running and no debounced task is waiting in the
+     * scheduler (or the timeout elapses).
      * Used by tests to drain background tasks (e.g. workspace reindex) before tearing down
      * temp directories, avoiding TOCTOU races where OpenJML accesses a path mid-deletion.
+     * Idle must hold on two polls in a row: a scheduler task is briefly neither queued nor
+     * counted between leaving the queue and starting.
      */
     void awaitIdle(long timeout, java.util.concurrent.TimeUnit unit) {
         long deadline = System.nanoTime() + unit.toNanos(timeout);
-        while (activeTaskCount.get() > 0 && System.nanoTime() < deadline) {
-            try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+        int idlePolls = 0;
+        while (idlePolls < 2 && System.nanoTime() < deadline) {
+            boolean idle = activeTaskCount.get() == 0 && scheduler.getQueue().isEmpty();
+            idlePolls = idle ? idlePolls + 1 : 0;
+            if (idlePolls < 2) {
+                try { Thread.sleep(50); } catch (InterruptedException e) { Thread.currentThread().interrupt(); break; }
+            }
         }
     }
 

@@ -1,0 +1,8 @@
+Proving methods in java.lang.InterruptedException
+Starting proof of InterruptedException.InterruptedException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of InterruptedException.InterruptedException() with prover !!!! - no warnings
+Starting proof of InterruptedException.InterruptedException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of InterruptedException.InterruptedException(String) with prover !!!! - no warnings
+Completed proving methods in java.lang.InterruptedException

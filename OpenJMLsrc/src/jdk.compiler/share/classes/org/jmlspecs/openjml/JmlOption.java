@@ -250,7 +250,7 @@ public class JmlOption {
                 Log.instance(context).error("jml.internal", "null option value in JmlOption.WARN.check");
             } else {
                 if ("list".equals(val)) {
-                    System.out.print(warnings.list()); System.out.flush(); // FIXME - use Log.out() or something like that?
+                    Utils.debugOut().print(warnings.list()); Utils.debugOut().flush(); // FIXME - use Log.out() or something like that?
                 } else if ("reset".equals(val) || val.isEmpty()) {
                     warnings.reset();
                 } else if ("all".equals(val)) {
@@ -282,7 +282,7 @@ public class JmlOption {
                 Log.instance(context).error("jml.internal", "null option value in JmlOption.INFER.check");
             } else {
                 if ("list".equals(val)) {
-                    System.out.print(infermap.list()); System.out.flush(); // FIXME - use Log.out() or something like that?
+                    Utils.debugOut().print(infermap.list()); Utils.debugOut().flush(); // FIXME - use Log.out() or something like that?
                 } else if ("reset".equals(val) || val.isEmpty()) {
                     infermap.reset();
                 } else if ("all".equals(val)) {
@@ -347,6 +347,52 @@ public class JmlOption {
     	}
     };
     { map.put("-escBV",ESC_BV); }
+    public static final JmlOption FPREAL = new JmlOption("--fpreal",true,"auto","ESC: If true, reason about float and double as SMT reals (exact arithmetic, with NaN, infinities and signed zeros); if false, with the SMT FloatingPoint theory (auto, the default: false if the prover supports FloatingPoint)",null,"true") {
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
+            var nm = JmlOption.FPREAL.optionName();
+            if (negate) options.put(nm, "false");
+            String val = options.get(nm);
+            if (!"auto".equals(val) && !"true".equals(val) && !"false".equals(val)) {
+                clWarning(context, "Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
+                options.put(nm,(String)JmlOption.FPREAL.defaultValue());
+                return false;
+            }
+            return true;
+        }
+    };
+
+    public static final JmlOption FPREAL_ENCODING = new JmlOption("--fpreal-encoding",true,"uf","ESC: With --fpreal, how the SMT sort of float and double values is encoded: uf (uninterpreted sorts and functions, the default) or datatype (an SMT datatype)",null) {
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
+            var nm = JmlOption.FPREAL_ENCODING.optionName();
+            String val = options.get(nm);
+            if (!"uf".equals(val) && !"datatype".equals(val)) {
+                clWarning(context, "Command-line argument error: Expected 'uf' or 'datatype' for "+nm+": " + val);
+                options.put(nm,(String)JmlOption.FPREAL_ENCODING.defaultValue());
+                return false;
+            }
+            return true;
+        }
+    };
+
+    /** Whether ESC models float and double with the SMT FloatingPoint theory (rather than as reals), per --fpreal and the prover */
+    public static boolean useFPTheory(Context context) {
+        String val = FPREAL.value(context);
+        if ("true".equals(val)) return false;
+        if ("false".equals(val)) return true;
+        String logic = LOGIC.value(context); // a logic other than ALL must name FP for the FloatingPoint theory
+        if (logic != null && !logic.equals("ALL") && !logic.contains("FP")) return false;
+        return proverSupportsFP(PROVER.value(context));
+    }
+
+    /** Whether the named prover implements the SMT FloatingPoint theory */
+    public static boolean proverSupportsFP(/*@ nullable */ String prover) {
+        if (prover == null) return false;
+        String p = prover.toLowerCase();
+        if (p.startsWith("z3")) return !p.startsWith("z3-4.3") && !p.startsWith("z3_4_3"); // FloatingPoint is in z3 since 4.4
+        return p.startsWith("cvc5") || p.startsWith("cvc4") || p.startsWith("bitwuzla");
+    }
     public static final JmlOption Z3 = new JmlOption("--z3",true,"","ESC: Comma-separated z3 settings: mbqi, autoconf (turn on model-based quantifier instantiation / z3's auto-configuration), no-mbqi, no-autoconf (turn them off, the default)",null) {
         public boolean check(Context context, boolean negate) {
             String val = JmlOption.Z3.value(context);
@@ -375,6 +421,19 @@ public class JmlOption {
         return on;
     }
     public static final JmlOption PIPELINE = new JmlOption("--pipeline",false,true,"ESC: Send SMT commands to the solver without waiting for each response where possible (default true)",null);
+    public static final JmlOption SMT_STRINGS = new JmlOption("--smt-strings",false,true,"ESC: Use the SMT-LIB Strings theory for \\string if the solver supports it (default true)",null);
+
+    /** Whether ESC uses the SMT-LIB Strings theory for \string: --smt-strings is on, the logic includes the theory,
+     * and the solver supports it (z3 after 4.3, cvc4, cvc5); bit-vector mode never uses it (#1043) */
+    public static boolean useSmtStrings(Context context) {
+        if (!SMT_STRINGS.isSet(context)) return false;
+        String logic = LOGIC.value(context); // a logic other than ALL must have the S (Strings) component
+        if (logic != null && !logic.equals("ALL") && !logic.replace("QF_","").contains("S")) return false;
+        String prover = PROVER.value(context);
+        if (prover == null) return true;
+        return (prover.startsWith("z3") && !prover.startsWith("z3_4_3") && !prover.startsWith("z3-4.3"))
+                || prover.startsWith("cvc4") || prover.startsWith("cvc5");
+    }
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("--esc-max-warnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
         public boolean check(Context context, boolean negate) {
             String limit = JmlOption.ESC_MAX_WARNINGS.value(context);

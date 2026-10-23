@@ -1,0 +1,14 @@
+Proving methods in java.lang.VirtualMachineError
+Starting proof of VirtualMachineError.VirtualMachineError() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of VirtualMachineError.VirtualMachineError() with prover !!!! - no warnings
+Starting proof of VirtualMachineError.VirtualMachineError(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of VirtualMachineError.VirtualMachineError(String) with prover !!!! - no warnings
+Starting proof of VirtualMachineError.VirtualMachineError(String,Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of VirtualMachineError.VirtualMachineError(String,Throwable) with prover !!!! - no warnings
+Starting proof of VirtualMachineError.VirtualMachineError(Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of VirtualMachineError.VirtualMachineError(Throwable) with prover !!!! - no warnings
+Completed proving methods in java.lang.VirtualMachineError

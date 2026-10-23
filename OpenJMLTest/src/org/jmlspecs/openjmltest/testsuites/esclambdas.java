@@ -479,8 +479,8 @@ public class esclambdas extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (ExceptionList) in method m",5
-                ,"/tt/TestJava.java:18: verify: Associated declaration",9
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (ExceptionList: /tt/TestJava.java:18:) in method m",5
+                ,"/tt/TestJava.java:18: verify: Associated declaration: /tt/TestJava.java:21:",9
                 );
     }
     
@@ -523,8 +523,8 @@ public class esclambdas extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assignable) in method m: \\everything",19
-                ,"/tt/TestJava.java:12: verify: Associated declaration",9
+                ,"/tt/TestJava.java:14: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:12:) in method m: \\everything",19
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:14:",9
                 ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method mmm",19 // FIXME _ 15?
                 );
     }
@@ -620,7 +620,7 @@ public class esclambdas extends EscBase {
                 );
     }
     
-    @Test @Ignore // has developped a timeout, so ignorig for now -- FIXME
+    @Test
     public void testBindLambda() {
         addOptions("--method=mm"); // Part of test
         addOptions("--code-math=bigint","--spec-math=bigint");  // Part of test

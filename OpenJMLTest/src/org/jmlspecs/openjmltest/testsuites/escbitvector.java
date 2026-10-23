@@ -127,8 +127,8 @@ public class escbitvector extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",5
-                ,"/tt/TestJava.java:3: verify: Associated declaration",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:3:) in method m1",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:8:",7
                 );
     }
 

@@ -59,8 +59,8 @@ public class escswitch extends EscBase {
     public void testResultGet() {
         addOptions("--method=get");
         helpEsc("com.example.Result", RESULT_SOURCE
-                ,"/com/example/Result.java:15: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method <T,E>get", 19
-                ,"/com/example/Result.java:15: verify: Associated declaration", 21
+                ,"/com/example/Result.java:15: verify: The prover cannot establish an assertion (PossiblyNullReturn: /com/example/Result.java:15:) in method <T,E>get", 19
+                ,"/com/example/Result.java:15: verify: Associated declaration: /com/example/Result.java:15:", 21
                 ,"/com/example/Result.java:16: verify: Associated method exit", 9
                 );
     }
@@ -100,14 +100,15 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition) in method m", 9
-                ,"/A.java:2: verify: Associated declaration", 9
+                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition: /A.java:2:) in method m", 9
+                ,"/A.java:2: verify: Associated declaration: /A.java:4:", 9
                 );
     }
 
     /** Exhaustive binding-pattern switch over a sealed interface. */
     @Test
     public void testSealedBindingPatternExhaustive() {
+        addOptions("--fpreal"); // the SMT FloatingPoint theory makes the double multiplications slow to verify
         helpEsc("A", """
                 class A {
                     sealed interface Shape permits Circle, Rect {}
@@ -172,8 +173,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:8: verify: The prover cannot establish an assertion (Postcondition) in method show", 9
-                ,"/A.java:6: verify: Associated declaration", 9
+                ,"/A.java:8: verify: The prover cannot establish an assertion (Postcondition: /A.java:6:) in method show", 9
+                ,"/A.java:6: verify: Associated declaration: /A.java:8:", 9
                 );
     }
 
@@ -238,8 +239,83 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:6: verify: The prover cannot establish an assertion (Postcondition) in method classify", 9
-                ,"/A.java:4: verify: Associated declaration", 9
+                ,"/A.java:6: verify: The prover cannot establish an assertion (Postcondition: /A.java:4:) in method classify", 9
+                ,"/A.java:4: verify: Associated declaration: /A.java:6:", 9
+                );
+    }
+
+    /** A later case is reached only when the guards of earlier matching cases are false (#1044) */
+    @Test
+    public void testGuardExcludesLaterCase() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    //@ ensures (n == 0 && b) ==> \\result == 1;
+                    //@ ensures \\result == 0 ==> !b;
+                    public static int coerce2(Integer n, boolean b) {
+                        return switch (n) {
+                            case Integer i when b -> 1;
+                            case Integer i -> 0;
+                        };
+                    }
+
+                    //@ ensures \\result == 0 ==> !(o instanceof String s && s.isEmpty());
+                    public static int dflt(Object o) {
+                        return switch (o) {
+                            case String s when s.isEmpty() -> 1;
+                            default -> 0;
+                        };
+                    }
+                }
+                """);
+    }
+
+    /** A record-pattern binding is the value of the record's accessor (#1044) */
+    @Test
+    public void testRecordPatternBindingIsAccessor() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    record Box(int x) {}
+
+                    //@ requires bx != null;
+                    //@ ensures \\result == bx.x();
+                    public static int b(Box bx) {
+                        return switch (bx) {
+                            case Box(int x) -> x;
+                        };
+                    }
+
+                    //@ requires bx != null;
+                    //@ ensures bx.x() > 0 ==> \\result == 1;
+                    //@ ensures \\result == 0 ==> bx.x() <= 0;
+                    public static int g(Box bx) {
+                        return switch (bx) {
+                            case Box(int x) when x > 0 -> 1;
+                            case Box(int x) -> 0;
+                        };
+                    }
+                }
+                """);
+    }
+
+    /** The exclusion of earlier guarded cases is not too strong (#1044) */
+    @Test
+    public void testGuardExcludesLaterCaseFail() {
+        helpEsc("tt.A", """
+                package tt;
+                public class A {
+                    //@ ensures \\result == 0 ==> b;
+                    public static int coerce2(Integer n, boolean b) {
+                        return switch (n) {
+                            case Integer i when b -> 1;
+                            case Integer i -> 0;
+                        };
+                    }
+                }
+                """
+                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/A.java:3:) in method coerce2", 9
+                ,"/tt/A.java:3: verify: Associated declaration: /tt/A.java:5:", 9
                 );
     }
 
@@ -279,8 +355,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition) in method describe", 9
-                ,"/A.java:2: verify: Associated declaration", 9
+                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition: /A.java:2:) in method describe", 9
+                ,"/A.java:2: verify: Associated declaration: /A.java:4:", 9
                 );
     }
 
@@ -366,8 +442,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition) in method measure", 9
-                ,"/A.java:2: verify: Associated declaration", 9
+                ,"/A.java:4: verify: The prover cannot establish an assertion (Postcondition: /A.java:2:) in method measure", 9
+                ,"/A.java:2: verify: Associated declaration: /A.java:4:", 9
                 );
     }
 
@@ -452,8 +528,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method describe", 9
-                ,"/tt/A.java:3: verify: Associated declaration", 9
+                ,"/tt/A.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/A.java:3:) in method describe", 9
+                ,"/tt/A.java:3: verify: Associated declaration: /tt/A.java:5:", 9
                 );
     }
 
@@ -525,8 +601,8 @@ public class escswitch extends EscBase {
                     }
                 }
                 """
-                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition) in method depth", 9
-                ,"/tt/A.java:7: verify: Associated declaration", 9
+                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition: /tt/A.java:7:) in method depth", 9
+                ,"/tt/A.java:7: verify: Associated declaration: /tt/A.java:9:", 9
                 );
     }
 

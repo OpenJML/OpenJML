@@ -16,7 +16,7 @@ public class escfileslist2 extends escfileslist {
         var data = escfileslist.alldata();
         var n = data.size();
         java.util.Collection<String[]> ndata = new java.util.LinkedList<>();
-        for (int i=(int)(split1*n); i<(int)(split2*n); i++)  ndata.add(data.get(i));
+        for (var d: data) if (d[0].compareTo(split1) >= 0 && d[0].compareTo(split2) < 0) ndata.add(d);
         System.out.println("escfileslist2: Running " + ndata.size() + " of " + n + " tests");
         return ndata;
     }

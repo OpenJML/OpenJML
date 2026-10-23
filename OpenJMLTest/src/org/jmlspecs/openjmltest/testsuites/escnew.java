@@ -100,8 +100,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition) in method m1a",15
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m1a",15
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:5:",7
                 ,"/tt/TestJava.java:10: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.m1b(int)",15
                 );
     }
@@ -175,12 +175,12 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1bad",5
-                ,"/tt/TestJava.java:3: verify: Associated declaration",7
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",15
-                ,"/tt/TestJava.java:7: verify: Associated declaration",7
-                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",6
-                ,"/tt/TestJava.java:10: verify: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ExceptionalPostcondition: /tt/TestJava.java:3:) in method m1bad",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:5:",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:7:) in method m2bad",15
+                ,"/tt/TestJava.java:7: verify: Associated declaration: /tt/TestJava.java:8:",7
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:10:) in method m3bad",6
+                ,"/tt/TestJava.java:10: verify: Associated declaration: /tt/TestJava.java:12:",7
                 );
     }
 
@@ -214,10 +214,10 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",10
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
-                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",10
-                ,"/tt/TestJava.java:18: verify: Associated declaration",7
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m1bad",10
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:10:",7
+                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:18:) in method m2bad",10
+                ,"/tt/TestJava.java:18: verify: Associated declaration: /tt/TestJava.java:23:",7
                 );
     }
 
@@ -251,10 +251,10 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1bad",10
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
-                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m2bad",10
-                ,"/tt/TestJava.java:18: verify: Associated declaration",7
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (ExceptionalPostcondition: /tt/TestJava.java:4:) in method m1bad",10
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:10:",7
+                ,"/tt/TestJava.java:23: verify: The prover cannot establish an assertion (ExceptionalPostcondition: /tt/TestJava.java:18:) in method m2bad",10
+                ,"/tt/TestJava.java:18: verify: Associated declaration: /tt/TestJava.java:23:",7
                 );
     }
 
@@ -279,8 +279,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1bad",10
-                ,"/tt/TestJava.java:3: verify: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ExceptionalPostcondition: /tt/TestJava.java:3:) in method m1bad",10
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:5:",7
                 );
     }
 
@@ -314,8 +314,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                ,"/tt/TestJava.java:12: verify: Associated declaration",9
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:12:) in method m1bad",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:13:",9
                 );
     }
 
@@ -349,8 +349,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                ,"/tt/TestJava.java:12: verify: Associated declaration",9
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:12:) in method m1bad",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:13:",9
                 );
     }
 
@@ -384,8 +384,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                ,"/tt/TestJava.java:12: verify: Associated declaration",9
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:12:) in method m1bad",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:13:",9
                 );
     }
     // Tests use of \old token in called methods
@@ -418,8 +418,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                ,"/tt/TestJava.java:12: verify: Associated declaration",9
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:12:) in method m1bad",15
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:13:",9
                 );
     }
 
@@ -537,8 +537,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",24
-                ,"/tt/TestJava.java:3: verify: Associated declaration",7
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:3:) in method m1bad",24
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:9:",7
                 );
     }
 
@@ -671,12 +671,12 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",10
-                ,"/tt/TestJava.java:3: verify: Associated declaration",7
-                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",11
-                ,"/tt/TestJava.java:12: verify: Associated declaration",7
-                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",11
-                ,"/tt/TestJava.java:21: verify: Associated declaration",7
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:3:) in method m1bad",10
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:10:",7
+                ,"/tt/TestJava.java:19: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:12:) in method m2bad",11
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:19:",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:21:) in method m3bad",11
+                ,"/tt/TestJava.java:21: verify: Associated declaration: /tt/TestJava.java:30:",7
 
                 );
     }
@@ -1163,30 +1163,30 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assignable) in method m2: \\everything", 15
-                ,"/tt/TestJava.java:11: verify: Associated declaration",7
-                ,anyorder(seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m3: k", 15
-                             ,"/tt/TestJava.java:15: verify: Associated declaration", 7)
-                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m3: t.k", 19
-                             ,"/tt/TestJava.java:15: verify: Associated declaration", 7)
-                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m3: TestJava.k", 31
-                             ,"/tt/TestJava.java:15: verify: Associated declaration", 7)
-                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m3: tt.TestJava.k", 46
-                             ,"/tt/TestJava.java:15: verify: Associated declaration", 7))
-                ,anyorder(seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assignable) in method m4: this.i", 19
-                             ,"/tt/TestJava.java:19: verify: Associated declaration", 7)
-                         ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assignable) in method m4: this.*", 27
-                             ,"/tt/TestJava.java:19: verify: Associated declaration", 7))
-                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assignable) in method m5: i", 15
-                ,"/tt/TestJava.java:23: verify: Associated declaration", 7
-                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Assignable) in method m6: t.i", 16
-                ,"/tt/TestJava.java:28: verify: Associated declaration", 7
-                ,anyorder(seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable) in method m7: a[i]", 15
-                             ,"/tt/TestJava.java:33: verify: Associated declaration", 7)
-                         ,seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable) in method m7: a[1 .. 2]", 21
-                             ,"/tt/TestJava.java:33: verify: Associated declaration", 7)
-                         ,seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable) in method m7: a[*]", 30
-                             ,"/tt/TestJava.java:33: verify: Associated declaration", 7))
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:11:) in method m2: \\everything", 15
+                ,"/tt/TestJava.java:11: verify: Associated declaration: /tt/TestJava.java:13:",7
+                ,anyorder(seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:15:) in method m3: k", 15
+                             ,"/tt/TestJava.java:15: verify: Associated declaration: /tt/TestJava.java:17:", 7)
+                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:15:) in method m3: t.k", 19
+                             ,"/tt/TestJava.java:15: verify: Associated declaration: /tt/TestJava.java:17:", 7)
+                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:15:) in method m3: TestJava.k", 31
+                             ,"/tt/TestJava.java:15: verify: Associated declaration: /tt/TestJava.java:17:", 7)
+                         ,seq("/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:15:) in method m3: tt.TestJava.k", 46
+                             ,"/tt/TestJava.java:15: verify: Associated declaration: /tt/TestJava.java:17:", 7))
+                ,anyorder(seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:19:) in method m4: this.i", 19
+                             ,"/tt/TestJava.java:19: verify: Associated declaration: /tt/TestJava.java:21:", 7)
+                         ,seq("/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:19:) in method m4: this.*", 27
+                             ,"/tt/TestJava.java:19: verify: Associated declaration: /tt/TestJava.java:21:", 7))
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:23:) in method m5: i", 15
+                ,"/tt/TestJava.java:23: verify: Associated declaration: /tt/TestJava.java:26:", 7
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:28:) in method m6: t.i", 16
+                ,"/tt/TestJava.java:28: verify: Associated declaration: /tt/TestJava.java:31:", 7
+                ,anyorder(seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:33:) in method m7: a[i]", 15
+                             ,"/tt/TestJava.java:33: verify: Associated declaration: /tt/TestJava.java:36:", 7)
+                         ,seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:33:) in method m7: a[1 .. 2]", 21
+                             ,"/tt/TestJava.java:33: verify: Associated declaration: /tt/TestJava.java:36:", 7)
+                         ,seq("/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:33:) in method m7: a[*]", 30
+                             ,"/tt/TestJava.java:33: verify: Associated declaration: /tt/TestJava.java:36:", 7))
 
                 );
     }
@@ -1267,8 +1267,8 @@ public class escnew extends EscBase {
                         ,seq("/tt/TestJava.java:3: verify: The prover cannot establish an assertion (UndefinedTooLargeIndex) in method m1bad",16
                         		,"/tt/TestJava.java:5: verify: Associated method exit",4
                         		)
-                        ,seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",15
-                                ,"/tt/TestJava.java:3: verify: Associated declaration",7)
+                        ,seq("/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:3:) in method m1bad",15
+                                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:4:",7)
                                 )
                 );
     }
@@ -1285,8 +1285,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method m1bad",5
-                ,"/tt/TestJava.java:3: verify: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ExceptionalPostcondition: /tt/TestJava.java:3:) in method m1bad",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:5:",7
                 );
     }
 
@@ -1332,10 +1332,10 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-                ,"/tt/TestJava.java:14: verify: Associated declaration",7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m1bad",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:6:",7
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:14:) in method m2bad",5
+                ,"/tt/TestJava.java:14: verify: Associated declaration: /tt/TestJava.java:16:",7
                 );
     }
 
@@ -1384,10 +1384,10 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                ,"/tt/TestJava.java:22: verify: Associated declaration",7
-                ,"/tt/TestJava.java:37: verify: The prover cannot establish an assertion (Postcondition) in method m4bad",5
-                ,"/tt/TestJava.java:34: verify: Associated declaration",7
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:22:) in method m3bad",5
+                ,"/tt/TestJava.java:22: verify: Associated declaration: /tt/TestJava.java:25:",7
+                ,"/tt/TestJava.java:37: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:34:) in method m4bad",5
+                ,"/tt/TestJava.java:34: verify: Associated declaration: /tt/TestJava.java:37:",7
                 );
     }
 
@@ -1455,8 +1455,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m1bad",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:6:",7
                 );
     }
 
@@ -1485,10 +1485,10 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-                ,"/tt/TestJava.java:14: verify: Associated declaration",7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m1bad",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:6:",7
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:14:) in method m2bad",5
+                ,"/tt/TestJava.java:14: verify: Associated declaration: /tt/TestJava.java:16:",7
                 );
     }
 
@@ -1512,8 +1512,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m1bad",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:6:",7
                 );
     }
 
@@ -1589,8 +1589,8 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1bad",25
                 ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",25
                 ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3bad",26
-                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Postcondition) in method m4bad",5
-                ,"/tt/TestJava.java:31: verify: Associated declaration",7
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:31:) in method m4bad",5
+                ,"/tt/TestJava.java:31: verify: Associated declaration: /tt/TestJava.java:36:",7
                 );
     }
 
@@ -1667,8 +1667,8 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m1bad",25
                 ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method m2bad",25
                 ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3bad",26
-                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Postcondition) in method m4bad",5
-                ,"/tt/TestJava.java:31: verify: Associated declaration",7
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:31:) in method m4bad",5
+                ,"/tt/TestJava.java:31: verify: Associated declaration: /tt/TestJava.java:36:",7
 //                ,"/tt/TestJava.java:52: verify: The prover cannot establish an assertion (Postcondition) in method m1bug",5
 //                ,"/tt/TestJava.java:50: verify: Associated declaration",7  // FIXME - review?
                 );
@@ -1693,8 +1693,8 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:6: verify: Label LBL_BB has value true",34
                 ,"/tt/TestJava.java:8: verify: Label LBL_BB3 has value false",38
                 ,"/tt/TestJava.java:9: verify: Label LBL_BBI has value 5",30
-                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Postcondition) in method m1ok",5
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m1ok",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:10:",7
                 );
     }
 
@@ -1736,12 +1736,12 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:4: verify: Associated declaration",7
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-                ,"/tt/TestJava.java:14: verify: Associated declaration",7
-                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                ,"/tt/TestJava.java:24: verify: Associated declaration",7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method m1bad",5
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:6:",7
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:14:) in method m2bad",5
+                ,"/tt/TestJava.java:14: verify: Associated declaration: /tt/TestJava.java:16:",7
+                ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:24:) in method m3bad",5
+                ,"/tt/TestJava.java:24: verify: Associated declaration: /tt/TestJava.java:26:",7
                 );
     }
 
@@ -1816,12 +1816,12 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:5: verify: Associated declaration",7
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Postcondition) in method m2bad",5
-                ,"/tt/TestJava.java:15: verify: Associated declaration",7
-                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Postcondition) in method m3bad",5
-                ,"/tt/TestJava.java:25: verify: Associated declaration",7
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:5:) in method m1bad",5
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:7:",7
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:15:) in method m2bad",5
+                ,"/tt/TestJava.java:15: verify: Associated declaration: /tt/TestJava.java:17:",7
+                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:25:) in method m3bad",5
+                ,"/tt/TestJava.java:25: verify: Associated declaration: /tt/TestJava.java:27:",7
                 ,"/tt/TestJava.java:32: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m3bad2",13
                 );
     }
@@ -1845,8 +1845,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",5
-                ,"/tt/TestJava.java:5: verify: Associated declaration",7
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:5:) in method m1bad",5
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:7:",7
                 );
     }
 
@@ -1893,8 +1893,8 @@ public class escnew extends EscBase {
                   public TestJava() { nnf = new Object(); }
                 }
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method m1bad", 10
-                ,"/tt/TestJava.java:5: verify: Associated declaration", 17
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyNullReturn: /tt/TestJava.java:5:) in method m1bad", 10
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:5:", 17
                 ,"/tt/TestJava.java:6: verify: Associated method exit", 5
                 ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m2bad",9
                 );
@@ -2101,10 +2101,10 @@ public class escnew extends EscBase {
                 ,"/tt/TestJava.java:14: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm(int)", 17
                 ,"/tt/TestJava.java:19: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm2(int)", 18
                 ,"/tt/TestJava.java:23: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm3(int)", 18
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m1",7
-                ,"/tt/TestJava.java:14: verify: Associated declaration",7
-                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Postcondition) in method m3",7
-                ,"/tt/TestJava.java:23: verify: Associated declaration",7
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:14:) in method m1",7
+                ,"/tt/TestJava.java:14: verify: Associated declaration: /tt/TestJava.java:16:",7
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:23:) in method m3",7
+                ,"/tt/TestJava.java:23: verify: Associated declaration: /tt/TestJava.java:25:",7
                 );
     }
 
@@ -2597,8 +2597,8 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method mm",17
-                ,"/tt/TestJava.java:8: verify: Associated declaration",26
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: /tt/TestJava.java:8:) in method mm",17
+                ,"/tt/TestJava.java:8: verify: Associated declaration: /tt/TestJava.java:12:",26
                 ,optional(
                 "/tt/TestJava.java:3: verify: Precondition conjunct is false: i == 4",18
                 ,"/tt/TestJava.java:6: verify: Precondition conjunct is false: i == 5",18
@@ -2645,10 +2645,10 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable) in method m1bad: a[i]",19
-                ,"/tt/TestJava.java:15: verify: Associated declaration",7
-                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Assignable) in method mbad: a[i + 2]",13
-                ,"/tt/TestJava.java:28: verify: Associated declaration",7
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:15:) in method m1bad: a[i]",19
+                ,"/tt/TestJava.java:15: verify: Associated declaration: /tt/TestJava.java:17:",7
+                ,"/tt/TestJava.java:30: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:28:) in method mbad: a[i + 2]",13
+                ,"/tt/TestJava.java:28: verify: Associated declaration: /tt/TestJava.java:30:",7
 
 
                 );
@@ -2791,6 +2791,42 @@ public class escnew extends EscBase {
                     void greet(Animal a) {
                         //@ assert a instanceof Dog || a instanceof Cat;
                     }
+                }
+                """);
+    }
+
+    // gitbug627: a label in \fresh (with or without the backslash) in a loop invariant
+    @Test
+    public void testFreshLoopInit() {
+        helpEsc("tt.TestJava", """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    Object[] a = new Object[10];
+                    //@ maintaining 0 <= i <= 10 && a.length == 10;
+                    //@ loop_invariant (\\forall int j; 0<=j && j<i; \\fresh(a[j], LoopInit));
+                    //@ loop_invariant (\\forall int j; 0<=j && j<i; \\fresh(a[j], \\LoopInit));
+                    //@ loop_modifies a[*];
+                    //@ decreasing 10 - i;
+                    for (int i = 0; i < 10; ++i) {
+                      a[i] = new Object();
+                    }
+                  }
+                }
+                """);
+    }
+
+    // gitbug751: a callee spec that inlines a model program (StrictMath.max calls Float.compare)
+    @Test
+    public void testInlinedModelProgram() {
+        helpEsc("tt.TestJava", """
+                package tt;
+                public class TestJava {
+                  //@ requires !Float.isNaN(a) && !Float.isNaN(b);
+                  //@ ensures \\result == StrictMath.max(a, b);
+                  public static float m(float a, float b) {
+                    return StrictMath.max(a, b);
+                  }
                 }
                 """);
     }

@@ -99,6 +99,32 @@ public class EscCancellationTest extends LspTestBase {
         api.cancelEsc();
     }
 
+    /** Fails, with the thread's stack, if {@code t} is still running {@code millis} ms from now */
+    private static void assertFinished(Thread t, long millis, String after) throws InterruptedException {
+        t.join(millis);
+        if (!t.isAlive()) return;
+        StringBuilder sb = new StringBuilder();
+        for (StackTraceElement e : t.getStackTrace()) sb.append("\n\tat ").append(e);
+        fail("ESC thread did not finish within " + millis / 1000 + " s after " + after + "; it is at:" + sb);
+    }
+
+    /** A cancel made after the IAPI exists but before execute starts is honored by that run (#1048) */
+    @Test
+    public void testEscCancelBeforeExecute() throws Exception {
+        String source = "public class EscCancellation {\n"
+                + "    public void m(int a) {\n"
+                + "        //@ assert a == a;\n"
+                + "    }\n"
+                + "}\n";
+        CheckRunner.CheckResult result = CheckRunner.runEscWithHook(URI, source,
+                new OpenJMLSettings(), (api, count) -> api.cancelEsc());
+        assertEquals("Expected exit code 5 (CANCELLED)", 5, result.exitCode());
+        assertTrue("Expected no proof results, got " + result.proofResults(),
+                result.proofResults().isEmpty());
+        assertTrue("Expected no diagnostics, got " + result.diagnostics(),
+                result.diagnostics().isEmpty());
+    }
+
     @Test
     public void testEscCancelledExitCode5() throws Exception {
         AtomicReference<IAPI> apiRef = new AtomicReference<>();
@@ -119,8 +145,7 @@ public class EscCancellationTest extends LspTestBase {
 
         waitAndCancel(apiRef.get(), countRef.get(), 2, 120_000);
 
-        escThread.join(30_000);
-        assertFalse("ESC thread did not finish within 30 s after cancel", escThread.isAlive());
+        assertFinished(escThread, 30_000, "cancel");
     }
 
     @Test
@@ -146,8 +171,7 @@ public class EscCancellationTest extends LspTestBase {
 
         waitAndCancel(apiRef.get(), countRef.get(), 2, 120_000);
 
-        escThread.join(30_000);
-        assertFalse("ESC thread did not finish within 30 s after cancel", escThread.isAlive());
+        assertFinished(escThread, 30_000, "cancel");
 
         CheckRunner.CheckResult result = resultRef.get();
         assertNotNull("CheckResult must not be null", result);
@@ -217,8 +241,7 @@ public class EscCancellationTest extends LspTestBase {
 
         waitAndCancel(apiRef.get(), countRef.get(), 2, 120_000);
 
-        escThread.join(30_000);
-        assertFalse("ESC thread did not finish within 30 s after cancel", escThread.isAlive());
+        assertFinished(escThread, 30_000, "cancel");
 
         // Find the cancel log line.
         String cancelLine = capturedLogs.stream()
@@ -351,9 +374,7 @@ public class EscCancellationTest extends LspTestBase {
         waitAndAbortCurrent(apiRef.get(), countRef.get(), 1, 120_000);
 
         // The ESC thread must continue and finish (not hang waiting for a future that never fires).
-        escThread.join(120_000);
-        assertFalse("ESC thread did not finish within 120 s after abortCurrentProof",
-                escThread.isAlive());
+        assertFinished(escThread, 120_000, "abortCurrentProof");
 
         CheckRunner.CheckResult result = resultRef.get();
         assertNotNull("CheckResult must not be null", result);

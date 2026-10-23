@@ -8,10 +8,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m1(Test) with prover !!!! - no warnings
 Starting proof of Test.m2() with prover !!!!
-test/recommendsC/Test.java:11: verify: The prover cannot establish an assertion (Precondition) in method m2
+test/recommendsC/Test.java:11: verify: The prover cannot establish an assertion (Precondition: test/recommendsC/Test.java:6:) in method m2
         m1(null);
           ^
-test/recommendsC/Test.java:6: verify: Associated declaration
+test/recommendsC/Test.java:6: verify: Associated declaration: test/recommendsC/Test.java:11:
     public void m1(Test o) {
                 ^
 test/recommendsC/Test.java:5: verify: Precondition conjunct is false: o != null

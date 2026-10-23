@@ -8,15 +8,15 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Trange.main(String...) with prover !!!! - no warnings
 Starting proof of Trange.misc() with prover !!!!
-test/jmlrange/Trange.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method misc
+test/jmlrange/Trange.java:28: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/range.jml:83:) in method misc
             //@ check r1.equals(null); // ERROR
                                ^
-$SPECS/org/jmlspecs/lang/internal/range.jml:83: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/range.jml:83: verify: Associated declaration: test/jmlrange/Trange.java:28:
     public boolean equals(Object o);
                    ^
-$SPECS/org/jmlspecs/lang/internal/range.jml:33: verify: Precondition conjunct is false: null != null
-    //-RAC@   ensures \result.lo == lo;
-                       ^
+test/jmlrange/Trange.java:28: verify: Precondition conjunct is false: null != null
+            //@ check r1.equals(null); // ERROR
+                                ^
 Completed proof of Trange.misc() with prover !!!! - with warnings
 Starting proof of Trange.equality(int,int) with prover !!!!
 Feasibility check - end of preconditions : OK

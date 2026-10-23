@@ -248,10 +248,10 @@ test\escTrace\trace.java:13:  	ensures \result != 0;
 			VALUE: \result	 === 0
 			VALUE: 0	 === 0
 			VALUE: \result != 0	 === false
-test\escTrace\trace.java:83: verify: The prover cannot establish an assertion (Postcondition) in method m
+test\escTrace\trace.java:83: verify: The prover cannot establish an assertion (Postcondition: test\escTrace\trace.java:13:) in method m
         return 0;
         ^
-test\escTrace\trace.java:13: verify: Associated declaration
+test\escTrace\trace.java:13: verify: Associated declaration: test\escTrace\trace.java:83:
     //@ ensures \result != 0;
         ^
 3 verification failures

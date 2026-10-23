@@ -157,24 +157,24 @@ public class JmlResolve extends Resolve {
             var speccu = cu.specsCompilationUnit;
             
             boolean deb2 = false; // name.toString().equals("X") || name.toString().equals("Q");
-            if (deb2) System.out.println("SEARCHING FOR GLOBAL: " + name + "  allowJML=" + allowJML + "  inJMLCU=" + inJMLCU + " " + (speccu == null) + " " + (speccu == cu));
+            if (deb2) Utils.debugOut().println("SEARCHING FOR GLOBAL: " + name + "  allowJML=" + allowJML + "  inJMLCU=" + inJMLCU + " " + (speccu == null) + " " + (speccu == cu));
 
             if (inJMLCU) {
                 sym = findGlobalType(env, speccu.namedImportScope, name, namedImportScopeRecovery);
             } else {
                 sym = findGlobalType(env, cu.namedImportScope, name, namedImportScopeRecovery);
             }
-            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a named import");
+            if (deb2 && sym.exists()) Utils.debugOut().println("Name " + name + " is matched to a named import");
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
 
             sym = findGlobalType(env, cu.toplevelScope, name, noRecovery);
-            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a top-level class");
+            if (deb2 && sym.exists()) Utils.debugOut().println("Name " + name + " is matched to a top-level class");
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
 
             sym = findGlobalType(env, cu.packge.members(), name, noRecovery);
-            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a package class");
+            if (deb2 && sym.exists()) Utils.debugOut().println("Name " + name + " is matched to a package class");
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
 
@@ -183,7 +183,7 @@ public class JmlResolve extends Resolve {
             } else {
                 sym = findGlobalType(env, cu.starImportScope, name, starImportScopeRecovery);
             }
-            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a star import");
+            if (deb2 && sym.exists()) Utils.debugOut().println("Name " + name + " is matched to a star import");
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
             //if (deb2) { System.out.println("BEST " + bestSoFar); org.jmlspecs.openjml.Utils.dumpStack(); }
@@ -411,7 +411,7 @@ public class JmlResolve extends Resolve {
     		return bestSoFar;
     	} catch (Exception e) {
     		utils.error("jml.internal", "Exception in findMethodInScope: " + site + " " + name + " " + argtypes + " <" + typeargtypes +">");
-    		e.printStackTrace(System.out);
+    		Utils.conditionalPrintStack(e);
     		throw e;
     	}
     }

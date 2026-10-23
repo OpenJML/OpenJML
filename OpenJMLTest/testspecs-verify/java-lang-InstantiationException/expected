@@ -1,0 +1,8 @@
+Proving methods in java.lang.InstantiationException
+Starting proof of InstantiationException.InstantiationException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of InstantiationException.InstantiationException() with prover !!!! - no warnings
+Starting proof of InstantiationException.InstantiationException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of InstantiationException.InstantiationException(String) with prover !!!! - no warnings
+Completed proving methods in java.lang.InstantiationException

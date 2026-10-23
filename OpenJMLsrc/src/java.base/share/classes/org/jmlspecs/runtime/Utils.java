@@ -283,23 +283,27 @@ public class Utils {
         System.out.println(str);
     }
     
+    /** The missing ghost/model fields and model methods already reported, so each is reported once per run (#1050) */
+    private static final java.util.Set<String> reportedMissing = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     public static void reportNoSuchField(NoSuchFieldError t, @Nullable String location) {
-    	t.printStackTrace();
-        String msg = t.getMessage();
-        int k = msg.indexOf('(');
-        if (k >= 0) msg = msg.substring(0,k);
-        msg = "Skipping a specification clause because it contains an uncompiled ghost or model field: " + msg;
-        if (location != null) msg = msg + " (" + location + ")";
-        report(msg);
+        reportMissing(t, location, "Skipping a specification clause because it contains an uncompiled ghost or model field: ");
     }
     
     public static void reportNoSuchMethod(NoSuchMethodError t, @Nullable String location) {
-        String msg = t.getMessage();
+        reportMissing(t, location, "Skipping a specification clause because it contains an uncompiled model method: ");
+    }
+
+    /** Reports a clause skipped for a missing member, once per member and location; the stack only with showstack */
+    private static void reportMissing(Error t, @Nullable String location, String prefix) {
+        String full = t.getMessage();
+        if (!reportedMissing.add(full + "|" + location)) return;
+        String msg = full;
         int k = msg.indexOf('(');
         if (k >= 0) msg = msg.substring(0,k);
-        msg = "Skipping a specification clause because it contains an uncompiled model method: " + msg;
+        msg = prefix + msg;
         if (location != null) msg = msg + " (" + location + ")";
-        t.printStackTrace(System.out);
+        if (showStack) t.printStackTrace(System.out);
         report(msg);
     }
     

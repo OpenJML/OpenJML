@@ -1,0 +1,14 @@
+Proving methods in java.lang.InternalError
+Starting proof of InternalError.InternalError() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of InternalError.InternalError() with prover !!!! - no warnings
+Starting proof of InternalError.InternalError(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of InternalError.InternalError(String) with prover !!!! - no warnings
+Starting proof of InternalError.InternalError(String,Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of InternalError.InternalError(String,Throwable) with prover !!!! - no warnings
+Starting proof of InternalError.InternalError(Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of InternalError.InternalError(Throwable) with prover !!!! - no warnings
+Completed proving methods in java.lang.InternalError

@@ -4487,10 +4487,6 @@ public class Check {
 
             @Override
             public void visitAnnotation(JCAnnotation tree) {
-                if (tree.attribute == null) { // OPENJML FIXME - added to avoid crash
-                    //System.out.println("Crash because an annotation is unattributed: " + tree); org.jmlspecs.openjml.Utils.dumpStack(); 
-                    return;
-                } 
                 if (tree.attribute.type.tsym.getAnnotation(java.lang.annotation.Documented.class) != null)
                     super.visitAnnotation(tree);
             }

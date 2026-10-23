@@ -189,7 +189,8 @@ public class escsf3 extends SFBugsBase {
     
     @Test
     public void gitbug695() {
-        helpEscSimple("--check-feasibility=precondition,reachable,exit,spec,assume,assert");
+        // With the Strings theory arr2str's feasibility checks time out (#1049)
+        helpEscSimple("--check-feasibility=precondition,reachable,exit,spec,assume,assert", "--no-smt-strings");
     }
     
     @Test
@@ -212,11 +213,6 @@ public class escsf3 extends SFBugsBase {
         helpEscSimple();
     }
 
-    @Test @Ignore // FIXME: Bug fixed, but the specs are not complete
-    public void gitbug710() {
-        helpEscFile("test/gitbug710/java/util/IdentityHashMap.java", "test/gitbug710","-cp","test/gitbug710","-no-staticInitWarning","--timeout=300");
-    }
-    
     @Test
     public void gitbug711() {
         helpEscSimple();

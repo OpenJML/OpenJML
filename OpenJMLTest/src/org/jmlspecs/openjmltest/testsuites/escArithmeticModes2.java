@@ -187,7 +187,6 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME - times out
     @Test
     public void testModSafeZ() {
         Assume.assumeTrue(runLongArithmetic && bvCheck());
@@ -223,7 +222,6 @@ public class escArithmeticModes2 extends EscBase {
     }
 
 
-    @Ignore // FIXME - non-linear arithmetic has bad models
     @Test
     public void testModSafeB() {
         //Assume.assumeTrue(runLongArithmetic);
@@ -309,7 +307,7 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Test @Ignore // TIMES OUT
+    @Test
     public void testModMathZ() {
         Assume.assumeTrue(runLongArithmetic);
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
@@ -457,7 +455,6 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME
     @Test // Tests int multiplication in bigint mode
     public void testMult() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
@@ -478,7 +475,6 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME long running
     @Test // Tests long multiplication in bigint mode
     public void testMultLong() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
@@ -499,7 +495,6 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME - long running
     @Test // Tests int multiplication in java mode
     public void testMultJava() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
@@ -520,7 +515,6 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME -- long running
     @Test // Tests long multiplication in java mode
     public void testMultJavaLong() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
@@ -541,7 +535,6 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME - long running
     @Test // Tests int multiplication in safe mode
     public void testMultSafe() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
@@ -562,7 +555,6 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME - long
     @Test // Tests long multiplication in safe mode
     public void testMultSafeLong() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
@@ -583,7 +575,6 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME - long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in bigint mode
     public void testDiv() {
         Assume.assumeTrue(bvCheck()); // Cannot have BV and Math mode
@@ -606,13 +597,12 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME -- long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in java mode
     public void testDivJava() {
         helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
-                @CodeJavaMath @SpecSafeMath @Options("-escMaxWarnings=1") public class TestJava {
+                @CodeJavaMath @SpecBigintMath @Options("--esc-max-warnings=1") public class TestJava {
                   //@ requires j != 0;
                   //@ requires i != Integer.MIN_VALUE || j != -1;
                   public void ma(int i, int j) {
@@ -621,7 +611,7 @@ public class escArithmeticModes2 extends EscBase {
                     //@ show i,j,q,m,j*q,j*(q+1),j*(q-1),j*q+m;
                     if (i >= 0 && j >= 0) { /*@ check q >= 0; check i >= j*q; check i < j*(q+1); check m >= 0 && m < j; check i == (j*q) + m; */ }
                     if (i >= 0 && j < 0) { /*@ check q <= 0; check i >= j*q; check i < j*(q-1);  check m >= 0 && m < -j; check i == (j*q) + m; */ }
-                    if (i < 0 && j >= 0) { /*@ check q <= 0; check i <= j*q; check i > j*(q-1); check m <= 0 && m < -j; check i == (j*q) + m; */ }
+                    if (i < 0 && j >= 0) { /*@ check q <= 0; check i <= j*q; check i > j*(q-1); check m <= 0 && m > -j; check i == (j*q) + m; */ }
                     if (i < 0 && j < 0) { /*@ check q >= 0; check i <= j*q; check i > j*(q+1); check m <= 0 && m > j; check i == (j*q) + m; */ }
                   }
                 }
@@ -629,13 +619,12 @@ public class escArithmeticModes2 extends EscBase {
               );
     }
 
-    @Ignore // FIXME -- long running
     @Test  // Tests that div and mod give correct answers, if they do not overflow, in safe mode
     public void testDivSafe() {
         helpEsc("tt.TestJava",
                 """
                 package tt; import org.jmlspecs.annotation.*;
-                @CodeSafeMath @SpecSafeMath @Options("-escMaxWarnings=1") public class TestJava {
+                @CodeSafeMath @SpecBigintMath @Options("--esc-max-warnings=1") public class TestJava {
                   //@ requires j != 0;
                   //@ requires i != Integer.MIN_VALUE || j != -1;
                   public void ma(int i, int j) {
@@ -645,7 +634,7 @@ public class escArithmeticModes2 extends EscBase {
                     //@ show q,m,j*q,j*(q+1),j*(q-1),j*q+m;
                     if (i >= 0 && j >= 0) { /*@ check q >= 0; check i >= j*q; check m >= 0 && m < j; check i == (j*q) + m; */ }
                     if (i >= 0 && j < 0) { /*@ check q <= 0; check i >= j*q;  check m >= 0 && m < -j; check i == (j*q) + m; */ }
-                    if (i < 0 && j >= 0) { /*@ check q <= 0; check i <= j*q; check m <= 0 && m < -j; check i == (j*q) + m; */ }
+                    if (i < 0 && j >= 0) { /*@ check q <= 0; check i <= j*q; check m <= 0 && m > -j; check i == (j*q) + m; */ }
                     if (i < 0 && j < 0) { /*@ check q >= 0; check i <= j*q; check m <= 0 && m > j; check i == (j*q) + m; */ }
                   }
                 }

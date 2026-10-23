@@ -194,10 +194,10 @@ public class escfilesdemo extends EscBaseFiles {
         helpDemo("settableClock","demoSettableClock","--check-feasibility=precondition,exit");
     }
 
-    @Test @Ignore // FIXME - needs some fixing
+    @Test @Ignore // FIXME - disabled pending a review of the demo's purpose (27 verification failures, no expected output)
     public void demoStudent() {
         expectedExit = 0;
-        helpDemoFile("student","demoStudent","--check-feasibility=basic");
+        helpDemo("student","demoStudent","--check-feasibility=basic");
     }
     
     @Test

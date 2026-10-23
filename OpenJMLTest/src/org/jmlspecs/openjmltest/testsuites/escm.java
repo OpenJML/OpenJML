@@ -76,16 +76,16 @@ public class escm extends EscBase {
                   /*@ pure */ public TestJava() { t = new TestJava(); }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method mc",45
-                ,"/tt/TestJava.java:8: verify: Associated declaration",22
-                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Postcondition) in method md",56
-                ,"/tt/TestJava.java:11: verify: Associated declaration",33
-                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Postcondition) in method me",44
-                ,"/tt/TestJava.java:12: verify: Associated declaration",22
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method me",30
-                ,"/tt/TestJava.java:12: verify: Associated declaration",22
-                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Postcondition) in method m2",18
-                ,"/tt/TestJava.java:16: verify: Associated declaration",12
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:8:) in method mc",45
+                ,"/tt/TestJava.java:8: verify: Associated declaration: /tt/TestJava.java:8:",22
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:11:) in method md",56
+                ,"/tt/TestJava.java:11: verify: Associated declaration: /tt/TestJava.java:11:",33
+                ,"/tt/TestJava.java:12: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:12:) in method me",44
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:12:",22
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:12:) in method me",30
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:13:",22
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:16:) in method m2",18
+                ,"/tt/TestJava.java:16: verify: Associated declaration: /tt/TestJava.java:17:",12
                 );
     }
 
@@ -120,17 +120,17 @@ public class escm extends EscBase {
                   public TestJava() { t = new TestJava(); }
                 }
                 """
-                ,"/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit) in method C",8  // C.<init>
-                ,"/TestJava.java:8: verify: Associated declaration",23
+                ,"/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit: /TestJava.java:8:) in method C",8  // C.<init>
+                ,"/TestJava.java:8: verify: Associated declaration: /TestJava.java:7:",23
                 ,"/TestJava.java:9: verify: Invariants+Preconditions appear to be contradictory in method C.m()",17  // The false invariant is triggered as a constructor postcondition
                 ,"/TestJava.java:12: verify: Invariants+Preconditions appear to be contradictory in method TestJava.1.m()",59 // m() of anonymous D
-                ,"/TestJava.java:14: verify: The prover cannot establish an assertion (InvariantExit) in method E",8  // E.<init>
-                ,"/TestJava.java:14: verify: Associated declaration",29
+                ,"/TestJava.java:14: verify: The prover cannot establish an assertion (InvariantExit: /TestJava.java:14:) in method E",8  // E.<init>
+                ,"/TestJava.java:14: verify: Associated declaration: /TestJava.java:14:",29
                 ,"/TestJava.java:14: verify: Invariants+Preconditions appear to be contradictory in method E.mm()",52
                 ,"/TestJava.java:15: verify: Invariants+Preconditions appear to be contradictory in method TestJava.2.mm()",30
                 ,"/TestJava.java:16: verify: There is no feasible path to program point at program exit in method TestJava.m1(TestJava)",3
-                ,"/TestJava.java:17: verify: The prover cannot establish an assertion (InvariantExit) in method A",17  // A
-                ,"/TestJava.java:18: verify: Associated declaration",17
+                ,"/TestJava.java:17: verify: The prover cannot establish an assertion (InvariantExit: /TestJava.java:18:) in method A",17  // A
+                ,"/TestJava.java:18: verify: Associated declaration: /TestJava.java:17:",17
                 ,"/TestJava.java:19: verify: Invariants+Preconditions appear to be contradictory in method TestJava.A.m2()",18
                 );
     }
@@ -178,23 +178,23 @@ public class escm extends EscBase {
                      }*/
                   }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (InvariantExit) in method C",18
-                ,"/tt/TestJava.java:9: verify: Associated declaration",12
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (InvariantExit: /tt/TestJava.java:9:) in method C",18
+                ,"/tt/TestJava.java:9: verify: Associated declaration: /tt/TestJava.java:8:",12
                 ,"/tt/TestJava.java:10: verify: Invariants+Preconditions appear to be contradictory in method C.mc()",22
-                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition) in method md",17
-                ,"/tt/TestJava.java:12: verify: Associated declaration",12
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:12:) in method md",17
+                ,"/tt/TestJava.java:12: verify: Associated declaration: /tt/TestJava.java:13:",12
                 ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method me",30
-                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (Postcondition) in method mm",18
-                ,"/tt/TestJava.java:19: verify: Associated declaration",7
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:19:) in method mm",18
+                ,"/tt/TestJava.java:19: verify: Associated declaration: /tt/TestJava.java:20:",7
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method mn",31
-                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (InvariantExit) in method A", 27
-                ,"/tt/TestJava.java:23: verify: Associated declaration", 6
+                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (InvariantExit: /tt/TestJava.java:23:) in method A", 27
+                ,"/tt/TestJava.java:23: verify: Associated declaration: /tt/TestJava.java:22:", 6
                 ,"/tt/TestJava.java:24: verify: Invariants+Preconditions appear to be contradictory in method tt.TestJava.A.m2()", 23
-                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (InvariantExit) in method B",14
-                ,"/tt/TestJava.java:28: verify: Associated declaration",13
+                ,"/tt/TestJava.java:27: verify: The prover cannot establish an assertion (InvariantExit: /tt/TestJava.java:28:) in method B",14
+                ,"/tt/TestJava.java:28: verify: Associated declaration: /tt/TestJava.java:27:",13
                 ,"/tt/TestJava.java:29: verify: Invariants+Preconditions appear to be contradictory in method tt.B.mb()",23
-                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (Postcondition) in method mbb",23
-                ,"/tt/TestJava.java:33: verify: Associated declaration",6
+                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:33:) in method mbb",23
+                ,"/tt/TestJava.java:33: verify: Associated declaration: /tt/TestJava.java:34:",6
         );
     }
 
@@ -292,8 +292,8 @@ public class escm extends EscBase {
                   }
                   /*@ requires i > 0; pure */public TestJava() {}}
                 """
-                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Precondition) in method m1",20
-                ,"/tt/TestJava.java:9: verify: Associated declaration",7
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Precondition: /tt/TestJava.java:9:) in method m1",20
+                ,"/tt/TestJava.java:9: verify: Associated declaration: /tt/TestJava.java:5:",7
                 ,"/tt/TestJava.java:9: verify: Precondition conjunct is false: i > 0",18
         );
     }
@@ -352,10 +352,10 @@ public class escm extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",8
-                ,"/tt/TestJava.java:14: verify: Associated declaration",7
-                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
-                ,"/tt/TestJava.java:31: verify: Associated declaration",14
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:14:) in method m1bad",8
+                ,"/tt/TestJava.java:14: verify: Associated declaration: /tt/TestJava.java:16:",7
+                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: /tt/TestJava.java:31:) in method m4bad",28
+                ,"/tt/TestJava.java:31: verify: Associated declaration: /tt/TestJava.java:34:",14
                 ,"/tt/TestJava.java:36: verify: Associated method exit",8
                 ,optional("/tt/TestJava.java:28: verify: Precondition conjunct is false: b",18)
                 );
@@ -413,10 +413,10 @@ public class escm extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition) in method m1bad",8
-                ,"/tt/TestJava.java:14: verify: Associated declaration",7
-                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m4bad",28
-                ,"/tt/TestJava.java:31: verify: Associated declaration",21
+                ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:14:) in method m1bad",8
+                ,"/tt/TestJava.java:14: verify: Associated declaration: /tt/TestJava.java:16:",7
+                ,"/tt/TestJava.java:34: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: /tt/TestJava.java:31:) in method m4bad",28
+                ,"/tt/TestJava.java:31: verify: Associated declaration: /tt/TestJava.java:34:",21
                 ,"/tt/TestJava.java:36: verify: Associated method exit",8
                 ,optional("/tt/TestJava.java:28: verify: Precondition conjunct is false: b",18)
                 );

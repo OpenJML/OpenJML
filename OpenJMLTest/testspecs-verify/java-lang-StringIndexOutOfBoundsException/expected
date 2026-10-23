@@ -1,0 +1,11 @@
+Proving methods in java.lang.StringIndexOutOfBoundsException
+Starting proof of StringIndexOutOfBoundsException.StringIndexOutOfBoundsException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of StringIndexOutOfBoundsException.StringIndexOutOfBoundsException() with prover !!!! - no warnings
+Starting proof of StringIndexOutOfBoundsException.StringIndexOutOfBoundsException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of StringIndexOutOfBoundsException.StringIndexOutOfBoundsException(String) with prover !!!! - no warnings
+Starting proof of StringIndexOutOfBoundsException.StringIndexOutOfBoundsException(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of StringIndexOutOfBoundsException.StringIndexOutOfBoundsException(int) with prover !!!! - no warnings
+Completed proving methods in java.lang.StringIndexOutOfBoundsException

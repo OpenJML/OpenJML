@@ -1,0 +1,8 @@
+Proving methods in java.lang.ClassCastException
+Starting proof of ClassCastException.ClassCastException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of ClassCastException.ClassCastException() with prover !!!! - no warnings
+Starting proof of ClassCastException.ClassCastException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of ClassCastException.ClassCastException(String) with prover !!!! - no warnings
+Completed proving methods in java.lang.ClassCastException

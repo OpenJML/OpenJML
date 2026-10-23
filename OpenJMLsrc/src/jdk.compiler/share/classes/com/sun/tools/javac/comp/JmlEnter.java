@@ -563,19 +563,19 @@ public class JmlEnter extends Enter {
 	// If tree is a class, then env is the env of the containing CU or class
 	// and specEnv is the Env for the specification CU or class of the container
 	public Type classEnter(JCTree tree, Env<AttrContext> env) {
-		if (debugEnter && tree instanceof JCCompilationUnit cu) System.out.println("enter: Entering CU " + cu.sourcefile);
-        if (debugEnter && tree instanceof JCClassDecl d) System.out.println("enter: Entering class " + d.name);
+		if (debugEnter && tree instanceof JCCompilationUnit cu) Utils.debugOut().println("enter: Entering CU " + cu.sourcefile);
+        if (debugEnter && tree instanceof JCClassDecl d) Utils.debugOut().println("enter: Entering class " + d.name);
 		if (tree instanceof JmlClassDecl cd && cd.specsDecl.name != cd.name) throw new AssertionError("wrong specsDecl-A: " + cd.name + " " + cd.specsDecl.name);
 
 		try {
 			Type t = super.classEnter(tree, env); // eventually calls tree.accept, assigning env to this.env
-			if (debugEnter && tree instanceof JCCompilationUnit cu) System.out.println("enter: Entered CU " + cu.sourcefile + " " + t);
-			if (debugEnter && tree instanceof JCClassDecl d) System.out.println("enter: Entered class " + d.sym + " " + t + " " + env);
+			if (debugEnter && tree instanceof JCCompilationUnit cu) Utils.debugOut().println("enter: Entered CU " + cu.sourcefile + " " + t);
+			if (debugEnter && tree instanceof JCClassDecl d) Utils.debugOut().println("enter: Entered class " + d.sym + " " + t + " " + env);
 			return t;
 		} catch (Exception e) {
             if (tree instanceof JCCompilationUnit cu) utils.error(cu.sourcefile, cu, "jml.internal", "Unexpected exception: " + e.getMessage());
             if (tree instanceof JmlClassDecl d) utils.error(d.sourcefile, d, "jml.internal", "Unexpected exception: " + e.getMessage());
-	        e.printStackTrace(System.out);
+	        Utils.conditionalPrintStack(e);
 	        throw e;
 		} finally {
 		}
@@ -585,8 +585,8 @@ public class JmlEnter extends Enter {
 	// Recurses through the compilation unit to match all non-local class declarations to binary classes
 	// Declarations that do not match are entered as model classes
 	public void specsEnter(JmlCompilationUnit speccu) {
-	    if (debugEnter) System.out.println("enter: Entering declarations from specification file " + speccu.sourcefile);
-	    if (debugEnter) System.out.println("enter:                           Linked to Java file " + (speccu.sourceCU == null ? "<null>" : speccu.sourceCU.sourcefile.toString()));
+	    if (debugEnter) Utils.debugOut().println("enter: Entering declarations from specification file " + speccu.sourcefile);
+	    if (debugEnter) Utils.debugOut().println("enter:                           Linked to Java file " + (speccu.sourceCU == null ? "<null>" : speccu.sourceCU.sourcefile.toString()));
 	    var prev = log.useSource(speccu.sourcefile);
 	    var specs = JmlSpecs.instance(context);
 	    try {
@@ -679,7 +679,7 @@ public class JmlEnter extends Enter {
 		var iter = owner.members().getSymbolsByName(specDecl.name, s->s instanceof ClassSymbol).iterator();
  		ClassSymbol csym = iter.hasNext() ? (ClassSymbol)iter.next() : null;
 		
-		if (debugEnter) System.out.println("enter: Spec class " + owner + "." + specDecl.name + " " + specsEnv.toplevel.sourcefile + " " + csym );
+		if (debugEnter) Utils.debugOut().println("enter: Spec class " + owner + "." + specDecl.name + " " + specsEnv.toplevel.sourcefile + " " + csym );
 
     	boolean isJML = utils.isJML(specDecl);
 //		boolean isOwnerJML = utils.isJML(owner.flags());
@@ -707,7 +707,7 @@ public class JmlEnter extends Enter {
 					classEnter(specDecl, specsEnv);
 					allowRecursion = true;
 					csym = specDecl.sym;
-                    if (debugEnter) System.out.println("enter: Entering toplevel model class in binary: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
+                    if (debugEnter) Utils.debugOut().println("enter: Entering toplevel model class in binary: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
 					//csym.complete();
 					csym.flags_field = specDecl.mods.flags | Flags.UNATTRIBUTED;
 
@@ -740,7 +740,7 @@ public class JmlEnter extends Enter {
 					classEnter(specDecl, specsEnv);
 					allowRecursion = true;
 					csym = specDecl.sym;
-                    if (debugEnter) System.out.println("enter: Entering nested JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
+                    if (debugEnter) Utils.debugOut().println("enter: Entering nested JML class: " + csym + " (owner: " + owner +")" + " super: " + csym.getSuperclass());
 //					((ClassType)csym.type).typarams_field = classTPEnter(specDecl.typarams, specsEnv);
 //					System.out.println("ENTERED-CLASS " + specDecl.name + " " + csym + " " + specsEnv + " " + cowner.members());
 //					csym = syms.enterClass(specsEnv.toplevel.modle, specDecl.name, cowner);
@@ -793,7 +793,7 @@ public class JmlEnter extends Enter {
                     //System.out.println("FAILED MATCH-B " + csym + " " + ((csym.flags_field & Flags.UNATTRIBUTED) != 0));
 				    return false;
 				}
-				if (localEnv.tree instanceof JCClassDecl cd &&  csym != cd.sym) System.out.println("MISMATCHED-A " + csym);
+				if (localEnv.tree instanceof JCClassDecl cd &&  csym != cd.sym) Utils.debugOut().println("MISMATCHED-A " + csym);
                 typeEnvs.put(csym, localEnv);
 				// FIXME - be sure that annotations are checked as well
 				if (utils.verbose()) utils.note("Matched to binary class: " + csym + " (owner: " + csym.owner +")" );
@@ -814,7 +814,7 @@ public class JmlEnter extends Enter {
 			// Do all nested classes, recursively
 			specDecl.defs = specsListEnter(csym, specDecl.defs, localEnv);
 			if (csym.isRecord()) {
-			    System.out.println("ENTERING RECORD-A " + csym);
+			    Utils.debugOut().println("ENTERING RECORD-A " + csym);
 			}
 		} catch (Exception e) {
 			utils.unexpectedException(e, "JmlEnterspecsClassEnter");
@@ -846,7 +846,7 @@ public class JmlEnter extends Enter {
                     //specsMemberEnter(specDecl); // Enter class specDecl non-recursively
                     //specsMembersEnter(cs, specDecl.defs); // Enter any classes in specDecl
 			          if (cs.isRecord()) {
-			                System.out.println("ENTERING RECORD-A " + cs);
+			                Utils.debugOut().println("ENTERING RECORD-A " + cs);
 			            }
 			    } else {
 			        specsMemberEnter(specDecl); // Enter class specDecl non-recursively
@@ -859,8 +859,8 @@ public class JmlEnter extends Enter {
 
 	public void specsMemberEnter(JmlClassDecl specDecl) {
 	    boolean print = false; // specDecl.name.toString().equals("Collection");
-	    if (print) System.out.println("SME " + specDecl);
-	    if (debugEnter || print) System.out.println("enter: Entering members for binary " + specDecl.sym + " : " + 
+	    if (print) Utils.debugOut().println("SME " + specDecl);
+	    if (debugEnter || print) Utils.debugOut().println("enter: Entering members for binary " + specDecl.sym + " : " + 
 	                            Utils.join(" ",specDecl.defs,d->(d instanceof JmlVariableDecl vd ? vd.name : d instanceof JmlMethodDecl md ? md.name : "")));
 		var saved = JmlResolve.instance(context).setAllowJML(Utils.isJML(specDecl.mods));
 		ClassSymbol csym = specDecl.sym;
@@ -868,10 +868,10 @@ public class JmlEnter extends Enter {
 		JmlSpecs specs = JmlSpecs.instance(context);
 		var tspecs = JmlSpecs.instance(context).get(csym);
 		if (tspecs == null)
-			System.out.println("No specs for " + csym + " " + specDecl.name );
+			Utils.debugOut().println("No specs for " + csym + " " + specDecl.name );
 		var specsEnv = tspecs.specsEnv;
 		if (specsEnv == null)
-			System.out.println("No specs ENV for " + csym + " " + specDecl.name);
+			Utils.debugOut().println("No specs ENV for " + csym + " " + specDecl.name);
 		//if (specDecl.name.toString().contains("Function")|| specDecl.name.toString().contains("Identity")) System.out.println("SPECSENV " + tspecs + " : " + specsEnv);
 		if (specDecl.extending != null) {
 			Type t = specDecl.extending.type = JmlAttr.instance(context).attribType(specDecl.extending, specsEnv);
@@ -935,7 +935,7 @@ public class JmlEnter extends Enter {
 		// declarations
 		for (Symbol m : specDecl.sym.members().getSymbols(s -> s instanceof MethodSymbol)) {
 			MethodSymbol ms = (MethodSymbol) m;
-			if (print) System.out.println("SME METH " + ms + " " + specs.get(ms));
+			if (print) Utils.debugOut().println("SME METH " + ms + " " + specs.get(ms));
 			if (specs.get(ms) == null) {
 				// utils.note("Method " + specDecl.sym + "." + m + " has no specifications --
 				// using defaults");
@@ -944,7 +944,7 @@ public class JmlEnter extends Enter {
 		}
 
 		JmlResolve.instance(context).setAllowJML(saved);
-        if (debugEnter) System.out.println("enter: Entered members for binary " + specDecl.sym + " : " + 
+        if (debugEnter) Utils.debugOut().println("enter: Entered members for binary " + specDecl.sym + " : " + 
                 Utils.join(" ",specDecl.defs,d->(d instanceof JmlVariableDecl vd ? vd.name : d instanceof JmlMethodDecl md ? md.name : "")));
 	}
 	
@@ -967,10 +967,10 @@ public class JmlEnter extends Enter {
 		boolean hasTypeParams = mdecl.typarams.length() != 0;
 		boolean useStringComparison = false;
 		if (print)
-			System.out.println("SEEKING " + csym + " " + mdecl.name + " " + mdecl.sym + " " + mdecl.type + " "
+			Utils.debugOut().println("SEEKING " + csym + " " + mdecl.name + " " + mdecl.sym + " " + mdecl.type + " "
 					+ hasTypeParams + " " + csym.members());
 		if (print && mdecl.sym != null)
-			System.out.println("       SYMTYPE " + mdecl.sym.type);
+			Utils.debugOut().println("       SYMTYPE " + mdecl.sym.type);
 		for (var p : mdecl.params) {
 			addAttribute(p.vartype, syms.annotationType, env);
 		}
@@ -1019,18 +1019,18 @@ public class JmlEnter extends Enter {
 		var iter = csym.members().getSymbolsByName(mdecl.name, s -> (s instanceof Symbol.MethodSymbol)).iterator();
 		x: while (iter.hasNext()) {
 			var m = (MethodSymbol) iter.next();
-			if (print) System.out.println(
+			if (print) Utils.debugOut().println(
 						"CONSIDERING " + m + " " + m.type + " " + m.params.length() + " " + mdecl.params.length() + " "
 								+ m.getTypeParameters().length() + " " + mdecl.getTypeParameters().length());
 			if (m.params.length() != mdecl.params.length())
 				continue;
 			if (m.getTypeParameters().length() != mdecl.getTypeParameters().length())
 				continue;
-			if (print) System.out.println("CONSIDERING-A " + m);
+			if (print) Utils.debugOut().println("CONSIDERING-A " + m);
 			first = m;
 			count++;
 			if (hasTypeParams) {
-				if (print) System.out.println("COMPARING-TP " + m.type + " " + mdecl.sym.type + " "
+				if (print) Utils.debugOut().println("COMPARING-TP " + m.type + " " + mdecl.sym.type + " "
 							+ types.isSameType(m.type, mdecl.sym.type));
 //				var atypes = m.type.getTypeArguments();
 //				var btypes = mdecl.sym.type.getTypeArguments();
@@ -1046,7 +1046,7 @@ public class JmlEnter extends Enter {
 //				}
 			} else {
 				if (print)
-					System.out.println("COMPARING-T " + m.type + " " + mdecl.sym.type + " "
+					Utils.debugOut().println("COMPARING-T " + m.type + " " + mdecl.sym.type + " "
 							+ types.isSameType(m.type, mdecl.sym.type));
 				if (!types.isSameType(m.type, mdecl.sym.type))
 					continue x;
@@ -1108,13 +1108,13 @@ public class JmlEnter extends Enter {
 
 	public boolean specsMethodEnter(ClassSymbol csym, JmlMethodDecl mdecl, Env<AttrContext> specsEnv) {
 		boolean print = false;//mdecl.name.toString().equals("of") && csym.toString().equals("java.util.stream.Stream");
-		if (print) System.out.println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv + " " + mdecl.specsDecl);
+		if (print) Utils.debugOut().println("SPECSMETHODENTER " + csym + " " + mdecl + " " + mdecl.sym + " " + specsEnv + " " + mdecl.specsDecl);
 		boolean isJML = utils.isJML(mdecl);
 		boolean isOwnerJML = Utils.isJML(csym.flags());
 		boolean isModel = utils.hasModifier(mdecl.mods, Modifiers.MODEL);
 		var specs = JmlSpecs.instance(context);
 		if (mdecl.sym != null) {
-	        if (print) System.out.println("  SYM EXISTS " + mdecl.sym.owner);
+	        if (print) Utils.debugOut().println("  SYM EXISTS " + mdecl.sym.owner);
 			// Expect isOwnerJML==true?
 			// What if mdecl.sym.owner != csym ?
 			var ssp = new JmlSpecs.MethodSpecs(mdecl);
@@ -1125,7 +1125,7 @@ public class JmlEnter extends Enter {
 			var localEnv = MemberEnter.instance(context).methodEnv(mdecl,specsEnv); // FIXME _ do more than this?
 			ssp.javaEnv = localEnv;
 			ssp.specsEnv = localEnv;
-			if (print) System.out.println("ASSIGNING SPECS ENV-A " + mdecl.sym.owner + " " + mdecl.sym + " " + specsEnv + " : " + localEnv );
+			if (print) Utils.debugOut().println("ASSIGNING SPECS ENV-A " + mdecl.sym.owner + " " + mdecl.sym + " " + specsEnv + " : " + localEnv );
 			specs.putSpecs(mdecl.sym, ssp);
 			return true;
 		}
@@ -1165,8 +1165,8 @@ public class JmlEnter extends Enter {
 				mdecl.params.get(i).type = mdecl.sym.params.get(i).type;
 			}
 			msym = findMethod(csym, mdecl, specsEnv);
-            if (print && msym != null) System.out.println("FOUND " + msym.owner + " " + msym + " " + csym);
-            if (print && msym == null) System.out.println("NOT FOUND " + csym + " " + mdecl);
+            if (print && msym != null) Utils.debugOut().println("FOUND " + msym.owner + " " + msym + " " + csym);
+            if (print && msym == null) Utils.debugOut().println("NOT FOUND " + csym + " " + mdecl);
 		}
 		
 
@@ -1191,16 +1191,16 @@ public class JmlEnter extends Enter {
 			sp.specSym = mdecl.sym;
 			sp.javaEnv = null;
 			sp.specsEnv = localEnv;
-            if (print) System.out.println("ASSIGNING SPECS ENV-B " + mdecl.sym.owner + " " + mdecl.sym + " " + specsEnv + " : " + localEnv );
+            if (print) Utils.debugOut().println("ASSIGNING SPECS ENV-B " + mdecl.sym.owner + " " + mdecl.sym + " " + specsEnv + " : " + localEnv );
 			specs.putSpecs(msym, sp);
 			if (!isModel && mdecl.body != null) {
 				utils.error(mdecl.body, "jml.message",
 						"The specification of the method " + csym + "." + msym + " must not have a body");
 			}
-			if (debugEnter) System.out.println("enter: Entered JML method: " + msym + " (owner: " + csym + ")");
+			if (debugEnter) Utils.debugOut().println("enter: Entered JML method: " + msym + " (owner: " + csym + ")");
 		} else {
 			// Found a matching Java binary method
-			if (print) System.out.println("MATCHED " + msym);
+			if (print) Utils.debugOut().println("MATCHED " + msym);
 			boolean matchIsJML = Utils.isJML(msym.flags());
 			JmlSpecs.MethodSpecs mspecs = JmlSpecs.instance(context).get(msym); // Raw get to see if specs are present
 
@@ -1237,7 +1237,7 @@ public class JmlEnter extends Enter {
 			// Need to copy types into the spec declaration to be sure that we get the Java type
 			// symbols for type variables
 			if (mdecl.restype != null) {
-			    if (print) System.out.println("JME " + msym.getReturnType() + " " + mdecl.restype);
+			    if (print) Utils.debugOut().println("JME " + msym.getReturnType() + " " + mdecl.restype);
 				// FIXME
 			    Type t = Attr.instance(context).attribType(mdecl.restype, csym);
 				// The difficulty here is that TypeVars show up as different types,
@@ -1245,7 +1245,7 @@ public class JmlEnter extends Enter {
 				try {
 					msym.getReturnType();
 				} catch (Exception e) {
-					System.out.println("RETTYPE " + msym + " " + t + " " + mdecl.sym + " " + (msym.type != null) + " "
+					Utils.debugOut().println("RETTYPE " + msym + " " + t + " " + mdecl.sym + " " + (msym.type != null) + " "
 							+ msym.type + " " + mdecl.sym.type);
 				}
 				if (!specsTypeSufficientlyMatches(t, msym.getReturnType())) {
@@ -1255,6 +1255,7 @@ public class JmlEnter extends Enter {
 			}
 			// FIXME - why does the escfiles.enums test fail without this guard
 			if (!(msym.owner == Symtab.instance(context).enumSym && msym.name == names.valueOf)) {
+			    JmlSpecs.instance(context).applySpecElementNullness(mdecl, msym);
 			    if (mdecl.restype != null) {
 	                mdecl.restype.type = msym.getReturnType();
 			    }
@@ -1306,7 +1307,7 @@ public class JmlEnter extends Enter {
 				ssp.specSym = mdecl.sym;
 				ssp.javaEnv = null;
 				ssp.specsEnv = localEnv;
-	            if (print) System.out.println("ASSIGNING SPECS ENV-C " + msym.owner + " " + msym + " " + specsEnv + " : " + localEnv );
+	            if (print) Utils.debugOut().println("ASSIGNING SPECS ENV-C " + msym.owner + " " + msym + " " + specsEnv + " : " + localEnv );
 				specs.putSpecs(msym, ssp);
 				ssp.specSym = mdecl.sym;
 				specs.dupSpecs(mdecl.sym, msym); // FIXME - not sure this is needed
@@ -1382,7 +1383,7 @@ public class JmlEnter extends Enter {
 				// }
 				me.env = savedEnv;
 
-				if (debugEnter) System.out.println("enter: Entered JML field: " + vsym.type + " " + vsym + " (owner: " + vsym.owner + ")");
+				if (debugEnter) Utils.debugOut().println("enter: Entered JML field: " + vsym.type + " " + vsym + " (owner: " + vsym.owner + ")");
 				ok = true;
 			} else if (vsym.name != names.error) {
 				// Found a matching binary field
@@ -1440,17 +1441,18 @@ public class JmlEnter extends Enter {
 					return false;
 				}
 				ok = true;
+				vsym.type = JmlSpecs.instance(context).withSpecElementNullness(vdecl.vartype, vsym.type);
 				vdecl.type = vdecl.vartype.type = vsym.type;
 				vdecl.sym = vsym;
 
-				if (ok && debugEnter) System.out.println("enter: Matched field to binary: " + vsym + " (owner: " + csym + ")");
+				if (ok && debugEnter) Utils.debugOut().println("enter: Matched field to binary: " + vsym + " (owner: " + csym + ")");
 			} else {
 				ok = false;
 				vdecl.type = vdecl.vartype.type = vsym.type;
 			}
 		} catch (Throwable t) {
 			utils.error(vdecl.sourcefile, vdecl, "jml.message", "Exception while entering field from jml for binary: " + csym + "." + vdecl.name);
-			t.printStackTrace(System.out);
+			Utils.conditionalPrintStack(t);
 			ok = false;
 		} finally {
 			if (vsym != null) {
@@ -1507,7 +1509,7 @@ public class JmlEnter extends Enter {
             return true;
         s = s.replace(" ","");
         if (s.equals(javaType.toString())) return true;
-        if (javaType.toString().equals("T")) System.out.println("TYPE COMPARE " + specsType.toString() + " : " + s + " : " + javaType.toString());
+        if (javaType.toString().equals("T")) Utils.debugOut().println("TYPE COMPARE " + specsType.toString() + " : " + s + " : " + javaType.toString());
         return false; // types.isSubtype(specsType, javaType);
     }
 
@@ -1609,7 +1611,7 @@ public class JmlEnter extends Enter {
 	        return true;
 	    }
 	    // FIXME - need to check that number of bounds is the same
-        System.out.println("BOUNDS " + specTV + " ^ " + specBounds.size() + " " + specBounds + " # " + javaType + " " + javaType.getClass() );
+        Utils.debugOut().println("BOUNDS " + specTV + " ^ " + specBounds.size() + " " + specBounds + " # " + javaType + " " + javaType.getClass() );
 	    return true;
 	}
 
@@ -1716,7 +1718,7 @@ public class JmlEnter extends Enter {
 		// causes problems.		
 		
 		if (ct.interfaces_field == null) {
-		    System.out.println("Overwriting interface information: " + sym);
+		    Utils.debugOut().println("Overwriting interface information: " + sym);
 		} else {
 		    // Compare ct.interfaces_field and interfaces
 		    x: for (var ifc: ct.interfaces_field) {
@@ -1797,12 +1799,12 @@ public class JmlEnter extends Enter {
 
     public void hold() {
         nestingLevel++;
-        if (debugSpecs) System.out.println("specs: hold level=" + nestingLevel);
+        if (debugSpecs) Utils.debugOut().println("specs: hold level=" + nestingLevel);
     }
 
     public void release() {
         nestingLevel--;
-        if (debugSpecs) System.out.println("specs: release level=" + nestingLevel);
+        if (debugSpecs) Utils.debugOut().println("specs: release level=" + nestingLevel);
     }
 
     public boolean flush() {
@@ -1836,18 +1838,18 @@ public class JmlEnter extends Enter {
 			csymbol = (ClassSymbol) csymbol.owner;
 
 		JmlSpecs.SpecsStatus tsp = JmlSpecs.instance(context).status(csymbol);
-		if (debugSpecs) System.out.println("specs: requestSpecs for " + csymbol + " " + tsp + " level=" + nestingLevel
+		if (debugSpecs) Utils.debugOut().println("specs: requestSpecs for " + csymbol + " " + tsp + " level=" + nestingLevel
 		    + " " + binaryEnterTodo.contains(csymbol) + " size=" + binaryEnterTodo.size());
 		if (!tsp.less(JmlSpecs.SpecsStatus.QUEUED)) {
 		    if (tsp == JmlSpecs.SpecsStatus.QUEUED) {
-		        if (debugSpecs || utils.verbose()) System.out.println("specs: Requesting specs " + csymbol + ", but specs already in progress");
+		        if (debugSpecs || utils.verbose()) Utils.debugOut().println("specs: Requesting specs " + csymbol + ", but specs already in progress");
 	            if (nestingLevel == 0) {
 	                completeBinaryEnterTodo();
 	                return JmlSpecs.SpecsStatus.QUEUED.less(JmlSpecs.instance(context).status(csymbol));
 	            }
 	            return false;
 		    } else {
-		        if (debugSpecs || utils.verbose()) System.out.println("specs: Requesting specs " + csymbol + ", but specs already loaded or attributed");
+		        if (debugSpecs || utils.verbose()) Utils.debugOut().println("specs: Requesting specs " + csymbol + ", but specs already loaded or attributed");
 		        return true;
 		    }
 		} else {
@@ -1871,7 +1873,7 @@ public class JmlEnter extends Enter {
 					// Everything within a specification text file is loaded together
 
 					JmlSpecs.instance(context).setStatus(csymbol, JmlSpecs.SpecsStatus.QUEUED);
-					if (debugSpecs) System.out.println("specs: Queueing specs request for " + csymbol + " [" + nestingLevel + "]" + " "
+					if (debugSpecs) Utils.debugOut().println("specs: Queueing specs request for " + csymbol + " [" + nestingLevel + "]" + " "
 								+ binaryEnterTodo.contains(csymbol) + " " + csymbol.hashCode());
 					binaryEnterTodo.prepend(csymbol);
 					
@@ -1883,7 +1885,7 @@ public class JmlEnter extends Enter {
 					        requestSpecs((ClassSymbol) csymbol.getSuperclass().tsym);
 					    }
 					}
-					if (debugSpecs) System.out.println("specs: Finished queueing supers for " + csymbol);
+					if (debugSpecs) Utils.debugOut().println("specs: Finished queueing supers for " + csymbol);
 
 				} finally {
 					nestingLevel--;
@@ -1907,7 +1909,7 @@ public class JmlEnter extends Enter {
 	 * Anything with a source file should go through Enter.main
 	 */
 	public void completeBinaryEnterTodo() {
-        if (debugSpecs) System.out.println("specs: Starting completeBinaryEnterTodo " + binaryEnterTodo.size());
+        if (debugSpecs) Utils.debugOut().println("specs: Starting completeBinaryEnterTodo " + binaryEnterTodo.size());
 		JmlSpecs specs = JmlSpecs.instance(context);
 		while (!binaryEnterTodo.isEmpty()) {
 			ClassSymbol csymbol = binaryEnterTodo.remove();
@@ -1926,7 +1928,7 @@ public class JmlEnter extends Enter {
 				continue;
 			}
 
-			if (debugSpecs) System.out.println("specs: Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) );
+			if (debugSpecs) Utils.debugOut().println("specs: Dequeued to enter specs: " + csymbol + " " + specs.status(csymbol) );
 
 			// Last check to see if specs are already present
 			if (JmlSpecs.SpecsStatus.QUEUED.less(specs.status(csymbol))) continue;
@@ -1959,7 +1961,7 @@ public class JmlEnter extends Enter {
 				}
 
 			} finally {
-				if (debugSpecs) System.out.println("specs: Completed entering specs for binary " + csymbol + " specfile: " + 
+				if (debugSpecs) Utils.debugOut().println("specs: Completed entering specs for binary " + csymbol + " specfile: " + 
 				                        (speccu == null ? "(no spec file)" : speccu.sourcefile));
 				nestingLevel--;
 			}

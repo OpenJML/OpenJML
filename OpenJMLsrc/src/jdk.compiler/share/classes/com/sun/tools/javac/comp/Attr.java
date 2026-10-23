@@ -6139,6 +6139,12 @@ public class Attr extends JCTree.Visitor {
                         syms.noSymbol);
             }
         }
+
+        // OPENJML -- cf Issue 1052: JML-only expressions (e.g. \old(...)) fall back to visitTree; scan their arguments
+        @Override
+        public void visitTree(JCTree that) {
+            if (that instanceof JCMethodInvocation app) scan(app.args);
+        }
     }
     // </editor-fold>
 

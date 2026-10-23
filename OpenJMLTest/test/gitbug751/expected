@@ -1,0 +1,30 @@
+Proving methods in JMLFloatingApprox
+Starting proof of JMLFloatingApprox.JMLFloatingApprox() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.JMLFloatingApprox() with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.withinEpsilonOf(double,double,double) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.withinEpsilonOf(double,double,double) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.relativelyEqualTo(double,double,double) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.relativelyEqualTo(double,double,double) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.approximatelyEqualTo(double,double,double) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.approximatelyEqualTo(double,double,double) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.withinEpsilonOf(float,float,float) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.withinEpsilonOf(float,float,float) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.relativelyEqualTo(float,float,float) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.relativelyEqualTo(float,float,float) with prover !!!! - no warnings
+Starting proof of JMLFloatingApprox.approximatelyEqualTo(float,float,float) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of JMLFloatingApprox.approximatelyEqualTo(float,float,float) with prover !!!! - no warnings
+Completed proving methods in JMLFloatingApprox
