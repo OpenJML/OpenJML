@@ -2286,4 +2286,24 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method r", 9
                 );
     }
+
+    /** A signals_only clause naming NullPointerException does not make the field assumptions made before the body
+     *  throw outside the method's try statement (#1056) */
+    @Test
+    public void testSignalsOnlyFieldAssumptions() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  /*@ spec_public non_null */ Object[] t = new Object[4];
+                  //@ public invariant t.length == 4;
+                  //@ public behavior
+                  //@   signals_only NullPointerException;
+                  public boolean has(Object o) {
+                    return t[0] == o;
+                  }
+                }
+                """
+                );
+    }
 }

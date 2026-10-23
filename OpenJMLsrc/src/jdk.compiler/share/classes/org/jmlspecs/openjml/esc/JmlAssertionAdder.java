@@ -910,7 +910,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		
 		Set<Type> savedActiveExceptions = activeExceptions;
 		activeExceptions = new HashSet<>();
-		findActiveExceptions(pmethodDecl);
 
         if (pmethodDecl.body == null && utils.esc && !org.jmlspecs.openjml.JmlOption.FEASIBILITY.includes(context, org.jmlspecs.openjml.Strings.feas_none)) {
             // This block is added to enable checking that perconditions are consistent in methods without bodies
@@ -1284,6 +1283,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             JCStatement preconditionAssumeCheck = popBlock(methodDecl, check3);
             addStat(initialStatements, preconditionAssumeCheck);
 
+            // Exceptions allowed by signals_only are thrown only from within the try statement (#1056)
+            findActiveExceptions(pmethodDecl);
             addStat(comment(methodDecl, "Method Body", null));
 
 			if (methodDecl.body != null) {
