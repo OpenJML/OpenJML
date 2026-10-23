@@ -2386,4 +2386,32 @@ public class escnew3 extends EscBase {
                 );
     }
 
+    /** A nullness annotation written before a primitive array type in a .jml applies to the array, which cannot be
+     *  null otherwise; a primitive element cannot take it (#1067, #996) */
+    @Test
+    public void testJmlPrimitiveArrayNullness() {
+        addMockFile("$A/tt/TestJava.jml",
+                """
+                package tt;
+                public class TestJava {
+                  public TestJava(@org.jmlspecs.annotation.Nullable long[] a);
+                  public void m(/*@ nullable */ long[] a);
+                }
+                """
+                );
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public TestJava(long[] a) { int n = a.length; }
+                  public void m(long[] a) { int n = a.length; }
+                }
+                """
+                ,"/$A/tt/TestJava.jml:3: warning: the annotation /*@ nullable */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ nullable */ []", 19
+                ,"/$A/tt/TestJava.jml:4: warning: the annotation /*@ nullable */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ nullable */ []", 21
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method TestJava", 40
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m", 38
+                );
+    }
+
 }
