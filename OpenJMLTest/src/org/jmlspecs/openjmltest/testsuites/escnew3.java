@@ -2249,4 +2249,41 @@ public class escnew3 extends EscBase {
                 ,"/tt/TestJava.java:15: verify: The prover cannot establish an assertion (Assert) in method n", 9
                 );
     }
+    /** Code after a loop is checked even if the loop body ends in a return, and a loop exited by a labeled break
+     *  can complete normally (#1058) */
+    @Test
+    public void testCodeAfterLoopChecked() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m(boolean c) {
+                    while (c) { return; }
+                    //@ check false;
+                  }
+                  public void n(int k) {
+                    for (int i = 0; i < k; i++) { return; }
+                    //@ check false;
+                  }
+                  public void p(int[] a) {
+                    for (int i: a) { return; }
+                    //@ check false;
+                  }
+                  public void q(boolean c) {
+                    do { if (c) return; } while (c);
+                    //@ check false;
+                  }
+                  public void r(int x) {
+                    a: while (true) { while (true) { if (x > 0) break a; x++; } }
+                    //@ check false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m", 9
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (Assert) in method n", 9
+                ,"/tt/TestJava.java:13: verify: The prover cannot establish an assertion (Assert) in method p", 9
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method q", 9
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method r", 9
+                );
+    }
 }
