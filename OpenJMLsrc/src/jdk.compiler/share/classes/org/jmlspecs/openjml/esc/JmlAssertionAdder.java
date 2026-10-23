@@ -4159,7 +4159,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                     } else {
                         e3 = treeutils.makeDynamicTypeInEquality(pos, copy(id), sym.type);
                         if (specs.isNonNull(compType, enclosingClass)) {
-                            JCExpression e4 = wrapTranslatedNonnullelements(id, copy(id));
+                            // \nonnullelements implies a non-null array, which may be nullable (#1067)
+                            JCExpression e4 = treeutils.makeOr(pos, treeutils.makeEqNull(p, copy(id)),
+                                    wrapTranslatedNonnullelements(id, copy(id)));
                             e3 = treeutils.makeAnd(pos, e3, e4);
                         }
                     }

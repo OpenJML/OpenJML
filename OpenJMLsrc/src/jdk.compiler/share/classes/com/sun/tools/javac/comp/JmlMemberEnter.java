@@ -298,7 +298,9 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
         						specVarDecl.sym = javaVarDecl.sym;
         						specVarDecl.type = javaVarDecl.type;
         						specVarDecl.vartype.type = javaVarDecl.type;
-        						javaVarDecl.sym.type = specs.withSpecElementNullness(specVarDecl.vartype, javaVarDecl.sym.type);
+        						specs.checkNullnessRepeated(javaVarDecl.vartype, javaVarDecl.sourcefile, specVarDecl.vartype, specVarDecl.sourcefile);
+        						specs.checkConflictingNullness(specVarDecl.vartype, specVarDecl.sourcefile);
+        						javaVarDecl.sym.type = specs.withSpecNullness(specVarDecl.vartype, javaVarDecl.sym.type);
         						specs.putSpecs(javaVarDecl.sym, specVarDecl.fieldSpecs);
             					//System.out.println("MATCHED JAVA FIELD " + cd.name + " " + vd.name);
                         	}
@@ -364,7 +366,12 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
                         		msp.javaDecl = javaMethodDecl;
                         		msp.javaEnv = msp.specsEnv = env;
         						specs.putSpecs(javaMethodDecl.sym, msp);
-        						specs.applySpecElementNullness(specMethodDecl, javaMethodDecl.sym);
+        						specs.checkNullnessRepeated(javaMethodDecl.restype, javaMethodDecl.sourcefile, specMethodDecl.restype, specMethodDecl.sourcefile);
+        						for (int i = 0; i < javaMethodDecl.params.size() && i < specMethodDecl.params.size(); i++) {
+        						    specs.checkNullnessRepeated(javaMethodDecl.params.get(i).vartype, javaMethodDecl.sourcefile,
+        						            specMethodDecl.params.get(i).vartype, specMethodDecl.sourcefile);
+        						}
+        						specs.applySpecNullness(specMethodDecl, javaMethodDecl.sym);
             					//System.out.println("MATCHED JAVA METHOD " + cd.name + " " + specMethodDecl.sym + " " + specMethodDecl.sym.hashCode() + " " + specMethodDecl.restype + " " + javaMethodDecl.sym + " " + javaMethodDecl.sym.hashCode());
                         	}
     					} else {

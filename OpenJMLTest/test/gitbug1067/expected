@@ -1,0 +1,134 @@
+== annotations in A.java
+javaonly/p/A.java:9: verify: The prover cannot establish an assertion (Postcondition: javaonly/p/A.java:8:) in method m0
+    public void m0(/*@ nullable */ Object p) {}
+                ^
+javaonly/p/A.java:8: verify: Associated declaration: javaonly/p/A.java:9:
+    //@ ensures p != null;
+        ^
+javaonly/p/A.java:12: verify: The prover cannot establish an assertion (Postcondition: javaonly/p/A.java:11:) in method m1
+    public void m1(/*@ nullable */ Object[] p) {}
+                ^
+javaonly/p/A.java:11: verify: Associated declaration: javaonly/p/A.java:12:
+    //@ ensures p[0] != null;
+        ^
+javaonly/p/A.java:14: verify: The prover cannot establish an assertion (Postcondition: javaonly/p/A.java:13:) in method m2
+    public void m2(Object /*@ nullable */ [] p) {}
+                ^
+javaonly/p/A.java:13: verify: Associated declaration: javaonly/p/A.java:14:
+    //@ ensures p != null;
+        ^
+client/p/C.java:5: verify: The prover cannot establish an assertion (Assert) in method f0
+    public void f0(A x) { //@ check x.f0 != null; // fails
+                              ^
+client/p/C.java:10: verify: The prover cannot establish an assertion (Assert) in method f1e
+        //@ check x.f1[0] != null; // fails
+            ^
+client/p/C.java:12: verify: The prover cannot establish an assertion (Assert) in method f2
+    public void f2(A x) { //@ check x.f2 != null; // fails
+                              ^
+client/p/C.java:18: verify: The prover cannot establish an assertion (Assert) in method f3e
+        //@ check x.f3[0] != null; // fails
+            ^
+client/p/C.java:20: verify: The prover cannot establish an assertion (Assert) in method r0
+    public void r0(A x) { //@ check x.r0() != null; // fails
+                              ^
+client/p/C.java:25: verify: The prover cannot establish an assertion (Assert) in method r1e
+        //@ check x.r1()[0] != null; // fails
+            ^
+client/p/C.java:27: verify: The prover cannot establish an assertion (Assert) in method r2
+    public void r2(A x) { //@ check x.r2() != null; // fails
+                              ^
+client/p/C.java:35: verify: The prover cannot establish an assertion (Assert) in method r3e
+        //@ check x.r3()[0] != null; // fails
+            ^
+14 verification failures
+== annotations in A.jml, with A.java
+src/p/A.java:7: verify: The prover cannot establish an assertion (Postcondition: specs/p/A.jml:8:) in method m0
+    public void m0(Object p) {}
+                ^
+specs/p/A.jml:8: verify: Associated declaration: src/p/A.java:7:
+    //@ ensures p != null;
+        ^
+src/p/A.java:8: verify: The prover cannot establish an assertion (Postcondition: specs/p/A.jml:11:) in method m1
+    public void m1(Object[] p) {}
+                ^
+specs/p/A.jml:11: verify: Associated declaration: src/p/A.java:8:
+    //@ ensures p[0] != null;
+        ^
+src/p/A.java:9: verify: The prover cannot establish an assertion (Postcondition: specs/p/A.jml:13:) in method m2
+    public void m2(Object[] p) {}
+                ^
+specs/p/A.jml:13: verify: Associated declaration: src/p/A.java:9:
+    //@ ensures p != null;
+        ^
+client/p/C.java:5: verify: The prover cannot establish an assertion (Assert) in method f0
+    public void f0(A x) { //@ check x.f0 != null; // fails
+                              ^
+client/p/C.java:10: verify: The prover cannot establish an assertion (Assert) in method f1e
+        //@ check x.f1[0] != null; // fails
+            ^
+client/p/C.java:12: verify: The prover cannot establish an assertion (Assert) in method f2
+    public void f2(A x) { //@ check x.f2 != null; // fails
+                              ^
+client/p/C.java:18: verify: The prover cannot establish an assertion (Assert) in method f3e
+        //@ check x.f3[0] != null; // fails
+            ^
+client/p/C.java:20: verify: The prover cannot establish an assertion (Assert) in method r0
+    public void r0(A x) { //@ check x.r0() != null; // fails
+                              ^
+client/p/C.java:25: verify: The prover cannot establish an assertion (Assert) in method r1e
+        //@ check x.r1()[0] != null; // fails
+            ^
+client/p/C.java:27: verify: The prover cannot establish an assertion (Assert) in method r2
+    public void r2(A x) { //@ check x.r2() != null; // fails
+                              ^
+client/p/C.java:35: verify: The prover cannot establish an assertion (Assert) in method r3e
+        //@ check x.r3()[0] != null; // fails
+            ^
+14 verification failures
+== annotations in A.jml, with A.class
+client/p/C.java:5: verify: The prover cannot establish an assertion (Assert) in method f0
+    public void f0(A x) { //@ check x.f0 != null; // fails
+                              ^
+client/p/C.java:10: verify: The prover cannot establish an assertion (Assert) in method f1e
+        //@ check x.f1[0] != null; // fails
+            ^
+client/p/C.java:12: verify: The prover cannot establish an assertion (Assert) in method f2
+    public void f2(A x) { //@ check x.f2 != null; // fails
+                              ^
+client/p/C.java:18: verify: The prover cannot establish an assertion (Assert) in method f3e
+        //@ check x.f3[0] != null; // fails
+            ^
+client/p/C.java:20: verify: The prover cannot establish an assertion (Assert) in method r0
+    public void r0(A x) { //@ check x.r0() != null; // fails
+                              ^
+client/p/C.java:25: verify: The prover cannot establish an assertion (Assert) in method r1e
+        //@ check x.r1()[0] != null; // fails
+            ^
+client/p/C.java:27: verify: The prover cannot establish an assertion (Assert) in method r2
+    public void r2(A x) { //@ check x.r2() != null; // fails
+                              ^
+client/p/C.java:35: verify: The prover cannot establish an assertion (Assert) in method r3e
+        //@ check x.r3()[0] != null; // fails
+            ^
+8 verification failures
+== source annotations not repeated in the .jml
+rule1specs/q/B.jml:4: error: The nullness modifier nullable of the Java declaration must be repeated in the specification declaration
+    public Object[] g1;                // not repeated: error
+           ^
+rule1src/q/B.java:5: error: Associated declaration: rule1specs/q/B.jml:4:
+    public @Nullable Object[] g1;
+                     ^
+rule1specs/q/B.jml:5: error: The nullness modifier nullable differs from non_null in the Java declaration
+    public /*@ nullable */ Object g2;  // differs: error
+                           ^
+rule1src/q/B.java:6: error: Associated declaration: rule1specs/q/B.jml:5:
+    public @NonNull Object g2;
+                    ^
+rule1specs/q/B.jml:6: error: The nullness modifier nullable of the Java declaration must be repeated in the specification declaration
+    public /*@ nullable */ Object k(Object[] p); // parameter not repeated: error
+                                    ^
+rule1src/q/B.java:7: error: Associated declaration: rule1specs/q/B.jml:6:
+    public @Nullable Object k(@Nullable Object[] p) { return null; }
+                                        ^
+6 errors
