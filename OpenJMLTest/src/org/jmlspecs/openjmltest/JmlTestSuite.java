@@ -101,11 +101,9 @@ public abstract class JmlTestSuite {
     /** Holds an absolute path to the location of system library spec files, that is the folder holding java/lang/*.jml etc. */
     public final static String specsdir = Main.specs;
     
-    public final static String streamLine = "10"; // This line number is present in many test oracle files, but changes as edits are made to Stream.jml
-
     /** Replace aspects of expected output that depend on the local environment */
     public static String doReplacements(String s) {
-        return s.replace("$ROOT/OpenJML/",JmlTestSuite.repo + "/").replace("$ROOT",JmlTestSuite.root).replace("$SPECS",specsdir).replace("$STRL", JmlTestSuite.streamLine)
+        return s.replace("$ROOT/OpenJML/",JmlTestSuite.repo + "/").replace("$ROOT",JmlTestSuite.root).replace("$SPECS",specsdir)
                 .replaceAll("#DEMO", OpenJMLDemoPath);
     }
 
