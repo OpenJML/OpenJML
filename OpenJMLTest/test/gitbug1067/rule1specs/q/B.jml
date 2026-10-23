@@ -1,0 +1,7 @@
+package q;
+public class B {
+    public /*@ nullable */ Object g0;  // repeated: OK
+    public Object[] g1;                // not repeated: error
+    public /*@ nullable */ Object g2;  // differs: error
+    public /*@ nullable */ Object k(Object[] p); // parameter not repeated: error
+}

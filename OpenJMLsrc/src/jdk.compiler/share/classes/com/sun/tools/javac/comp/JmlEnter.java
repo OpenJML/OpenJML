@@ -1255,7 +1255,7 @@ public class JmlEnter extends Enter {
 			}
 			// FIXME - why does the escfiles.enums test fail without this guard
 			if (!(msym.owner == Symtab.instance(context).enumSym && msym.name == names.valueOf)) {
-			    JmlSpecs.instance(context).applySpecElementNullness(mdecl, msym);
+			    JmlSpecs.instance(context).applySpecNullness(mdecl, msym);
 			    if (mdecl.restype != null) {
 	                mdecl.restype.type = msym.getReturnType();
 			    }
@@ -1441,7 +1441,7 @@ public class JmlEnter extends Enter {
 					return false;
 				}
 				ok = true;
-				vsym.type = JmlSpecs.instance(context).withSpecElementNullness(vdecl.vartype, vsym.type);
+				vsym.type = JmlSpecs.instance(context).withSpecNullness(vdecl.vartype, vsym.type);
 				vdecl.type = vdecl.vartype.type = vsym.type;
 				vdecl.sym = vsym;
 

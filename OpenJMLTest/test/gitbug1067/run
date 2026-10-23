@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## The client C must get the same results with A's nullness annotations in A.java, in A.jml with A.java, and in A.jml
+## with only A's class file; A itself is checked in the first two. Then: nullness annotations in a .java must be
+## repeated in its .jml (#1067)
+rm -rf actual bin
+(echo "== annotations in A.java" ;\
+openjml --esc -jmltesting -sourcepath javaonly javaonly/p/A.java client/p/C.java ;\
+echo "== annotations in A.jml, with A.java" ;\
+openjml --esc -jmltesting --specs-path=specs -sourcepath src src/p/A.java client/p/C.java ;\
+echo "== annotations in A.jml, with A.class" ;\
+openjml --compile -d bin src/p/A.java ;\
+openjml --esc -jmltesting --specs-path=specs -cp bin client/p/C.java ;\
+echo "== source annotations not repeated in the .jml" ;\
+openjml --check -jmltesting --specs-path=rule1specs -sourcepath rule1src rule1src/q/B.java) >& actual
+expected_output expected | diff actual - && rm -rf actual bin
