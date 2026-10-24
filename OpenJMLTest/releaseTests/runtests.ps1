@@ -174,5 +174,33 @@ try {
 } catch { Write-Host "FAIL lsp-smoke: $_"; $res++ }
 finally { Remove-Item Env:OPENJML_LSP_LOG -ErrorAction SilentlyContinue }
 
+# ── install-vscode-extension.bat, with a stand-in code command and settings folder ──
+# The settings file has a comment, so it must be edited in place, not parsed and rewritten.
+try {
+    $fake = (New-Item -ItemType Directory -Path "$ojbin\vscode test" -Force).FullName
+    Set-Content "$fake\code.cmd" '@echo %*> "%~dp0code-args.txt"'
+    New-Item -ItemType Directory -Path "$fake\Code\User" -Force | Out-Null
+    Set-Content "$fake\Code\User\settings.json" "{`n    // a comment`n    `"editor.tabSize`": 4`n}"
+    $savedAppData = $env:APPDATA
+    $env:APPDATA = $fake; $env:VSCODE_CLI = "$fake\code.cmd"
+    $ok = $true
+    foreach ($round in 1, 2) {
+        $out = cmd /c "`"$ojbin\install-vscode-extension.bat`"" 2>&1
+        if ($LASTEXITCODE -ne 0) { Write-Host "FAIL install-vscode-extension (round $round): exit $LASTEXITCODE"; $out | ForEach-Object { Write-Host "  $_" }; $ok = $false }
+    }
+    $text = Get-Content "$fake\Code\User\settings.json" -Raw
+    $want = '"openjml.serverPath": ' + ("$ojbin\openjml-lsp.bat" | ConvertTo-Json)
+    $n    = ([regex]::Matches($text, [regex]::Escape($want))).Count
+    if ($n -ne 1 -or $text -notmatch '// a comment' -or $text -notmatch '"editor.tabSize": 4') {
+        Write-Host "FAIL install-vscode-extension: settings.json is"; Write-Host $text; $ok = $false
+    }
+    $codeArgs = Get-Content "$fake\code-args.txt" -Raw
+    if ($codeArgs -notmatch '--install-extension .*openjml\.vsix.* --force') {
+        Write-Host "FAIL install-vscode-extension: code was called with: $codeArgs"; $ok = $false
+    }
+    if ($ok) { Write-Host 'install-vscode-extension OK' } else { $res++ }
+} catch { Write-Host "FAIL install-vscode-extension: $_"; $res++ }
+finally { $env:APPDATA = $savedAppData; Remove-Item Env:VSCODE_CLI -ErrorAction SilentlyContinue }
+
 if ($res -gt 0) { Write-Error "$res .bat test(s) failed"; exit 1 }
 Write-Host 'All .bat tests passed'
