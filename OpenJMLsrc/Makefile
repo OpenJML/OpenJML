@@ -252,6 +252,7 @@ release-test: .FORCE
 	@ echo Running release tests on newly created trial release
 	@ ZIPARCHIVE="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
 	@ "$(topdir)/../OpenJMLTest/scripttests/launcher-jdk-test"
+	@ "$(topdir)/../OpenJMLTest/scripttests/install-vscode-test"
 	@ if grep -qi microsoft /proc/version 2>/dev/null; then echo "lsp-smoke: skipped under WSL (runtests.ps1 runs it natively)"; \
 	  elif ! command -v node > /dev/null; then echo "lsp-smoke: skipped, no node"; \
 	  else node "$(topdir)/../OpenJMLTest/scripttests/lsp-smoke.js" "$(topdir)/temp-release/openjml-lsp"; fi
