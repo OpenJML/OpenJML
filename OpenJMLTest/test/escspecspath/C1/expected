@@ -1,5 +1,5 @@
-test/specspath/ccspecs/C.jml:1: error: There is no binary class to match this Java declaration in the specification file: .C
-public class C {
-       ^
+test/specspath/ccspecs/C.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // ccspecs/C.jml
+                ^
 Operation not performed because of parse or type errors
 1 error

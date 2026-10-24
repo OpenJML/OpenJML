@@ -1,0 +1,5 @@
+test/specspath/srctq/C.jml:1: error: Specification package does not match Java package: q vs. unnamed package
+package q;
+^
+Operation not performed because of parse or type errors
+1 error
