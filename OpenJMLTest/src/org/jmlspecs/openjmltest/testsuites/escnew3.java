@@ -736,7 +736,7 @@ public class escnew3 extends EscBase {
                   public static int m(Integer ... ints) {
                     //@ assert ints != null;
                     return ints.length; }
-                  public static void n(/*@ non_null*/Integer[] args) {
+                  public static void n(Integer /*@ non_null */ [] args) {
                     int i = m(args);
                     //@ assert i == args.length;
                     }
@@ -2336,4 +2336,111 @@ public class escnew3 extends EscBase {
                 ,"/$A/tt/TestJava.jml:6: verify: Associated declaration: /tt/TestJava.java:4:", 7
                 );
     }
+
+    /** 'nullable T non_null []' is a non-null array of nullable elements, also on a method with a specification
+     *  (#1067) */
+    @Test
+    public void testNonNullArrayOfNullable() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public /*@ nullable */ String /*@ non_null */ [] s = new String[1];
+                  //@ ensures \\result.length == 1;
+                  public /*@ nullable */ String /*@ non_null */ [] r() { return new String[1]; }
+                  public void m() {
+                    s = null;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m", 7
+                );
+    }
+
+    /** The same, declared in a .jml (#1067) */
+    @Test
+    public void testNonNullArrayOfNullableJml() {
+        addMockFile("$A/tt/TestJava.jml",
+                """
+                package tt;
+                public class TestJava {
+                  public /*@ nullable */ String /*@ non_null */ [] s;
+                  //@ ensures \\result.length == 1;
+                  public /*@ nullable */ String /*@ non_null */ [] r();
+                  public void m();
+                }
+                """
+                );
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public String[] s = new String[1];
+                  public String[] r() { return new String[1]; }
+                  public void m() {
+                    s = null;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method m", 7
+                );
+    }
+
+    /** A nullness annotation written before a primitive array type in a .jml applies to the array, which cannot be
+     *  null otherwise; a primitive element cannot take it (#1067, #996) */
+    @Test
+    public void testJmlPrimitiveArrayNullness() {
+        addMockFile("$A/tt/TestJava.jml",
+                """
+                package tt;
+                public class TestJava {
+                  public TestJava(@org.jmlspecs.annotation.Nullable long[] a);
+                  public void m(/*@ nullable */ long[] a);
+                }
+                """
+                );
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public TestJava(long[] a) { int n = a.length; }
+                  public void m(long[] a) { int n = a.length; }
+                }
+                """
+                ,"/$A/tt/TestJava.jml:3: warning: the annotation /*@ nullable */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ nullable */ []", 19
+                ,"/$A/tt/TestJava.jml:4: warning: the annotation /*@ nullable */ is in the wrong position: the element type long cannot take it; it is used as if written on the array type: long /*@ nullable */ []", 21
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method TestJava", 40
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method m", 38
+                );
+    }
+
+    /** A labeled continue out of a nested loop runs the step of the labeled loop (#1065) */
+    @Test
+    public void testLabeledContinue() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    int n = 0;
+                    b:
+                    //@ loop_invariant 0 <= i && i <= 3 && n == i;
+                    //@ decreases 3 - i;
+                    for (int i = 0; i < 3; i++) {
+                      //@ loop_invariant 0 <= j && j <= 1 && n == i + j;
+                      //@ decreases 3 - j;
+                      for (int j = 0; j < 3; j++) {
+                        if (j == 1) continue b;
+                        n++;
+                      }
+                    }
+                    //@ check n == 3;
+                    //@ check n == 4;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:17: verify: The prover cannot establish an assertion (Assert) in method m", 9
+                );
+    }
+
 }

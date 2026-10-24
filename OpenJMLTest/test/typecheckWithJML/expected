@@ -10,6 +10,12 @@ test/typecheckWithJML/TCWithJml.jml:14: error: Entity has conflicting nullity an
 test/typecheckWithJML/TCWithJml.jml:14: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:14:
     @NonNull @Nullable  // Error - conflicting annotations
              ^
+test/typecheckWithJML/TCWithJml.jml:14: error: Entity has conflicting nullity annotations
+    @NonNull @Nullable  // Error - conflicting annotations
+    ^
+test/typecheckWithJML/TCWithJml.jml:14: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:14:
+    @NonNull @Nullable  // Error - conflicting annotations
+             ^
 test/typecheckWithJML/TCWithJml.jml:17: error: Entity has conflicting nullity annotations
     /*@ non_null nullable */ // Error - conflicting annotations
         ^
@@ -22,6 +28,24 @@ test/typecheckWithJML/TCWithJml.jml:17: error: Entity has conflicting nullity an
 test/typecheckWithJML/TCWithJml.jml:17: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:17:
     /*@ non_null nullable */ // Error - conflicting annotations
                  ^
+test/typecheckWithJML/TCWithJml.jml:17: error: Entity has conflicting nullity annotations
+    /*@ non_null nullable */ // Error - conflicting annotations
+        ^
+test/typecheckWithJML/TCWithJml.jml:17: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:17:
+    /*@ non_null nullable */ // Error - conflicting annotations
+                 ^
+test/typecheckWithJML/TCWithJml.jml:27: error: The nullness modifier nullable differs from non_null in the Java declaration
+    @Nullable Object f1;
+              ^
+test/typecheckWithJML/TCWithJml.java:20: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:27:
+    @NonNull Object f1;   // Warning - annotation ignored
+             ^
+test/typecheckWithJML/TCWithJml.jml:36: error: The nullness modifier nullable of the Java declaration must be repeated in the specification declaration
+    public static Object p(Integer i, @Nullable Integer j, Integer k, @Nullable  Integer l);
+                           ^
+test/typecheckWithJML/TCWithJml.java:31: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:36:
+    public static Object p(@Nullable Integer i, Integer j, Integer k, @Nullable  Integer l) {  // Warning - annotation ignored
+                                     ^
 test/typecheckWithJML/TCWithJml.jml:38: error: Entity has conflicting nullity annotations
     public static Object q(@NonNull @Nullable Integer j);    // Error - conflicting annotation
                            ^
@@ -40,18 +64,18 @@ test/typecheckWithJML/TCWithJml.jml:39: error: Entity has conflicting nullity an
 test/typecheckWithJML/TCWithJml.jml:39: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:39:
     public static Object qa(/*@ non_null nullable */ Integer j);   // Error - conflicting annotation
                                          ^
+test/typecheckWithJML/TCWithJml.jml:39: error: Entity has conflicting nullity annotations
+    public static Object qa(/*@ non_null nullable */ Integer j);   // Error - conflicting annotation
+                                ^
+test/typecheckWithJML/TCWithJml.jml:39: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:39:
+    public static Object qa(/*@ non_null nullable */ Integer j);   // Error - conflicting annotation
+                                         ^
 test/typecheckWithJML/TCWithJml.jml:6: error: The method TCWithJml.mm() in the specification matches a Java method with different modifiers: public protected
     protected Object mm(); // Error - different modifiers
                      ^
 test/typecheckWithJML/TCWithJml.java:5: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:6:
     public Object mm() { return null; }
                   ^
-test/typecheckWithJML/TCWithJml.jml:14: error: A declaration may not be both non_null and nullable
-    @NonNull @Nullable  // Error - conflicting annotations
-    ^
-test/typecheckWithJML/TCWithJml.jml:14: error: Associated declaration: test/typecheckWithJML/TCWithJml.jml:14:
-    @NonNull @Nullable  // Error - conflicting annotations
-             ^
 test/typecheckWithJML/TCWithJml.jml:20: error: This JML modifier is not allowed for a method declaration
     @Monitored // Error - modifier not allowed
     ^
@@ -106,5 +130,5 @@ test/typecheckWithJML/TCWithJml.jml:52: error: Associated declaration: test/type
 test/typecheckWithJML/TCWithJml.java:55: warning: [jml-lint] Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @org.jmlspecs.annotation.Pure on class FF
 @org.jmlspecs.annotation.Pure
 ^
-34 errors
+42 errors
 2 warnings

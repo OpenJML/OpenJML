@@ -1,7 +1,7 @@
 Proving methods in java.util.IdentityHashMap
-Starting proof of java.util.IdentityHashMap.maskNull(Object) with prover !!!!
+Starting proof of java.util.IdentityHashMap.maskNull(@Nullable Object) with prover !!!!
 Feasibility check - at return statement : OK
-Completed proof of java.util.IdentityHashMap.maskNull(Object) with prover !!!! - no warnings
+Completed proof of java.util.IdentityHashMap.maskNull(@Nullable Object) with prover !!!! - no warnings
 Starting proof of java.util.IdentityHashMap.unmaskNull(Object) with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.util.IdentityHashMap.unmaskNull(Object) with prover !!!! - no warnings

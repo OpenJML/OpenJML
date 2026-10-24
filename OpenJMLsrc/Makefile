@@ -97,6 +97,9 @@ JAR      := jar
 
 ## The zip tool used to assemble the release archive; override on the command line if needed
 ZIPCMD := zip
+## Longest entry allowed in the release zip (now 163). On Windows an install folder can be at most
+## 258 minus this many characters long (MAX_PATH, #1021), so the build fails if an entry gets longer.
+MAX_ZIP_ENTRY := 175
 
 ## OS/arch suffix for the Solvers subdirectory (e.g. Solvers-macos).
 ## Computed by os-name.sh — keep in sync with Utils.identifyOS in Java
@@ -193,6 +196,10 @@ post: .FORCE
 	## existing compressed data — only the new entries and the central directory are written.
 	(cd $$(echo build/*release) && $(ZIPCMD) -qr $(topdir)/$(TEMP)/openjml.zip jdk -x '*.DS_Store')
 	(cd ../../Solvers && $(ZIPCMD) -qr $(topdir)/$(TEMP)/openjml.zip Solvers-$(OS_NAME) -x '*.DS_Store')
+	@ m=$$(unzip -Z1 $(TEMP)/openjml.zip | awk '{ if (length($$0) > m) m = length($$0) } END { print m }'); \
+	  echo "Longest release entry: $$m characters; on Windows, install in a folder of at most $$((258 - m)) characters"; \
+	  if [ "$$m" -gt $(MAX_ZIP_ENTRY) ]; then \
+	    echo "ERROR: a release entry is longer than MAX_ZIP_ENTRY ($(MAX_ZIP_ENTRY)); see #1021"; exit 1; fi
 
 openjml-lsp:
 	$(MAKE) -C ../OpenJMLlsp release
@@ -245,6 +252,10 @@ release-test: .FORCE
 	@ echo Running release tests on newly created trial release
 	@ ZIPARCHIVE="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
 	@ "$(topdir)/../OpenJMLTest/scripttests/launcher-jdk-test"
+	@ "$(topdir)/../OpenJMLTest/scripttests/install-vscode-test"
+	@ if grep -qi microsoft /proc/version 2>/dev/null; then echo "lsp-smoke: skipped under WSL (runtests.ps1 runs it natively)"; \
+	  elif ! command -v node > /dev/null; then echo "lsp-smoke: skipped, no node"; \
+	  else node "$(topdir)/../OpenJMLTest/scripttests/lsp-smoke.js" "$(topdir)/temp-release/openjml-lsp"; fi
 
 ## Development build targets
 
