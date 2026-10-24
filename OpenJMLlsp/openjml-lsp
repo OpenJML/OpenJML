@@ -4,7 +4,7 @@
 ## Invoke from your editor's LSP client configuration, e.g.:
 ##   "command": ["path/to/openjml-lsp"]
 ## Runs a Linux or macOS JDK only: under WSL, use the Linux release (a Windows JDK would need .exe,
-## Windows paths and WSLENV, as in setup-vars). There is no Windows launcher yet (#1033).
+## Windows paths and WSLENV, as in setup-vars). On Windows, use openjml-lsp.bat (#1033).
 
 set -e
 

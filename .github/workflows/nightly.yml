@@ -14,9 +14,9 @@ name: Nightly test of OpenJML
 ## As a compromise, the workflow uses a build job (per OS) that uploads the built JDK as an artifact,
 ## and separate test jobs (othertests, unittests1/2/3) that download the artifact instead of rebuilding.
 
-## Windows: OpenJML is a Windows build used from WSL. The unit-test jobs run their run: steps under wsl-bash on
+## Windows: OpenJML is a Windows build used from WSL. The test jobs run their run: steps under wsl-bash on
 ## Windows (bash elsewhere), so those steps must not use Windows environment variables such as GITHUB_WORKSPACE or
-## FOLDER, which do not reach WSL; they use paths relative to the workspace. othertests does not yet run on Windows.
+## FOLDER, which do not reach WSL; they use paths relative to the workspace.
 
 on:
   workflow_dispatch:
