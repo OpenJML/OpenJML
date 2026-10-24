@@ -1,8 +1,8 @@
 Proving methods in StorageParameters
-Starting proof of StorageParameters.StorageParameters(long[]) with prover !!!!
+Starting proof of StorageParameters.StorageParameters(long @Nullable []) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
-Completed proof of StorageParameters.StorageParameters(long[]) with prover !!!! - no warnings
+Completed proof of StorageParameters.StorageParameters(long @Nullable []) with prover !!!! - no warnings
 Starting proof of StorageParameters.getConfigurationSizes() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK

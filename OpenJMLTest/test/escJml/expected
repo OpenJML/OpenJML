@@ -1,16 +1,16 @@
 Proving methods in Test
-Starting proof of Test.m(Object) with prover !!!!
+Starting proof of Test.m(@Nullable Object) with prover !!!!
 test/escJml/Test.java:10: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m: oo
 		@NonNull Object oo = o; // Error because .jml file says o is Nullable
 		                ^
-Completed proof of Test.m(Object) with prover !!!! - with warnings
-Starting proof of Test.m2(Object) with prover !!!!
+Completed proof of Test.m(@Nullable Object) with prover !!!! - with warnings
+Starting proof of Test.m2(@Nullable Object) with prover !!!!
 test/escJml/Test.java:14: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method m2: oo
 		Object oo = o; // Error because .jml file says o is Nullable
 		       ^
-Completed proof of Test.m2(Object) with prover !!!! - with warnings
-Starting proof of Test.m3(Object) with prover !!!!
-Completed proof of Test.m3(Object) with prover !!!! - no warnings
+Completed proof of Test.m2(@Nullable Object) with prover !!!! - with warnings
+Starting proof of Test.m3(@Nullable Object) with prover !!!!
+Completed proof of Test.m3(@Nullable Object) with prover !!!! - no warnings
 Starting proof of Test.p() with prover !!!!
 test/escJml/Test.java:23: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method p
 		oo = f; // Error because f is declared Nullable
@@ -46,8 +46,8 @@ test/escJml/Test.java:50: verify: The prover cannot establish an assertion (Poss
     	o = null; // Error - o is NonNull by default
     	  ^
 Completed proof of Test.t(Object) with prover !!!! - with warnings
-Starting proof of Test.tt(Object) with prover !!!!
-Completed proof of Test.tt(Object) with prover !!!! - no warnings
+Starting proof of Test.tt(@Nullable Object) with prover !!!!
+Completed proof of Test.tt(@Nullable Object) with prover !!!! - no warnings
 Starting proof of Test.v() with prover !!!!
 Completed proof of Test.v() with prover !!!! - no warnings
 Starting proof of Test.mf() with prover !!!!
@@ -97,11 +97,11 @@ test/escJml/Test.java:127: verify: Associated method exit
 Completed proof of A.mnn() with prover !!!! - with warnings
 Starting proof of A.t(Object) with prover !!!!
 Completed proof of A.t(Object) with prover !!!! - no warnings
-Starting proof of A.tt(Object) with prover !!!!
+Starting proof of A.tt(@NonNull Object) with prover !!!!
 test/escJml/Test.java:136: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method tt
     	ott = null; // Error - ott is NonNull
     	    ^
-Completed proof of A.tt(Object) with prover !!!! - with warnings
+Completed proof of A.tt(@NonNull Object) with prover !!!! - with warnings
 Starting proof of A.A() with prover !!!!
 Completed proof of A.A() with prover !!!! - no warnings
 Completed proving methods in A
@@ -117,12 +117,12 @@ Starting proof of B.m2(Object) with prover !!!!
 Completed proof of B.m2(Object) with prover !!!! - no warnings
 Starting proof of B.m3(Object) with prover !!!!
 Completed proof of B.m3(Object) with prover !!!! - no warnings
-Starting proof of B.mn(Object) with prover !!!!
-Completed proof of B.mn(Object) with prover !!!! - no warnings
-Starting proof of B.mn2(Object) with prover !!!!
-Completed proof of B.mn2(Object) with prover !!!! - no warnings
-Starting proof of B.mn3(Object) with prover !!!!
-Completed proof of B.mn3(Object) with prover !!!! - no warnings
+Starting proof of B.mn(@NonNull Object) with prover !!!!
+Completed proof of B.mn(@NonNull Object) with prover !!!! - no warnings
+Starting proof of B.mn2(@NonNull Object) with prover !!!!
+Completed proof of B.mn2(@NonNull Object) with prover !!!! - no warnings
+Starting proof of B.mn3(@NonNull Object) with prover !!!!
+Completed proof of B.mn3(@NonNull Object) with prover !!!! - no warnings
 Starting proof of B.v(Object) with prover !!!!
 test/escJml/Test.java:172: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method v: oo
 		@NonNull Object oo = o; // Error - o is nullable by default
