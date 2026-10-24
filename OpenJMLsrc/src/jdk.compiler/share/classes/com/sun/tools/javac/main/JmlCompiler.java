@@ -514,23 +514,17 @@ public class JmlCompiler extends JavaCompiler {
         
         // Successful parse. Check that the package is correct.
         // Also set the module and package symbols in the CU
+        // Compare names, not display strings: the unnamed package displays as a (localized) "unnamed package" (#1072)
         Symbol.PackageSymbol p = typeSymbol.packge();
-        String ps = p.toString();
-        String specpid = specCU.pid == null ? "unnamed package" : specCU.pid.getPackageName().toString();
-        if (!ps.equals(specpid)) {
-        	if (!ps.isEmpty()) {
-        		utils.error(specCU.sourcefile, specCU.pid == null ? 1 : specCU.pid.pos,
-        				"jml.mismatched.package",
-        				specpid,
-        				p.toString());
-                specCU.packge = p; // FIXME: Trying to continue causes cascading errors; at least need to fix the pid as well
-        		return null; // Report as no specs
-        	} else {
-        		specCU.packge = syms.rootPackage;
-        	}
-        } else {
-        	specCU.packge = p;
+        Name specPackage = specCU.pid == null ? names.empty : names.fromString(specCU.pid.getPackageName().toString());
+        if (specPackage != p.fullname) {
+            utils.error(specCU.sourcefile, specCU.pid == null ? 1 : specCU.pid.pos,
+                    "jml.mismatched.package",
+                    specCU.pid == null ? "unnamed package" : specPackage,
+                    p.toString());
+            return null; // Report as no specs; trying to continue causes cascading errors
         }
+        specCU.packge = p;
         specCU.modle = p.modle;
         specCU.specsCompilationUnit = specCU;
         specCU.sourceCU = null;

@@ -5,9 +5,22 @@ LOCAL=$(dirname "$BASH_SOURCE[0]" )
 
 OJA="openjml -cp . "
 
-rm -rf `find . -name C.class` actual; touch actual; 
-$OJA --compile srct/C.java ; cp srct/C.class srctt/C.class
-$OJA --compile srcz/z/C.java ; mkdir -p srczz/z; cp srcz/z/C.class srczz/z/C.class
+## P.java with specspath defaulting to current directory, so finds ./P.jml
+## (a copy of P5 below; it cannot run in-process, since it depends on the current directory)
+rm -rf actual; touch actual
+echo Test P5 uses ./P.jml for specs >> actual
+$OJA --esc pxsrc/P.java >> actual 2>&1
+expected_output expected-P5 | diff - actual && rm -rf actual
+exit $?
+
+## For performance reasons, the rest of these tests run in-process as the escspecspath test suite
+## (OpenJMLTest/src/org/jmlspecs/openjmltest/testsuites/escspecspath.java, expected outputs in
+## OpenJMLTest/test/escspecspath/), which has more cases. They are kept here, with their expected
+## outputs in 'expected', for reference or future reuse.
+
+rm -rf `find . -name C.class` actual; touch actual;
+$OJA --compile srct/C.java ; cp srct/C.class srctt/C.class ; cp srct/C.class srcta/C.class ; cp srct/C.class srctq/C.class
+$OJA --compile srcz/z/C.java ; mkdir -p srczz/z; cp srcz/z/C.class srczz/z/C.class ; cp srcz/z/C.class srcza/z/C.class
 
 ## P.java with no specs at all
 echo Test P1 uses ppsrc/P.java for specs >> actual
@@ -46,11 +59,14 @@ $OJA --esc AB.java --source-path bxsrc  >> actual 2>&1
 echo Test C1 -- should use ccspecs/C.jml >> actual 2>&1
 $OJA --esc AC.java -cp srct --specs-path=ccspecs >> actual 2>&1
 ## Referenced binary class with .class and .java
-echo Test C2 -- should find no specs for C and successfully verify C >> actual 2>&1
+echo Test C2 -- uses no specs for C, empty specs path, fails >> actual 2>&1
 $OJA --esc AC.java -cp srct --specs-path=specsempty >> actual 2>&1
 ## Referenced binary class with .class and .java
-echo Test C3 -- should use srct/C.java and successfully verify >> actual 2>&1
+echo Test C3 -- uses no specs for C, specs path defaults to srct, which has no C.jml, fails >> actual 2>&1
 $OJA --esc AC.java -cp srct  >> actual 2>&1
+## Referenced binary class with .class and .java and .jml
+echo Test C3a -- uses srcta/C.jml, specs path defaults to srcta, succeeds >> actual 2>&1
+$OJA --esc AC.java -cp srcta  >> actual 2>&1
 ## Referenced binary class with only a .class file
 echo Test C4 -- should have a assignable verification failure >> actual 2>&1
 $OJA --esc AC.java -cp srctt --specs-path=specsempty >> actual 2>&1
@@ -67,11 +83,14 @@ $OJA  --esc --source-path=pxsrc:ppsrc --specs-path=specsempty ppsrc/P.java >> ac
 echo Test Z1 uses ccspecs/z/C.jml >> actual 2>&1
 $OJA --esc AZC.java -cp srcz --specs-path=ccspecs >> actual 2>&1
 ## Referenced binary class with .class and .java
-echo Test Z2 -- should find no specs and successfully verify C >> actual 2>&1
+echo Test Z2 -- uses no specs for C, empty specs path, fails >> actual 2>&1
 $OJA --esc AZC.java -cp srcz --specs-path=specsempty >> actual 2>&1
 ## Referenced binary class with .class and .java
-echo Test Z3 -- should use srcz/z/C.java, and successfully verify C >> actual 2>&1
-$OJA --esc AZC.java -cp srcz --specs-path=specsempty >> actual 2>&1
+echo Test Z3 -- uses no specs for C, specs path defaults to srcz, which has no z/C.jml, fails >> actual 2>&1
+$OJA --esc AZC.java -cp srcz >> actual 2>&1
+## Referenced binary class with .class and .java and .jml
+echo Test Z3a -- uses srcza/z/C.jml, specs path defaults to srcza, succeeds >> actual 2>&1
+$OJA --esc AZC.java -cp srcza >> actual 2>&1
 ## Referenced binary class with only a .class file
 echo Test Z4 -- should have an assignable problem >> actual 2>&1
 $OJA --esc AZC.java -cp srczz --specs-path=specsempty >> actual 2>&1

@@ -591,32 +591,39 @@ public class JmlEnter extends Enter {
 	    var specs = JmlSpecs.instance(context);
 	    try {
 
-	        String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
-	        Name packageName = names.fromString(flatPackageName);
-	        // Most spec file for binary files will be for the system library packages in java.base, so try that first
-	        PackageSymbol p = syms.getPackage(syms.java_base,packageName);
-	        if (p == null || p.isUnnamed() || p.toString().isEmpty()) { // No unnamed package in java.base // FIXME why doen't p.isUnnamed() work?
-	            // Otherwise try the unnamed module
-	            p = syms.getPackage(syms.unnamedModule,packageName);
-	            if (p != null && p.modle == null) p.modle = syms.unnamedModule; // FIXME - why is this necessary
-	        }
+	        // parseSpecs has set the binary class's own package; looking it up by name gave the root package,
+	        // not the unnamed package, for a class with no package declaration (#1072)
+	        PackageSymbol p = speccu.packge;
+	        // DEAD CODE (#1072): specsEnter's only caller passes a CU from parseSpecs, which always sets
+	        // speccu.packge, so this block never runs. To be deleted after review.
 	        if (p == null) {
-	            Collection<ModuleSymbol> mods = syms.listPackageModules(packageName);
-	            if (mods.size() == 1) {
-	                p = syms.getPackage(mods.iterator().next(),packageName);
-	                //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle) + " " + mods.iterator().next());
-	            } else if (mods.isEmpty()) {
-	                // fall through
-	            } else {
-	                String xtr = "Package exists in multiple modules: " + flatPackageName + " in";
-	                for (var m: mods) xtr += " " + m;
-	                utils.warning(speccu.pid, "jml.message", xtr);
+	            String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
+	            Name packageName = names.fromString(flatPackageName);
+	            // Most spec file for binary files will be for the system library packages in java.base, so try that first
+	            p = syms.getPackage(syms.java_base,packageName);
+	            if (p == null || p.isUnnamed() || p.toString().isEmpty()) { // No unnamed package in java.base // FIXME why doen't p.isUnnamed() work?
+	                // Otherwise try the unnamed module
+	                p = syms.getPackage(syms.unnamedModule,packageName);
+	                if (p != null && p.modle == null) p.modle = syms.unnamedModule; // FIXME - why is this necessary
 	            }
-	        }
-	        //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle));
-	        if (p == null) { // FIXME Document when this is needed
-	            utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
-	            p = syms.enterPackage(syms.unnamedModule, packageName);
+	            if (p == null) {
+	                Collection<ModuleSymbol> mods = syms.listPackageModules(packageName);
+	                if (mods.size() == 1) {
+	                    p = syms.getPackage(mods.iterator().next(),packageName);
+	                    //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle) + " " + mods.iterator().next());
+	                } else if (mods.isEmpty()) {
+	                    // fall through
+	                } else {
+	                    String xtr = "Package exists in multiple modules: " + flatPackageName + " in";
+	                    for (var m: mods) xtr += " " + m;
+	                    utils.warning(speccu.pid, "jml.message", xtr);
+	                }
+	            }
+	            //System.out.println("PACKAGE " + packageName + " IS IN " + (p==null?"NULL":p.modle));
+	            if (p == null) { // FIXME Document when this is needed
+	                utils.warning(speccu.pid, "jml.message", "Creating new package in unnamed module: " + flatPackageName);
+	                p = syms.enterPackage(syms.unnamedModule, packageName);
+    	        }
 	        }
 
 	        var owner = speccu.packge = p;

@@ -49,11 +49,11 @@ bxsrc/B.jml:2: error: incompatible types: int cannot be converted to boolean
                 ^
 1 error
 Test C1 -- should use ccspecs/C.jml
-ccspecs/C.jml:1: error: There is no binary class to match this Java declaration in the specification file: .C
-public class C {
-       ^
+ccspecs/C.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // ccspecs/C.jml
+                ^
 1 error
-Test C2 -- should find no specs for C and successfully verify C
+Test C2 -- uses no specs for C, empty specs path, fails
 AC.java:5: verify: The prover cannot establish an assertion (Assignable: AC.java:3:) in method mm: \everything
     m();
      ^
@@ -61,7 +61,7 @@ AC.java:3: verify: Associated declaration: AC.java:5:
   //@ pure
       ^
 2 verification failures
-Test C3 -- should use srct/C.java and successfully verify
+Test C3 -- uses no specs for C, specs path defaults to srct, which has no C.jml, fails
 AC.java:5: verify: The prover cannot establish an assertion (Assignable: AC.java:3:) in method mm: \everything
     m();
      ^
@@ -69,6 +69,7 @@ AC.java:3: verify: Associated declaration: AC.java:5:
   //@ pure
       ^
 2 verification failures
+Test C3a -- uses srcta/C.jml, specs path defaults to srcta, succeeds
 Test C4 -- should have a assignable verification failure
 AC.java:5: verify: The prover cannot establish an assertion (Assignable: AC.java:3:) in method mm: \everything
     m();
@@ -92,7 +93,7 @@ ccspecs/z/C.jml:3: error: incompatible types: int cannot be converted to boolean
     //@ invariant 0; // ccspecs/z/C.jml
                   ^
 1 error
-Test Z2 -- should find no specs and successfully verify C
+Test Z2 -- uses no specs for C, empty specs path, fails
 AZC.java:6: verify: The prover cannot establish an assertion (Assignable: AZC.java:3:) in method mm: \everything
     m();
      ^
@@ -100,7 +101,7 @@ AZC.java:3: verify: Associated declaration: AZC.java:6:
   //@ assignable \nothing;
       ^
 2 verification failures
-Test Z3 -- should use srcz/z/C.java, and successfully verify C
+Test Z3 -- uses no specs for C, specs path defaults to srcz, which has no z/C.jml, fails
 AZC.java:6: verify: The prover cannot establish an assertion (Assignable: AZC.java:3:) in method mm: \everything
     m();
      ^
@@ -108,6 +109,7 @@ AZC.java:3: verify: Associated declaration: AZC.java:6:
   //@ assignable \nothing;
       ^
 2 verification failures
+Test Z3a -- uses srcza/z/C.jml, specs path defaults to srcza, succeeds
 Test Z4 -- should have an assignable problem
 AZC.java:6: verify: The prover cannot establish an assertion (Assignable: AZC.java:3:) in method mm: \everything
     m();
