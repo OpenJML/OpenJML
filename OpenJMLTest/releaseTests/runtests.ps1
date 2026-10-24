@@ -127,10 +127,10 @@ finally { Pop-Location }
 # ── RAC: compile with openjml.bat -rac, run with openjml-java.bat ──
 # Push to $tests so source paths in RAC messages are relative
 # (./src/testRac/A.java:4:) and match expected-ok / expected-simple.
+# No jmlruntime.jar on the classpath: the release JDK's java.base has the runtime classes.
 Push-Location $tests
 try {
     $racDir = (New-Item -ItemType Directory -Path 'rac-bat' -Force).FullName
-    $rt     = "$ojbin\jmlruntime.jar"
 
     $compOut  = & "$ojbin\openjml.bat" -rac --rac-show-source=line `
         -d "$racDir" -classpath ".\src\testRac" --specs-path ".\src\testRac" `
@@ -142,12 +142,12 @@ try {
         $res++
     } else {
         # No-arg run: assertion passes (0 != 2) → exit 0, output START/END
-        $out  = & "$ojbin\openjml-java.bat" -classpath "$racDir;$rt" A 2>&1
+        $out  = & "$ojbin\openjml-java.bat" -classpath "$racDir" A 2>&1
         $exit = $LASTEXITCODE
         $res += Compare-Test 'testRac-ok (.bat)' $out $exit ".\testRac\expected-ok"
 
         # Two-arg run: assertion fails, program continues → exit 0, violation printed
-        $out  = & "$ojbin\openjml-java.bat" -classpath "$racDir;$rt" A 1 2 2>&1
+        $out  = & "$ojbin\openjml-java.bat" -classpath "$racDir" A 1 2 2>&1
         $exit = $LASTEXITCODE
         $res += Compare-Test 'testRac-simple (.bat)' $out $exit ".\testRac\expected-simple"
     }
