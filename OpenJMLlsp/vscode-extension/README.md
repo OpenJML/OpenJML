@@ -8,10 +8,14 @@ powered by the [OpenJML](https://www.openjml.org) tool.
 
 ## Installation
 
-0. Install VSCode, and have the executable findable on PATH or in a standard Applications folder
-1. Download a current [OpenJML release](https://github.com/OpenJML/OpenJML/releases) into a clean folder.
-2. Unzip the release `.zip` file in that folder.
-3. Run `./install-vscode-extension` from that folder (on Windows, `install-vscode-extension.bat`; do not move the script or any other contents of the installation folder).
+1. Install VSCode, and have the executable findable on PATH or in a standard Applications folder
+2. Download a current [OpenJML release](https://github.com/OpenJML/OpenJML/releases) into a clean folder,
+   preferably not a folder that is on (recursively) the Desktop.
+3. Unzip the release `.zip` file in that folder.
+4. Mac security settings can prevent running the 
+   server if its path includes the Desktop.
+5. Run `./install-vscode-extension` from that folder (on Windows, `install-vscode-extension.bat`; do not move the script or any other contents of the installation folder).
+   This script also removes the quarantine that MacOS can put on new unsigned executables.
 
 The script installs the VS Code extension and sets `openjml.serverPath` automatically.
 If the script fails it emits instructions for a manual workaround.
