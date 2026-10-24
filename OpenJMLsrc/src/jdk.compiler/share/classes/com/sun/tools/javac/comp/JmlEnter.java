@@ -594,6 +594,8 @@ public class JmlEnter extends Enter {
 	        // parseSpecs has set the binary class's own package; looking it up by name gave the root package,
 	        // not the unnamed package, for a class with no package declaration (#1072)
 	        PackageSymbol p = speccu.packge;
+	        // DEAD CODE (#1072): specsEnter's only caller passes a CU from parseSpecs, which always sets
+	        // speccu.packge, so this block never runs. To be deleted after review.
 	        if (p == null) {
 	            String flatPackageName = speccu.pid == null ? "" : speccu.pid.pid.toString();
 	            Name packageName = names.fromString(flatPackageName);
