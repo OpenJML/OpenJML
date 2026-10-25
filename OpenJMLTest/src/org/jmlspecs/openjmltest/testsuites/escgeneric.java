@@ -750,4 +750,18 @@ public class escgeneric extends EscBase {
                 """
                 );
     }
+
+    @Test
+    public void testClassNamedLikeTypeVar() {
+        // A class named E hid the declaration of the type variable E (of Collection), giving an SMT error
+        helpEsc("tt.E",
+                """
+                public class E {
+                  public void m() throws Exception {
+                    throw new Exception();
+                  }
+                }
+                """
+                );
+    }
 }

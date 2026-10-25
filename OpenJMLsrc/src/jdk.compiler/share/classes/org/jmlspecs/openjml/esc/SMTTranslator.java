@@ -1528,7 +1528,9 @@ public class SMTTranslator extends JmlTreeScanner {
             addType(it.supertype_field);
             for (Type itt: it.interfaces_field) addType(itt);
         } else {
-            if (javaTypeSymbols.add(t.tsym.toString())) {
+            // A type variable is keyed apart from a class of the same name (e.g. class E vs. E of Collection<E>)
+            String key = t.getTag() == TypeTag.TYPEVAR ? "JMLTV_" + t.tsym : t.tsym.toString();
+            if (javaTypeSymbols.add(key)) {
                 javaTypes.add(t);
                 // We must record the bounds, but with caution since it can cause infinite recursion, in cases such as class Test<K extends Comparable<K>, O>
                 if (t.getTag()  == TypeTag.TYPEVAR && !(t instanceof Type.WildcardType)) {
