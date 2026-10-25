@@ -659,7 +659,7 @@ public class Main extends com.sun.tools.javac.main.Main {
         appln.accept("Install location: " + install);
         appln.accept("Specs location:   " + specs);
         appln.accept("Solvers location: " + solvers);
-        appln.accept("Operating system: " + Utils.identifyOS(context));
+        appln.accept("Operating system: " + Utils.identifyOS());
         appln.accept("Architecture:     " + System.getProperty("os.arch"));
         appln.accept("Prover:           " + org.jmlspecs.openjml.esc.JmlEsc.pickProver(context));
         appln.accept("Prover exec:      " + org.jmlspecs.openjml.esc.MethodProverSMT.proverExec(org.jmlspecs.openjml.esc.JmlEsc.pickProver(context), context));

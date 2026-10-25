@@ -446,9 +446,8 @@ public class Utils {
      *  the suffix used for Solvers directory names (e.g. "macos", "linux", "linux-arm64", "windows").
      *  Keep in sync with OpenJMLsrc/os-name.sh (the authoritative shell implementation)
      *  and with the actual subdirectory names in the sibling Solvers/ repository. */
-    public static String identifyOS(Context context) {
-        String sp = context == null ? null : JmlOption.OSNAME.value(context);
-        if (sp == null || sp.isEmpty() || "auto".equals(sp)) sp = System.getProperty("os.name");
+    public static String identifyOS() {
+        String sp = System.getProperty("os.name");
         if (sp.contains("mac") || sp.contains("Mac")) {
             if ("aarch64".equals(System.getProperty("os.arch"))) return "macos-arm64";
             return "macos";

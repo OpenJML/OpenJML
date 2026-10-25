@@ -143,6 +143,5 @@ JML options:
   --defaults                 Specifies various default behaviors: constructor:pure|everything
   -staticInitWarning         Warns about missing static_initializer clauses
   --determinism              Experimental: enables better determinism (default is true)
-  --os-name                  Name of OS to use in selecting solver executable (default: auto detect; macos, linux, windows)
   --inline-function-literal  Whether to inline function literals (default: true)
   --require-white-space      Whether white space is required after the @ in a JML comment (default: false)

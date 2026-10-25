@@ -545,7 +545,6 @@ public class JmlOption {
     // Experimental
     public static final JmlOption DETERMINISM = new JmlOption("--determinism",false,true,"Experimental: enables better determinism (default is true)",null);
 
-    public static final JmlOption OSNAME = new JmlOption("--os-name",true,"auto","Name of OS to use in selecting solver executable (default: auto detect; macos, linux, windows)",null);
     public static final JmlOption INLINE_FUNCTION_LITERAL = new JmlOption("--inline-function-literal",false,true,"Whether to inline function literals (default: true)",null);
     public static final JmlOption REQUIRE_WS = new JmlOption("--require-white-space",false,false, "Whether white space is required after the @ in a JML comment (default: false)", null);
 
