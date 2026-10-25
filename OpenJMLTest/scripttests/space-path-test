@@ -2,7 +2,8 @@
 
 ## Checks that the release launchers work when both the installation and the user's folder have paths with
 ## spaces and parentheses (#915): unzips the release into <dest> and runs openjml (ESC, RAC), openjml-java,
-## openjml-compile, openjml-run and (with node) openjml-lsp from a sibling folder 'work dir'.
+## openjml-compile, openjml-run and (with node) openjml-lsp from a sibling folder 'work dir', then again with an
+## OPENJML_JVM option that holds a space.
 ## runtests.ps1 does the same for the .bat launchers, in 'temp bat'.
 ##   Usage: space-path-test <release zip> [<dest>]    (default dest: a new temporary 'oj dir (1)')
 ## Exits non-zero if a check fails.
@@ -50,6 +51,13 @@ rm -f *.class
 "$DEST/openjml-compile" Run.java > actual 2>&1 || { echo "FAIL space-path-test: openjml-compile"; cat actual; FAILS=$((FAILS+1)); }
 ( "$DEST/openjml-run" Run --esc A.java; "$DEST/openjml-run" Run --rac A.java; "$DEST/openjml-java" A ) > actual 2>&1
 check "openjml-compile, openjml-run"
+
+## An OPENJML_JVM option holding a space; it also makes openjml run java (org.openjml.RunOpenJML), not javac
+export OPENJML_JVM='-Dopenjml.test="a b"'
+( "$DEST/openjml" --esc A.java; "$DEST/openjml" --rac A.java; "$DEST/openjml-java" A ) > actual 2>&1
+check "openjml --esc, --rac and openjml-java with OPENJML_JVM"
+( "$DEST/openjml-run" Run --esc A.java; "$DEST/openjml-run" Run --rac A.java; "$DEST/openjml-java" A ) > actual 2>&1
+check "openjml-run with OPENJML_JVM"
 
 ## lsp-smoke is skipped under WSL, as in release-test: the native Windows test runs it
 if ! grep -qi microsoft /proc/version 2>/dev/null && command -v node > /dev/null; then

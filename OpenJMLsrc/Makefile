@@ -178,7 +178,7 @@ post: .FORCE
 	uname -m
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
-	cp setup-exports setup-vars openjml openjml-* os-name.sh $(TEMP)
+	cp setup-exports setup-vars setup-jvm openjml openjml-* os-name.sh $(TEMP)
 	cp -pR libs $(TEMP)
 	cp setup-exports.bat setup-vars.bat openjml.bat openjml-*.bat $(TEMP)
 	$(MAKE) openjml-lsp
@@ -253,6 +253,7 @@ release-test: .FORCE
 	@ ZIPARCHIVE="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
 	@ "$(topdir)/../OpenJMLTest/scripttests/launcher-jdk-test"
 	@ "$(topdir)/../OpenJMLTest/scripttests/install-vscode-test"
+	@ "$(topdir)/../OpenJMLTest/scripttests/setup-jvm-test"
 	@ "$(topdir)/../OpenJMLTest/scripttests/space-path-test" "$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/temp space/oj (1)"
 	@ if grep -qi microsoft /proc/version 2>/dev/null; then echo "lsp-smoke: skipped under WSL (runtests.ps1 runs it natively)"; \
 	  elif ! command -v node > /dev/null; then echo "lsp-smoke: skipped, no node"; \
