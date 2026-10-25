@@ -32,6 +32,7 @@ public class escall3 extends EscBase {
     @Test
     public void testNoExec() {
         expectedExit=1;
+        String prover = solver != null ? solver : String.valueOf(org.jmlspecs.openjml.JmlOption.PROVER.defaultValue());
         addOptions("--exec= ");
         helpEsc("tt.TestJava",
                 """
@@ -39,7 +40,7 @@ public class escall3 extends EscBase {
                 public class TestJava { }
                 """
                 ,"error: Specified executable does not exist: \" \""
-                ,"error: No executable is known for prover z3-5.1.0 - use --exec, or put the solver in the SMT_SOLVER_DIR folder",-1
+                ,"error: No executable is known for prover " + prover + " - use --exec, or put the solver in the SMT_SOLVER_DIR folder",-1
                 );
     }
     
