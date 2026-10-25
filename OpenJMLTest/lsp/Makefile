@@ -39,8 +39,8 @@ COV_AGENT := $(LSPTEST)/../jacoco/lib/jacocoagent.jar
 COV_CLI   := $(LSPTEST)/../jacoco/lib/jacococli.jar
 ## JAVA_AGENT is intentionally a recursively-expanded variable (=, not :=) so
 ## that $* (the test-class stem) is substituted at rule-firing time.
-ifdef COV
-  JAVA_AGENT = -javaagent:$(COV_AGENT)=destfile=$(COV_DIR)/lsp-$*.exec
+ifneq ($(origin COV),undefined)
+  JAVA_AGENT = "-javaagent:$(COV_AGENT)=destfile=$(COV_DIR)/lsp-$*.exec"
 else
   JAVA_AGENT =
 endif
@@ -155,15 +155,18 @@ $(RESULT_DIR)/.compiled: compile
 
 ## Per-class pattern rule — one JVM process per test class.
 ## Output is captured to a log file; on failure the log is printed and make exits non-zero.
+## Runs under bash so OPENJML_JVM is split as the launchers split it (setup-jvm, #915).
+$(RESULT_DIR)/%.log: SHELL := /bin/bash
 $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	@echo "[TEST] $*"
 	@_start=$$(date +%s); \
 	if ( cd $(LSPTEST); \
 	      . $(SRC)/setup-exports; \
+	      . $(SRC)/setup-jvm; \
 	      OPENJML_INSTALL="$(BUILDJDK)" \
 	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
 	      SMT_SOLVER_DIR="$${SMT_SOLVER_DIR:-$(SRC)/../../Solvers/Solvers-$$($(SRC)/os-name.sh)}" \
-	      "$(NJAVA)" "--patch-module=jdk.compiler=$(SRC)/libs/jSMTLIB.jar" $(JAVA_AGENT) $$OPENJML_JVM $$OPENJML_EXPORTS \
+	      "$(NJAVA)" "--patch-module=jdk.compiler=$(SRC)/libs/jSMTLIB.jar" $(JAVA_AGENT) "$${JVMARGS[@]}" $$OPENJML_EXPORTS \
 	        -Dlsp.testdata=$(LSPTEST)/testdata \
 	        -Djml.grammar.lsp=$(LSPROOT)/vscode-extension/syntaxes/jml.tmLanguage.json \
 	        -Djml.grammar.ui=$(LSPTEST)/../../OpenJMLUI/syntaxes/jml.tmLanguage.json \

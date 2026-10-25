@@ -1,0 +1,27 @@
+## A sourced script, shared by setup-vars and openjml-lsp (#915).
+## Splits OPENJML_JVM (extra options for java) into the array JVMARGS at blanks, except within "..." or '...',
+## so an option can hold a path with spaces, e.g. OPENJML_JVM='-javaagent:"/my dir/agent.jar"'.
+## Backslashes are literal (for Windows paths) and nothing is evaluated.
+## (The .bat launchers need no equivalent: cmd passes %OPENJML_JVM% to java with its quotes.)
+
+## split_jvm_options <string> splits any such string into JVMARGS.
+
+split_jvm_options() {
+    local s="$1" arg= q= in= i c
+    JVMARGS=()
+    for (( i=0; i<${#s}; i++ )); do
+        c="${s:i:1}"
+        if [ -n "$q" ]; then
+            if [ "$c" = "$q" ]; then q=; else arg+="$c"; fi
+        elif [ "$c" = '"' ] || [ "$c" = "'" ]; then
+            q="$c"; in=1
+        elif [[ "$c" == [[:space:]] ]]; then
+            if [ -n "$in" ]; then JVMARGS+=("$arg"); fi
+            arg=; in=
+        else
+            arg+="$c"; in=1
+        fi
+    done
+    if [ -n "$in" ]; then JVMARGS+=("$arg"); fi
+}
+split_jvm_options "$OPENJML_JVM"

@@ -36,6 +36,7 @@ if [ -d "$DIR/jdk" ]; then
     ## ── Release layout (installed from openjml.zip) ──────────────────────────
     BUILDJDK="$DIR/jdk"
     . "$DIR/setup-exports"
+    . "$DIR/setup-jvm"
     export OPENJML_INSTALL="${OPENJML_INSTALL:-$DIR}"
     # OPENJML_SPECS: not defaulted here — OpenJML derives
     # it from OPENJML_INSTALL internally.  Set it only for a custom location.
@@ -59,6 +60,7 @@ else
         exit 1
     fi
     . "$SRC/setup-exports"
+    . "$SRC/setup-jvm"
     export OPENJML_INSTALL="${OPENJML_INSTALL:-$SRC}"
     export OPENJML_SPECS="${OPENJML_SPECS:-$OPENJML_INSTALL/../../Specs/specs}"
     export SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$OPENJML_INSTALL/../../Solvers/Solvers-$("$SRC"/os-name.sh)}"
@@ -79,7 +81,7 @@ fi
 # jSMTLIB is not built into jdk.compiler; it is patched in, as the openjml scripts do.
 exec "$BUILDJDK/bin/java" \
      "--patch-module=jdk.compiler=$JSMTLIB_JAR" \
-     $OPENJML_JVM \
+     "${JVMARGS[@]}" \
      $OPENJML_EXPORTS \
      -cp "$JARFILE:$LSP4J_CP" \
      org.openjml.lsp.ServerLauncher "$@"

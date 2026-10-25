@@ -1,0 +1,26 @@
+#! /usr/bin/env bash
+
+## Checks how OpenJMLsrc/setup-jvm splits OPENJML_JVM into JVMARGS (#915). Exits non-zero if a check fails.
+
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../OpenJMLsrc" && pwd -P)"
+FAILS=0
+## check <OPENJML_JVM> <expected arguments, each followed by |>
+check() {
+    local got
+    got=$(OPENJML_JVM="$1" bash -c '. "$1/setup-jvm"; for a in "${JVMARGS[@]}"; do printf "%s|" "$a"; done' - "$SRC")
+    if [ "$got" != "$2" ]; then echo "FAIL setup-jvm: [$1] gave [$got], expected [$2]"; FAILS=$((FAILS+1)); fi
+}
+check ''                                  ''
+check '   '                               ''
+check '-Xmx2g'                            '-Xmx2g|'
+check ' -Xmx2g   -ea '                    '-Xmx2g|-ea|'
+check '-javaagent:"/my dir/a.jar"=x -ea'  '-javaagent:/my dir/a.jar=x|-ea|'
+check "-Dp='a \"b\" c'"                   '-Dp=a "b" c|'
+check '-Dp="" -ea'                        '-Dp=|-ea|'
+check '"" -ea'                            '|-ea|'
+check '-javaagent:C:\x y\a.jar'           '-javaagent:C:\x|y\a.jar|'
+check '-javaagent:"C:\x y\a.jar"'         '-javaagent:C:\x y\a.jar|'
+check '-Dx=$(echo hi) -Dy=`id` *'         '-Dx=$(echo|hi)|-Dy=`id`|*|'
+check "$(printf -- '-ea\t-esa\n-Xss4m')" '-ea|-esa|-Xss4m|'
+[ $FAILS = 0 ] && echo "setup-jvm OK"
+exit $FAILS
