@@ -2125,4 +2125,23 @@ public class typechecking extends TCBase {
                 ,"/Test.java:3: error: ';' expected", 14
         );
     }
+
+    @Test
+    public void nowarn() { // Issue #1068
+        helpTCText("Test.java",
+            """
+            public class Test {
+                public Integer m(Object o) {
+                    int i = 0; //@ nowarn Cast;
+                    //@ nowarn;
+                    return Integer.valueOf(((Integer)o)  //@ nowarn Cast, Null;
+                              .intValue());
+                }
+            }
+            """
+                ,"/Test.java:3: error: The ESC/Java2 nowarn pragma is not supported", 24
+                ,"/Test.java:4: error: The ESC/Java2 nowarn pragma is not supported", 13
+                ,"/Test.java:5: error: The ESC/Java2 nowarn pragma is not supported", 50
+        );
+    }
 }
