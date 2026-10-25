@@ -37,8 +37,9 @@ EXPECTED="$TESTS/releaseTests/testAPI/expected"
 cd "$WORK"
 FAILS=0
 check() {
-    if ! diff "$EXPECTED" actual > /dev/null; then
-        echo "FAIL space-path-test: $1"; diff "$EXPECTED" actual; FAILS=$((FAILS+1))
+    ## A Windows JDK writes CRLF
+    if ! tr -d '\r' < actual | diff "$EXPECTED" - > /dev/null; then
+        echo "FAIL space-path-test: $1"; tr -d '\r' < actual | diff "$EXPECTED" -; FAILS=$((FAILS+1))
     fi
 }
 
