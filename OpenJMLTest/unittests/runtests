@@ -90,8 +90,10 @@ SPECS=$(cd "$ROOT/../../Specs/specs" && pwd -P)
 ## On WSL, the /p flag has WSL translate these Linux paths for java.exe; WSL_DISTRO_NAME lets
 ## RunBase run the test scripts in this distro
 if [ -n "$EXE" ]; then export WSLENV="${WSLENV:+$WSLENV:}OPENJML_INSTALL/p:OPENJML_SPECS/p:SMT_SOLVER_DIR/p:WSL_DISTRO_NAME"; fi
+## The test JVM's own agent options, split as the launchers split OPENJML_JVM (setup-jvm, sourced by setup-coverage)
+split_jvm_options "${COV_MAIN_AGENT:-$OPENJML_JVM}"
 function run_tests() {
-    ( cd ..; OPENJML_INSTALL="$ROOT" SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$ROOT/../../Solvers/Solvers-$("$ROOT"/os-name.sh)}" OPENJML_SPECS="$SPECS" "$NJAVA" "--patch-module=jdk.compiler=$(wp "$ROOT/libs/jSMTLIB.jar")" ${COV_MAIN_AGENT:-$OPENJML_JVM} -cp "src$S$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )
+    ( cd ..; OPENJML_INSTALL="$ROOT" SMT_SOLVER_DIR="${SMT_SOLVER_DIR:-$ROOT/../../Solvers/Solvers-$("$ROOT"/os-name.sh)}" OPENJML_SPECS="$SPECS" "$NJAVA" "--patch-module=jdk.compiler=$(wp "$ROOT/libs/jSMTLIB.jar")" "${JVMARGS[@]}" -cp "src$S$JUNIT" $OPENJML_EXPORTS org.openjml.runners.OpenJMLTestRunner "$@" 2>&1 )
 }
 ## On WSL, java.exe ends lines with CRLF; drop the CRs so that logs and test names compare as on other platforms
 if [ -n "$EXE" ]; then set -o pipefail; run_tests "$@" | tr -d '\r'; else run_tests "$@"; fi

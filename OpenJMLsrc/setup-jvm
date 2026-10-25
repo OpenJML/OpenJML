@@ -4,19 +4,24 @@
 ## Backslashes are literal (for Windows paths) and nothing is evaluated.
 ## (The .bat launchers need no equivalent: cmd passes %OPENJML_JVM% to java with its quotes.)
 
-JVMARGS=()
-_s="$OPENJML_JVM"; _arg=; _q=; _in=
-for (( _i=0; _i<${#_s}; _i++ )); do
-    _c="${_s:_i:1}"
-    if [ -n "$_q" ]; then
-        if [ "$_c" = "$_q" ]; then _q=; else _arg+="$_c"; fi
-    elif [ "$_c" = '"' ] || [ "$_c" = "'" ]; then
-        _q="$_c"; _in=1
-    elif [[ "$_c" == [[:space:]] ]]; then
-        if [ -n "$_in" ]; then JVMARGS+=("$_arg"); fi
-        _arg=; _in=
-    else
-        _arg+="$_c"; _in=1
-    fi
-done
-if [ -n "$_in" ]; then JVMARGS+=("$_arg"); fi
+## split_jvm_options <string> splits any such string into JVMARGS.
+
+split_jvm_options() {
+    local s="$1" arg= q= in= i c
+    JVMARGS=()
+    for (( i=0; i<${#s}; i++ )); do
+        c="${s:i:1}"
+        if [ -n "$q" ]; then
+            if [ "$c" = "$q" ]; then q=; else arg+="$c"; fi
+        elif [ "$c" = '"' ] || [ "$c" = "'" ]; then
+            q="$c"; in=1
+        elif [[ "$c" == [[:space:]] ]]; then
+            if [ -n "$in" ]; then JVMARGS+=("$arg"); fi
+            arg=; in=
+        else
+            arg+="$c"; in=1
+        fi
+    done
+    if [ -n "$in" ]; then JVMARGS+=("$arg"); fi
+}
+split_jvm_options "$OPENJML_JVM"

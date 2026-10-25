@@ -1,0 +1,45 @@
+#! /usr/bin/env bash
+
+## Checks that the coverage options from setup-coverage work when OpenJMLTest's path has spaces (#915):
+## copies setup-coverage (and what it sources) into 'oj tree (1)', then runs java with each agent option it
+## sets, split as the launchers split OPENJML_JVM (setup-jvm), and expects the JaCoCo data file.
+## Uses the development build's java; skipped under WSL, where a Windows JDK would also need Windows paths.
+## Exits non-zero if a check fails.
+
+if grep -qi microsoft /proc/version 2>/dev/null; then echo "coverage-space-test: skipped under WSL"; exit 0; fi
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+SRC="$HERE/../OpenJMLsrc"
+T=$(cd "$(mktemp -d)" && pwd -P)
+trap 'rm -rf "$T"' EXIT
+R="$T/oj tree (1)"
+mkdir -p "$R/OpenJMLTest/jacoco/lib" "$R/OpenJMLsrc"
+cp "$HERE/setup-coverage" "$R/OpenJMLTest/"
+cp "$HERE/jacoco/lib/jacocoagent.jar" "$R/OpenJMLTest/jacoco/lib/"
+cp "$SRC/setup-vars" "$SRC/setup-jvm" "$SRC/os-name.sh" "$R/OpenJMLsrc/"
+ln -s "$SRC/build" "$R/OpenJMLsrc/build"
+COV_DIR="$R/OpenJMLTest/cov"
+
+FAILS=0
+## run_agent <name> <options> <expected data file>: runs java with the options, as the launchers would
+run_agent() {
+    ( OPENJML_JVM="$2"; INSTALL="$R/OpenJMLsrc"; . "$R/OpenJMLsrc/setup-vars"
+      "$BINJAVA" "${JVMARGS[@]}" -version ) > "$T/out" 2>&1
+    if [ ! -f "$3" ]; then
+        echo "FAIL coverage-space-test: $1 wrote no ${3#$R/}; options: $2"; cat "$T/out"; FAILS=$((FAILS+1))
+    fi
+}
+
+( COV= ; . "$R/OpenJMLTest/setup-coverage" one; declare -p OPENJML_JVM OJA ) > "$T/vars" 2> /dev/null
+. "$T/vars"
+run_agent "OPENJML_JVM" "$OPENJML_JVM" "$COV_DIR/one.exec"
+[ "$OJA" = "$R/OpenJMLTest/../OpenJMLsrc/openjml" ] || { echo "FAIL coverage-space-test: OJA is not the openjml launcher: $OJA"; FAILS=$((FAILS+1)); }
+
+( COV= ; COV_BY_TEST= ; . "$R/OpenJMLTest/setup-coverage" two; declare -p OPENJML_JVM COV_MAIN_AGENT ) > "$T/vars" 2> /dev/null
+. "$T/vars"
+run_agent "COV_MAIN_AGENT" "$COV_MAIN_AGENT" "$COV_DIR/by-test/_outside-tests.exec"
+## RunBase replaces @COV_TEST@ with the test's name (PerTestCoverage.childAgent)
+run_agent "per-test OPENJML_JVM" "${OPENJML_JVM//@COV_TEST@/t1}" "$COV_DIR/by-test/t1.exec"
+
+[ $FAILS = 0 ] && echo "coverage-space-test OK"
+exit $FAILS

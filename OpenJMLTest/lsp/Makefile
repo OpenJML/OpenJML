@@ -40,7 +40,7 @@ COV_CLI   := $(LSPTEST)/../jacoco/lib/jacococli.jar
 ## JAVA_AGENT is intentionally a recursively-expanded variable (=, not :=) so
 ## that $* (the test-class stem) is substituted at rule-firing time.
 ifdef COV
-  JAVA_AGENT = -javaagent:$(COV_AGENT)=destfile=$(COV_DIR)/lsp-$*.exec
+  JAVA_AGENT = "-javaagent:$(COV_AGENT)=destfile=$(COV_DIR)/lsp-$*.exec"
 else
   JAVA_AGENT =
 endif
