@@ -120,7 +120,7 @@ release: .FORCE
 	$(MAKE) post
 
 clean-jml:
-	rm -rf release-temp temp-release $(TEMPLIB) jmlruntime.jar $(USERGUIDE)
+	rm -rf release-temp temp-release "temp space" $(TEMPLIB) jmlruntime.jar $(USERGUIDE)
 	$(MAKE) -C ../OpenJMLTest clean
 	$(MAKE) -C ../OpenJMLlsp clean
 	$(MAKE) -C ../OpenJMLUI clean
@@ -253,6 +253,7 @@ release-test: .FORCE
 	@ ZIPARCHIVE="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
 	@ "$(topdir)/../OpenJMLTest/scripttests/launcher-jdk-test"
 	@ "$(topdir)/../OpenJMLTest/scripttests/install-vscode-test"
+	@ "$(topdir)/../OpenJMLTest/scripttests/space-path-test" "$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/temp space/oj (1)"
 	@ if grep -qi microsoft /proc/version 2>/dev/null; then echo "lsp-smoke: skipped under WSL (runtests.ps1 runs it natively)"; \
 	  elif ! command -v node > /dev/null; then echo "lsp-smoke: skipped, no node"; \
 	  else node "$(topdir)/../OpenJMLTest/scripttests/lsp-smoke.js" "$(topdir)/temp-release/openjml-lsp"; fi
