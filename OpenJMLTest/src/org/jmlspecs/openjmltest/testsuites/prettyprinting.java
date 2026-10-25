@@ -508,6 +508,23 @@ public class prettyprinting extends ParseBase {
                 }""");
     }
 
+    // JML modifiers of Java declarations are printed in JML comments, so the output parses
+    @Test
+    public void testJmlModifiersOnJavaDecls() {
+        precise = false;
+        helpPP("""
+
+                class A {
+
+                  /*@ spec_public */ private int f;
+
+                  /*@ pure */ public int m(@org.jmlspecs.annotation.Nullable Object o) {
+                    return f;
+                  }
+                  //@ model public int mm(@org.jmlspecs.annotation.NonNull Object o);
+                }""");
+    }
+
     // -----------------------------------------------------------------------
     // JML statements and loop annotations
     // JmlPretty uses //@ form; 'loop_assigns' is printed as 'loop_writes'.

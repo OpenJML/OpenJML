@@ -1432,14 +1432,25 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
             if (that.name == that.name.table.names.init &&
                     sourceOutput) sourceOutput = false;
 
-            if (isJML(that.mods) && that.body == null) print("//@ ");
-            super.visitMethodDef(that);
+            boolean wasInJmlDecl = inJmlDecl;
+            if (isJML(that.mods)) {
+                if (that.body == null) print("//@ ");
+                inJmlDecl = true;
+            }
+            try {
+                super.visitMethodDef(that);
+            } finally {
+                inJmlDecl = wasInJmlDecl;
+            }
             sourceOutput = wasSourceOutput;
         } catch (Exception e) {
             perr(jcthat,e);
         }
     }
     
+    /** True while printing a JML declaration, which is already in a JML comment */
+    protected boolean inJmlDecl = false;
+
     boolean isJML(JCModifiers mods) {
     	return (mods.flags & Utils.JMLBIT) != 0;
     }
@@ -1447,8 +1458,16 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     @Override
     public void visitVarDef(JCVariableDecl that) {
         try {
-        	if (isJML(that.mods)) print("//@ ");
-            super.visitVarDef(that);
+            boolean wasInJmlDecl = inJmlDecl;
+            if (isJML(that.mods)) {
+                print("//@ ");
+                inJmlDecl = true;
+            }
+            try {
+                super.visitVarDef(that);
+            } finally {
+                inJmlDecl = wasInJmlDecl;
+            }
             if (!(that instanceof JmlVariableDecl)) return;
             JmlVariableDecl jmlthat = (JmlVariableDecl)that;
 //            if (jmlthat.fieldSpecsCombined != null) printFieldSpecs(jmlthat.fieldSpecsCombined);
@@ -1577,11 +1596,20 @@ public class JmlPretty extends Pretty implements IJmlVisitor {
     public void visitModifiers(JCModifiers that) {
         try {
             printAnnotations(that.annotations);
-        	StringBuilder sb = new StringBuilder();
-    		for (var kk: ((JmlModifiers)that).jmlmods) {
-    			print(kk.toString());
-    			print(" ");
-    		}
+            // In source output, JML modifiers of a Java declaration go in JML comments;
+            // one that duplicates a printed annotation (e.g. pure and @Pure) is omitted
+            boolean wrap = useJMLComments && !inJmlDecl;
+            java.util.Set<String> annotated = new java.util.HashSet<>();
+            if (wrap) {
+                for (var a: that.annotations) {
+                    String n = a.annotationType.toString();
+                    annotated.add(n.substring(n.lastIndexOf('.') + 1).toLowerCase());
+                }
+            }
+            for (var kk: ((JmlModifiers)that).jmlmods) {
+                if (!wrap) print(kk.toString() + " ");
+                else if (!annotated.contains(kk.toString().replace("_", ""))) print("/*@ " + kk + " */ ");
+            }
             printFlags(that.flags);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
