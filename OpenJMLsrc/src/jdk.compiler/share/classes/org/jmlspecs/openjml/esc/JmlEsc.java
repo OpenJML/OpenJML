@@ -110,10 +110,40 @@ public class JmlEsc extends JmlTreeScanner {
         
     }
     
+    /** Whether checkEncodings has run (once per compilation) */
+    private boolean encodingsChecked = false;
+
+    /** Warns about each encoding the options explicitly request that the prover does not support */
+    protected void checkEncodings() {
+        String prover = pickProver(context);
+        if ("false".equals(JmlOption.FPREAL.value(context))) {
+            warnUnsupported(prover, org.smtlib.SolverCapabilities.Capability.FLOATING_POINT,
+                    "the SMT-LIB FloatingPoint theory", "--no-fpreal");
+        }
+        if (!JmlOption.useFPTheory(context) && "datatype".equals(JmlOption.FPREAL_ENCODING.value(context))) {
+            warnUnsupported(prover, org.smtlib.SolverCapabilities.Capability.DATATYPES,
+                    "SMT datatypes", "--fpreal-encoding=datatype");
+        }
+        if ("true".equals(JmlOption.SMT_STRINGS.value(context))) {
+            warnUnsupported(prover, org.smtlib.SolverCapabilities.Capability.STRINGS,
+                    "the SMT-LIB Strings theory", "--smt-strings");
+        }
+    }
+
+    private void warnUnsupported(String prover, org.smtlib.SolverCapabilities.Capability capability, String what, String option) {
+        if (JmlOption.proverSupports(prover, capability) == org.smtlib.SolverCapabilities.Support.NO) {
+            utils.warning("esc.unsupported.encoding", prover, what, option);
+        }
+    }
+
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
         this.verbose = escdebug || Options.instance(context).isSet("-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
+        if (!encodingsChecked) {
+            encodingsChecked = true;
+            checkEncodings();
+        }
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
             if (tree instanceof JCTree.JCModuleDecl) return;  // module-info.java has no methods to prove

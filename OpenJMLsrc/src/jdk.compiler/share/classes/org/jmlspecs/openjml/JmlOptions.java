@@ -312,7 +312,7 @@ public class JmlOptions extends Options {
         
 
         if (o != null && o.hasArg()) {
-            if (negate && !s.equals("--warn") && !s.equals("--infer") && !s.equals("--split") && !s.equals("--fpreal")) {
+            if (negate && !s.equals("--warn") && !s.equals("--infer") && !s.equals("--split") && !s.equals("--fpreal") && !s.equals("--smt-strings")) {
                 Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)"); // FIXME - add --split to message
                 negate = false;
             }

@@ -44,6 +44,75 @@ public class escall3 extends EscBase {
                 );
     }
     
+    // Encodings are chosen by the prover's capabilities (jSMTLIB SolverCapabilities); yices2 has none of them.
+    // yices2 cannot prove OpenJML's quantified VCs, so --method=zzz selects no method: only the option checks run.
+    @Test
+    public void testEncodingsAutoUnsupported() {
+        expectedExit=0;
+        addOptions("--prover=yices2", "--method=zzz");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
+                ,"warning: No method matches the --method item 'zzz'",-1
+                );
+    }
+
+    @Test
+    public void testFPTheoryUnsupported() {
+        expectedExit=0;
+        addOptions("--prover=yices2", "--method=zzz", "--no-fpreal");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
+                ,"/tt/TestJava.java: warning: The prover yices2 does not support the SMT-LIB FloatingPoint theory, which --no-fpreal requests",-1
+                ,"warning: No method matches the --method item 'zzz'",-1
+                );
+    }
+
+    @Test
+    public void testFPDatatypeUnsupported() {
+        expectedExit=0;
+        addOptions("--prover=yices2", "--method=zzz", "--fpreal", "--fpreal-encoding=datatype");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
+                ,"/tt/TestJava.java: warning: The prover yices2 does not support SMT datatypes, which --fpreal-encoding=datatype requests",-1
+                ,"warning: No method matches the --method item 'zzz'",-1
+                );
+    }
+
+    @Test
+    public void testStringsUnsupported() {
+        expectedExit=0;
+        addOptions("--prover=yices2", "--method=zzz", "--smt-strings");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
+                ,"/tt/TestJava.java: warning: The prover yices2 does not support the SMT-LIB Strings theory, which --smt-strings requests",-1
+                ,"warning: No method matches the --method item 'zzz'",-1
+                );
+    }
+
+    @Test
+    public void testStringsSupported() {
+        expectedExit=0;
+        addOptions("--prover=cvc5", "--smt-strings", "--no-fpreal");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
+                );
+    }
+
     @Test
     public void testTimeoutBad() {
         expectedExit=0;

@@ -383,15 +383,15 @@ public class JmlOption {
         if ("false".equals(val)) return true;
         String logic = LOGIC.value(context); // a logic other than ALL must name FP for the FloatingPoint theory
         if (logic != null && !logic.equals("ALL") && !logic.contains("FP")) return false;
-        return proverSupportsFP(PROVER.value(context));
+        return proverSupports(PROVER.value(context), org.smtlib.SolverCapabilities.Capability.FLOATING_POINT)
+                == org.smtlib.SolverCapabilities.Support.YES;
     }
 
-    /** Whether the named prover implements the SMT FloatingPoint theory */
-    public static boolean proverSupportsFP(/*@ nullable */ String prover) {
-        if (prover == null) return false;
-        String p = prover.toLowerCase();
-        if (p.startsWith("z3")) return !p.startsWith("z3-4.3") && !p.startsWith("z3_4_3"); // FloatingPoint is in z3 since 4.4
-        return p.startsWith("cvc5") || p.startsWith("cvc4") || p.startsWith("bitwuzla");
+    /** Whether the named prover supports the capability, per jSMTLIB's solver capabilities (UNKNOWN if no prover) */
+    public static org.smtlib.SolverCapabilities.Support proverSupports(/*@ nullable */ String prover,
+            org.smtlib.SolverCapabilities.Capability capability) {
+        if (prover == null) return org.smtlib.SolverCapabilities.Support.UNKNOWN;
+        return org.smtlib.SolverCapabilities.supports(prover, capability);
     }
     public static final JmlOption Z3 = new JmlOption("--z3",true,"","ESC: Comma-separated z3 settings: mbqi, autoconf (turn on model-based quantifier instantiation / z3's auto-configuration), no-mbqi, no-autoconf (turn them off, the default)",null) {
         public boolean check(Context context, boolean negate) {
@@ -421,18 +421,31 @@ public class JmlOption {
         return on;
     }
     public static final JmlOption PIPELINE = new JmlOption("--pipeline",false,true,"ESC: Send SMT commands to the solver without waiting for each response where possible (default true)",null);
-    public static final JmlOption SMT_STRINGS = new JmlOption("--smt-strings",false,true,"ESC: Use the SMT-LIB Strings theory for \\string if the solver supports it (default true)",null);
+    public static final JmlOption SMT_STRINGS = new JmlOption("--smt-strings",true,"auto","ESC: If true, model \\string with the SMT-LIB Strings theory; if false, as arrays of characters (auto, the default: true if the prover supports Strings)",null,"true") {
+        public boolean check(Context context, boolean negate) {
+            JmlOptions options = JmlOptions.instance(context);
+            var nm = JmlOption.SMT_STRINGS.optionName();
+            if (negate) options.put(nm, "false");
+            String val = options.get(nm);
+            if (!"auto".equals(val) && !"true".equals(val) && !"false".equals(val)) {
+                clWarning(context, "Command-line argument error: Expected 'auto', 'true' or 'false' for "+nm+": " + val);
+                options.put(nm,(String)JmlOption.SMT_STRINGS.defaultValue());
+                return false;
+            }
+            return true;
+        }
+    };
 
-    /** Whether ESC uses the SMT-LIB Strings theory for \string: --smt-strings is on, the logic includes the theory,
-     * and the solver supports it (z3 after 4.3, cvc4, cvc5); bit-vector mode never uses it (#1043) */
+    /** Whether ESC uses the SMT-LIB Strings theory for \string: per --smt-strings, else (auto) if the prover supports
+     * it; never if the logic lacks the theory; bit-vector mode never uses it (#1043) */
     public static boolean useSmtStrings(Context context) {
-        if (!SMT_STRINGS.isSet(context)) return false;
+        String val = SMT_STRINGS.value(context);
+        if ("false".equals(val)) return false;
         String logic = LOGIC.value(context); // a logic other than ALL must have the S (Strings) component
         if (logic != null && !logic.equals("ALL") && !logic.replace("QF_","").contains("S")) return false;
-        String prover = PROVER.value(context);
-        if (prover == null) return true;
-        return (prover.startsWith("z3") && !prover.startsWith("z3_4_3") && !prover.startsWith("z3-4.3"))
-                || prover.startsWith("cvc4") || prover.startsWith("cvc5");
+        if ("true".equals(val)) return true;
+        return proverSupports(PROVER.value(context), org.smtlib.SolverCapabilities.Capability.STRINGS)
+                == org.smtlib.SolverCapabilities.Support.YES;
     }
     public static final JmlOption ESC_MAX_WARNINGS = new JmlOption("--esc-max-warnings",true,"all","ESC: Maximum number of warnings to find per method",null) {
         public boolean check(Context context, boolean negate) {
