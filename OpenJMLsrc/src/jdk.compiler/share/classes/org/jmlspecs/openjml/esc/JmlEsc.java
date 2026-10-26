@@ -113,7 +113,7 @@ public class JmlEsc extends JmlTreeScanner {
     /** Whether checkEncodings has run (once per compilation) */
     private boolean encodingsChecked = false;
 
-    /** Warns about each encoding the options explicitly request that the prover does not support */
+    /** Warns about each encoding the options explicitly request that the prover does not support, or is not known to */
     protected void checkEncodings() {
         String prover = pickProver(context);
         if ("false".equals(JmlOption.FPREAL.value(context))) {
@@ -131,8 +131,10 @@ public class JmlEsc extends JmlTreeScanner {
     }
 
     private void warnUnsupported(String prover, org.smtlib.SolverCapabilities.Capability capability, String what, String option) {
-        if (JmlOption.proverSupports(prover, capability) == org.smtlib.SolverCapabilities.Support.NO) {
-            utils.warning("esc.unsupported.encoding", prover, what, option);
+        switch (JmlOption.proverSupports(prover, capability)) {
+            case NO -> utils.warning("esc.unsupported.encoding", prover, what, option);
+            case UNKNOWN -> utils.warning("esc.unknown.encoding", prover, what, option);
+            case YES -> {}
         }
     }
 

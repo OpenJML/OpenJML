@@ -102,6 +102,20 @@ public class escall3 extends EscBase {
     }
 
     @Test
+    public void testFPTheoryUnknown() { // cvc4 has no capabilities entry
+        expectedExit=0;
+        addOptions("--prover=cvc4", "--method=zzz", "--no-fpreal");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava { }
+                """
+                ,"/tt/TestJava.java: warning: The prover cvc4 is not known to support the SMT-LIB FloatingPoint theory, which --no-fpreal requests",-1
+                ,"warning: No method matches the --method item 'zzz'",-1
+                );
+    }
+
+    @Test
     public void testStringsSupported() {
         expectedExit=0;
         addOptions("--prover=cvc5", "--smt-strings", "--no-fpreal");
