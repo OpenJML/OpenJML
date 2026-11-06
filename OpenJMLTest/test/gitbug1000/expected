@@ -44,6 +44,22 @@ test/gitbug1000/MinMaxChecks.java:49: verify: The prover cannot establish an ass
         //@ assert (\min int i; 0 <= i < a.length; a[i]) == 4; // FAILS
             ^
 Completed proof of MinMaxChecks.wrongMin(int[]) with prover !!!! - with warnings
+Starting proof of MinMaxChecks.unboundedMax() with prover !!!!
+test/gitbug1000/MinMaxChecks.java:56: verify: The prover cannot establish an assertion (Assert) in method unboundedMax
+        //@ assert false; // FAILS
+            ^
+test/gitbug1000/MinMaxChecks.java:55: verify: The prover cannot establish an assertion (MaxNotDefined) in method unboundedMax
+        //@ ghost \bigint m = (\max \bigint i; 0 <= i; i); // FAILS: MaxNotDefined
+                               ^
+Completed proof of MinMaxChecks.unboundedMax() with prover !!!! - with warnings
+Starting proof of MinMaxChecks.unboundedMinReal() with prover !!!!
+test/gitbug1000/MinMaxChecks.java:61: verify: The prover cannot establish an assertion (Assert) in method unboundedMinReal
+        //@ assert false; // FAILS
+            ^
+test/gitbug1000/MinMaxChecks.java:60: verify: The prover cannot establish an assertion (MinNotDefined) in method unboundedMinReal
+        //@ ghost \real m = (\min \real x; 0 < x && x < 1; x); // FAILS: MinNotDefined
+                             ^
+Completed proof of MinMaxChecks.unboundedMinReal() with prover !!!! - with warnings
 Completed proving methods in MinMaxChecks
 Proving methods in MinMaxExample
 Starting proof of MinMaxExample.MinMaxExample() with prover !!!!
@@ -59,4 +75,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of MinMaxExample.maxOfPosArray(int[]) with prover !!!! - no warnings
 Completed proving methods in MinMaxExample
-5 verification failures
+9 verification failures

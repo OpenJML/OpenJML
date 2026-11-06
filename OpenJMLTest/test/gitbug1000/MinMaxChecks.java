@@ -48,4 +48,16 @@ public class MinMaxChecks {
     public void wrongMin(int[] a) {
         //@ assert (\min int i; 0 <= i < a.length; a[i]) == 4; // FAILS
     }
+
+    // A non-empty range with no maximum (minimum) is reported as not defined. The assumptions that
+    // define the value then have no model, but must not let a false assertion be proved.
+    public void unboundedMax() {
+        //@ ghost \bigint m = (\max \bigint i; 0 <= i; i); // FAILS: MaxNotDefined
+        //@ assert false; // FAILS
+    }
+
+    public void unboundedMinReal() {
+        //@ ghost \real m = (\min \real x; 0 < x && x < 1; x); // FAILS: MinNotDefined
+        //@ assert false; // FAILS
+    }
 }
