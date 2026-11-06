@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## --compile of enums, one with a JML clause: crashed in Lower (#1082)
+rm -rf actual bin
+(openjml --compile -d bin src/p/*.java && $BIN/build/*/jdk/bin/java -cp bin p.Main) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

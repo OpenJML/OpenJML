@@ -57,6 +57,27 @@ public class runscripts1 extends RunBase {
         doTest();
     }
 
+    @Test public void gitbug1082() {
+        doTest();
+    }
+
+    // --compile is a Java-only compile (#1082)
+    @Test public void compileJmlErrors() {
+        doTest();
+    }
+
+    @Test public void compileMembers() {
+        doTest();
+    }
+
+    @Test public void compileRun() {
+        doTest();
+    }
+
+    @Test public void compileNoJml() {
+        doTest();
+    }
+
     // gitbug857
     @Test public void crashXlint() {
         doTest();

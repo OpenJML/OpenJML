@@ -1,0 +1,9 @@
+H.class
+Compiled from "H.java"
+public class p.H {
+  int x;
+  int[] a;
+  public p.H();
+  static int count();
+  public void f();
+}

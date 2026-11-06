@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## --compile is a Java-only compile: its class files are identical to those of --compile -no-jml (#1082)
+rm -rf actual bin1 bin2
+(openjml --compile -d bin1 src/p/*.java && openjml --compile -no-jml -d bin2 src/p/*.java \
+  && ls bin1/p && diff -r bin1 bin2 && echo identical) >& actual
+expected_output expected | diff actual - && rm -rf actual bin1 bin2
