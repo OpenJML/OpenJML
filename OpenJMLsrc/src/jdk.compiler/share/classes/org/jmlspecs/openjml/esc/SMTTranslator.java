@@ -2679,7 +2679,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (useBV) 
                     result = F.fcn(F.symbol("bvnot"), args);
                 else
-                    result = F.fcn(F.symbol("-"), F.fcn(F.symbol("-"), arg), F.decimal("1"));
+                    result = F.fcn(F.symbol("-"), F.fcn(F.symbol("-"), arg), F.numeral(1));
                 break;
                 
             default:
