@@ -123,6 +123,15 @@ SRCS := $(shell find "$(SRC_DIR)" -name '*.java' 2>/dev/null)
 ## SWTBot headless application (no socket connection needed, unlike uitestapplication)
 SWTBOT_APP := org.eclipse.swtbot.eclipse.junit.headless.swtbottestapplication
 
+## Portable process-level timeout (10 minutes) for each Eclipse invocation.
+## Prevents a hung SWTBot test from blocking CI indefinitely.
+## Preference order: GNU timeout → gtimeout (macOS via brew coreutils) → perl alarm.
+TIMEOUT_CMD := $(shell \
+    if command -v timeout  >/dev/null 2>&1; then echo timeout 600; \
+  elif command -v gtimeout >/dev/null 2>&1; then echo gtimeout 600; \
+  else echo perl -e 'alarm(600);exec @ARGV' --; \
+  fi)
+
 ## JUnit XML formatter class (Ant taskdef)
 JUNIT_FORMATTER := org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter
 
@@ -175,14 +184,22 @@ else
   ECLIPSE_SWT_JAR = $(shell find "$(PLUGINS_DIR)" -maxdepth 1 -name "org.eclipse.swt.gtk.linux.*.jar" 2>/dev/null | grep -v source | sort -V | tail -1)
 endif
 
-COMPILE_CP = $(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SWTBOT_ECLIPSE_CORE):$(SWTBOT_JUNIT_JAR):$(ECLIPSE_UI_JAR):$(ECLIPSE_UI_WORKBENCH_JAR):$(ECLIPSE_UI_IDE_JAR):$(ECLIPSE_CORE_COMMANDS_JAR):$(ECLIPSE_RUNTIME_JAR):$(ECLIPSE_RESOURCES_JAR):$(ECLIPSE_JDT_CORE_JAR):$(ECLIPSE_SWT_JAR):$(ECLIPSE_JFACE_JAR):$(ECLIPSE_EQUINOX_JAR):$(ECLIPSE_CORE_JOBS_JAR):$(ECLIPSE_OSGI_JAR):$(JUNIT4_JAR):$(HAMCREST_JAR)
+## OpenJMLUI compiled classes (provides OpenJMLConstants, JmlNature, etc.)
+## Populated by Eclipse IDE or 'make release' in OpenJMLUI — not rebuilt here.
+OPENJML_UI_CLASSES := $(REPO_ROOT)/OpenJMLUI/bin
+
+## OpenJMLlsp jar (built by its own Makefile)
+OPENJML_LSP_JAR    := $(REPO_ROOT)/OpenJMLlsp/build/openjml-lsp.jar
+
+COMPILE_CP = $(OPENJML_UI_CLASSES):$(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SWTBOT_ECLIPSE_CORE):$(SWTBOT_JUNIT_JAR):$(ECLIPSE_UI_JAR):$(ECLIPSE_UI_WORKBENCH_JAR):$(ECLIPSE_UI_IDE_JAR):$(ECLIPSE_CORE_COMMANDS_JAR):$(ECLIPSE_RUNTIME_JAR):$(ECLIPSE_RESOURCES_JAR):$(ECLIPSE_JDT_CORE_JAR):$(ECLIPSE_SWT_JAR):$(ECLIPSE_JFACE_JAR):$(ECLIPSE_EQUINOX_JAR):$(ECLIPSE_CORE_JOBS_JAR):$(ECLIPSE_OSGI_JAR):$(JUNIT4_JAR):$(HAMCREST_JAR)
 
 ## --------------------------------------------------------------------------
 ## Phony targets
 ## --------------------------------------------------------------------------
-.PHONY: all fetch-eclipse build-tests prepare-test-eclipse \
+.PHONY: all fetch-eclipse build-tests build-openjml-lsp \
+        prepare-test-eclipse \
         run-install-test install-openjml \
-        run-menu-test run-nature-test run-markers-test run-action-test \
+        run-menu-test run-nature-test \
         run-fileicon-test run-preferences-test run-lsp-test \
         run-plugin-tests run-plugin-suite \
         clean clean-test-eclipse clean-downloads clean-cache clean-all help .FORCE
@@ -204,8 +221,6 @@ help:
 	@echo "  run-nature-test      Run NatureTest: Add/Remove JML Nature"
 	@echo "  run-fileicon-test    Run FileIconTest: file-type icons for .java/.jml/.xyz"
 	@echo "  run-lsp-test         Run LspFeatureTest: Find References, Check JML markers (needs LSP)"
-	@echo "  run-action-test      Run ActionTest (legacy — use run-lsp-test)"
-	@echo "  run-markers-test     Run MarkersTest (legacy — use run-lsp-test)"
 	@echo "  run-plugin-tests     Run each test class separately: [PASS]/[FAIL] per class"
 	@echo "  run-plugin-suite     Run AllPluginTests in one JVM: one [PASS]/[FAIL] at end (faster)"
 	@echo "  clean                Remove build/ and test-ws/ (keeps eclipse-cache and sentinels)"
@@ -312,9 +327,20 @@ $(DOWNLOAD_DIR):
 	@mkdir -p "$(DOWNLOAD_DIR)"
 
 ## --------------------------------------------------------------------------
+## build-openjml-lsp — build the LSP server jar via its own Makefile
+## --------------------------------------------------------------------------
+build-openjml-lsp:
+	@$(MAKE) --no-print-directory -C "$(REPO_ROOT)/OpenJMLlsp" jar
+
+## --------------------------------------------------------------------------
 ## build-tests
 ## --------------------------------------------------------------------------
 $(TEST_JAR): $(SRCS) $(PRISTINE_DIR)/.swtbot-installed
+	@if [ ! -d "$(OPENJML_UI_CLASSES)" ] || [ -z "$$(ls -A "$(OPENJML_UI_CLASSES)" 2>/dev/null)" ]; then \
+	    echo "ERROR: $(OPENJML_UI_CLASSES) is empty or missing."; \
+	    echo "       Build OpenJMLUI first: run 'make release' in OpenJMLUI/ or build it in Eclipse."; \
+	    exit 1; \
+	fi
 	@mkdir -p "$(CLASSES_DIR)"
 	@echo "Compiling test sources ..."
 	@javac -source 21 -target 21 \
@@ -329,7 +355,7 @@ $(TEST_JAR): $(SRCS) $(PRISTINE_DIR)/.swtbot-installed
 	     -C "$(UITEST)" testdata
 	@echo "Test jar: $(TEST_JAR)"
 
-build-tests: $(TEST_JAR)
+build-tests: build-openjml-lsp $(TEST_JAR)
 
 ## --------------------------------------------------------------------------
 ## prepare-test-eclipse
@@ -362,7 +388,7 @@ run-install-test: build-tests prepare-test-eclipse
 	@echo "=== Running InstallPluginTest ==="
 	@echo "    Update site: $(UPDATE_SITE)"
 	@rm -f "$(INSTALL_TEST_XML)"; \
-	 $(XVFB) "$(TEST_BIN)" \
+	 $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
 	     $(ECLIPSE_LAUNCH_FLAGS) \
 	     -classname org.jmlspecs.openjml.eclipse.uitest.InstallPluginTest \
 	     "formatter=$(JUNIT_FORMATTER),$(INSTALL_TEST_XML)" \
@@ -444,7 +470,7 @@ define run-one-plugin-test
 	@echo "=== Running $(1) ==="
 	@_xml="$(RESULTS_DIR)/$(1)-results.xml"; \
 	 rm -f "$$_xml"; \
-	 $(XVFB) "$(TEST_BIN)" \
+	 $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
 	     $(ECLIPSE_LAUNCH_FLAGS) \
 	     -classname org.jmlspecs.openjml.eclipse.uitest.$(1) \
 	     "formatter=$(JUNIT_FORMATTER),$$_xml" \
@@ -470,12 +496,6 @@ run-nature-test: $(OPENJML_INSTALLED_STAMP)
 run-lsp-test: $(OPENJML_INSTALLED_STAMP)
 	$(call run-one-plugin-test,LspFeatureTest)
 
-## Legacy aliases (these test classes still exist but LspFeatureTest is preferred)
-run-action-test: $(OPENJML_INSTALLED_STAMP)
-	$(call run-one-plugin-test,ActionTest)
-
-run-markers-test: $(OPENJML_INSTALLED_STAMP)
-	$(call run-one-plugin-test,MarkersTest)
 
 ## --------------------------------------------------------------------------
 ## run-plugin-tests
@@ -495,12 +515,12 @@ run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 	@mkdir -p "$(RESULTS_DIR)"
 	@_pass=0; _fail=0; \
 	 for cls in $(PLUGIN_TEST_CLASSES); do \
-	   rm -rf "$(TEST_WS)"; \
+	   sleep 1; rm -rf "$(TEST_WS)"; \
 	   _xml="$(RESULTS_DIR)/$$cls-results.xml"; \
 	   rm -f "$$_xml"; \
 	   echo "[TEST] $$cls"; \
 	   _start=$$(date +%s); \
-	   ( $(XVFB) "$(TEST_BIN)" \
+	   ( $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
 	            $(ECLIPSE_LAUNCH_FLAGS) \
 	            -classname "org.jmlspecs.openjml.eclipse.uitest.$$cls" \
 	            "formatter=$(JUNIT_FORMATTER),$$_xml" \
@@ -544,7 +564,7 @@ run-plugin-suite: $(OPENJML_INSTALLED_STAMP)
 	@rm -f "$(PLUGIN_SUITE_XML)"
 	@echo "[TEST] AllPluginTests"
 	@_start=$$(date +%s); \
-	 ( $(XVFB) "$(TEST_BIN)" \
+	 ( $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
 	          $(ECLIPSE_LAUNCH_FLAGS) \
 	          -classname "org.jmlspecs.openjml.eclipse.uitest.AllPluginTests" \
 	          "formatter=$(JUNIT_FORMATTER),$(PLUGIN_SUITE_XML)" \

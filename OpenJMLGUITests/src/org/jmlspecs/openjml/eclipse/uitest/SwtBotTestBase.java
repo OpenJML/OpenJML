@@ -58,6 +58,21 @@ public abstract class SwtBotTestBase {
     @AfterClass
     public static void baseTearDown() {
         bot.resetWorkbench();
+        dismissKnownDialogs();
+    }
+
+    /**
+     * Dismiss modal dialogs that may appear after {@code resetWorkbench()} —
+     * e.g. OpenJML server-error popups or Eclipse marketplace prompts.
+     * No-op if none of the known shells are present.
+     */
+    private static void dismissKnownDialogs() {
+        for (String title : new String[]{
+                "OpenJML: Server Not Found", "OpenJML: Server Not Configured",
+                "OpenJML: Server Stopped Unexpectedly",
+                "Eclipse Marketplace", "Discover", "Software Updates"}) {
+            try { bot.shell(title).close(); } catch (Exception ignored) {}
+        }
     }
 
     // -----------------------------------------------------------------------
