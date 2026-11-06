@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## --compile reports JML errors, in the .java and in a .jml; with -no-jml the same files compile (#1082)
+rm -rf actual bin
+(openjml --compile -d bin src/p/A.java ;\
+openjml --compile --specs-path=specs -d bin src/p/B.java ;\
+echo "== -no-jml" ;\
+openjml --compile -no-jml --specs-path=specs -d bin src/p/A.java src/p/B.java && ls bin/p) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

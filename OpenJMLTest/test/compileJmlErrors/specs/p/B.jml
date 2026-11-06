@@ -1,0 +1,5 @@
+package p;
+public class B {
+    int x;
+    //@ invariant z > 0; // error: z is not declared
+}

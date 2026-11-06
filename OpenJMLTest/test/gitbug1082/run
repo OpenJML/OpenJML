@@ -3,7 +3,7 @@
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
 
-## --compile of an enum (crashed in Lower: the enum axioms, added for ESC only, were in the class's defs)
+## --compile of enums, one with a JML clause: crashed in Lower (#1082)
 rm -rf actual bin
-(openjml --compile -d bin src/p/E.java && ls bin/p) >& actual
+(openjml --compile -d bin src/p/*.java && $BIN/build/*/jdk/bin/java -cp bin p.Main) >& actual
 expected_output expected | diff actual - && rm -rf actual bin

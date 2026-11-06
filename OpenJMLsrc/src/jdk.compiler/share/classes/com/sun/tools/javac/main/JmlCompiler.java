@@ -651,9 +651,63 @@ public class JmlCompiler extends JavaCompiler {
                 results.add(env);
             }
             return results;
+        } else if (utils.compile) {
+            return removeJML(envs);
         } else {
         	return envs;
         }
+    }
+
+    /** --compile is a Java-only compile (#1082): JML is parsed and type-checked, and then removed here, before
+     *  code generation -- JML clauses and statements, model fields, methods and classes, and ghost fields and
+     *  locals (both the declarations and the class's member symbols, from which javac writes the class file).
+     *  Left in, JML nodes reach javac's translators (crashing Lower for an enum, and TransTypes for a JML
+     *  expression), a bodiless model method makes the class file invalid, and ghost initializers run. */
+    protected Queue<Env<AttrContext>> removeJML(Queue<Env<AttrContext>> envs) {
+        var remover = new com.sun.tools.javac.tree.TreeScanner() {
+            boolean isJMLMember(JCTree d) {
+                // GHOST FIELDS ARE REMOVED TOO, although a ghost field without a JML-only initializer would compile
+                // and run harmlessly. Kept, it is an ordinary field in the class file, and using that class file
+                // later as a binary with the class's original .jml fails (an internal error matching the .jml's
+                // ghost declaration to the field); RAC output has the same problem. See Issue #1084 before
+                // changing this.
+                return d instanceof JmlTree.JmlTypeClause
+                        || (d instanceof JCTree.JCVariableDecl v && Utils.isJML(v.mods))
+                        || (d instanceof JCTree.JCMethodDecl m && Utils.isJML(m.mods))
+                        || (d instanceof JCClassDecl c && Utils.isJML(c.mods));
+            }
+
+            @Override
+            public void visitClassDef(JCClassDecl tree) {
+                var kept = new ListBuffer<JCTree>();
+                for (var d: tree.defs) {
+                    if (!isJMLMember(d)) {
+                        kept.add(d);
+                    } else if (tree.sym != null) {
+                        var s = com.sun.tools.javac.tree.TreeInfo.symbolFor(d);
+                        if (s != null) tree.sym.members().remove(s);
+                    }
+                }
+                tree.defs = kept.toList();
+                super.visitClassDef(tree);
+            }
+
+            @Override
+            public void visitBlock(JCTree.JCBlock tree) {
+                tree.stats = tree.stats.stream()
+                        .filter(s -> !(s instanceof JmlTree.JmlAbstractStatement)
+                                && !(s instanceof JCTree.JCVariableDecl v && Utils.isJML(v.mods)))
+                        .collect(List.collector());
+                super.visitBlock(tree);
+            }
+        };
+        var results = new java.util.LinkedList<Env<AttrContext>>();
+        for (var env: envs) {
+            if (env.tree instanceof JCClassDecl c && Utils.isJML(c.mods)) continue; // a top-level model class
+            remover.scan(env.tree);
+            results.add(env);
+        }
+        return results;
     }
 
     
