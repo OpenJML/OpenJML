@@ -178,7 +178,7 @@ escfiles3.gitbug814                   # proof problem <<<<<<<<<<<<<<<<<<<<<<<<<<
 escfileslist3.test[gitbug944]         # bad translation for \seq<\bigint>
 
 escfiles2.gitbug890                   # z3-5.1.0 lost proof in model_test; MBQI does not recover it
-escfiles2.gitbug880                   # flaky: getFormat 9 s to >300 s; BasicBlocker2 declaration order follows identity hashes
+escfiles2.gitbug880                   # flaky: getFormat 9 s to >300 s; solver input order follows identity hashes (#1081)
 escfiles3.gitbug963a                  # no expected output file yet (partial fix for #963)
 escfiles3.buggyCalculatorBV           # times out (bit-vector arithmetic)
 escfiles3.gitbug971a                  # Associated declaration reported at ScreenPoint.java:7, expected :6
