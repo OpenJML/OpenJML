@@ -1,0 +1,7 @@
+specs/p/X.jml:4: warning: The field p.X.count is declared in p.X but not in its specification file
+    //@ public invariant count >= 0; // reported: count is declared in X but not in X.jml
+                         ^
+specs/p/Y.jml:3: warning: The field p.X.K is declared in p.X but not in its specification file
+    //@ ensures \result == X.K; // reported: K is declared in X but not in X.jml
+                            ^
+2 warnings

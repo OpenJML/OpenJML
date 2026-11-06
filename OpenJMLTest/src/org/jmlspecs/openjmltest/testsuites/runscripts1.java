@@ -53,6 +53,10 @@ public class runscripts1 extends RunBase {
         doTest();
     }
 
+    @Test public void gitbug1060() {
+        doTest();
+    }
+
     // gitbug857
     @Test public void crashXlint() {
         doTest();

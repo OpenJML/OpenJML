@@ -1,0 +1,5 @@
+package p;
+public class Y {
+    //@ ensures \result == X.K; // reported: K is declared in X but not in X.jml
+    public int get();
+}

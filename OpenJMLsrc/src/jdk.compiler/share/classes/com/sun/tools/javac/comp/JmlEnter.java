@@ -1464,7 +1464,8 @@ public class JmlEnter extends Enter {
 			ok = false;
 		} finally {
 			if (vsym != null) {
-				JmlSpecs.instance(context).putSpecs(vsym, vdecl.fieldSpecs);
+				// fieldSpecs() because the parser makes no FieldSpecs for an enum constant (#1060)
+				JmlSpecs.instance(context).putSpecs(vsym, vdecl.fieldSpecs());
 				if (!ok) JmlSpecs.instance(context).setStatus(vsym, JmlSpecs.SpecsStatus.ERROR);
 			}
 		}

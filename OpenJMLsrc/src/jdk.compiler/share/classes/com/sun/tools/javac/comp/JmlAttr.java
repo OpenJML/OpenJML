@@ -6236,7 +6236,34 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return v;
     }
     
+    /** Warns of a use, in a .jml file, of a field or method of a class that has only a class file, when the
+     *  member is declared in that class (not inherited) but not in the class's .jml (#1060) */
+    protected void warnUndeclaredMember(DiagnosticPosition pos, Symbol sym) {
+        if (!(sym instanceof VarSymbol || sym instanceof MethodSymbol) || !(sym.owner instanceof ClassSymbol cs)) return;
+        if (sym.name == names.length || sym.name == names._class || sym.name == names._this || sym.name == names._super) return;
+        if (Utils.isJML(sym.flags())) return;
+        JavaFileObject src = log.currentSourceFile();
+        if (src == null || !src.getName().endsWith(".jml")) return;
+        if (cs.classfile == null || cs.classfile.getKind() != JavaFileObject.Kind.CLASS) return;
+        // Temporarily: the built-in types' .jml declare as model some methods their .java implements (#1080)
+        if (cs.packge().fullname.toString().equals("org.jmlspecs.lang.internal")) return;
+        var tspecs = specs.get(cs);
+        if (tspecs == null || tspecs.specDecl == null || tspecs.specDecl.sourcefile == null
+                || !tspecs.specDecl.sourcefile.getName().endsWith(".jml")) return;
+        JavaFileObject declFile = null;
+        if (sym instanceof VarSymbol v) {
+            var fs = specs.get(v);
+            if (fs != null && fs.decl != null) declFile = fs.decl.sourcefile;
+        } else {
+            var ms = specs.get((MethodSymbol)sym);
+            if (ms != null && ms.specDecl != null) declFile = ms.specDecl.sourcefile;
+        }
+        if (declFile != null && declFile.getName().endsWith(".jml")) return;
+        utils.warning(pos, "jml.undeclared.member", sym instanceof VarSymbol ? "field" : "method", cs + "." + sym, cs);
+    }
+
     protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym, JCExpression selected) {
+        warnUndeclaredMember(pos, sym);
         if (jmlenv.currentBlockContract != null) return;
         if (jmlVisibility != -1) {
             long v = (sym.flags() & Flags.AccessFlags);
