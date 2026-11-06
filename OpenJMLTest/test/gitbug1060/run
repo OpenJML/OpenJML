@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## Warns of each use, in a .jml, of a member that is declared in a binary class but not in its .jml
+rm -rf actual bin
+## (--rac, as --compile crashes on an enum)
+(openjml --rac -d bin src/p/*.java ;\
+openjml --check -jmltesting --specs-path=specs -cp bin src/p/C.java) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

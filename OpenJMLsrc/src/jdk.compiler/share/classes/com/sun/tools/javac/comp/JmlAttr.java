@@ -176,9 +176,6 @@ import com.sun.tools.javac.util.PropagatedException;
 public class JmlAttr extends Attr implements IJmlVisitor {
 	
 	final static boolean debugAttr = org.jmlspecs.openjml.Utils.debug("attr");
-	/** For counting only (#1060): OJ=undeclared prints each reference from a .jml file to a field or method that
-	 *  belongs to a class with only a class file and that the class's .jml does not declare */
-	final static boolean debugUndeclared = org.jmlspecs.openjml.Utils.debug("undeclared");
 	
     public void validateTypeAnnotations(JCTree tree, boolean sigOnly) {
         tree.accept(new JmlTypeAnnotationsValidator(sigOnly));
@@ -6239,13 +6236,17 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return v;
     }
     
-    protected void reportUndeclaredMember(DiagnosticPosition pos, Symbol sym) {
+    /** Warns of a use, in a .jml file, of a field or method of a class that has only a class file, when the
+     *  member is declared in that class (not inherited) but not in the class's .jml (#1060) */
+    protected void warnUndeclaredMember(DiagnosticPosition pos, Symbol sym) {
         if (!(sym instanceof VarSymbol || sym instanceof MethodSymbol) || !(sym.owner instanceof ClassSymbol cs)) return;
         if (sym.name == names.length || sym.name == names._class || sym.name == names._this || sym.name == names._super) return;
         if (Utils.isJML(sym.flags())) return;
         JavaFileObject src = log.currentSourceFile();
         if (src == null || !src.getName().endsWith(".jml")) return;
         if (cs.classfile == null || cs.classfile.getKind() != JavaFileObject.Kind.CLASS) return;
+        // Temporarily: the built-in types' .jml declare as model some methods their .java implements (#1080)
+        if (cs.packge().fullname.toString().equals("org.jmlspecs.lang.internal")) return;
         var tspecs = specs.get(cs);
         if (tspecs == null || tspecs.specDecl == null || tspecs.specDecl.sourcefile == null
                 || !tspecs.specDecl.sourcefile.getName().endsWith(".jml")) return;
@@ -6258,14 +6259,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             if (ms != null && ms.specDecl != null) declFile = ms.specDecl.sourcefile;
         }
         if (declFile != null && declFile.getName().endsWith(".jml")) return;
-        String access = Flags.toString(sym.flags() & Flags.AccessFlags);
-        Utils.debugOut().println("UNDECLARED " + (access.isEmpty() ? "package" : access) + " "
-                + (sym instanceof VarSymbol ? "field " : "method ") + cs.flatname + "." + sym + " at " + src.getName()
-                + ":" + log.currentSource().getLineNumber(pos.getPreferredPosition()));
+        utils.warning(pos, "jml.undeclared.member", sym instanceof VarSymbol ? "field" : "method", cs + "." + sym, cs);
     }
 
     protected void checkVisibility(DiagnosticPosition pos, long jmlVisibility, Symbol sym, JCExpression selected) {
-        if (debugUndeclared) reportUndeclaredMember(pos, sym);
+        warnUndeclaredMember(pos, sym);
         if (jmlenv.currentBlockContract != null) return;
         if (jmlVisibility != -1) {
             long v = (sym.flags() & Flags.AccessFlags);

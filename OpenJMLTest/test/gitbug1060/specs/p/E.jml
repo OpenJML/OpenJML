@@ -1,0 +1,5 @@
+package p;
+public enum E {
+    A, B;
+    //@ public static invariant A != B; // not reported: A and B are declared here
+}
