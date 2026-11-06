@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## --compile of an enum (crashed in Lower: the enum axioms, added for ESC only, were in the class's defs)
+rm -rf actual bin
+(openjml --compile -d bin src/p/E.java && ls bin/p) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

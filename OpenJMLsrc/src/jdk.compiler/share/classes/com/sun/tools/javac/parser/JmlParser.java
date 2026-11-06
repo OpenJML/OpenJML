@@ -744,7 +744,9 @@ public class JmlParser extends JavacParser {
     // TODO: THese should be moved to JmlAssertionAdder, so that
     // they work for binary Enums aas well.
     void addImplicitEnumAxioms(JCClassDecl cd) {
-        if (utils.rac) return;
+        // Only ESC (and inference, which proves with ESC) uses these; in other modes they are left in
+        // the class's defs, which crashes javac's Lower for an enum in --compile (#1082)
+        if (!utils.esc && !utils.infer) return;
         ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
         ListBuffer<JCExpression> argsn = new ListBuffer<JCExpression>();
         Name n = jmlF.Name(Strings.enumVar);
