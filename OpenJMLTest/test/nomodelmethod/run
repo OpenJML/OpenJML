@@ -3,20 +3,17 @@
 LOCAL=$(dirname "$BASH_SOURCE[0]" )
 . "$LOCAL/../setup-script"
 
-ERR=0
 (\
 rm -f *.class ;\
 openjml --rac T.java ;\
 openjml -Xprefer:source --compile P.java ;\
 openjml-java T ;\
 ) >& actual
-(diff actual RUN.out || ERR=1 ) && rm -rf actual
+(diff actual RUN.out && rm -rf actual) || exit 1
 
 (\
 rm -f *.class ;\
 openjml --rac T.java P.java ;\
 openjml-java T ;\
 ) >& actual2
-(diff actual2 RUN2.out || ERR=1) && rm -rf actual2
-
-exit $ERR
+diff actual2 RUN2.out && rm -rf actual2
