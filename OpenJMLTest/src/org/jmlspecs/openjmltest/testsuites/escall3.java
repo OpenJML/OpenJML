@@ -315,6 +315,35 @@ public class escall3 extends EscBase {
                 );
         new java.io.File("smt/testSMToutZ.smt").delete();
     }
+
+    /** Type constants are declared in name order, not in order of use (Zi, Xb, Ya) or of hashing */
+    @Test
+    public void testTypeDeclarationOrder() throws Exception {
+        expectedExit=0;
+        String file = "smt/testTypeOrder.smt";
+        addOptions("--smt=" + file, "--method=m");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                interface Zi {}
+                class Ya implements Zi {}
+                class Xb extends Ya {}
+                public class TestJava {
+                  public void m(Object o) { boolean b = o instanceof Zi || o instanceof Xb || o instanceof Ya; }
+                }
+                """
+                );
+        var p = java.util.regex.Pattern.compile("\\(declare-fun (T_\\S+) \\(\\) REF\\)");
+        var found = new java.util.ArrayList<String>();
+        for (String line: java.nio.file.Files.readAllLines(java.nio.file.Path.of(file))) {
+            var mm = p.matcher(line);
+            if (mm.find()) found.add(mm.group(1));
+        }
+        new java.io.File(file).delete();
+        org.junit.Assert.assertEquals(found.stream().sorted().toList(), found);
+        java.util.List<String> tt = found.stream().filter(s -> s.startsWith("T_tt_")).toList();
+        org.junit.Assert.assertEquals(java.util.List.of("T_tt_TestJava", "T_tt_Xb", "T_tt_Ya", "T_tt_Zi"), tt);
+    }
     
     @Test
     public void testSimple() {
