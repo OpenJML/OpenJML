@@ -636,14 +636,19 @@ public class SMTTranslator extends JmlTreeScanner {
         List<IExpr> jmltypesymbols = new ArrayList<IExpr>(len);
         List<ICommand> saved = commands;
         commands = tcommands;
+        // Name order, so the solver input does not depend on the (identity) hash order of javaTypes
+        List<Type> ordered = new ArrayList<>(javaTypes);
+        ordered.sort(Comparator.comparing(SMTTranslator::typeKey));
+        List<Type> sorts = new ArrayList<>(newSorts.keySet());
+        sorts.sort(Comparator.comparing(t -> sortId(t).toString()));
 
-        for (Type t: newSorts.keySet()) {
+        for (Type t: sorts) {
             Integer n = newSorts.get(t);
             tcommands.add(new C_declare_sort(
                     sortId(t),
                     F.numeral(n)));
         }
-        for (Type ti: javaTypes) {
+        for (Type ti: ordered) {
         	
             if (ti.getTag() == TypeTag.TYPEVAR) {
                 if (ti instanceof Type.CapturedType) continue; 
@@ -659,7 +664,7 @@ public class SMTTranslator extends JmlTreeScanner {
                         F.numeral(ti.tsym.type.getTypeArguments().size())));
             }
         }
-        for (Type ti: javaTypes) {
+        for (Type ti: ordered) {
             if (ti.getTag() == TypeTag.WILDCARD) continue;  // Did these already, so they are done before they are used
             if (ti.getTag() == TypeTag.TYPEVAR) continue; // Did these already, so they are done before they are used
             if (jmltypes.isJmlType(ti)) continue;
@@ -684,7 +689,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 jmltypesymbols.add(tjsym);
             }
         }
-        for (Type ti: javaTypes) {
+        for (Type ti: ordered) {
             if (ti.getTag() == TypeTag.WILDCARD) continue;  // Did these already, so they are done before they are used
             if (ti.getTag() == TypeTag.TYPEVAR) continue; // Did these already, so they are done before they are used
             if (jmltypes.isJmlType(ti)) continue;
@@ -750,19 +755,19 @@ public class SMTTranslator extends JmlTreeScanner {
         tcommands.add(new C_assert(F.fcn(F.symbol("distinct"),typesymbols)));
         tcommands.add(new C_assert(F.fcn(F.symbol("distinct"),jmltypesymbols)));
         
-        for (Type ti: javaTypes) {
+        for (Type ti: ordered) {
             if (jmltypes.isJmlType(ti)) continue;
             if (ti instanceof ArrayType) tcommands.add(new C_assert(F.fcn(
                     F.symbol(JAVASUBTYPE), javaTypeSymbol(ti), F.symbol("T_java_lang_Object"))));
         }
         int counti = 0;
-        for (Type ti: javaTypes) {
+        for (Type ti: ordered) {
             if (ti.getTag() == TypeTag.TYPEVAR) continue; 
             if (ti.getTag() == TypeTag.WILDCARD) continue; 
             if (jmltypes.isJmlType(ti)) continue;
             counti++;
             int countj = 0;
-            for (Type tj: javaTypes) {
+            for (Type tj: ordered) {
                 if (tj.getTag() == TypeTag.TYPEVAR) continue; 
                 if (tj.getTag() == TypeTag.WILDCARD) continue; 
                 if (jmltypes.isJmlType(tj)) continue;
@@ -865,7 +870,7 @@ public class SMTTranslator extends JmlTreeScanner {
         }
         
         List<IExpr> javatypelist = new LinkedList<IExpr>();
-        for (Type t: javaTypes) {
+        for (Type t: ordered) {
             if (jmltypes.isJmlType(t)) continue;
             if (t.getTag() != TypeTag.TYPEVAR && t.getTag() != TypeTag.WILDCARD) {
                 javatypelist.add(javaTypeSymbol(t));
@@ -1516,6 +1521,12 @@ public class SMTTranslator extends JmlTreeScanner {
         newSorts.put(t, nargs);
     }
     
+    /** The name under which a type is recorded in javaTypeSymbols */
+    // A type variable is keyed apart from a class of the same name (e.g. class E vs. E of Collection<E>)
+    static String typeKey(Type t) {
+        return t.getTag() == TypeTag.TYPEVAR ? "JMLTV_" + t.tsym : t.tsym.toString();
+    }
+
     /** Records a type as defined. */
     public void addType(Type t) {
         t = t.stripMetadata();
@@ -1528,9 +1539,7 @@ public class SMTTranslator extends JmlTreeScanner {
             addType(it.supertype_field);
             for (Type itt: it.interfaces_field) addType(itt);
         } else {
-            // A type variable is keyed apart from a class of the same name (e.g. class E vs. E of Collection<E>)
-            String key = t.getTag() == TypeTag.TYPEVAR ? "JMLTV_" + t.tsym : t.tsym.toString();
-            if (javaTypeSymbols.add(key)) {
+            if (javaTypeSymbols.add(typeKey(t))) {
                 javaTypes.add(t);
                 // We must record the bounds, but with caution since it can cause infinite recursion, in cases such as class Test<K extends Comparable<K>, O>
                 if (t.getTag()  == TypeTag.TYPEVAR && !(t instanceof Type.WildcardType)) {
@@ -2679,7 +2688,7 @@ public class SMTTranslator extends JmlTreeScanner {
                 if (useBV) 
                     result = F.fcn(F.symbol("bvnot"), args);
                 else
-                    result = F.fcn(F.symbol("-"), F.fcn(F.symbol("-"), arg), F.decimal("1"));
+                    result = F.fcn(F.symbol("-"), F.fcn(F.symbol("-"), arg), F.numeral(1));
                 break;
                 
             default:
