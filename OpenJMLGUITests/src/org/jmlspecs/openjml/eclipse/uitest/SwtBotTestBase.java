@@ -34,6 +34,11 @@ public abstract class SwtBotTestBase {
         SWTBotPreferences.TIMEOUT         = 20_000;   // default widget-wait timeout (ms)
         SWTBotPreferences.KEYBOARD_LAYOUT = "EN_US";
         bot = new SWTWorkbenchBot();
+        // A remembered choice keeps the modal "OpenJML Configuration Changed" dialog from
+        // opening when a test creates or changes a project; it blocked menus and markers.
+        org.openjml.ui.Activator.getDefault().getPreferenceStore().setValue(
+                org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener.PREF_CONFIG_CHANGE_ACTION,
+                "Do nothing");
         configureLspServerPath();
         closeWelcomeAndTipViews();
     }
