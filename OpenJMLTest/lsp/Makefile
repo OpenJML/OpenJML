@@ -88,6 +88,7 @@ TEST_CLASSES := \
   EscDirWithContextTest \
   DocumentLifecycleTest \
   CodeLensAndStatusTest \
+  CodeLensAfterCheckJmlTest \
   HoverTest \
   RenamePreflightTest \
   DebouncingAndCancellationTest \

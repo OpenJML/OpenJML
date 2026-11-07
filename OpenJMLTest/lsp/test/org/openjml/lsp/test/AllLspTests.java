@@ -48,6 +48,7 @@ import org.junit.runners.Suite;
     ToolOptionsTest.class,
     RacTest.class,
     CodeLensAndStatusTest.class,
+    CodeLensAfterCheckJmlTest.class,
     HoverTest.class,
     RenamePreflightTest.class,
     DebouncingAndCancellationTest.class,

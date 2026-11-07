@@ -492,7 +492,9 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         }
         if (content == null) return CompletableFuture.completedFuture(List.of());
 
+        // A directory check (openjml.checkJML, project check) fills only the nav tier.
         ASTCache.Entry astEntry = CheckRunner.getASTCache().get(uri);
+        if (astEntry == null) astEntry = CheckRunner.getASTCache().getNav(uri);
         List<JavaSourceScanner.MethodInfo> methods = (astEntry != null)
                 ? JavaSourceScanner.findMethodsFromAst(astEntry.ast())
                 : List.of();
@@ -524,6 +526,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             List<Object> args = List.<Object>of(proj, uri, methodRef);
             lenses.add(new CodeLens(range, new Command(s.label(), cmd, args), null));
         }
+        ServerLog.serverLog("[textDocument/codeLens] ast=" + (astEntry != null) + " lenses=" + lenses.size());
         return CompletableFuture.completedFuture(lenses);
     }
 
