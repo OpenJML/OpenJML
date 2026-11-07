@@ -82,6 +82,12 @@ public class escsf3 extends SFBugsBase {
     public void gitbug653() {
         helpEscSimple("--specs-path=test/gitbug653");
     }
+
+    @Test
+    public void specsAttrOnce() {
+        // A binary class's method specs are type-checked once, not again when ESC uses them
+        helpEscSimple("--specs-path=test/specsAttrOnce");
+    }
     
     @Test
     public void gitbug654() {

@@ -2392,6 +2392,17 @@ public class JmlSpecs {
         specsStatus.put(sym, status);
     }
 
+    /** Sets the status of a method's specs, under each symbol that shares them: a method of a binary class has
+     *  one symbol from the class file and one from its .jml declaration, so specs attributed through one are
+     *  not attributed again through the other */
+    public void setMethodStatus(MethodSymbol m, SpecsStatus status) {
+        setStatus(m, status);
+        var sp = specsMethods.get(m);
+        if (sp == null) return;
+        if (sp.javaSym != null && sp.javaSym != m) setStatus(sp.javaSym, status);
+        if (sp.specSym != null && sp.specSym != m) setStatus(sp.specSym, status);
+    }
+
     public static enum SpecsStatus {
         NOT_LOADED,
         QUEUED,
