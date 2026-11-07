@@ -89,10 +89,21 @@ SWTBOT_IUS  := org.eclipse.swtbot.eclipse.feature.group,org.eclipse.swtbot.eclip
 
 ## --------------------------------------------------------------------------
 ## OpenJML update site
-## Default: local sibling repo.  Override with a published URL when available.
+## Default: built from this checkout's OpenJMLUI into OpenJMLUpdateSite/, rebuilt
+## when the plugin sources change.  To test a released plugin instead, set
+## UPDATE_SITE, e.g. UPDATE_SITE=$(PUBLISHED_UPDATE_SITE).
 ## --------------------------------------------------------------------------
-LOCAL_UPDATE_SITE := file://$(abspath $(REPO_ROOT)/../openjml.github.io/eclipse-update-site)
+PUBLISHED_UPDATE_SITE := file://$(abspath $(REPO_ROOT)/../openjml.github.io/eclipse-update-site)
+LOCAL_SITE_DIR    := $(abspath $(REPO_ROOT)/OpenJMLUpdateSite)
+LOCAL_UPDATE_SITE := file://$(LOCAL_SITE_DIR)
 UPDATE_SITE       ?= $(LOCAL_UPDATE_SITE)
+LOCAL_SITE_STAMP  := $(LOCAL_SITE_DIR)/.built
+OPENJML_UI_DIR    := $(abspath $(REPO_ROOT)/OpenJMLUI)
+OPENJML_UI_SRCS   := $(shell find "$(OPENJML_UI_DIR)/src" "$(OPENJML_UI_DIR)/META-INF" "$(OPENJML_UI_DIR)/OSGI-INF" "$(OPENJML_UI_DIR)/icons" "$(OPENJML_UI_DIR)/syntaxes" -type f 2>/dev/null) $(OPENJML_UI_DIR)/plugin.xml
+## The site stamp is a prerequisite only when the tests use the local site.
+ifeq ($(UPDATE_SITE),$(LOCAL_UPDATE_SITE))
+  SITE_DEP := $(LOCAL_SITE_STAMP)
+endif
 OPENJML_FEATURE   := org.openjml.OpenJMLFeature.feature.group
 
 ## Path to the openjml-lsp launcher used by the running tests.
@@ -196,7 +207,7 @@ COMPILE_CP = $(OPENJML_UI_CLASSES):$(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SW
 ## --------------------------------------------------------------------------
 ## Phony targets
 ## --------------------------------------------------------------------------
-.PHONY: all fetch-eclipse build-tests build-openjml-lsp \
+.PHONY: all fetch-eclipse build-tests build-openjml-lsp local-update-site \
         prepare-test-eclipse \
         run-install-test install-openjml \
         run-menu-test run-nature-test \
@@ -333,9 +344,19 @@ build-openjml-lsp:
 	@$(MAKE) --no-print-directory -C "$(REPO_ROOT)/OpenJMLlsp" jar
 
 ## --------------------------------------------------------------------------
+## Local update site (also compiles OpenJMLUI/bin, which the tests compile against)
+## --------------------------------------------------------------------------
+$(LOCAL_SITE_STAMP): $(OPENJML_UI_SRCS) $(PRISTINE_DIR)/.swtbot-installed
+	@echo "=== Building the OpenJML update site from $(OPENJML_UI_DIR) ==="
+	ECLIPSE_HOME="$(PRISTINE_HOME)" "$(OPENJML_UI_DIR)/build-update-site.sh" --overwrite
+	@touch $@
+
+local-update-site: $(LOCAL_SITE_STAMP)
+
+## --------------------------------------------------------------------------
 ## build-tests
 ## --------------------------------------------------------------------------
-$(TEST_JAR): $(SRCS) $(PRISTINE_DIR)/.swtbot-installed
+$(TEST_JAR): $(SRCS) $(PRISTINE_DIR)/.swtbot-installed $(SITE_DEP)
 	@if [ ! -d "$(OPENJML_UI_CLASSES)" ] || [ -z "$$(ls -A "$(OPENJML_UI_CLASSES)" 2>/dev/null)" ]; then \
 	    echo "ERROR: $(OPENJML_UI_CLASSES) is empty or missing."; \
 	    echo "       Build OpenJMLUI first: run 'make release' in OpenJMLUI/ or build it in Eclipse."; \
@@ -360,7 +381,8 @@ build-tests: build-openjml-lsp $(TEST_JAR)
 ## --------------------------------------------------------------------------
 ## prepare-test-eclipse
 ## --------------------------------------------------------------------------
-$(TEST_PREPARED_STAMP): $(PRISTINE_DIR)/.swtbot-installed
+## A new site build needs a fresh copy: p2 does not reinstall a bundle of the same version.
+$(TEST_PREPARED_STAMP): $(PRISTINE_DIR)/.swtbot-installed $(SITE_DEP)
 	@echo "=== Preparing test Eclipse instance ==="
 	@mkdir -p "$(TEST_ECLIPSE)"
 	$(COPY_CMD)

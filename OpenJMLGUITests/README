@@ -17,7 +17,9 @@ Running tests:
 Environment variables:
   ECLIPSE_RELEASE    Eclipse version to download (default: 2026-03)
   ECLIPSE_HOME       Eclipse installation used for building tests
-  UPDATE_SITE        p2 update site URL for OpenJML (default: local openjml.github.io path)
+  UPDATE_SITE        p2 update site URL for OpenJML (default: built from this checkout's
+                     OpenJMLUI into OpenJMLUpdateSite/; the released plugin is
+                     UPDATE_SITE=file://<path>/openjml.github.io/eclipse-update-site)
 
 Platform notes:
   macOS: tested and supported
