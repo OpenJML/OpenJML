@@ -18,7 +18,7 @@
  *   node runner.js                   # run all test suites
  *   node runner.js 02_commands       # run only the matching suite(s)
  */
-const { ExTester } = require('vscode-extension-tester');
+const { ExTester, ReleaseQuality } = require('vscode-extension-tester');
 const path = require('path');
 const fs   = require('fs');
 
@@ -31,6 +31,9 @@ const RESOURCES_DIR = path.resolve(SCRIPT_DIR, 'resources');
 const EXTRA_DIR     = path.resolve(SCRIPT_DIR, 'resources/extra');
 const STORAGE_DIR   = path.resolve(SCRIPT_DIR, '.test-resources');
 const SETTINGS_OUT  = path.resolve(STORAGE_DIR, 'test-settings.json');
+// The test instance's own extensions folder. Without it VS Code uses ~/.vscode/extensions:
+// the tests then install the dev extension over the user's and run with the user's extensions.
+const EXTENSIONS_DIR = path.resolve(STORAGE_DIR, 'extensions');
 
 // Test file glob (relative to cwd = this directory).
 // A bare prefix like "05" is expanded to "05*.test.js".
@@ -60,6 +63,10 @@ function writeSettings() {
         // Suppress the java.format.enabled warning dialog in activate(), which
         // blocks startClient() for several minutes in a fresh test workspace.
         'java.format.enabled':     false,
+        // No self-update or extension updates while tests drive the window.
+        'update.mode':                 'none',
+        'extensions.autoUpdate':       false,
+        'extensions.autoCheckUpdates': false,
     };
     fs.writeFileSync(SETTINGS_OUT, JSON.stringify(settings, null, 2));
 }
@@ -106,7 +113,7 @@ async function main() {
         process.on('exit', restoreJdt);
     }
 
-    const tester = new ExTester(STORAGE_DIR);
+    const tester = new ExTester(STORAGE_DIR, ReleaseQuality.Stable, EXTENSIONS_DIR);
 
     // Download VS Code and ChromeDriver (both are cached after the first run).
     // Version is pinned: 'latest' chases regressions with each VS Code release.
