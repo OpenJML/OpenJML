@@ -9,30 +9,23 @@
  */
 const assert = require('assert');
 const path   = require('path');
-const { VSBrowser, EditorView } = require('vscode-extension-tester');
+const { VSBrowser, EditorView, Workbench, StatusBar } = require('vscode-extension-tester');
 const { suiteTeardown, runCommand, closeSecondarySidebar, dismissNotifications, openAndFocusFile } = require('./helpers');
 
 /**
- * Position the cursor at (line, col) by calling Monaco's internal API directly
- * via executeScript.
- *
- * Keyboard shortcuts (Ctrl+G) are unreliable in the Electron/ChromeDriver context
- * because focus can be stolen between editor.click() and the key event.  Using
- * Monaco's setPosition() bypasses focus entirely and is always synchronous.
+ * Position the cursor at (line, col) with Quick Open's ":line:col" (Go to Line),
+ * then check the status bar.  Ctrl+G key events can miss a window without focus,
+ * and VS Code exposes no window.monaco to scripts, so both earlier approaches
+ * left the cursor where it was.
  */
-async function gotoLineByMonaco(driver, line, col) {
-    try {
-        await driver.executeScript(
-            'try { ' +
-            '  var eds = window.monaco && window.monaco.editor && window.monaco.editor.getEditors(); ' +
-            '  if (eds && eds.length > 0) { ' +
-            '    eds[0].setPosition({lineNumber: ' + line + ', column: ' + col + '}); ' +
-            '    eds[0].focus(); ' +
-            '  } ' +
-            '} catch(e) {}'
-        );
-    } catch (_) {}
+async function gotoLine(driver, line, col) {
+    const input = await new Workbench().openCommandPrompt();
+    await input.setText(`:${line}:${col}`);
+    await input.confirm();
     await driver.sleep(300);
+    const pos = await new StatusBar().getCurrentPosition().catch(() => '');
+    assert.ok(pos.includes(`Ln ${line}, Col ${col}`),
+        `cursor not at ${line}:${col} (status bar: '${pos}')`);
 }
 
 const SAMPLE_JAVA     = path.resolve(__dirname, '../../resources/Sample.java');
@@ -57,7 +50,7 @@ async function getCompletionItems(editor, line, col) {
     await driver.sleep(1_500);
     await dismissNotifications(driver);
     await driver.sleep(300);
-    await gotoLineByMonaco(driver, line, col);
+    await gotoLine(driver, line, col);
     await VSBrowser.instance.driver.sleep(500);
     const assist = await editor.toggleContentAssist(true);
     assert.ok(assist, 'ContentAssist API returned null — not supported in this vscode-extension-tester version');
@@ -100,7 +93,7 @@ describe('Code Completion', function () {
         await driver.sleep(1_500);
         await dismissNotifications(driver);
         await driver.sleep(300);
-        await gotoLineByMonaco(driver, 7, 9);
+        await gotoLine(driver, 7, 9);
         await VSBrowser.instance.driver.sleep(500);
         const assist = await editor.toggleContentAssist(true);
         assert.ok(assist, 'ContentAssist API returned null — not supported in this vscode-extension-tester version');
@@ -109,8 +102,9 @@ describe('Code Completion', function () {
     });
 
     it('JML keywords appear in completion inside a //@ comment', async function () {
-        // Cursor at start of 'requires' on line 7 (col 9, 1-based, after '    //@ ')
-        const items = await getCompletionItems(editor, 7, 9);
+        // Cursor after the 'r' of 'requires' on line 7 (col 10, 1-based): the server
+        // offers keywords only for a non-empty prefix (JmlCompletionProvider).
+        const items = await getCompletionItems(editor, 7, 10);
         assert.ok(items.length > 0,
             'No completion items returned — server may not implement textDocument/completion');
         const found = JML_KEYWORDS.filter(kw => items.some(l => l.includes(kw)));
