@@ -8826,7 +8826,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		jmlenv = jmlenv.pushInit();
 		JmlSpecs.MethodSpecs sp = null;
 		JmlSpecs.SpecsStatus stat = JmlSpecs.SpecsStatus.SPECS_ATTR;
-		specs.setStatus(msym, stat); // Set status at the beginning of the work to avoid recursive calls
+		specs.setMethodStatus(msym, stat); // Set status at the beginning of the work to avoid recursive calls
 		JavaFileObject prev = null;
 		try {
     		if (utils.verbose()) utils.note("Attributing specs for " + msym.owner + " " + msym);
@@ -8941,7 +8941,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     			utils.note("Exception while attributing specs for " + msym);
     			throw new PropagatedException(new RuntimeException(e));
     		} finally {
-    			specs.setStatus(msym, stat);
+    			specs.setMethodStatus(msym, stat);
     			this.env = saved;
     			currentSecretContext = savedSecret;
     			currentQueryContext = savedQuery;
@@ -8966,7 +8966,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		jmlenv = jmlenv.pop();
 			if (prev != null) log.useSource(prev);
     		if (nerrors != log.nerrors) {
-    			specs.setStatus(msym, JmlSpecs.SpecsStatus.ERROR);
+    			specs.setMethodStatus(msym, JmlSpecs.SpecsStatus.ERROR);
 //    			System.out.println("SERRORS" + msym);
 //    			Utils.dumpStack();
     			//System.out.println("ATTRSPECS-DONE " + msym.owner + " " + msym );
