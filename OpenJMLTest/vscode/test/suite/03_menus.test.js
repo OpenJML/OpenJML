@@ -15,7 +15,7 @@
  */
 const assert = require('assert');
 const path   = require('path');
-const { VSBrowser, EditorView, SideBarView, Workbench } = require('vscode-extension-tester');
+const { VSBrowser, EditorView, SideBarView, Workbench, ContextMenu, By } = require('vscode-extension-tester');
 const { suiteTeardown, runCommand, readOutputSafe, openAndFocusFile,
         getExplorerSection, findExplorerItem, invokeContextMenuItem,
         dismissWelcomeDialog, dismissNotifications }
@@ -62,6 +62,28 @@ async function collectMenuLabels(menu) {
     return [];
 }
 
+/**
+ * Right-click the editor and return its context menu.  TextEditor.openContextMenu() takes
+ * the first shadow-root host, which after an earlier menu is that menu's hidden one, and
+ * then times out waiting for it to be visible; this picks the visible menu container.
+ */
+async function openEditorContextMenu(editor) {
+    const driver = VSBrowser.instance.driver;
+    await driver.actions().contextClick(editor).perform();
+    for (let attempt = 0; attempt < 10; attempt++) {
+        await driver.sleep(300);
+        const hosts = await driver.findElements(By.className('shadow-root-host'));
+        for (const host of hosts.reverse()) {
+            const root = await host.getShadowRoot().catch(() => null);
+            if (!root) continue;
+            for (const c of await root.findElements(By.className('monaco-menu-container'))) {
+                if (await c.isDisplayed().catch(() => false)) return new ContextMenu(c).wait();
+            }
+        }
+    }
+    throw new Error('no visible editor context menu');
+}
+
 /** Open the editor context menu and select the item labeled exactly {@code label}. */
 async function selectEditorMenuItem(editor, label) {
     const driver = VSBrowser.instance.driver;
@@ -73,8 +95,7 @@ async function selectEditorMenuItem(editor, label) {
         try { editor = await new EditorView().openEditor(title); } catch (_) {}
         try { await editor.click(); } catch (_) {}
         try {
-            const menu = await editor.openContextMenu();
-            await driver.sleep(600);
+            const menu = await openEditorContextMenu(editor);
             const item = await menu.getItem(label);
             if (item) { await item.select(); return true; }
             seen = await collectMenuLabels(menu);
@@ -83,6 +104,7 @@ async function selectEditorMenuItem(editor, label) {
         try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
         await driver.sleep(500);
     }
+    await VSBrowser.instance.takeScreenshot('menu-' + label.replace(/ /g, '_')).catch(() => {});
     console.log(`    '${label}' not found; menu: [${seen.join(', ')}] ${error}`);
     return false;
 }
