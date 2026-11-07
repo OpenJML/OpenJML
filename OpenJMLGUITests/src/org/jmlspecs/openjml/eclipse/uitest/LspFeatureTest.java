@@ -90,7 +90,9 @@ public class LspFeatureTest extends GUITestBase {
     // Marker test constants
     // -----------------------------------------------------------------------
 
-    private static final String LSP4E_MARKER      = OpenJMLConstants.LSP4E_MARKER_TYPE;
+    // LSP4E creates OpenJML diagnostics with the server's markerType (plugin.xml), a subtype
+    // of org.eclipse.lsp4e.diagnostic.
+    private static final String JML_MARKER        = OpenJMLConstants.JML_PROBLEM_MARKER;
     private static final String SERVER_ID_ATTR    = "languageServerId";
     private static final String OPENJML_SERVER_ID = OpenJMLConstants.SERVER_ID;
     private static final String JAVA_MARKER = "org.eclipse.jdt.core.problem";
@@ -414,7 +416,7 @@ public class LspFeatureTest extends GUITestBase {
 
     private static int countJmlMarkers(IProject project) throws CoreException {
         IMarker[] markers = project.findMarkers(
-                LSP4E_MARKER, false, IResource.DEPTH_INFINITE);
+                JML_MARKER, true, IResource.DEPTH_INFINITE);
         int count = 0;
         for (IMarker m : markers) {
             if (OPENJML_SERVER_ID.equals(m.getAttribute(SERVER_ID_ATTR))) {
