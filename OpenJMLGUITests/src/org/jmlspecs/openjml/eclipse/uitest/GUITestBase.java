@@ -324,14 +324,36 @@ public abstract class GUITestBase extends SwtBotTestBase {
      * notifications after a separate round-trip.  For LSP-dependent assertions
      * use a polling loop with a timeout instead.
      */
+    /**
+     * Waits for all Eclipse auto-build jobs to complete, with a 30-second watchdog.
+     * If the build has not finished within 30 seconds the wait is cancelled and the
+     * test continues — a stalled builder should not cause the entire test run to hang.
+     */
     protected static void waitForBuild() {
-        // Join the auto-build job family
         try {
             org.eclipse.core.runtime.jobs.IJobManager jobs =
                     org.eclipse.core.runtime.jobs.Job.getJobManager();
-            jobs.join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
+            org.eclipse.core.runtime.NullProgressMonitor pm =
+                    new org.eclipse.core.runtime.NullProgressMonitor();
+            // Daemon watchdog: cancel the progress monitor after 30s so that a
+            // stalled builder does not block the test thread indefinitely.
+            Thread watchdog = new Thread(() -> {
+                try { Thread.sleep(30_000); }
+                catch (InterruptedException e) { return; }
+                pm.setCanceled(true);
+            }, "build-watchdog");
+            watchdog.setDaemon(true);
+            watchdog.start();
+            try {
+                jobs.join(ResourcesPlugin.FAMILY_AUTO_BUILD, pm);
+            } finally {
+                watchdog.interrupt();
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+        } catch (org.eclipse.core.runtime.OperationCanceledException ignored) {
+            // watchdog fired — build did not finish within 30s; continue anyway
+            System.err.println("[GUITest] waitForBuild: build watchdog fired after 30s");
         }
         // Drain pending UI events
         UIThreadRunnable.syncExec((VoidResult) () -> {

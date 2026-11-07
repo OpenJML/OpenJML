@@ -100,6 +100,8 @@ describe('Remaining Command Invocations', function () {
     this.timeout(180_000);
 
     let editor;
+    // The dirty-editor tests save an appended space; restore the files afterwards.
+    const originals = new Map([SAMPLE_JAVA, JML_ERRORS_JAVA].map(f => [f, fs.readFileSync(f)]));
 
     before(async function () {
         await VSBrowser.instance.waitForWorkbench(20_000);
@@ -109,7 +111,11 @@ describe('Remaining Command Invocations', function () {
         await VSBrowser.instance.driver.sleep(3_000);
     });
 
-    after(async function () { this.timeout(60_000); await suiteTeardown(true); });
+    after(async function () {
+        this.timeout(60_000);
+        await suiteTeardown(true);
+        for (const [f, data] of originals) fs.writeFileSync(f, data);
+    });
 
     // ── Server-dependent commands ─────────────────────────────────────────────
 
@@ -249,6 +255,9 @@ describe('Remaining Command Invocations', function () {
     });
 
     it('"Clear Caches and Reindex" succeeds and produces output', async function () {
+        // Dismiss any stale context menu left by the preceding Explorer test.
+        try { await VSBrowser.instance.driver.actions().sendKeys(Key.ESCAPE).perform(); } catch (_) {}
+        await VSBrowser.instance.driver.sleep(300);
         const ok = await runCommand('OpenJML: Clear Caches and Reindex');
         if (!ok) noteSkip(this, 'Clear Caches and Reindex unavailable — server may not be running');
         await VSBrowser.instance.driver.sleep(3_000);
