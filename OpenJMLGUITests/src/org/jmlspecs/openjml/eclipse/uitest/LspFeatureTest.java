@@ -320,7 +320,12 @@ public class LspFeatureTest extends GUITestBase {
 
         assertEquals("MarkersProjectC JML markers should be cleared",
                 0, countJmlMarkers(markersProjectC));
-        assertTrue("MarkersProjectB JML markers should be unaffected",
+        // Nature removal makes the server clear all diagnostics and re-check the remaining
+        // projects (#1087), so B's markers come back after that check.
+        long deadline = System.currentTimeMillis() + CHECK_JML_TIMEOUT_MS;
+        while (countJmlMarkers(markersProjectB) == 0 && System.currentTimeMillis() < deadline)
+            bot.sleep(1000);
+        assertTrue("MarkersProjectB JML markers should remain",
                 countJmlMarkers(markersProjectB) > 0);
     }
 

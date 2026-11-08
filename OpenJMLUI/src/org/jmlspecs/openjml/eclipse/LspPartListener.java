@@ -177,11 +177,12 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
      * in {@code Activator.earlyStartup()} so that settings changes take effect
      * immediately without restarting the server.
      */
-    public static void sendSettingsToServer() {
+    public static java.util.concurrent.CompletableFuture<Void> sendSettingsToServer() {
+        java.util.concurrent.CompletableFuture<Void> done = java.util.concurrent.CompletableFuture.completedFuture(null);
         org.eclipse.jface.text.IDocument doc = cachedDocument;
         if (doc == null) {
             System.err.println("[OpenJML] sendSettingsToServer: no connected document");
-            return;
+            return done;
         }
         try {
             // Refresh the generated properties file before building the options map so
@@ -192,11 +193,12 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
             java.util.Map<String, Object> map = OpenJMLOptions.buildInitializationOptions();
             org.eclipse.lsp4j.DidChangeConfigurationParams params =
                     new org.eclipse.lsp4j.DidChangeConfigurationParams(map);
-            org.eclipse.lsp4e.LanguageServers.forDocument(doc)
+            done = java.util.concurrent.CompletableFuture.allOf(
+                    org.eclipse.lsp4e.LanguageServers.forDocument(doc)
                     .computeAll(ls -> {
                         ls.getWorkspaceService().didChangeConfiguration(params);
                         return java.util.concurrent.CompletableFuture.completedFuture(null);
-                    });
+                    }).toArray(new java.util.concurrent.CompletableFuture<?>[0]));
             System.err.println("[OpenJML] workspace/didChangeConfiguration sent");
             // Retrigger all active colorizers so the new syntaxColoringScope
             // takes effect immediately without waiting for the next --check.
@@ -204,6 +206,7 @@ public class LspPartListener implements org.eclipse.ui.IPartListener2 {
         } catch (Exception e) {
             Console.errorlog("sendSettingsToServer failed", e);
         }
+        return done;
     }
 
     /** Calls {@link JmlColorizer#refreshAsync()} on every registered colorizer (.java and .jml). */

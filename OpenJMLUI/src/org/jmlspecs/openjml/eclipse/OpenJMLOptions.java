@@ -574,8 +574,8 @@ public class OpenJMLOptions {
         }
 
         // Per-project configs — sourcePath, classPath, specsPath, rootPaths, outputDir.
-        java.util.List<java.util.Map<String, Object>> projects = buildProjectsList();
-        if (!projects.isEmpty()) opts.put("projects", projects);
+        // Sent even when empty: a missing entry makes the server keep its previous list.
+        opts.put("projects", buildProjectsList());
 
         return opts;
     }
@@ -649,7 +649,8 @@ public class OpenJMLOptions {
                 ResourcesPlugin.getWorkspace().getRoot();
 
         for (IProject project : wsRoot.getProjects()) {
-            if (!project.isOpen()) continue;
+            // Only JML projects are the server's projects; removing the nature excludes one.
+            if (!project.isOpen() || !JmlNature.hasNature(project)) continue;
             org.eclipse.jdt.core.IJavaProject jp =
                     org.eclipse.jdt.core.JavaCore.create(project);
             if (jp == null || !jp.exists()) continue;

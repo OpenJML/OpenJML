@@ -168,9 +168,9 @@ public class JmlNature implements IProjectNature {
             project.setDescription(desc, null);
             Console.log("JML nature removed from " + project.getName());
             refreshDecorator();
-            cleanupForProject(project);
-            // Notify the server of the updated project roots (project is now excluded).
-            LspPartListener.sendSettingsToServer();
+            // The server must have the updated project roots (project now excluded) before it
+            // reindexes, or it re-checks the project and its markers come back.
+            cleanupForProject(project, LspPartListener.sendSettingsToServer());
         } catch (CoreException e) {
             Console.log("Failed to disable JML nature on " + project.getName() + ": " + e);
         }
@@ -186,7 +186,8 @@ public class JmlNature implements IProjectNature {
      *       cached data and rebuilds its workspace index.</li>
      * </ul>
      */
-    private static void cleanupForProject(IProject project) {
+    private static void cleanupForProject(IProject project,
+            java.util.concurrent.CompletableFuture<Void> settingsSent) {
         // 1. Delete all OpenJML markers on this project.
         try {
             for (IMarker m : project.findMarkers(
@@ -206,7 +207,7 @@ public class JmlNature implements IProjectNature {
         // 3. Tell the server to clear its caches and reindex.
         ExecuteCommandParams p = new ExecuteCommandParams(
                 OpenJMLConstants.CMD_CLEAR_AND_REINDEX, List.of());
-        LanguageServers.forProject(project).computeFirst(
-                server -> server.getWorkspaceService().executeCommand(p));
+        settingsSent.whenComplete((r, e) -> LanguageServers.forProject(project).computeFirst(
+                server -> server.getWorkspaceService().executeCommand(p)));
     }
 }
