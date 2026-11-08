@@ -420,8 +420,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	/** Whether \string is translated with the SMT Strings theory (#1043) */
 	public boolean useSmtStrings;
 
-	/** Whether ESC models float and double with the SMT FloatingPoint theory (cf. --fpreal) */
-	public boolean useFP;
+//	/** Whether ESC models float and double with the SMT FloatingPoint theory (cf. --fpreal) */
+//	public boolean useFP;
 
 	/**
 	 * A map from formal parameter to actual argument, used when translating methods
@@ -672,7 +672,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// this.reader.init(syms); // FIXME?
 		this.utilsClass = !rac ? null : reader.enterClass(names.fromString(Strings.runtimeUtilsFQName));
 		this.closeableType = syms.enterClass("java.io.Closeable");
-		this.useFP = esc && JmlOption.useFPTheory(context);
+//		this.useFP = esc && JmlOption.useFPTheory(context);
 
 		initialize();
 
@@ -4021,7 +4021,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //		assertInvariants(thisExpr, thisExpr);
 //	}
 	
-	protected boolean addingAssumptionsForFormals = false;
+//	protected boolean addingAssumptionsForFormals = false;
 
 
 
@@ -4042,10 +4042,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             }
         }
         try {
-            addingAssumptionsForFormals = true;
+            //addingAssumptionsForFormals = true;
             return addNullnessAllocationTypeCondition(d, sym, isNonNull, instanceBeingConstructed, true, condition);
         } finally {
-            addingAssumptionsForFormals = false;
+            //addingAssumptionsForFormals = false;
         }
     }
 
@@ -8699,8 +8699,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //	}
 
 
-
-	protected boolean recursiveCall = false;
 
 	protected boolean checkAccessEnabled;
 
@@ -13786,7 +13784,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	Map<Integer, Set<Symbol>> axiomsAdded = new HashMap<>();
 	Set<Symbol> methodsInlined = new HashSet<Symbol>();
 
-	int heapCountForAxioms = -2;
+//	int heapCountForAxioms = -2;
 
 	/** Returns true if the symbol was not already in the set for hc */
 	protected boolean addAxioms(int hc, Symbol sym) {
@@ -14667,7 +14665,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		result = eresult = r;
 	}
 	
-	boolean noFreshTest = false;
 	/** Checks the access of lhsUnconverted (with a 'this' which is currentTheExpr)
 	 *  against the assignable or accessible clauses (per 'kind') of the current TanslationEnv (or the caller's env if 'targetEnv' is null)
 	 *  That env holds the methodSym from which to get the specification and the receiver to use as 'this' for those specifications.
@@ -25591,7 +25588,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			    }
 			} else {
 			    JCExpression ft = null;
-			    //System.out.println("FIELDACCESS " + sr + " " + noFreshTest);
 			    if (sr.receiver != null) {
 			        JCExpression nn = treeutils.makeNotNull(sr.receiver, sr.receiver); // FIXME - no sure why this is here
 			        ft = nn;

@@ -103,8 +103,6 @@ public class JmlParser extends JavacParser {
     
     public boolean       addOrgJmlspecsLang = true;
 
-    public java.util.List<IJmlLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
-
     /**
      * A constructor for a new parser, but you should get new instances of the
      * parser from the parser factory, that is, by
