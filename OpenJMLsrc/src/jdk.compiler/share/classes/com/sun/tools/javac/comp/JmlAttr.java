@@ -2368,6 +2368,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         finally {
             ((JmlCheck)chk).setInJml(isInJml);
             chk.setLint(prevLint);
+            chk.setMethod(prevMethod);
         }
     }
     
