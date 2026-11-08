@@ -213,7 +213,7 @@ COMPILE_CP = $(OPENJML_UI_CLASSES):$(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SW
         prepare-test-eclipse \
         run-install-test install-openjml \
         run-menu-test run-nature-test \
-        run-fileicon-test run-preferences-test run-lsp-test \
+        run-fileicon-test run-preferences-test run-lsp-test run-configchange-test \
         run-plugin-tests run-plugin-suite \
         clean clean-test-eclipse clean-downloads clean-cache clean-all help .FORCE
 
@@ -234,6 +234,7 @@ help:
 	@echo "  run-nature-test      Run NatureTest: Add/Remove JML Nature"
 	@echo "  run-fileicon-test    Run FileIconTest: file-type icons for .java/.jml/.xyz"
 	@echo "  run-lsp-test         Run LspFeatureTest: Find References, Check JML markers (needs LSP)"
+	@echo "  run-configchange-test Run ConfigChangeDialogTest: when the Configuration Changed dialog opens"
 	@echo "  run-plugin-tests     Run each test class separately: [PASS]/[FAIL] per class"
 	@echo "  run-plugin-suite     Run AllPluginTests in one JVM: one [PASS]/[FAIL] at end (faster)"
 	@echo "  clean                Remove build/ and test-ws/ (keeps eclipse-cache and sentinels)"
@@ -522,6 +523,9 @@ run-nature-test: $(OPENJML_INSTALLED_STAMP)
 
 run-lsp-test: $(OPENJML_INSTALLED_STAMP)
 	$(call run-one-plugin-test,LspFeatureTest)
+
+run-configchange-test: $(OPENJML_INSTALLED_STAMP)
+	$(call run-one-plugin-test,ConfigChangeDialogTest)
 
 
 ## --------------------------------------------------------------------------

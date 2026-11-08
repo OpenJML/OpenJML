@@ -307,29 +307,6 @@ public class InstallPluginTest extends SwtBotTestBase {
     // Helpers
     // -----------------------------------------------------------------------
 
-    /** Prints each shell's title, and the texts of its buttons and tab items. */
-    private static void dumpShells() {
-        org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(
-                (org.eclipse.swtbot.swt.finder.results.VoidResult) () -> {
-            for (org.eclipse.swt.widgets.Shell sh : org.eclipse.swt.widgets.Display.getDefault().getShells()) {
-                StringBuilder sb = new StringBuilder();
-                collectTexts(sh, sb);
-                System.out.println("[InstallPluginTest] shell '" + sh.getText() + "' visible=" + sh.isVisible() + ": " + sb);
-            }
-        });
-    }
-
-    private static void collectTexts(org.eclipse.swt.widgets.Composite parent, StringBuilder sb) {
-        if (parent instanceof org.eclipse.swt.widgets.TabFolder tf)
-            for (org.eclipse.swt.widgets.TabItem ti : tf.getItems()) sb.append("tab[").append(ti.getText()).append("] ");
-        if (parent instanceof org.eclipse.swt.custom.CTabFolder tf)
-            for (org.eclipse.swt.custom.CTabItem ti : tf.getItems()) sb.append("ctab[").append(ti.getText()).append("] ");
-        for (org.eclipse.swt.widgets.Control c : parent.getChildren()) {
-            if (c instanceof org.eclipse.swt.widgets.Button b) sb.append("btn[").append(b.getText()).append("] ");
-            if (c instanceof org.eclipse.swt.widgets.Composite comp) collectTexts(comp, sb);
-        }
-    }
-
     /** An unselected radio button under {@code parent} whose text starts with {@code prefix}, or null. */
     private static org.eclipse.swt.widgets.Button findRadio(org.eclipse.swt.widgets.Composite parent, String prefix) {
         return org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(() -> findRadioIn(parent, prefix));
