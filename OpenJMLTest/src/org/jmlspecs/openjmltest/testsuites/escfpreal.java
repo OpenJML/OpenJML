@@ -33,6 +33,24 @@ public class escfpreal extends escfp {
                 );
     }
 
+    @Test
+    public void testMathSqrtInt() {
+        // #580: sqrt of (double)y, y >= 0, failed its precondition (case y == 0) while Math's helper model methods
+        // were not inline for ESC; with the FloatingPoint theory z3 and cvc5 time out on the int conversion
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires y >= 0;
+                  public void m(int y) {
+                    double d = Math.sqrt(y);
+                    //@ assert d >= 0;
+                  }
+                }
+                """
+                );
+    }
+
     @Test @Override
     public void testAddDouble() {
         // differs from escfp (exact sums): 0.1 + 0.2 is not rounded to 0.30000000000000004

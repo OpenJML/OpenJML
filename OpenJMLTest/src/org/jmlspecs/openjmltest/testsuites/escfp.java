@@ -693,6 +693,50 @@ public class escfp extends EscBase {
     }
 
     @Test
+    public void testMathHelpers() {
+        // Math's helper model methods (isPositiveZero, close, ...) must be inline for ESC, else the Math spec cases
+        // they guard are unusable (#580: sqrt(0.0) failed its precondition; see also escfpreal.testMathSqrtInt)
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void zeros() {
+                    //@ assert Math.isPositiveZero(0.0) && !Math.isPositiveZero(-0.0);
+                    //@ assert Math.isNegativeZero(-0.0) && !Math.isNegativeZero(0.0);
+                    //@ assert Math.isPositiveZero(0.0f) && Math.isNegativeZero(-0.0f);
+                    //@ assert Math.close(2.0, 2.0, 0.0) && !Math.close(1.0, 2.0, 0.1);
+                  }
+                  public void sqrtZero() {
+                    //@ assert Math.isPositiveZero(Math.sqrt(0.0));
+                    //@ assert Math.isNegativeZero(Math.sqrt(-0.0));
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testStrictMathHelpers() {
+        // as testMathHelpers, for StrictMath's helper model methods
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void zeros() {
+                    //@ assert StrictMath.isPositiveZero(0.0) && !StrictMath.isPositiveZero(-0.0);
+                    //@ assert StrictMath.isNegativeZero(-0.0f) && !StrictMath.isNegativeZero(0.0f);
+                    //@ assert !StrictMath.isFiniteEven(Double.NaN);
+                    //@ assert !StrictMath.isFiniteOdd(Double.POSITIVE_INFINITY);
+                  }
+                  public void sqrtZero() {
+                    //@ assert StrictMath.isPositiveZero(StrictMath.sqrt(0.0));
+                  }
+                }
+                """
+                );
+    }
+
+    @Test
     public void testMathRound() {
         // round is floor(a + 1/2) computed exactly (a + 0.5 rounds up to 1.0 here); z3 times out mixing long and
         // FloatingPoint, cvc5 takes under a second
