@@ -12,7 +12,7 @@ Setup (one-time):
 
 Running tests:
   make run-install-test       # Run InstallPluginTest (installs the plugin)
-  make run-tests              # Run all tests, except the one above
+  make run-plugin-tests       # Run each other test class (run-plugin-suite: one JVM)
 
 Environment variables:
   ECLIPSE_RELEASE    Eclipse version to download (default: 2026-03)

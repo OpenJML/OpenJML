@@ -307,13 +307,6 @@ public class InstallPluginTest extends SwtBotTestBase {
     // Helpers
     // -----------------------------------------------------------------------
 
-    /**
-     * Polls until the "Next >" button in the active Install shell is enabled,
-     * dismissing any blocking dialogs (Trust, unsigned-content warnings) that
-     * may appear in newer Eclipse versions while p2 resolves requirements.
-     * Throws {@link AssertionError} if the button is still not enabled after
-     * {@code timeoutMs} milliseconds.
-     */
     /** Prints each shell's title, and the texts of its buttons and tab items. */
     private static void dumpShells() {
         org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(
@@ -354,6 +347,13 @@ public class InstallPluginTest extends SwtBotTestBase {
         return null;
     }
 
+    /**
+     * Polls until the "Next >" button in the active Install shell is enabled,
+     * dismissing any blocking dialogs (Trust, unsigned-content warnings) that
+     * may appear in newer Eclipse versions while p2 resolves requirements.
+     * Throws {@link AssertionError} if the button is still not enabled after
+     * {@code timeoutMs} milliseconds.
+     */
     private static void waitForNextButtonDismissingBlockers(
             SWTBotShell installShell, long timeoutMs) {
         long deadline = System.currentTimeMillis() + timeoutMs;

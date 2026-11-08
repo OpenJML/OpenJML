@@ -401,6 +401,8 @@ prepare-test-eclipse: fetch-eclipse .FORCE
 ## Full end-to-end: always starts with a FRESH test Eclipse (no pre-installed
 ## OpenJML), runs InstallPluginTest which drives the Install New Software wizard.
 ## Uses its own vmargs (only needs update site, not LSP path or MPC suppression).
+## The wizard also updates platform bundles (SWTBot then fails to start), so the
+## stamps are removed: the next plugin-test run re-prepares from pristine.
 ## --------------------------------------------------------------------------
 INSTALL_TEST_XML := $(RESULTS_DIR)/install-test-results.xml
 
@@ -418,7 +420,8 @@ run-install-test: build-tests prepare-test-eclipse
 	     "formatter=$(JUNIT_FORMATTER),$(INSTALL_TEST_XML)" \
 	     -vmargs -Xmx1g -ea \
 	         "-Dopenjml.update.site=$(UPDATE_SITE)" \
-	         -Declipse.p2.unsignedPolicy=allow
+	         -Declipse.p2.unsignedPolicy=allow; \
+	 rm -f "$(TEST_PREPARED_STAMP)" "$(OPENJML_INSTALLED_STAMP)"
 	$(call check-xml-results,InstallPluginTest,$(INSTALL_TEST_XML))
 
 ## --------------------------------------------------------------------------
