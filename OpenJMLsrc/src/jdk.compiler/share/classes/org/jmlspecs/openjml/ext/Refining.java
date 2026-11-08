@@ -16,6 +16,7 @@ import org.jmlspecs.openjml.JmlTree.JmlMethodSpecs;
 import org.jmlspecs.openjml.JmlTree.JmlSpecificationCase;
 import org.jmlspecs.openjml.JmlTree.JmlStatement;
 import org.jmlspecs.openjml.JmlTree.JmlStatementSpec;
+import org.jmlspecs.openjml.JmlTree.JmlStatementLoop;
 
 import com.sun.tools.javac.code.Type;
 import com.sun.tools.javac.comp.AttrContext;
@@ -181,7 +182,9 @@ public class Refining extends JmlExtension {
                 if (stat == null || stat.isEmpty()) {
                     error(parser.context, ste, "jml.message", "Statement specs found at the end of a block (or before an erroneous statement)");
                     return null;
-                } else if (stat.head instanceof JmlAbstractStatement && stat.head.toString() == Refining.beginID) {
+                } else if (stat.head instanceof JmlAbstractStatement && !(stat.head instanceof JmlStatementLoop)
+                        && !(stat.head instanceof JmlStatementSpec)) {
+                    // A loop specification belongs to the loop that follows it; a nested statement spec is allowed
                     error(parser.context, stat.head, "jml.message", "Statement specs may not precede a JML statement clause");
                     return stat.head;
                 }
