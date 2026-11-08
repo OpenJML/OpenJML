@@ -89,6 +89,7 @@ TEST_CLASSES := \
   DocumentLifecycleTest \
   CodeLensAndStatusTest \
   CodeLensAfterCheckJmlTest \
+  CheckJmlTwoPathsTest \
   HoverTest \
   RenamePreflightTest \
   DebouncingAndCancellationTest \

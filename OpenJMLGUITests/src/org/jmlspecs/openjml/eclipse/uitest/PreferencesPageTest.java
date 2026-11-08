@@ -32,6 +32,10 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PreferencesPageTest extends SwtBotTestBase {
 
+    /** Label of the server path field (OpenJMLPreferencesBase.createPluginAndLspFields). */
+    private static final String SERVER_PATH_LABEL =
+            "OpenJML installation folder or launcher script path (blank = find on PATH):";
+
     /**
      * Opens the Preferences dialog, navigates to the OpenJML page, and
      * verifies it loads without error.
@@ -71,14 +75,14 @@ public class PreferencesPageTest extends SwtBotTestBase {
             boolean foundServerPathField = false;
             try {
                 prefsShell.bot().textWithLabel(
-                        "Server script path (blank = find on PATH or beside Eclipse):");
+                        SERVER_PATH_LABEL);
                 foundServerPathField = true;
             } catch (Exception e) {
                 // Try alternative: some FieldEditorPreferencePage layouts use
                 // the label as a separate widget rather than part of the text widget.
                 try {
                     prefsShell.bot().label(
-                            "Server script path (blank = find on PATH or beside Eclipse):");
+                            SERVER_PATH_LABEL);
                     foundServerPathField = true;
                 } catch (Exception ignored) {}
             }
@@ -92,9 +96,7 @@ public class PreferencesPageTest extends SwtBotTestBase {
     }
 
     /**
-     * Verifies that key preference fields are present on the OpenJML page.
-     * Currently only the LSP Server path field is shown; additional fields
-     * may be re-enabled in the future.
+     * Verifies that the section headers of the OpenJML page's first tab are present.
      */
     @Test
     public void t2_preferencesPageContainsExpectedFields() {
@@ -105,8 +107,8 @@ public class PreferencesPageTest extends SwtBotTestBase {
             prefsShell.bot().tree().getTreeItem("OpenJML").click();
             bot.sleep(500);
 
-            // The LSP Server section header must be present.
             assertLabelPresent(prefsShell, "LSP Server");
+            assertLabelPresent(prefsShell, "Analysis Triggers");
         } finally {
             closePreferencesDialog(prefsShell);
         }

@@ -218,8 +218,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
     /** Pending debounce futures for --check, keyed by URI. */
     private final Map<String, ScheduledFuture<?>> pendingCheck = new ConcurrentHashMap<>();
 
-    /** Pending debounce future for scheduleCheckForPaths (path-based manual check). */
-    private volatile ScheduledFuture<?> pendingCheckPaths;
+    /** Pending debounce futures for scheduleCheckForPaths, keyed by project id and paths. */
+    private final Map<String, ScheduledFuture<?>> pendingCheckPaths = new ConcurrentHashMap<>();
 
     /** Pending debounce futures for --esc, keyed by URI. */
     private final Map<String, ScheduledFuture<?>> pendingEsc   = new ConcurrentHashMap<>();
@@ -1109,13 +1109,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             } catch (Exception ignored) {}
         }
 
-        // Debounce: cancel any previously scheduled check-paths task so that rapid
-        // toolbar clicks collapse into a single check.  A 300 ms delay is short enough
-        // to feel immediate but long enough to absorb a double-click burst.
-        ScheduledFuture<?> prev = pendingCheckPaths;
+        // Debounce: rapid repeats of the same request (e.g. a toolbar double-click) collapse
+        // into one check; different requests (Eclipse sends one per selected project) all run.
+        String key = projectId + "|" + pathsCopy;
+        ScheduledFuture<?> prev = pendingCheckPaths.get(key);
         if (prev != null) prev.cancel(false);
-        pendingCheckPaths = scheduler.schedule(() -> {
-            pendingCheckPaths = null;
+        pendingCheckPaths.put(key, scheduler.schedule(() -> {
+            pendingCheckPaths.remove(key);
             // Snapshot dirty content here (inside the debounce callback) so that
             // all didChange notifications from the rename have been processed before
             // the snapshot is taken.
@@ -1156,7 +1156,7 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
                     clientError("Check failed: " + e.getMessage());
                 }
             });
-        }, 300, TimeUnit.MILLISECONDS);
+        }, 300, TimeUnit.MILLISECONDS));
     }
 
     /**
@@ -3625,8 +3625,8 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
         pendingCheck.clear();
         pendingEsc.values().forEach(f -> f.cancel(false));
         pendingEsc.clear();
-        ScheduledFuture<?> pcp = pendingCheckPaths;
-        if (pcp != null) { pcp.cancel(false); pendingCheckPaths = null; }
+        pendingCheckPaths.values().forEach(f -> f.cancel(false));
+        pendingCheckPaths.clear();
         cancelEsc(null, null);  // cancel all futures and abort any live z3 processes
         lastCheckFuture.clear();
 

@@ -36,7 +36,8 @@ public abstract class SwtBotTestBase {
         bot = new SWTWorkbenchBot();
         // A remembered choice keeps the modal "OpenJML Configuration Changed" dialog from
         // opening when a test creates or changes a project; it blocked menus and markers.
-        org.openjml.ui.Activator.getDefault().getPreferenceStore().setValue(
+        // Set through the preference node: InstallPluginTest runs before the plugin is installed.
+        org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE.getNode("org.openjml.OpenJMLUI").put(
                 org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener.PREF_CONFIG_CHANGE_ACTION,
                 "Do nothing");
         configureLspServerPath();

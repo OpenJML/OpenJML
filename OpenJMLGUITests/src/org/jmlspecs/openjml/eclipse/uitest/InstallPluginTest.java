@@ -6,7 +6,6 @@ import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
 import org.eclipse.swtbot.swt.finder.waits.Conditions;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.junit.BeforeClass;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
@@ -114,13 +113,37 @@ public class InstallPluginTest extends SwtBotTestBase {
             System.out.println("[InstallPluginTest] 'Group items by category' not found; continuing");
         }
 
-        // Now press Enter to trigger the repository load.
-        installShell.bot().comboBoxWithLabel("Work with:")
-                          .pressShortcut(org.eclipse.swt.SWT.CR, (char) 0);
+        // Trigger the repository load: p2 adds the typed site on a KeyDown of CR.  (A synthesized
+        // key press does not reach the combo on macOS; the tree then shows only
+        // "There is no site selected.")
+        org.eclipse.swt.widgets.Combo combo = installShell.bot().comboBoxWithLabel("Work with:").widget;
+        org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(
+                (org.eclipse.swtbot.swt.finder.results.VoidResult) () -> {
+            org.eclipse.swt.widgets.Event ev = new org.eclipse.swt.widgets.Event();
+            ev.keyCode = org.eclipse.swt.SWT.CR;
+            ev.character = '\r';
+            combo.notifyListeners(org.eclipse.swt.SWT.KeyDown, ev);
+        });
 
-        // --- Wait for the feature tree to populate (up to 90 s for file:// or network) ---
+        // --- Wait for an OpenJML row (placeholder rows don't count; up to 90 s) ---
         System.out.println("[InstallPluginTest] Waiting for feature list...");
-        bot.waitUntil(Conditions.treeHasRows(installShell.bot().tree(), 1), 90_000);
+        org.eclipse.swt.widgets.Tree featureTree = installShell.bot().tree().widget;
+        bot.waitUntil(new org.eclipse.swtbot.swt.finder.waits.DefaultCondition() {
+            @Override public boolean test() {
+                return org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(() -> {
+                    for (org.eclipse.swt.widgets.TreeItem it : featureTree.getItems())
+                        if (it.getText().contains("OpenJML")) return true;
+                    return false;
+                });
+            }
+            @Override public String getFailureMessage() {
+                return "no OpenJML item in the feature list: " + org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(() -> {
+                    StringBuilder sb = new StringBuilder();
+                    for (org.eclipse.swt.widgets.TreeItem it : featureTree.getItems()) sb.append('[').append(it.getText()).append(']');
+                    return sb.toString();
+                });
+            }
+        }, 90_000);
         System.out.println("[InstallPluginTest] Feature list loaded");
 
         // --- Check all items via direct SWT events so p2's SelectionListener fires.
@@ -161,28 +184,31 @@ public class InstallPluginTest extends SwtBotTestBase {
         System.out.println("[InstallPluginTest] Dependency resolution complete; clicking Next >");
         installShell.bot().button("Next >").click();
 
-        // The "Install Details" page now computes sizes; wait for Next > again.
-        waitForNextButtonDismissingBlockers(installShell, 60_000);
-
-        // --- Next: "Review Licenses" page (if present) ---
-        try {
-            installShell.bot().button("Next >").click();
-        } catch (WidgetNotFoundException e) {
-            // Some wizard configurations skip directly to Finish
-            System.out.println("[InstallPluginTest] No third Next > page; proceeding to Finish");
-        }
-
-        // --- Accept license (may or may not appear depending on the feature) ---
-        try {
-            installShell.bot().radio("I accept the terms of the license agreements").click();
-        } catch (WidgetNotFoundException e) {
-            // No license page — some features omit it
-            System.out.println("[InstallPluginTest] No license page; continuing");
+        // --- Remaining pages (Install Details, Review Licenses): accept the license when it
+        //     shows, click Next > while enabled, and Finish once it is enabled.
+        long deadline = System.currentTimeMillis() + 120_000;
+        while (true) {
+            org.eclipse.swt.widgets.Button accept = findRadio(installShell.widget, "I accept the terms");
+            if (accept != null) {
+                new org.eclipse.swtbot.swt.finder.widgets.SWTBotRadio(accept).click();
+                System.out.println("[InstallPluginTest] Accepted the license");
+            }
+            org.eclipse.swtbot.swt.finder.widgets.SWTBotButton finish = installShell.bot().button("Finish");
+            if (finish.isEnabled()) break;
+            org.eclipse.swtbot.swt.finder.widgets.SWTBotButton next = installShell.bot().button("Next >");
+            if (next.isEnabled()) {
+                System.out.println("[InstallPluginTest] Clicking Next >");
+                next.click();
+            }
+            if (System.currentTimeMillis() > deadline)
+                org.junit.Assert.fail("Install wizard: neither Next > nor Finish became enabled; page: "
+                        + installShell.bot().label(0).getText());
+            bot.sleep(500);
         }
 
         // --- Finish: kick off the actual download+install ---
         System.out.println("[InstallPluginTest] Clicking Finish...");
-        bot.button("Finish").click();
+        installShell.bot().button("Finish").click();
 
         // --- Wait for install to complete (up to 120 s) ---
         // The "Install" shell closes when done; then a restart prompt may appear.
@@ -203,9 +229,12 @@ public class InstallPluginTest extends SwtBotTestBase {
         // We verify installation in the same JVM session (via the profile).
         try {
             SWTBotShell restartShell = bot.shell("Software Updates");
-            restartShell.activate();
-            System.out.println("[InstallPluginTest] Restart dialog: choosing 'Restart Later'");
-            bot.button("Restart Later").click();
+            System.out.println("[InstallPluginTest] Restart dialog: declining the restart");
+            try {
+                restartShell.bot().button("No").click();
+            } catch (WidgetNotFoundException e) {
+                restartShell.bot().button("Restart Later").click();
+            }
         } catch (WidgetNotFoundException e) {
             System.out.println("[InstallPluginTest] No restart dialog");
         }
@@ -222,32 +251,42 @@ public class InstallPluginTest extends SwtBotTestBase {
     public void t2_verifyOpenJmlInInstalledSoftware() {
         activateWorkbench();
 
-        // --- Help > About Eclipse IDE ---
-        bot.menu("Help").menu("About Eclipse").click();
+        // --- Help > About Eclipse IDE (by command: on macOS the item is in the application menu) ---
+        org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.asyncExec(() -> {
+            try {
+                org.eclipse.ui.PlatformUI.getWorkbench()
+                        .getService(org.eclipse.ui.handlers.IHandlerService.class)
+                        .executeCommand("org.eclipse.ui.help.aboutAction", null);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
+        System.out.println("[InstallPluginTest] t2: About requested");
         SWTBotShell aboutShell = findShell("About Eclipse IDE", "About Eclipse");
-        aboutShell.activate();
+        System.out.println("[InstallPluginTest] t2: About shell found");
 
         // --- Click "Installation Details" button ---
-        bot.button("Installation Details").click();
+        aboutShell.bot().button("Installation Details").click();
 
         SWTBotShell detailsShell = findShell(
                 "Eclipse IDE Installation Details", "Installation Details");
-        detailsShell.activate();
 
         // --- Switch to "Installed Software" tab ---
-        bot.tabItem("Installed Software").activate();
+        System.out.println("[InstallPluginTest] t2: details shell found");
+        detailsShell.bot().cTabItem("Installed Software").activate();
+        System.out.println("[InstallPluginTest] t2: Installed Software tab active");
 
         // Wait a moment for the table to populate
         bot.sleep(2_000);
 
         // --- Search the table for "OpenJML" ---
-        SWTBotTable table = bot.table();
+        // The Installed Software list is a tree of installed root features.
+        org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem[] rows = detailsShell.bot().tree().getAllItems();
         boolean found = false;
-        int rows = table.rowCount();
-        System.out.println("[InstallPluginTest] Installed Software rows: " + rows);
-        for (int i = 0; i < rows; i++) {
-            String text = table.getTableItem(i).getText(0);
+        System.out.println("[InstallPluginTest] Installed Software rows: " + rows.length);
+        for (org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem row : rows) {
+            String text = row.getText();
             if (text != null && text.contains(OPENJML_LABEL)) {
                 System.out.println("[InstallPluginTest] Found: " + text);
                 found = true;
@@ -256,7 +295,8 @@ public class InstallPluginTest extends SwtBotTestBase {
         }
 
         // Close before asserting to leave the workbench in a clean state
-        bot.button("Close").click();
+        detailsShell.bot().button("Close").click();
+        aboutShell.bot().button("Close").click();
 
         assertTrue(
             "OpenJML feature should appear in Installed Software after installation",
@@ -266,6 +306,23 @@ public class InstallPluginTest extends SwtBotTestBase {
     // -----------------------------------------------------------------------
     // Helpers
     // -----------------------------------------------------------------------
+
+    /** An unselected radio button under {@code parent} whose text starts with {@code prefix}, or null. */
+    private static org.eclipse.swt.widgets.Button findRadio(org.eclipse.swt.widgets.Composite parent, String prefix) {
+        return org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable.syncExec(() -> findRadioIn(parent, prefix));
+    }
+
+    private static org.eclipse.swt.widgets.Button findRadioIn(org.eclipse.swt.widgets.Composite parent, String prefix) {
+        for (org.eclipse.swt.widgets.Control c : parent.getChildren()) {
+            if (c instanceof org.eclipse.swt.widgets.Button b && (b.getStyle() & org.eclipse.swt.SWT.RADIO) != 0
+                    && b.isVisible() && !b.getSelection() && b.getText().replace("&", "").startsWith(prefix)) return b;
+            if (c instanceof org.eclipse.swt.widgets.Composite comp) {
+                org.eclipse.swt.widgets.Button r = findRadioIn(comp, prefix);
+                if (r != null) return r;
+            }
+        }
+        return null;
+    }
 
     /**
      * Polls until the "Next >" button in the active Install shell is enabled,
