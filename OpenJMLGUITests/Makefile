@@ -52,6 +52,8 @@ ifeq ($(UNAME_S),Darwin)
   DMG_MOUNT        := /tmp/openjml-eclipse-dmg-mount
   ## rsync the whole .app bundle
   COPY_CMD          = rsync -a --delete "$(PRISTINE_DIR)/Eclipse.app/" "$(TEST_ECLIPSE)/Eclipse.app/"
+  ## Keep the Mac awake: during sleep a test stalls and the timeout does not run
+  KEEP_AWAKE       := caffeinate -di
 else
   ECLIPSE_PLATFORM := linux-gtk-$(UNAME_M)
   ECLIPSE_EXT      := tar.gz
@@ -415,7 +417,7 @@ run-install-test: build-tests prepare-test-eclipse
 	@echo "=== Running InstallPluginTest ==="
 	@echo "    Update site: $(UPDATE_SITE)"
 	@rm -f "$(INSTALL_TEST_XML)"; \
-	 $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
+	 $(KEEP_AWAKE) $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
 	     $(ECLIPSE_LAUNCH_FLAGS) \
 	     -classname org.jmlspecs.openjml.eclipse.uitest.InstallPluginTest \
 	     "formatter=$(JUNIT_FORMATTER),$(INSTALL_TEST_XML)" \
@@ -498,7 +500,7 @@ define run-one-plugin-test
 	@echo "=== Running $(1) ==="
 	@_xml="$(RESULTS_DIR)/$(1)-results.xml"; \
 	 rm -f "$$_xml"; \
-	 $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
+	 $(KEEP_AWAKE) $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
 	     $(ECLIPSE_LAUNCH_FLAGS) \
 	     -classname org.jmlspecs.openjml.eclipse.uitest.$(1) \
 	     "formatter=$(JUNIT_FORMATTER),$$_xml" \
@@ -551,7 +553,7 @@ run-plugin-tests: $(OPENJML_INSTALLED_STAMP)
 	   rm -f "$$_xml"; \
 	   echo "[TEST] $$cls"; \
 	   _start=$$(date +%s); \
-	   ( $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
+	   ( $(KEEP_AWAKE) $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
 	            $(ECLIPSE_LAUNCH_FLAGS) \
 	            -classname "org.jmlspecs.openjml.eclipse.uitest.$$cls" \
 	            "formatter=$(JUNIT_FORMATTER),$$_xml" \
@@ -595,7 +597,7 @@ run-plugin-suite: $(OPENJML_INSTALLED_STAMP)
 	@rm -f "$(PLUGIN_SUITE_XML)"
 	@echo "[TEST] AllPluginTests"
 	@_start=$$(date +%s); \
-	 ( $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
+	 ( $(KEEP_AWAKE) $(TIMEOUT_CMD) $(XVFB) "$(TEST_BIN)" \
 	          $(ECLIPSE_LAUNCH_FLAGS) \
 	          -classname "org.jmlspecs.openjml.eclipse.uitest.AllPluginTests" \
 	          "formatter=$(JUNIT_FORMATTER),$(PLUGIN_SUITE_XML)" \
