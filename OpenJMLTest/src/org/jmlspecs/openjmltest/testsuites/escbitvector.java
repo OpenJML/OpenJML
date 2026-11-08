@@ -307,6 +307,24 @@ public class escbitvector extends EscBase {
           );
     }
 
+    // BITAND without a literal operand and BV off: an error, not an internal NPE
+    @Test
+    public void testBVAndNoLiteral() {
+        expectedExit = 1;
+        addOptions("--esc-bv=false");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1(int x, int y) {
+                    return x & y;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITAND]", 14
+          );
+    }
+
     // Test using @Options
     @Test
     public void testBVoption() {

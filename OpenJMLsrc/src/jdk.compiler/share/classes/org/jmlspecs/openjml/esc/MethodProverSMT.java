@@ -1361,17 +1361,17 @@ public class MethodProverSMT {
                             {
                                String nm = assertStat.description;
                                //logPreValue(nm,cemap);
-                               String v = info.cemap.get(nm);
+                               Boolean v = findPreValue(nm,info);
                                 //log.note("jml.message",nm + " " + v);
-                               if (!"true".equals(v)) {
+                               if (!Boolean.TRUE.equals(v)) {
                                     int pdetail2 = 0;
                                     while (true) {
                                         pdetail2++;
                                         String nmm = nm + "_" + pdetail2;
-                                        String vv = info.cemap.get(nmm);
+                                        Boolean vv = findPreValue(nmm,info);
                                         //log.note("jml.message",nmm + " " + vv);
                                         if (vv == null && pdetail2 > 6) break;
-                                        if (!"true".equals(vv)) {
+                                        if (!Boolean.TRUE.equals(vv)) {
                                             int pdetail3 = 0;
                                             while (true) {
                                                 pdetail3++;
@@ -1728,14 +1728,14 @@ public class MethodProverSMT {
                         {
                            String nm = assertStat.description;
                            //logPreValue(nm,cemap);
-                           String v = info.cemap.get(nm);
+                           Boolean v = findPreValue(nm,info);
                             //log.note("jml.message",nm + " " + v);
-                           if (!"true".equals(v)) {
+                           if (!Boolean.TRUE.equals(v)) {
                                 int pdetail2 = 0;
                                 while (true) {
                                     pdetail2++;
                                     String nmm = nm + "_" + pdetail2;
-                                    String vv = info.cemap.get(nm);
+                                    Boolean vv = findPreValue(nmm,info);
                                     //log.note("jml.message",nmm + " " + vv);
                                     if (vv == null && pdetail2 > 6) break;
                                     if (true ) {
@@ -1809,7 +1809,7 @@ public class MethodProverSMT {
         for (JCTree t: bimap.forward.keySet()) { 
             if (t instanceof JmlLblExpression && ((JmlLblExpression)t).label.toString().equals(preid)) { 
                 JCTree s = bimap.getf(t); 
-                String vvv = info.cemap.get(preid);
+                String vvv = info.cemap.get(t);
                 Boolean v;
                 if (vvv == null) {
                     v = getBoolValue(preid,info.smt,info.solver);
