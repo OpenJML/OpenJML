@@ -178,6 +178,8 @@ ECLIPSE_RESOURCES_JAR = $(call find_jar,org.eclipse.core.resources)
 ECLIPSE_JDT_CORE_JAR  = $(call find_jar,org.eclipse.jdt.core)
 ECLIPSE_JFACE_JAR   = $(call find_jar,org.eclipse.jface)
 ECLIPSE_EQUINOX_JAR = $(call find_jar,org.eclipse.equinox.common)
+ECLIPSE_PREFS_JAR   = $(call find_jar,org.eclipse.equinox.preferences)
+OSGI_PREFS_JAR      = $(call find_jar,org.osgi.service.prefs)
 ECLIPSE_CORE_JOBS_JAR = $(call find_jar,org.eclipse.core.jobs)
 ECLIPSE_OSGI_JAR    = $(call find_jar,org.eclipse.osgi)
 ECLIPSE_UI_WORKBENCH_JAR = $(call find_jar,org.eclipse.ui.workbench)
@@ -202,7 +204,7 @@ OPENJML_UI_CLASSES := $(REPO_ROOT)/OpenJMLUI/bin
 ## OpenJMLlsp jar (built by its own Makefile)
 OPENJML_LSP_JAR    := $(REPO_ROOT)/OpenJMLlsp/build/openjml-lsp.jar
 
-COMPILE_CP = $(OPENJML_UI_CLASSES):$(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SWTBOT_ECLIPSE_CORE):$(SWTBOT_JUNIT_JAR):$(ECLIPSE_UI_JAR):$(ECLIPSE_UI_WORKBENCH_JAR):$(ECLIPSE_UI_IDE_JAR):$(ECLIPSE_CORE_COMMANDS_JAR):$(ECLIPSE_RUNTIME_JAR):$(ECLIPSE_RESOURCES_JAR):$(ECLIPSE_JDT_CORE_JAR):$(ECLIPSE_SWT_JAR):$(ECLIPSE_JFACE_JAR):$(ECLIPSE_EQUINOX_JAR):$(ECLIPSE_CORE_JOBS_JAR):$(ECLIPSE_OSGI_JAR):$(JUNIT4_JAR):$(HAMCREST_JAR)
+COMPILE_CP = $(OPENJML_UI_CLASSES):$(SWTBOT_ECLIPSE_JAR):$(SWTBOT_CORE_JAR):$(SWTBOT_ECLIPSE_CORE):$(SWTBOT_JUNIT_JAR):$(ECLIPSE_UI_JAR):$(ECLIPSE_UI_WORKBENCH_JAR):$(ECLIPSE_UI_IDE_JAR):$(ECLIPSE_CORE_COMMANDS_JAR):$(ECLIPSE_RUNTIME_JAR):$(ECLIPSE_RESOURCES_JAR):$(ECLIPSE_JDT_CORE_JAR):$(ECLIPSE_SWT_JAR):$(ECLIPSE_JFACE_JAR):$(ECLIPSE_EQUINOX_JAR):$(ECLIPSE_PREFS_JAR):$(OSGI_PREFS_JAR):$(ECLIPSE_CORE_JOBS_JAR):$(ECLIPSE_OSGI_JAR):$(JUNIT4_JAR):$(HAMCREST_JAR)
 
 ## --------------------------------------------------------------------------
 ## Phony targets
