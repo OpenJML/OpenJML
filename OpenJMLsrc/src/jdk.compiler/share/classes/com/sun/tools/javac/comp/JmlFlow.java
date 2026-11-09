@@ -494,6 +494,26 @@ public class JmlFlow extends Flow  {
 //            super.visitMethodDef(that);
 //        }
 
+        /** A method declared in a .jml file (a model method with a body) has positions in that file, so the
+         * position test in trackable() does not apply to its variables: track them all (#1100). */
+        @Override
+        public void visitMethodDef(JCMethodDecl that) {
+            var file = ((JmlMethodDecl)that).sourcefile;
+            if (file != null && classDef instanceof JmlClassDecl cd && file != cd.sourcefile) {
+                int savedStart = startPos;
+                var prev = log.useSource(file);
+                startPos = -1;
+                try {
+                    super.visitMethodDef(that);
+                } finally {
+                    startPos = savedStart;
+                    log.useSource(prev);
+                }
+            } else {
+                super.visitMethodDef(that);
+            }
+        }
+
         @Override
         public void visitJmlMethodInvocation(JmlMethodInvocation that) {
         	if (that.meth != null) {
