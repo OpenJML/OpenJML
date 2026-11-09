@@ -410,6 +410,22 @@ public class racfiles extends RacBase {
         helpCompileRun("Test");
     }
 
+    @Test // model fields must not become class-file fields (invalid in an interface)
+    public void gitbug584() {
+        helpCompileRun("AClass");
+    }
+
+    @Test
+    public void gitbug584a() {
+        helpRac("test/gitbug584", "test/gitbug584a", "AClass", "--rac-missing-model-field-rep=zero");
+    }
+
+    @Test
+    public void gitbug584b() {
+        expectedExit = 1;
+        helpRac("test/gitbug584", "test/gitbug584b", "AClass", "--rac-missing-model-field-rep=fail");
+    }
+
     @Test
     public void gitbug599() {
         helpCompileRun("Prime");
