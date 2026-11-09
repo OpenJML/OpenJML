@@ -339,6 +339,42 @@ public class escfpslow extends EscBase {
     }
 
     @Test
+    public void testMathIEEEremainder() {
+        // the specification of the exact remainder (as escfpreal.testMathIEEEremainder); z3 times out, cvc5 takes
+        // 5-25 s per method; a symbolic bound times out in both
+        addOptions("--prover=cvc5");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void nearest() {
+                    //@ assert Math.IEEEremainder(5.0, 2.0) == 1.0;
+                  }
+                  public void tieEven() {
+                    //@ assert Math.IEEEremainder(7.0, 2.0) == -1.0;
+                  }
+                  public void zeroSign() {
+                    //@ assert Math.isNegativeZero(Math.IEEEremainder(-4.0, 2.0));
+                  }
+                  public void strict() {
+                    //@ assert StrictMath.IEEEremainder(5.0, -2.0) == 1.0;
+                  }
+                  public void helpers() {
+                    //@ assert Math.isFiniteEven(2.0) && Math.isFiniteOdd(-3.0);
+                  }
+                  public void strictHelpers() {
+                    //@ assert StrictMath.isFiniteEven(2.0) && !StrictMath.isFiniteEven(3.0);
+                  }
+                  public void wrong() {
+                    //@ assert Math.IEEEremainder(5.0, 2.0) == -1.0;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:22: verify: The prover cannot establish an assertion (Assert) in method wrong",9
+                );
+    }
+
+    @Test
     public void testMathIntArguments() {
         // int arguments are converted to float (gitbug732); z3 times out on int to float conversions
         addOptions("--prover=cvc5-1.3.2");
