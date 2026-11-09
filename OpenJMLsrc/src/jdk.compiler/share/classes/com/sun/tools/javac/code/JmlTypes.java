@@ -165,7 +165,9 @@ public class JmlTypes extends Types {
     public boolean isAssignable(Type t, Type s, Warner warn) {
         //if (isJmlType(s) || isJmlType(t)) System.out.println("ISASSIGNABLE " + t + " " + s);
         if (s == t) return true;
-        if (isSameType(s,t)) return true;
+        // Only for JML types: during inference isSameType adds equality bounds to inference variables,
+        // where javac's isAssignable adds only subtype bounds (#784)
+        if ((isJmlType(s) || isJmlType(t)) && isSameType(s,t)) return true;
         if (!javaOnly) {
             if (s.tsym == BIGINTsym) {
                 if (isJavaIntegral(t)) return true;
