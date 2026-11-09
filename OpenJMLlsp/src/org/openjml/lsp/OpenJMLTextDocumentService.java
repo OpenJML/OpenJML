@@ -1716,9 +1716,13 @@ public class OpenJMLTextDocumentService implements TextDocumentService {
             if (cfg.id == null) continue;
             OpenJMLSettings s = new OpenJMLSettings(globalSettings);
             s.projectId  = cfg.id;
-            s.sourcePath = OpenJMLSettings.expandEnvVarsInPath(cfg.sourcePath != null ? cfg.sourcePath : "");
-            s.classPath  = OpenJMLSettings.expandEnvVarsInPath(cfg.classPath  != null ? cfg.classPath  : "");
-            s.javaOutputDir = cfg.javaOutputDir != null ? cfg.javaOutputDir : "";
+            // A field the project leaves null keeps the global (already expanded) value.
+            if (cfg.sourcePath != null) s.sourcePath = OpenJMLSettings.expandEnvVarsInPath(cfg.sourcePath);
+            if (cfg.classPath  != null) s.classPath  = OpenJMLSettings.expandEnvVarsInPath(cfg.classPath);
+            if (s.sourcePath == null) s.sourcePath = "";
+            if (s.classPath  == null) s.classPath  = "";
+            s.javaOutputDir = cfg.javaOutputDir != null ? cfg.javaOutputDir
+                    : (globalSettings.javaOutputDir != null ? globalSettings.javaOutputDir : "");
             // Compute effective racOutputDir with javaOutputDir as fallback.
             String rawRac = cfg.racOutputDir != null ? cfg.racOutputDir
                     : (globalSettings.racOutputDir != null ? globalSettings.racOutputDir : "");
