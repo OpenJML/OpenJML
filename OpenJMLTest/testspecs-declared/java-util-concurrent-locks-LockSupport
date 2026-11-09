@@ -1,0 +1,6 @@
+getBlocker(java.lang.Thread)
+parkNanos(java.lang.Object,long)
+parkNanos(long)
+parkUntil(java.lang.Object,long)
+parkUntil(long)
+setCurrentBlocker(java.lang.Object)

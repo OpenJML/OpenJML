@@ -1,0 +1,2 @@
+<T>setOption(java.net.SocketOption<T>,T)
+open(java.net.ProtocolFamily)

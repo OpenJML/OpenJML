@@ -1,0 +1,12 @@
+BigInteger(byte[],int,int)
+BigInteger(int,byte[],int,int)
+TEN
+TWO
+byteValueExact()
+intValueExact()
+longValueExact()
+nextProbablePrime()
+parallelMultiply(java.math.BigInteger)
+shortValueExact()
+sqrt()
+sqrtAndRemainder()

@@ -1,0 +1,5 @@
+compare(short,short)
+compareUnsigned(short,short)
+describeConstable()
+hashCode(short)
+reverseBytes(short)

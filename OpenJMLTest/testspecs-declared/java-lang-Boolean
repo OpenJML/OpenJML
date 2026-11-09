@@ -1,0 +1,5 @@
+describeConstable()
+hashCode(boolean)
+logicalAnd(boolean,boolean)
+logicalOr(boolean,boolean)
+logicalXor(boolean,boolean)

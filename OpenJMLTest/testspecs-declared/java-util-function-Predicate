@@ -1,0 +1,5 @@
+<T>isEqual(java.lang.Object)
+<T>not(java.util.function.Predicate<? super T>)
+and(java.util.function.Predicate<? super T>)
+negate()
+or(java.util.function.Predicate<? super T>)

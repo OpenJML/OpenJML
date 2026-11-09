@@ -1,0 +1,7 @@
+<T>appendValueList(java.lang.String,java.lang.String,java.lang.String,T...)
+<T>appendValueList(java.lang.String,java.lang.String,java.lang.String,java.lang.Iterable<T>)
+NONE
+appendDescriptionOf(org.hamcrest.SelfDescribing)
+appendList(java.lang.String,java.lang.String,java.lang.String,java.lang.Iterable<? extends org.hamcrest.SelfDescribing>)
+appendValue(java.lang.Object)
+class NullDescription
