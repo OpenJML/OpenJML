@@ -869,7 +869,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            }
 //        }
         if (tree.lhs instanceof JCFieldAccess fa) {
-        	if (fa.selected.type.tsym instanceof ClassSymbol cs) {
+            // A constructor may initialize the instance fields of the object it constructs
+            boolean ctorInit = fa.selected instanceof JCIdent id && id.name == names._this
+                    && fa.sym != null && !fa.sym.isStatic() && fa.sym.owner == env.enclClass.sym
+                    && env.enclMethod != null && env.enclMethod.sym != null && env.enclMethod.sym.isConstructor();
+        	if (!ctorInit && fa.selected.type.tsym instanceof ClassSymbol cs) {
         		var sp = specs.getAttrSpecs(cs);
         		var m = utils.findModifier(sp.modifiers, Modifiers.IMMUTABLE);
                 if (m != null) {
