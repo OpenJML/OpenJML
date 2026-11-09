@@ -497,6 +497,8 @@ public class JmlOptions extends Options {
         // Set implicit comment keys
         if (utils.esc) commentKeys.add("ESC");
         if (utils.rac) commentKeys.add("RAC");
+        // ESC with float and double as exact reals (--fpreal, including when chosen by --fpreal=auto)
+        if (utils.esc && !JmlOption.useFPTheory(context)) commentKeys.add("FPREAL");
         if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) commentKeys.add("STRICT");
         commentKeys.add("OPENJML");
 

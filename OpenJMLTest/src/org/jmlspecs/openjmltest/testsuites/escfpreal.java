@@ -52,6 +52,77 @@ public class escfpreal extends escfp {
     }
 
     @Test @Override
+    public void testFprealKey() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    //+FPREAL@ assert false;
+                    //-FPREAL@ assert false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",16
+                );
+    }
+
+    @Test @Override
+    public void testMathSqrt() {
+        // differs from escfp: sqrt is the exact square root
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void m() {
+                    //@ assert Math.sqrt(2.0) * Math.sqrt(2.0) != 2.0;
+                    //@ assert StrictMath.sqrt(4.0) == 2.0;
+                    //@ assert Double.isNaN(Math.sqrt(-1.0)) && Math.isNegativeZero(Math.sqrt(-0.0));
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
+    @Test
+    public void testMathIEEEremainder() {
+        // the remainder is exact in both models; with the FloatingPoint theory this is escfpslow.testMathIEEEremainder
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public void nearest() {
+                    //@ assert Math.IEEEremainder(5.0, 2.0) == 1.0;
+                  }
+                  public void tieEven() {
+                    //@ assert Math.IEEEremainder(7.0, 2.0) == -1.0;
+                  }
+                  public void zeroSign() {
+                    //@ assert Math.isNegativeZero(Math.IEEEremainder(-4.0, 2.0));
+                  }
+                  public void strict() {
+                    //@ assert StrictMath.IEEEremainder(5.0, -2.0) == 1.0;
+                  }
+                  public void helpers() {
+                    //@ assert Math.isFiniteEven(2.0) && Math.isFiniteOdd(-3.0);
+                    //@ assert StrictMath.isFiniteEven(2.0) && !StrictMath.isFiniteEven(3.0);
+                  }
+                  //@ requires Double.isFinite(a) && Double.isFinite(b) && b != 0.0;
+                  public void bound(double a, double b) {
+                    double r = Math.IEEEremainder(a, b);
+                    //@ assert Math.abs(r) <= Math.abs(b) / 2;
+                  }
+                  public void wrong() {
+                    //@ assert Math.IEEEremainder(5.0, 2.0) == -1.0;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Assert) in method wrong",9
+                );
+    }
+
+    @Test @Override
     public void testAddDouble() {
         // differs from escfp (exact sums): 0.1 + 0.2 is not rounded to 0.30000000000000004
         helpEsc("tt.TestJava",

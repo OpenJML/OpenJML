@@ -1,0 +1,8 @@
+Proving methods in IntMathOps
+Skipping proof of IntMathOps.IntMathOps() (Skipping IntMathOps.IntMathOps because it does not match isqrt1)
+Skipping proof of IntMathOps.isqrt(int) (Skipping IntMathOps.isqrt because it does not match isqrt1)
+Starting proof of IntMathOps.isqrt1(int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of IntMathOps.isqrt1(int) with prover !!!! - no warnings
+Completed proving methods in IntMathOps

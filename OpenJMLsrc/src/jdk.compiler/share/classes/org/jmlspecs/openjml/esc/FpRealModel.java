@@ -272,6 +272,25 @@ public class FpRealModel {
         return tr.F.fcn(tr.F.symbol(raw), a, tr.F.numeral(bitsCount++));
     }
 
+    boolean sqrtDeclared = false;
+
+    /** Math.sqrt(a), with an exact square root (Java's is correctly rounded); declared only when used, since the
+     * real square root needs a quantified axiom */
+    public IExpr sqrt(IExpr a) {
+        declare();
+        if (!sqrtDeclared) {
+            sqrtDeclared = true;
+            String F = SORT;
+            add("(declare-fun |#fpSqrtR#| (Real) Real)");
+            add("(assert (forall ((r Real)) (! (=> (>= r 0.0) (and (>= (|#fpSqrtR#| r) 0.0) (= (* (|#fpSqrtR#| r) (|#fpSqrtR#| r)) r)))"
+                    + " :pattern ((|#fpSqrtR#| r)))))");
+            // a zero is its own root; NaN for NaN and values below zero; +infinity for +infinity
+            add("(define-fun |#fpSqrt#| ((a " + F + ")) " + F + " (ite (|#fpIsZero#| a) a (ite (or (|#fpIsNaN#| a) (|#fpIsNeg#| a)) " + NAN
+                    + " (ite (|#fpIsPInf#| a) " + PINF + " (" + VAL + " (|#fpSqrtR#| (" + VALUE + " a)))))))");
+        }
+        return tr.F.fcn(tr.F.symbol("|#fpSqrt#|"), a);
+    }
+
     /** The translation of the java.lang.Double or Float method, or java.lang.Math or StrictMath method on float or
      * double arguments, 'name', if this model defines it exactly; or null */
     public /*@ nullable */ IExpr method(String owner, String name, List<IExpr> args) {
@@ -281,6 +300,7 @@ public class FpRealModel {
             if (math) {
                 switch (name) {
                     case "abs": return app("|#fpAbs#|", a);
+                    case "sqrt": return sqrt(a);
                     case "floor": return app("|#fpFloor#|", a);
                     case "ceil": return app("|#fpCeil#|", a);
                     case "rint": return app("|#fpRint#|", a);

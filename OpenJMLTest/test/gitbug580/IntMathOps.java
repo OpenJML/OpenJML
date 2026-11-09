@@ -32,4 +32,17 @@ public class IntMathOps {
     return (int) Math.sqrt(y);
   }
    */
+
+  // the method of the issue
+   /*@ public normal_behavior
+     @ requires y >= 0;
+     @ assignable \nothing;
+     @ ensures 0 <= \result
+     @         && \result * \result <= y
+     @         && ((0 <= (\result + 1) * (\result + 1))
+     @            ==> y < (\result + 1) * (\result + 1));
+     @*/
+  public static int isqrt1(int y) {
+    return (int) Math.sqrt(y);
+  }
 }
