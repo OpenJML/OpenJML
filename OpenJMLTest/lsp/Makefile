@@ -90,6 +90,7 @@ TEST_CLASSES := \
   CodeLensAndStatusTest \
   CodeLensAfterCheckJmlTest \
   CheckJmlTwoPathsTest \
+  InitOptionsClassPathTest \
   HoverTest \
   RenamePreflightTest \
   DebouncingAndCancellationTest \

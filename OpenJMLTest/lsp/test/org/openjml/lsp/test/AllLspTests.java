@@ -50,6 +50,7 @@ import org.junit.runners.Suite;
     CodeLensAndStatusTest.class,
     CodeLensAfterCheckJmlTest.class,
     CheckJmlTwoPathsTest.class,
+    InitOptionsClassPathTest.class,
     HoverTest.class,
     RenamePreflightTest.class,
     DebouncingAndCancellationTest.class,
