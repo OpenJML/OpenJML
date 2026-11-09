@@ -1,0 +1,87 @@
+Proving methods in M
+Starting proof of M.M() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.M() with prover !!!! - no warnings
+Starting proof of M.putNullVal(java.util.Map<String,Integer>,String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.putNullVal(java.util.Map<String,Integer>,String) with prover !!!! - no warnings
+Starting proof of M.cvNullArg(java.util.Map<String,Integer>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.cvNullArg(java.util.Map<String,Integer>) with prover !!!! - no warnings
+Starting proof of M.putNullKeyNullVal(java.util.Map<String,Integer>) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.putNullKeyNullVal(java.util.Map<String,Integer>) with prover !!!! - no warnings
+Starting proof of M.frameOtherKey(java.util.Map<String,Integer>,String,String,Integer,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.frameOtherKey(java.util.Map<String,Integer>,String,String,Integer,Integer) with prover !!!! - no warnings
+Starting proof of M.frameNullKey(java.util.Map<String,Integer>,String,Integer,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.frameNullKey(java.util.Map<String,Integer>,String,Integer,Integer) with prover !!!! - no warnings
+Starting proof of M.frameNonNullKeyKeepsNullKey(java.util.Map<String,Integer>,String,Integer,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.frameNonNullKeyKeepsNullKey(java.util.Map<String,Integer>,String,Integer,Integer) with prover !!!! - no warnings
+Starting proof of M.removeThenGet(java.util.Map<String,Integer>,String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.removeThenGet(java.util.Map<String,Integer>,String) with prover !!!! - no warnings
+Starting proof of M.removeResult(java.util.Map<String,Integer>,String,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.removeResult(java.util.Map<String,Integer>,String,Integer) with prover !!!! - no warnings
+Starting proof of M.removeNullKey(java.util.Map<String,Integer>,String,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.removeNullKey(java.util.Map<String,Integer>,String,Integer) with prover !!!! - no warnings
+Starting proof of M.removeFrame(java.util.Map<String,Integer>,String,String,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.removeFrame(java.util.Map<String,Integer>,String,String,Integer) with prover !!!! - no warnings
+Starting proof of M.sizes(java.util.Map<String,Integer>,String,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.sizes(java.util.Map<String,Integer>,String,Integer) with prover !!!! - no warnings
+Starting proof of M.hashMapEmpty(String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.hashMapEmpty(String) with prover !!!! - no warnings
+Starting proof of M.hashMapCopy(java.util.Map<String,Integer>,String,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.hashMapCopy(java.util.Map<String,Integer>,String,Integer) with prover !!!! - no warnings
+Starting proof of M.hashMapNulls(java.util.HashMap<String,Integer>,String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.hashMapNulls(java.util.HashMap<String,Integer>,String) with prover !!!! - no warnings
+Starting proof of M.abstractMapNulls(java.util.AbstractMap<String,Integer>,String) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of M.abstractMapNulls(java.util.AbstractMap<String,Integer>,String) with prover !!!! - no warnings
+Starting proof of M.bad1(java.util.Map<String,Integer>,String,Integer) with prover !!!!
+test/gitbug1093/M.java:100: verify: The prover cannot establish an assertion (Assert) in method bad1
+        //@ assert false;
+            ^
+Completed proof of M.bad1(java.util.Map<String,Integer>,String,Integer) with prover !!!! - with warnings
+Starting proof of M.bad2(java.util.Map<String,Integer>,Integer) with prover !!!!
+test/gitbug1093/M.java:105: verify: The prover cannot establish an assertion (Assert) in method bad2
+        //@ assert false;
+            ^
+Completed proof of M.bad2(java.util.Map<String,Integer>,Integer) with prover !!!! - with warnings
+Starting proof of M.bad3(java.util.Map<String,Integer>,String) with prover !!!!
+test/gitbug1093/M.java:111: verify: The prover cannot establish an assertion (Assert) in method bad3
+        //@ assert false;
+            ^
+Completed proof of M.bad3(java.util.Map<String,Integer>,String) with prover !!!! - with warnings
+Starting proof of M.bad4() with prover !!!!
+test/gitbug1093/M.java:115: verify: The prover cannot establish an assertion (Assert) in method bad4
+        //@ assert false;
+            ^
+Completed proof of M.bad4() with prover !!!! - with warnings
+Completed proving methods in M
+4 verification failures

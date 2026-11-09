@@ -22,3 +22,38 @@ Feasibility check - end of preconditions : OK
 Completed proof of B.Content.hasMap(@Nullable Object) with prover !!!! - no warnings
 Completed proving methods in B.Content
 Completed proving methods in B
+Proving methods in Use
+Starting proof of Use.Use() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Use.Use() with prover !!!! - no warnings
+Proving methods in Use.Content
+Starting proof of Use.Content.Content() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Use.Content.Content() with prover !!!! - no warnings
+Starting proof of Use.Content.mapsObject(@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Use.Content.mapsObject(@Nullable Object) with prover !!!! - no warnings
+Starting proof of Use.Content.mapss(@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Use.Content.mapss(@Nullable Object) with prover !!!! - no warnings
+Starting proof of Use.Content.hasMapObject(@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of Use.Content.hasMapObject(@Nullable Object) with prover !!!! - no warnings
+Completed proving methods in Use.Content
+Starting proof of Use.ok(Use.Content,@Nullable Object) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Use.ok(Use.Content,@Nullable Object) with prover !!!! - no warnings
+Starting proof of Use.okNull(Use.Content) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Use.okNull(Use.Content) with prover !!!! - no warnings
+Starting proof of Use.bad(Use.Content,Object) with prover !!!!
+test/gitbug644/Use.java:21: verify: The prover cannot establish an assertion (Assert) in method bad
+    //@ model public static void bad(Content c, Object o) { assert c.mapsObject(o) == c.mapss(o); } // fails
+                                                            ^
+Completed proof of Use.bad(Use.Content,Object) with prover !!!! - with warnings
+Completed proving methods in Use
+1 verification failure
