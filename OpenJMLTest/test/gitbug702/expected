@@ -1,0 +1,24 @@
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.put1(java.util.Map<String,Integer>,String,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.put1(java.util.Map<String,Integer>,String,Integer) with prover !!!! - no warnings
+Starting proof of T.putNullKey(java.util.Map<String,Integer>,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.putNullKey(java.util.Map<String,Integer>,Integer) with prover !!!! - no warnings
+Starting proof of T.hashMap(String,Integer) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.hashMap(String,Integer) with prover !!!! - no warnings
+Starting proof of T.bad(java.util.Map<String,Integer>,Integer) with prover !!!!
+test/gitbug702/T.java:19: verify: The prover cannot establish an assertion (Assert) in method bad
+        //@ assert map.containsValue(v);  // fails
+            ^
+Completed proof of T.bad(java.util.Map<String,Integer>,Integer) with prover !!!! - with warnings
+Completed proving methods in T
+1 verification failure

@@ -23,6 +23,7 @@ public class escsf3 extends SFBugsBase {
     
     @Test
     public void gitbug644() {
+        expectedExit = 6;
         helpEscSimple();
     }
         
@@ -336,12 +337,24 @@ public class escsf3 extends SFBugsBase {
     }
     
     @Test
+    public void gitbug702() {
+        expectedExit = 6;
+        helpEscSimple();
+    }
+
+    @Test
     public void gitbug998() {
         helpEscSimple();
     }
     
     @Test
     public void gitbug999() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug1093() {
+        expectedExit = 6;
         helpEscSimple();
     }
     
