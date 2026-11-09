@@ -163,4 +163,27 @@ public class generics extends TCBase {
                 """
                 );
     }
+
+    /** A generic method returning a bare type variable, called where the target type differs from the
+     *  inferred type, must type-check as in javac (#784) */
+    @Test
+    public void testInferReturnTypeVar() {
+        helpTCText("A.java",
+                """
+                import java.util.Iterator;
+                class Box<E> { E v; }
+                public class A {
+                    static <E> E get(Box<E> b) { return b.v; }
+                    static <E> E next(Iterator<E> it) { return it.next(); }
+                    void statement(Box<String> b) { get(b); }
+                    Object widened(Box<String> b) { Object o = get(b); return o; }
+                    Object wildcard(Box<?> b) { return get(b); }
+                    Object bounded(Box<? extends String> b) { return get(b); }
+                    <T> Object typevar(Box<T> b) { Object o = get(b); return o; }
+                    Object library(Iterator<?> it) { return next(it); }
+                    String exact(Box<String> b) { return get(b); }
+                }
+                """
+                );
+    }
 }
