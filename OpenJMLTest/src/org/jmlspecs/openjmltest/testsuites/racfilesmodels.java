@@ -35,11 +35,6 @@ public class racfilesmodels extends RacBase {
     }
 
     @Test @Ignore // model files
-    public void gitbug584() {
-        helpCompileRun("AClass");
-    }
-
-    @Test @Ignore // model files
     public void gitbug590() {
         runrac = false; // Expected compile error
         expectedExit = 1;

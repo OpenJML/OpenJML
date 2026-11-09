@@ -650,12 +650,34 @@ public class JmlCompiler extends JavaCompiler {
                 if (env == null) continue;
                 results.add(env);
             }
+            for (var env: results) removeModelFields(env.tree);
             return results;
         } else if (utils.compile) {
             return removeJML(envs);
         } else {
         	return envs;
         }
+    }
+
+    /** After RAC translation of all classes, removes model field declarations and their member symbols, so
+     *  they are not written to the class file. RAC reads model fields through the generated model$ methods,
+     *  so the fields are unused; in an interface such a (non-final) field makes the class file invalid (#584). */
+    protected void removeModelFields(JCTree tree) {
+        new com.sun.tools.javac.tree.TreeScanner() {
+            @Override
+            public void visitClassDef(JCClassDecl tree) {
+                var kept = new ListBuffer<JCTree>();
+                for (var d: tree.defs) {
+                    if (d instanceof JCTree.JCVariableDecl v && v.sym != null && utils.isModel(v.sym)) {
+                        if (tree.sym != null) tree.sym.members().remove(v.sym);
+                    } else {
+                        kept.add(d);
+                    }
+                }
+                tree.defs = kept.toList();
+                super.visitClassDef(tree);
+            }
+        }.scan(tree);
     }
 
     /** --compile is a Java-only compile (#1082): JML is parsed and type-checked, and then removed here, before
