@@ -385,13 +385,11 @@ public class racfiles extends RacBase {
 
     @Test
     public void gitbug547c() {
-        expectedRACExit = 1;
         helpCompileRun("Test547");
     }
 
     @Test
     public void gitbug547d() {
-        expectedRACExit = 1;
         helpCompileRun("Test547");
     }
 
