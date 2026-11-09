@@ -1790,7 +1790,7 @@ public class JmlTreeUtils {
                         var t1 = p.type;
                         var t2 = nargs[k].type;
                         ++k;
-                        if (print) Utils.debugOut().println("   COMPX " + t2 + " " + t1+ " " + types.isAssignable(utils.rac, t2, t1, null));
+                        if (print) Utils.debugOut().println("   COMPX " + t2 + " " + t1+ " " + types.isAssignable(t2, t1));
                         if (t2.tsym != t1.tsym && !types.isAssignable(t2, t1)) continue y; // FIXME - this is first match, not best match
                     }
                     if (print) Utils.debugOut().println("  MATCHED " + ms.owner + " " + ms);

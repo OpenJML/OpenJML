@@ -19652,13 +19652,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
                 //System.out.println("FOREACH MAP-C " + typevarMapping);
 				Type vtype = typevarValue(that.var.type, typevarMapping);
-				Utils.debugOut().println("    " + that.var.type + " ==> " + vtype);
+				//Utils.debugOut().println("    " + that.var.type + " ==> " + vtype);
 				JCVariableDecl loopVarDecl = treeutils.makeVarDef(vtype, that.var.name, methodDecl.sym,
 						addImplicitConversion(that.expr, vtype, e));
 				loopVarDecl.sym = that.var.sym;
 				// assign the foreach loop variable
 				addStat(loopVarDecl);
-				Utils.debugOut().println("    DECL " + loopVarDecl);
+				//Utils.debugOut().println("    DECL " + loopVarDecl);
 				if (specs.isNonNull(vtype)) { // Only checks for explicit NonNull -- FIXME - is that correct
 					addAssume(that, Label.NULL_CHECK,
 							treeutils.makeNotNull(that, treeutils.makeIdent(that, loopVarDecl.sym)));

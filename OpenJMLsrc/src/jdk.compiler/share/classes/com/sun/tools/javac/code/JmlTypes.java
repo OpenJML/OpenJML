@@ -146,18 +146,6 @@ public class JmlTypes extends Types {
         return t != s;
     }
     
-    boolean javaOnly = false;
-    
-    // FIXME - document
-    public boolean isAssignable(boolean javaOnly, Type t, Type s, Warner warn) {
-        this.javaOnly = javaOnly;
-        try {
-            return isAssignable(t,s,warn);
-        } finally {
-            this.javaOnly = false;
-        }
-    }
-    
     /** Overrides Types.isAssignable with functionality for JML primitive types. */
     // is a t assignable to a variable of s, that is, is t implicitly convertible to s
     // FIXME - not sure when this is called
@@ -165,29 +153,29 @@ public class JmlTypes extends Types {
     public boolean isAssignable(Type t, Type s, Warner warn) {
         //if (isJmlType(s) || isJmlType(t)) System.out.println("ISASSIGNABLE " + t + " " + s);
         if (s == t) return true;
-        if (isSameType(s,t)) return true;
-        if (!javaOnly) {
-            if (s.tsym == BIGINTsym) {
-                if (isJavaIntegral(t)) return true;
-                if (t.toString().contains("BigInteger")) return true; // FIXME - improve over string comparison
-                return false;
+        // Only for JML types: during inference isSameType adds equality bounds to inference variables,
+        // where javac's isAssignable adds only subtype bounds (#784)
+        if ((isJmlType(s) || isJmlType(t)) && isSameType(s,t)) return true;
+        if (s.tsym == BIGINTsym) {
+            if (isJavaIntegral(t)) return true;
+            if (t.toString().contains("BigInteger")) return true; // FIXME - improve over string comparison
+            return false;
+        }
+        if (s.tsym == REALsym) {
+            if (isNumeric(t)) return true; 
+            if (t.tsym == BIGINTsym) return true;
+            if (t.toString().contains("BigInteger")) return true;
+            return false;
+        }
+        // FIXME - should get rid of the following - not sure why it is here
+        if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
+        if ((s instanceof JmlListType) && (t instanceof JmlListType)) {
+            Iterator<Type> siter = ((JmlListType)s).types.iterator();
+            Iterator<Type> titer = ((JmlListType)t).types.iterator();
+            if (siter.hasNext() && titer.hasNext()) {
+                if (!isAssignable(titer.next(), siter.next(), warn)) return false;
             }
-            if (s.tsym == REALsym) {
-                if (isNumeric(t)) return true; 
-                if (t.tsym == BIGINTsym) return true;
-                if (t.toString().contains("BigInteger")) return true;
-                return false;
-            }
-            // FIXME - should get rid of the following - not sure why it is here
-            if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
-            if ((s instanceof JmlListType) && (t instanceof JmlListType)) {
-                Iterator<Type> siter = ((JmlListType)s).types.iterator();
-                Iterator<Type> titer = ((JmlListType)t).types.iterator();
-                if (siter.hasNext() && titer.hasNext()) {
-                    if (!isAssignable(titer.next(), siter.next(), warn)) return false;
-                }
-                if (!siter.hasNext() && !titer.hasNext()) return false;
-            }
+            if (!siter.hasNext() && !titer.hasNext()) return false;
         }
         
         return super.isAssignable(t, s, warn);

@@ -141,7 +141,6 @@ escfileslist2.test[gitbug489]   # try with resources and exceptions in finally b
 escfileslist2.test[escchoose]   # variable output: with --z3=mbqi, T.m's \choose well-definedness is sometimes not proved (z3 MBQI)
 escfileslist2.test[gitbug1010]	#	#1010: every toString override fails the inherited Object.toString postcondition
 escfileslist3.test[gitbug778a]  #   Needs to handle bit-vector and Int together
-runscripts1.gitbug784            #   apache commons library
 escfileslist3.test[gitbug785]   #   Google guava library
 #escfileslist3.test[gitbug882]	#	Java complaint about uninitialized variable
 escfileslist3.test[gitbug897]   # substring and loop
