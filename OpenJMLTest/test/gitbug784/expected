@@ -1,0 +1,27 @@
+FILE src/CollectionUtils.java
+Note: src/CollectionUtils.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
+Note: src/CollectionUtils.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+FILE src/CompositeCollection.java
+Note: src/CompositeCollection.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+FILE src/EmptyIterator.java
+Note: src/EmptyIterator.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+FILE src/IteratorChain.java
+src/IteratorChain.java:235: error: strictly_pure methods may not call non-pure methods: lockChain()
+        lockChain();
+                 ^
+$SPECS/java/util/Iterator.jml:69: error: Associated declaration: src/IteratorChain.java:235:
+    //@ strictly_pure helper
+        ^
+src/IteratorChain.java:236: error: strictly_pure methods may not call non-pure methods: updateCurrentIterator()
+        updateCurrentIterator();
+                             ^
+Note: src/IteratorChain.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+3 errors
+FILE src/UnmodifiableList.java
+Note: src/UnmodifiableList.java uses or overrides a deprecated API.
+Note: Recompile with -Xlint:deprecation for details.
