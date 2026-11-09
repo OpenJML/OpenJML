@@ -2,8 +2,8 @@
 // through two fields from 'this') are not assumed at method entry.
 // ESC assumes the invariants of the receiver, of each field of the receiver (one
 // level) and of each parameter, but not of fields of parameters or deeper fields.
-// m1 and m2 are controls that verify. m3, m4, m5 and the Holder constructor fail
-// only because of #651; the expected file records those failures until it is fixed.
+// m1 and m2 are controls that verify. m3, m4, m5 and Holder fail by design: the default is kept
+// and an 'invariants' clause adds such objects (see invariantsClause2), so these failures stay.
 // Self-contained successor to gitbug651 (whose Map invariant no longer exists in Specs).
 
 //@ non_null_by_default

@@ -1,0 +1,101 @@
+Proving methods in C
+Starting proof of C.C() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of C.C() with prover !!!! - no warnings
+Completed proving methods in C
+Proving methods in D
+Starting proof of D.D() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of D.D() with prover !!!! - no warnings
+Completed proving methods in D
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.entryParamField(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.entryParamField(D) with prover !!!! - no warnings
+Starting proof of T.entryFieldField() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.entryFieldField() with prover !!!! - no warnings
+Starting proof of T.entryNullable(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.entryNullable(D) with prover !!!! - no warnings
+Starting proof of T.exitNormal(D) with prover !!!!
+test/invariantsClause2/T.java:60: verify: The prover cannot establish an assertion (InvariantExit: test/invariantsClause2/T.java:9:) in method exitNormal: T.exitNormal(D) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClause2/T.java:9: verify: Associated declaration: test/invariantsClause2/T.java:60:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.exitNormal(D) with prover !!!! - with warnings
+Starting proof of T.exitExceptional(D) with prover !!!!
+test/invariantsClause2/T.java:68: verify: The prover cannot establish an assertion (InvariantExit: test/invariantsClause2/T.java:9:) in method exitExceptional: T.exitExceptional(D) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClause2/T.java:9: verify: Associated declaration: test/invariantsClause2/T.java:68:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.exitExceptional(D) with prover !!!! - with warnings
+Starting proof of T.exitPostState(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.exitPostState(D) with prover !!!! - no warnings
+Starting proof of T.callee(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.callee(D) with prover !!!! - no warnings
+Starting proof of T.callerOK(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.callerOK(D) with prover !!!! - no warnings
+Starting proof of T.callerBad(D) with prover !!!!
+test/invariantsClause2/T.java:107: verify: The prover cannot establish an assertion (InvariantEntrance: test/invariantsClause2/T.java:9:) in method callerBad: (Caller: T.callerBad(D), Callee: T.callee(D))
+        callee(p);
+              ^
+test/invariantsClause2/T.java:9: verify: Associated declaration: test/invariantsClause2/T.java:107:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.callerBad(D) with prover !!!! - with warnings
+Completed proving methods in T
+Proving methods in Holder
+Starting proof of Holder.Holder(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Holder.Holder(D) with prover !!!! - no warnings
+Starting proof of Holder.Holder(C,int) with prover !!!!
+test/invariantsClause2/T.java:127: verify: The prover cannot establish an assertion (InvariantExit: test/invariantsClause2/T.java:114:) in method Holder
+    public Holder(C q, int k) {
+           ^
+test/invariantsClause2/T.java:114: verify: Associated declaration: test/invariantsClause2/T.java:127:
+    //@ public invariant held.x > 0;
+               ^
+Completed proof of Holder.Holder(C,int) with prover !!!! - with warnings
+Completed proving methods in Holder
+Proving methods in Base
+Starting proof of Base.Base() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Base.Base() with prover !!!! - no warnings
+Starting proof of Base.m(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Base.m(D) with prover !!!! - no warnings
+Completed proving methods in Base
+Proving methods in Derived
+Starting proof of Derived.Derived() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Derived.Derived() with prover !!!! - no warnings
+Starting proof of Derived.m(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Derived.m(D) with prover !!!! - no warnings
+Completed proving methods in Derived
+8 verification failures

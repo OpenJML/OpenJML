@@ -46,9 +46,14 @@ public class MethodExprListClauseExtensions extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree tree, Env<AttrContext> env) {
-            // TODO Auto-generated method stub
+            // The items are object values whose invariants are added to the method's default set (#651)
             JmlMethodClauseInvariants cl = (JmlMethodClauseInvariants)tree;
-            for (var e: cl.expressions) attr.attribTree(e, env, attr.new ResultInfo(KindSelector.VAL_TYP, Type.noType));
+            for (var e: cl.expressions) {
+                Type t = attr.attribTree(e, env, attr.new ResultInfo(KindSelector.VAL, Type.noType));
+                if (!t.isErroneous() && !t.isReference()) {
+                    error(attr.context, e, "jml.message", "An item in an invariants clause must be an object value, but this one has type " + t);
+                }
+            }
             return null;
         }
         
