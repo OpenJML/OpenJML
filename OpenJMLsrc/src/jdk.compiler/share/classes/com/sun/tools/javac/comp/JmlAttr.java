@@ -9017,6 +9017,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		var savedEnv = this.env;
 		jmlenv = jmlenv.pushInit();
 		var saved = jmlresolve.allowJML();
+		var savedPurity = currentMethodPurity;
+		currentMethodPurity = null; // class clauses may be attributed while attributing some method's specs
 		try {
 			jmlresolve.setAllowJML(true);
     		if (utils.verbose()) utils.note("Attributing specs for " + csym);
@@ -9042,6 +9044,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		JmlSpecs.instance(context).setStatus(csym, JmlSpecs.SpecsStatus.ERROR);
     	} finally {
 			jmlresolve.setAllowJML(saved);
+			currentMethodPurity = savedPurity;
     		this.enclosingClassEnv = savedEnclosingClassEnv;
     		this.env = savedEnv;
     		jmlenv = jmlenv.pop();
