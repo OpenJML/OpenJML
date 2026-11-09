@@ -66,16 +66,16 @@ public class escfpfiles extends EscBaseFiles {
 
 
     
-    @Ignore // true, but z3 and cvc5 time out with the FloatingPoint theory
+    // isqrt1 is the method of the issue; isqrt (with intermediate asserts) sometimes times out with --fpreal
     @Test public void gitbug580() {
         expectedExit = 0;
-        helpEscSimple();
+        helpEscName("gitbug580", "--fpreal", "--method=isqrt1");
     }
 
-    // isqrt1 is the method of the issue; isqrt (with intermediate asserts) sometimes times out with --fpreal
-    @Test public void gitbug580real() {
+    @Ignore // true, but z3 and cvc5 time out with the FloatingPoint theory
+    @Test public void gitbug580fp() {
         expectedExit = 0;
-        helpEscName("gitbug580", "--fpreal", "--method=isqrt1");
+        helpEscName("gitbug580", "--no-fpreal", "--method=isqrt1");
     }
     
     @Ignore // FIXME - times out -- double arithmetic?
