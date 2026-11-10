@@ -1,0 +1,5 @@
+unspecified genKeyPair()
+unspecified getInstance(java.lang.String,java.lang.String)
+unspecified getInstance(java.lang.String,java.security.Provider)
+unspecified getProvider()
+unspecified initialize(int)

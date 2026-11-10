@@ -22,6 +22,16 @@ import org.openjml.runners.ParameterizedWithNames;
 
 import com.sun.tools.javac.util.List;
 import com.sun.tools.javac.util.Log;
+import com.sun.tools.javac.util.Names;
+import com.sun.tools.javac.code.Flags;
+import com.sun.tools.javac.code.Symbol;
+import com.sun.tools.javac.code.Symbol.ClassSymbol;
+import com.sun.tools.javac.code.Symbol.MethodSymbol;
+import com.sun.tools.javac.code.Symbol.VarSymbol;
+import com.sun.tools.javac.code.Symtab;
+import org.jmlspecs.openjml.JmlSpecs;
+import org.jmlspecs.openjml.JmlTree;
+import org.jmlspecs.openjml.Utils;
 
 /** This test suite finds each of the specification (.jml) files in the 
  * library specifications, creates a temporary .java file that simply declares
@@ -36,6 +46,21 @@ import com.sun.tools.javac.util.Log;
  * The location of the specification files is given by Main.specs, that is
  * by the OPENJML_SPECS environment variable, which is setup in the
  * runtests scriot.
+ *
+ * Each test also checks that the .jml declares every public and protected field, method and constructor that the
+ * class itself (not a supertype) declares, as the binary class has them (#1099). A member counts as declared when
+ * its specs come from the .jml, the same notion as the jml.undeclared.member warning (JmlAttr.warnUndeclaredMember,
+ * #1060). Synthetic and bridge members are skipped, as are implicit ones that javac generates and the class file
+ * does not mark (default constructors, enum values()/valueOf), which therefore count like any other member. A
+ * public or protected member class is checked the same way, recursively, if the .jml declares it; otherwise only
+ * the class itself is reported. A declared method or constructor is also listed, prefixed by 'unspecified ', if its
+ * .jml declaration has no specification case and no JML modifier and it overrides nothing (an override inherits
+ * its parents' specs). Fields are not checked for specs, since a bare declaration already carries the default
+ * nullness.
+ *
+ * The file testspecs/[class]-declared lists the members known to be undeclared or unspecified, one per line
+ * (sorted; nested members prefixed by their class's path, nested classes by 'class '); an absent file means the
+ * .jml must be complete. On a mismatch the actual list is written to testspecs/[class]-declared-actual.
  */
 
 @org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
@@ -163,6 +188,9 @@ public class SpecsBase extends TCBase {
                     foundError = "No test output but there is an expected output file";
                 }
             }
+            String declError = checkDeclarations(className);
+            if (foundError != null && declError != null) foundError += "; " + declError;
+            else if (foundError == null) foundError = declError;
             assertTrue("Found errors checking specs for " + foundError, foundError == null);
         } catch (Exception e) {
             e.printStackTrace(this.out);
@@ -171,6 +199,68 @@ public class SpecsBase extends TCBase {
     }
     // FIXME - the above test template does not seem to trigger all the
     // modifier checking in attribute testing.
+
+    /** After checkClass's compile, compares the members of className that its .jml does not declare or specify
+     * with testspecs/[className]-declared; returns a description of a mismatch, or null */
+    String checkDeclarations(String className) throws IOException {
+        ClassSymbol csym = null;
+        for (var c: Symtab.instance(context).getClassesForName(Names.instance(context).fromString(className))) csym = c;
+        if (csym == null) return "class not found: " + className;
+        JmlSpecs specs = JmlSpecs.instance(context);
+        if (!fromJml(specs.getLoadedSpecs(csym).specDecl)) return "no .jml specs loaded for " + className;
+        var missing = new ArrayList<String>();
+        collectUndeclared(specs, csym, "", missing);
+        missing.sort(null);
+
+        Path known = Path.of(testdir, className + "-declared");
+        Path actual = Path.of(testdir, className + "-declared-actual");
+        var expected = new ArrayList<String>();
+        if (java.nio.file.Files.exists(known)) {
+            for (String line: java.nio.file.Files.readAllLines(known)) if (!line.isBlank()) expected.add(line.trim());
+        }
+        expected.sort(null);
+        if (expected.equals(missing)) return null;
+        java.nio.file.Files.write(actual, missing);
+        this.out.println("Undeclared or unspecified members of " + className + " differ from " + known + ": " + missing);
+        return "undeclared or unspecified members differ from " + known;
+    }
+
+    /** Adds to 'missing' the public and protected members of csym that its .jml does not declare, or declares
+     * without specs, each prefixed by 'prefix' (the path of a nested class) */
+    void collectUndeclared(JmlSpecs specs, ClassSymbol csym, String prefix, java.util.List<String> missing) {
+        for (Symbol s: csym.members().getSymbols()) {
+            long flags = s.flags();
+            if ((flags & (Flags.PUBLIC|Flags.PROTECTED)) == 0 || (flags & (Flags.SYNTHETIC|Flags.BRIDGE)) != 0) continue;
+            if (Utils.isJML(flags)) continue; // declared only in the .jml (model and ghost members)
+            if (s instanceof MethodSymbol m) {
+                var ms = specs.getLoadedSpecs(m);
+                if (ms == null || !fromJml(ms.specDecl)) missing.add(prefix + m);
+                else if (!hasSpecs(ms.specDecl) && Utils.instance(context).parents(m, false).isEmpty()) missing.add("unspecified " + prefix + m);
+            } else if (s instanceof VarSymbol v) {
+                var fs = specs.getLoadedSpecs(v);
+                if (fs == null || !fromJml(fs.decl)) missing.add(prefix + v);
+            } else if (s instanceof ClassSymbol c && c.owner == csym) {
+                if (fromJml(specs.getLoadedSpecs(c).specDecl)) {
+                    collectUndeclared(specs, c, prefix + c.name + ".", missing);
+                } else {
+                    missing.add("class " + prefix + c.name);
+                }
+            }
+        }
+    }
+
+    /** True if the .jml declaration has a specification case or a JML modifier (e.g. pure, nullable) */
+    static boolean hasSpecs(JmlTree.JmlMethodDecl decl) {
+        var cases = decl.methodSpecs;
+        if (cases != null && (cases.cases.nonEmpty() || (cases.impliesThatCases != null && cases.impliesThatCases.nonEmpty()))) return true;
+        return decl.mods instanceof JmlTree.JmlModifiers jm && !jm.jmlmods.isEmpty();
+    }
+
+    /** True if the declaration comes from a .jml file */
+    static boolean fromJml(JmlTree.JmlSource decl) {
+        JavaFileObject src = decl == null ? null : decl.source();
+        return src != null && src.getName().endsWith(".jml");
+    }
     
     /** Finds all classes that have library specification files.
      * Output is the filename with '/' separators

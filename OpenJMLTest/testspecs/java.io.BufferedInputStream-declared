@@ -1,0 +1,3 @@
+transferTo(java.io.OutputStream)
+unspecified BufferedInputStream(java.io.InputStream)
+unspecified BufferedInputStream(java.io.InputStream,int)

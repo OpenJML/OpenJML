@@ -1,0 +1,7 @@
+unspecified KeyAgreement(javax.crypto.KeyAgreementSpi,java.security.Provider,java.lang.String)
+unspecified generateSecret(byte[],int)
+unspecified generateSecret(java.lang.String)
+unspecified getAlgorithm()
+unspecified getInstance(java.lang.String,java.lang.String)
+unspecified getInstance(java.lang.String,java.security.Provider)
+unspecified getProvider()

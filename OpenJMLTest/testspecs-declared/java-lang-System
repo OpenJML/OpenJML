@@ -1,4 +1,0 @@
-class Logger
-class LoggerFinder
-getSecurityManager()
-setSecurityManager(java.lang.SecurityManager)

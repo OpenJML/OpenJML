@@ -1,0 +1,4 @@
+unspecified KeyPairGeneratorSpi()
+unspecified generateKeyPair()
+unspecified initialize(int,java.security.SecureRandom)
+unspecified initialize(java.security.spec.AlgorithmParameterSpec,java.security.SecureRandom)

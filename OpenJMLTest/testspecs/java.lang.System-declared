@@ -1,0 +1,14 @@
+class Logger
+class LoggerFinder
+getSecurityManager()
+setSecurityManager(java.lang.SecurityManager)
+unspecified clearProperty(java.lang.String)
+unspecified console()
+unspecified getLogger(java.lang.String)
+unspecified getLogger(java.lang.String,java.util.ResourceBundle)
+unspecified getenv()
+unspecified inheritedChannel()
+unspecified lineSeparator()
+unspecified load(java.lang.@org.jmlspecs.annotation.NonNull String)
+unspecified loadLibrary(java.lang.@org.jmlspecs.annotation.NonNull String)
+unspecified runFinalization()
