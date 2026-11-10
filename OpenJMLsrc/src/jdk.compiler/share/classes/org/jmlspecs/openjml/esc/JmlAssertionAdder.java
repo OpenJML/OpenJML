@@ -5996,11 +5996,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
 				if (attr.isHelper(v.sym)) continue;
 				
-				// Checked on both normal and exceptional exit, for the argument's pre-state value (#1104)
+				// Checked on both normal and exceptional exit, for the argument's pre-state value (#1104);
+				// that differs from the current value only if the body assigns the parameter
+				boolean reassigned = (v.sym.flags() & (Flags.FINAL | Flags.EFFECTIVELY_FINAL)) == 0;
 				for (var stats : List.of(ensuresStats, exsuresStats)) {
-					JCExpression pre = treeutils.makeOld(v.pos(), treeutils.makeIdent(v.pos, v.sym),
-							labelPropertiesStore.get(attr.preLabel));
-					if (rac) pre = convertExpr(pre);
+					JCExpression pre = treeutils.makeIdent(v.pos, v.sym);
+					if (reassigned) {
+						pre = treeutils.makeOld(v.pos(), pre, labelPropertiesStore.get(attr.preLabel));
+						if (rac) pre = convertExpr(pre);
+					}
 					addInvariants(v, v.type, pre, stats, false, false, false, false, true, false,
 							Label.INVARIANT_EXIT,
 							utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
