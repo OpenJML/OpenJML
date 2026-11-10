@@ -1,0 +1,2 @@
+or(java.util.function.Supplier<? extends java.util.Optional<? extends T>>)
+stream()

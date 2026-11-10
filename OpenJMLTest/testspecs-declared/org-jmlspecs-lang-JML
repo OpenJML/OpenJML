@@ -1,0 +1,3 @@
+equivalence(boolean,boolean)
+implies(boolean,boolean)
+inequivalence(boolean,boolean)

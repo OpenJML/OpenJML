@@ -1,0 +1,7 @@
+clone()
+entrySet()
+equals(java.lang.Object)
+hashCode()
+keySet()
+putAll(java.util.Map<? extends K,? extends V>)
+values()

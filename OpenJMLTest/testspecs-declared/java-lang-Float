@@ -1,0 +1,7 @@
+BYTES
+PRECISION
+SIZE
+describeConstable()
+float16ToFloat(short)
+floatToFloat16(float)
+resolveConstantDesc(java.lang.invoke.MethodHandles.Lookup)

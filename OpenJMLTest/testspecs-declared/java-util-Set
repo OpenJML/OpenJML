@@ -1,0 +1,3 @@
+<E>copyOf(java.util.Collection<? extends E>)
+<T>toArray(T[])
+spliterator()

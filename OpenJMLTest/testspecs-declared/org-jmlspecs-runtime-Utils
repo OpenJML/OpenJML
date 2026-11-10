@@ -1,0 +1,85 @@
+<T>copyArray(T[])
+<T>eqCheck(java.lang.String,java.lang.Object,T)
+<T>iterator(java.lang.Iterable<T>)
+<T>next(java.util.Iterator<T>)
+<T>trueCheck(java.lang.String,boolean,T)
+ASSERTION_FAILURE
+ASSERTION_FAILURE_EX
+REPORT_EXCEPTION
+RUNTIME
+Utils()
+assertionFailure(java.lang.String)
+assertionFailure2(java.lang.String,java.lang.String)
+assertionFailureE(java.lang.String,java.lang.String)
+assertionFailureL(java.lang.String,java.lang.String)
+callClassInvariant(java.lang.Object,java.lang.String)
+callStaticClassInvariant(java.lang.String)
+class NoModelMethodImplementationException
+class Value
+class ValueBool
+class ValueByte
+class ValueChar
+class ValueDouble
+class ValueFloat
+class ValueInt
+class ValueLong
+class ValueShort
+concat(java.lang.String,java.lang.String)
+convertPrecondition(org.jmlspecs.runtime.JmlAssertionError.Precondition)
+copyBooleanArray(boolean[])
+copyByteArray(byte[])
+copyCharArray(char[])
+copyDoubleArray(double[])
+copyFloatArray(float[])
+copyIntArray(int[])
+copyShortArray(short[])
+countVerificationErrors()
+getClassName(java.lang.Object)
+hasNext(java.util.Iterator<?>)
+intRangeCheck(java.lang.String,int,int,int)
+invariantMethodString
+isRACCompiled(java.lang.Class<?>)
+makeTYPE0(java.lang.Class<?>)
+noModelMethodImplementation(java.lang.String)
+nonnullElementCheck(java.lang.Object[])
+numVerificationErrors
+print(java.lang.String)
+racExitCodeString
+racpropertyname
+racpropertyvalue
+report(java.lang.String)
+reportBoolean(java.lang.String,boolean)
+reportByte(java.lang.String,byte)
+reportChar(java.lang.String,char)
+reportDouble(java.lang.String,double)
+reportException(java.lang.String,java.lang.RuntimeException)
+reportFloat(java.lang.String,float)
+reportInt(java.lang.String,int)
+reportLong(java.lang.String,long)
+reportNoSuchField(java.lang.NoSuchFieldError,java.lang.String)
+reportNoSuchMethod(java.lang.NoSuchMethodError,java.lang.String)
+reportObject(java.lang.String,java.lang.Object)
+reportShort(java.lang.String,short)
+showStack
+staticinvariantMethodString
+toStringBoolean(boolean)
+toStringByte(byte)
+toStringChar(char)
+toStringDouble(double)
+toStringFloat(float)
+toStringInt(int)
+toStringLong(long)
+toStringObject(java.lang.Object)
+toStringShort(short)
+typeName(java.lang.Throwable)
+useExceptions
+useJavaAssert
+useJavaException
+useStdout
+zeroByteCheck(java.lang.String,byte)
+zeroCharCheck(java.lang.String,char)
+zeroDoubleCheck(java.lang.String,double)
+zeroFloatCheck(java.lang.String,float)
+zeroIntCheck(java.lang.String,int)
+zeroLongCheck(java.lang.String,long)
+zeroShortCheck(java.lang.String,short)

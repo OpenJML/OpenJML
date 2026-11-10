@@ -1,0 +1,8 @@
+forEach(java.util.function.Consumer<? super E>)
+iterator()
+listIterator()
+listIterator(int)
+removeIf(java.util.function.Predicate<? super E>)
+replaceAll(java.util.function.UnaryOperator<E>)
+sort(java.util.Comparator<? super E>)
+spliterator()

@@ -1,0 +1,2 @@
+addAll(java.util.Collection<? extends E>)
+reversed()

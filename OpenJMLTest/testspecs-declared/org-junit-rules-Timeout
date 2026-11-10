@@ -1,0 +1,10 @@
+Timeout(int)
+Timeout(long,java.util.concurrent.TimeUnit)
+Timeout(org.junit.rules.Timeout.Builder)
+apply(org.junit.runners.model.Statement,org.junit.runner.Description)
+builder()
+class Builder
+createFailOnTimeoutStatement(org.junit.runners.model.Statement)
+getLookingForStuckThread()
+getTimeout(java.util.concurrent.TimeUnit)
+millis(long)
