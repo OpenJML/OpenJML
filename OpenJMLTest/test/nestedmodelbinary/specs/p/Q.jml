@@ -1,0 +1,4 @@
+package p;
+public interface Q {
+    //@ model public static interface N { }
+}

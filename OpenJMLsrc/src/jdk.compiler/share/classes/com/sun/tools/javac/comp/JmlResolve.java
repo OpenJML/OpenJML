@@ -17,6 +17,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.comp.Resolve.RecoveryLoadClass;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.tree.JCTree;
@@ -208,8 +209,20 @@ public class JmlResolve extends Resolve {
         return s;
     }
 
+    /** A model class nested in a binary class is entered only with that class's specs. If the specs
+     * request is still queued (the class was first referenced while entering another class's specs),
+     * load the specs now and look again.
+     */
+    @Override
+    Symbol findImmediateMemberType(Env<AttrContext> env, Type site, Name name, TypeSymbol c) {
+        Symbol sym = super.findImmediateMemberType(env, site, name, c);
+        if (sym.kind == Kinds.Kind.ABSENT_TYP && c instanceof ClassSymbol cs && JmlEnter.instance(context).loadQueuedSpecs(cs)) {
+            sym = super.findImmediateMemberType(env, site, name, c);
+        }
+        return sym;
+    }
 
-     
+
 //     // A hook method added into Resolve.findMethod to avoid replication of
 //     // parent class code.
 //     /** TODO: Not sure exactly what this controls in the superclass */
