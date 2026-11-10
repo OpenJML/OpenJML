@@ -9,3 +9,6 @@ public class A {
 class B {
     public boolean ok(A x) { return x != null; }
 }
+
+// Since #1104, B.ok(A x) must re-establish x's invariant (b.ok(this)) on exit; that invariant calls the
+// non-pure ok again, so the recursion guard warns and the exit check fails. ESC still terminates.
