@@ -1,0 +1,61 @@
+Proving methods in C
+Starting proof of C.C() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of C.C() with prover !!!! - no warnings
+Completed proving methods in C
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.T(int) with prover !!!!
+test/gitbug1105/T.java:28: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug1105/T.java:8:) in method T: T.T(int) (field f)
+    public T(int k) { f = new C(); f.x = 0; g = null; }
+           ^
+test/gitbug1105/T.java:8: verify: Associated declaration: test/gitbug1105/T.java:28:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.T(int) with prover !!!! - with warnings
+Starting proof of T.breakNormal() with prover !!!!
+test/gitbug1105/T.java:33: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug1105/T.java:8:) in method breakNormal: T.breakNormal() (field f)
+    public void breakNormal() { f.x = 0; }
+                ^
+test/gitbug1105/T.java:8: verify: Associated declaration: test/gitbug1105/T.java:33:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.breakNormal() with prover !!!! - with warnings
+Starting proof of T.breakExc() with prover !!!!
+test/gitbug1105/T.java:39: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug1105/T.java:8:) in method breakExc: T.breakExc() (field f)
+    public void breakExc() { f.x = 0; throw new RuntimeException(); }
+                                      ^
+test/gitbug1105/T.java:8: verify: Associated declaration: test/gitbug1105/T.java:39:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.breakExc() with prover !!!! - with warnings
+Starting proof of T.restore() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.restore() with prover !!!! - no warnings
+Starting proof of T.nullableField() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.nullableField() with prover !!!! - no warnings
+Starting proof of T.breakNullable() with prover !!!!
+test/gitbug1105/T.java:55: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug1105/T.java:8:) in method breakNullable: T.breakNullable() (field g)
+    public void breakNullable() { g.x = 0; }
+                ^
+test/gitbug1105/T.java:8: verify: Associated declaration: test/gitbug1105/T.java:55:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.breakNullable() with prover !!!! - with warnings
+Starting proof of T.staticField() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.staticField() with prover !!!! - no warnings
+Starting proof of T.get() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.get() with prover !!!! - no warnings
+Completed proving methods in T
+8 verification failures
