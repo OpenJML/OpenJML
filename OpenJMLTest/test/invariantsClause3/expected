@@ -1,0 +1,130 @@
+Proving methods in C
+Starting proof of C.C() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of C.C() with prover !!!! - no warnings
+Completed proving methods in C
+Proving methods in D
+Starting proof of D.D() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of D.D() with prover !!!! - no warnings
+Completed proving methods in D
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.callee(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.callee(D) with prover !!!! - no warnings
+Starting proof of T.callee2(D,D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.callee2(D,D) with prover !!!! - no warnings
+Starting proof of T.fieldOK(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.fieldOK(D) with prover !!!! - no warnings
+Starting proof of T.fieldBad(D) with prover !!!!
+test/invariantsClause3/T.java:63: verify: The prover cannot establish an assertion (InvariantEntrance: test/invariantsClause3/T.java:9:) in method fieldBad: (Caller: T.fieldBad(D), Callee: T.callee(D))
+        callee(r);
+              ^
+test/invariantsClause3/T.java:9: verify: Associated declaration: test/invariantsClause3/T.java:63:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.fieldBad(D) with prover !!!! - with warnings
+Starting proof of T.fieldAfterBad(D) with prover !!!!
+test/invariantsClause3/T.java:72: verify: The prover cannot establish an assertion (Assert) in method fieldAfterBad
+        //@ assert q.c.x > 0;
+            ^
+Completed proof of T.fieldAfterBad(D) with prover !!!! - with warnings
+Starting proof of T.paramOK(D,D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.paramOK(D,D) with prover !!!! - no warnings
+Starting proof of T.paramBad(D,D) with prover !!!!
+test/invariantsClause3/T.java:89: verify: The prover cannot establish an assertion (InvariantEntrance: test/invariantsClause3/T.java:9:) in method paramBad: (Caller: T.paramBad(D,D), Callee: T.callee(D))
+        callee(r);
+              ^
+test/invariantsClause3/T.java:9: verify: Associated declaration: test/invariantsClause3/T.java:89:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.paramBad(D,D) with prover !!!! - with warnings
+Starting proof of T.localOK(D,D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.localOK(D,D) with prover !!!! - no warnings
+Starting proof of T.localBad(D,D) with prover !!!!
+test/invariantsClause3/T.java:108: verify: The prover cannot establish an assertion (InvariantEntrance: test/invariantsClause3/T.java:9:) in method localBad: (Caller: T.localBad(D,D), Callee: T.callee(D))
+        callee(r);
+              ^
+test/invariantsClause3/T.java:9: verify: Associated declaration: test/invariantsClause3/T.java:108:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.localBad(D,D) with prover !!!! - with warnings
+Starting proof of T.exprOK() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.exprOK() with prover !!!! - no warnings
+Starting proof of T.exprBad() with prover !!!!
+test/invariantsClause3/T.java:125: verify: The prover cannot establish an assertion (InvariantEntrance: test/invariantsClause3/T.java:9:) in method exprBad: (Caller: T.exprBad(), Callee: T.callee(D))
+        callee(this.q);
+              ^
+test/invariantsClause3/T.java:9: verify: Associated declaration: test/invariantsClause3/T.java:125:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.exprBad() with prover !!!! - with warnings
+Starting proof of T.positionOK(D,D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.positionOK(D,D) with prover !!!! - no warnings
+Starting proof of T.positionBad(D,D) with prover !!!!
+test/invariantsClause3/T.java:142: verify: The prover cannot establish an assertion (InvariantEntrance: test/invariantsClause3/T.java:9:) in method positionBad: (Caller: T.positionBad(D,D), Callee: T.callee2(D,D))
+        callee2(r, s);
+               ^
+test/invariantsClause3/T.java:9: verify: Associated declaration: test/invariantsClause3/T.java:142:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.positionBad(D,D) with prover !!!! - with warnings
+Completed proving methods in T
+Proving methods in Base
+Starting proof of Base.Base() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Base.Base() with prover !!!! - no warnings
+Starting proof of Base.m(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Base.m(D) with prover !!!! - no warnings
+Completed proving methods in Base
+Proving methods in Derived
+Starting proof of Derived.Derived() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Derived.Derived() with prover !!!! - no warnings
+Starting proof of Derived.m(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Derived.m(D) with prover !!!! - no warnings
+Completed proving methods in Derived
+Proving methods in User
+Starting proof of User.User() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of User.User() with prover !!!! - no warnings
+Starting proof of User.overrideOK(Derived,D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of User.overrideOK(Derived,D) with prover !!!! - no warnings
+Starting proof of User.overrideBad(Derived,D) with prover !!!!
+test/invariantsClause3/T.java:193: verify: The prover cannot establish an assertion (InvariantEntrance: test/invariantsClause3/T.java:9:) in method overrideBad: (Caller: User.overrideBad(Derived,D), Callee: Derived.m(D))
+        x.m(r);
+           ^
+test/invariantsClause3/T.java:9: verify: Associated declaration: test/invariantsClause3/T.java:193:
+    //@ public invariant x > 0;
+               ^
+Completed proof of User.overrideBad(Derived,D) with prover !!!! - with warnings
+Completed proving methods in User
+13 verification failures

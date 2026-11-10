@@ -5056,6 +5056,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	            addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after invariants for " + vsym.owner + "." + vsym + " (" + vsym.type + ")");
 
 			}
+			addInvariantsClauseItems(methodDecl, methodDecl.sym, receiver, true, true, false, true,
+					Label.INVARIANT_ENTRANCE_ASSUMED, utils.qualifiedMethodSig(methodDecl.sym) + " (invariants clause)");
 
 			// Collect and check precondition
 
@@ -5905,6 +5907,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
                 var ifstat = M.at(methodDecl.pos).If(noException, bl, null);
                 addStat(ifstat);
             }
+            if (esc) {
+                addInvariantsClauseItems(methodDecl, methodDecl.sym, receiver, true, false, true, false,
+                        Label.INVARIANT_EXIT, utils.qualifiedMethodSig(methodDecl.sym) + " (invariants clause)");
+            }
             currentStatements = saved;
         }
         
@@ -5932,6 +5938,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addConstraintInitiallyChecks(methodDecl, owner, receiver, exsuresStats, true,
                     methodDecl.sym.isConstructor(), false, isHelper(methodDecl.sym), true, false, null,
                     utils.qualifiedMethodSig(methodDecl.sym));
+            // ESC adds these in finalizeStats, above
+            for (var stats : List.of(ensuresStats, exsuresStats)) {
+                currentStatements = stats;
+                addInvariantsClauseItems(methodDecl, methodDecl.sym, receiver, true, false, true, false,
+                        Label.INVARIANT_EXIT, utils.qualifiedMethodSig(methodDecl.sym) + " (invariants clause)");
+            }
+            currentStatements = null;
 		}
 //		if (!isPure || isConstructor) {
 //			for (JCVariableDecl v : methodDecl.params) {
@@ -12496,6 +12509,9 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						addInvariants(id, arg.type, id, currentStatements, false, false, false, false, true, true,
 								Label.INVARIANT_EXIT_ASSUMED, msg);
 					}
+				if (!isHelper(calleeMethodSym) && !isObjectConstructor)
+					addInvariantsClauseItems(that, calleeMethodSym, newThisExpr, false, false, true, true,
+							Label.INVARIANT_EXIT_ASSUMED, msg);
 
 			}
             JCBlock invariantBlock = popBlock(methodDecl, check5);
@@ -13429,7 +13445,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				addInvariants(arg, arg.type, id, currentStatements, false, false, false, false, false, false,
 				        Label.INVARIANT_ENTRANCE, msg);
 			}
+			addInvariantsClauseItems(that, calleeMethodSym, newThisExpr, false, false, false, false,
+					Label.INVARIANT_ENTRANCE, msg);
 			clearInvariants(); // TODO - test this?
+		}
+	}
+
+	/** Assumes or asserts the invariants of the object values listed in the 'invariants' clauses of msym
+	 * and the methods it overrides (#651), translating each item with the given receiver in the current
+	 * state, except that at the method's own exit its parameters denote their pre-state values. For the method being verified (ownMethod), the parameters of each overridden method's specs
+	 * are mapped to this method's; at a call site the caller has already mapped them to the actuals.
+	 */
+	protected void addInvariantsClauseItems(DiagnosticPosition pos, MethodSymbol msym, JCExpression receiver,
+			boolean ownMethod, boolean prepost, boolean isPost, boolean assume, Label label, String msg) {
+		for (MethodSymbol p : utils.parents(msym, true)) {
+			JmlMethodSpecs ds = specs.getDenestedSpecs(p);
+			if (ds == null || ds.invariants == null) continue;
+			JavaFileObject prevSource = log.currentSourceFile();
+			if (ds.invariants.source() != null) log.useSource(ds.invariants.source());
+			JCExpression savedReceiver = currentEnv.currentReceiver;
+			Map<Object, JCExpression> savedParamActuals = paramActuals_;
+			try {
+				if (ownMethod) paramActuals_ = specParamsToActuals(ds, methodDecl, p);
+				for (JCExpression e : ds.invariants.expressions) {
+					addStat(comment(e, (assume ? "Assume" : "Assert") + " invariants of " + e
+							+ " (invariants clause of " + utils.qualifiedMethodSig(p) + ")", null));
+					currentEnv.currentReceiver = receiver;
+					// At the method's own exit, parameters denote their pre-state values, as in ensures;
+					// at a call, the actuals are already the values passed
+					JCIdent id = newTemp(convertJML(e, null, isPost && ownMethod));
+					// A failure is reported at the clause item for the method itself, at the call for a callee
+					addInvariants(ownMethod ? e : pos, e.type, id, currentStatements, prepost, false, false, false,
+							isPost, assume, label, msg);
+				}
+			} finally {
+				currentEnv.currentReceiver = savedReceiver;
+				paramActuals_ = savedParamActuals;
+				log.useSource(prevSource);
+			}
 		}
 	}
 

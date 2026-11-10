@@ -53,3 +53,9 @@ public final class B {
         }
     }
 }
+
+// Issue #651 (run by escsf3.gitbug651): the issue's original example. The invariant of
+// builder.context (a field of a parameter) is not assumed on entry, though that of
+// this.context is. Map's 'content.owner == this' invariant has since left Specs, so the
+// check now compares modelMap; the failure at line 36 is the #651 bug, recorded in
+// 'expected' until fixed. See gitbug651c for a self-contained version.

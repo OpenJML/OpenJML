@@ -2435,6 +2435,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         
         
         boolean specsCompletelyEmpty = msp.cases.cases.isEmpty();
+        // Kept separately: an invariants-only spec still gets the default spec cases (#651)
+        var invariantsClause = msp.cases.invariants;
 
 //        env = enter.getEnv((ClassSymbol)decl.sym.owner);
 //        JCMethodDecl prevEnclMethod = env == null ? null : env.enclMethod;
@@ -2483,6 +2485,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (!msym.isConstructor() && utils.parents(msym,true).size() > 1) { // The override list will always include the method itself
                     JmlMethodSpecs newspecs = jmlMaker.at(msp.cases.pos).JmlMethodSpecs(List.<JmlTree.JmlSpecificationCase>nil());
                     newspecs.decl = msp.cases.decl;
+                    newspecs.invariants = invariantsClause;
                     msp.cases.deSugared = newspecs;
                     //System.out.println("EMPTY WITH INHERITED " + msym.owner + " " + msym);
                     return;
@@ -2563,6 +2566,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 newspecs = jmlMaker.at(-1).JmlMethodSpecs(List.<JmlSpecificationCase>nil());
             }
             newspecs.decl = decl;
+            newspecs.invariants = invariantsClause;
             msp.cases.deSugared = newspecs;
         } catch (Exception e) {
         	utils.unexpectedException(e,  "DESUGARING");
