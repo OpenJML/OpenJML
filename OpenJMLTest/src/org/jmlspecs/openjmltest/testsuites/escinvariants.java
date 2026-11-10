@@ -19,6 +19,12 @@ public class escinvariants extends EscBaseFiles {
         ignoreNotes = true;
     }
 
+    /** Parameter invariants are checked on normal exit, for the pre-state argument (#1104) */
+    @Test
+    public void gitbug1104() {
+        helpEscSimple();
+    }
+
     /** Type checking: clause placement and item kinds */
     @Test
     public void invariantsClause() {

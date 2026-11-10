@@ -1,0 +1,49 @@
+Proving methods in C
+Starting proof of C.C() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of C.C() with prover !!!! - no warnings
+Completed proving methods in C
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.breakNormal(C) with prover !!!!
+test/gitbug1104/T.java:17: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug1104/T.java:7:) in method breakNormal: T.breakNormal(C) (parameter c)
+    public void breakNormal(C c) { c.x = 0; }                 // FAILS
+                              ^
+test/gitbug1104/T.java:7: verify: Associated declaration: test/gitbug1104/T.java:17:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.breakNormal(C) with prover !!!! - with warnings
+Starting proof of T.keep(C) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.keep(C) with prover !!!! - no warnings
+Starting proof of T.reassignBad(C) with prover !!!!
+test/gitbug1104/T.java:25: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug1104/T.java:7:) in method reassignBad: T.reassignBad(C) (parameter c)
+    public void reassignBad(C c) { c.x = 0; c = new C(); }    // FAILS: the original c is broken
+                              ^
+test/gitbug1104/T.java:7: verify: Associated declaration: test/gitbug1104/T.java:25:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.reassignBad(C) with prover !!!! - with warnings
+Starting proof of T.reassignOK(C,C) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.reassignOK(C,C) with prover !!!! - no warnings
+Starting proof of T.breakExc(C) with prover !!!!
+test/gitbug1104/T.java:34: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug1104/T.java:7:) in method breakExc: T.breakExc(C) (parameter c)
+    public void breakExc(C c) { c.x = 0; throw new RuntimeException(); }  // FAILS
+                           ^
+test/gitbug1104/T.java:7: verify: Associated declaration: test/gitbug1104/T.java:34:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.breakExc(C) with prover !!!! - with warnings
+Starting proof of T.caller(C) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.caller(C) with prover !!!! - no warnings
+Completed proving methods in T
+6 verification failures
