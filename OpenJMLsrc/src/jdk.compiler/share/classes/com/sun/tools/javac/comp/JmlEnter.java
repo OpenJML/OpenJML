@@ -1918,9 +1918,27 @@ public class JmlEnter extends Enter {
 	 * Anything with a source file should go through Enter.main
 	 */
 	public void completeBinaryEnterTodo() {
+	    completeBinaryEnterTodo(null);
+	}
+
+	/** Loads now the specs of a binary class whose request is still queued (as happens when the class
+	 * is first referenced while another class's specs are being entered), along with the entries
+	 * queued ahead of it, which include its supertypes. Returns false if the class's specs are not
+	 * queued (already loaded, not requested, or being entered higher on the stack).
+	 */
+	public boolean loadQueuedSpecs(ClassSymbol csymbol) {
+	    while (csymbol.owner instanceof ClassSymbol) csymbol = (ClassSymbol) csymbol.owner;
+	    if (JmlSpecs.instance(context).status(csymbol) != JmlSpecs.SpecsStatus.QUEUED
+	            || !binaryEnterTodo.contains(csymbol)) return false;
+	    completeBinaryEnterTodo(csymbol);
+	    return true;
+	}
+
+	/** As completeBinaryEnterTodo(), but if 'until' is not null, stops once the specs of 'until' are loaded */
+	private void completeBinaryEnterTodo(/*@ nullable */ ClassSymbol until) {
         if (debugSpecs) Utils.debugOut().println("specs: Starting completeBinaryEnterTodo " + binaryEnterTodo.size());
 		JmlSpecs specs = JmlSpecs.instance(context);
-		while (!binaryEnterTodo.isEmpty()) {
+		while (!binaryEnterTodo.isEmpty() && (until == null || !JmlSpecs.SpecsStatus.QUEUED.less(specs.status(until)))) {
 			ClassSymbol csymbol = binaryEnterTodo.remove();
 			if (csymbol.type instanceof Type.IntersectionClassType) {
 			    // Synthetic intersection class symbols (e.g. from <R extends A & B>) have no

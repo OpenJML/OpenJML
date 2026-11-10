@@ -1,0 +1,4 @@
+package p;
+public interface M {
+    //@ model public instance Q.N f;
+}

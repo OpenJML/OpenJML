@@ -91,6 +91,10 @@ public class runscripts1 extends RunBase {
         doTest();
     }
 
+    @Test public void nestedmodelbinary() {
+        doTest();
+    }
+
     @Test public void nomodelmethod() {
         doTest();
     }
