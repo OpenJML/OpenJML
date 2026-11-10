@@ -10,6 +10,9 @@ test/gitbug969b/Node.java:8: warning: Recursive attempt to assert or assume inva
 test/gitbug969b/Node.java:8: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node
     //@ public invariant self(next) == next;
                              ^
+test/gitbug969b/Node.java:8: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node
+    //@ public invariant self(next) == next;
+                             ^
 test/gitbug969b/Node.java:7: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node
     public /*@ nullable */ Node next;
                                 ^
@@ -40,5 +43,5 @@ test/gitbug969b/Node.java:8: verify: Associated declaration: test/gitbug969b/Nod
                ^
 Completed proof of Node.self(@Nullable Node) with prover !!!! - with warnings
 Completed proving methods in Node
-6 warnings
+7 warnings
 6 verification failures

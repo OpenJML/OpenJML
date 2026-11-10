@@ -1,0 +1,75 @@
+$SPECS/java/util/Calendar.jml:126: warning: JML RAC does not check this invariant: it uses java.util.Calendar.zone, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+    /*@ public invariant zone != null;
+               ^
+$SPECS/java/util/GregorianCalendar.jml:115: warning: JML RAC does not check this invariant: it uses java.util.Calendar.zone, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+    /*@ public invariant zone != null;
+               ^
+test/racInvariantAccess/Main.java:21: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+$SPECS/java/util/GregorianCalendar.jml:117: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[ERA], ERA);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:118: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[YEAR], YEAR);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:119: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[MONTH], MONTH);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:120: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[WEEK_OF_YEAR], WEEK_OF_YEAR);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:121: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[WEEK_OF_MONTH], WEEK_OF_MONTH);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:122: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[DAY_OF_MONTH], DAY_OF_MONTH);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:123: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[DATE], DATE);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:124: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[DAY_OF_YEAR], DAY_OF_YEAR);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:125: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[DAY_OF_WEEK], DAY_OF_WEEK);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:126: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[DAY_OF_WEEK_IN_MONTH], 
+               ^
+$SPECS/java/util/GregorianCalendar.jml:128: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[AM_PM], AM_PM);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:129: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[HOUR], HOUR);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:130: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[HOUR_OF_DAY], HOUR_OF_DAY);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:131: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[MINUTE], MINUTE);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:132: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[SECOND], SECOND);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:133: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[MILLISECOND], MILLISECOND);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:134: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[ZONE_OFFSET], ZONE_OFFSET);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:135: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[DST_OFFSET], DST_OFFSET);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:136: warning: JML RAC does not check this invariant: it uses java.util.Calendar.fields, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+      @ public invariant boundsCheck(fields[FIELD_COUNT], FIELD_COUNT);
+               ^
+$SPECS/java/util/GregorianCalendar.jml:116: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+      @ public invariant locale != null;
+                         ^
+test/racInvariantAccess/Main.java:21: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+test/racInvariantAccess/Main.java:21: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+test/racInvariantAccess/Main.java:21: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+test/racInvariantAccess/Main.java:21: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+test/racInvariantAccess/Main.java:21: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+test/racInvariantAccess/Main.java:21: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+test/racInvariantAccess/Main.java:21: warning: JML ignoring statement because model field does not have a representation: java.util.Calendar.locale
+30 warnings

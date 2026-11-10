@@ -79,6 +79,13 @@ public class escsf3 extends SFBugsBase {
         helpEscSimple();
     }
 
+    // #651: the default invariant set does not include fields of parameters (failures by design;
+    // the 'invariants' clause is the remedy, see escinvariants)
+    @Test
+    public void gitbug651c() {
+        helpEscSimple();
+    }
+
     @Test
     public void gitbug653() {
         helpEscSimple("--specs-path=test/gitbug653");
