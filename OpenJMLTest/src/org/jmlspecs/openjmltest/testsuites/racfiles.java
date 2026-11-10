@@ -679,6 +679,18 @@ public class racfiles extends RacBase {
     }
     
     @Test
+    public void invariantsClauseRac() {
+        // The 'invariants' method clause is checked by RAC as default invariants are (#651)
+        helpCompileRun("T");
+    }
+
+    @Test
+    public void invariantsClauseRacNoAssume() {
+        // As invariantsClauseRac, but assumed invariants are not checked (#651)
+        helpRac("test/invariantsClauseRac", "test/invariantsClauseRacNoAssume", "T", "--rac-check-assumptions=false");
+    }
+
+    @Test
     public void textRac() {
         helpCompileRun("BL");
     }

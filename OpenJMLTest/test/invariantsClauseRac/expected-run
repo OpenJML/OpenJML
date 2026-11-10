@@ -1,0 +1,87 @@
+OUT:
+ok done
+test/invariantsClauseRac/T.java:26: verify: JML invariant is false on leaving method T.breakNormal(D) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:26:
+    //@ public invariant x > 0;
+               ^
+test/invariantsClauseRac/T.java:58: verify: JML assumed invariant is false on leaving method T.breakNormal(D), returning to T.main(java.lang.String...)
+        breakNormal(d);
+                   ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:58:
+    //@ public invariant x > 0;
+               ^
+breakNormal done
+test/invariantsClauseRac/T.java:32: verify: JML invariant is false on leaving method T.breakExceptional(D) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:32:
+    //@ public invariant x > 0;
+               ^
+test/invariantsClauseRac/T.java:62: verify: JML assumed invariant is false on leaving method T.breakExceptional(D), returning to T.main(java.lang.String...)
+            breakExceptional(d);
+                            ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:62:
+    //@ public invariant x > 0;
+               ^
+breakExceptional threw
+test/invariantsClauseRac/T.java:69: verify: JML invariant is false on entering method (Caller: T.main(java.lang.String...), Callee: T.defaultEntry(C))
+        defaultEntry(bad.c);
+                     ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:69:
+    //@ public invariant x > 0;
+               ^
+test/invariantsClauseRac/T.java:39: verify: JML assumed invariant is false on entering method T.defaultEntry(C) (parameter c)
+    public static void defaultEntry(C c) {
+                                      ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:39:
+    //@ public invariant x > 0;
+               ^
+test/invariantsClauseRac/T.java:69: verify: JML assumed invariant is false on leaving method T.defaultEntry(C), returning to T.main(java.lang.String...)
+        defaultEntry(bad.c);
+                     ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:69:
+    //@ public invariant x > 0;
+               ^
+defaultEntry done
+test/invariantsClauseRac/T.java:71: verify: JML invariant is false on entering method (Caller: T.main(java.lang.String...), Callee: T.entry(D))
+        entry(bad);
+             ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:71:
+    //@ public invariant x > 0;
+               ^
+test/invariantsClauseRac/T.java:43: verify: JML assumed invariant is false on entering method T.entry(D) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:43:
+    //@ public invariant x > 0;
+               ^
+test/invariantsClauseRac/T.java:43: verify: JML invariant is false on leaving method T.entry(D) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:43:
+    //@ public invariant x > 0;
+               ^
+test/invariantsClauseRac/T.java:71: verify: JML assumed invariant is false on leaving method T.entry(D), returning to T.main(java.lang.String...)
+        entry(bad);
+             ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:71:
+    //@ public invariant x > 0;
+               ^
+entry done
+test/invariantsClauseRac/T.java:48: verify: JML invariant is false on leaving method T.reassign(D) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:48:
+    //@ public invariant x > 0;
+               ^
+test/invariantsClauseRac/T.java:73: verify: JML assumed invariant is false on leaving method T.reassign(D), returning to T.main(java.lang.String...)
+        reassign(d);
+                ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:73:
+    //@ public invariant x > 0;
+               ^
+reassign done
+
+ERR:

@@ -1,0 +1,67 @@
+Proving methods in C
+Starting proof of C.C() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of C.C() with prover !!!! - no warnings
+Completed proving methods in C
+Proving methods in D
+Starting proof of D.D() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of D.D() with prover !!!! - no warnings
+Completed proving methods in D
+Proving methods in T
+Starting proof of T.T() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.T() with prover !!!! - no warnings
+Starting proof of T.entryBoth(D,boolean) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.entryBoth(D,boolean) with prover !!!! - no warnings
+Starting proof of T.exitExceptionalCase(D,boolean) with prover !!!!
+test/invariantsClause4/T.java:44: verify: The prover cannot establish an assertion (InvariantExit: test/invariantsClause4/T.java:9:) in method exitExceptionalCase: T.exitExceptionalCase(D,boolean) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClause4/T.java:9: verify: Associated declaration: test/invariantsClause4/T.java:44:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.exitExceptionalCase(D,boolean) with prover !!!! - with warnings
+Starting proof of T.exitNormalCase(D,boolean) with prover !!!!
+test/invariantsClause4/T.java:58: verify: The prover cannot establish an assertion (InvariantExit: test/invariantsClause4/T.java:9:) in method exitNormalCase: T.exitNormalCase(D,boolean) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClause4/T.java:9: verify: Associated declaration: test/invariantsClause4/T.java:58:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.exitNormalCase(D,boolean) with prover !!!! - with warnings
+Starting proof of T.callee(D,int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.callee(D,int) with prover !!!! - no warnings
+Starting proof of T.callerOK(D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.callerOK(D) with prover !!!! - no warnings
+Starting proof of T.callerBad(D) with prover !!!!
+test/invariantsClause4/T.java:96: verify: The prover cannot establish an assertion (InvariantEntrance: test/invariantsClause4/T.java:9:) in method callerBad: (Caller: T.callerBad(D), Callee: T.callee(D,int))
+        callee(r, 0);
+              ^
+test/invariantsClause4/T.java:9: verify: Associated declaration: test/invariantsClause4/T.java:96:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.callerBad(D) with prover !!!! - with warnings
+Starting proof of T.reassignOK(D,D) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.reassignOK(D,D) with prover !!!! - no warnings
+Starting proof of T.reassignBad(D) with prover !!!!
+test/invariantsClause4/T.java:108: verify: The prover cannot establish an assertion (InvariantExit: test/invariantsClause4/T.java:9:) in method reassignBad: T.reassignBad(D) (invariants clause)
+    //@ invariants p.c;
+                    ^
+test/invariantsClause4/T.java:9: verify: Associated declaration: test/invariantsClause4/T.java:108:
+    //@ public invariant x > 0;
+               ^
+Completed proof of T.reassignBad(D) with prover !!!! - with warnings
+Completed proving methods in T
+8 verification failures
