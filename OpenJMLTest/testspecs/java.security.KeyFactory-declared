@@ -1,0 +1,7 @@
+unspecified <T>getKeySpec(java.security.Key,java.lang.Class<T>)
+unspecified KeyFactory(java.security.KeyFactorySpi,java.security.Provider,java.lang.String)
+unspecified generatePrivate(java.security.spec.KeySpec)
+unspecified getInstance(java.lang.String,java.lang.String)
+unspecified getInstance(java.lang.String,java.security.Provider)
+unspecified getProvider()
+unspecified translateKey(java.security.Key)

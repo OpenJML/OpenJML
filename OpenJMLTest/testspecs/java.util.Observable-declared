@@ -1,0 +1,2 @@
+unspecified addObserver(java.util.Observer)
+unspecified deleteObserver(java.util.Observer)

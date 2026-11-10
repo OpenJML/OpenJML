@@ -1,0 +1,37 @@
+PRIVATE_USE_EXTENSION
+ROOT
+UNICODE_LOCALE_EXTENSION
+availableLocales()
+caseFoldLanguageTag(java.lang.String)
+class Builder
+class Category
+class FilteringMode
+class IsoCountryCode
+class LanguageRange
+filter(java.util.List<java.util.Locale.LanguageRange>,java.util.Collection<java.util.Locale>)
+filter(java.util.List<java.util.Locale.LanguageRange>,java.util.Collection<java.util.Locale>,java.util.Locale.FilteringMode)
+filterTags(java.util.List<java.util.Locale.LanguageRange>,java.util.Collection<java.lang.String>)
+filterTags(java.util.List<java.util.Locale.LanguageRange>,java.util.Collection<java.lang.String>,java.util.Locale.FilteringMode)
+forLanguageTag(java.lang.String)
+getDefault(java.util.Locale.Category)
+getDisplayScript()
+getDisplayScript(java.util.Locale)
+getExtension(char)
+getExtensionKeys()
+getISOCountries(java.util.Locale.IsoCountryCode)
+getScript()
+getUnicodeLocaleAttributes()
+getUnicodeLocaleKeys()
+getUnicodeLocaleType(java.lang.String)
+hasExtensions()
+lookup(java.util.List<java.util.Locale.LanguageRange>,java.util.Collection<java.util.Locale>)
+lookupTag(java.util.List<java.util.Locale.LanguageRange>,java.util.Collection<java.lang.String>)
+of(java.lang.String)
+of(java.lang.String,java.lang.String)
+of(java.lang.String,java.lang.String,java.lang.String)
+setDefault(java.util.Locale.Category,java.util.Locale)
+stripExtensions()
+toLanguageTag()
+unspecified Locale(java.lang.@org.jmlspecs.annotation.NonNull String)
+unspecified Locale(java.lang.@org.jmlspecs.annotation.NonNull String,java.lang.@org.jmlspecs.annotation.NonNull String)
+unspecified Locale(java.lang.@org.jmlspecs.annotation.NonNull String,java.lang.@org.jmlspecs.annotation.NonNull String,java.lang.@org.jmlspecs.annotation.NonNull String)

@@ -1,0 +1,8 @@
+toString(java.nio.charset.Charset)
+unspecified reset()
+unspecified size()
+unspecified toByteArray()
+unspecified toString(int)
+unspecified toString(java.lang.String)
+unspecified writeTo(java.io.OutputStream)
+writeBytes(byte[])

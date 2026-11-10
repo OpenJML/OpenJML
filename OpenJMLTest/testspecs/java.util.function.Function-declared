@@ -1,0 +1,2 @@
+unspecified <V>andThen(java.util.function.Function<? super R,? extends V>)
+unspecified <V>compose(java.util.function.Function<? super V,? extends T>)

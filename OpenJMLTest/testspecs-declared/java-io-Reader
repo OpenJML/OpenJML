@@ -1,3 +1,0 @@
-nullReader()
-read(java.nio.CharBuffer)
-transferTo(java.io.Writer)

@@ -1,5 +1,0 @@
-class IntMapMultiConsumer
-dropWhile(java.util.function.IntPredicate)
-iterate(int,java.util.function.IntPredicate,java.util.function.IntUnaryOperator)
-mapMulti(java.util.stream.IntStream.IntMapMultiConsumer)
-takeWhile(java.util.function.IntPredicate)

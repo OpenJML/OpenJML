@@ -1,2 +1,0 @@
-toString(java.nio.charset.Charset)
-writeBytes(byte[])
