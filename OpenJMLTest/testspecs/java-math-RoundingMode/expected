@@ -1,0 +1,14 @@
+Proving methods in TestRoundingMode
+Starting proof of TestRoundingMode.valueOfInt() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestRoundingMode.valueOfInt() with prover !!!! - no warnings
+Starting proof of TestRoundingMode.legacyConstants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestRoundingMode.legacyConstants() with prover !!!! - no warnings
+Starting proof of TestRoundingMode.enumMethods() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestRoundingMode.enumMethods() with prover !!!! - no warnings
+Starting proof of TestRoundingMode.badValue() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestRoundingMode.badValue() with prover !!!! - no warnings
+Completed proving methods in TestRoundingMode

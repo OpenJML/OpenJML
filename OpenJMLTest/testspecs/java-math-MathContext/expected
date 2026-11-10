@@ -1,0 +1,14 @@
+Proving methods in TestMathContext
+Starting proof of TestMathContext.constants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMathContext.constants() with prover !!!! - no warnings
+Starting proof of TestMathContext.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMathContext.construct() with prover !!!! - no warnings
+Starting proof of TestMathContext.equality() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMathContext.equality() with prover !!!! - no warnings
+Starting proof of TestMathContext.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMathContext.exceptions() with prover !!!! - no warnings
+Completed proving methods in TestMathContext
