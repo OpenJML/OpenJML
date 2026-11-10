@@ -12464,7 +12464,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			typevarMapping = newTypeVarMapping;
             if (!rac && newclass != null && inProcessInvariants.isEmpty() && !translatingJML) {
-                    changeState(that, assignsLists, calllabel);
+                    // A pure constructor writes only fields of objects it allocates; makeMethodHavocAxiom
+                    // uses the JCNewClass (with calllabel's allocation count) to keep pure-method values
+                    // of pre-existing objects (#1108)
+                    boolean pureCtor = calllabel != null && isPure(calleeMethodSym);
+                    changeState(that, pureCtor ? newclass : assignsLists, calllabel);
             }
             if (!rac && !calleeIsPure && !effectivelyPure && !calleeMethodSym.isConstructor()) {
                 if (anyHavocs && inProcessInvariants.isEmpty() && !translatingJML)
@@ -13149,6 +13153,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                treeutils.makeEquality(pos.getPreferredPosition(), e3, e4));
 	            //System.out.println("NOCHANGEINST " + newCalleeSym + " " + noChangeInstantiation);
 
+	            if (heapInfo.havocs instanceof JCNewClass nc) {
+	                // Pure constructor: the value is unchanged unless the receiver or a reference argument
+	                // was allocated by the call, whatever the callee's accessible clause (#1108)
+	                int preCallAlloc = labelPropertiesStore.get(heapInfo.label).allocCounter;
+	                JCExpression unchanged = treeutils.trueLit;
+	                for (var a: args) {
+	                    var fresh = freshTest(nc, a, preCallAlloc);
+	                    if (fresh != null) unchanged = treeutils.makeAndSimp(pos, unchanged, treeutils.makeNot(pos, fresh));
+	                }
+	                if (oldHeapInfo.condition != null) unchanged = treeutils.makeAndSimp(pos, oldHeapInfo.condition, unchanged);
+	                addStat(comment(pos, "   Pure constructor " + nc + " leaves " + calleeMethodSym + " unchanged on pre-existing objects", null));
+	                addStat(treeutils.isTrueLit(unchanged) ? noChangeInstantiation : M.at(pos).If(newTempIfNeeded(unchanged), noChangeInstantiation, null));
+	                continue;
+	            }
+
 	            SpecCaseIterable specCases = new SpecCaseIterable(calleeMethodSym, false, true);
 	            for (var info: specCases) {
 	                var parentMethodSym = info.parentMethodSymbol;
@@ -13168,14 +13187,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	                    //System.out.println("OLDHAVOCS " + oldHeapInfo.condition + " " + oldhavocs);
 	                    if (oldhavocs == null || oldhavocs instanceof JCIf) {
 	                        // skip
-	                    } else if (oldhavocs instanceof JCNewClass nc) {
-	                        if (isPure((MethodSymbol)nc.constructor) && currentEnv.currentReceiver != null) {
-	                            var z = freshTest(nc, currentEnv.currentReceiver, labelPropertiesStore.get(oldHeapInfo.label).allocCounter);
-	                            disjoint = treeutils.makeNot(z, z); // FIXME _ is z posibly null?
-	                        } else {
-	                            disjoint = treeutils.falseLit; // FIXME - overly conservative
-	                        }
-	                        //System.out.println("  ISPURE? " + isPure((MethodSymbol)nc.constructor) + " " + disjoint);
 	                    } else if (oldhavocs instanceof List<?> writesList) {
 	                        //System.out.println("Computing DISJOINT of " + readItems + " VS " + writesList);
                                 @SuppressWarnings("unchecked")  // FIXME - do better on the type of havocs

@@ -97,6 +97,12 @@ public class escsf3 extends SFBugsBase {
     }
     
     @Test
+    public void gitbug1108() {
+        // A pure constructor leaves pure-method values of pre-existing objects unchanged
+        helpEscSimple("--method=Test.receiver,Test.argument,Test.notPure");
+    }
+
+    @Test
     public void gitbug654() {
         helpEscSimple();
     }
