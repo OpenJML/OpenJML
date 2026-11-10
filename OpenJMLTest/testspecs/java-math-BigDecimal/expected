@@ -29,4 +29,19 @@ Completed proof of TestBigDecimal.division() with prover !!!! - no warnings
 Starting proof of TestBigDecimal.exceptions() with prover !!!!
 Feasibility check - at implicit return : OK
 Completed proof of TestBigDecimal.exceptions() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.divideByZero() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.divideByZero() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.setScaleInexact() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.setScaleInexact() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.intValueExactInexact() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.intValueExactInexact() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.negativePow() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.negativePow() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.nanArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.nanArgument() with prover !!!! - no warnings
 Completed proving methods in TestBigDecimal

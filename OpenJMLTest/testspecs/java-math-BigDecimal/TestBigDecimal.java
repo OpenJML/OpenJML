@@ -140,27 +140,48 @@ public class TestBigDecimal {
         //@ assert x.scale() == 1;
     }
 
+    // One method per exception case: together in one method, the feasibility check's VC is too hard for the solver
     public static void exceptions() {
+        divideByZero();
+        setScaleInexact();
+        intValueExactInexact();
+        negativePow();
+        nanArgument();
+    }
+
+    public static void divideByZero() {
         try {
             BigDecimal.ONE.divide(BigDecimal.ZERO);
             //@ unreachable;
         } catch (ArithmeticException e) {
         }
+    }
+
+    public static void setScaleInexact() {
         try {
             BigDecimal.valueOf(15, 1).setScale(0);
             //@ unreachable;
         } catch (ArithmeticException e) {
         }
+    }
+
+    public static void intValueExactInexact() {
         try {
             BigDecimal.valueOf(15, 1).intValueExact();
             //@ unreachable;
         } catch (ArithmeticException e) {
         }
+    }
+
+    public static void negativePow() {
         try {
             BigDecimal.ONE.pow(-1);
             //@ unreachable;
         } catch (ArithmeticException e) {
         }
+    }
+
+    public static void nanArgument() {
         try {
             new BigDecimal(Double.NaN);
             //@ unreachable;
