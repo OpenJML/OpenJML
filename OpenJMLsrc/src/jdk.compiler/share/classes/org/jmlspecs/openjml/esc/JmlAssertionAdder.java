@@ -3141,6 +3141,44 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 * @param assume         whether clauses are assumed or asserted
 	 * @param invariantLabel the cause of needing the invariant
 	 */
+	/** Invariant clauses already warned about as not checkable by RAC */
+	protected Set<JmlTypeClause> racInaccessibleWarned = new HashSet<>();
+
+	/** Returns a Java (non-model, non-ghost) field or method named in the expression that is not
+	 * accessible from class 'from', or null if there is none. RAC cannot emit such an expression in
+	 * 'from': javac rejects it, or crashes in Lower for a protected member.
+	 */
+	protected Symbol racInaccessible(JCExpression expr, ClassSymbol from) {
+		Symbol[] found = { null };
+		new JmlTreeScanner() {
+			void check(Symbol sym) {
+				if (found[0] != null || sym == null || !(sym.owner instanceof ClassSymbol)) return;
+				if (!(sym instanceof VarSymbol || sym instanceof MethodSymbol)) return;
+				// A compile-time constant is folded by javac, so it is not an access
+				if (sym instanceof VarSymbol v && (v.getConstValue() != null || utils.isGhostOrModel(v))) return;
+				if (sym instanceof MethodSymbol m && specs.getLoadedSpecs(m) != null && utils.isModel(m)) return;
+				if (!utils.visible(from, sym.owner, sym.flags())) found[0] = sym;
+			}
+			@Override public void visitIdent(JCIdent t) { check(t.sym); }
+			@Override public void visitSelect(JCFieldAccess t) { check(t.sym); super.visitSelect(t); }
+		}.scan(expr);
+		return found[0];
+	}
+
+	/** Under RAC, returns true (after a comment, and a warning once per clause) if the invariant
+	 * names a member that is not accessible in the class being compiled, so it cannot be checked.
+	 */
+	protected boolean racSkipInvariant(DiagnosticPosition pos, JmlTypeClauseExpr cl) {
+		if (!rac) return false;
+		Symbol sym = racInaccessible(cl.expression, classDecl.sym);
+		if (sym == null) return false;
+		addStat(comment(pos, "Not checking invariant, which names " + sym + ", inaccessible here: " + cl.expression, null));
+		if (racInaccessibleWarned.add(cl)) {
+			utils.warning(cl.source(), cl, "rac.inaccessible.invariant", sym.owner + "." + sym, classDecl.sym);
+		}
+		return true;
+	}
+
 	protected void addInvariants(DiagnosticPosition pos, Type basetype, JCExpression receiver,
 			ListBuffer<JCStatement> stats, boolean prepost, boolean isConstructor, boolean isSuper, boolean isHelper,
 			boolean isPost, boolean assume, Label invariantLabel, Object... invariantDescription) {
@@ -3318,6 +3356,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									// JavaFileObject prevSource = log.useSource(clause.source());
 									try {
 									    var cl = (JmlTypeClauseExpr)clause;
+									    if ((cl.racmethod == null || csym != basecsym) && racSkipInvariant(pos, cl)) continue;
 										t = copy(cl); // FIXME - why copy the clause
 										addTraceableComment(t.expression, clause.toString());
 										JCExpression e = !rac || cl.racmethod == null || csym != basecsym
@@ -3599,6 +3638,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					continue;
 				if (!assume && (t.modifiers.flags & Flags.FINAL) != 0)
 					continue;
+				if (racSkipInvariant(t, (JmlTypeClauseExpr) t)) continue;
 				JavaFileObject prev = log.useSource(t.sourcefile);
 				try {
 					JCExpression e = convertJML(copy((JmlTypeClauseExpr) t).expression); // FIXME - really need

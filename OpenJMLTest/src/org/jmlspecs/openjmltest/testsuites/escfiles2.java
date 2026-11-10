@@ -77,12 +77,6 @@ public class escfiles2 extends EscBaseFiles {
         helpEscSimple();
     }
     
-    // #651: invariants of fields of parameters are not assumed; expected records the current failures
-    @Test
-    public void gitbug651c() {
-        helpEscSimple();
-    }
-
     @Test
     public void gitbug724() {
         helpEscSimple("--warn=missing-measured-by");

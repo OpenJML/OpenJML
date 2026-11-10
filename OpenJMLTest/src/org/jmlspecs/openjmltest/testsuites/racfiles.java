@@ -691,6 +691,12 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void racInvariantAccess() {
+        // Library invariants naming members inaccessible to the caller are not inlined by RAC
+        helpCompileRun("Main");
+    }
+
+    @Test
     public void invariantsClauseRacNoAssume() {
         // As invariantsClauseRac, but assumed invariants are not checked (#651)
         helpRac("test/invariantsClauseRac", "test/invariantsClauseRacNoAssume", "T", "--rac-check-assumptions=false");

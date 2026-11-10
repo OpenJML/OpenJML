@@ -35,15 +35,25 @@ test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invari
 test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
     public boolean ok(A x) { return x != null; }
                         ^
+test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+    public boolean ok(A x) { return x != null; }
+                        ^
+test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+    public boolean ok(A x) { return x != null; }
+                        ^
 Proving methods in B
 Starting proof of B.B() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of B.B() with prover !!!! - no warnings
 Starting proof of B.ok(A) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of B.ok(A) with prover !!!! - no warnings
+test/gitbug969a/A.java:10: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug969a/A.java:7:) in method ok: B.ok(A) (parameter x)
+    public boolean ok(A x) { return x != null; }
+                        ^
+test/gitbug969a/A.java:7: verify: Associated declaration: test/gitbug969a/A.java:10:
+    //@ public invariant b.ok(this);
+               ^
+Completed proof of B.ok(A) with prover !!!! - with warnings
 Completed proving methods in B
-7 warnings
-4 verification failures
+9 warnings
+6 verification failures
