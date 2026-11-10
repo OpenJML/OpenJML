@@ -1,0 +1,3 @@
+TypeSafeMatcher(org.hamcrest.internal.ReflectiveTypeFinder)
+describeMismatch(java.lang.Object,org.hamcrest.Description)
+describeMismatchSafely(T,org.hamcrest.Description)

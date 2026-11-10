@@ -89,6 +89,12 @@ public class escsf3 extends SFBugsBase {
         // A binary class's method specs are type-checked once, not again when ESC uses them
         helpEscSimple("--specs-path=test/specsAttrOnce");
     }
+
+    @Test
+    public void noStateClassSpecs() {
+        // A binary class's invariant, attributed while attributing a no_state method, is not held to no_state rules
+        helpEscSimple("--specs-path=test/noStateClassSpecs");
+    }
     
     @Test
     public void gitbug654() {

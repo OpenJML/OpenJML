@@ -1,0 +1,2 @@
+apply(org.junit.runners.model.Statement,org.junit.runner.Description)
+isDebugging()

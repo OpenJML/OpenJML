@@ -1,0 +1,4 @@
+compare(byte,byte)
+compareUnsigned(byte,byte)
+describeConstable()
+hashCode(byte)

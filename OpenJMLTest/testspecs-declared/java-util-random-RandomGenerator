@@ -1,0 +1,18 @@
+class ArbitrarilyJumpableGenerator
+class JumpableGenerator
+class LeapableGenerator
+class SplittableGenerator
+class StreamableGenerator
+doubles()
+doubles(double,double)
+doubles(long)
+doubles(long,double,double)
+ints()
+ints(int,int)
+ints(long)
+ints(long,int,int)
+longs()
+longs(long)
+longs(long,long)
+longs(long,long,long)
+nextBytes(byte[])

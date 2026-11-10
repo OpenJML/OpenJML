@@ -869,7 +869,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 //            }
 //        }
         if (tree.lhs instanceof JCFieldAccess fa) {
-        	if (fa.selected.type.tsym instanceof ClassSymbol cs) {
+            // A constructor may initialize the instance fields of the object it constructs
+            boolean ctorInit = fa.selected instanceof JCIdent id && id.name == names._this
+                    && fa.sym != null && !fa.sym.isStatic() && fa.sym.owner == env.enclClass.sym
+                    && env.enclMethod != null && env.enclMethod.sym != null && env.enclMethod.sym.isConstructor();
+        	if (!ctorInit && fa.selected.type.tsym instanceof ClassSymbol cs) {
         		var sp = specs.getAttrSpecs(cs);
         		var m = utils.findModifier(sp.modifiers, Modifiers.IMMUTABLE);
                 if (m != null) {
@@ -9021,6 +9025,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 		var savedEnv = this.env;
 		jmlenv = jmlenv.pushInit();
 		var saved = jmlresolve.allowJML();
+		var savedPurity = currentMethodPurity;
+		currentMethodPurity = null; // class clauses may be attributed while attributing some method's specs
 		try {
 			jmlresolve.setAllowJML(true);
     		if (utils.verbose()) utils.note("Attributing specs for " + csym);
@@ -9046,6 +9052,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		JmlSpecs.instance(context).setStatus(csym, JmlSpecs.SpecsStatus.ERROR);
     	} finally {
 			jmlresolve.setAllowJML(saved);
+			currentMethodPurity = savedPurity;
     		this.enclosingClassEnv = savedEnclosingClassEnv;
     		this.env = savedEnv;
     		jmlenv = jmlenv.pop();

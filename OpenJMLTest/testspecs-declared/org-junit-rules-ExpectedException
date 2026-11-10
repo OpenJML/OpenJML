@@ -1,0 +1,7 @@
+apply(org.junit.runners.model.Statement,org.junit.runner.Description)
+expectMessage(java.lang.String)
+expectMessage(org.hamcrest.Matcher<java.lang.String>)
+handleAssertionErrors()
+handleAssumptionViolatedExceptions()
+isAnyExceptionExpected()
+reportMissingExceptionWithMessage(java.lang.String)

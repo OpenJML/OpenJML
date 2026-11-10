@@ -1,0 +1,4 @@
+<T>newHashSet(int)
+<T>toArray(T[])
+spliterator()
+toArray()

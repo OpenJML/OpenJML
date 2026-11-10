@@ -1,0 +1,7 @@
+class EnumDesc
+clone()
+compareTo(E)
+describeConstable()
+equals(java.lang.Object)
+finalize()
+getDeclaringClass()

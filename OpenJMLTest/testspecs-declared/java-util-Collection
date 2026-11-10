@@ -1,0 +1,3 @@
+<T>toArray(java.util.function.IntFunction<T[]>)
+removeIf(java.util.function.Predicate<? super E>)
+spliterator()

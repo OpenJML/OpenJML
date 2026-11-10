@@ -1,0 +1,47 @@
+Proving methods in TestBigDecimal
+Starting proof of TestBigDecimal.constants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.constants() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.construct() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.arithmetic() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.arithmetic() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.scales() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.scales() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.movePoint() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.movePoint() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.strip() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.strip() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.comparison() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.comparison() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.conversions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.conversions() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.division() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.division() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.exceptions() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.divideByZero() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.divideByZero() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.setScaleInexact() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.setScaleInexact() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.intValueExactInexact() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.intValueExactInexact() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.negativePow() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.negativePow() with prover !!!! - no warnings
+Starting proof of TestBigDecimal.nanArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigDecimal.nanArgument() with prover !!!! - no warnings
+Completed proving methods in TestBigDecimal

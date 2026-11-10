@@ -1,0 +1,17 @@
+Proving methods in java.math.BigDecimal
+Starting proof of java.math.BigDecimal.BigDecimal() with prover !!!!
+Completed proof of java.math.BigDecimal.BigDecimal() with prover !!!! - no warnings
+Starting proof of java.math.BigDecimal.make() with prover !!!!
+Feasibility check - at reachable statement : OK
+Completed proof of java.math.BigDecimal.make() with prover !!!! - no warnings
+Starting proof of java.math.BigDecimal.compareTo(java.math.BigDecimal) with prover !!!!
+Completed proof of java.math.BigDecimal.compareTo(java.math.BigDecimal) with prover !!!! - no warnings
+Starting proof of java.math.BigDecimal.intValue() with prover !!!!
+Completed proof of java.math.BigDecimal.intValue() with prover !!!! - no warnings
+Starting proof of java.math.BigDecimal.longValue() with prover !!!!
+Completed proof of java.math.BigDecimal.longValue() with prover !!!! - no warnings
+Starting proof of java.math.BigDecimal.floatValue() with prover !!!!
+Completed proof of java.math.BigDecimal.floatValue() with prover !!!! - no warnings
+Starting proof of java.math.BigDecimal.doubleValue() with prover !!!!
+Completed proof of java.math.BigDecimal.doubleValue() with prover !!!! - no warnings
+Completed proving methods in java.math.BigDecimal

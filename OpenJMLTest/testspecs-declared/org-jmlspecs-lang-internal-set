@@ -1,0 +1,4 @@
+<X>of(java.util.Collection<X>)
+class UsingHashSet
+from(T...)
+from(java.util.Collection<T>)
