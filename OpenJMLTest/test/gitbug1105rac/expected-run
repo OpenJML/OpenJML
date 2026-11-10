@@ -1,0 +1,18 @@
+OUT:
+restore done
+test/gitbug1105rac/R.java:10: verify: JML invariant is false on leaving method R.breakNormal() (field f)
+    public void breakNormal() { f.x = 0; }
+                ^
+test/gitbug1105rac/R.java:5: verify: Associated declaration: test/gitbug1105rac/R.java:10:
+    //@ public invariant x > 0;
+               ^
+breakNormal done
+test/gitbug1105rac/R.java:11: verify: JML invariant is false on leaving method R.breakExc() (field f)
+    public void breakExc() { f.x = 0; throw new RuntimeException(); }
+                ^
+test/gitbug1105rac/R.java:5: verify: Associated declaration: test/gitbug1105rac/R.java:11:
+    //@ public invariant x > 0;
+               ^
+breakExc threw
+
+ERR:

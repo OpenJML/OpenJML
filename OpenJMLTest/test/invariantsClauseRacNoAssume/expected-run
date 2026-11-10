@@ -20,6 +20,12 @@ test/invariantsClauseRac/T.java:69: verify: JML invariant is false on entering m
 test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:69:
     //@ public invariant x > 0;
                ^
+test/invariantsClauseRac/T.java:39: verify: JML invariant is false on leaving method T.defaultEntry(C) (parameter c)
+    public static void defaultEntry(C c) {
+                                      ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:39:
+    //@ public invariant x > 0;
+               ^
 defaultEntry done
 test/invariantsClauseRac/T.java:71: verify: JML invariant is false on entering method (Caller: T.main(java.lang.String...), Callee: T.entry(D))
         entry(bad);

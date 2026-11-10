@@ -38,6 +38,12 @@ test/invariantsClauseRac/T.java:39: verify: JML assumed invariant is false on en
 test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:39:
     //@ public invariant x > 0;
                ^
+test/invariantsClauseRac/T.java:39: verify: JML invariant is false on leaving method T.defaultEntry(C) (parameter c)
+    public static void defaultEntry(C c) {
+                                      ^
+test/invariantsClauseRac/T.java:9: verify: Associated declaration: test/invariantsClauseRac/T.java:39:
+    //@ public invariant x > 0;
+               ^
 test/invariantsClauseRac/T.java:69: verify: JML assumed invariant is false on leaving method T.defaultEntry(C), returning to T.main(java.lang.String...)
         defaultEntry(bad.c);
                      ^

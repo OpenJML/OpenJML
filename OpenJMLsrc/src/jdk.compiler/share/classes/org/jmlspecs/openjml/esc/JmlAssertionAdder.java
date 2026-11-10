@@ -5996,17 +5996,26 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				if (isHelper(methodDecl.sym) && v.sym.type.tsym == methodDecl.sym.owner.type.tsym) continue;
 				if (attr.isHelper(v.sym)) continue;
 				
-				JCIdent id = treeutils.makeIdent(v.pos, v.sym);
-				addInvariants(v, v.type, id, exsuresStats, false, false, false, false, true, false,
-						Label.INVARIANT_EXIT,
-						utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
+				// Checked on both normal and exceptional exit, for the argument's pre-state value (#1104);
+				// that differs from the current value only if the body assigns the parameter
+				boolean reassigned = (v.sym.flags() & (Flags.FINAL | Flags.EFFECTIVELY_FINAL)) == 0;
+				for (var stats : List.of(ensuresStats, exsuresStats)) {
+					JCExpression pre = treeutils.makeIdent(v.pos, v.sym);
+					if (reassigned) {
+						pre = treeutils.makeOld(v.pos(), pre, labelPropertiesStore.get(attr.preLabel));
+						if (rac) pre = convertExpr(pre);
+					}
+					addInvariants(v, v.type, pre, stats, false, false, false, false, true, false,
+							Label.INVARIANT_EXIT,
+							utils.qualifiedMethodSig(methodDecl.sym) + " (parameter " + v.name + ")");
+				}
 			}
 		}
 
 		// Invariants for fields -- FIXME - this is likely a duplicate check, and just for normal return
 		savedThis = currentEnv.currentReceiver;
 		currentStatements = ensuresStats; // FIXME - also exsuresStatements?
-		for (int kk = 0; kk < 1; kk++) { // FIXME - extend to 2 for checking in exsures but need additional changes
+		for (int kk = 0; kk < 2; kk++) { // kk == 1: exceptional exit, for field invariants only (#1105)
 			currentStatements = kk == 0 ? ensuresStats : exsuresStats;
 			// FIXME - we repeat the computatinos in the normal and exceptinoal branches -
 			// can we avoid that
@@ -6018,7 +6027,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						continue;
 					if (!utils.isJMLStatic(d.sym) && utils.isJMLStatic(methodDecl.sym))
 						continue;
-					if (specs.isNonNull(d.sym)) {
+					if (kk == 0 && specs.isNonNull(d.sym)) {
 						JCExpression id = treeutils.makeIdent(d.pos, d.sym);
 						addAssert(d.sourcefile, d, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(d.pos, id)), null, null); // d may be in a .jml file (#1006)
 					}
@@ -6034,6 +6043,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 //					} finally {
 //						checkAccessEnabled = pv;
 //					}
+					// The invariants of the object a field refers to, assumed at entry by assumeFieldInvariants,
+					// must hold again at exit (#1105). A pure method cannot break them; a constructor that
+					// throws has not produced an object.
+					if (isPure && !isConstructor) continue;
+					if (kk == 1 && isConstructor) continue;
+					checkAccessEnabled = false;
+					try {
+						// As at entry (addRecInvariants), a static field contributes only its type's static invariants
+						boolean staticField = utils.isJMLStatic(d.sym);
+						JCExpression fa = staticField ? null : convertJML(treeutils.makeIdent(d.pos, d.sym));
+						addStat(comment(dd, "Asserting exit invariants for field " + d.sym, null));
+						ListBuffer<JCStatement> fstats = pushBlock();
+						addInvariants(methodDecl, d.type, fa, fstats, false, false, false, false, true, false,
+								Label.INVARIANT_EXIT,
+								utils.qualifiedMethodSig(methodDecl.sym) + " (field " + d.name + ")");
+						JCBlock bl = popBlock(methodDecl, fstats);
+						if (bl.stats.isEmpty()) {
+							// nothing to check
+						} else if (staticField) {
+							addStat(bl);
+						} else {
+							addStat(M.at(methodDecl.pos).If(treeutils.makeNotNull(methodDecl.pos, copy(fa)), bl, null));
+						}
+					} finally {
+						checkAccessEnabled = pv;
+					}
 				}
 			currentEnv.currentReceiver = savedThis;
 			/*

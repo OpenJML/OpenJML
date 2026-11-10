@@ -685,6 +685,12 @@ public class racfiles extends RacBase {
     }
 
     @Test
+    public void gitbug1105rac() {
+        // Field objects' invariants are checked on leaving a method (#1105)
+        helpCompileRun("R");
+    }
+
+    @Test
     public void invariantsClauseRacNoAssume() {
         // As invariantsClauseRac, but assumed invariants are not checked (#651)
         helpRac("test/invariantsClauseRac", "test/invariantsClauseRacNoAssume", "T", "--rac-check-assumptions=false");
