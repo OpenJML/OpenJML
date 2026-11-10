@@ -408,20 +408,21 @@ public class JmlTypes extends Types {
     public boolean isJmlType(Type ty) {
         if (!(ty instanceof Type.ClassType ct)) return false;
         if (ty.isErroneous()) return false;
+        // All JML types are in org.jmlspecs.lang.internal, so test that first. This method is called while specs are
+        // entered, possibly before a class's supertypes are; calling interfaces() then would cache an empty list in
+        // the class's erased type, which later makes subtype tests wrong (#1103).
+        if (!ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) return false;
         var prim = Symtab.instance(context).jmlPrimitiveType;
         // It is simpler and quicker to test the interfaces directly rather than using isSubType. This test presumes that
         // any JML types have IJmlPrimitiveType as a direct interface.
         for (var t: interfaces(ct)) {
             if (t.tsym == prim.tsym) return true;
         }
-        if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) {
-            // This hack was added because the check above used to not always work.
-            // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
-            // Possibly happens when there are significant parsing errors
-            Utils.instance(context).warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
-            return true;
-        }
-        return false;
+        // This hack was added because the check above used to not always work.
+        // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
+        // Possibly happens when there are significant parsing errors
+        Utils.instance(context).warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
+        return true;
     }
     
 

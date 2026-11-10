@@ -1635,6 +1635,32 @@ public class typechecking extends TCBase {
                 );
     }
 
+    // A constructor may initialize the fields of the object it constructs; other assignments are errors
+    @Test public void testImmutableAssignments() {
+        helpTCText("A.java",
+                """
+                public /*@ immutable */ class A {
+                    int f;
+                    static int s;
+                    A(int x, A other) {
+                        this.f = x;
+                        other.f = x;
+                    }
+                    void m() {
+                        this.f = 1;
+                        A.s = 1;
+                    }
+                }
+                """
+                ,"/A.java:6: error: Fields of an object with immutable type may not be modified: other.f (A)", 17
+                ,"/A.java:1: error: Associated declaration: /A.java:6:", 12
+                ,"/A.java:9: error: Fields of an object with immutable type may not be modified: this.f (A)", 16
+                ,"/A.java:1: error: Associated declaration: /A.java:9:", 12
+                ,"/A.java:10: error: Fields of an object with immutable type may not be modified: A.s (A)", 13
+                ,"/A.java:1: error: Associated declaration: /A.java:10:", 12
+                );
+    }
+
     @Test public void testBadNestedModel() {
         helpTCText("A.java",
                 """

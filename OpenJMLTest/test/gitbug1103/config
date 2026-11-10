@@ -1,0 +1,1 @@
+ARGS+=" --specs-path test/gitbug1103/specs --patch-module=java.base=test/gitbug1103/java/math --check-feasibility=reachable "

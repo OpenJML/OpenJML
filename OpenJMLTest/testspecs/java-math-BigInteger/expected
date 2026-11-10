@@ -1,0 +1,35 @@
+Proving methods in TestBigInteger
+Starting proof of TestBigInteger.constants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.constants() with prover !!!! - no warnings
+Starting proof of TestBigInteger.arithmetic() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.arithmetic() with prover !!!! - no warnings
+Starting proof of TestBigInteger.division() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.division() with prover !!!! - no warnings
+Starting proof of TestBigInteger.powAndSqrt() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.powAndSqrt() with prover !!!! - no warnings
+Starting proof of TestBigInteger.gcd() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.gcd() with prover !!!! - no warnings
+Starting proof of TestBigInteger.modular() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.modular() with prover !!!! - no warnings
+Starting proof of TestBigInteger.shifts() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.shifts() with prover !!!! - no warnings
+Starting proof of TestBigInteger.bits() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.bits() with prover !!!! - no warnings
+Starting proof of TestBigInteger.comparison() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.comparison() with prover !!!! - no warnings
+Starting proof of TestBigInteger.exact() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.exact() with prover !!!! - no warnings
+Starting proof of TestBigInteger.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestBigInteger.exceptions() with prover !!!! - no warnings
+Completed proving methods in TestBigInteger
