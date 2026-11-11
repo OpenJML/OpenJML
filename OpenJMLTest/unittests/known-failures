@@ -106,7 +106,6 @@ escfilesmodels.gitbug461
 escfilesmodels.gitbug498
 escfilesmodels.gitbug673
 
-SpecsBase.testSpecificationFile[org.hamcrest.Matcher]
 SpecsEsc.testSpecificationFile[java-util-Map]
 escsf1.gitbug481a1
 escsf1.gitbug481a2

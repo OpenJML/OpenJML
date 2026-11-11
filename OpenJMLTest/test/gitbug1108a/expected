@@ -1,0 +1,7 @@
+Proving methods in Test
+Skipping proof of Test.Test() (Skipping Test.Test because it does not match Test.staticOfOtherClass)
+Starting proof of Test.staticOfOtherClass() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.staticOfOtherClass() with prover !!!! - no warnings
+Completed proving methods in Test
