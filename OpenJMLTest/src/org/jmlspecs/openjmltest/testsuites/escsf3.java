@@ -110,6 +110,12 @@ public class escsf3 extends SFBugsBase {
     }
 
     @Test
+    public void gitbug1108a() {
+        // Facts about another class's final static field survive a pure constructor call
+        helpEscSimple("--method=Test.staticOfOtherClass");
+    }
+
+    @Test
     public void gitbug654() {
         helpEscSimple();
     }

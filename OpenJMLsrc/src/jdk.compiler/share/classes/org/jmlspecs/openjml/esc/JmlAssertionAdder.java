@@ -4516,7 +4516,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 		//
 		if (discoveredFields != null)
-			discoveredFields.stats.appendList(collectStats(() -> {
+			discoveredFields.stats = discoveredFields.stats.appendList(collectStats(() -> {
 				addNullnessAllocationTypeCondition(convertedfa, vsym, false);
 			}));
 
