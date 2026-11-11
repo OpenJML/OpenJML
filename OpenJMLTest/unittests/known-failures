@@ -135,7 +135,6 @@ escfiles2.gitbug861		#	needs checks within a compiler constant static initialize
 escfiles2.gitbug763		#	times out in the test runner (2026-10-21 full run); not yet investigated
 escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
-escfileslist2.test[choose-repeat]
 escfileslist2.test[gitbug489]   # try with resources and exceptions in finally block
 escfileslist2.test[escchoose]   # variable output: with --z3=mbqi, T.m's \choose well-definedness is sometimes not proved (z3 MBQI)
 escfileslist2.test[gitbug1010]	#	#1010: every toString override fails the inherited Object.toString postcondition
@@ -182,3 +181,6 @@ escfiles3.buggyCalculatorBV           # times out (bit-vector arithmetic)
 escfiles3.gitbug971a                  # Associated declaration reported at ScreenPoint.java:7, expected :6
 escfpfiles.sfbug414                   # asserts at Sqrt.java:29-30 not proved (--fpreal)
 escfpfiles.sfbug414n                  # asserts at Sqrt.java:29-30 not proved (AUFNIRA)
+
+escfiles2.gitbug898b
+escfiles3.gitbug997
