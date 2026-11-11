@@ -89,12 +89,10 @@ public class escsf1 extends SFBugsBase {
         helpEscFile("test/gitbug455","test/gitbug455", "-cp", "test/gitbug455", "--esc");
     }
     
-    @Ignore // FIXME - needs ability to specify/reason about derived classes
     @Test public void gitbug446() {
         helpEscFile("test/gitbug446","test/gitbug446", "-cp", "test/gitbug446", "--esc");
     }
     
-    @Ignore // FIXME - syntax for model programs not settled
     @Test public void gitbug445() {
         expectedExit = 1;
         helpEscSimple();

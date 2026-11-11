@@ -1,0 +1,55 @@
+test/gitbug446/ForEachClient.java:8: warning: A non-pure method is being called where it is not permitted: APMax.getMax()
+        //@ assert pm.getMax() == 5;
+                            ^
+Proving methods in APMax
+Starting proof of APMax.APMax() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of APMax.APMax() with prover !!!! - no warnings
+Starting proof of APMax.run(Integer[],int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of APMax.run(Integer[],int) with prover !!!! - no warnings
+Starting proof of APMax.getMax() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of APMax.getMax() with prover !!!! - no warnings
+Completed proving methods in APMax
+Proving methods in AProc
+Starting proof of AProc.run(T[],int) with prover !!!!
+Feasibility check - end of preconditions : OK
+Completed proof of AProc.run(T[],int) with prover !!!! - no warnings
+Completed proving methods in AProc
+Proving methods in ArrOps
+Starting proof of ArrOps.ArrOps() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ArrOps.ArrOps() with prover !!!! - no warnings
+Starting proof of ArrOps.forEach(T[],AProc<T>) with prover !!!!
+test/gitbug446/ArrOps.java:8: verify: The prover cannot establish an assertion (Assignable: test/gitbug446/ArrOps.java:7:) in method forEach: a[i]
+            p.run(a, i);
+                 ^
+test/gitbug446/ArrOps.java:7: verify: Associated declaration: test/gitbug446/ArrOps.java:8:
+        for (int i = 0; i < a.length; i++) {
+        ^
+test/gitbug446/ArrOps.java:8: verify: The prover cannot establish an assertion (Assignable: test/gitbug446/ArrOps.java:7:) in method forEach: objectState
+            p.run(a, i);
+                 ^
+test/gitbug446/ArrOps.java:7: verify: Associated declaration: test/gitbug446/ArrOps.java:8:
+        for (int i = 0; i < a.length; i++) {
+        ^
+Completed proof of ArrOps.forEach(T[],AProc<T>) with prover !!!! - with warnings
+Completed proving methods in ArrOps
+Proving methods in ForEachClient
+Starting proof of ForEachClient.ForEachClient() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of ForEachClient.ForEachClient() with prover !!!! - no warnings
+Starting proof of ForEachClient.main(String[]) with prover !!!!
+test/gitbug446/ForEachClient.java:8: verify: The prover cannot establish an assertion (Assert) in method main
+        //@ assert pm.getMax() == 5;
+            ^
+Completed proof of ForEachClient.main(String[]) with prover !!!! - with warnings
+Completed proving methods in ForEachClient
+1 warning
+5 verification failures

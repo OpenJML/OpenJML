@@ -15,7 +15,6 @@ import org.openjml.runners.ParameterizedWithNames;
 @RunWith(ParameterizedWithNames.class)
 public class escsf2 extends SFBugsBase {
 
-    @Ignore // FIXME - needs work
     @Test public void gitbug482() {
         helpEscFile("test/gitbug482/checkers/src/main/java/checkers","test/gitbug482", "-cp", "test/gitbug482/checkers/src/main","--check"); // check only, not esc
     }

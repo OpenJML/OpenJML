@@ -101,10 +101,6 @@ escTrace.testFieldTrace
 escTrace.testSimpleTrace
 # escTraceTests - need work, but are successful at the moment
 
-escfilesmodels.gitbug431
-escfilesmodels.gitbug461
-escfilesmodels.gitbug498
-escfilesmodels.gitbug673
 
 SpecsEsc.testSpecificationFile[java-util-Map]
 escsf1.gitbug481a1

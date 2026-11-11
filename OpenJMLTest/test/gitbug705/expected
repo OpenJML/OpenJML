@@ -1,0 +1,15 @@
+Proving methods in MBBug
+Starting proof of MBBug.MBBug() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of MBBug.MBBug() with prover !!!! - no warnings
+Starting proof of MBBug.zero(int) with prover !!!!
+test/gitbug705/MBBug.java:7: verify: The prover cannot establish an assertion (TerminationDecreases: test/gitbug705/MBBug.java:11:) in method zero
+    //@ measured_by n;
+                    ^
+test/gitbug705/MBBug.java:11: verify: Associated declaration: test/gitbug705/MBBug.java:7:
+        return zero(n);
+                   ^
+Completed proof of MBBug.zero(int) with prover !!!! - with warnings
+Completed proving methods in MBBug
+2 verification failures
