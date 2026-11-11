@@ -1,0 +1,25 @@
+Proving methods in N
+Skipping proof of N.N(int) (Skipping N.N because it does not match Test.receiver,Test.argument,Test.notPure)
+Skipping proof of N.getP() (Skipping N.getP because it does not match Test.receiver,Test.argument,Test.notPure)
+Skipping proof of N.same(N) (Skipping N.same because it does not match Test.receiver,Test.argument,Test.notPure)
+Completed proving methods in N
+Proving methods in W
+Skipping proof of W.W() (Skipping W.W because it does not match Test.receiver,Test.argument,Test.notPure)
+Completed proving methods in W
+Proving methods in Test
+Skipping proof of Test.Test() (Skipping Test.Test because it does not match Test.receiver,Test.argument,Test.notPure)
+Starting proof of Test.receiver() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.receiver() with prover !!!! - no warnings
+Starting proof of Test.argument() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.argument() with prover !!!! - no warnings
+Starting proof of Test.notPure() with prover !!!!
+test/gitbug1108/Test.java:49: verify: The prover cannot establish an assertion (Assert) in method notPure
+        //@ assert a.getP() == 7; // not provable: W() may assign anything
+            ^
+Completed proof of Test.notPure() with prover !!!! - with warnings
+Completed proving methods in Test
+1 verification failure
