@@ -101,20 +101,16 @@ escTrace.testFieldTrace
 escTrace.testSimpleTrace
 # escTraceTests - need work, but are successful at the moment
 
-escfilesmodels.gitbug431
-escfilesmodels.gitbug461
-escfilesmodels.gitbug498
-escfilesmodels.gitbug673
 
 SpecsEsc.testSpecificationFile[java-util-Map]
-escsf1.gitbug481a1
-escsf1.gitbug481a2
-escsf1.gitbug481a3
-escsf1.gitbug481a4
-escsf1.gitbug481a5
-escsf1.gitbug481a8
-escsf1.gitbug481b
-escsf1.gitbug481c
+escsf1.gitbug481a1                    # #1120
+escsf1.gitbug481a2                    # #1120
+escsf1.gitbug481a3                    # #1120
+escsf1.gitbug481a4                    # #1120
+escsf1.gitbug481a5                    # #1120
+escsf1.gitbug481a8                    # #1120
+escsf1.gitbug481b                    # #1120
+escsf1.gitbug481c                    # #1120
 
 #escArithmeticModes2.testModJavaB
 escfiles.customPrimitiveTypes	# <<<<< test of user-defined custom JML primitive type

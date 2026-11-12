@@ -240,7 +240,7 @@ public class escsf3 extends SFBugsBase {
         helpEscSimple();
     }
     
-    @Test @Ignore // Will erroneously succeed until measured_by is implemented
+    @Test
     public void gitbug705() {
         helpEscSimple();
     }

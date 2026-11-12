@@ -85,7 +85,7 @@ public class escfpfiles extends EscBaseFiles {
         helpEscSimple();
     }
     
-    @Ignore // FIXME -  double arithmetic?
+    @Ignore // #1119: org.jmlspecs.models unavailable (earlier: double arithmetic?)
     @Test
     public void gitbug633() {
         expectedExit = 0;
