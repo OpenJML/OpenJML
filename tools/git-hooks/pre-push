@@ -1,0 +1,57 @@
+#!/bin/bash
+# pre-push: check that the sibling Specs repo's same-named branch is already pushed.
+# CI (build.yml) builds OpenJML and Specs from the same branch on each push to dev-21 or
+# master-21, so for those branches unpushed Specs commits fail the push; other branches warn.
+# Bypass: git push --no-verify, or OPENJML_SKIP_SPECS_CHECK=1.
+# Enable once per clone: git config core.hooksPath tools/git-hooks
+
+remote="$1"
+[ -n "$OPENJML_SKIP_SPECS_CHECK" ] && exit 0
+[ "$remote" = "origin" ] || exit 0
+
+specs="$(git rev-parse --show-toplevel)/../Specs"
+if ! git -C "$specs" rev-parse --git-dir >/dev/null 2>&1; then
+    echo "pre-push: no Specs repo at $specs; not checking Specs" >&2
+    exit 0
+fi
+
+zero=0000000000000000000000000000000000000000
+status=0
+while read -r lref lsha rref rsha; do
+    case "$rref" in refs/heads/*) ;; *) continue ;; esac
+    [ "$lsha" = "$zero" ] && continue
+    b="${rref#refs/heads/}"
+    case "$b" in dev-21|master-21) severity=error ;; *) severity=warning ;; esac
+
+    local_specs=$(git -C "$specs" rev-parse -q --verify "refs/heads/$b") || continue
+    if ! out=$(git -C "$specs" ls-remote origin "refs/heads/$b" 2>&1); then
+        echo "pre-push: warning: cannot reach the Specs remote; not checking Specs branch $b" >&2
+        continue
+    fi
+    remote_specs=${out%%[[:space:]]*}
+
+    problem=
+    if [ -z "$remote_specs" ]; then
+        problem="Specs branch $b has never been pushed"
+    else
+        if ! git -C "$specs" cat-file -e "$remote_specs^{commit}" 2>/dev/null; then
+            git -C "$specs" fetch -q origin "refs/heads/$b" 2>/dev/null
+        fi
+        if ! git -C "$specs" merge-base --is-ancestor "$local_specs" "$remote_specs" 2>/dev/null; then
+            n=$(git -C "$specs" rev-list --count "$remote_specs..$local_specs" 2>/dev/null)
+            problem="Specs branch $b has ${n:-some} commit(s) not yet pushed"
+        fi
+    fi
+    if [ -n "$(git -C "$specs" status --porcelain --untracked-files=no 2>/dev/null)" ]; then
+        echo "pre-push: warning: the Specs working tree has uncommitted changes" >&2
+    fi
+    if [ -n "$problem" ]; then
+        if [ "$severity" = error ]; then
+            echo "pre-push: $problem; push Specs first (CI builds both from $b)" >&2
+            status=1
+        else
+            echo "pre-push: warning: $problem" >&2
+        fi
+    fi
+done
+exit $status

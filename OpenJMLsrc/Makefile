@@ -70,7 +70,7 @@ include $(topdir)/make/Init.gmk
 
 .PHONY: release clean-jml clean-release version version-info tutorial annotation post \
         openjml-lsp openjml-ui userguide-examples update-docs push-docs \
-        trial release-test openjml smt
+        trial release-test openjml smt git-hooks
 
 ## This Makefile assumes that the OpenJML, JMLAnnotations, Specs, openjml.github.io, OpenJML_Demo, Solvers
 ## repos are cloned into sibling folders under one common folder
@@ -264,8 +264,14 @@ release-test: .FORCE
 
 ## Builds the openjml executable (without updating version, annotation and tutorial files)
 ## NOJML= disables JML during the build of OpenJML itself (since the openjml executable is the javac executable)
-openjml: .FORCE
+openjml: git-hooks .FORCE
 	NOJML= $(MAKE)
+
+## Points git at the repo's hooks (tools/git-hooks) unless the clone already uses other hooks
+git-hooks:
+	@h=$$(git config core.hooksPath 2>/dev/null); \
+	case "$$h" in ""|*.git/hooks) git config core.hooksPath tools/git-hooks 2>/dev/null \
+	    && echo "Set git core.hooksPath to tools/git-hooks" || true ;; esac
 
 ## Updates jSMTLIB.jar in libs/ from the jSMTLIB repo
 ## The repo must be cloned locally and resident at ../../../jSMTLIB or ../../jSMTLIB relative to this Makefile
