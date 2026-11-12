@@ -4,7 +4,7 @@
   "description": "JML specification type-checking and static verification for Java via OpenJML",
   "version": "21.0.29",
   "publisher": "openjml",
-  "license": "GPL-2.0-only",
+  "license": "GPL-2.0-only WITH Classpath-exception-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/OpenJML/OpenJML.git"
