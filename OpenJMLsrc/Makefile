@@ -70,7 +70,7 @@ include $(topdir)/make/Init.gmk
 
 .PHONY: release clean-jml clean-release version version-info tutorial annotation post \
         openjml-lsp openjml-ui userguide-examples update-docs push-docs \
-        trial release-test openjml smt git-hooks
+        trial release-test openjml smt git-hooks codeql
 
 ## This Makefile assumes that the OpenJML, JMLAnnotations, Specs, openjml.github.io, OpenJML_Demo, Solvers
 ## repos are cloned into sibling folders under one common folder
@@ -266,6 +266,12 @@ release-test: .FORCE
 ## NOJML= disables JML during the build of OpenJML itself (since the openjml executable is the javac executable)
 openjml: git-hooks .FORCE
 	NOJML= $(MAKE)
+
+## CodeQL's security and code-quality queries on OpenJML's own code, run locally (see ../tools/codeql-local);
+## needs the CodeQL CLI on the PATH or CODEQL=<path to codeql>
+CODEQL ?= codeql
+codeql: .FORCE
+	CODEQL="$(CODEQL)" $(topdir)/../tools/codeql-local
 
 ## Points git at the repo's hooks (tools/git-hooks) unless the clone already uses other hooks
 git-hooks:

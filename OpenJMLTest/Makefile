@@ -15,7 +15,7 @@ T=temp-release
 .PHONY: openjml-test openjml-test-git openjml-test-temp openjml-clean openjml \
         clean release prep \
         tutorial-tests tutorial-tests-git userguide-tests userguide-tests-released \
-        release-tests unittests-seq unittests-par json-tests lsp-tests \
+        release-tests unittests-seq unittests-par json-tests lsp-tests codeql \
         cov-clean cov-test cov-report cov-show cov-test-by-test cov-analyze-by-test cov-report-by-test
 
 ### The following is the OpenJML tests
@@ -148,6 +148,12 @@ json-tests: .FORCE
 # Compiles and runs the LSP server tests
 lsp-tests: .FORCE
 	$(MAKE) -C ${TEST}/lsp
+
+# CodeQL's security and code-quality queries on OpenJML's own code, run locally (see ../tools/codeql-local);
+# needs the CodeQL CLI on the PATH or CODEQL=<path to codeql>
+CODEQL ?= codeql
+codeql: .FORCE
+	CODEQL="$(CODEQL)" ${TEST}/../tools/codeql-local
 
 .FORCE:
 
