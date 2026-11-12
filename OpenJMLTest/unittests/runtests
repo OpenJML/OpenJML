@@ -53,6 +53,7 @@ cd "$R"
 . "../setup-coverage" "unit-$1"
 
 . "$ROOT/setup-exports"
+export OPENJML_EXPORTS ## for the make below
 
 rm -f *.class
 CL=""
