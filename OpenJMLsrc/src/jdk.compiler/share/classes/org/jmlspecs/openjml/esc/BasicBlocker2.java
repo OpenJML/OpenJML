@@ -873,7 +873,7 @@ public class BasicBlocker2 extends BasicBlockerParent<BasicProgram.BasicBlock,Ba
                         Name n = m.getName(sym);
                         if (n == null) { skip = true; break; }
                         Long i = m.getSAVersionNum(sym);
-                        if (max >= 0 && max != i) diff = true;
+                        if (max >= 0 && !max.equals(i)) diff = true;
                         if (i > max) {
                             max = i;
                             maxName = n;

@@ -4545,7 +4545,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 									+ " (translating " + enclosingClass + "." + enclosingMethod +")");
 					if (utils.jmlverbose >= Utils.JMLVERBOSE)
 						utils.note(convertedfa, "jml.message",
-								"Warned about a non-constant initialized static final field: " + st.toString());
+								"Warned about a non-constant initialized static final field: " + convertedfa);
 				}
 			}
 			discoveredFields.stats = discoveredFields.stats.append(st);
@@ -10401,7 +10401,6 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
     Map<JmlSpecificationCase, JCExpression> calleePreconditions;
-    Map<JmlSpecificationCase, JCExpression> calleeWriteFrames;
 
     int cpreindex3 = 0;
 
@@ -10488,11 +10487,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// Since we might have a recursive call, we need to distinguish these from the
 		// caller preconditions
         Map<JmlSpecificationCase, JCExpression> calleePreconditions = new HashMap<>();
-        Map<JmlSpecificationCase, JCExpression> calleeWriteFrame = new HashMap<>();
         Map<JmlSpecificationCase, JCExpression> savedPreexpressions = this.calleePreconditions;
-        Map<JmlSpecificationCase, JCExpression> savedCalleeWriteFrames = this.calleeWriteFrames;
         this.calleePreconditions = calleePreconditions;
-        this.calleeWriteFrames = calleeWriteFrames;
 
 		JCExpression convertedReceiver = null;
 		MethodSymbol calleeMethodSym = null; // The method symbol of the callee method or constructor
