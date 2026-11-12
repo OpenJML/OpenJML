@@ -171,22 +171,17 @@ jobs:
         exit 1
 
   ## This job uploads the release, which has been stored in a github artifact, into the OpenJML release that is under construction,
-  ## which is presumed to be the most recent
+  ## which is presumed to be the most recent.
+  ## It only downloads an artifact and calls the GitHub API, so every platform's upload runs on Ubuntu
+  ## (no wait for macOS runners, no OS setup).
   upload:
     needs: [ export-matrix, prepare, build ]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         include: ${{ fromJson(needs.export-matrix.outputs.oses) }}
       fail-fast: false
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v6
-      with:
-        sparse-checkout: ./.github
-        path: ACTIONS
-    - name: OS setup
-      uses: ./ACTIONS/.github/actions/os-setup/
     - name: Download github artifact
       uses: actions/download-artifact@v8
       with:
