@@ -1,0 +1,19 @@
+name: OpenJML CodeQL configuration
+
+# Analyze only OpenJML's own code: its packages and Jml* classes inside javac, the runtime classes in
+# java.base, the language server and the Eclipse plugin. In build-mode none this limits extraction, so
+# javac's own classes are not analyzed; in a trial this changed results little.
+paths:
+  - OpenJMLsrc/src/jdk.compiler/share/classes/org/jmlspecs
+  - OpenJMLsrc/src/jdk.compiler/share/classes/org/openjml
+  - OpenJMLsrc/src/jdk.compiler/share/classes/com/sun/tools/javac/**/Jml*.java
+  - OpenJMLsrc/src/java.base/share/classes/org/jmlspecs
+  - OpenJMLlsp/src
+  - OpenJMLUI/src
+
+# Code-quality queries that only restate how OpenJML is built (it extends javac internals).
+query-filters:
+  - exclude:
+      id:
+        - java/jdk-internal-api-access
+        - java/missing-override-annotation
