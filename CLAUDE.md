@@ -12,6 +12,10 @@ Commits or merges to 'dev-21', and especially to 'master-21', happen only on exp
 Claude must never run 'git' commands that discard or overwrite uncommitted work (e.g. 'reset --hard',
 'checkout -- <file>', 'clean', 'stash drop') without explicit permission.
 
+Push Specs before OpenJML: a push to 'dev-21' or 'master-21' starts CI, which builds both from that branch.
+The pre-push hook 'tools/git-hooks/pre-push' enforces this (enabled by 'make openjml', which sets
+'core.hooksPath'); it only warns for other branches.
+
 ## Project Overview
 
 OpenJML is a tool for Java that processes JML (Java Modeling Language) specifications embedded in Java source code. It extends OpenJDK 21 (jdk-21-ga branch) by adding JML parsing, type-checking, static checking (ESC via SMT solvers), and runtime assertion checking (RAC).
