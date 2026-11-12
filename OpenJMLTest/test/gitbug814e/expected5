@@ -18,10 +18,10 @@ Starting proof of BinaryTree.depthOfNull(BinaryTree.Node) with prover !!!!
 test/gitbug814e/BinaryTree.java:124: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method depthOfNull: overflow in int sum
         return new Interval(1 + Math.min(ileft.min, iright.min), 1 + Math.max(ileft.max, iright.max));
                                                                    ^
-test/gitbug814e/BinaryTree.java:124: verify: The prover cannot establish an assertion (Postcondition) in method depthOfNull
+test/gitbug814e/BinaryTree.java:124: verify: The prover cannot establish an assertion (Postcondition: test/gitbug814e/BinaryTree.java:117:) in method depthOfNull
         return new Interval(1 + Math.min(ileft.min, iright.min), 1 + Math.max(ileft.max, iright.max));
         ^
-test/gitbug814e/BinaryTree.java:117: verify: Associated declaration
+test/gitbug814e/BinaryTree.java:117: verify: Associated declaration: test/gitbug814e/BinaryTree.java:124:
       @ ensures 0 <= \result.min <= \result.max;
         ^
 test/gitbug814e/BinaryTree.java:124: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method depthOfNull: overflow in int sum

@@ -98,7 +98,7 @@ public class RecommendsClause extends JmlExtension {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseExpr(this, d);
             } else {
-                System.out.println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
+                org.jmlspecs.openjml.Utils.debugOut().println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }

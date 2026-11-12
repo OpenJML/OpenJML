@@ -9,18 +9,18 @@ Feasibility check - end of preconditions : OK
 Completed proof of SpecificationInterfaceDemo.PositivePureFunction.apply(Integer) with prover !!!! - no warnings
 Completed proving methods in SpecificationInterfaceDemo.PositivePureFunction
 Starting proof of SpecificationInterfaceDemo.mbad1(java.util.function.Function<Integer,Integer>,Integer) with prover !!!!
-test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:19: verify: The prover cannot establish an assertion (Assignable) in method mbad1: applyFrame
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:19: verify: The prover cannot establish an assertion (Assignable: test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:17:) in method mbad1: applyFrame
     return f.apply(z);
                   ^
-test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:17: verify: Associated declaration
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:17: verify: Associated declaration: test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:19:
   //@   assignable \nothing;
         ^
 Completed proof of SpecificationInterfaceDemo.mbad1(java.util.function.Function<Integer,Integer>,Integer) with prover !!!! - with warnings
 Starting proof of SpecificationInterfaceDemo.mbad2(java.util.function.Function<Integer,Integer>,Integer) with prover !!!!
-test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:25: verify: The prover cannot establish an assertion (Postcondition) in method mbad2
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:25: verify: The prover cannot establish an assertion (Postcondition: test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:23:) in method mbad2
     return f.apply(z);
     ^
-test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:23: verify: Associated declaration
+test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:23: verify: Associated declaration: test/specificationInterfaceDemo/SpecificationInterfaceDemo.java:25:
   //@   ensures \result != null ==> \result > 0; // FAILS becuse no specs give info about postcondition
         ^
 Completed proof of SpecificationInterfaceDemo.mbad2(java.util.function.Function<Integer,Integer>,Integer) with prover !!!! - with warnings

@@ -1,0 +1,4 @@
+public class A {
+    //@ public static model pure int f(int x) { return x; }
+    public int m();
+}

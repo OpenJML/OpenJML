@@ -1,10 +1,10 @@
 Proving methods in ChangeCase
 Skipping proof of ChangeCase.ChangeCase() (excluded by -method)
 Starting proof of ChangeCase.changeCase(char) with prover !!!!
-..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: verify: The prover cannot establish an assertion (Postcondition) in method changeCase
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26: verify: The prover cannot establish an assertion (Postcondition: ..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6:) in method changeCase
 		return result;
 		^
-..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6: verify: Associated declaration
+..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:6: verify: Associated declaration: ..\..\OpenJMLDemo\src\openjml\demo\ChangeCase.java:26:
 	//@   ensures \result >= 'a' && \result <= 'z';
 	      ^
 

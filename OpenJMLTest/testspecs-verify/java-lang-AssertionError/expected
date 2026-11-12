@@ -1,0 +1,33 @@
+Proving methods in java.lang.AssertionError
+Starting proof of AssertionError.AssertionError() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError() with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(String) with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(Object) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(Object) with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(boolean) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(boolean) with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(char) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(char) with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(int) with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(long) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(long) with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(float) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(float) with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(double) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(double) with prover !!!! - no warnings
+Starting proof of AssertionError.AssertionError(String,Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of AssertionError.AssertionError(String,Throwable) with prover !!!! - no warnings
+Completed proving methods in java.lang.AssertionError

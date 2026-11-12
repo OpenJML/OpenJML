@@ -1,0 +1,4 @@
+of(\bigint)
+valueOf(\bigint)
+valueOf(int)
+valueOf(long)

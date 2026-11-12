@@ -32,6 +32,7 @@ import org.junit.runners.Suite;
     MenuPresenceTest.class,
     FileIconTest.class,
     NatureTest.class,
+    ConfigChangeDialogTest.class,
     LspFeatureTest.class
 })
 public class AllPluginTests {

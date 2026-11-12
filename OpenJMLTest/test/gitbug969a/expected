@@ -9,20 +9,26 @@ public class A {
        ^
 Proving methods in A
 Starting proof of A.A() with prover !!!!
-test/gitbug969a/A.java:7: verify: The prover cannot establish an assertion (Assignable) in method A: \everything
+test/gitbug969a/A.java:7: verify: The prover cannot establish an assertion (Assignable: test/gitbug969a/A.java:5:) in method A: \everything
     //@ public invariant b.ok(this);
                              ^
-test/gitbug969a/A.java:5: verify: Associated declaration
+test/gitbug969a/A.java:5: verify: Associated declaration: test/gitbug969a/A.java:7:
 public class A {
        ^
-test/gitbug969a/A.java:5: verify: The prover cannot establish an assertion (InvariantExit) in method A
+test/gitbug969a/A.java:5: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug969a/A.java:7:) in method A
 public class A {
        ^
-test/gitbug969a/A.java:7: verify: Associated declaration
+test/gitbug969a/A.java:7: verify: Associated declaration: test/gitbug969a/A.java:5:
     //@ public invariant b.ok(this);
                ^
 Completed proof of A.A() with prover !!!! - with warnings
 Completed proving methods in A
+test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+    public boolean ok(A x) { return x != null; }
+                        ^
+test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
+    public boolean ok(A x) { return x != null; }
+                        ^
 test/gitbug969a/A.java:10: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A
     public boolean ok(A x) { return x != null; }
                         ^
@@ -41,9 +47,13 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of B.B() with prover !!!! - no warnings
 Starting proof of B.ok(A) with prover !!!!
-Feasibility check - end of preconditions : OK
-Feasibility check - at program exit : OK
-Completed proof of B.ok(A) with prover !!!! - no warnings
+test/gitbug969a/A.java:10: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug969a/A.java:7:) in method ok: B.ok(A) (parameter x)
+    public boolean ok(A x) { return x != null; }
+                        ^
+test/gitbug969a/A.java:7: verify: Associated declaration: test/gitbug969a/A.java:10:
+    //@ public invariant b.ok(this);
+               ^
+Completed proof of B.ok(A) with prover !!!! - with warnings
 Completed proving methods in B
-7 warnings
-4 verification failures
+9 warnings
+6 verification failures

@@ -1,0 +1,4 @@
+public class B {
+  //@ requires i > 0;
+  public static void f(int i, Integer x);
+}

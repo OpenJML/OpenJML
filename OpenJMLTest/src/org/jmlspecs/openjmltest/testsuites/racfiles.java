@@ -385,13 +385,11 @@ public class racfiles extends RacBase {
 
     @Test
     public void gitbug547c() {
-        expectedRACExit = 1;
         helpCompileRun("Test547");
     }
 
     @Test
     public void gitbug547d() {
-        expectedRACExit = 1;
         helpCompileRun("Test547");
     }
 
@@ -408,6 +406,22 @@ public class racfiles extends RacBase {
     @Test
     public void gitbug578() {
         helpCompileRun("Test");
+    }
+
+    @Test // model fields must not become class-file fields (invalid in an interface)
+    public void gitbug584() {
+        helpCompileRun("AClass");
+    }
+
+    @Test
+    public void gitbug584a() {
+        helpRac("test/gitbug584", "test/gitbug584a", "AClass", "--rac-missing-model-field-rep=zero");
+    }
+
+    @Test
+    public void gitbug584b() {
+        expectedExit = 1;
+        helpRac("test/gitbug584", "test/gitbug584b", "AClass", "--rac-missing-model-field-rep=fail");
     }
 
     @Test
@@ -664,6 +678,30 @@ public class racfiles extends RacBase {
         helpCompileOnly();
     }
     
+    @Test
+    public void invariantsClauseRac() {
+        // The 'invariants' method clause is checked by RAC as default invariants are (#651)
+        helpCompileRun("T");
+    }
+
+    @Test
+    public void gitbug1105rac() {
+        // Field objects' invariants are checked on leaving a method (#1105)
+        helpCompileRun("R");
+    }
+
+    @Test
+    public void racInvariantAccess() {
+        // Library invariants naming members inaccessible to the caller are not inlined by RAC
+        helpCompileRun("Main");
+    }
+
+    @Test
+    public void invariantsClauseRacNoAssume() {
+        // As invariantsClauseRac, but assumed invariants are not checked (#651)
+        helpRac("test/invariantsClauseRac", "test/invariantsClauseRacNoAssume", "T", "--rac-check-assumptions=false");
+    }
+
     @Test
     public void textRac() {
         helpCompileRun("BL");

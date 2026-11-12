@@ -1,0 +1,17 @@
+Proving methods in java.lang.Error
+Starting proof of Error.Error() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of Error.Error() with prover !!!! - no warnings
+Starting proof of Error.Error(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of Error.Error(String) with prover !!!! - no warnings
+Starting proof of Error.Error(String,Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of Error.Error(String,Throwable) with prover !!!! - no warnings
+Starting proof of Error.Error(Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of Error.Error(Throwable) with prover !!!! - no warnings
+Starting proof of Error.Error(String,Throwable,boolean,boolean) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of Error.Error(String,Throwable,boolean,boolean) with prover !!!! - no warnings
+Completed proving methods in java.lang.Error

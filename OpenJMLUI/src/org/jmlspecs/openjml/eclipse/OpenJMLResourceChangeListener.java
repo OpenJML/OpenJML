@@ -132,6 +132,19 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
         }
     }
 
+    /** Records {@code project}'s snapshot if it is an open JML project, else drops it. */
+    private void snapshot(IProject project) {
+        try {
+            if (JmlNature.hasNature(project)) {
+                descriptionSnapshots.put(project.getName(), DescSnapshot.of(project));
+                return;
+            }
+        } catch (CoreException e) {
+            // fall through: without a snapshot the next description change asks
+        }
+        descriptionSnapshots.remove(project.getName());
+    }
+
     private final ScheduledExecutorService debouncer =
             Executors.newSingleThreadScheduledExecutor(r -> {
                 Thread t = new Thread(r, "openjml-config-debouncer");
@@ -163,14 +176,18 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                     if (resource.getType() == IResource.PROJECT) {
                         IProject project = (IProject) resource;
                         boolean openChanged = (d.getFlags() & IResourceDelta.OPEN) != 0;
-                        if (openChanged) {
-                            // Project was opened or closed (also fires during workspace
-                            // restore, but sending updated settings then is harmless).
-                            // Send settings silently — no dialog; the user initiated this.
+                        if (openChanged || d.getKind() == IResourceDelta.ADDED) {
+                            // Project added (created, imported) or opened/closed: nothing in it
+                            // has been checked yet, so send settings silently, without a dialog.
+                            // The snapshot makes later changes compare against this state.
+                            snapshot(project);
                             Display.getDefault().asyncExec(LspPartListener::sendSettingsToServer);
                             return false;  // skip children for this event
                         }
-                        if (project.isOpen() && JmlNature.hasNature(project)) {
+                        if (!JmlNature.hasNature(project)) {
+                            // A later re-addition of the nature is then a change (prev == null).
+                            descriptionSnapshots.remove(project.getName());
+                        } else {
                             boolean descChanged = (d.getFlags() & IResourceDelta.DESCRIPTION) != 0;
                             if (descChanged) {
                                 // Only trigger the dialog if something JML-relevant changed
@@ -189,9 +206,8 @@ public class OpenJMLResourceChangeListener implements IResourceChangeListener {
                                         System.err.println("[OpenJML] suppressing config-change dialog "
                                                 + "for explicit nature addition on " + project.getName());
                                     } else if (prev == null) {
-                                        System.err.println("[OpenJML] new project description: "
-                                                + project.getName()
-                                                + " natures=" + current.natures());
+                                        System.err.println("[OpenJML] JML nature added outside OpenJML: "
+                                                + project.getName());
                                         affected.add(project);
                                     } else if (current.relevantlyDifferentFrom(prev)) {
                                         current.logDiffFrom(prev, project.getName());

@@ -209,6 +209,17 @@ public class statements extends TCBase {
                 );
     }
 
+    @Test public void testSpecs5() {
+        helpTCText("A.java"," class A { Object o; void m() { int i; \n //@ refining ensures i ==0; \n //@ assert true; \n i = 0; \n}}"
+                ,"/A.java:3: error: Statement specs may not precede a JML statement clause",6
+                );
+    }
+
+    @Test public void testSpecs6() {
+        helpTCText("A.java"," class A { Object o; void m() { int i = 0; \n //@ refining ensures true; \n //@ loop_invariant true; \n while (i < 0) {} \n}}"
+                );
+    }
+
     @Test public void testSynchronized1() {
         helpTCText("A.java"," class A { Object o; void m() { int i; \n synchronized (this) { i = 0; } \n}}"
                 );

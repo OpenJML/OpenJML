@@ -1,0 +1,7 @@
+<VV>empty()
+get(\bigint)
+get(java.math.BigInteger)
+get(long)
+has(\bigint)
+put(\bigint,V)
+put(long,V)

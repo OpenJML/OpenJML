@@ -66,7 +66,7 @@ public class TypeRWClauseExtension extends JmlExtension {
         
         @Override
         public Type typecheck(JmlAttr attr, JCTree expr, Env<AttrContext> env) {
-        	System.out.println("READABLE " + expr);
+        	org.jmlspecs.openjml.Utils.debugOut().println("READABLE " + expr);
             // TODO Auto-generated method stub
             return null;
         }

@@ -1,0 +1,19 @@
+Proving methods in TestJava
+Skipping proof of TestJava.TestJava() (Skipping TestJava.TestJava because it does not match m)
+Starting proof of TestJava.m() with prover !!!!
+test/nonnullFormalPosition/TestJava.java:5: verify: The prover cannot establish an assertion (Precondition: test/nonnullFormalPosition/B.jml:3:) in method m
+    B.f(1, null);
+       ^
+test/nonnullFormalPosition/B.jml:3: verify: Associated declaration: test/nonnullFormalPosition/TestJava.java:5:
+  public static void f(int i, Integer x);
+                     ^
+test/nonnullFormalPosition/TestJava.java:5: verify: Precondition conjunct is false: null != null
+    B.f(1, null);
+           ^
+Completed proof of TestJava.m() with prover !!!! - with warnings
+Completed proving methods in TestJava
+Proving methods in B
+Skipping proof of B.B() (Skipping B.B because it does not match m)
+Skipping proof of B.f(int,Integer) (Skipping B.f because it does not match m)
+Completed proving methods in B
+3 verification failures

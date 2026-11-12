@@ -1,0 +1,19 @@
+OUT:
+AnInterface fields: 
+AClass fields:  n
+2
+test/gitbug584/AClass.java:11: verify: JML postcondition is false
+    public int badSize() { return n + 1; }
+               ^
+test/gitbug584/AnInterface.java:13: verify: Associated declaration: test/gitbug584/AClass.java:11:
+    //@ ensures \result == size;
+        ^
+test/gitbug584/AClass.java:24: verify: JML postcondition is false
+        System.out.println(a.badSize());
+                                    ^
+test/gitbug584/AnInterface.java:13: verify: Associated declaration: test/gitbug584/AClass.java:24:
+    //@ ensures \result == size;
+        ^
+3
+
+ERR:

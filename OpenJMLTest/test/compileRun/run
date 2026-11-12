@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## A --compile'd program runs as plain Java: ghost initializers and JML statements do not execute (#1082)
+rm -rf actual bin
+(openjml --compile -d bin src/p/R.java && $BIN/build/*/jdk/bin/java -cp bin p.R) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

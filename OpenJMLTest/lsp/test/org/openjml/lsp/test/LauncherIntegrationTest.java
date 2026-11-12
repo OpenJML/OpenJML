@@ -301,6 +301,11 @@ public class LauncherIntegrationTest {
                 install.resolve("setup-exports"),
                 SRC_ROOT.resolve("setup-exports").toAbsolutePath());
 
+        // setup-jvm — sourced by the script to split OPENJML_JVM (#915).
+        Files.createSymbolicLink(
+                install.resolve("setup-jvm"),
+                SRC_ROOT.resolve("setup-jvm").toAbsolutePath());
+
         // os-name.sh — run by the script to choose the Solvers-<os> folder.
         Files.createSymbolicLink(
                 install.resolve("os-name.sh"),

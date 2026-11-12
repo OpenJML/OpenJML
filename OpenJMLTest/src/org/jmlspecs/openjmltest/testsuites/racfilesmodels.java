@@ -29,24 +29,19 @@ public class racfilesmodels extends RacBase {
         super.setUp();
     }
 
-    @Test @Ignore // model files
+    @Test @Ignore // #1119: org.jmlspecs.models unavailable
     public void gitbug524() {
         helpCompileRun("Test"); 
     }
 
-    @Test @Ignore // model files
-    public void gitbug584() {
-        helpCompileRun("AClass");
-    }
-
-    @Test @Ignore // model files
+    @Test @Ignore // #1119: org.jmlspecs.models unavailable
     public void gitbug590() {
         runrac = false; // Expected compile error
         expectedExit = 1;
         helpCompileRun("Sequence");
     }
 
-    @Test @Ignore // model files
+    @Test @Ignore // #1119: org.jmlspecs.models unavailable
     public void gitbug590a() {
         helpCompileRun("Sequence");
     }

@@ -29,10 +29,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestA.TestA() with prover !!!! - no warnings
 Starting proof of TestA.mm(TestAA,int) with prover !!!!
-test/preconditionDetail2/TestA.java:22: verify: The prover cannot establish an assertion (Precondition) in method mm
+test/preconditionDetail2/TestA.java:22: verify: The prover cannot establish an assertion (Precondition: test/preconditionDetail2/TestA.java:11:) in method mm
         case 2: a.m(15,15,10); break;
                    ^
-test/preconditionDetail2/TestA.java:11: verify: Associated declaration
+test/preconditionDetail2/TestA.java:11: verify: Associated declaration: test/preconditionDetail2/TestA.java:22:
     public void m(int p, int q, int r) {
                 ^
 test/preconditionDetail2/TestC.java:6: verify: Precondition conjunct is false: r >= 20
@@ -53,10 +53,10 @@ test/preconditionDetail2/TestA.java:6: verify: Precondition conjunct is false: p
 test/preconditionDetail2/TestA.java:10: verify: Precondition conjunct is false: p >= 25
     //@   requires p >= 25;
                      ^
-test/preconditionDetail2/TestA.java:23: verify: The prover cannot establish an assertion (Precondition) in method mm
+test/preconditionDetail2/TestA.java:23: verify: The prover cannot establish an assertion (Precondition: test/preconditionDetail2/TestA.java:11:) in method mm
         case 3: a.m(0,0,0); break;
                    ^
-test/preconditionDetail2/TestA.java:11: verify: Associated declaration
+test/preconditionDetail2/TestA.java:11: verify: Associated declaration: test/preconditionDetail2/TestA.java:23:
     public void m(int p, int q, int r) {
                 ^
 test/preconditionDetail2/TestC.java:3: verify: Precondition conjunct is false: r >= 5

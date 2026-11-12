@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of S.S() with prover !!!! - no warnings
 Starting proof of S.get(int) with prover !!!!
-test/gitbug980a/S.java:17: verify: The prover cannot establish an assertion (Accessible) in method get: a
+test/gitbug980a/S.java:17: verify: The prover cannot establish an assertion (Accessible: test/gitbug980a/S.java:15:) in method get: a
     public int get(int n) { return a[n]; }
                                    ^
-test/gitbug980a/S.java:15: verify: Associated declaration
+test/gitbug980a/S.java:15: verify: Associated declaration: test/gitbug980a/S.java:17:
     //@ reads s[n];
         ^
 Completed proof of S.get(int) with prover !!!! - with warnings
@@ -20,10 +20,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of S.set(int) with prover !!!! - no warnings
 Starting proof of S.setOther(int) with prover !!!!
-test/gitbug980a/S.java:30: verify: The prover cannot establish an assertion (Assignable) in method setOther: a[n + 1]
+test/gitbug980a/S.java:30: verify: The prover cannot establish an assertion (Assignable: test/gitbug980a/S.java:29:) in method setOther: a[n + 1]
     public void setOther(int n) { a[n+1] = 1; }
                                          ^
-test/gitbug980a/S.java:29: verify: Associated declaration
+test/gitbug980a/S.java:29: verify: Associated declaration: test/gitbug980a/S.java:30:
     //@ assignable s[n];
         ^
 Completed proof of S.setOther(int) with prover !!!! - with warnings

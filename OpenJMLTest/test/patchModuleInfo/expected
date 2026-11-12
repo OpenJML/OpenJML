@@ -1,0 +1,13 @@
+Proving methods in java.lang.PatchTiny
+Starting proof of PatchTiny.PatchTiny() with prover !!!!
+Completed proof of PatchTiny.PatchTiny() with prover !!!! - no warnings
+Starting proof of PatchTiny.one() with prover !!!!
+test/patchModuleInfo/java/lang/PatchTiny.java:6: verify: The prover cannot establish an assertion (Postcondition: test/patchModuleInfo/java/lang/PatchTiny.java:4:) in method one
+        return 1;
+        ^
+test/patchModuleInfo/java/lang/PatchTiny.java:4: verify: Associated declaration: test/patchModuleInfo/java/lang/PatchTiny.java:6:
+    //@ ensures \result == 2;
+        ^
+Completed proof of PatchTiny.one() with prover !!!! - with warnings
+Completed proving methods in java.lang.PatchTiny
+2 verification failures

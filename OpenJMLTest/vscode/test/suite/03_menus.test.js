@@ -15,7 +15,7 @@
  */
 const assert = require('assert');
 const path   = require('path');
-const { VSBrowser, EditorView, SideBarView, Workbench } = require('vscode-extension-tester');
+const { VSBrowser, EditorView, SideBarView, Workbench, ContextMenu, By } = require('vscode-extension-tester');
 const { suiteTeardown, runCommand, readOutputSafe, openAndFocusFile,
         getExplorerSection, findExplorerItem, invokeContextMenuItem,
         dismissWelcomeDialog, dismissNotifications }
@@ -60,6 +60,53 @@ async function collectMenuLabels(menu) {
         }
     }
     return [];
+}
+
+/**
+ * Right-click the editor and return its context menu.  TextEditor.openContextMenu() takes
+ * the first shadow-root host, which after an earlier menu is that menu's hidden one, and
+ * then times out waiting for it to be visible; this picks the visible menu container.
+ */
+async function openEditorContextMenu(editor) {
+    const driver = VSBrowser.instance.driver;
+    await driver.actions().contextClick(editor).perform();
+    for (let attempt = 0; attempt < 10; attempt++) {
+        await driver.sleep(300);
+        const hosts = await driver.findElements(By.className('shadow-root-host'));
+        for (const host of hosts.reverse()) {
+            const root = await host.getShadowRoot().catch(() => null);
+            if (!root) continue;
+            for (const c of await root.findElements(By.className('monaco-menu-container'))) {
+                if (await c.isDisplayed().catch(() => false)) return new ContextMenu(c).wait();
+            }
+        }
+    }
+    throw new Error('no visible editor context menu');
+}
+
+/** Open the editor context menu and select the item labeled exactly {@code label}. */
+async function selectEditorMenuItem(editor, label) {
+    const driver = VSBrowser.instance.driver;
+    let seen = [], error = '';
+    const title = await editor.getTitle().catch(() => 'Sample.java');
+    for (let attempt = 0; attempt < 3; attempt++) {
+        await dismissNotifications(driver);
+        // The reference goes stale once commands or code lenses redraw the editor.
+        try { editor = await new EditorView().openEditor(title); } catch (_) {}
+        try { await editor.click(); } catch (_) {}
+        try {
+            const menu = await openEditorContextMenu(editor);
+            const item = await menu.getItem(label);
+            if (item) { await item.select(); return true; }
+            seen = await collectMenuLabels(menu);
+            await menu.close();
+        } catch (e) { error = String(e).split('\n')[0]; }
+        try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
+        await driver.sleep(500);
+    }
+    await VSBrowser.instance.takeScreenshot('menu-' + label.replace(/ /g, '_')).catch(() => {});
+    console.log(`    '${label}' not found; menu: [${seen.join(', ')}] ${error}`);
+    return false;
 }
 
 describe('Menu Contributions', function () {
@@ -161,22 +208,7 @@ describe('Menu Contributions', function () {
         try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
         await driver.sleep(500);
         try { await editor.click(); } catch (_) { await driver.sleep(500); }
-        let clicked = false;
-        for (let attempt = 0; attempt < 3 && !clicked; attempt++) {
-            try {
-                const menu = await editor.openContextMenu();
-                await driver.sleep(600);
-                const items = await driver.findElements({ css: '.monaco-menu .action-label' });
-                for (const it of items) {
-                    const lbl = await it.getText().catch(() => '');
-                    if (lbl === 'Check JML') { await it.click(); clicked = true; break; }
-                }
-            } catch (_) {}
-            if (!clicked) {
-                try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
-                await driver.sleep(500);
-            }
-        }
+        const clicked = await selectEditorMenuItem(editor, 'Check JML');
         if (!clicked) { console.log('    [SKIP] Could not click Check JML'); this.skip(); return; }
 
         await driver.sleep(3_000);
@@ -206,23 +238,7 @@ describe('Menu Contributions', function () {
     it('"Run ESC" can be invoked from the editor context menu', async function () {
         const driver = VSBrowser.instance.driver;
         await editor.click();
-        let clicked = false;
-        for (let attempt = 0; attempt < 3 && !clicked; attempt++) {
-            try {
-                const menu = await editor.openContextMenu();
-                await driver.sleep(600);
-                const items = await driver.findElements({ css: '.monaco-menu .action-label' });
-                for (const it of items) {
-                    const lbl = await it.getText().catch(() => '');
-                    // Avoid "Run ESC for Method", "Run ESC Split by File", etc.
-                    if (lbl === 'Run ESC') { await it.click(); clicked = true; break; }
-                }
-            } catch (_) {}
-            if (!clicked) {
-                try { await driver.actions().sendKeys(require('selenium-webdriver').Key.ESCAPE).perform(); } catch (_) {}
-                await driver.sleep(500);
-            }
-        }
+        const clicked = await selectEditorMenuItem(editor, 'Run ESC');
         if (!clicked) { console.log('    [SKIP] Could not click Run ESC'); this.skip(); return; }
 
         await driver.sleep(3_000);

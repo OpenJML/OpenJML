@@ -1,0 +1,13 @@
+Proving methods in AZC
+Starting proof of AZC.AZC() with prover !!!!
+Completed proof of AZC.AZC() with prover !!!! - no warnings
+Starting proof of AZC.mm() with prover !!!!
+test/specspath/AZC.java:6: verify: The prover cannot establish an assertion (Assignable: test/specspath/AZC.java:3:) in method mm: \everything
+    m();
+     ^
+test/specspath/AZC.java:3: verify: Associated declaration: test/specspath/AZC.java:6:
+  //@ assignable \nothing;
+      ^
+Completed proof of AZC.mm() with prover !!!! - with warnings
+Completed proving methods in AZC
+2 verification failures

@@ -1,0 +1,52 @@
+Proving methods in C
+Starting proof of C.C() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of C.C() with prover !!!! - no warnings
+Completed proving methods in C
+Proving methods in D
+Starting proof of D.D() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of D.D() with prover !!!! - no warnings
+Completed proving methods in D
+Proving methods in B
+Starting proof of B.B() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.B() with prover !!!! - no warnings
+Starting proof of B.m1() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.m1() with prover !!!! - no warnings
+Starting proof of B.m2(C) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.m2(C) with prover !!!! - no warnings
+Starting proof of B.m3(D) with prover !!!!
+test/gitbug651c/B.java:53: verify: The prover cannot establish an assertion (Assert) in method m3
+        //@ assert p.c.x > 0; // FAILS (#651): field of a parameter
+            ^
+Completed proof of B.m3(D) with prover !!!! - with warnings
+Starting proof of B.m4() with prover !!!!
+test/gitbug651c/B.java:59: verify: The prover cannot establish an assertion (Assert) in method m4
+        //@ assert d.c.x > 0; // FAILS (#651): field of a field of this
+            ^
+Completed proof of B.m4() with prover !!!! - with warnings
+Starting proof of B.m5(D) with prover !!!!
+test/gitbug651c/B.java:66: verify: The prover cannot establish an assertion (Assert) in method m5
+        //@ assert loc.x > 0; // FAILS (#651): same as m3, through a local
+            ^
+Completed proof of B.m5(D) with prover !!!! - with warnings
+Completed proving methods in B
+Proving methods in Holder
+Starting proof of Holder.Holder(D) with prover !!!!
+test/gitbug651c/B.java:77: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug651c/B.java:73:) in method Holder
+    public Holder(D p) {
+           ^
+test/gitbug651c/B.java:73: verify: Associated declaration: test/gitbug651c/B.java:77:
+    //@ public invariant held.x > 0;
+               ^
+Completed proof of Holder.Holder(D) with prover !!!! - with warnings
+Completed proving methods in Holder
+5 verification failures

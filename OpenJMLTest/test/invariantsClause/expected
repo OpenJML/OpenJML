@@ -1,13 +1,21 @@
-test/invariantsClause/T.java:7: error: cannot find symbol
-  //@ invariants x, T; // ERROR - no x
+test/invariantsClause/T.java:9: error: cannot find symbol
+  //@ invariants x, T; // ERROR - no x; ERROR - T is a type, not a value
                  ^
   symbol:   variable x
   location: class T
-test/invariantsClause/T.java:17: error: invariants clauses are not permitted in any specification cases
+test/invariantsClause/T.java:9: error: cannot find symbol
+  //@ invariants x, T; // ERROR - no x; ERROR - T is a type, not a value
+                    ^
+  symbol:   variable T
+  location: class T
+test/invariantsClause/T.java:20: error: invariants clauses are not permitted in any specification cases
   //@ invariants y; // ERROR - out of place
       ^
-test/invariantsClause/T.java:21: error: invariants clauses are not permitted in any specification cases
+test/invariantsClause/T.java:24: error: invariants clauses are not permitted in any specification cases
   //@ invariants y; // ERROR - out of place
       ^
+test/invariantsClause/T.java:27: error: An item in an invariants clause must be an object value, but this one has type int
+  //@ invariants k; // ERROR - not an object value
+                 ^
 Operation not performed because of parse or type errors
-3 errors
+5 errors

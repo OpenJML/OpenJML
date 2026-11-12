@@ -16,7 +16,7 @@ inputs:
   os-label:
     description: >-
       This matrix leg's own label (matrix.label in build.yml/nightly.yml, e.g. macos-arm64,
-      macos-x86_64, ubuntu-24.04, ubuntu-arm64, windows) -- used to pick the matching
+      macos-x86_64, ubuntu-24.04, ubuntu-24.04-arm64, windows) -- used to pick the matching
       Solvers-<name> subdirectory to download.
     required: true
   folder:
@@ -54,7 +54,7 @@ runs:
           macos-arm64)  echo "subdir=Solvers-macos-arm64" >> "$GITHUB_OUTPUT" ;;
           macos-x86_64) echo "subdir=Solvers-macos" >> "$GITHUB_OUTPUT" ;;
           ubuntu-24.04) echo "subdir=Solvers-linux" >> "$GITHUB_OUTPUT" ;;
-          ubuntu-arm64) echo "subdir=Solvers-linux-arm64" >> "$GITHUB_OUTPUT" ;;
+          ubuntu-24.04-arm64) echo "subdir=Solvers-linux-arm64" >> "$GITHUB_OUTPUT" ;;
           windows)      echo "subdir=Solvers-windows" >> "$GITHUB_OUTPUT" ;;
           *)
             echo "::error::Unrecognized os-label '${{ inputs.os-label }}' -- add it to openjml-checkout's Solvers-subdirectory mapping"

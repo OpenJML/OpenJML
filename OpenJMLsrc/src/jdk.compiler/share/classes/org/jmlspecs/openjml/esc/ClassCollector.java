@@ -160,7 +160,7 @@ class ClassCollector extends JmlTreeScanner {
                 useBV = true;
             }
         }
-        if (!was && useBV && Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree); }
+        if (!was && useBV && Utils.debug("bv")) { Utils.debugOut().println("Using bit-vector because of " + tree); }
         super.visitBinary(tree);
     }
     
@@ -172,11 +172,11 @@ class ClassCollector extends JmlTreeScanner {
         } else if (op == JCTree.Tag.BITAND_ASG ||  op == JCTree.Tag.BITOR_ASG  || op == JCTree.Tag.BITXOR_ASG) {  
             if (tree.type.getTag() != TypeTag.BOOLEAN && Types.instance(context).unboxedTypeOrType(tree.type).getTag() != TypeTag.BOOLEAN) {
                 useBV = true;
-                if (Utils.debug("bv")) System.out.println("Using bit-vector because of " + tree);
+                if (Utils.debug("bv")) Utils.debugOut().println("Using bit-vector because of " + tree);
             }
         } else if (op == JCTree.Tag.SL_ASG || op == JCTree.Tag.SR_ASG || op == JCTree.Tag.USR_ASG    ) {
             useBV = true;
-            if (Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree); }
+            if (Utils.debug("bv")) { Utils.debugOut().println("Using bit-vector because of " + tree); }
         }
         super.visitAssignop(tree);
     }
@@ -201,7 +201,7 @@ class ClassCollector extends JmlTreeScanner {
         } else {
             super.visitJmlStatementExpr(tree);
         }
-        if (!was && useBV && Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree);  }
+        if (!was && useBV && Utils.debug("bv")) { Utils.debugOut().println("Using bit-vector because of " + tree);  }
     }
     
     @Override
@@ -219,14 +219,14 @@ class ClassCollector extends JmlTreeScanner {
             }
         }
         super.visitJmlStatement(tree);
-        if (!was && useBV && Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree);  }
+        if (!was && useBV && Utils.debug("bv")) { Utils.debugOut().println("Using bit-vector because of " + tree);  }
     }
     
     @Override
     public void visitJmlMethodClauseExpr(JmlMethodClauseExpr tree) {
         boolean was = useBV;
         super.visitJmlMethodClauseExpr(tree);
-        if (!was && useBV && Utils.debug("bv")) { System.out.println("Using bit-vector because of " + tree); }
+        if (!was && useBV && Utils.debug("bv")) { Utils.debugOut().println("Using bit-vector because of " + tree); }
     }
     
     @Override

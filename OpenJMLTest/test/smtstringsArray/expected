@@ -17,10 +17,10 @@ test/smtstrings/Chars.java:65: verify: The prover cannot establish an assertion 
           ^
 Completed proof of Chars.bad1(\string) with prover !!!! - with warnings
 Starting proof of Chars.bad2(\string,\bigint) with prover !!!!
-test/smtstrings/Chars.java:69: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method bad2
+test/smtstrings/Chars.java:69: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:85:) in method bad2
     //@   ghost char c = s.get(i); // fails: precondition of get (i may be out of range)
                               ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:85: verify: Associated declaration: test/smtstrings/Chars.java:69:
     public char get(bigint i);
                 ^
 $SPECS/org/jmlspecs/lang/internal/string.jml:82: verify: Precondition conjunct is false: 0 <= i < length
@@ -82,10 +82,10 @@ Completed proof of JavaStrings.starts() with prover !!!! - no warnings
 Starting proof of JavaStrings.concat(String,String) with prover !!!!
 Completed proof of JavaStrings.concat(String,String) with prover !!!! - no warnings
 Starting proof of JavaStrings.bad() with prover !!!!
-test/smtstrings/JavaStrings.java:37: verify: The prover cannot establish an assertion (Postcondition) in method bad
+test/smtstrings/JavaStrings.java:37: verify: The prover cannot establish an assertion (Postcondition: test/smtstrings/JavaStrings.java:34:) in method bad
         return x.charAt(1) == 'c'; // fails
         ^
-test/smtstrings/JavaStrings.java:34: verify: Associated declaration
+test/smtstrings/JavaStrings.java:34: verify: Associated declaration: test/smtstrings/JavaStrings.java:37:
     //@ ensures \result;
         ^
 Completed proof of JavaStrings.bad() with prover !!!! - with warnings
@@ -119,10 +119,10 @@ test/smtstrings/Lengths.java:55: verify: The prover cannot establish an assertio
           ^
 Completed proof of Lengths.bad3(\string) with prover !!!! - with warnings
 Starting proof of Lengths.bad4(\string,char) with prover !!!!
-test/smtstrings/Lengths.java:59: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method bad4
+test/smtstrings/Lengths.java:59: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/org/jmlspecs/lang/internal/string.jml:200:) in method bad4
     //@   assert s.put(s.length(), c).length() == s.length(); // fails: put's index must be within s
                       ^
-$SPECS/org/jmlspecs/lang/internal/string.jml:200: verify: Associated declaration
+$SPECS/org/jmlspecs/lang/internal/string.jml:200: verify: Associated declaration: test/smtstrings/Lengths.java:59:
     public string put(bigint i, char v);
                   ^
 $SPECS/org/jmlspecs/lang/internal/string.jml:196: verify: Precondition conjunct is false: 0 <= i < length

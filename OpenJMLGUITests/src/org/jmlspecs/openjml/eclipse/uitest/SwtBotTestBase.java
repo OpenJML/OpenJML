@@ -34,6 +34,12 @@ public abstract class SwtBotTestBase {
         SWTBotPreferences.TIMEOUT         = 20_000;   // default widget-wait timeout (ms)
         SWTBotPreferences.KEYBOARD_LAYOUT = "EN_US";
         bot = new SWTWorkbenchBot();
+        // A remembered choice keeps the modal "OpenJML Configuration Changed" dialog from
+        // opening when a test creates or changes a project; it blocked menus and markers.
+        // Set through the preference node: InstallPluginTest runs before the plugin is installed.
+        org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE.getNode("org.openjml.OpenJMLUI").put(
+                org.jmlspecs.openjml.eclipse.OpenJMLResourceChangeListener.PREF_CONFIG_CHANGE_ACTION,
+                "Do nothing");
         configureLspServerPath();
         closeWelcomeAndTipViews();
     }
@@ -58,6 +64,21 @@ public abstract class SwtBotTestBase {
     @AfterClass
     public static void baseTearDown() {
         bot.resetWorkbench();
+        dismissKnownDialogs();
+    }
+
+    /**
+     * Dismiss modal dialogs that may appear after {@code resetWorkbench()} —
+     * e.g. OpenJML server-error popups or Eclipse marketplace prompts.
+     * No-op if none of the known shells are present.
+     */
+    private static void dismissKnownDialogs() {
+        for (String title : new String[]{
+                "OpenJML: Server Not Found", "OpenJML: Server Not Configured",
+                "OpenJML: Server Stopped Unexpectedly",
+                "Eclipse Marketplace", "Discover", "Software Updates"}) {
+            try { bot.shell(title).close(); } catch (Exception ignored) {}
+        }
     }
 
     // -----------------------------------------------------------------------

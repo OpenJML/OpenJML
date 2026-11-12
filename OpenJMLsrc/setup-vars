@@ -2,7 +2,7 @@
 # A sourced script that is shared between openjml and openjml-java
 
 ## Uses $INSTALL
-## Sets BINJAVA BINJAVAC OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR
+## Sets BINJAVA BINJAVAC OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR, and JVMARGS (from OPENJML_JVM, by setup-jvm)
 
 if [ "$0" = "$BASH_SOURCE" ]; then
     echo "Error: setup-vars script must be sourced"
@@ -41,6 +41,7 @@ else
 fi
 BINJAVA="$_jdkbin/java$EXE"
 BINJAVAC="$_jdkbin/javac$EXE"
+. "$INSTALL/setup-jvm"
 
 ## SMT_SOLVER_DIR is the folder in which jSMTLIB finds the solver executables: those named by the
 ## .exec properties in its jsmtlib.properties, or else the solver name itself.

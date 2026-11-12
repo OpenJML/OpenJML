@@ -24,6 +24,9 @@ const { LanguageClient, TransportKind, RevealOutputChannelOn, State } = require(
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
+/** File name of the LSP server launcher in an OpenJML installation. */
+const LAUNCHER = process.platform === 'win32' ? 'openjml-lsp.bat' : 'openjml-lsp';
+
 /** How often (ms) the ESC-task status bar polls the server while tasks are running. */
 const ESC_POLL_INTERVAL_MS = 800;
 
@@ -195,24 +198,29 @@ function fileIfExists(p) {
 }
 
 /**
- * Resolves the path to the openjml-lsp launcher script.
+ * Resolves the path to the openjml-lsp launcher script (openjml-lsp.bat on Windows).
  * Re-reads the current setting on every call so that preference changes are
  * picked up without reloading the extension.
  *
  * Priority:
  *   1. OPENJML_SERVER_PATH env var (set by launch.json for extension development)
  *   2. openjml.serverPath setting (explicit user config)
- *   3. openjml-lsp file one directory above the extension  (dev / release-zip layout)
- *   4. openjml-lsp on the system PATH  (user added OpenJML install dir to PATH)
+ *   3. launcher one directory above the extension  (dev / release-zip layout)
+ *   4. launcher on the system PATH  (user added OpenJML install dir to PATH)
+ * A configured folder (1 or 2) stands for the launcher in that folder.
  */
 function findServerPath() {
     const cfg = vscode.workspace.getConfiguration('openjml');
-    const configuredPath = cfg.get('serverPath', '').trim();
+    const configuredPath = (process.env.OPENJML_SERVER_PATH || '') || cfg.get('serverPath', '').trim();
+    if (configuredPath) {
+        try {
+            if (fs.statSync(configuredPath).isDirectory()) return path.join(configuredPath, LAUNCHER);
+        } catch (_) { /* not there: reported by isServerAvailable */ }
+        return configuredPath;
+    }
     const siblingDir = path.join(__dirname, '..');
-    return (process.env.OPENJML_SERVER_PATH || '')
-        || configuredPath
-        || fileIfExists(path.join(siblingDir, 'openjml-lsp'))
-        || findOnPath('openjml-lsp')
+    return fileIfExists(path.join(siblingDir, LAUNCHER))
+        || findOnPath(LAUNCHER)
         || null;
 }
 
@@ -281,9 +289,12 @@ async function startClient() {
 
     outputChannel.appendLine(ts() + ' server script: ' + serverScript);
 
+    // Node runs a .bat or .cmd file only through a shell (CVE-2024-27980), which splits an unquoted path at spaces
+    const viaShell = /\.(bat|cmd)$/i.test(serverScript);
     const serverOptions = {
-        command: serverScript,
+        command: viaShell ? `"${serverScript}"` : serverScript,
         transport: TransportKind.stdio,
+        options: { shell: viaShell },
     };
 
     const clientOptions = {

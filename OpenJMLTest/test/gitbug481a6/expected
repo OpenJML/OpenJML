@@ -16,10 +16,10 @@ Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVec
 test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:315: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ArrayFieldVector:  overflow in int sum
         data = MathArrays.buildArray(field, v1Data.length + v2Data.length);
                                                           ^
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:316: verify: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:316: verify: The prover cannot establish an assertion (Precondition: $SPECS/java/lang/System.jml:314:) in method ArrayFieldVector
         System.arraycopy(v1Data, 0, data, 0, v1Data.length);
                         ^
-$SPECS/java/lang/System.jml:314: verify: Associated declaration
+$SPECS/java/lang/System.jml:314: verify: Associated declaration: test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:316:
     public static native void arraycopy(/*@nullable*/ Object src,
                               ^
 $SPECS/java/lang/System.jml:150: verify: Precondition conjunct is false: src == null || dest == null
@@ -40,10 +40,10 @@ $SPECS/java/lang/System.jml:232: verify: Precondition conjunct is false: (dest i
 $SPECS/java/lang/System.jml:243: verify: Precondition conjunct is false: (dest instanceof char[])
                  (dest instanceof char[]) &&
                  ^
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:317: verify: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:317: verify: The prover cannot establish an assertion (Precondition: $SPECS/java/lang/System.jml:314:) in method ArrayFieldVector
         System.arraycopy(v2Data, 0, data, v1Data.length, v2Data.length);
                         ^
-$SPECS/java/lang/System.jml:314: verify: Associated declaration
+$SPECS/java/lang/System.jml:314: verify: Associated declaration: test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:317:
     public static native void arraycopy(/*@nullable*/ Object src,
                               ^
 $SPECS/java/lang/System.jml:150: verify: Precondition conjunct is false: src == null || dest == null

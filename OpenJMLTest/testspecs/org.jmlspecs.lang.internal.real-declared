@@ -1,0 +1,9 @@
+class RealUsingBigDecimal
+class RealUsingDouble
+from(\bigint)
+from(double)
+from(int)
+from(java.math.BigDecimal)
+from(java.math.BigInteger)
+from(long)
+of(java.math.BigDecimal)

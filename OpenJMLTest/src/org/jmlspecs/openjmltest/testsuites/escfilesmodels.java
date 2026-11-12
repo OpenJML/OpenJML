@@ -51,37 +51,35 @@ public class escfilesmodels extends EscBaseFiles {
 
 
 
+    @Ignore // #1119: org.jmlspecs.models unavailable
     @Test public void gitbug431() {
         expectedExit = 0;
         helpEscFile("test/gitbug431","test/gitbug431", "-cp", "test/gitbug431", "--esc", "--progress");
     }
         
+    @Ignore // #1119: org.jmlspecs.models unavailable
     @Test public void gitbug461() {
         expectedExit = 0;
         helpTCG();
     }
     
+    @Ignore // #1119: org.jmlspecs.models unavailable
     @Test public void gitbug498() {
         expectedExit = 0;
         helpTCG();
     }
 
-    @Ignore // FIXME - times out
+    @Ignore // #1119: org.jmlspecs.models unavailable (earlier: times out)
     @Test public void gitbug500a() {
         helpTCG("--solver-seed=242");
     }
 
-    @Ignore // FIXME - times out
+    @Ignore // #1119: org.jmlspecs.models unavailable (earlier: times out)
     @Test public void gitbug500b() {
         helpTCG("--solver-seed=242");
     }
 
-    @Ignore // times out
-    @Test public void gitbug584() {
-        expectedExit = 0;
-    }
-    
-    @Test @Ignore  // Needs specs about double
+    @Test @Ignore // #1119: org.jmlspecs.models unavailable (earlier: needs specs about double)
     public void gitbug633() {
         Assume.assumeTrue(runLongTests); // FIXME - And not yet working either
         cpathAddition = ":../OpenJML/runtime";
@@ -90,6 +88,7 @@ public class escfilesmodels extends EscBaseFiles {
     }
     
     
+    @Ignore // #1119: org.jmlspecs.models unavailable
     @Test
     public void gitbug673() {
         expectedExit = 0;

@@ -15,10 +15,10 @@ test/gitbug648a/W.java:5: verify: The prover cannot establish an assertion (Asse
             ^
 Completed proof of W.m() with prover !!!! - with warnings
 Starting proof of W.mm() with prover !!!!
-test/gitbug648a/W.java:11: verify: The prover cannot establish an assertion (ExceptionalPostcondition) in method mm
+test/gitbug648a/W.java:11: verify: The prover cannot establish an assertion (ExceptionalPostcondition: test/gitbug648a/W.java:8:) in method mm
         int x = X.qqq();  // ERROR - no visible specs
                      ^
-test/gitbug648a/W.java:8: verify: Associated declaration
+test/gitbug648a/W.java:8: verify: Associated declaration: test/gitbug648a/W.java:11:
     //@ public normal_behavior
                ^
 Completed proof of W.mm() with prover !!!! - with warnings

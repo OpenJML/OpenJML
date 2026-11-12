@@ -230,8 +230,8 @@ public class escstrings extends EscBase {
                   public TestJava() { t = new TestJava(); }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",27
-                ,"$SPECS/java/lang/String.jml:288: verify: Associated declaration",46
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/java/lang/String.jml:288:) in method m",27
+                ,"$SPECS/java/lang/String.jml:288: verify: Associated declaration: /tt/TestJava.java:8:",46
                 ,optional(seq("$SPECS/java/lang/CharSequence.jml:65: verify: Precondition conjunct is false: 0 <= index < chars.length",34))
                 );
     }
@@ -276,8 +276,8 @@ public class escstrings extends EscBase {
                 """
                 ,anyorder(
                         seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method m",12)
-                        ,seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition) in method m",43
-                             ,"$SPECS/java/lang/String.jml:288: verify: Associated declaration",46
+                        ,seq("/tt/TestJava.java:6: verify: The prover cannot establish an assertion (UndefinedCalledMethodPrecondition: $SPECS/java/lang/String.jml:288:) in method m",43
+                             ,"$SPECS/java/lang/String.jml:288: verify: Associated declaration: /tt/TestJava.java:6:",46
                              ,optional("$SPECS/java/lang/CharSequence.jml:62: verify: Precondition conjunct is false: 0 <= index < chars.length",34)
                                  // FIXME - why does the above sometime occur and sometimes not
                                 )

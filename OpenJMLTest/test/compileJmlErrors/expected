@@ -1,0 +1,18 @@
+src/p/A.java:6: error: cannot find symbol
+    //@ invariant y > 0; // error: y is not declared
+                  ^
+  symbol:   variable y
+  location: class A
+src/p/A.java:8: error: incompatible types: boolean cannot be converted to int
+        //@ set g = true; // error: boolean to int
+                    ^
+2 errors
+specs/p/B.jml:4: error: cannot find symbol
+    //@ invariant z > 0; // error: z is not declared
+                  ^
+  symbol:   variable z
+  location: class B
+1 error
+== -no-jml
+A.class
+B.class

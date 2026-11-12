@@ -281,7 +281,8 @@ public final class OpenJMLConstants {
     // -----------------------------------------------------------------------
 
     /** File name of the OpenJML LSP launcher script inside an installation folder. */
-    public static final String LSP_LAUNCHER_SCRIPT = "openjml-lsp";
+    public static final String LSP_LAUNCHER_SCRIPT =
+            System.getProperty("os.name").startsWith("Windows") ? "openjml-lsp.bat" : "openjml-lsp";
 
     /**
      * JVM system property that overrides the path to the OpenJML installation.

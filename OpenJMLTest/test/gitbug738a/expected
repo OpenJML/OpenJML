@@ -2,10 +2,10 @@ Proving methods in A
 Starting proof of A.A() with prover !!!!
 Completed proof of A.A() with prover !!!! - no warnings
 Starting proof of A.comm(HasComm) with prover !!!!
-test/gitbug738a/A.java:6: verify: The prover cannot establish an assertion (Postcondition) in method comm
+test/gitbug738a/A.java:6: verify: The prover cannot establish an assertion (Postcondition: test/gitbug738a/HasComm.java:2:) in method comm
         return true;
         ^
-test/gitbug738a/HasComm.java:2: verify: Associated declaration
+test/gitbug738a/HasComm.java:2: verify: Associated declaration: test/gitbug738a/A.java:6:
   //@ ensures (\result==other.comm(this));
       ^
 Completed proof of A.comm(HasComm) with prover !!!! - with warnings
@@ -17,10 +17,10 @@ Proving methods in B
 Starting proof of B.B() with prover !!!!
 Completed proof of B.B() with prover !!!! - no warnings
 Starting proof of B.comm(HasComm) with prover !!!!
-test/gitbug738a/B.java:6: verify: The prover cannot establish an assertion (Postcondition) in method comm
+test/gitbug738a/B.java:6: verify: The prover cannot establish an assertion (Postcondition: test/gitbug738a/HasComm.java:2:) in method comm
         return false;
         ^
-test/gitbug738a/HasComm.java:2: verify: Associated declaration
+test/gitbug738a/HasComm.java:2: verify: Associated declaration: test/gitbug738a/B.java:6:
   //@ ensures (\result==other.comm(this));
       ^
 Completed proof of B.comm(HasComm) with prover !!!! - with warnings

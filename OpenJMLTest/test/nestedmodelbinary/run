@@ -1,0 +1,10 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## The .jml of binary class M names Q.N, a model class nested in binary class Q's .jml.
+## Q's specs were only queued while M's were entered, so Q.N was not found.
+rm -rf actual bin
+(openjml --compile -d bin src/p/*.java && openjml --check -cp bin --specs-path specs F.java) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

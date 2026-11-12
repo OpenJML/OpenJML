@@ -1,0 +1,16 @@
+Proving methods in java.lang.ClassNotFoundException
+Starting proof of ClassNotFoundException.ClassNotFoundException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of ClassNotFoundException.ClassNotFoundException() with prover !!!! - no warnings
+Starting proof of ClassNotFoundException.ClassNotFoundException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of ClassNotFoundException.ClassNotFoundException(String) with prover !!!! - no warnings
+Starting proof of ClassNotFoundException.ClassNotFoundException(String,Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of ClassNotFoundException.ClassNotFoundException(String,Throwable) with prover !!!! - no warnings
+Starting proof of ClassNotFoundException.getException() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of ClassNotFoundException.getException() with prover !!!! - no warnings
+Skipping proof of ClassNotFoundException.readObject(java.io.ObjectInputStream) (Skipping java.lang.ClassNotFoundException.readObject because it matches the exclusion readObject)
+Skipping proof of ClassNotFoundException.writeObject(java.io.ObjectOutputStream) (Skipping java.lang.ClassNotFoundException.writeObject because it matches the exclusion writeObject)
+Completed proving methods in java.lang.ClassNotFoundException

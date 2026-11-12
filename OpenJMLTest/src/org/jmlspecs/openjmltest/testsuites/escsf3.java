@@ -23,6 +23,7 @@ public class escsf3 extends SFBugsBase {
     
     @Test
     public void gitbug644() {
+        expectedExit = 6;
         helpEscSimple();
     }
         
@@ -78,11 +79,42 @@ public class escsf3 extends SFBugsBase {
         helpEscSimple();
     }
 
+    // #651: the default invariant set does not include fields of parameters (failures by design;
+    // the 'invariants' clause is the remedy, see escinvariants)
+    @Test
+    public void gitbug651c() {
+        helpEscSimple();
+    }
+
     @Test
     public void gitbug653() {
         helpEscSimple("--specs-path=test/gitbug653");
     }
+
+    @Test
+    public void specsAttrOnce() {
+        // A binary class's method specs are type-checked once, not again when ESC uses them
+        helpEscSimple("--specs-path=test/specsAttrOnce");
+    }
+
+    @Test
+    public void noStateClassSpecs() {
+        // A binary class's invariant, attributed while attributing a no_state method, is not held to no_state rules
+        helpEscSimple("--specs-path=test/noStateClassSpecs");
+    }
     
+    @Test
+    public void gitbug1108() {
+        // A pure constructor leaves pure-method values of pre-existing objects unchanged
+        helpEscSimple("--method=Test.receiver,Test.argument,Test.notPure");
+    }
+
+    @Test
+    public void gitbug1108a() {
+        // Facts about another class's final static field survive a pure constructor call
+        helpEscSimple("--method=Test.staticOfOtherClass");
+    }
+
     @Test
     public void gitbug654() {
         helpEscSimple();
@@ -208,16 +240,11 @@ public class escsf3 extends SFBugsBase {
         helpEscSimple();
     }
     
-    @Test @Ignore // Will erroneously succeed until measured_by is implemented
+    @Test
     public void gitbug705() {
         helpEscSimple();
     }
 
-    @Test @Ignore // FIXME: Bug fixed, but the specs are not complete
-    public void gitbug710() {
-        helpEscFile("test/gitbug710/java/util/IdentityHashMap.java", "test/gitbug710","-cp","test/gitbug710","-no-staticInitWarning","--timeout=300");
-    }
-    
     @Test
     public void gitbug711() {
         helpEscSimple();
@@ -335,12 +362,24 @@ public class escsf3 extends SFBugsBase {
     }
     
     @Test
+    public void gitbug702() {
+        expectedExit = 6;
+        helpEscSimple();
+    }
+
+    @Test
     public void gitbug998() {
         helpEscSimple();
     }
     
     @Test
     public void gitbug999() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug1093() {
+        expectedExit = 6;
         helpEscSimple();
     }
     

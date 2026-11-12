@@ -49,6 +49,7 @@ public class escfileslist extends EscBaseFiles implements Utils {
             "org.jmlspecs.openjmltest.testsuites.escfpfiles",
             "org.jmlspecs.openjmltest.testsuites.escnonpublic",
             "org.jmlspecs.openjmltest.testsuites.escfeatures",
+            "org.jmlspecs.openjmltest.testsuites.escinvariants",
             "org.jmlspecs.openjmltest.testsuites.primesc1",
             "org.jmlspecs.openjmltest.testsuites.primesc2",
             "org.jmlspecs.openjmltest.testsuites.escsf1",

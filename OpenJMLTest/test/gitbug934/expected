@@ -7,10 +7,10 @@ Starting proof of Mul.Mul(int,int) with prover !!!!
 test/gitbug934/Mul.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method Mul: int multiply out of range
         return x * y;
                  ^
-test/gitbug934/Mul.java:5: verify: The prover cannot establish an assertion (Postcondition) in method Mul
+test/gitbug934/Mul.java:5: verify: The prover cannot establish an assertion (Postcondition: test/gitbug934/Mul.java:3:) in method Mul
         return x * y;
         ^
-test/gitbug934/Mul.java:3: verify: Associated declaration
+test/gitbug934/Mul.java:3: verify: Associated declaration: test/gitbug934/Mul.java:5:
     //@ ensures \result == x * y;
         ^
 Completed proof of Mul.Mul(int,int) with prover !!!! - with warnings

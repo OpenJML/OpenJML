@@ -83,7 +83,7 @@ public class JmlOptions extends Options {
         // This branch should never execute. If it does, then there is an internal
         // bug in that an Options instance is requested before JmlOptions is a registered tool.
         // DON'T USE Utils.instance(context) -- Stack overflow will result
-        System.out.println("Options.instance returns an Options instead of a JmlOptions");
+        Utils.debugOut().println("Options.instance returns an Options instead of a JmlOptions");
         Utils.dumpStack();
         throw new JmlInternalException();
     }
@@ -244,10 +244,10 @@ public class JmlOptions extends Options {
                 if ("--help".equals(s)) {
                     switch (res) {
                     case "warn":
-                        System.out.println(WarningCategory.instance(context).help());
+                        Log.instance(context).getWriter(WriterKind.NOTICE).println(WarningCategory.instance(context).help());
                         break;
                     case "infer":
-                        System.out.println(InferCategory.instance(context).help());
+                        Log.instance(context).getWriter(WriterKind.NOTICE).println(InferCategory.instance(context).help());
                         break;
                     default:
                         Utils.instance(context).warning("jml.message", "No detailed help available for '" + res + "'");
@@ -312,7 +312,7 @@ public class JmlOptions extends Options {
         
 
         if (o != null && o.hasArg()) {
-            if (negate && !s.equals("--warn") && !s.equals("--infer") && !s.equals("--split") && !s.equals("--fpreal")) {
+            if (negate && !s.equals("--warn") && !s.equals("--infer") && !s.equals("--split") && !s.equals("--fpreal") && !s.equals("--smt-strings")) {
                 Utils.instance(context).warning("jml.message","no- is only permitted for boolean options (and --warn)"); // FIXME - add --split to message
                 negate = false;
             }
@@ -497,6 +497,8 @@ public class JmlOptions extends Options {
         // Set implicit comment keys
         if (utils.esc) commentKeys.add("ESC");
         if (utils.rac) commentKeys.add("RAC");
+        // ESC with float and double as exact reals (--fpreal, including when chosen by --fpreal=auto)
+        if (utils.esc && !JmlOption.useFPTheory(context)) commentKeys.add("FPREAL");
         if (JmlOption.langJML.equals(JmlOption.LANG.value(context))) commentKeys.add("STRICT");
         commentKeys.add("OPENJML");
 
@@ -583,8 +585,8 @@ public class JmlOptions extends Options {
             opts.add(s.getKey() + " : " + s.getValue());
         }
         java.util.Collections.sort(opts);
-        System.out.println("JML Options:");
-        opts.stream().forEach(s -> System.out.println(s));
+        Utils.debugOut().println("JML Options:");
+        opts.stream().forEach(s -> Utils.debugOut().println(s));
     }
 
     /** We replace the Arguments tool in order to validate the JML options

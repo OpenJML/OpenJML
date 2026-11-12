@@ -1,0 +1,5 @@
+Test P5 uses ./P.jml for specs
+./P.jml:2: error: incompatible types: int cannot be converted to boolean
+  //@ invariant 0; // ./P.jml
+                ^
+1 error

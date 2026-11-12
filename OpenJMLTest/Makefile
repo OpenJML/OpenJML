@@ -86,7 +86,7 @@ temp-release:
 ## FIXME: Always successful for now until all the tutorial examples are complete and working
 tutorial-tests: 
 	@ ( echo Testing tutorial files ;\
-	    . $(TEST)/setup-coverage tutorialtests ; \
+	    . "$(TEST)/setup-coverage" tutorialtests ; \
 	    cd ${TEST}/../../openjml.github.io/tutorial; \
 	    ./test  || true\
 	)

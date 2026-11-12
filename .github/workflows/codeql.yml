@@ -1,0 +1,59 @@
+## CodeQL static analysis of OpenJML's own Java code (scope: .github/codeql/codeql-config.yml).
+## On a push to dev-21 or master-21 it runs the security queries and uploads alerts to the Security tab.
+## Run it manually (Actions > CodeQL > Run workflow) to choose the query suite:
+##   security-extended     security queries only; results uploaded to the Security tab
+##   security-and-quality  adds code-quality queries; results are saved as a SARIF artifact, not uploaded
+## No build is needed (build-mode: none).
+
+name: CodeQL
+
+on:
+  push:
+    branches: [ dev-21, master-21 ]
+  workflow_dispatch:
+    inputs:
+      queries:
+        description: 'Query suite'
+        type: choice
+        options: [ security-extended, security-and-quality ]
+        default: security-extended
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      QUERIES: ${{ inputs.queries || 'security-extended' }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            .github/codeql
+            OpenJMLsrc/src/jdk.compiler/share/classes
+            OpenJMLsrc/src/java.base/share/classes/org/jmlspecs
+            OpenJMLlsp/src
+            OpenJMLUI/src
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: java-kotlin
+          build-mode: none
+          queries: ${{ env.QUERIES }}
+          config-file: ./.github/codeql/codeql-config.yml
+
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:java-kotlin/${{ env.QUERIES }}
+          upload: ${{ env.QUERIES == 'security-extended' && 'always' || 'never' }}
+          output: sarif-results
+
+      - if: env.QUERIES != 'security-extended'
+        uses: actions/upload-artifact@v7
+        with:
+          name: codeql-${{ env.QUERIES }}
+          path: sarif-results

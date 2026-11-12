@@ -1,0 +1,3 @@
+and(java.util.function.BiPredicate<? super T,? super U>)
+negate()
+or(java.util.function.BiPredicate<? super T,? super U>)

@@ -287,8 +287,8 @@ public class escrecord extends EscBase {
                     }
                 }
                 """
-                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition) in method NonEmpty", 9
-                ,"/tt/A.java:7: verify: Associated declaration", 13
+                ,"/tt/A.java:9: verify: The prover cannot establish an assertion (Postcondition: /tt/A.java:7:) in method NonEmpty", 9
+                ,"/tt/A.java:7: verify: Associated declaration: /tt/A.java:9:", 13
                 );
     }
 
@@ -330,8 +330,8 @@ public class escrecord extends EscBase {
                     }
                 }
                 """
-                ,"/A.java:5: verify: The prover cannot establish an assertion (Postcondition) in method x", 38
-                ,"/A.java:4: verify: Associated declaration", 13
+                ,"/A.java:5: verify: The prover cannot establish an assertion (Postcondition: /A.java:4:) in method x", 38
+                ,"/A.java:4: verify: Associated declaration: /A.java:5:", 13
                 );
     }
 
@@ -443,6 +443,105 @@ public class escrecord extends EscBase {
                     }
                 }
                 """);
+    }
+
+    /** A postcondition of a public record method that calls the implicit accessors (#954, was a crash) */
+    @Test
+    public void testAccessorsInPostcondition() {
+        helpEsc("tt.Pt", """
+                package tt;
+                public record Pt(int x, int y) {
+                    //@ ensures \\result == x() + y();
+                    public /*@ pure @*/ int sum() { return x + y; }
+                    //@ requires -1000 < x && x < 1000 && -1000 < y && y < 1000;
+                    //@ ensures \\result == x() + y();
+                    public /*@ pure @*/ int sumInRange() { return x + y; }
+                }
+                """
+                ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method sum: overflow in int sum", 46
+                ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method sum: underflow in int sum", 46
+                ,"/tt/Pt.java:4: verify: The prover cannot establish an assertion (Postcondition: /tt/Pt.java:3:) in method sum", 37
+                ,"/tt/Pt.java:3: verify: Associated declaration: /tt/Pt.java:4:", 9
+                );
+    }
+
+    /** Record patterns in instanceof, including nested and conditional nested patterns (#1062) */
+    @Test
+    public void testInstanceofRecordPattern() {
+        helpEsc("tt.R2", """
+                package tt;
+                public class R2 {
+                    record Box(int x) {}
+                    record Pair(Object a, Object b) {}
+                    //@ ensures \\result == (o instanceof Box ? ((Box)o).x() : 0);
+                    public static int d(/*@ nullable */ Object o) {
+                        if (o instanceof Box(int x)) return x;
+                        return 0;
+                    }
+                    //@ ensures \\result == (o instanceof Pair && ((Pair)o).a() instanceof Box ? ((Box)((Pair)o).a()).x() : -1);
+                    public static int e(/*@ nullable */ Object o) {
+                        if (o instanceof Pair(Box(int x), Object y)) return x;
+                        return -1;
+                    }
+                    public static void f(Object o) {
+                        if (!(o instanceof Box(int x))) return;
+                        //@ check x == ((Box)o).x();
+                        //@ check x == 0;
+                    }
+                }
+                """
+                ,"/tt/R2.java:18: verify: The prover cannot establish an assertion (Assert) in method f", 13
+                );
+    }
+
+    /** A nullable record component: its field, its accessor and a record pattern binding may be null (#1061) */
+    @Test
+    public void testNullableComponent() {
+        helpEsc("tt.N", """
+                package tt;
+                public class N {
+                    record Box(/*@ nullable */ Integer x) {
+                        //@ ensures \\result == 1;
+                        public int t() { return x == null ? 0 : 1; }
+                    }
+                    record Box2(@org.jmlspecs.annotation.Nullable Integer x) {}
+                    record Box3(Integer x) {}
+                    //@ requires bx != null;
+                    //@ ensures \\result == 1;
+                    public static int m(Box bx) {
+                        /*@ nullable */ Integer y = bx.x();
+                        return y == null ? 0 : 1;
+                    }
+                    //@ ensures \\result == 1;
+                    public static int k() {
+                        Box bx = new Box(null);
+                        return switch (bx) {
+                            case Box(Integer x) -> x == null ? 0 : 1;
+                        };
+                    }
+                    //@ requires bx != null;
+                    //@ ensures \\result == 1;
+                    public static int m2(Box2 bx) {
+                        /*@ nullable */ Integer y = bx.x();
+                        return y == null ? 0 : 1;
+                    }
+                    //@ requires bx != null;
+                    //@ ensures \\result == 1;
+                    public static int m3(Box3 bx) {
+                        /*@ nullable */ Integer y = bx.x();
+                        return y == null ? 0 : 1;
+                    }
+                }
+                """
+                ,"/tt/N.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/N.java:4:) in method t", 26
+                ,"/tt/N.java:4: verify: Associated declaration: /tt/N.java:5:", 13
+                ,"/tt/N.java:13: verify: The prover cannot establish an assertion (Postcondition: /tt/N.java:10:) in method m", 9
+                ,"/tt/N.java:10: verify: Associated declaration: /tt/N.java:13:", 9
+                ,"/tt/N.java:18: verify: The prover cannot establish an assertion (Postcondition: /tt/N.java:15:) in method k", 9
+                ,"/tt/N.java:15: verify: Associated declaration: /tt/N.java:18:", 9
+                ,"/tt/N.java:26: verify: The prover cannot establish an assertion (Postcondition: /tt/N.java:23:) in method m2", 9
+                ,"/tt/N.java:23: verify: Associated declaration: /tt/N.java:26:", 9
+                );
     }
 
 }

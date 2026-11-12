@@ -1,0 +1,5 @@
+append(char)
+append(java.lang.CharSequence)
+append(java.lang.CharSequence,int,int)
+unspecified StringWriter()
+unspecified StringWriter(int)

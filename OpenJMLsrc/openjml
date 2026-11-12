@@ -19,17 +19,19 @@ if [ "$( uname )" = "Darwin" ] ; then
   "${INSTALL}/mac-setup" > /dev/null 2>&1 ;
 fi
 
-## Shared script to setup OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR BINJAVAC PR
+## Shared script to setup OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR BINJAVAC
 . "${INSTALL}/setup-vars"
 
 ## Run the executable for openjml (the javac equivalent)
 ## The following line fixes issue #876, but is a hack because the root problem and this solution are not understood, as documented in #908
 if [ -z "${OJ++}" ]; then export OJ= ; fi
 
-## Uses OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR OPENJML_JVM OPENJML_EXPORTS JSMTLIB_JAR
+## Uses OPENJML_INSTALL OPENJML_SPECS SMT_SOLVER_DIR JVMARGS OPENJML_EXPORTS JSMTLIB_JAR
 
 if [ -z "$OPENJML_JVM" ]; then
   "$BINJAVAC" "-J--patch-module=jdk.compiler=$JSMTLIB_JAR" "$@"
 else
-  "$BINJAVA" "--patch-module=jdk.compiler=$JSMTLIB_JAR" $OPENJML_JVM -cp ".:$INSTALL" org.openjml.RunOpenJML "$@" $OPENJML_EXPORTS
+  ## A Windows JDK (under WSL) needs ; and a Windows path
+  if [ -n "$EXE" ]; then _cp=".;$(wslpath -w "$INSTALL")"; else _cp=".:$INSTALL"; fi
+  "$BINJAVA" "--patch-module=jdk.compiler=$JSMTLIB_JAR" "${JVMARGS[@]}" -cp "$_cp" org.openjml.RunOpenJML "$@" $OPENJML_EXPORTS
 fi

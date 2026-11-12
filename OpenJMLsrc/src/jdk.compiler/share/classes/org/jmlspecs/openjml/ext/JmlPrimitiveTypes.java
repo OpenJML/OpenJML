@@ -78,7 +78,7 @@ public class JmlPrimitiveTypes extends JmlExtension {
             Symbol.ClassSymbol sym = com.sun.tools.javac.code.Symtab.instance(context).enterClass(moduleSym, Names.instance(context).fromString(fqname));
             //System.out.println("   CLASS " + sym);
             if (sym == null) {
-                System.out.println("FAILED TO GET SYM FOR " + fqname);
+                Utils.debugOut().println("FAILED TO GET SYM FOR " + fqname);
             }
             return sym;
         }

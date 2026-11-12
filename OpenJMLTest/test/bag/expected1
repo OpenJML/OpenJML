@@ -9,10 +9,10 @@ test/bag/Bag.java:30: verify: The prover cannot establish an assertion (Possibly
                   ^
 Completed proof of sv_esc.Bag.removeOnce(int) with prover !!!! - with warnings
 Starting proof of sv_esc.Bag.removeAll(int) with prover !!!!
-test/bag/Bag.java:38: verify: The prover cannot establish an assertion (InvariantExit) in method removeAll
+test/bag/Bag.java:38: verify: The prover cannot establish an assertion (InvariantExit: test/bag/Bag.java:13:) in method removeAll
   void removeAll(int elt) {
        ^
-test/bag/Bag.java:13: verify: Associated declaration
+test/bag/Bag.java:13: verify: Associated declaration: test/bag/Bag.java:38:
   //@ invariant n <= contents.length;
       ^
 Completed proof of sv_esc.Bag.removeAll(int) with prover !!!! - with warnings

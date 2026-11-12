@@ -1,0 +1,10 @@
+Proving methods in P
+Starting proof of P.P() with prover !!!!
+Completed proof of P.P() with prover !!!! - no warnings
+Starting proof of P.m() with prover !!!!
+test/specspath/ppsrc/P.java:4: verify: The prover cannot establish an assertion (Assert) in method m
+    //@ assert false; // ppsrc/P.java
+        ^
+Completed proof of P.m() with prover !!!! - with warnings
+Completed proving methods in P
+1 verification failure

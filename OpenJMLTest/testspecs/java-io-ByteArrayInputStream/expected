@@ -1,9 +1,9 @@
 Proving methods in TestByteArrayInputStream
 Starting proof of TestByteArrayInputStream.t1() with prover !!!!
-$ROOT/OpenJML/OpenJMLTest/testspecs/java-io-ByteArrayInputStream/TestByteArrayInputStream.java:27: verify: The prover cannot establish an assertion (Precondition) in method t1
+$ROOT/OpenJML/OpenJMLTest/testspecs/java-io-ByteArrayInputStream/TestByteArrayInputStream.java:27: verify: The prover cannot establish an assertion (Precondition: $SPECS/java/io/ByteArrayInputStream.jml:54:) in method t1
         var st = new ByteArrayInputStream(null);
                  ^
-$SPECS/java/io/ByteArrayInputStream.jml:54: verify: Associated declaration
+$SPECS/java/io/ByteArrayInputStream.jml:54: verify: Associated declaration: $ROOT/OpenJML/OpenJMLTest/testspecs/java-io-ByteArrayInputStream/TestByteArrayInputStream.java:27:
     public ByteArrayInputStream(byte[] buf);
            ^
 $SPECS/java/io/ByteArrayInputStream.jml:40: verify: Precondition conjunct is false: buf != null

@@ -13,7 +13,7 @@ DIAGNOSTIC REPORTED
     End position:   110
     Line number:    7
     Column number:  9
-    Message:        The prover cannot establish an assertion (Postcondition) in method n
+    Message:        The prover cannot establish an assertion (Postcondition: A.java:5:) in method n
 DIAGNOSTIC REPORTED
     Kind:           MANDATORY_WARNING
     Source:         SimpleFileObject[$ROOT/OpenJML/OpenJMLTest/test/apiE/A.java]
@@ -22,7 +22,7 @@ DIAGNOSTIC REPORTED
     End position:   58
     Line number:    5
     Column number:  9
-    Message:        Associated declaration
+    Message:        Associated declaration: A.java:7:
 Completed proof of A.n() with prover !!!! - with warnings
 Completed proving methods in A
 

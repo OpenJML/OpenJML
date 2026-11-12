@@ -1,0 +1,11 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## With the source of p.A (its m fails: the elements of its parameter are nullable), then with only its class file
+rm -rf actual bin
+(openjml --esc -jmltesting --specs-path=specs -sourcepath src src/p/A.java src/p/C.java ;\
+openjml --compile -d bin src/p/A.java ;\
+openjml --esc -jmltesting --specs-path=specs -cp bin src/p/C.java) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

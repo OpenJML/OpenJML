@@ -45,8 +45,8 @@ public class escinline extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m3: j", 7
-                ,"/tt/TestJava.java:20: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:20:) in method m3: j", 7
+                ,"/tt/TestJava.java:20: verify: Associated declaration: /tt/TestJava.java:6:", 7
                 );
     }
 
@@ -72,8 +72,8 @@ public class escinline extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m3: j", 7
-                ,"/tt/TestJava.java:13: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:13:) in method m3: j", 7
+                ,"/tt/TestJava.java:13: verify: Associated declaration: /tt/TestJava.java:6:", 7
                 );
     }
 
@@ -112,8 +112,8 @@ public class escinline extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:4: warning: [jml-lint] Inlined methods should be final since overriding methods will be ignored: minline", 15
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m3: j", 7
-                ,"/tt/TestJava.java:23: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:23:) in method m3: j", 7
+                ,"/tt/TestJava.java:23: verify: Associated declaration: /tt/TestJava.java:6:", 7
                 );
     }
 
@@ -150,8 +150,8 @@ public class escinline extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:4: warning: [jml-lint] Inlined methods should be final since overriding methods will be ignored: minline", 15
-                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable) in method m3: j", 7
-                ,"/tt/TestJava.java:23: verify: Associated declaration", 7
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:23:) in method m3: j", 7
+                ,"/tt/TestJava.java:23: verify: Associated declaration: /tt/TestJava.java:6:", 7
                 );
     }
 

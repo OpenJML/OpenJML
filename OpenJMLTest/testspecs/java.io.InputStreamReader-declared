@@ -1,0 +1,4 @@
+read(java.nio.CharBuffer)
+unspecified InputStreamReader(java.io.@org.jmlspecs.annotation.NonNull InputStream,java.lang.@org.jmlspecs.annotation.NonNull String)
+unspecified InputStreamReader(java.io.@org.jmlspecs.annotation.NonNull InputStream,java.nio.charset.@org.jmlspecs.annotation.NonNull Charset)
+unspecified InputStreamReader(java.io.@org.jmlspecs.annotation.NonNull InputStream,java.nio.charset.@org.jmlspecs.annotation.NonNull CharsetDecoder)

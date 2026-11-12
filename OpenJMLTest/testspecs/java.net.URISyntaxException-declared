@@ -1,0 +1,6 @@
+URISyntaxException(java.lang.String,java.lang.String)
+URISyntaxException(java.lang.String,java.lang.String,int)
+getIndex()
+getInput()
+getMessage()
+getReason()

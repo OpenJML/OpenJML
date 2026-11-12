@@ -167,8 +167,8 @@ public class BasicProgram extends BasicProgramParent<BasicProgram.BasicBlock> {
             }
         } catch (java.io.IOException e) {
             // FIXME - create an error of some sort
-            System.out.println("EXCEPTION: " + e);
-            e.printStackTrace(System.out);
+            org.jmlspecs.openjml.Utils.debugOut().println("EXCEPTION: " + e);
+            org.jmlspecs.openjml.Utils.conditionalPrintStack(e);
         }
     }
     

@@ -19,7 +19,6 @@
 # org.openjml.option.lang=openjml
 # org.openjml.option.method=
 # org.openjml.option.nullable-by-default=false    
-# org.openjml.option.os-name=auto
 # org.openjml.option.prover=
 # org.openjml.option.purity-check=true
 # org.openjml.option.rac-check-assumptions=true

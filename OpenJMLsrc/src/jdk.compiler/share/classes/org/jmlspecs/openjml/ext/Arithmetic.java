@@ -327,7 +327,7 @@ abstract public class Arithmetic extends JmlExtension {
             // The overflow checks have to work whether integers are eventually encoded as fixed length bit vectors or as mathematical values
             if (optag == JCTree.Tag.PLUS || optag == JCTree.Tag.MINUS) {
                 // For + : a > 0 && b > 0 ==> a <= MAX - b; a < 0 && b < 0 ==> MIN - b <= a;
-                // For - : a > 0 && b < 0 ==> a <= MAX + b; a < 0 && b > 0 ==> MIN + b <= a;
+                // For - : a >= 0 && b < 0 ==> a <= MAX + b; a < 0 && b > 0 ==> MIN + b <= a;
                 JCTree.Tag optagn = optag == JCTree.Tag.PLUS ? JCTree.Tag.MINUS : JCTree.Tag.PLUS;
                 String str = optag == JCTree.Tag.PLUS ? "sum" : "difference";
                 if (newtype.getTag() == TypeTag.INT) {
@@ -338,7 +338,10 @@ abstract public class Arithmetic extends JmlExtension {
                     // a == 0 < lhs ; b1 == 0 < rhs ; b2 == rhs < 0
                     // +) c == MAX - rhs ; d == lhs <= c == lhs <= (MAX - rhs) ; x == (a && b1) ==> d
                     // -) c == MAX + rhs ; d == lhs <= c == lhs <= (MAX + rhs) ; x == (a && b2) ==> d
-                    JCExpression a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, zerolit, rewriter.copy(lhs), newtype);
+                    // for -, a zero lhs overflows too (0 - MIN)
+                    JCExpression a = optag == JCTree.Tag.PLUS
+                            ? rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, zerolit, rewriter.copy(lhs), newtype)
+                            : rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.intleSymbol, zerolit, rewriter.copy(lhs), newtype);
                     JCExpression b1 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, zerolit, rewriter.copy(rhs), newtype);
                     JCExpression b2 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.intltSymbol, rewriter.copy(rhs), zerolit, newtype);
                     JCExpression b = optag == JCTree.Tag.PLUS ? b1 : b2;
@@ -360,7 +363,10 @@ abstract public class Arithmetic extends JmlExtension {
                     JCExpression maxlit = rewriter.treeutils.makeLongLiteral(p, Long.MAX_VALUE);
                     JCExpression minlit = rewriter.treeutils.makeLongLiteral(p, Long.MIN_VALUE);
                     JCExpression zerolit = rewriter.treeutils.makeLongLiteral(p, 0L);
-                    JCExpression a = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, zerolit, rewriter.copy(lhs), newtype);
+                    // for -, a zero lhs overflows too (0 - MIN)
+                    JCExpression a = optag == JCTree.Tag.PLUS
+                            ? rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, zerolit, rewriter.copy(lhs), newtype)
+                            : rewriter.makeBin(that, JCTree.Tag.LE, rewriter.treeutils.longleSymbol, zerolit, rewriter.copy(lhs), newtype);
                     JCExpression b1 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, zerolit, rewriter.copy(rhs), newtype);
                     JCExpression b2 = rewriter.makeBin(that, JCTree.Tag.LT, rewriter.treeutils.longltSymbol, rewriter.copy(rhs), zerolit, newtype);
                     JCExpression b = optag == JCTree.Tag.PLUS ? b1 : b2;

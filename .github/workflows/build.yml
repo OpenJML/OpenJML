@@ -36,7 +36,7 @@ jobs:
       run: |
         ## Each entry: os = GitHub runner, label = artifact/zip name suffix.
         ## macos-15-intel is GitHub's last Intel macOS runner; migrate when it is retired.
-        echo 'oslist=[ {"os":"macos-15","label":"macos-arm64"}, {"os":"macos-15-intel","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-arm64"}, {"os":"windows-2022","label":"windows"} ]' >> "$GITHUB_OUTPUT"
+        echo 'oslist=[ {"os":"macos-15","label":"macos-arm64"}, {"os":"macos-15-intel","label":"macos-x86_64"}, {"os":"ubuntu-24.04","label":"ubuntu-24.04"}, {"os":"ubuntu-24.04-arm","label":"ubuntu-24.04-arm64"}, {"os":"windows-2022","label":"windows"} ]' >> "$GITHUB_OUTPUT"
 
   prepare:
     runs-on: ubuntu-24.04

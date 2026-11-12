@@ -1,0 +1,11 @@
+Proving methods in java.lang.LinkageError
+Starting proof of LinkageError.LinkageError() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of LinkageError.LinkageError() with prover !!!! - no warnings
+Starting proof of LinkageError.LinkageError(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of LinkageError.LinkageError(String) with prover !!!! - no warnings
+Starting proof of LinkageError.LinkageError(String,Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of LinkageError.LinkageError(String,Throwable) with prover !!!! - no warnings
+Completed proving methods in java.lang.LinkageError

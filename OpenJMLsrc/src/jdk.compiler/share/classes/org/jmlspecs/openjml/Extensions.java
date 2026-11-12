@@ -480,7 +480,7 @@ public class Extensions {
     /** For debugging, prints out the contents of 'allKinds' */
     public static void dump() {
         for (var e: allKinds.entrySet()) {
-            System.out.println(e.getKey() + "\t" + e.getValue());
+            Utils.debugOut().println(e.getKey() + "\t" + e.getValue());
         }
     }
 }

@@ -1,3 +1,9 @@
+test/gitbug653/java/util/HashMap.jml:7: warning: The method java.util.HashMap.size() is declared in java.util.HashMap but not in its specification file
+    //@   ensures size() == m.size();
+                  ^
+test/gitbug653/java/util/HashMap.jml:8: warning: The method java.util.HashMap.get(java.lang.Object) is declared in java.util.HashMap but not in its specification file
+    //@   ensures (\forall Object o; ; get(o) == m.get(o));
+                                       ^
 Proving methods in Test
 Starting proof of Test.Test() with prover !!!!
 Feasibility check - end of preconditions : OK
@@ -8,3 +14,4 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.m(java.util.Map<Integer,String>) with prover !!!! - no warnings
 Completed proving methods in Test
+2 warnings

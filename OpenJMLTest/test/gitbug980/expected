@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of IntStackAsArrayMV.IntStackAsArrayMV() with prover !!!! - no warnings
 Starting proof of IntStackAsArrayMV.nthElement(int) with prover !!!!
-test/gitbug980/IntStackAsArrayMV.java:23: verify: The prover cannot establish an assertion (Accessible) in method nthElement: _elems
+test/gitbug980/IntStackAsArrayMV.java:23: verify: The prover cannot establish an assertion (Accessible: test/gitbug980/IntStackMV.java:11:) in method nthElement: _elems
         return _elems[n];
                ^
-test/gitbug980/IntStackMV.java:11: verify: Associated declaration
+test/gitbug980/IntStackMV.java:11: verify: Associated declaration: test/gitbug980/IntStackAsArrayMV.java:23:
     //@ reads size, elems[n];
         ^
 Completed proof of IntStackAsArrayMV.nthElement(int) with prover !!!! - with warnings

@@ -1020,7 +1020,7 @@ public class JmlTree {
     static public void unexpectedVisitor(JCTree t, Object visitor) {
         if (visitor instanceof com.sun.tools.javac.code.TypeAnnotations.TypeAnnotationPositions) return;
         // FIXME - a better error
-        System.out.println("A " + t.getClass() + " expects an IJmlVisitor, not a " + visitor.getClass());
+        Utils.debugOut().println("A " + t.getClass() + " expects an IJmlVisitor, not a " + visitor.getClass());
     }
     
     /** This is an interface for any node that contains source file information. */
@@ -2165,7 +2165,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlGroupName(this); 
             } else {
-                System.out.println("A JmlGroupName expects an IJmlVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlGroupName expects an IJmlVisitor, not a " + v.getClass());
                 //super.accept(v);
             }
         }
@@ -2175,7 +2175,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlGroupName(this, d);
             } else {
-                System.out.println("A JmlGroupName expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlGroupName expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -2211,7 +2211,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitLabeledStatement(this, d);
             } else {
-                System.out.println("A JmlLabeledStatement expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlLabeledStatement expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }
@@ -2262,7 +2262,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlLblExpression(this, d);
             } else {
-                System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }
@@ -2338,7 +2338,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMatchExpression(this, d);
             } else {
-                System.out.println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlLblExpression expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }
@@ -2391,7 +2391,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseConditional(this, d);
             } else {
-                System.out.println("A JmlMethodClauseCOnditional expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlMethodClauseCOnditional expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2508,7 +2508,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseCallable(this, d);
             } else {
-                System.out.println("A JmlMethodClauseCallable expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlMethodClauseCallable expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2541,7 +2541,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseDecl(this, d);
             } else {
-                System.out.println("A JmlMethodClauseDecl expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlMethodClauseDecl expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2576,7 +2576,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseExpr(this, d);
             } else {
-                System.out.println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlMethodClauseExpr expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2616,7 +2616,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseBehaviors(this, d);
             } else {
-                System.out.println("A visitJmlMethodClauseBehaviors expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A visitJmlMethodClauseBehaviors expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2655,7 +2655,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseInvariants(this, d); 
             } else {
-                System.out.println("A JmlMethodClauseInvariants expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlMethodClauseInvariants expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2729,7 +2729,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseSignals(this, d);
             } else {
-                System.out.println("A JmlMethodClauseSignals expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlMethodClauseSignals expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2766,7 +2766,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlMethodClauseSigOnly(this, d);
             } else {
-                System.out.println("A JmlMethodClauseSignalsOnly expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlMethodClauseSignalsOnly expects an JmlTreeVisitor, not a " + v.getClass());
                 return super.accept(v,d);
             }
         }
@@ -2942,7 +2942,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlPrimitiveTypeTree(this, d);
             } else {
-                System.out.println("A JmlPrimitiveTypeTree expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlPrimitiveTypeTree expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }
@@ -3024,7 +3024,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlQuantifiedExpr(this, d);
             } else {
-                System.out.println("A JmlQuantifiedExpr expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlQuantifiedExpr expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }
@@ -3069,8 +3069,8 @@ public class JmlTree {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlRange(this,d); 
             } else {
             	//return (R)kind.typecheck((com.sun.tools.javac.comp.JmlAttr)((Attr)v).attr, this, (Env<AttrContext>)d);
-                System.out.println("A JmlRange expects a JmlTreeVisitor, not a " + v.getClass() + " " + this);
-                new RuntimeException().printStackTrace(System.out);
+                Utils.debugOut().println("A JmlRange expects a JmlTreeVisitor, not a " + v.getClass() + " " + this);
+                Utils.conditionalPrintStack(new RuntimeException());
                 return null; //return super.accept(v,d);
             }
         }
@@ -3124,8 +3124,8 @@ public class JmlTree {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlSingleton(this,d); 
             } else {
             	//return (R)kind.typecheck((com.sun.tools.javac.comp.JmlAttr)((Attr)v).attr, this, (Env<AttrContext>)d);
-                System.out.println("A JmlSingleton expects a JmlTreeVisitor, not a " + v.getClass() + " " + this);
-                new RuntimeException().printStackTrace(System.out);
+                Utils.debugOut().println("A JmlSingleton expects a JmlTreeVisitor, not a " + v.getClass() + " " + this);
+                Utils.conditionalPrintStack(new RuntimeException());
                 return null; //return super.accept(v,d);
             }
         }
@@ -3159,7 +3159,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlSetComprehension(this, d);
             } else {
-                System.out.println("A JmlSetComprehension expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlSetComprehension expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; // return super.accept(v,d);
             }
         }
@@ -3349,7 +3349,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlStatementDecls(this, d);
             } else {
-                System.out.println("A JmlStatementDecls expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlStatementDecls expects an JmlTreeVisitor, not a " + v.getClass());
                 //for (JCStatement s: list) s.accept(v,d);
                 return super.accept(v,d);
             }
@@ -3684,7 +3684,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlStoreRefArrayRange(this); 
             } else {
-                System.out.println("A JmlStoreRefArrayRange expects an IJmlVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlStoreRefArrayRange expects an IJmlVisitor, not a " + v.getClass());
                 //super.accept(v);
             }
         }
@@ -3694,7 +3694,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlStoreRefArrayRange(this, d);
             } else {
-                System.out.println("A JmlStoreRefArrayRange expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlStoreRefArrayRange expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -3756,7 +3756,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlStoreRef(this); 
             } else {
-                System.out.println("A JmlStoreRefKeyword expects an IJmlVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlStoreRefKeyword expects an IJmlVisitor, not a " + v.getClass());
                 //super.accept(v);
             }
 		}
@@ -3765,7 +3765,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlStoreRef(this, d);
             } else {
-                System.out.println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
 		}
@@ -3820,7 +3820,7 @@ public class JmlTree {
             if (v instanceof IJmlVisitor) {
                 ((IJmlVisitor)v).visitJmlStoreRefKeyword(this); 
             } else {
-                System.out.println("A JmlStoreRefKeyword expects an IJmlVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlStoreRefKeyword expects an IJmlVisitor, not a " + v.getClass());
                 //super.accept(v);
             }
         }
@@ -3830,7 +3830,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlStoreRefKeyword(this, d);
             } else {
-                System.out.println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlStoreRefKeyword expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -3956,7 +3956,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseConstraint(this, d);
             } else {
-                System.out.println("A JmlTypeClauseConstraint expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlTypeClauseConstraint expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -3992,7 +3992,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseConditional(this, d);
             } else {
-                System.out.println("A JmlTypeClauseConditional expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlTypeClauseConditional expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -4074,7 +4074,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseIn(this, d);
             } else {
-                System.out.println("A JmlTypeClauseIn expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlTypeClauseIn expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -4110,7 +4110,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseInitializer(this, d);
             } else {
-                System.out.println("A JmlTypeClauseInitializer expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlTypeClauseInitializer expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -4149,7 +4149,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseMaps(this, d);
             } else {
-                System.out.println("A JmlTypeClauseMaps expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlTypeClauseMaps expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -4185,7 +4185,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseMonitorsFor(this, d);
             } else {
-                System.out.println("A JmlTypeClauseMonitorsFor expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlTypeClauseMonitorsFor expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }
@@ -4228,7 +4228,7 @@ public class JmlTree {
             if (v instanceof JmlTreeVisitor) {
                 return ((JmlTreeVisitor<R,D>)v).visitJmlTypeClauseRepresents(this, d);
             } else {
-                System.out.println("A JmlTypeClauseRepresents expects an JmlTreeVisitor, not a " + v.getClass());
+                Utils.debugOut().println("A JmlTypeClauseRepresents expects an JmlTreeVisitor, not a " + v.getClass());
                 return null; //return super.accept(v,d);
             }
         }

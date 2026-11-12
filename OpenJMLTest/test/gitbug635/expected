@@ -14,10 +14,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.ThrowPure() with prover !!!! - no warnings
 Starting proof of Test.callerBad() with prover !!!!
-test/gitbug635/Test.java:16: verify: The prover cannot establish an assertion (Postcondition) in method callerBad
+test/gitbug635/Test.java:16: verify: The prover cannot establish an assertion (Postcondition: test/gitbug635/Test.java:13:) in method callerBad
             ThrowPure();
                      ^
-test/gitbug635/Test.java:13: verify: Associated declaration
+test/gitbug635/Test.java:13: verify: Associated declaration: test/gitbug635/Test.java:16:
     //@   ensures false;
           ^
 Completed proof of Test.callerBad() with prover !!!! - with warnings
@@ -26,10 +26,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Throw() with prover !!!! - no warnings
 Starting proof of Test.callerOK() with prover !!!!
-test/gitbug635/Test.java:32: verify: The prover cannot establish an assertion (Postcondition) in method callerOK
+test/gitbug635/Test.java:32: verify: The prover cannot establish an assertion (Postcondition: test/gitbug635/Test.java:29:) in method callerOK
             Throw();
                  ^
-test/gitbug635/Test.java:29: verify: Associated declaration
+test/gitbug635/Test.java:29: verify: Associated declaration: test/gitbug635/Test.java:32:
     //@   ensures false;
           ^
 Completed proof of Test.callerOK() with prover !!!! - with warnings

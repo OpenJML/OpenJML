@@ -1,0 +1,17 @@
+package java.util.zip;
+
+public class CRC32 implements Checksum {
+
+    //@ public model int _m;
+    //@ public invariant _m >= 0;
+
+    //@ public normal_behavior
+    //@   requires n >= 0;
+    //@   ensures \result == (n == 0 ? 1 : 2 * p(n-1));
+    //@ model public static no_state helper int p(int n);
+
+    //@ public normal_behavior
+    //@   ensures _m == 0;
+    //@ pure
+    public CRC32();
+}

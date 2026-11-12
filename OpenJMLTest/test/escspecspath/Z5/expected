@@ -1,0 +1,5 @@
+test/specspath/ccspecs/z/C.jml:3: error: incompatible types: int cannot be converted to boolean
+    //@ invariant 0; // ccspecs/z/C.jml
+                  ^
+Operation not performed because of parse or type errors
+1 error

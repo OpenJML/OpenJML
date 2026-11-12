@@ -4,36 +4,36 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>) with prover !!!! - no warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,int) with prover !!!!
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:72: verify: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  this.field
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:72: verify: The prover cannot establish an assertion (Assignable: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71:) in method ArrayFieldVector:  this.field
         this.field = field;
                    ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:72:
     public ArrayFieldVector(Field<T> field, int size) {
            ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:73: verify: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  \everything
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:73: verify: The prover cannot establish an assertion (Assignable: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71:) in method ArrayFieldVector:  \everything
         this.data  = MathArrays.buildArray(field, size);
                                           ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:73:
     public ArrayFieldVector(Field<T> field, int size) {
            ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:73: verify: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  this.data
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:73: verify: The prover cannot establish an assertion (Assignable: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71:) in method ArrayFieldVector:  this.data
         this.data  = MathArrays.buildArray(field, size);
                    ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:73:
     public ArrayFieldVector(Field<T> field, int size) {
            ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(org.apache.commons.math3.Field<T>,int) with prover !!!! - with warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(int,T) with prover !!!!
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:83: verify: The prover cannot establish an assertion (Precondition) in method ArrayFieldVector
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:83: verify: The prover cannot establish an assertion (Precondition: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71:) in method ArrayFieldVector
         this(preset.getField(), size);
             ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:71: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:83:
     public ArrayFieldVector(Field<T> field, int size) {
                                      ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:84: verify: The prover cannot establish an assertion (Assignable) in method ArrayFieldVector:  a[*]
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:84: verify: The prover cannot establish an assertion (Assignable: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:82:) in method ArrayFieldVector:  a[*]
         Arrays.fill(data, preset);
                    ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:82: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:82: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:84:
     public ArrayFieldVector(int size, T preset) {
            ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.ArrayFieldVector(int,T) with prover !!!! - with warnings
@@ -353,10 +353,10 @@ test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:696: verif
 test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:696: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method dotProduct
                 dot = dot.add(data[i].multiply(v.getEntry(i)));
                                   ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:698: verify: The prover cannot establish an assertion (Postcondition) in method dotProduct
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:698: verify: The prover cannot establish an assertion (Postcondition: test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:207:) in method dotProduct
             return dot;
             ^
-test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:207: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:207: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:698:
     T dotProduct(FieldVector<T> v) throws DimensionMismatchException;
       ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
@@ -373,10 +373,10 @@ test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: verif
 test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: verify: The prover cannot establish an assertion (PossiblyTooLargeIndex) in method dotProduct
             dot = dot.add(data[i].multiply(v.data[i]));
                                                  ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:716: verify: The prover cannot establish an assertion (Postcondition) in method dotProduct
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:716: verify: The prover cannot establish an assertion (Postcondition: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:709:) in method dotProduct
         return dot;
         ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:709: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:709: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:716:
     public T dotProduct(ArrayFieldVector<T> v)
              ^
 test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: verify: The prover cannot establish an assertion (PossiblyNullDeReference) in method dotProduct
@@ -387,10 +387,10 @@ test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:714: verif
                 ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.dotProduct(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings
 Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!!
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:722: verify: The prover cannot establish an assertion (Precondition) in method projection
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:722: verify: The prover cannot establish an assertion (Precondition: test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:127:) in method projection
         return v.mapMultiply(dotProduct(v).divide(v.dotProduct(v)));
                             ^
-test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:127: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:127: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:722:
     FieldVector<T> mapMultiply(T d) throws NullArgumentException;
                                  ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.FieldVector<T>) with prover !!!! - with warnings
@@ -398,10 +398,10 @@ Starting proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(or
 test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:734: verify: The prover cannot establish an assertion (PossiblyBadCast) in method projection:  a org.apache.commons.math3.linear.FieldVector<T> cannot be proved to be a org.apache.commons.math3.linear.ArrayFieldVector<T>
         return (ArrayFieldVector<T>) v.mapMultiply(dotProduct(v).divide(v.dotProduct(v)));
                ^
-test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:734: verify: The prover cannot establish an assertion (Precondition) in method projection
+test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:734: verify: The prover cannot establish an assertion (Precondition: test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:127:) in method projection
         return (ArrayFieldVector<T>) v.mapMultiply(dotProduct(v).divide(v.dotProduct(v)));
                                                   ^
-test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:127: verify: Associated declaration
+test\gitbug481b\org\apache\commons\math3\linear\FieldVector.java:127: verify: Associated declaration: test\gitbug481b\org\apache\commons\math3\linear\ArrayFieldVector.java:734:
     FieldVector<T> mapMultiply(T d) throws NullArgumentException;
                                  ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.projection(org.apache.commons.math3.linear.ArrayFieldVector<T>) with prover !!!! - with warnings

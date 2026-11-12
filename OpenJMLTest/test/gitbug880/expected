@@ -16,10 +16,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of HelloWorld.test2() with prover !!!! - no warnings
 Starting proof of HelloWorld.test3() with prover !!!!
-test/gitbug880/HelloWorld.java:46: verify: The prover cannot establish an assertion (Postcondition) in method test3
+test/gitbug880/HelloWorld.java:46: verify: The prover cannot establish an assertion (Postcondition: test/gitbug880/HelloWorld.java:38:) in method test3
         return true;
         ^
-test/gitbug880/HelloWorld.java:38: verify: Associated declaration
+test/gitbug880/HelloWorld.java:38: verify: Associated declaration: test/gitbug880/HelloWorld.java:46:
     //@ ensures \result == false; // FAILS
         ^
 Completed proof of HelloWorld.test3() with prover !!!! - with warnings

@@ -70,7 +70,7 @@ include $(topdir)/make/Init.gmk
 
 .PHONY: release clean-jml clean-release version version-info tutorial annotation post \
         openjml-lsp openjml-ui userguide-examples update-docs push-docs \
-        trial release-test openjml smt
+        trial release-test openjml smt git-hooks
 
 ## This Makefile assumes that the OpenJML, JMLAnnotations, Specs, openjml.github.io, OpenJML_Demo, Solvers
 ## repos are cloned into sibling folders under one common folder
@@ -97,6 +97,9 @@ JAR      := jar
 
 ## The zip tool used to assemble the release archive; override on the command line if needed
 ZIPCMD := zip
+## Longest entry allowed in the release zip (now 163). On Windows an install folder can be at most
+## 258 minus this many characters long (MAX_PATH, #1021), so the build fails if an entry gets longer.
+MAX_ZIP_ENTRY := 175
 
 ## OS/arch suffix for the Solvers subdirectory (e.g. Solvers-macos).
 ## Computed by os-name.sh — keep in sync with Utils.identifyOS in Java
@@ -117,7 +120,7 @@ release: .FORCE
 	$(MAKE) post
 
 clean-jml:
-	rm -rf release-temp temp-release $(TEMPLIB) jmlruntime.jar $(USERGUIDE)
+	rm -rf release-temp temp-release "temp space" $(TEMPLIB) jmlruntime.jar $(USERGUIDE)
 	$(MAKE) -C ../OpenJMLTest clean
 	$(MAKE) -C ../OpenJMLlsp clean
 	$(MAKE) -C ../OpenJMLUI clean
@@ -175,7 +178,7 @@ post: .FORCE
 	uname -m
 	cp -pR ../../Specs/specs $(TEMP)
 	cp -pR $(RELFILES)/* $(TEMP)
-	cp setup-exports setup-vars openjml openjml-* os-name.sh $(TEMP)
+	cp setup-exports setup-vars setup-jvm openjml openjml-* os-name.sh $(TEMP)
 	cp -pR libs $(TEMP)
 	cp setup-exports.bat setup-vars.bat openjml.bat openjml-*.bat $(TEMP)
 	$(MAKE) openjml-lsp
@@ -193,6 +196,10 @@ post: .FORCE
 	## existing compressed data — only the new entries and the central directory are written.
 	(cd $$(echo build/*release) && $(ZIPCMD) -qr $(topdir)/$(TEMP)/openjml.zip jdk -x '*.DS_Store')
 	(cd ../../Solvers && $(ZIPCMD) -qr $(topdir)/$(TEMP)/openjml.zip Solvers-$(OS_NAME) -x '*.DS_Store')
+	@ m=$$(unzip -Z1 $(TEMP)/openjml.zip | awk '{ if (length($$0) > m) m = length($$0) } END { print m }'); \
+	  echo "Longest release entry: $$m characters; on Windows, install in a folder of at most $$((258 - m)) characters"; \
+	  if [ "$$m" -gt $(MAX_ZIP_ENTRY) ]; then \
+	    echo "ERROR: a release entry is longer than MAX_ZIP_ENTRY ($(MAX_ZIP_ENTRY)); see #1021"; exit 1; fi
 
 openjml-lsp:
 	$(MAKE) -C ../OpenJMLlsp release
@@ -245,13 +252,26 @@ release-test: .FORCE
 	@ echo Running release tests on newly created trial release
 	@ ZIPARCHIVE="$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/../OpenJMLTest/releaseTests/runtests"
 	@ "$(topdir)/../OpenJMLTest/scripttests/launcher-jdk-test"
+	@ "$(topdir)/../OpenJMLTest/scripttests/install-vscode-test"
+	@ "$(topdir)/../OpenJMLTest/scripttests/setup-jvm-test"
+	@ "$(topdir)/../OpenJMLTest/scripttests/coverage-space-test"
+	@ "$(topdir)/../OpenJMLTest/scripttests/space-path-test" "$(topdir)/$(TEMP)/openjml.zip" "$(topdir)/temp space/oj (1)"
+	@ if grep -qi microsoft /proc/version 2>/dev/null; then echo "lsp-smoke: skipped under WSL (runtests.ps1 runs it natively)"; \
+	  elif ! command -v node > /dev/null; then echo "lsp-smoke: skipped, no node"; \
+	  else node "$(topdir)/../OpenJMLTest/scripttests/lsp-smoke.js" "$(topdir)/temp-release/openjml-lsp"; fi
 
 ## Development build targets
 
 ## Builds the openjml executable (without updating version, annotation and tutorial files)
 ## NOJML= disables JML during the build of OpenJML itself (since the openjml executable is the javac executable)
-openjml: .FORCE
+openjml: git-hooks .FORCE
 	NOJML= $(MAKE)
+
+## Points git at the repo's hooks (tools/git-hooks) unless the clone already uses other hooks
+git-hooks:
+	@h=$$(git config core.hooksPath 2>/dev/null); \
+	case "$$h" in ""|*.git/hooks) git config core.hooksPath tools/git-hooks 2>/dev/null \
+	    && echo "Set git core.hooksPath to tools/git-hooks" || true ;; esac
 
 ## Updates jSMTLIB.jar in libs/ from the jSMTLIB repo
 ## The repo must be cloned locally and resident at ../../../jSMTLIB or ../../jSMTLIB relative to this Makefile

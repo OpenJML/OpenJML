@@ -1,0 +1,3 @@
+--method=.*IdentityHashMap\.(maskNull|unmaskNull|capacity|init|hash|nextKeyIndex|containsMapping)
+--no-show-skipped
+--timeout=120

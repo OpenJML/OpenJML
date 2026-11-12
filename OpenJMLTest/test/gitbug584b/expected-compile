@@ -1,0 +1,13 @@
+test/gitbug584/AClass.java:7: error: JML model field does not have a representation: classModel
+    //@ public model int classModel;
+                         ^
+test/gitbug584/AnInterface.java:6: error: JML model field does not have a representation: size
+    //@ public model instance int size;
+                                  ^
+test/gitbug584/AnInterface.java:7: error: JML model field does not have a representation: noRep
+    //@ public model instance Object noRep;
+                                     ^
+test/gitbug584/AnInterface.java:8: error: JML model field does not have a representation: count
+    //@ public model static int count;
+                                ^
+4 errors

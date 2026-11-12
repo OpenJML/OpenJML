@@ -108,6 +108,23 @@ public class EscCancellationTest extends LspTestBase {
         fail("ESC thread did not finish within " + millis / 1000 + " s after " + after + "; it is at:" + sb);
     }
 
+    /** A cancel made after the IAPI exists but before execute starts is honored by that run (#1048) */
+    @Test
+    public void testEscCancelBeforeExecute() throws Exception {
+        String source = "public class EscCancellation {\n"
+                + "    public void m(int a) {\n"
+                + "        //@ assert a == a;\n"
+                + "    }\n"
+                + "}\n";
+        CheckRunner.CheckResult result = CheckRunner.runEscWithHook(URI, source,
+                new OpenJMLSettings(), (api, count) -> api.cancelEsc());
+        assertEquals("Expected exit code 5 (CANCELLED)", 5, result.exitCode());
+        assertTrue("Expected no proof results, got " + result.proofResults(),
+                result.proofResults().isEmpty());
+        assertTrue("Expected no diagnostics, got " + result.diagnostics(),
+                result.diagnostics().isEmpty());
+    }
+
     @Test
     public void testEscCancelledExitCode5() throws Exception {
         AtomicReference<IAPI> apiRef = new AtomicReference<>();

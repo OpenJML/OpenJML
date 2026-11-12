@@ -1,0 +1,7 @@
+append(java.lang.CharSequence)
+append(java.lang.CharSequence,int,int)
+unspecified OutputStreamWriter(java.io.OutputStream)
+unspecified OutputStreamWriter(java.io.OutputStream,java.lang.String)
+unspecified OutputStreamWriter(java.io.OutputStream,java.nio.charset.Charset)
+unspecified OutputStreamWriter(java.io.OutputStream,java.nio.charset.CharsetEncoder)
+unspecified getEncoding()

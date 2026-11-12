@@ -415,4 +415,28 @@ public class escConstantFields extends EscBase {
                 """
                 );
     }
+
+    // #1122: a non-constant static final field, with the static-init warning on and --jmlverbose, crashed
+    @Test
+    public void testFieldNotConstantVerboseWarning() {
+        main.addOptions("-staticInitWarning", "--jmlverbose");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public final static int I = z();
+                  public void m() {
+                     //@ assert I == 10;
+                  }
+                  //@ ensures \\result == 10;
+                  //@ pure
+                  static public int z() { return 10; }
+                }
+                """
+                ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.I (translating tt.TestJava.TestJava())",27
+                ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.I (translating tt.TestJava.m())",27
+                ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.I (translating tt.TestJava.z())",27
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",10
+                );
+    }
 }

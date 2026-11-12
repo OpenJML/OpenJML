@@ -54,10 +54,10 @@ test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: verif
 test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: verify: The prover cannot establish an assertion (PossiblyNegativeIndex) in method getEntry
         return data[index];
                    ^
-test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: verify: The prover cannot establish an assertion (Postcondition) in method getEntry
+test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790: verify: The prover cannot establish an assertion (Postcondition: test/gitbug481b/org/apache/commons/math3/linear/FieldVector.java:234:) in method getEntry
         return data[index];
         ^
-test/gitbug481b/org/apache/commons/math3/linear/FieldVector.java:234: verify: Associated declaration
+test/gitbug481b/org/apache/commons/math3/linear/FieldVector.java:234: verify: Associated declaration: test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java:790:
     T getEntry(int index) throws OutOfRangeException;
       ^
 Completed proof of org.apache.commons.math3.linear.ArrayFieldVector.getEntry(int) with prover !!!! - with warnings

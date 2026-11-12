@@ -1,0 +1,3 @@
+unspecified chars()
+unspecified codePoints()
+unspecified compare(java.lang.CharSequence,java.lang.CharSequence)

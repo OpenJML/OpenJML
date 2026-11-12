@@ -1,0 +1,9 @@
+LITERAL
+UNICODE_CHARACTER_CLASS
+asMatchPredicate()
+asPredicate()
+namedGroups()
+quote(java.lang.String)
+splitAsStream(java.lang.CharSequence)
+splitWithDelimiters(java.lang.CharSequence,int)
+toString()

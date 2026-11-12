@@ -4,10 +4,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.bad() with prover !!!!
-test/gitbug634/Test.java:17: verify: The prover cannot establish an assertion (Postcondition) in method bad
+test/gitbug634/Test.java:17: verify: The prover cannot establish an assertion (Postcondition: test/gitbug634/Test.java:16:) in method bad
     public void bad() {
                 ^
-test/gitbug634/Test.java:16: verify: Associated declaration
+test/gitbug634/Test.java:16: verify: Associated declaration: test/gitbug634/Test.java:17:
     //@   ensures NNNN == \old(NNNN);  // BOGUS! This should not verify, but it does.
           ^
 Completed proof of Test.bad() with prover !!!! - with warnings
@@ -16,10 +16,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.good() with prover !!!! - no warnings
 Starting proof of Test.bad2() with prover !!!!
-test/gitbug634/Test.java:32: verify: The prover cannot establish an assertion (Postcondition) in method bad2
+test/gitbug634/Test.java:32: verify: The prover cannot establish an assertion (Postcondition: test/gitbug634/Test.java:31:) in method bad2
     public void bad2() {
                 ^
-test/gitbug634/Test.java:31: verify: Associated declaration
+test/gitbug634/Test.java:31: verify: Associated declaration: test/gitbug634/Test.java:32:
     //@   ensures NNNN == \old(NNNN);  // BOGUS! This should not verify, but it does.
           ^
 Completed proof of Test.bad2() with prover !!!! - with warnings
@@ -28,10 +28,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.good2() with prover !!!! - no warnings
 Starting proof of Test.bad3() with prover !!!!
-test/gitbug634/Test.java:47: verify: The prover cannot establish an assertion (Postcondition) in method bad3
+test/gitbug634/Test.java:47: verify: The prover cannot establish an assertion (Postcondition: test/gitbug634/Test.java:46:) in method bad3
     public void bad3() {
                 ^
-test/gitbug634/Test.java:46: verify: Associated declaration
+test/gitbug634/Test.java:46: verify: Associated declaration: test/gitbug634/Test.java:47:
     //@   ensures NNNN3 == \old(NNNN3);  // BOGUS! This should not verify, but it does.
           ^
 Completed proof of Test.bad3() with prover !!!! - with warnings

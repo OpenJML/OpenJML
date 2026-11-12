@@ -13,10 +13,10 @@ test/nullableOld/NullableOld.java:9: verify: The prover cannot establish an asse
                        ^
 Completed proof of NullableOld.mbad(@Nullable Object) with prover !!!! - with warnings
 Starting proof of NullableOld.mm() with prover !!!!
-test/nullableOld/NullableOld.java:16: verify: The prover cannot establish an assertion (Precondition) in method mm
+test/nullableOld/NullableOld.java:16: verify: The prover cannot establish an assertion (Precondition: test/nullableOld/NullableOld.java:5:) in method mm
         m(null);
          ^
-test/nullableOld/NullableOld.java:5: verify: Associated declaration
+test/nullableOld/NullableOld.java:5: verify: Associated declaration: test/nullableOld/NullableOld.java:16:
     public void m(/*@ nullable */ Object oo) {
                 ^
 test/nullableOld/NullableOld.java:4: verify: Precondition conjunct is false: o != null
@@ -24,10 +24,10 @@ test/nullableOld/NullableOld.java:4: verify: Precondition conjunct is false: o !
                    ^
 Completed proof of NullableOld.mm() with prover !!!! - with warnings
 Starting proof of NullableOld.mmm() with prover !!!!
-test/nullableOld/NullableOld.java:9: verify: The prover cannot establish an assertion (PossiblyNullAssignment) in method mmm
+test/nullableOld/NullableOld.java:9: verify: The prover cannot establish an assertion (PossiblyNullAssignment: test/nullableOld/NullableOld.java:20:) in method mmm
     //@ old Object o = oo;
                        ^
-test/nullableOld/NullableOld.java:20: verify: Associated declaration
+test/nullableOld/NullableOld.java:20: verify: Associated declaration: test/nullableOld/NullableOld.java:9:
         mbad(null);
             ^
 Completed proof of NullableOld.mmm() with prover !!!! - with warnings

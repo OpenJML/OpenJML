@@ -1,0 +1,5 @@
+unspecified StringTokenizer(java.lang.@org.jmlspecs.annotation.NonNull String)
+unspecified StringTokenizer(java.lang.@org.jmlspecs.annotation.NonNull String,java.lang.@org.jmlspecs.annotation.NonNull String)
+unspecified StringTokenizer(java.lang.@org.jmlspecs.annotation.NonNull String,java.lang.@org.jmlspecs.annotation.NonNull String,boolean)
+unspecified countTokens()
+unspecified hasMoreTokens()

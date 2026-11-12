@@ -1,0 +1,37 @@
+#! /usr/bin/env bash
+
+## Checks that install-vscode-extension sets openjml.serverPath in a settings.json holding a comment and a
+## trailing comma (as VS Code allows) without losing the rest, and does not add the entry twice. Uses a
+## stand-in code command and HOME. runtests.ps1 checks install-vscode-extension.bat the same way.
+## Exits non-zero if a check fails.
+
+SRC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../OpenJMLsrc" && pwd -P)"
+T=$(cd "$(mktemp -d)" && pwd -P)
+trap 'rm -rf "$T"' EXIT
+R="$T/rel dir"
+mkdir -p "$R" "$T/home"
+cp "$SRC/release-files/install-vscode-extension" "$R/"
+touch "$R/openjml.vsix"
+printf '#!/bin/sh\n' > "$R/mac-setup"; chmod +x "$R/mac-setup"
+printf '#!/bin/sh\necho "$@" > "%s/code-args"\n' "$T" > "$T/code"
+chmod +x "$T/code"
+case "$(uname -s)" in
+    Darwin*) SETTINGS="$T/home/Library/Application Support/Code/User/settings.json" ;;
+    *)       SETTINGS="$T/home/.config/Code/User/settings.json" ;;
+esac
+mkdir -p "$(dirname "$SETTINGS")"
+printf '{\n    // a comment\n    "editor.tabSize": 4,\n}\n' > "$SETTINGS"
+
+FAILS=0
+for round in 1 2; do
+    HOME="$T/home" XDG_CONFIG_HOME= VSCODE_CLI="$T/code" "$R/install-vscode-extension" > "$T/out" 2>&1 \
+        || { echo "FAIL install-vscode-extension (round $round):"; cat "$T/out"; FAILS=$((FAILS+1)); }
+done
+N=$(grep -cF "\"openjml.serverPath\": \"$R/openjml-lsp\"" "$SETTINGS")
+if [ "$N" != 1 ] || ! grep -q '// a comment' "$SETTINGS" || ! grep -q '"editor.tabSize": 4' "$SETTINGS"; then
+    echo "FAIL install-vscode-extension: settings.json is"; cat "$SETTINGS"; FAILS=$((FAILS+1))
+fi
+grep -qF -- "--install-extension $R/openjml.vsix --force" "$T/code-args" \
+    || { echo "FAIL install-vscode-extension: code was called with: $(cat "$T/code-args")"; FAILS=$((FAILS+1)); }
+[ $FAILS = 0 ] && echo "install-vscode-extension OK"
+exit $FAILS

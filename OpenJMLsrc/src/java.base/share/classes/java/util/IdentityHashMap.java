@@ -335,11 +335,13 @@ public class IdentityHashMap<K,V>
     @SuppressWarnings("unchecked")
     public V get(Object key) {
         Object k = maskNull(key);
-        Object[] tab = table;
+        /*@ nullable */ Object[] tab = table;
         int len = tab.length;
         int i = hash(k, len);
+        //@ loop_invariant 0 <= i && i < len && i % 2 == 0;
+        //@ loop_writes i;
         while (true) {
-            Object item = tab[i];
+            /*@ nullable */ Object item = tab[i];
             if (item == k)
                 return (V) tab[i + 1];
             if (item == null)
@@ -360,11 +362,13 @@ public class IdentityHashMap<K,V>
      */
     public boolean containsKey(Object key) {
         Object k = maskNull(key);
-        Object[] tab = table;
+        /*@ nullable */ Object[] tab = table;
         int len = tab.length;
         int i = hash(k, len);
+        //@ loop_invariant 0 <= i && i < len && i % 2 == 0;
+        //@ loop_writes i;
         while (true) {
-            Object item = tab[i];
+            /*@ nullable */ Object item = tab[i];
             if (item == k)
                 return true;
             if (item == null)
@@ -384,7 +388,9 @@ public class IdentityHashMap<K,V>
      * @see     #containsKey(Object)
      */
     public boolean containsValue(Object value) {
-        Object[] tab = table;
+        /*@ nullable */ Object[] tab = table;
+        //@ loop_invariant 1 <= i && i <= tab.length + 1 && i % 2 == 1;
+        //@ loop_writes i;
         for (int i = 1; i < tab.length; i += 2)
             if (tab[i] == value && tab[i - 1] != null)
                 return true;
@@ -402,11 +408,13 @@ public class IdentityHashMap<K,V>
      */
     private boolean containsMapping(Object key, Object value) {
         Object k = maskNull(key);
-        Object[] tab = table;
+        /*@ nullable */ Object[] tab = table;
         int len = tab.length;
         int i = hash(k, len);
+        //@ loop_invariant 0 <= i && i < len && i % 2 == 0;
+        //@ loop_writes i;
         while (true) {
-            Object item = tab[i];
+            /*@ nullable */ Object item = tab[i];
             if (item == k)
                 return tab[i + 1] == value;
             if (item == null)

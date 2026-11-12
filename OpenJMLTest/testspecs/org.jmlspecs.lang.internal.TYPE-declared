@@ -1,0 +1,7 @@
+bsName()
+noargs
+typearg(int)
+typearg1()
+typearg2()
+typearg3()
+typeargs()

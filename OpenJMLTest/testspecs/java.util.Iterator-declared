@@ -1,0 +1,1 @@
+forEachRemaining(java.util.function.Consumer<? super E>)

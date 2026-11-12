@@ -1816,14 +1816,20 @@ public class modifiers extends TCBase {
     @Test public void testAnnotations1() {
         JmlPretty.useJmlModifier = false;
         JmlPretty.useFullAnnotationTypeName = false;  // FIXME - not working?
-        addMockFile("$A/A.jml","  public class A {}");
-        expectedExit = 0;
-        helpTCText("A.java",
-                """
-                import org.jmlspecs.annotation.*;
-                public @Pure class A{}
-                """,
-                "/A.java:2: warning: [jml-lint] Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @Pure on class A", 8);
+        try {
+            addMockFile("$A/A.jml","  public class A {}");
+            expectedExit = 0;
+            helpTCText("A.java",
+                    """
+                    import org.jmlspecs.annotation.*;
+                    public @Pure class A{}
+                    """,
+                    "/A.java:2: warning: [jml-lint] Annotations in a .java file are superseded (and ignored) by the specifications in the corresponding .jml file: @Pure on class A", 8);
+        } finally {
+            // These are static; restore them for later tests in the same JVM
+            JmlPretty.useJmlModifier = true;
+            JmlPretty.useFullAnnotationTypeName = true;
+        }
     }
 
     @Test

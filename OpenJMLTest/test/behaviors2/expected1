@@ -9,24 +9,24 @@ test/behaviors2/T.java:6: verify: The prover cannot establish an assertion (Comp
       ^
 Completed proof of T.m(int) with prover !!!! - with warnings
 Starting proof of T.mcomplete(int) with prover !!!!
-test/behaviors2/T.java:11: verify: The prover cannot establish an assertion (DisjointPreconditions) in method mcomplete
+test/behaviors2/T.java:11: verify: The prover cannot establish an assertion (DisjointPreconditions: test/behaviors2/T.java:9:) in method mcomplete
   //@ requires i >= 0;
       ^
-test/behaviors2/T.java:9: verify: Associated declaration
+test/behaviors2/T.java:9: verify: Associated declaration: test/behaviors2/T.java:11:
   //@ requires i <= 0;
       ^
-test/behaviors2/T.java:13: verify: The prover cannot establish an assertion (DisjointPreconditions) in method mcomplete
+test/behaviors2/T.java:13: verify: The prover cannot establish an assertion (DisjointPreconditions: test/behaviors2/T.java:11:) in method mcomplete
   //@ requires i == 1; 
       ^
-test/behaviors2/T.java:11: verify: Associated declaration
+test/behaviors2/T.java:11: verify: Associated declaration: test/behaviors2/T.java:13:
   //@ requires i >= 0;
       ^
 Completed proof of T.mcomplete(int) with prover !!!! - with warnings
 Starting proof of T.mlocal(int) with prover !!!!
-test/behaviors2/T.java:21: verify: The prover cannot establish an assertion (DisjointPreconditions) in method mlocal
+test/behaviors2/T.java:21: verify: The prover cannot establish an assertion (DisjointPreconditions: test/behaviors2/T.java:19:) in method mlocal
   //@ requires i < 3;
       ^
-test/behaviors2/T.java:19: verify: Associated declaration
+test/behaviors2/T.java:19: verify: Associated declaration: test/behaviors2/T.java:21:
   //@ requires i < 2;
       ^
 Completed proof of T.mlocal(int) with prover !!!! - with warnings

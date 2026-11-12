@@ -182,6 +182,28 @@ public class escArithmeticModes extends EscBase {
     }
 
     @Test
+    public void testDifferenceFromZero() {
+        // 0 - MIN_VALUE overflows; the check once required the minuend to be positive
+        helpEsc("tt.TestJava",
+                """
+                package tt; import org.jmlspecs.annotation.*;
+                @CodeSafeMath public class TestJava {
+                  //@ requires b == Integer.MIN_VALUE;
+                  public int m(int b) {
+                    return 0 - b;
+                  }
+                  //@ requires b == Long.MIN_VALUE;
+                  public long ml(long b) {
+                    return 0L - b;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method m: overflow in int difference",14
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method ml: overflow in long difference",15
+              );
+    }
+
+    @Test
     public void testSumSafe3() {
         Assume.assumeTrue(runLongArithmetic || bvCheck());
         helpEsc("tt.TestJava",

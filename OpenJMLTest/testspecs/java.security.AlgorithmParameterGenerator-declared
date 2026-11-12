@@ -1,0 +1,5 @@
+AlgorithmParameterGenerator(java.security.AlgorithmParameterGeneratorSpi,java.security.Provider,java.lang.String)
+getAlgorithm()
+getProvider()
+init(java.security.spec.AlgorithmParameterSpec)
+init(java.security.spec.AlgorithmParameterSpec,java.security.SecureRandom)

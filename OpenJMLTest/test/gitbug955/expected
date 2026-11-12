@@ -15,10 +15,10 @@ test/gitbug955/MapStore.java:2: verify: The prover cannot establish an assertion
                  ^
 Completed proof of MapStore.MapStore() with prover !!!! - with warnings
 Starting proof of MapStore.find(String) with prover !!!!
-test/gitbug955/MapStore.java:3: verify: The prover cannot establish an assertion (PossiblyNullReturn) in method find
+test/gitbug955/MapStore.java:3: verify: The prover cannot establish an assertion (PossiblyNullReturn: test/gitbug955/MapStore.java:3:) in method find
     @Override public Item find(String name) {
                      ^
-test/gitbug955/MapStore.java:3: verify: Associated declaration
+test/gitbug955/MapStore.java:3: verify: Associated declaration: test/gitbug955/MapStore.java:3:
     @Override public Item find(String name) {
                           ^
 test/gitbug955/MapStore.java:4: verify: Associated method exit
@@ -26,10 +26,10 @@ test/gitbug955/MapStore.java:4: verify: Associated method exit
         ^
 Completed proof of MapStore.find(String) with prover !!!! - with warnings
 Starting proof of MapStore.update(Item) with prover !!!!
-test/gitbug955/MapStore.java:6: verify: The prover cannot establish an assertion (Assignable) in method update: stored
+test/gitbug955/MapStore.java:6: verify: The prover cannot establish an assertion (Assignable: test/gitbug955/Store.java:8:) in method update: stored
     @Override public void update(Item item) { stored = item; }
                                                      ^
-test/gitbug955/Store.java:8: verify: Associated declaration
+test/gitbug955/Store.java:8: verify: Associated declaration: test/gitbug955/MapStore.java:6:
     //@ assignable objectState;
         ^
 Completed proof of MapStore.update(Item) with prover !!!! - with warnings

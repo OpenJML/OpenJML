@@ -1,0 +1,7 @@
+package p;
+public class X extends Base {
+    public int declared;
+    //@ public invariant count >= 0; // reported: count is declared in X but not in X.jml
+    //@ public invariant inherited >= 0; // not reported: inherited, and Base has no .jml
+    //@ public invariant declared >= 0; // not reported: declared in X.jml
+}

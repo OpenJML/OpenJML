@@ -127,8 +127,8 @@ public class escbitvector extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition) in method m1",5
-                ,"/tt/TestJava.java:3: verify: Associated declaration",7
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:3:) in method m1",5
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:8:",7
                 );
     }
 
@@ -304,6 +304,24 @@ public class escbitvector extends EscBase {
                   }
                 }
                 """
+          );
+    }
+
+    // BITAND without a literal operand and BV off: an error, not an internal NPE
+    @Test
+    public void testBVAndNoLiteral() {
+        expectedExit = 1;
+        addOptions("--esc-bv=false");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public int m1(int x, int y) {
+                    return x & y;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:4: error: This method uses bit-vector operations and must be run with --esc-bv=true (or auto) [Bit-operation BITAND]", 14
           );
     }
 

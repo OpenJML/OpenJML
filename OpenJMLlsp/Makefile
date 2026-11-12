@@ -123,7 +123,7 @@ vsix:
 	cd $(VSIX_DIR) && ./node_modules/.bin/vsce package --no-yarn --out $(VSIX_NAME)
 
 ## Stage LSP files for inclusion in an OpenJML release zip.
-## Produces $(RELEASE_STAGE)/openjml-lsp   (launcher, goes to release root)
+## Produces $(RELEASE_STAGE)/openjml-lsp, openjml-lsp.bat   (launchers, go to release root)
 ##          $(RELEASE_STAGE)/lsp/          (jars, goes to release root as lsp/)
 ##          $(RELEASE_STAGE)/openjml.vsix  (VS Code extension)
 release: jar vsix
@@ -131,6 +131,7 @@ release: jar vsix
 	mkdir -p $(RELEASE_STAGE)/lsp
 	cp $(LSPROOT)/openjml-lsp $(RELEASE_STAGE)/
 	chmod ugo+x $(RELEASE_STAGE)/openjml-lsp
+	cp $(LSPROOT)/openjml-lsp.bat $(RELEASE_STAGE)/
 	cp $(JARFILE) $(RELEASE_STAGE)/lsp/
 	cp $(LSP4J_JAR) $(LSP4J_RPC_JAR) $(RELEASE_STAGE)/lsp/
 	cp $(VSIX_DIR)/$(VSIX_NAME) $(RELEASE_STAGE)/openjml.vsix

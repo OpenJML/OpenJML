@@ -146,18 +146,6 @@ public class JmlTypes extends Types {
         return t != s;
     }
     
-    boolean javaOnly = false;
-    
-    // FIXME - document
-    public boolean isAssignable(boolean javaOnly, Type t, Type s, Warner warn) {
-        this.javaOnly = javaOnly;
-        try {
-            return isAssignable(t,s,warn);
-        } finally {
-            this.javaOnly = false;
-        }
-    }
-    
     /** Overrides Types.isAssignable with functionality for JML primitive types. */
     // is a t assignable to a variable of s, that is, is t implicitly convertible to s
     // FIXME - not sure when this is called
@@ -165,29 +153,29 @@ public class JmlTypes extends Types {
     public boolean isAssignable(Type t, Type s, Warner warn) {
         //if (isJmlType(s) || isJmlType(t)) System.out.println("ISASSIGNABLE " + t + " " + s);
         if (s == t) return true;
-        if (isSameType(s,t)) return true;
-        if (!javaOnly) {
-            if (s.tsym == BIGINTsym) {
-                if (isJavaIntegral(t)) return true;
-                if (t.toString().contains("BigInteger")) return true; // FIXME - improve over string comparison
-                return false;
+        // Only for JML types: during inference isSameType adds equality bounds to inference variables,
+        // where javac's isAssignable adds only subtype bounds (#784)
+        if ((isJmlType(s) || isJmlType(t)) && isSameType(s,t)) return true;
+        if (s.tsym == BIGINTsym) {
+            if (isJavaIntegral(t)) return true;
+            if (t.toString().contains("BigInteger")) return true; // FIXME - improve over string comparison
+            return false;
+        }
+        if (s.tsym == REALsym) {
+            if (isNumeric(t)) return true; 
+            if (t.tsym == BIGINTsym) return true;
+            if (t.toString().contains("BigInteger")) return true;
+            return false;
+        }
+        // FIXME - should get rid of the following - not sure why it is here
+        if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
+        if ((s instanceof JmlListType) && (t instanceof JmlListType)) {
+            Iterator<Type> siter = ((JmlListType)s).types.iterator();
+            Iterator<Type> titer = ((JmlListType)t).types.iterator();
+            if (siter.hasNext() && titer.hasNext()) {
+                if (!isAssignable(titer.next(), siter.next(), warn)) return false;
             }
-            if (s.tsym == REALsym) {
-                if (isNumeric(t)) return true; 
-                if (t.tsym == BIGINTsym) return true;
-                if (t.toString().contains("BigInteger")) return true;
-                return false;
-            }
-            // FIXME - should get rid of the following - not sure why it is here
-            if ((s instanceof JmlListType) != (t instanceof JmlListType)) return false;
-            if ((s instanceof JmlListType) && (t instanceof JmlListType)) {
-                Iterator<Type> siter = ((JmlListType)s).types.iterator();
-                Iterator<Type> titer = ((JmlListType)t).types.iterator();
-                if (siter.hasNext() && titer.hasNext()) {
-                    if (!isAssignable(titer.next(), siter.next(), warn)) return false;
-                }
-                if (!siter.hasNext() && !titer.hasNext()) return false;
-            }
+            if (!siter.hasNext() && !titer.hasNext()) return false;
         }
         
         return super.isAssignable(t, s, warn);
@@ -411,7 +399,7 @@ public class JmlTypes extends Types {
         try {
             return ClassReader.instance(context).enterClass(Names.instance(context).fromString(fqName));
         } catch (Throwable t) {
-            t.printStackTrace(System.out);
+            Utils.conditionalPrintStack(t);
             return null;
         }
     }
@@ -420,20 +408,21 @@ public class JmlTypes extends Types {
     public boolean isJmlType(Type ty) {
         if (!(ty instanceof Type.ClassType ct)) return false;
         if (ty.isErroneous()) return false;
+        // All JML types are in org.jmlspecs.lang.internal, so test that first. This method is called while specs are
+        // entered, possibly before a class's supertypes are; calling interfaces() then would cache an empty list in
+        // the class's erased type, which later makes subtype tests wrong (#1103).
+        if (!ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) return false;
         var prim = Symtab.instance(context).jmlPrimitiveType;
         // It is simpler and quicker to test the interfaces directly rather than using isSubType. This test presumes that
         // any JML types have IJmlPrimitiveType as a direct interface.
         for (var t: interfaces(ct)) {
             if (t.tsym == prim.tsym) return true;
         }
-        if (ct.tsym.packge().toString().equals("org.jmlspecs.lang.internal")) {
-            // This hack was added because the check above used to not always work.
-            // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
-            // Possibly happens when there are significant parsing errors
-            Utils.instance(context).warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
-            return true;
-        }
-        return false;
+        // This hack was added because the check above used to not always work.
+        // (FIXME) Now it is a defensive test that the fix for the above does indeed work.
+        // Possibly happens when there are significant parsing errors
+        Utils.instance(context).warning(-1, "jml.message", "Type " + ty + " has lost its interfaces");
+        return true;
     }
     
 

@@ -71,7 +71,7 @@ public class API implements IAPI {
             // This catch block is not ever expected to be executed, but is here just in case some internal bug
             // happens, so that there is an orderly exit; one cannot count on a log being available
             String msg = "Unexpected top-level exception caught: " + e;
-            if (out == null) System.out.println(msg);
+            if (out == null) org.jmlspecs.openjml.Utils.debugOut().println(msg);
             else out.println(msg);
             System.exit(Main.Result.ABNORMAL.exitCode);
         }

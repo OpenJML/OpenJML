@@ -25,13 +25,27 @@ public class LineAnnotationClauses extends JmlExtension {
     public static final String allowID = "allow";
     public static final String forbidID = "forbid";
     public static final String ignoreID = "ignore";
-    //public static final String nowarnID = "nowarn";
+    public static final String nowarnID = "nowarn";
     public static final IJmlClauseKind allowClauseKind = new ExceptionLineAnnotationKind(allowID);
     public static final IJmlClauseKind forbidClauseKind = new ExceptionLineAnnotationKind(forbidID);
     public static final IJmlClauseKind ignoreClauseKind = new ExceptionLineAnnotationKind(ignoreID);
     
     //public static final IJmlClauseKind nowarnClauseKind = new ExceptionLineAnnotationKind(nowarnID);
+    public static final IJmlClauseKind nowarnClauseKind = new NowarnLineAnnotationKind(nowarnID);
     
+    /** The ESC/Java2 nowarn pragma is not supported: report it and skip it, wherever it is (#1068) */
+    public static class NowarnLineAnnotationKind extends IJmlClauseKind.LineAnnotationKind {
+        public NowarnLineAnnotationKind(String keyword) { super(keyword); }
+
+        @Override
+        public void scan(int keywordPos, String keyword, IJmlClauseKind clauseKind, JmlScanner scanner) {
+            scanner.jmltokenizer.jmlError(keywordPos, keywordPos + keyword.length(), "jml.nowarn.unsupported");
+            Token t = scanner.advance();
+            while (scanner.jml() && t.kind != TokenKind.SEMI && !scanner.isEndJml()) t = scanner.advance();
+            if (t.kind == TokenKind.SEMI) scanner.advance();
+        }
+    }
+
     
     public static class ExceptionLineAnnotationKind extends IJmlClauseKind.LineAnnotationKind {
         public ExceptionLineAnnotationKind(String keyword) { super(keyword); }

@@ -76,8 +76,8 @@ public class escoption extends EscBase {
                   public static int bad(int i) { return i; }
                 }
                 """
-                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition) in method bad",34
-                ,"/tt/TestJava.java:6: verify: Associated declaration",7
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:6:) in method bad",34
+                ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:7:",7
         );
     }
 

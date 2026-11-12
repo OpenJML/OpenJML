@@ -103,17 +103,49 @@ public class JmlEsc extends JmlTreeScanner {
     /** The JmlEsc constructor, which initializes all the tools and other fields. */
     public JmlEsc(Context context) {
         super(context);
-        if (org.jmlspecs.openjml.Utils.debugInst) System.out.println("JMLESC");
+        if (org.jmlspecs.openjml.Utils.debugInst) Utils.debugOut().println("JMLESC");
         this.syms = Symtab.instance(context);
         this.log = Log.instance(context);
         this.utils = Utils.instance(context);
         
     }
     
+    /** Whether checkEncodings has run (once per compilation) */
+    private boolean encodingsChecked = false;
+
+    /** Warns about each encoding the options explicitly request that the prover does not support, or is not known to */
+    protected void checkEncodings() {
+        String prover = pickProver(context);
+        if ("false".equals(JmlOption.FPREAL.value(context))) {
+            warnUnsupported(prover, org.smtlib.SolverCapabilities.Capability.FLOATING_POINT,
+                    "the SMT-LIB FloatingPoint theory", "--no-fpreal");
+        }
+        if (!JmlOption.useFPTheory(context) && "datatype".equals(JmlOption.FPREAL_ENCODING.value(context))) {
+            warnUnsupported(prover, org.smtlib.SolverCapabilities.Capability.DATATYPES,
+                    "SMT datatypes", "--fpreal-encoding=datatype");
+        }
+        if ("true".equals(JmlOption.SMT_STRINGS.value(context))) {
+            warnUnsupported(prover, org.smtlib.SolverCapabilities.Capability.STRINGS,
+                    "the SMT-LIB Strings theory", "--smt-strings");
+        }
+    }
+
+    private void warnUnsupported(String prover, org.smtlib.SolverCapabilities.Capability capability, String what, String option) {
+        switch (JmlOption.proverSupports(prover, capability)) {
+            case NO -> utils.warning("esc.unsupported.encoding", prover, what, option);
+            case UNKNOWN -> utils.warning("esc.unknown.encoding", prover, what, option);
+            case YES -> {}
+        }
+    }
+
     /** Initializes assertionAdder and proverToUse and translates the argument */
     public void check(JCTree tree) {
         this.verbose = escdebug || Options.instance(context).isSet("-verbose") // The Java verbose option
                 || utils.jmlverbose >= Utils.JMLVERBOSE;
+        if (!encodingsChecked) {
+            encodingsChecked = true;
+            checkEncodings();
+        }
         this.assertionAdder = new JmlAssertionAdder(context, true, false);
         try {
             if (tree instanceof JCTree.JCModuleDecl) return;  // module-info.java has no methods to prove
@@ -153,13 +185,13 @@ public class JmlEsc extends JmlTreeScanner {
             if (tree instanceof JCClassDecl) info = "class " + ((JCClassDecl)tree).name.toString();
             if (tree instanceof JCCompilationUnit) info = "compilation unit " + (((JCCompilationUnit)tree).sourcefile.toString());
             log.error("jml.internal","Should not be catching a " + e.getClass().getName() + " in JmlEsc.check: "+ e.toString() + " while translating " + info);
-            e.printStackTrace(System.out);
+            Utils.conditionalPrintStack(e);
         }
     }
     
     @Override
     public void visitTopLevel(JCCompilationUnit node) {
-        if (debugEsc) System.out.println("[esc] toplevel: " + node.sourcefile);
+        if (debugEsc) Utils.debugOut().println("[esc] toplevel: " + node.sourcefile);
         JavaFileObject p = log.useSource(node.sourcefile);
         super.visitTopLevel(node);
         log.useSource(p);
@@ -168,7 +200,7 @@ public class JmlEsc extends JmlTreeScanner {
     /** Visit a class definition */
     @Override
     public void visitClassDef(JCClassDecl node) {
-        if (debugEsc) System.out.println("[esc] Class: " + node.sym.owner + " " + node.name);
+        if (debugEsc) Utils.debugOut().println("[esc] Class: " + node.sym.owner + " " + node.name);
         boolean savedMethodsOK = allMethodsOK;
         allMethodsOK = true;
         JmlOptions.instance(context).pushOptions(node.mods);
@@ -214,7 +246,7 @@ public class JmlEsc extends JmlTreeScanner {
      */
     @Override
     public void visitMethodDef(/*@non_null*/ JCMethodDecl decl) {
-        if (debugEsc) System.out.println("[esc] Method: " + decl.sym.owner + " " + decl.sym);
+        if (debugEsc) Utils.debugOut().println("[esc] Method: " + decl.sym.owner + " " + decl.sym);
         if (decl.sym.isConstructor() && decl.sym.owner.isAnonymous()) {
             // Constructors for anonymous classes are not explicit. They are checked
             // in the course of instantiating the anonymous object.
@@ -398,7 +430,7 @@ public class JmlEsc extends JmlTreeScanner {
             	d = utils.errorDiag(log.currentSource(), methodDecl, "jml.message", "Proof aborted because bit-vector operations are not supported. Use option -escBV=true");
             } else {
             	d = utils.errorDiag(log.currentSource(), methodDecl, "jml.internal", "Prover aborted with exception: " + e.toString());
-                e.printStackTrace(System.out);
+                Utils.conditionalPrintStack(e);
             }
             log.report(d);
             count(IProverResult.ERROR);

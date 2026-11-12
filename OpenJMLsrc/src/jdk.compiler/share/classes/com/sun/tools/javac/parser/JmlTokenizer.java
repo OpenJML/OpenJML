@@ -141,7 +141,7 @@ public class JmlTokenizer extends JavadocTokenizer {
     // endPos may be equal to buffer.length
     @Override
     protected Tokens.Comment processComment(int pos, int endPos, CommentStyle style) {
-        if (scannerDebug) System.out.println("COMMENT " + noJML + " " + jml + " " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
+        if (scannerDebug) Utils.debugOut().println("COMMENT " + noJML + " " + jml + " " + pos + " " + endPos + " " + style + " " + String.valueOf(buffer,pos,endPos-pos));
         
         if (jml && jmlcommentstyle == CommentStyle.BLOCK && style == CommentStyle.BLOCK) {
             // The nested block will have the same end point as the outer block
@@ -303,10 +303,10 @@ public class JmlTokenizer extends JavadocTokenizer {
             // We initialize state and proceed to process the comment as JML text
             jmlcommentstyle = style;
             jml = true;
-            if (scannerDebug) System.out.println("ENTERING JML " + p);
+            if (scannerDebug) Utils.debugOut().println("ENTERING JML " + p);
             nestedBlockComment = false;
             if (style == CommentStyle.BLOCK) {
-            	if (scannerDebug) System.out.println("SETTING EBC " + p + " " + (endPos-2) + " " + length());
+            	if (scannerDebug) Utils.debugOut().println("SETTING EBC " + p + " " + (endPos-2) + " " + length());
             	endBlockComment = endPos-2; 
             }
         } else {
@@ -361,7 +361,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             jmlTokenClauseKind = null;
             tk = null;
             Token t = super.readToken(); // Sets tk, May modify jmlTokenClauseKind
-            if (scannerDebug) System.out.println("READ SUPER id=" + System.identityHashCode(this) + " thread=" + Thread.currentThread().getName() + " " + t.toStringDetail() + " " + jmlTokenClauseKind + " " + skippingTokens + " " + tk + " " + jml);
+            if (scannerDebug) Utils.debugOut().println("READ SUPER id=" + System.identityHashCode(this) + " thread=" + Thread.currentThread().getName() + " " + t.toStringDetail() + " " + jmlTokenClauseKind + " " + skippingTokens + " " + tk + " " + jml);
             pos = t.pos;
             endPos = t.endPos;
             // FIXME - edit this comment
@@ -415,9 +415,9 @@ public class JmlTokenizer extends JavadocTokenizer {
                     nestedBlockComment = false;
                 } else {
                     jml = false;
-                    if (scannerDebug) System.out.println("LEAVING JML ");
+                    if (scannerDebug) Utils.debugOut().println("LEAVING JML ");
                     endPos = position();
-                    if (scannerDebug) System.out.println("RESETTING EBC " + position() + " " + endBlockComment + " " + length());
+                    if (scannerDebug) Utils.debugOut().println("RESETTING EBC " + position() + " " + endBlockComment + " " + length());
                     endBlockComment = length();
                 }
                 jmlTokenClauseKind = Operators.endjmlcommentKind;
@@ -447,9 +447,9 @@ public class JmlTokenizer extends JavadocTokenizer {
                     tk = TokenKind.CUSTOM;
                     jmlTokenClauseKind = Operators.endjmlcommentKind;
                     jml = false;
-                    if (scannerDebug) System.out.println("LEAVING JML-B " + position());
+                    if (scannerDebug) Utils.debugOut().println("LEAVING JML-B " + position());
                     endPos = position();
-                	if (scannerDebug) System.out.println("RESETTING EBC@ " + position() + " " + endBlockComment + " " + length());
+                	if (scannerDebug) Utils.debugOut().println("RESETTING EBC@ " + position() + " " + endBlockComment + " " + length());
                     endBlockComment = length();
                     if (!returnEndOfCommentTokens || !initialJml) continue;
                 }
@@ -503,7 +503,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             }
             if (skippingTokens >= 0 && t.kind != TokenKind.EOF) continue;
             t = (t.kind == TokenKind.IDENTIFIER || jmlTokenClauseKind == null) ? t : new JmlToken(jmlTokenClauseKind, pos, endPos);
-            if (scannerDebug) System.out.println("TOKENIZER " + jmlTokenClauseKind + " " + t.toStringDetail());
+            if (scannerDebug) Utils.debugOut().println("TOKENIZER " + jmlTokenClauseKind + " " + t.toStringDetail());
             return t;
             // FIXME - source field?
         }
@@ -558,7 +558,7 @@ public class JmlTokenizer extends JavadocTokenizer {
             if (jmlcommentstyle == CommentStyle.LINE) {
                 if (!isTextBlock) {
                     jml = false;
-                    if (scannerDebug) System.out.println("LEAVING JML-C " + pos + " " + endPos);
+                    if (scannerDebug) Utils.debugOut().println("LEAVING JML-C " + pos + " " + endPos);
                     nestedBlockComment = false;
                     if (returnEndOfCommentTokens) {
                         tk = TokenKind.CUSTOM;
@@ -640,7 +640,7 @@ public class JmlTokenizer extends JavadocTokenizer {
                     String seq = name.toString();
                     jmlTokenClauseKind = Extensions.instance(context).findKeyword(seq);
                     if (scannerDebug) {
-                        System.out.println("GOT BACKSLASH " + seq + " " + jmlTokenClauseKind);
+                        Utils.debugOut().println("GOT BACKSLASH " + seq + " " + jmlTokenClauseKind);
                         if (jmlTokenClauseKind == null) {
                             Extensions.dump();
                         }

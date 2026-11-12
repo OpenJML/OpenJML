@@ -17,6 +17,7 @@ import com.sun.tools.javac.code.Symbol.ClassSymbol;
 import com.sun.tools.javac.code.Symbol.TypeSymbol;
 import com.sun.tools.javac.comp.Resolve.RecoveryLoadClass;
 import com.sun.tools.javac.code.Type;
+import com.sun.tools.javac.code.Kinds;
 import com.sun.tools.javac.code.Kinds.KindSelector;
 import com.sun.tools.javac.code.JmlTypes;
 import com.sun.tools.javac.tree.JCTree;
@@ -157,24 +158,24 @@ public class JmlResolve extends Resolve {
             var speccu = cu.specsCompilationUnit;
             
             boolean deb2 = false; // name.toString().equals("X") || name.toString().equals("Q");
-            if (deb2) System.out.println("SEARCHING FOR GLOBAL: " + name + "  allowJML=" + allowJML + "  inJMLCU=" + inJMLCU + " " + (speccu == null) + " " + (speccu == cu));
+            if (deb2) Utils.debugOut().println("SEARCHING FOR GLOBAL: " + name + "  allowJML=" + allowJML + "  inJMLCU=" + inJMLCU + " " + (speccu == null) + " " + (speccu == cu));
 
             if (inJMLCU) {
                 sym = findGlobalType(env, speccu.namedImportScope, name, namedImportScopeRecovery);
             } else {
                 sym = findGlobalType(env, cu.namedImportScope, name, namedImportScopeRecovery);
             }
-            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a named import");
+            if (deb2 && sym.exists()) Utils.debugOut().println("Name " + name + " is matched to a named import");
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
 
             sym = findGlobalType(env, cu.toplevelScope, name, noRecovery);
-            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a top-level class");
+            if (deb2 && sym.exists()) Utils.debugOut().println("Name " + name + " is matched to a top-level class");
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
 
             sym = findGlobalType(env, cu.packge.members(), name, noRecovery);
-            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a package class");
+            if (deb2 && sym.exists()) Utils.debugOut().println("Name " + name + " is matched to a package class");
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
 
@@ -183,7 +184,7 @@ public class JmlResolve extends Resolve {
             } else {
                 sym = findGlobalType(env, cu.starImportScope, name, starImportScopeRecovery);
             }
-            if (deb2 && sym.exists()) System.out.println("Name " + name + " is matched to a star import");
+            if (deb2 && sym.exists()) Utils.debugOut().println("Name " + name + " is matched to a star import");
             if (sym.exists()) return sym;
             else bestSoFar = bestOf(bestSoFar, sym);
             //if (deb2) { System.out.println("BEST " + bestSoFar); org.jmlspecs.openjml.Utils.dumpStack(); }
@@ -208,8 +209,20 @@ public class JmlResolve extends Resolve {
         return s;
     }
 
+    /** A model class nested in a binary class is entered only with that class's specs. If the specs
+     * request is still queued (the class was first referenced while entering another class's specs),
+     * load the specs now and look again.
+     */
+    @Override
+    Symbol findImmediateMemberType(Env<AttrContext> env, Type site, Name name, TypeSymbol c) {
+        Symbol sym = super.findImmediateMemberType(env, site, name, c);
+        if (sym.kind == Kinds.Kind.ABSENT_TYP && c instanceof ClassSymbol cs && JmlEnter.instance(context).loadQueuedSpecs(cs)) {
+            sym = super.findImmediateMemberType(env, site, name, c);
+        }
+        return sym;
+    }
 
-     
+
 //     // A hook method added into Resolve.findMethod to avoid replication of
 //     // parent class code.
 //     /** TODO: Not sure exactly what this controls in the superclass */
@@ -411,7 +424,7 @@ public class JmlResolve extends Resolve {
     		return bestSoFar;
     	} catch (Exception e) {
     		utils.error("jml.internal", "Exception in findMethodInScope: " + site + " " + name + " " + argtypes + " <" + typeargtypes +">");
-    		e.printStackTrace(System.out);
+    		Utils.conditionalPrintStack(e);
     		throw e;
     	}
     }

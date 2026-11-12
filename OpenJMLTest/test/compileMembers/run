@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## --compile writes no ghost or model fields, model methods or model classes into class files (#1082)
+rm -rf actual bin
+(openjml --compile -d bin src/p/H.java src/p/T.java && ls bin/p && $BIN/build/*/jdk/bin/javap -p -cp bin p.H) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

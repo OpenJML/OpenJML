@@ -1,0 +1,3 @@
+_dont_implement_Matcher___instead_extend_BaseMatcher_()
+describeMismatch(java.lang.Object,org.hamcrest.Description)
+matches(java.lang.Object)

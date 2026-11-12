@@ -6,7 +6,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.results.VoidResult;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -74,13 +73,17 @@ public class MenuPresenceTest extends GUITestBase {
         SWTBotMenu openJml = packageExplorerTree().contextMenu("OpenJML");
         assertMenuItemWithTooltip(openJml, "Check JML",
                 "Type-checks JML in selected objects");
-        assertMenuItemWithTooltip(openJml, "Run ESC",
-                "Performs JML static checks for selected objects");
-        assertMenuItemPresent(openJml, "Run ESC for Method Under Cursor");
+        SWTBotMenu esc = openJml.menu("Static check (ESC)");
+        assertMenuItemPresent(esc, "As Single Task");
+        assertMenuItemPresent(esc, "Split by File");
+        assertMenuItemPresent(esc, "Split by Method");
+        assertMenuItemPresent(openJml, "Cancel ESC");
         assertMenuItemWithTooltip(openJml, "Compile RAC",
                 "Compiles JML runtime checks for selected objects");
-        assertMenuItemPresent(openJml, "Clear Markers");
-        assertMenuItemPresent(openJml, "Clear and Reindex");
+        SWTBotMenu clear = openJml.menu("Clear Markers");
+        assertMenuItemPresent(clear, "All");
+        assertMenuItemPresent(clear, "Selected Files");
+        assertMenuItemPresent(openJml, "Index Project");
         assertMenuItemPresent(openJml, "Add OpenJML Nature");
         assertMenuItemPresent(openJml, "Remove OpenJML Nature");
         closeOpenMenu();
@@ -95,7 +98,7 @@ public class MenuPresenceTest extends GUITestBase {
         selectProjects("MenuTestJmlProject");
         SWTBotMenu openJml = packageExplorerTree().contextMenu("OpenJML");
         assertMenuItemPresent(openJml, "Check JML");
-        assertMenuItemPresent(openJml, "Run ESC");
+        assertMenuItemPresent(openJml, "Static check (ESC)");
         assertMenuItemPresent(openJml, "Add OpenJML Nature");
         assertMenuItemPresent(openJml, "Remove OpenJML Nature");
         closeOpenMenu();
@@ -117,12 +120,13 @@ public class MenuPresenceTest extends GUITestBase {
     public void mainMenu_openJmlMenuPresent() {
         activateWorkbench();
 
-        SWTBotMenu openJml = bot.menu("OpenJML");
-        assertNotNull("OpenJML top-level menu should be present", openJml);
+        SWTBotMenu openJml = mainMenu("OpenJML");
         assertMenuItemWithTooltip(openJml, "Check JML in File",
                 "Type-checks JML in selected objects");
-        assertMenuItemWithTooltip(openJml, "Run ESC on Current File",
-                "Performs JML static checks for selected objects");
+        SWTBotMenu esc = openJml.menu("Static check (ESC)");
+        assertMenuItemPresent(esc, "As Single Task");
+        assertMenuItemPresent(esc, "For Method Under Cursor");
+        assertMenuItemPresent(openJml, "Clear and Reindex");
         assertMenuItemPresent(openJml, "Add OpenJML Nature");
         assertMenuItemPresent(openJml, "Remove OpenJML Nature");
         closeOpenMenu();
@@ -142,9 +146,71 @@ public class MenuPresenceTest extends GUITestBase {
     public void toolbar_openJmlButtonsPresent() {
         activateWorkbench();
 
-        assertIconToolbarButton("Type-checks JML in selected objects");
-        assertToolbarButton("ESC", "Performs JML static checks for selected objects");
-        assertToolbarButton("RAC", "Compiles JML runtime checks for selected objects");
+        assertToolbarButton("Type-checks JML in selected objects");
+        assertToolbarButton("Performs JML static checks for selected objects");
+        assertToolbarButton("Compiles JML runtime checks for selected objects");
+    }
+
+    /** The workbench window's shell (the active shell may be another one, e.g. on macOS). */
+    private static org.eclipse.swt.widgets.Shell workbenchShell() {
+        return UIThreadRunnable.syncExec(() -> {
+            org.eclipse.ui.IWorkbenchWindow w = org.eclipse.ui.PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            if (w == null && org.eclipse.ui.PlatformUI.getWorkbench().getWorkbenchWindowCount() > 0)
+                w = org.eclipse.ui.PlatformUI.getWorkbench().getWorkbenchWindows()[0];
+            return w == null ? null : w.getShell();
+        });
+    }
+
+    /** A top-level menu of the workbench window's menu bar; fails listing the menus found. */
+    private static SWTBotMenu mainMenu(String label) {
+        org.eclipse.swt.widgets.Shell shell = workbenchShell();
+        assertNotNull("no workbench window", shell);
+        StringBuilder found = new StringBuilder();
+        org.eclipse.swt.widgets.MenuItem item = UIThreadRunnable.syncExec(() -> {
+            org.eclipse.swt.widgets.Menu bar = shell.getMenuBar();
+            if (bar == null) return null;
+            for (org.eclipse.swt.widgets.MenuItem mi : bar.getItems()) {
+                String t = mi.getText().replace("&", "");
+                found.append('[').append(t).append(']');
+                if (t.equals(label)) return mi;
+            }
+            return null;
+        });
+        assertNotNull("Top-level menu '" + label + "' not in the menu bar: " + found, item);
+        // The workbench fills menu-bar menus on SWT.Show, which nothing sends on macOS here.
+        UIThreadRunnable.syncExec((VoidResult) () -> showMenuTree(item.getMenu()));
+        return new SWTBotMenu(item);
+    }
+
+    private static void showMenuTree(org.eclipse.swt.widgets.Menu menu) {
+        if (menu == null) return;
+        menu.notifyListeners(org.eclipse.swt.SWT.Show, new org.eclipse.swt.widgets.Event());
+        for (org.eclipse.swt.widgets.MenuItem mi : menu.getItems()) showMenuTree(mi.getMenu());
+    }
+
+    /**
+     * Asserts that a tool item with the given tooltip is in one of the workbench window's
+     * tool bars; fails listing the tooltips found.  (Tool items are found by walking the
+     * window's controls: the trim is not reachable through the active shell on macOS.)
+     */
+    private static void assertToolbarButton(String tooltip) {
+        org.eclipse.swt.widgets.Shell shell = workbenchShell();
+        assertNotNull("no workbench window", shell);
+        java.util.List<String> found = new java.util.ArrayList<>();
+        UIThreadRunnable.syncExec((VoidResult) () -> collectToolTips(shell, found));
+        org.junit.Assert.assertTrue("Toolbar button '" + tooltip + "' not found; tooltips: " + found,
+                found.contains(tooltip));
+    }
+
+    private static void collectToolTips(org.eclipse.swt.widgets.Control c, java.util.List<String> out) {
+        if (c instanceof org.eclipse.swt.widgets.ToolBar tb) {
+            for (org.eclipse.swt.widgets.ToolItem ti : tb.getItems()) {
+                if (ti.getToolTipText() != null) out.add(ti.getToolTipText());
+            }
+        }
+        if (c instanceof org.eclipse.swt.widgets.Composite comp) {
+            for (org.eclipse.swt.widgets.Control child : comp.getChildren()) collectToolTips(child, out);
+        }
     }
 
     // -----------------------------------------------------------------------
@@ -181,40 +247,7 @@ public class MenuPresenceTest extends GUITestBase {
         }
     }
 
-    /**
-     * Asserts that an icon-only toolbar button with the given tooltip exists and
-     * that its tooltip text matches.  Icon buttons have no visible text label so
-     * SWTBot must locate them by tooltip.
-     */
-    private static void assertIconToolbarButton(String tooltip) {
-        try {
-            SWTBotToolbarButton btn = bot.toolbarButtonWithTooltip(tooltip);
-            assertNotNull("Icon toolbar button '" + tooltip + "' should be present", btn);
-            org.junit.Assert.assertEquals(
-                    "Tooltip text mismatch", tooltip, btn.getToolTipText());
-        } catch (Exception e) {
-            org.junit.Assert.fail("Icon toolbar button '" + tooltip
-                    + "' not found: " + e.getMessage());
-        }
-    }
 
-    /**
-     * Asserts that a text-label toolbar button with the given label exists and
-     * that its tooltip text matches.  Text buttons have no icon, so SWTBot can
-     * locate them by their visible label.
-     */
-    private static void assertToolbarButton(String label, String expectedTooltip) {
-        try {
-            SWTBotToolbarButton btn = bot.toolbarButton(label);
-            assertNotNull("Toolbar button '" + label + "' should be present", btn);
-            org.junit.Assert.assertEquals(
-                    "Tooltip for toolbar button '" + label + "'",
-                    expectedTooltip, btn.getToolTipText());
-        } catch (Exception e) {
-            org.junit.Assert.fail("Toolbar button '" + label
-                    + "' not found: " + e.getMessage());
-        }
-    }
 
     /**
      * Closes any open menu by firing an Escape key event on the active shell.

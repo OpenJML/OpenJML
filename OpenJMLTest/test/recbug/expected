@@ -10,10 +10,10 @@ Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test.b() with prover !!!!
-test/recbug/Test.java:5: verify: The prover cannot establish an assertion (Postcondition) in method b
+test/recbug/Test.java:5: verify: The prover cannot establish an assertion (Postcondition: test/recbug/Test.java:3:) in method b
   public boolean b() { return true; }
                        ^
-test/recbug/Test.java:3: verify: Associated declaration
+test/recbug/Test.java:3: verify: Associated declaration: test/recbug/Test.java:5:
   //@ ensures \result == b();
       ^
 Completed proof of Test.b() with prover !!!! - with warnings

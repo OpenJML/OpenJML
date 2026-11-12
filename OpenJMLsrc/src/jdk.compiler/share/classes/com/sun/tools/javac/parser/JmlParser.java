@@ -103,8 +103,6 @@ public class JmlParser extends JavacParser {
     
     public boolean       addOrgJmlspecsLang = true;
 
-    public java.util.List<IJmlLineAnnotation> lineAnnotations = new java.util.LinkedList<>();
-
     /**
      * A constructor for a new parser, but you should get new instances of the
      * parser from the parser factory, that is, by
@@ -128,7 +126,7 @@ public class JmlParser extends JavacParser {
         }
         this.S = S;
         this.jmlF = (JmlTree.Maker) F;
-        if (org.jmlspecs.openjml.Utils.debug("scanner")) System.out.println("NEW JmlParser id=" + System.identityHashCode(this) + " scanner-id=" + System.identityHashCode(S) + " context-id=" + System.identityHashCode(S.context) + " thread=" + Thread.currentThread().getName());
+        if (org.jmlspecs.openjml.Utils.debug("scanner")) Utils.debugOut().println("NEW JmlParser id=" + System.identityHashCode(this) + " scanner-id=" + System.identityHashCode(S) + " context-id=" + System.identityHashCode(S.context) + " thread=" + Thread.currentThread().getName());
     }
     
     public int getStartPos(JCTree tree) {
@@ -485,6 +483,9 @@ public class JmlParser extends JavacParser {
         if (!taAnnotations.isEmpty()) {
             mods.jmlmods = nonTAModifiers;
             var talist = taAnnotations.toList();
+            // Moved to the type, so not also on the declaration (else a declaration with a spec case could appear to be
+            // both nullable and non_null) (#1067)
+            if (vartype != null) mods.annotations = nonTAAnnotations.toList();
             if (vartype == null) {
                 mods.annotations = mods.annotations.appendList(talist);
             } else if (vartype instanceof JCArrayTypeTree || vartype instanceof JCAnnotatedType) {
@@ -741,7 +742,9 @@ public class JmlParser extends JavacParser {
     // TODO: THese should be moved to JmlAssertionAdder, so that
     // they work for binary Enums aas well.
     void addImplicitEnumAxioms(JCClassDecl cd) {
-        if (utils.rac) return;
+        // Only ESC (and inference, which proves with ESC) uses these; in other modes they are left in
+        // the class's defs, which crashes javac's Lower for an enum in --compile (#1082)
+        if (!utils.esc && !utils.infer) return;
         ListBuffer<JCExpression> args = new ListBuffer<JCExpression>();
         ListBuffer<JCExpression> argsn = new ListBuffer<JCExpression>();
         Name n = jmlF.Name(Strings.enumVar);
@@ -2454,6 +2457,20 @@ public class JmlParser extends JavacParser {
         return mods;
     }
 
+
+    /** Guard against tokens that do not support {@code name()} (e.g. JML-related tokens
+     *  whose kind has been set to IDENTIFIER but that are not NamedTokens).
+     *  Sealed-class syntax can never appear in a JML context, so returning false is safe. */
+    @Override
+    protected boolean isSealedClassStart(boolean local) {
+        try {
+            return super.isSealedClassStart(local);
+        } catch (UnsupportedOperationException e) {
+            Utils.conditionalPrintStack("[JmlParser.isSealedClassStart] UnsupportedOperationException for token: kind="
+                    + token.kind + " class=" + token.getClass().getName() + " pos=" + token.pos + " toString=" + token, e);
+            return false;
+        }
+    }
 
     @Override
     public JCPrimitiveTypeTree basicType() {

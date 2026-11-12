@@ -448,10 +448,10 @@ test\escTrace4\trace.java:16:  	ArithmeticOperationRange assertion: !(k < 0 && k
 			VALUE: !(k_302 < 0 && k_302 < 0) || -2147483648 - k_302 <= k_302	 === false
 test\escTrace4\trace.java:16:  Invalid assertion (ArithmeticOperationRange)
 
-test\escTrace4\trace.java:19: verify: The prover cannot establish an assertion (Postcondition) in method m
+test\escTrace4\trace.java:19: verify: The prover cannot establish an assertion (Postcondition: test\escTrace4\trace.java:13:) in method m
         return 0;
         ^
-test\escTrace4\trace.java:13: verify: Associated declaration
+test\escTrace4\trace.java:13: verify: Associated declaration: test\escTrace4\trace.java:19:
     //@ ensures \result != 0;
         ^
 

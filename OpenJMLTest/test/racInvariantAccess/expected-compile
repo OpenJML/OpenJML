@@ -1,0 +1,4 @@
+test/racInvariantAccess/p/A.java:5: warning: JML RAC does not check this invariant: it uses p.A.x, which is not accessible in Main (a -RAC@/+RAC@ form of the clause can avoid this)
+    //@ public invariant x >= 0;
+               ^
+1 warning

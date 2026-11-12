@@ -1,0 +1,69 @@
+#! /usr/bin/env bash
+
+## Checks that the release launchers work when both the installation and the user's folder have paths with
+## spaces and parentheses (#915): unzips the release into <dest> and runs openjml (ESC, RAC), openjml-java,
+## openjml-compile, openjml-run and (with node) openjml-lsp from a sibling folder 'work dir', then again with an
+## OPENJML_JVM option that holds a space.
+## runtests.ps1 does the same for the .bat launchers, in 'temp bat'.
+##   Usage: space-path-test <release zip> [<dest>]    (default dest: a new temporary 'oj dir (1)')
+## Exits non-zero if a check fails.
+
+TESTS="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
+ZIP="$(cd "$(dirname "$1")" && pwd -P)/$(basename "$1")"
+if [ ! -f "$ZIP" ]; then echo "FAIL space-path-test: no release zip: $1"; exit 1; fi
+if [ -n "$2" ]; then
+    DEST="$2"
+else
+    T=$(cd "$(mktemp -d)" && pwd -P)
+    trap 'rm -rf "$T"' EXIT
+    DEST="$T/oj dir (1)"
+fi
+rm -rf "$DEST"
+mkdir -p "$DEST"
+DEST="$(cd "$DEST" && pwd -P)"
+WORK="$(dirname "$DEST")/work dir"
+rm -rf "$WORK"
+mkdir -p "$WORK"
+
+## As in releaseTests/runtests: under WSL on a Windows drive, Windows' tar.exe unzips much faster
+WINTAR=/mnt/c/Windows/System32/tar.exe
+if grep -qi microsoft /proc/version 2>/dev/null && [[ "$DEST" == /mnt/* ]] && [ -x "$WINTAR" ]; then
+    ( cd "$DEST" && "$WINTAR" -xf "$(wslpath -w "$ZIP")" ) || exit 1
+else
+    unzip -q "$ZIP" -d "$DEST" || exit 1
+fi
+
+cp "$TESTS/releaseTests/testAPI/A.java" "$TESTS/releaseTests/testAPI/Run.java" "$WORK/"
+EXPECTED="$TESTS/releaseTests/testAPI/expected"
+cd "$WORK"
+FAILS=0
+check() {
+    ## A Windows JDK writes CRLF
+    if ! tr -d '\r' < actual | diff "$EXPECTED" - > /dev/null; then
+        echo "FAIL space-path-test: $1"; tr -d '\r' < actual | diff "$EXPECTED" -; FAILS=$((FAILS+1))
+    fi
+}
+
+( "$DEST/openjml" --esc A.java; "$DEST/openjml" --rac A.java; "$DEST/openjml-java" A ) > actual 2>&1
+check "openjml --esc, --rac and openjml-java"
+
+rm -f *.class
+"$DEST/openjml-compile" Run.java > actual 2>&1 || { echo "FAIL space-path-test: openjml-compile"; cat actual; FAILS=$((FAILS+1)); }
+( "$DEST/openjml-run" Run --esc A.java; "$DEST/openjml-run" Run --rac A.java; "$DEST/openjml-java" A ) > actual 2>&1
+check "openjml-compile, openjml-run"
+
+## An OPENJML_JVM option holding a space; it also makes openjml run java (org.openjml.RunOpenJML), not javac
+export OPENJML_JVM='-Dopenjml.test="a b"'
+( "$DEST/openjml" --esc A.java; "$DEST/openjml" --rac A.java; "$DEST/openjml-java" A ) > actual 2>&1
+check "openjml --esc, --rac and openjml-java with OPENJML_JVM"
+( "$DEST/openjml-run" Run --esc A.java; "$DEST/openjml-run" Run --rac A.java; "$DEST/openjml-java" A ) > actual 2>&1
+check "openjml-run with OPENJML_JVM"
+
+## lsp-smoke is skipped under WSL, as in release-test: the native Windows test runs it
+if ! grep -qi microsoft /proc/version 2>/dev/null && command -v node > /dev/null; then
+    node "$TESTS/scripttests/lsp-smoke.js" "$DEST/openjml-lsp" "$WORK" > actual 2>&1 \
+        || { echo "FAIL space-path-test: openjml-lsp"; cat actual; FAILS=$((FAILS+1)); }
+fi
+
+[ $FAILS = 0 ] && echo "space-path-test OK"
+exit $FAILS

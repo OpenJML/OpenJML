@@ -1,0 +1,6 @@
+unspecified normalize()
+unspecified relativize(java.net.URI)
+unspecified resolve(java.lang.String)
+unspecified resolve(java.net.URI)
+unspecified toASCIIString()
+unspecified toURL()

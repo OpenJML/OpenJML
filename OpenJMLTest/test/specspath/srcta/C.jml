@@ -1,0 +1,4 @@
+public class C {
+  //@ assignable \nothing; // srcta/C.jml
+  public void m();
+}

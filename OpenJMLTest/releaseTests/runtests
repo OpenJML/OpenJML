@@ -225,9 +225,6 @@ else
   RES=$(($RES+1))
 fi
 
-## Checks using explicit solver folder
-${RTH} testEsc2 "timeout 60 $JML --esc ./src/testEsc/B.java -classpath ./src/testEsc --os-name=${OS_NAME}" || RES=$(($RES+1))
-
 
 ## Checks using no paths - fails to find super class, uses specs in java file
 ${RTH} testPath1 "$JML -jmltesting ./src/testPath/data/TestPath.java " 1 || RES=$(($RES+1))

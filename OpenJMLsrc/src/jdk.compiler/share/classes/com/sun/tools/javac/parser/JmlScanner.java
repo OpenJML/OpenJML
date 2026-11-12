@@ -171,7 +171,7 @@ public class JmlScanner extends Scanner {
         super(fac, new JmlTokenizer(fac, input, inputLength, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).disableJML()));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
-        if (org.jmlspecs.openjml.Utils.debug("scanner")) System.out.println("NEW JmlScanner id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(jmltokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + Thread.currentThread().getName());
+        if (org.jmlspecs.openjml.Utils.debug("scanner")) Utils.debugOut().println("NEW JmlScanner id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(jmltokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + Thread.currentThread().getName());
     }
 
     /**
@@ -187,7 +187,7 @@ public class JmlScanner extends Scanner {
         super(fac, new JmlTokenizer(fac, buffer, com.sun.tools.javac.main.JmlCompiler.instance(fac.context).disableJML()));
         context = fac.context;
         jmltokenizer = (JmlTokenizer)super.tokenizer;
-        if (org.jmlspecs.openjml.Utils.debug("scanner")) System.out.println("NEW JmlScanner id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(jmltokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + Thread.currentThread().getName());
+        if (org.jmlspecs.openjml.Utils.debug("scanner")) Utils.debugOut().println("NEW JmlScanner id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(jmltokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + Thread.currentThread().getName());
     }
 
     /**
@@ -218,10 +218,10 @@ public class JmlScanner extends Scanner {
         if (scannerDebug) {
             Thread cur = Thread.currentThread();
             if (cur != owningThread) {
-                System.out.println("ADVANCE-FOREIGN scanner-id=" + System.identityHashCode(this) + " context-id=" + System.identityHashCode(context) + " owner=" + owningThread.getName() + " caller=" + cur.getName());
-                new RuntimeException("FOREIGN ADVANCE stack trace").printStackTrace(System.out);
+                Utils.debugOut().println("ADVANCE-FOREIGN scanner-id=" + System.identityHashCode(this) + " context-id=" + System.identityHashCode(context) + " owner=" + owningThread.getName() + " caller=" + cur.getName());
+                Utils.conditionalPrintStack(new RuntimeException("FOREIGN ADVANCE stack trace"));
             } else {
-                System.out.println("ADVANCE scanner-id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(tokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + cur.getName());
+                Utils.debugOut().println("ADVANCE scanner-id=" + System.identityHashCode(this) + " tokenizer-id=" + System.identityHashCode(tokenizer) + " context-id=" + System.identityHashCode(context) + " thread=" + cur.getName());
             }
         }
     	super.nextToken();
@@ -251,11 +251,11 @@ public class JmlScanner extends Scanner {
     				var saved = prevToken();
     				var t0 = token(0);
     				var t1 = token(1);
-    				if (scannerDebug) System.out.println("TOKEN AFTER ENDJML " + t0.toStringDetail() + " :: " + savedJml.get(0) + " " + t1.toStringDetail());
-                    if (scannerDebug) System.out.println("LOOKAHEADS-Z " + t0.toStringDetail() + " :: " + savedTokens.size() + " " + savedJml.size() + " " + jmlForCurrentToken);
+    				if (scannerDebug) Utils.debugOut().println("TOKEN AFTER ENDJML " + t0.toStringDetail() + " :: " + savedJml.get(0) + " " + t1.toStringDetail());
+                    if (scannerDebug) Utils.debugOut().println("LOOKAHEADS-Z " + t0.toStringDetail() + " :: " + savedTokens.size() + " " + savedJml.size() + " " + jmlForCurrentToken);
     				//if (!savedJml.get(0)) break;
     				if (isStartJml(t1)) {
-    					if (scannerDebug) System.out.println("SKIPPING START JML");
+    					if (scannerDebug) Utils.debugOut().println("SKIPPING START JML");
     					advance(); // gets the start token
     					advance(); // gets the next token, skipping the end and start combination
     					setPrevToken(saved); // But keep the previous token as if the end-start combination did not exist
@@ -271,10 +271,10 @@ public class JmlScanner extends Scanner {
     			if (jmlForCurrentToken && token.kind == TokenKind.IDENTIFIER) { 
     				String id = token.name().toString();
     				IJmlClauseKind clk = org.jmlspecs.openjml.Extensions.instance(context).findKeyword(id);
-                    if (scannerDebug) System.out.println("JMLSCAN " + id + " # " + clk + " " + token.toStringDetail());
+                    if (scannerDebug) Utils.debugOut().println("JMLSCAN " + id + " # " + clk + " " + token.toStringDetail());
     				if (clk instanceof IJmlClauseKind.LineAnnotationKind lak) {
     					lak.scan(token.pos, id, lak, this);
-    					if (scannerDebug) System.out.println("Scanned a line annotation");
+    					if (scannerDebug) Utils.debugOut().println("Scanned a line annotation");
     	                if (jml() && !isEndJml()) continue; 
     					continue outer;
     				}
@@ -283,7 +283,7 @@ public class JmlScanner extends Scanner {
     		}
     	}
     	if (scannerDebug) {
-    		System.out.println("TOKEN " + Utils.isJML() + " " + jmlForCurrentToken + " " + token.toStringDetail());
+    		Utils.debugOut().println("TOKEN " + Utils.isJML() + " " + jmlForCurrentToken + " " + token.toStringDetail());
     	}
     }
 
@@ -294,7 +294,7 @@ public class JmlScanner extends Scanner {
             for (int i = savedTokens.size() ; i < lookahead ; i ++) {
                 savedTokens.add(tokenizer.readToken());
                 savedJml.add(((JmlTokenizer)tokenizer).jml());
-                if (scannerDebug) System.out.println("LOOKAHEAD " + savedTokens.size() + " " + savedTokens.get(savedTokens.size()-1).toStringDetail() + " " + savedJml.size() + " " + savedJml.get(savedJml.size()-1));
+                if (scannerDebug) Utils.debugOut().println("LOOKAHEAD " + savedTokens.size() + " " + savedTokens.get(savedTokens.size()-1).toStringDetail() + " " + savedJml.size() + " " + savedJml.get(savedJml.size()-1));
             }
             return savedTokens.get(lookahead - 1);
         }

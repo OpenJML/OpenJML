@@ -1,0 +1,4 @@
+unspecified <T>getOption(java.net.SocketOption<T>)
+unspecified <T>setOption(java.net.SocketOption<T>,T)
+unspecified getLocalAddress()
+unspecified supportedOptions()

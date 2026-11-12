@@ -1,7 +1,7 @@
-test/sfpatch25/A.java:4: verify: The prover cannot establish an assertion (Postcondition) in method test17a
+test/sfpatch25/A.java:4: verify: The prover cannot establish an assertion (Postcondition: test/sfpatch25/A.java:3:) in method test17a
 private void test17a(){
              ^
-test/sfpatch25/A.java:3: verify: Associated declaration
+test/sfpatch25/A.java:3: verify: Associated declaration: test/sfpatch25/A.java:4:
 	//@ ensures false;
 	    ^
 2 verification failures

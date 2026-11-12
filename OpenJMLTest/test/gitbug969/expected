@@ -6,10 +6,10 @@ test/gitbug969/A.java:3: warning: Recursive attempt to assert or assume invarian
                                ^
 Proving methods in A
 Starting proof of A.A() with prover !!!!
-test/gitbug969/A.java:3: verify: The prover cannot establish an assertion (Assignable) in method A: \everything
+test/gitbug969/A.java:3: verify: The prover cannot establish an assertion (Assignable: test/gitbug969/A.java:1:) in method A: \everything
   //@ public invariant getNames() != null; // invariant calls a non-pure accessor
                                ^
-test/gitbug969/A.java:1: verify: Associated declaration
+test/gitbug969/A.java:1: verify: Associated declaration: test/gitbug969/A.java:3:
 public class A {
        ^
 Completed proof of A.A() with prover !!!! - with warnings

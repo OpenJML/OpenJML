@@ -17,10 +17,10 @@ Composite result Verified
 Completed proof of TestRefines.m1(int) with prover !!!! - no warnings
 Starting proof of TestRefines.m2(int) with prover !!!!
 Proof attempt for split A
-test/refining/TestRefines.java:30: verify: The prover cannot establish an assertion (Postcondition) in method m2
+test/refining/TestRefines.java:30: verify: The prover cannot establish an assertion (Postcondition: test/refining/TestRefines.java:19:) in method m2
         return j;
         ^
-test/refining/TestRefines.java:19: verify: Associated declaration
+test/refining/TestRefines.java:19: verify: Associated declaration: test/refining/TestRefines.java:30:
     //@ ensures \result >= 12;
         ^
 Result of split A is Not verified

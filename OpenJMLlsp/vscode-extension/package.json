@@ -361,7 +361,7 @@
           "type": "string",
           "default": "",
           "order": 0,
-          "description": "Path to the openjml-lsp launcher script. Leave empty to use the script bundled with this extension (development) or the one found via the extension's default location."
+          "description": "Path to the OpenJML installation folder or its openjml-lsp launcher script (openjml-lsp.bat on Windows). Leave empty to use the script bundled with this extension (development) or the one found via the extension's default location."
         },
         "openjml.checkTriggerOn": {
           "type": "string",

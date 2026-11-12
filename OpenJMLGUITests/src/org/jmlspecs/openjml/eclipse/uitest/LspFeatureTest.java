@@ -90,7 +90,9 @@ public class LspFeatureTest extends GUITestBase {
     // Marker test constants
     // -----------------------------------------------------------------------
 
-    private static final String LSP4E_MARKER      = OpenJMLConstants.LSP4E_MARKER_TYPE;
+    // LSP4E creates OpenJML diagnostics with the server's markerType (plugin.xml), a subtype
+    // of org.eclipse.lsp4e.diagnostic.
+    private static final String JML_MARKER        = OpenJMLConstants.JML_PROBLEM_MARKER;
     private static final String SERVER_ID_ATTR    = "languageServerId";
     private static final String OPENJML_SERVER_ID = OpenJMLConstants.SERVER_ID;
     private static final String JAVA_MARKER = "org.eclipse.jdt.core.problem";
@@ -137,8 +139,16 @@ public class LspFeatureTest extends GUITestBase {
                 throw new RuntimeException("Could not open ActionTarget.java", e);
             }
         });
-        // Allow the LSP server to start and complete its initial file check.
-        bot.sleep(10_000);
+        // Wait for LSP server to connect and perform its initial file check (up to 30s).
+        // Poll the Console text for evidence that the server has started or a check completed.
+        long lspDeadline = System.currentTimeMillis() + 30_000;
+        while (System.currentTimeMillis() < lspDeadline) {
+            String console = getConsoleText();
+            if (console.contains("--check complete") || console.contains("OpenJMLUI plugin started"))
+                break;
+            bot.sleep(500);
+        }
+        bot.sleep(1_000);  // brief additional settle time
     }
 
     /**
@@ -148,7 +158,6 @@ public class LspFeatureTest extends GUITestBase {
     private static boolean markersProjectsCreated = false;
     private static void ensureMarkersProjects() throws Exception {
         if (markersProjectsCreated) return;
-        markersProjectsCreated = true;
 
         markersProjectA = createJavaProject("MarkersProjectA");
         populateFromTestdata(markersProjectA, "ProjectA", "projecta", "Broken.java");
@@ -164,6 +173,7 @@ public class LspFeatureTest extends GUITestBase {
 
         waitForBuild();
         bot.sleep(500);
+        markersProjectsCreated = true;
     }
 
     @AfterClass
@@ -186,6 +196,7 @@ public class LspFeatureTest extends GUITestBase {
      */
     @Test
     public void a1_renameDialogPrefilledWithCursorWord() {
+        ensureActionEditorOpen();
         positionCursorOnTargetSymbol();
         executeCommandAsync(RENAME_COMMAND_ID);
 
@@ -207,6 +218,7 @@ public class LspFeatureTest extends GUITestBase {
      */
     @Test
     public void a2_findReferencesFindsExpectedReferences() {
+        ensureActionEditorOpen();
         positionCursorOnTargetSymbol();
         executeCommandAsync(FIND_REFS_COMMAND_ID);
 
@@ -308,7 +320,12 @@ public class LspFeatureTest extends GUITestBase {
 
         assertEquals("MarkersProjectC JML markers should be cleared",
                 0, countJmlMarkers(markersProjectC));
-        assertTrue("MarkersProjectB JML markers should be unaffected",
+        // Nature removal makes the server clear all diagnostics and re-check the remaining
+        // projects (#1087), so B's markers come back after that check.
+        long deadline = System.currentTimeMillis() + CHECK_JML_TIMEOUT_MS;
+        while (countJmlMarkers(markersProjectB) == 0 && System.currentTimeMillis() < deadline)
+            bot.sleep(1000);
+        assertTrue("MarkersProjectB JML markers should remain",
                 countJmlMarkers(markersProjectB) > 0);
     }
 
@@ -354,6 +371,31 @@ public class LspFeatureTest extends GUITestBase {
     // Action test helpers
     // -----------------------------------------------------------------------
 
+    /**
+     * Ensure ActionTarget.java is open in the active editor.  If JUnit ran
+     * {@code resetWorkbench()} between tests the editor may have been closed;
+     * re-opening it here avoids a {@code WidgetNotFoundException} in
+     * {@link #positionCursorOnTargetSymbol()}.
+     */
+    private static void ensureActionEditorOpen() {
+        boolean open = false;
+        try {
+            open = bot.activeEditor().getTitle().contains("ActionTarget");
+        } catch (Exception ignored) {}
+        if (!open) {
+            UIThreadRunnable.syncExec((VoidResult) () -> {
+                try {
+                    IWorkbenchPage page = PlatformUI.getWorkbench()
+                            .getActiveWorkbenchWindow().getActivePage();
+                    IDE.openEditor(page, actionSourceFile, true);
+                } catch (Exception e) {
+                    System.err.println("[LspFeatureTest] re-open ActionTarget.java failed: " + e);
+                }
+            });
+            bot.sleep(1_000);
+        }
+    }
+
     private static void positionCursorOnTargetSymbol() {
         SWTBotEclipseEditor editor = bot.activeEditor().toTextEditor();
         editor.setFocus();
@@ -379,7 +421,7 @@ public class LspFeatureTest extends GUITestBase {
 
     private static int countJmlMarkers(IProject project) throws CoreException {
         IMarker[] markers = project.findMarkers(
-                LSP4E_MARKER, false, IResource.DEPTH_INFINITE);
+                JML_MARKER, true, IResource.DEPTH_INFINITE);
         int count = 0;
         for (IMarker m : markers) {
             if (OPENJML_SERVER_ID.equals(m.getAttribute(SERVER_ID_ATTR))) {

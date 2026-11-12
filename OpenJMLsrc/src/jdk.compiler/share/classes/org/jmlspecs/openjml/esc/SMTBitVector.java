@@ -991,8 +991,8 @@ public class SMTBitVector extends JmlTreeScanner {
     	    throw e;
         } catch (Exception e) {
             log.error("jml.internal","Exception while scanning expression for bit-vector: " + JmlPretty.write(tree));
-        	System.out.println("EXCEPTION IN SUBEXPR OF " + tree);
-        	e.printStackTrace(System.out);
+        	Utils.debugOut().println("EXCEPTION IN SUBEXPR OF " + tree);
+        	Utils.conditionalPrintStack(e);
         	throw e;
         }
     }
