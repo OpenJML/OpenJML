@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Runs CodeQL's security and code-quality queries on OpenJML's own Java code locally, as the CodeQL
+# workflow's manual security-and-quality run does (scope and exclusions: .github/codeql/codeql-config.yml).
+# No build is needed. Needs the CodeQL CLI: codeql on the PATH (e.g. brew install --cask codeql), or
+# CODEQL=<path to codeql>. Writes OpenJMLsrc/temp/codeql/results.sarif and results.csv and prints the number
+# of alerts per query. Run by `make codeql` in OpenJMLsrc and OpenJMLTest.
+set -euo pipefail
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+CODEQL=${CODEQL:-codeql}
+command -v "$CODEQL" > /dev/null || {
+    echo "CodeQL CLI not found; install it (brew install --cask codeql) or set CODEQL=<path>" >&2
+    exit 1
+}
+out="$root/OpenJMLsrc/temp/codeql"
+suite=codeql/java-queries:codeql-suites/java-security-and-quality.qls
+mkdir -p "$out"
+
+"$CODEQL" database create "$out/db" --overwrite --language=java --build-mode=none \
+    --source-root="$root" --codescanning-config="$root/.github/codeql/codeql-config.yml"
+"$CODEQL" database analyze "$out/db" --download --threads=0 "$suite" \
+    --format=sarif-latest --output="$out/results.sarif"
+# a second analysis reuses the stored query results
+"$CODEQL" database analyze "$out/db" --threads=0 "$suite" --format=csv --output="$out/results.csv"
+
+echo "Alerts per query (details in $out/results.csv):"
+grep -o '"ruleId" *: *"[^"]*"' "$out/results.sarif" | sed 's/.*: *"\(.*\)"/\1/' \
+    | grep -v '/telemetry/\|/diagnostics/\|/summary/' | sort | uniq -c | sort -rn || echo "   none"
