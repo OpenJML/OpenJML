@@ -554,7 +554,7 @@ public class typechecking extends TCBase {
     @Test public void testSubtype4() { // OK
         expectedExit = 0;
         helpTCText("A.java","public class A { Object o; /*@ ghost \\TYPE t; */ Class<Object> c;\n//@ ensures o.getClass() <:= Object.class;\nvoid m() {}}"
-                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: getClass()",22
+                //,"/A.java:2: warning: A non-spec_pure method is being called where it is not permitted: getClass()",22
                 );
     }
     
@@ -612,7 +612,7 @@ public class typechecking extends TCBase {
     
     @Test public void testSetComp() {
         helpTCText("A.java","public class A {  \n java.util.Collection c; //@ invariant new JMLSetType { Integer i | c.contains(i) && i<10}; \n \n }"
-                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",79  // FIXME
+                //,"/A.java:2: warning: A non-spec_pure method is being called where it is not permitted: contains(java.lang.Object)",79  // FIXME
                 ,"/A.java:2: error: incompatible types: org.jmlspecs.lang.JMLSetType cannot be converted to boolean",55
         );
     }
@@ -620,7 +620,7 @@ public class typechecking extends TCBase {
     // Testing scopes in method specs
     @Test public void testSetCompA() {
         helpTCText("A.java","public class A {  \n java.util.Collection c; //@ requires new JMLSetType { Integer i | c.contains(i) && i<10}; \n void m() {} \n }"
-                //,"/A.java:2: warning: A non-pure method is being called where it is not permitted: contains(java.lang.Object)",78 // FIXME
+                //,"/A.java:2: warning: A non-spec_pure method is being called where it is not permitted: contains(java.lang.Object)",78 // FIXME
                 ,"/A.java:2: error: incompatible types: org.jmlspecs.lang.JMLSetType cannot be converted to boolean",54
                 );
     }

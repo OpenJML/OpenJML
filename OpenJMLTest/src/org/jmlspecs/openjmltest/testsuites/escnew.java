@@ -2098,9 +2098,9 @@ public class escnew extends EscBase {
                   }
                 }
                 """
-                ,"/tt/TestJava.java:14: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm(int)", 17
-                ,"/tt/TestJava.java:19: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm2(int)", 18
-                ,"/tt/TestJava.java:23: warning: A non-pure method is being called where it is not permitted: tt.TestJava.mm3(int)", 18
+                ,"/tt/TestJava.java:14: warning: A non-spec_pure method is being called where it is not permitted: tt.TestJava.mm(int)", 17
+                ,"/tt/TestJava.java:19: warning: A non-spec_pure method is being called where it is not permitted: tt.TestJava.mm2(int)", 18
+                ,"/tt/TestJava.java:23: warning: A non-spec_pure method is being called where it is not permitted: tt.TestJava.mm3(int)", 18
                 ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:14:) in method m1",7
                 ,"/tt/TestJava.java:14: verify: Associated declaration: /tt/TestJava.java:16:",7
                 ,"/tt/TestJava.java:25: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:23:) in method m3",7

@@ -1,4 +1,4 @@
-test/gitbug480/Bug.java:11: warning: A non-pure method is being called where it is not permitted: Crypto.encrypt(java.lang.Object)
+test/gitbug480/Bug.java:11: warning: A non-spec_pure method is being called where it is not permitted: Crypto.encrypt(java.lang.Object)
   ensures  Crypto.encrypt(this.Na).equals(\result);  pure // - won't be provable in this simplified example
                          ^
 Proving methods in xATransport

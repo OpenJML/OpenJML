@@ -1626,7 +1626,7 @@ public class modifiers extends TCBase {
                   void p() {} }
                 """
                 ,"/A.java:2: error: Object allocation is not permitted in specification expressions",18
-                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..()",18
+                ,"/A.java:2: warning: A non-spec_pure method is being called where it is not permitted: A..()",18
                 );
     }
 
@@ -1639,7 +1639,7 @@ public class modifiers extends TCBase {
                   void p() {} }
                 """
                 ,"/A.java:2: error: Object allocation is not permitted in specification expressions",18
-                ,"/A.java:2: warning: A non-pure method is being called where it is not permitted: A..(int)",18
+                ,"/A.java:2: warning: A non-spec_pure method is being called where it is not permitted: A..(int)",18
                 );
     }
 

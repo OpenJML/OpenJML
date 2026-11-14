@@ -1,4 +1,4 @@
-test/gitbug969b/Node.java:8: warning: A non-pure method is being called where it is not permitted: Node.self(@org.jmlspecs.annotation.Nullable Node)
+test/gitbug969b/Node.java:8: warning: A non-spec_pure method is being called where it is not permitted: Node.self(@org.jmlspecs.annotation.Nullable Node)
     //@ public invariant self(next) == next;
                              ^
 test/gitbug969b/Node.java:8: warning: Recursive attempt to assert or assume invariants - use pure helper methods: Node

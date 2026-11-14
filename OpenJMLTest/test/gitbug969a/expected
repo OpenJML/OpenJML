@@ -1,4 +1,4 @@
-test/gitbug969a/A.java:7: warning: A non-pure method is being called where it is not permitted: B.ok(A)
+test/gitbug969a/A.java:7: warning: A non-spec_pure method is being called where it is not permitted: B.ok(A)
     //@ public invariant b.ok(this);
                              ^
 test/gitbug969a/A.java:5: warning: Recursive attempt to assert or assume invariants - use pure helper methods: A

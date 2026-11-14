@@ -65,7 +65,7 @@ public class purity extends TCBase {
     public void testPure2() {
         expectedExit = 0;
         helpTCText(null, " class A {  boolean m() { return true; }  \n //@ invariant m(); \n}"
-               ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.m()",17
+               ,"/TEST.java:2: warning: A non-spec_pure method is being called where it is not permitted: A.m()",17
                );
     }
     
@@ -82,7 +82,7 @@ public class purity extends TCBase {
         expectedExit = 0;
         addMockFile("$A/A.jml","public class A {  int m();  //@ invariant m() == 0; \n}");
         helpTCText("A.java","public class A {  int m() { return 0; }  \n }"
-                ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: A.m()",44
+                ,"/$A/A.jml:1: warning: A non-spec_pure method is being called where it is not permitted: A.m()",44
                 );
         
     }
@@ -101,7 +101,7 @@ public class purity extends TCBase {
         expectedExit = 0;
         addMockFile("$A/A.jml","public class A {  int m();  //@ invariant m() == 0; \n}");
         helpTCText("A.java","public class A {  int m() { return 0; }  \n }"
-                ,"/$A/A.jml:1: warning: A non-pure method is being called where it is not permitted: A.m()",44
+                ,"/$A/A.jml:1: warning: A non-spec_pure method is being called where it is not permitted: A.m()",44
                 );
         
     }
@@ -216,7 +216,7 @@ public class purity extends TCBase {
     public void testPureClass2a() {
         expectedExit = 0;
         helpTCText(null, " class A extends B { boolean mm() { return true; } \n //@ invariant mm(); \n} /*@ pure */ class B {  }"
-                ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.mm()",18
+                ,"/TEST.java:2: warning: A non-spec_pure method is being called where it is not permitted: A.mm()",18
                 );
     }
 
@@ -251,7 +251,7 @@ public class purity extends TCBase {
     public void testPureNotSpecPureDefault() {
         expectedExit = 0;
         helpTCText(null, " class A { /*@ pure */ Object m() { return new Object(); }  \n //@ invariant m() != null; \n}"
-                ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.m()", 17
+                ,"/TEST.java:2: warning: A non-spec_pure method is being called where it is not permitted: A.m()", 17
                 );
     }
     
@@ -260,7 +260,7 @@ public class purity extends TCBase {
         addOptions("--no-allow-pure-in-specs");
         expectedExit = 0;
         helpTCText(null, " class A { /*@ pure */ Object m() { return new Object(); }  \n //@ invariant m() != null; \n}"
-                ,"/TEST.java:2: warning: A non-pure method is being called where it is not permitted: A.m()", 17
+                ,"/TEST.java:2: warning: A non-spec_pure method is being called where it is not permitted: A.m()", 17
                 );
     }
     

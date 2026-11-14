@@ -1,4 +1,4 @@
-test/gitbug446/ForEachClient.java:8: warning: A non-pure method is being called where it is not permitted: APMax.getMax()
+test/gitbug446/ForEachClient.java:8: warning: A non-spec_pure method is being called where it is not permitted: APMax.getMax()
         //@ assert pm.getMax() == 5;
                             ^
 Proving methods in APMax
