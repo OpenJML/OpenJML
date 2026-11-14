@@ -2,7 +2,7 @@
 # Runs CodeQL's security and code-quality queries on OpenJML's own Java code locally, as the CodeQL
 # workflow's manual security-and-quality run does (scope and exclusions: .github/codeql/codeql-config.yml).
 # No build is needed. Needs the CodeQL CLI: codeql on the PATH (e.g. brew install --cask codeql), or
-# CODEQL=<path to codeql>. Writes OpenJMLsrc/temp/codeql/results.sarif and results.csv and prints the number
+# CODEQL=<path to codeql>. Writes OpenJMLsrc/codeql-results/results.sarif and results.csv and prints the number
 # of alerts per query. Run by `make codeql` in OpenJMLsrc and OpenJMLTest.
 set -euo pipefail
 
@@ -12,7 +12,7 @@ command -v "$CODEQL" > /dev/null || {
     echo "CodeQL CLI not found; install it (brew install --cask codeql) or set CODEQL=<path>" >&2
     exit 1
 }
-out="$root/OpenJMLsrc/temp/codeql"
+out="$root/OpenJMLsrc/codeql-results"
 suite=codeql/java-queries:codeql-suites/java-security-and-quality.qls
 mkdir -p "$out"
 
