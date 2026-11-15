@@ -1,0 +1,31 @@
+Proving methods in java.time.Year
+Starting proof of java.time.Year.isLeap(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.isLeap(long) with prover !!!! - no warnings
+Starting proof of java.time.Year.getValue() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.getValue() with prover !!!! - no warnings
+Starting proof of java.time.Year.isLeap() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.isLeap() with prover !!!! - no warnings
+Starting proof of java.time.Year.length() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.length() with prover !!!! - no warnings
+Starting proof of java.time.Year.compareTo(java.time.Year) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.compareTo(java.time.Year) with prover !!!! - no warnings
+Starting proof of java.time.Year.isAfter(java.time.Year) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.isAfter(java.time.Year) with prover !!!! - no warnings
+Starting proof of java.time.Year.isBefore(java.time.Year) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.isBefore(java.time.Year) with prover !!!! - no warnings
+Starting proof of java.time.Year.equals(@Nullable Object) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.equals(@Nullable Object) with prover !!!! - no warnings
+Starting proof of java.time.Year.hashCode() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Year.hashCode() with prover !!!! - no warnings
+Completed proving methods in java.time.Year
