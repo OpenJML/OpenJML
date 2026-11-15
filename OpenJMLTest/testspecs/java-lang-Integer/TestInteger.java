@@ -4,6 +4,7 @@ public class TestInteger {
     @org.jmlspecs.annotation.SkipEsc
     public static void main(String... args) {
         esc(10,42,-7);
+        compare();
     }
 
     @org.jmlspecs.annotation.CodeJavaMath
@@ -74,5 +75,10 @@ public class TestInteger {
         //		//@ check k == i;
 
         //		//@ check a.hashCode() == i;
+    }
+
+    public static void compare() {
+        //@ assert Integer.compare(3, 5) == -1 && Integer.compare(5, 5) == 0 && Integer.compare(Integer.MAX_VALUE, -1) == 1;
+        //@ assert Long.compare(-1L, Long.MIN_VALUE) == 1 && Long.compare(0L, 0L) == 0;
     }
 }

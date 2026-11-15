@@ -2,4 +2,7 @@ Proving methods in TestInteger
 Starting proof of TestInteger.esc(int,int,@NonNull Integer) with prover !!!!
 Feasibility check - at implicit return : OK
 Completed proof of TestInteger.esc(int,int,@NonNull Integer) with prover !!!! - no warnings
+Starting proof of TestInteger.compare() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInteger.compare() with prover !!!! - no warnings
 Completed proving methods in TestInteger
