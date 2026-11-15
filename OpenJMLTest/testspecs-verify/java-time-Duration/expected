@@ -1,0 +1,89 @@
+Proving methods in java.time.Duration
+Proving methods in java.time.Duration.Lazy
+Completed proving methods in java.time.Duration.Lazy
+Starting proof of java.time.Duration.ofSeconds(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.ofSeconds(long) with prover !!!! - no warnings
+Starting proof of java.time.Duration.ofMillis(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.ofMillis(long) with prover !!!! - no warnings
+Starting proof of java.time.Duration.ofNanos(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.ofNanos(long) with prover !!!! - no warnings
+Starting proof of java.time.Duration.create(long,int) with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.create(long,int) with prover !!!! - no warnings
+Starting proof of java.time.Duration.Duration(long,int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.time.Duration.Duration(long,int) with prover !!!! - no warnings
+Proving methods in java.time.Duration.DurationUnits
+Completed proving methods in java.time.Duration.DurationUnits
+Starting proof of java.time.Duration.isPositive() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.isPositive() with prover !!!! - no warnings
+Starting proof of java.time.Duration.isZero() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.isZero() with prover !!!! - no warnings
+Starting proof of java.time.Duration.isNegative() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.isNegative() with prover !!!! - no warnings
+Starting proof of java.time.Duration.getSeconds() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.getSeconds() with prover !!!! - no warnings
+Starting proof of java.time.Duration.getNano() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.getNano() with prover !!!! - no warnings
+Starting proof of java.time.Duration.withSeconds(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.withSeconds(long) with prover !!!! - no warnings
+Starting proof of java.time.Duration.plus(java.time.Duration) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.plus(java.time.Duration) with prover !!!! - no warnings
+Starting proof of java.time.Duration.plusMillis(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.plusMillis(long) with prover !!!! - no warnings
+Starting proof of java.time.Duration.plusNanos(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.plusNanos(long) with prover !!!! - no warnings
+Starting proof of java.time.Duration.minusMinutes(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.minusMinutes(long) with prover !!!! - no warnings
+Starting proof of java.time.Duration.minusMillis(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.minusMillis(long) with prover !!!! - no warnings
+Starting proof of java.time.Duration.abs() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.abs() with prover !!!! - no warnings
+Starting proof of java.time.Duration.toDays() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.toDays() with prover !!!! - no warnings
+Starting proof of java.time.Duration.toHours() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.toHours() with prover !!!! - no warnings
+Starting proof of java.time.Duration.toSeconds() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.toSeconds() with prover !!!! - no warnings
+Starting proof of java.time.Duration.toMillis() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.toMillis() with prover !!!! - no warnings
+Starting proof of java.time.Duration.toHoursPart() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.toHoursPart() with prover !!!! - no warnings
+Starting proof of java.time.Duration.toSecondsPart() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.toSecondsPart() with prover !!!! - no warnings
+Starting proof of java.time.Duration.toMillisPart() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.toMillisPart() with prover !!!! - no warnings
+Starting proof of java.time.Duration.toNanosPart() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.toNanosPart() with prover !!!! - no warnings
+Starting proof of java.time.Duration.hashCode() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Completed proof of java.time.Duration.hashCode() with prover !!!! - no warnings
+Completed proving methods in java.time.Duration
