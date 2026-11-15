@@ -640,11 +640,6 @@ public class escfp extends EscBase {
                     double r = Math.nextUp(a);
                     //@ assert false;
                   }
-                  //@ requires Double.isNaN(a);
-                  public void remainder(double a) {
-                    double r = Math.IEEEremainder(a, Double.POSITIVE_INFINITY);
-                    //@ assert false;
-                  }
                   //@ requires a == Double.NEGATIVE_INFINITY;
                   public void exponent(double a) {
                     int r = Math.getExponent(a);
@@ -667,10 +662,26 @@ public class escfp extends EscBase {
                 ,"/tt/TestJava.java:16: verify: The prover cannot establish an assertion (Assert) in method hypot",9
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method ulp",9
                 ,"/tt/TestJava.java:26: verify: The prover cannot establish an assertion (Assert) in method nextUp",9
-                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Assert) in method remainder",9
-                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assert) in method exponent",9
-                ,"/tt/TestJava.java:41: verify: The prover cannot establish an assertion (Assert) in method pow",9
-                ,"/tt/TestJava.java:46: verify: The prover cannot establish an assertion (Assert) in method nextAfter",9
+                ,"/tt/TestJava.java:31: verify: The prover cannot establish an assertion (Assert) in method exponent",9
+                ,"/tt/TestJava.java:36: verify: The prover cannot establish an assertion (Assert) in method pow",9
+                ,"/tt/TestJava.java:41: verify: The prover cannot establish an assertion (Assert) in method nextAfter",9
+                );
+    }
+
+    @Test
+    public void testMathSpecsVacuityFails2() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires Double.isNaN(a);
+                  public void remainder(double a) {
+                    double r = Math.IEEEremainder(a, Double.POSITIVE_INFINITY);
+                    //@ assert false;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assert) in method remainder",9
                 );
     }
 
