@@ -1,0 +1,10 @@
+public enum E {
+    A, B;
+
+    //@ public normal_behavior
+    //@   ensures \result == ordinal() + 1;
+    //@ pure
+    public int v();
+
+    public static void m();
+}

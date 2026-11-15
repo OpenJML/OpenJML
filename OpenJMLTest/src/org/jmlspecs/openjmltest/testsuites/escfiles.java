@@ -332,6 +332,12 @@ public class escfiles extends EscBaseFiles {
         helpEscFile("test/patchModuleInfo/java/lang/PatchTiny.java","test/patchModuleInfo","--patch-module=java.base=test/patchModuleInfo");
     }
 
+    // An enum with both a .java and a .jml: the implicit enum declarations were entered twice
+    @Test
+    public void escEnumJml() {
+        helpEscFile("test/escEnumJml/E.java","test/escEnumJml","-classpath","test/escEnumJml");
+    }
+
     @Test
     public void escSeparateJml() {
         helpEscFile("test/escSeparateJml/BankingExample.java","test/escSeparateJml","-classpath","test/escSeparateJml");
