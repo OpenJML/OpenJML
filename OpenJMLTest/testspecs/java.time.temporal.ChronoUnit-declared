@@ -1,0 +1,5 @@
+<R>addTo(R,long)
+between(java.time.temporal.Temporal,java.time.temporal.Temporal)
+getDuration()
+isSupportedBy(java.time.temporal.Temporal)
+toString()

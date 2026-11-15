@@ -1,0 +1,26 @@
+Proving methods in java.text.ParsePosition
+Starting proof of java.text.ParsePosition.getIndex() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.text.ParsePosition.getIndex() with prover !!!! - no warnings
+Starting proof of java.text.ParsePosition.setIndex(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.text.ParsePosition.setIndex(int) with prover !!!! - no warnings
+Starting proof of java.text.ParsePosition.ParsePosition(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.text.ParsePosition.ParsePosition(int) with prover !!!! - no warnings
+Starting proof of java.text.ParsePosition.setErrorIndex(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.text.ParsePosition.setErrorIndex(int) with prover !!!! - no warnings
+Starting proof of java.text.ParsePosition.getErrorIndex() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.text.ParsePosition.getErrorIndex() with prover !!!! - no warnings
+Starting proof of java.text.ParsePosition.equals(@Nullable Object) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.text.ParsePosition.equals(@Nullable Object) with prover !!!! - no warnings
+Starting proof of java.text.ParsePosition.hashCode() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Completed proof of java.text.ParsePosition.hashCode() with prover !!!! - no warnings
+Completed proving methods in java.text.ParsePosition

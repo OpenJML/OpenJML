@@ -1,0 +1,2 @@
+--method=.*ParsePosition\.(ParsePosition|getIndex|setIndex|setErrorIndex|getErrorIndex|equals|hashCode)
+--no-show-skipped
