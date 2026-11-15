@@ -1,0 +1,2 @@
+--method=.*DayOfWeek\.(of|getValue|plus|minus)
+--no-show-skipped

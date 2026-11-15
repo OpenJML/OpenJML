@@ -1,0 +1,2 @@
+--method=.*StringCharacterIterator\.(StringCharacterIterator|setText|first|last|setIndex|current|next|previous|getBeginIndex|getEndIndex|getIndex)
+--no-show-skipped

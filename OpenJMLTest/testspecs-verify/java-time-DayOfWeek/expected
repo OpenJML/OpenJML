@@ -1,0 +1,14 @@
+Proving methods in java.time.DayOfWeek
+Starting proof of java.time.DayOfWeek.of(int) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.DayOfWeek.of(int) with prover !!!! - no warnings
+Starting proof of java.time.DayOfWeek.getValue() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.DayOfWeek.getValue() with prover !!!! - no warnings
+Starting proof of java.time.DayOfWeek.plus(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.DayOfWeek.plus(long) with prover !!!! - no warnings
+Starting proof of java.time.DayOfWeek.minus(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.DayOfWeek.minus(long) with prover !!!! - no warnings
+Completed proving methods in java.time.DayOfWeek

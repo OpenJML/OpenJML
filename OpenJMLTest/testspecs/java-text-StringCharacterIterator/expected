@@ -1,0 +1,23 @@
+Proving methods in TestStringCharacterIterator
+Starting proof of TestStringCharacterIterator.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestStringCharacterIterator.construct() with prover !!!! - no warnings
+Starting proof of TestStringCharacterIterator.walkForward() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestStringCharacterIterator.walkForward() with prover !!!! - no warnings
+Starting proof of TestStringCharacterIterator.walkBack() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestStringCharacterIterator.walkBack() with prover !!!! - no warnings
+Starting proof of TestStringCharacterIterator.empty() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestStringCharacterIterator.empty() with prover !!!! - no warnings
+Starting proof of TestStringCharacterIterator.setText() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestStringCharacterIterator.setText() with prover !!!! - no warnings
+Starting proof of TestStringCharacterIterator.equality() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestStringCharacterIterator.equality() with prover !!!! - no warnings
+Starting proof of TestStringCharacterIterator.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestStringCharacterIterator.exceptions() with prover !!!! - no warnings
+Completed proving methods in TestStringCharacterIterator
