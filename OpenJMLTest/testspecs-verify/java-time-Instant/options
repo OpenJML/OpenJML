@@ -1,0 +1,2 @@
+--method=.*Instant\.(Instant|ofEpochSecond|ofEpochMilli|getEpochSecond|getNano|plusSeconds|plusMillis|plusNanos|minusMillis|minusNanos|toEpochMilli|compareTo|isAfter|isBefore|equals|hashCode|create)
+--no-show-skipped
