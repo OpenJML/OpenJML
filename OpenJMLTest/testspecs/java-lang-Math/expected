@@ -1,0 +1,14 @@
+Proving methods in TestMath
+Starting proof of TestMath.exact() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMath.exact() with prover !!!! - no warnings
+Starting proof of TestMath.exactOverflow() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMath.exactOverflow() with prover !!!! - no warnings
+Starting proof of TestMath.floor() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMath.floor() with prover !!!! - no warnings
+Starting proof of TestMath.floorNegative() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMath.floorNegative() with prover !!!! - no warnings
+Completed proving methods in TestMath
