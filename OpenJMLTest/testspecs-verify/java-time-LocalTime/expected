@@ -1,0 +1,57 @@
+Proving methods in java.time.LocalTime
+Starting proof of java.time.LocalTime.create(int,int,int,int) with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.create(int,int,int,int) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.LocalTime(int,int,int,int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.time.LocalTime.LocalTime(int,int,int,int) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.getHour() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.getHour() with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.getMinute() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.getMinute() with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.getSecond() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.getSecond() with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.getNano() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.getNano() with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.plusHours(long) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.plusHours(long) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.minusHours(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.minusHours(long) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.minusMinutes(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.minusMinutes(long) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.minusSeconds(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.minusSeconds(long) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.minusNanos(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.minusNanos(long) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.toSecondOfDay() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.toSecondOfDay() with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.toNanoOfDay() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.toNanoOfDay() with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.compareTo(java.time.LocalTime) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.compareTo(java.time.LocalTime) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.isAfter(java.time.LocalTime) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.isAfter(java.time.LocalTime) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.isBefore(java.time.LocalTime) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.isBefore(java.time.LocalTime) with prover !!!! - no warnings
+Starting proof of java.time.LocalTime.equals(@Nullable Object) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalTime.equals(@Nullable Object) with prover !!!! - no warnings
+Completed proving methods in java.time.LocalTime
