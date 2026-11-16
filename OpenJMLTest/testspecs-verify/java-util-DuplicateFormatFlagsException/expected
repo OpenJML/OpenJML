@@ -1,0 +1,9 @@
+Proving methods in java.util.DuplicateFormatFlagsException
+Starting proof of java.util.DuplicateFormatFlagsException.DuplicateFormatFlagsException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.DuplicateFormatFlagsException.DuplicateFormatFlagsException(String) with prover !!!! - no warnings
+Starting proof of java.util.DuplicateFormatFlagsException.getFlags() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.DuplicateFormatFlagsException.getFlags() with prover !!!! - no warnings
+Skipping proof of java.util.DuplicateFormatFlagsException.getMessage() (Skipping java.util.DuplicateFormatFlagsException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.DuplicateFormatFlagsException

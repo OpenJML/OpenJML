@@ -1,0 +1,12 @@
+Proving methods in java.util.InvalidPropertiesFormatException
+Starting proof of java.util.InvalidPropertiesFormatException.InvalidPropertiesFormatException(Throwable) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Feasibility check - at implicit return : OK
+Completed proof of java.util.InvalidPropertiesFormatException.InvalidPropertiesFormatException(Throwable) with prover !!!! - no warnings
+Starting proof of java.util.InvalidPropertiesFormatException.InvalidPropertiesFormatException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.InvalidPropertiesFormatException.InvalidPropertiesFormatException(String) with prover !!!! - no warnings
+Skipping proof of java.util.InvalidPropertiesFormatException.writeObject(java.io.ObjectOutputStream) (Skipping java.util.InvalidPropertiesFormatException.writeObject because it matches the exclusion writeObject)
+Skipping proof of java.util.InvalidPropertiesFormatException.readObject(java.io.ObjectInputStream) (Skipping java.util.InvalidPropertiesFormatException.readObject because it matches the exclusion readObject)
+Completed proving methods in java.util.InvalidPropertiesFormatException

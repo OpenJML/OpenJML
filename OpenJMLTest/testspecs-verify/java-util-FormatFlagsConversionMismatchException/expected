@@ -1,0 +1,12 @@
+Proving methods in java.util.FormatFlagsConversionMismatchException
+Starting proof of java.util.FormatFlagsConversionMismatchException.FormatFlagsConversionMismatchException(String,char) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.FormatFlagsConversionMismatchException.FormatFlagsConversionMismatchException(String,char) with prover !!!! - no warnings
+Starting proof of java.util.FormatFlagsConversionMismatchException.getFlags() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.FormatFlagsConversionMismatchException.getFlags() with prover !!!! - no warnings
+Starting proof of java.util.FormatFlagsConversionMismatchException.getConversion() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.FormatFlagsConversionMismatchException.getConversion() with prover !!!! - no warnings
+Skipping proof of java.util.FormatFlagsConversionMismatchException.getMessage() (Skipping java.util.FormatFlagsConversionMismatchException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.FormatFlagsConversionMismatchException

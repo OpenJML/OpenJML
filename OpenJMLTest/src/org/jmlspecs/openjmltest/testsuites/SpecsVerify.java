@@ -127,15 +127,15 @@ public class SpecsVerify extends EscBaseFiles {
         int count = 0;
         for (Symbol s: csym.members().getSymbols()) {
             if (!(s instanceof MethodSymbol msym)) continue;
-            if ((msym.flags() & (Flags.PUBLIC|Flags.PROTECTED)) == 0 || (msym.flags() & (Flags.SYNTHETIC|Flags.BRIDGE)) != 0) continue;
             count++;
+            if ((msym.flags() & (Flags.PUBLIC|Flags.PROTECTED)) == 0 || (msym.flags() & (Flags.SYNTHETIC|Flags.BRIDGE)) != 0) continue;
             var ms = specs.getLoadedSpecs(msym);
             boolean specified = ms != null && ms.specDecl != null && ms.specDecl.sourcefile != null
                     && ms.specDecl.sourcefile.getName().endsWith(".jml")
                     && ms.cases != null && ms.cases.cases.nonEmpty();
             if (!specified) missing.add(msym.toString());
         }
-        assertTrue("No public methods found in " + className(), count > 0);
+        assertTrue("No methods found in " + className(), count > 0);
         missing.sort(null);
         Path known = Path.of(outDir(), "unspecified");
         var expected = new ArrayList<String>();

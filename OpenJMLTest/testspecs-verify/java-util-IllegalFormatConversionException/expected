@@ -1,0 +1,12 @@
+Proving methods in java.util.IllegalFormatConversionException
+Starting proof of java.util.IllegalFormatConversionException.IllegalFormatConversionException(char,Class<?>) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.IllegalFormatConversionException.IllegalFormatConversionException(char,Class<?>) with prover !!!! - no warnings
+Starting proof of java.util.IllegalFormatConversionException.getConversion() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IllegalFormatConversionException.getConversion() with prover !!!! - no warnings
+Starting proof of java.util.IllegalFormatConversionException.getArgumentClass() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IllegalFormatConversionException.getArgumentClass() with prover !!!! - no warnings
+Skipping proof of java.util.IllegalFormatConversionException.getMessage() (Skipping java.util.IllegalFormatConversionException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.IllegalFormatConversionException

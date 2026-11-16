@@ -1,0 +1,1 @@
+--exclude=readObject,writeObject,readObjectNoData,readResolve,writeReplace,getMessage

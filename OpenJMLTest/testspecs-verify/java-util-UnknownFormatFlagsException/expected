@@ -1,0 +1,9 @@
+Proving methods in java.util.UnknownFormatFlagsException
+Starting proof of java.util.UnknownFormatFlagsException.UnknownFormatFlagsException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.UnknownFormatFlagsException.UnknownFormatFlagsException(String) with prover !!!! - no warnings
+Starting proof of java.util.UnknownFormatFlagsException.getFlags() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.UnknownFormatFlagsException.getFlags() with prover !!!! - no warnings
+Skipping proof of java.util.UnknownFormatFlagsException.getMessage() (Skipping java.util.UnknownFormatFlagsException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.UnknownFormatFlagsException
