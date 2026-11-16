@@ -1,0 +1,8 @@
+Proving methods in TestIllegalFormatConversionException
+Starting proof of TestIllegalFormatConversionException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIllegalFormatConversionException.construct() with prover !!!! - no warnings
+Starting proof of TestIllegalFormatConversionException.nullArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIllegalFormatConversionException.nullArgument() with prover !!!! - no warnings
+Completed proving methods in TestIllegalFormatConversionException

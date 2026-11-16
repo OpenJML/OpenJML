@@ -1,0 +1,8 @@
+Proving methods in TestUnknownFormatFlagsException
+Starting proof of TestUnknownFormatFlagsException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestUnknownFormatFlagsException.construct() with prover !!!! - no warnings
+Starting proof of TestUnknownFormatFlagsException.nullArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestUnknownFormatFlagsException.nullArgument() with prover !!!! - no warnings
+Completed proving methods in TestUnknownFormatFlagsException

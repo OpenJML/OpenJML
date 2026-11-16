@@ -1,0 +1,8 @@
+Proving methods in TestMissingFormatArgumentException
+Starting proof of TestMissingFormatArgumentException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMissingFormatArgumentException.construct() with prover !!!! - no warnings
+Starting proof of TestMissingFormatArgumentException.nullArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMissingFormatArgumentException.nullArgument() with prover !!!! - no warnings
+Completed proving methods in TestMissingFormatArgumentException

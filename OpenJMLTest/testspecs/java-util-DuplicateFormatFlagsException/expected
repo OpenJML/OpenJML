@@ -1,0 +1,8 @@
+Proving methods in TestDuplicateFormatFlagsException
+Starting proof of TestDuplicateFormatFlagsException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuplicateFormatFlagsException.construct() with prover !!!! - no warnings
+Starting proof of TestDuplicateFormatFlagsException.nullArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuplicateFormatFlagsException.nullArgument() with prover !!!! - no warnings
+Completed proving methods in TestDuplicateFormatFlagsException
