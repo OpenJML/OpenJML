@@ -4,9 +4,6 @@ Completed proving methods in java.time.Duration.Lazy
 Starting proof of java.time.Duration.ofSeconds(long) with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.Duration.ofSeconds(long) with prover !!!! - no warnings
-Starting proof of java.time.Duration.ofMillis(long) with prover !!!!
-Feasibility check - at return statement : OK
-Completed proof of java.time.Duration.ofMillis(long) with prover !!!! - no warnings
 Starting proof of java.time.Duration.ofNanos(long) with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.Duration.ofNanos(long) with prover !!!! - no warnings
@@ -49,33 +46,15 @@ Completed proof of java.time.Duration.plusMillis(long) with prover !!!! - no war
 Starting proof of java.time.Duration.plusNanos(long) with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.Duration.plusNanos(long) with prover !!!! - no warnings
-Starting proof of java.time.Duration.minusMinutes(long) with prover !!!!
-Feasibility check - at return statement : OK
-Completed proof of java.time.Duration.minusMinutes(long) with prover !!!! - no warnings
-Starting proof of java.time.Duration.minusMillis(long) with prover !!!!
-Feasibility check - at return statement : OK
-Completed proof of java.time.Duration.minusMillis(long) with prover !!!! - no warnings
-Starting proof of java.time.Duration.abs() with prover !!!!
-Feasibility check - at return statement : OK
-Completed proof of java.time.Duration.abs() with prover !!!! - no warnings
 Starting proof of java.time.Duration.toDays() with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.Duration.toDays() with prover !!!! - no warnings
-Starting proof of java.time.Duration.toHours() with prover !!!!
-Feasibility check - at return statement : OK
-Completed proof of java.time.Duration.toHours() with prover !!!! - no warnings
 Starting proof of java.time.Duration.toSeconds() with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.Duration.toSeconds() with prover !!!! - no warnings
 Starting proof of java.time.Duration.toMillis() with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.Duration.toMillis() with prover !!!! - no warnings
-Starting proof of java.time.Duration.toHoursPart() with prover !!!!
-Feasibility check - at return statement : OK
-Completed proof of java.time.Duration.toHoursPart() with prover !!!! - no warnings
-Starting proof of java.time.Duration.toSecondsPart() with prover !!!!
-Feasibility check - at return statement : OK
-Completed proof of java.time.Duration.toSecondsPart() with prover !!!! - no warnings
 Starting proof of java.time.Duration.toMillisPart() with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.Duration.toMillisPart() with prover !!!! - no warnings

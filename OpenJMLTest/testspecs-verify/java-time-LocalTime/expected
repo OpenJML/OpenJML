@@ -19,10 +19,6 @@ Completed proof of java.time.LocalTime.getSecond() with prover !!!! - no warning
 Starting proof of java.time.LocalTime.getNano() with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.LocalTime.getNano() with prover !!!! - no warnings
-Starting proof of java.time.LocalTime.plusHours(long) with prover !!!!
-Feasibility check - at return statement : OK
-Feasibility check - at return statement : OK
-Completed proof of java.time.LocalTime.plusHours(long) with prover !!!! - no warnings
 Starting proof of java.time.LocalTime.minusHours(long) with prover !!!!
 Feasibility check - at return statement : OK
 Completed proof of java.time.LocalTime.minusHours(long) with prover !!!! - no warnings
