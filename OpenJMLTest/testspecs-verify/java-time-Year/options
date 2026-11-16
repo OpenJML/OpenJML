@@ -1,0 +1,2 @@
+--method=.*Year\.(isLeap|getValue|length|compareTo|isAfter|isBefore|equals|hashCode)
+--no-show-skipped

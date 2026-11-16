@@ -1,0 +1,6 @@
+<R>query(java.time.temporal.TemporalQuery<R>)
+adjustInto(java.time.temporal.Temporal)
+getDisplayName(java.time.format.TextStyle,java.util.Locale)
+range(java.time.temporal.TemporalField)
+valueOf(java.lang.String)
+values()

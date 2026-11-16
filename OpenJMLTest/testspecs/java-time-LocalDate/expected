@@ -1,0 +1,35 @@
+Proving methods in TestLocalDate
+Starting proof of TestLocalDate.constants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.constants() with prover !!!! - no warnings
+Starting proof of TestLocalDate.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.construct() with prover !!!! - no warnings
+Starting proof of TestLocalDate.dayOfYear() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.dayOfYear() with prover !!!! - no warnings
+Starting proof of TestLocalDate.lengths() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.lengths() with prover !!!! - no warnings
+Starting proof of TestLocalDate.withers() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.withers() with prover !!!! - no warnings
+Starting proof of TestLocalDate.years() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.years() with prover !!!! - no warnings
+Starting proof of TestLocalDate.months() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.months() with prover !!!! - no warnings
+Starting proof of TestLocalDate.days() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.days() with prover !!!! - no warnings
+Starting proof of TestLocalDate.epochDays() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.epochDays() with prover !!!! - no warnings
+Starting proof of TestLocalDate.comparison() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.comparison() with prover !!!! - no warnings
+Starting proof of TestLocalDate.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalDate.exceptions() with prover !!!! - no warnings
+Completed proving methods in TestLocalDate

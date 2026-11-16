@@ -1,0 +1,12 @@
+Proving methods in TestParsePosition
+Starting proof of TestParsePosition.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestParsePosition.construct() with prover !!!! - no warnings
+Starting proof of TestParsePosition.setters() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestParsePosition.setters() with prover !!!! - no warnings
+Starting proof of TestParsePosition.equality() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at implicit return : OK
+Completed proof of TestParsePosition.equality() with prover !!!! - no warnings
+Completed proving methods in TestParsePosition

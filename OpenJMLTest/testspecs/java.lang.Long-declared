@@ -1,5 +1,4 @@
 bitCount(long)
-compare(long,long)
 compareUnsigned(long,long)
 compress(long,long)
 describeConstable()

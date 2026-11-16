@@ -1,0 +1,2 @@
+--method=.*LocalTime\.(LocalTime|create|getHour|getMinute|getSecond|getNano|minusHours|minusMinutes|minusSeconds|minusNanos|toSecondOfDay|toNanoOfDay|compareTo|isAfter|isBefore|equals)
+--no-show-skipped

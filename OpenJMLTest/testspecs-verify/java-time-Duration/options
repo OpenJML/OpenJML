@@ -1,0 +1,2 @@
+--method=.*Duration\.(Duration|ofNanos|isPositive|isZero|isNegative|getSeconds|getNano|withSeconds|plusMillis|plusNanos|toDays|toSeconds|toMillis|toMillisPart|toNanosPart|hashCode)|.*Duration\.ofSeconds\(long\)|.*Duration\.plus\(java\.time\.Duration\)|.*Duration\.create\(long,int\)
+--no-show-skipped

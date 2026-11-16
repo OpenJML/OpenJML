@@ -1,0 +1,17 @@
+Proving methods in TestYear
+Starting proof of TestYear.leap() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestYear.leap() with prover !!!! - no warnings
+Starting proof of TestYear.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestYear.construct() with prover !!!! - no warnings
+Starting proof of TestYear.arithmetic() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestYear.arithmetic() with prover !!!! - no warnings
+Starting proof of TestYear.comparison() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestYear.comparison() with prover !!!! - no warnings
+Starting proof of TestYear.limits() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestYear.limits() with prover !!!! - no warnings
+Completed proving methods in TestYear

@@ -1,0 +1,44 @@
+Proving methods in java.text.StringCharacterIterator
+Starting proof of java.text.StringCharacterIterator.StringCharacterIterator(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.text.StringCharacterIterator.StringCharacterIterator(String) with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.StringCharacterIterator(String,int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.text.StringCharacterIterator.StringCharacterIterator(String,int) with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.StringCharacterIterator(@Nullable String,int,int,int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.text.StringCharacterIterator.StringCharacterIterator(@Nullable String,int,int,int) with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.setText(@Nullable String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.text.StringCharacterIterator.setText(@Nullable String) with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.first() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.first() with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.last() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.last() with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.setIndex(int) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.setIndex(int) with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.current() with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.current() with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.next() with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.next() with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.previous() with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.previous() with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.getBeginIndex() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.getBeginIndex() with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.getEndIndex() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.getEndIndex() with prover !!!! - no warnings
+Starting proof of java.text.StringCharacterIterator.getIndex() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.text.StringCharacterIterator.getIndex() with prover !!!! - no warnings
+Completed proving methods in java.text.StringCharacterIterator
