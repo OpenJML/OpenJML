@@ -1,0 +1,49 @@
+Proving methods in java.time.LocalDate
+Starting proof of java.time.LocalDate.LocalDate(int,int,int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.time.LocalDate.LocalDate(int,int,int) with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.getYear() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.getYear() with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.getMonthValue() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.getMonthValue() with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.getMonth() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.getMonth() with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.getDayOfMonth() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.getDayOfMonth() with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.getDayOfWeek() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.getDayOfWeek() with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.isLeapYear() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.isLeapYear() with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.lengthOfMonth() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.lengthOfMonth() with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.lengthOfYear() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.lengthOfYear() with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.withDayOfMonth(int) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.withDayOfMonth(int) with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.plusWeeks(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.plusWeeks(long) with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.minusWeeks(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.minusWeeks(long) with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.minusDays(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.minusDays(long) with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.compareTo0(java.time.LocalDate) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.compareTo0(java.time.LocalDate) with prover !!!! - no warnings
+Starting proof of java.time.LocalDate.hashCode() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Completed proof of java.time.LocalDate.hashCode() with prover !!!! - no warnings
+Completed proving methods in java.time.LocalDate

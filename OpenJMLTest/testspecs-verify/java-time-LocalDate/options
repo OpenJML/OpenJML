@@ -1,0 +1,2 @@
+--method=.*LocalDate\.(LocalDate|compareTo0|getYear|getMonthValue|getDayOfMonth|getMonth|getDayOfWeek|lengthOfYear|lengthOfMonth|isLeapYear|withDayOfMonth|minusDays|minusWeeks|plusWeeks|hashCode)
+--no-show-skipped
