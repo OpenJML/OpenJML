@@ -1,0 +1,9 @@
+Proving methods in java.util.IllegalFormatFlagsException
+Starting proof of java.util.IllegalFormatFlagsException.IllegalFormatFlagsException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.IllegalFormatFlagsException.IllegalFormatFlagsException(String) with prover !!!! - no warnings
+Starting proof of java.util.IllegalFormatFlagsException.getFlags() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IllegalFormatFlagsException.getFlags() with prover !!!! - no warnings
+Skipping proof of java.util.IllegalFormatFlagsException.getMessage() (Skipping java.util.IllegalFormatFlagsException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.IllegalFormatFlagsException

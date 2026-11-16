@@ -1,0 +1,9 @@
+Proving methods in java.util.MissingFormatWidthException
+Starting proof of java.util.MissingFormatWidthException.MissingFormatWidthException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.MissingFormatWidthException.MissingFormatWidthException(String) with prover !!!! - no warnings
+Starting proof of java.util.MissingFormatWidthException.getFormatSpecifier() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.MissingFormatWidthException.getFormatSpecifier() with prover !!!! - no warnings
+Skipping proof of java.util.MissingFormatWidthException.getMessage() (Skipping java.util.MissingFormatWidthException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.MissingFormatWidthException

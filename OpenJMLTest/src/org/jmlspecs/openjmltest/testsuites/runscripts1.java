@@ -95,6 +95,14 @@ public class runscripts1 extends RunBase {
         doTest();
     }
 
+    @Test public void sealedbinary() {
+        doTest();
+    }
+
+    @Test public void sealedbinarypermits() {
+        doTest();
+    }
+
     @Test public void nomodelmethod() {
         doTest();
     }

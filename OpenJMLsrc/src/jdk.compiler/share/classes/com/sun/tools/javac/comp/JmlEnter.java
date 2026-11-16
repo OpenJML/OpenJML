@@ -1721,6 +1721,13 @@ public class JmlEnter extends Enter {
 //            permittedSubtypeSymbols.append(pt.tsym);
 //        }
 //
+		// Attribute the permits clause (later phases need its symbols); the class's permitted list stays as is
+		for (JCExpression permitted : tree.permitting) {
+			Type pt = attr.attribBase(permitted, baseEnv, tree, false, false, false);
+			if (pt.hasTag(CLASS) && !sym.permitted.contains(pt.tsym)) {
+				utils.error(permitted, "jml.message", "Permitted subclass declared in .jml is not permitted by " + sym + ": " + pt);
+			}
+		}
 		// FIXME - We might be calling this method for a class declared in a JML file for which there exists 
 		// a Java or Binary class already. If we do not overwrite the fields of ct, we get all manner of 
 		// specification related errors, but overwriting with bad superclass or interface information also

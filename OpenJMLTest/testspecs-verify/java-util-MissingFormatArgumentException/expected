@@ -1,0 +1,9 @@
+Proving methods in java.util.MissingFormatArgumentException
+Starting proof of java.util.MissingFormatArgumentException.MissingFormatArgumentException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.MissingFormatArgumentException.MissingFormatArgumentException(String) with prover !!!! - no warnings
+Starting proof of java.util.MissingFormatArgumentException.getFormatSpecifier() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.MissingFormatArgumentException.getFormatSpecifier() with prover !!!! - no warnings
+Skipping proof of java.util.MissingFormatArgumentException.getMessage() (Skipping java.util.MissingFormatArgumentException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.MissingFormatArgumentException

@@ -1,0 +1,9 @@
+Proving methods in java.util.IllegalFormatCodePointException
+Starting proof of java.util.IllegalFormatCodePointException.IllegalFormatCodePointException(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.IllegalFormatCodePointException.IllegalFormatCodePointException(int) with prover !!!! - no warnings
+Starting proof of java.util.IllegalFormatCodePointException.getCodePoint() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IllegalFormatCodePointException.getCodePoint() with prover !!!! - no warnings
+Skipping proof of java.util.IllegalFormatCodePointException.getMessage() (Skipping java.util.IllegalFormatCodePointException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.IllegalFormatCodePointException

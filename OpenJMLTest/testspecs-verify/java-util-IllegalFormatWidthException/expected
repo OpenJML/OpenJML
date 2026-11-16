@@ -1,0 +1,9 @@
+Proving methods in java.util.IllegalFormatWidthException
+Starting proof of java.util.IllegalFormatWidthException.IllegalFormatWidthException(int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.IllegalFormatWidthException.IllegalFormatWidthException(int) with prover !!!! - no warnings
+Starting proof of java.util.IllegalFormatWidthException.getWidth() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.IllegalFormatWidthException.getWidth() with prover !!!! - no warnings
+Skipping proof of java.util.IllegalFormatWidthException.getMessage() (Skipping java.util.IllegalFormatWidthException.getMessage because it matches the exclusion getMessage)
+Completed proving methods in java.util.IllegalFormatWidthException

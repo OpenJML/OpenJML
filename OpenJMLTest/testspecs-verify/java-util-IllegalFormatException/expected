@@ -1,0 +1,5 @@
+Proving methods in java.util.IllegalFormatException
+Starting proof of java.util.IllegalFormatException.IllegalFormatException() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.IllegalFormatException.IllegalFormatException() with prover !!!! - no warnings
+Completed proving methods in java.util.IllegalFormatException
