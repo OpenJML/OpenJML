@@ -1,0 +1,12 @@
+Proving methods in TestFieldPosition
+Starting proof of TestFieldPosition.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestFieldPosition.construct() with prover !!!! - no warnings
+Starting proof of TestFieldPosition.setters() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestFieldPosition.setters() with prover !!!! - no warnings
+Starting proof of TestFieldPosition.equality() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at implicit return : OK
+Completed proof of TestFieldPosition.equality() with prover !!!! - no warnings
+Completed proving methods in TestFieldPosition

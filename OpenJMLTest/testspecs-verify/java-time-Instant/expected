@@ -1,0 +1,65 @@
+Proving methods in java.time.Instant
+Starting proof of java.time.Instant.ofEpochSecond(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.ofEpochSecond(long) with prover !!!! - no warnings
+Starting proof of java.time.Instant.ofEpochSecond(long,long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.ofEpochSecond(long,long) with prover !!!! - no warnings
+Starting proof of java.time.Instant.ofEpochMilli(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.ofEpochMilli(long) with prover !!!! - no warnings
+Starting proof of java.time.Instant.create(long,int) with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.create(long,int) with prover !!!! - no warnings
+Starting proof of java.time.Instant.Instant(long,int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.time.Instant.Instant(long,int) with prover !!!! - no warnings
+Starting proof of java.time.Instant.getEpochSecond() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.getEpochSecond() with prover !!!! - no warnings
+Starting proof of java.time.Instant.getNano() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.getNano() with prover !!!! - no warnings
+Starting proof of java.time.Instant.plusSeconds(long) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.plusSeconds(long) with prover !!!! - no warnings
+Starting proof of java.time.Instant.plusMillis(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.plusMillis(long) with prover !!!! - no warnings
+Starting proof of java.time.Instant.plusNanos(long) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.plusNanos(long) with prover !!!! - no warnings
+Starting proof of java.time.Instant.minusMillis(long) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.minusMillis(long) with prover !!!! - no warnings
+Starting proof of java.time.Instant.minusNanos(long) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.minusNanos(long) with prover !!!! - no warnings
+Starting proof of java.time.Instant.toEpochMilli() with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.toEpochMilli() with prover !!!! - no warnings
+Starting proof of java.time.Instant.compareTo(java.time.Instant) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.compareTo(java.time.Instant) with prover !!!! - no warnings
+Starting proof of java.time.Instant.isAfter(java.time.Instant) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.isAfter(java.time.Instant) with prover !!!! - no warnings
+Starting proof of java.time.Instant.isBefore(java.time.Instant) with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.isBefore(java.time.Instant) with prover !!!! - no warnings
+Starting proof of java.time.Instant.equals(@Nullable Object) with prover !!!!
+Feasibility check - at return statement : OK
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.equals(@Nullable Object) with prover !!!! - no warnings
+Starting proof of java.time.Instant.hashCode() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at return statement : OK
+Completed proof of java.time.Instant.hashCode() with prover !!!! - no warnings
+Completed proving methods in java.time.Instant

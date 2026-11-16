@@ -1,0 +1,20 @@
+Proving methods in TestInstant
+Starting proof of TestInstant.constants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInstant.constants() with prover !!!! - no warnings
+Starting proof of TestInstant.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInstant.construct() with prover !!!! - no warnings
+Starting proof of TestInstant.arithmetic() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInstant.arithmetic() with prover !!!! - no warnings
+Starting proof of TestInstant.millis() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInstant.millis() with prover !!!! - no warnings
+Starting proof of TestInstant.comparison() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInstant.comparison() with prover !!!! - no warnings
+Starting proof of TestInstant.limits() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInstant.limits() with prover !!!! - no warnings
+Completed proving methods in TestInstant

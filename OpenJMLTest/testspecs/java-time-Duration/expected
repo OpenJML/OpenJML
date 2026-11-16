@@ -1,0 +1,29 @@
+Proving methods in TestDuration
+Starting proof of TestDuration.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.construct() with prover !!!! - no warnings
+Starting proof of TestDuration.normalize() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.normalize() with prover !!!! - no warnings
+Starting proof of TestDuration.predicates() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.predicates() with prover !!!! - no warnings
+Starting proof of TestDuration.arithmetic() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.arithmetic() with prover !!!! - no warnings
+Starting proof of TestDuration.arithmeticNegative() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.arithmeticNegative() with prover !!!! - no warnings
+Starting proof of TestDuration.conversions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.conversions() with prover !!!! - no warnings
+Starting proof of TestDuration.parts() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.parts() with prover !!!! - no warnings
+Starting proof of TestDuration.comparison() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.comparison() with prover !!!! - no warnings
+Starting proof of TestDuration.overflow() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDuration.overflow() with prover !!!! - no warnings
+Completed proving methods in TestDuration

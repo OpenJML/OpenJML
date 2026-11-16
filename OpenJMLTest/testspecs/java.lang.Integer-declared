@@ -1,4 +1,3 @@
-compare(int,int)
 compareUnsigned(int,int)
 compress(int,int)
 describeConstable()

@@ -1,0 +1,26 @@
+Proving methods in TestLocalTime
+Starting proof of TestLocalTime.constants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalTime.constants() with prover !!!! - no warnings
+Starting proof of TestLocalTime.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalTime.construct() with prover !!!! - no warnings
+Starting proof of TestLocalTime.ofDay() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalTime.ofDay() with prover !!!! - no warnings
+Starting proof of TestLocalTime.plus() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalTime.plus() with prover !!!! - no warnings
+Starting proof of TestLocalTime.wrap() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalTime.wrap() with prover !!!! - no warnings
+Starting proof of TestLocalTime.minus() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalTime.minus() with prover !!!! - no warnings
+Starting proof of TestLocalTime.comparison() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalTime.comparison() with prover !!!! - no warnings
+Starting proof of TestLocalTime.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLocalTime.exceptions() with prover !!!! - no warnings
+Completed proving methods in TestLocalTime

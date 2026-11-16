@@ -1,0 +1,17 @@
+Proving methods in TestDayOfWeek
+Starting proof of TestDayOfWeek.values() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDayOfWeek.values() with prover !!!! - no warnings
+Starting proof of TestDayOfWeek.of() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDayOfWeek.of() with prover !!!! - no warnings
+Starting proof of TestDayOfWeek.arithmetic() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDayOfWeek.arithmetic() with prover !!!! - no warnings
+Starting proof of TestDayOfWeek.fields() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDayOfWeek.fields() with prover !!!! - no warnings
+Starting proof of TestDayOfWeek.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDayOfWeek.exceptions() with prover !!!! - no warnings
+Completed proving methods in TestDayOfWeek

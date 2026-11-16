@@ -1,0 +1,8 @@
+Proving methods in java.time.temporal.UnsupportedTemporalTypeException
+Starting proof of java.time.temporal.UnsupportedTemporalTypeException.UnsupportedTemporalTypeException(String) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.time.temporal.UnsupportedTemporalTypeException.UnsupportedTemporalTypeException(String) with prover !!!! - no warnings
+Starting proof of java.time.temporal.UnsupportedTemporalTypeException.UnsupportedTemporalTypeException(String,@Nullable Throwable) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.time.temporal.UnsupportedTemporalTypeException.UnsupportedTemporalTypeException(String,@Nullable Throwable) with prover !!!! - no warnings
+Completed proving methods in java.time.temporal.UnsupportedTemporalTypeException

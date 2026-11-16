@@ -43,6 +43,7 @@ import org.jmlspecs.openjml.JmlTreeUtils;
 import org.jmlspecs.openjml.Strings;
 import org.jmlspecs.openjml.Utils;
 import org.jmlspecs.openjml.ext.Modifiers;
+import org.jmlspecs.openjml.ext.TypeExprClauseExtension;
 import org.jmlspecs.openjml.ext.TypeInitializerClauseExtension;
 
 import com.sun.tools.javac.code.Attribute.Compound;
@@ -183,6 +184,19 @@ public class JmlMemberEnter extends MemberEnter  {// implements IJmlVisitor {
     	JmlClassDecl sourceDecl = (JmlClassDecl)env.enclClass;
         JmlClassDecl specsDecl = sourceDecl.specsDecl;
         if (specsDecl == null) throw new AssertionError("UNEXPECTED NULL SPECSDECL");
+        if (specsDecl != sourceDecl && sourceDecl.sym.isEnum()) {
+            // The parser adds the implicit enum declarations (_JMLvalues and its axioms) to both the .java and
+            // the .jml; only the .jml's are used, so drop the .java's, which would otherwise duplicate _JMLvalues
+            // and be left unattributed
+            var defs = new ListBuffer<JCTree>();
+            for (var t: sourceDecl.defs) {
+                if (t instanceof JmlVariableDecl vd && utils.isJML(vd) && vd.name.toString().equals("_JMLvalues")) continue;
+                if (t instanceof JmlTree.JmlTypeClauseExpr tc && tc.clauseType == TypeExprClauseExtension.axiomClause) continue;
+                defs.add(t);
+            }
+            sourceDecl.defs = defs.toList();
+            trees = sourceDecl.defs;
+        }
         
         TypeEnter.instance(context).new MembersPhase().enterThisAndSuper(sourceDecl.sym, env);
 		

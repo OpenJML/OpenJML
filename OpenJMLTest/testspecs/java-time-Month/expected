@@ -1,0 +1,14 @@
+Proving methods in TestMonth
+Starting proof of TestMonth.values() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMonth.values() with prover !!!! - no warnings
+Starting proof of TestMonth.arithmetic() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMonth.arithmetic() with prover !!!! - no warnings
+Starting proof of TestMonth.lengths() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMonth.lengths() with prover !!!! - no warnings
+Starting proof of TestMonth.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMonth.exceptions() with prover !!!! - no warnings
+Completed proving methods in TestMonth
