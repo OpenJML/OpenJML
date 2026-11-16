@@ -111,9 +111,10 @@ jobs:
       with:
         os-label: ${{ matrix.label }}
 
+    ## Failed groups are listed in a workspace file, not GITHUB_ENV, which does not reach WSL (see the note at the top)
     - name: Variable
       run: |
-        echo "failures=" >> $GITHUB_ENV
+        rm -f othertests-failures
 
     - name: Run userguide tests
       run: |
@@ -121,27 +122,27 @@ jobs:
         git clone https://git:${{ secrets.OVERLEAF_TOKEN }}@git.overleaf.com/620c2512d552cc226f5f4c94
         cd 620c2512d552cc226f5f4c94
         chmod +x test-userguide-examples
-        ./test-userguide-examples || echo "failures=$failures userguide tests failed." >> $GITHUB_ENV
+        ./test-userguide-examples || echo "userguide tests failed." >> ../../../othertests-failures
 
     - name: Run release tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" make -C OpenJML/OpenJMLTest release-tests || echo "failures=$failures release tests failed." >> $GITHUB_ENV
+        PATH="$PWD/OpenJML/OpenJMLsrc:$PATH" make -C OpenJML/OpenJMLTest release-tests || echo "release tests failed." >> othertests-failures
 
     - name: Run tutorial tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || echo "failures=$failures tutorial tests failed." >> $GITHUB_ENV
+        PATH="$PWD/OpenJML/OpenJMLsrc:$PATH" make -C OpenJML/OpenJMLTest tutorial-tests-git || echo "tutorial tests failed." >> othertests-failures
 
     - name: Run json tests
       run: |
-        PATH="$GITHUB_WORKSPACE/OpenJML/$FOLDER:$PATH" make -C OpenJML/OpenJMLTest json-tests || echo "failures=$failures json tests failed." >> $GITHUB_ENV
+        PATH="$PWD/OpenJML/OpenJMLsrc:$PATH" make -C OpenJML/OpenJMLTest json-tests || echo "json tests failed." >> othertests-failures
 
     - name: Run LSP server tests
       run: |
-        make -C OpenJML/OpenJMLlsp all || echo "failures=$failures LSP server tests failed." >> $GITHUB_ENV
+        make -C OpenJML/OpenJMLlsp all || echo "LSP server tests failed." >> othertests-failures
 
     - name: Report
       run: |
-        if [ -z "$failures" ] ; then echo All tests OK; exit 0; else echo $failures; exit 1; fi
+        if [ ! -s othertests-failures ] ; then echo All tests OK; exit 0; else cat othertests-failures; exit 1; fi
 
     ## Reports the failed tests in this job's log and uploads the test logs, whether or not the tests passed
     - name: Report test failures and upload test logs
