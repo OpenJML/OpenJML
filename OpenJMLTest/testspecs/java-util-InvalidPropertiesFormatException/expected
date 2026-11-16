@@ -1,0 +1,5 @@
+Proving methods in TestInvalidPropertiesFormatException
+Starting proof of TestInvalidPropertiesFormatException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestInvalidPropertiesFormatException.construct() with prover !!!! - no warnings
+Completed proving methods in TestInvalidPropertiesFormatException

@@ -1,0 +1,5 @@
+Proving methods in TestIllegalFormatPrecisionException
+Starting proof of TestIllegalFormatPrecisionException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIllegalFormatPrecisionException.construct() with prover !!!! - no warnings
+Completed proving methods in TestIllegalFormatPrecisionException

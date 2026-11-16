@@ -1,0 +1,8 @@
+Proving methods in TestFormatFlagsConversionMismatchException
+Starting proof of TestFormatFlagsConversionMismatchException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestFormatFlagsConversionMismatchException.construct() with prover !!!! - no warnings
+Starting proof of TestFormatFlagsConversionMismatchException.nullArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestFormatFlagsConversionMismatchException.nullArgument() with prover !!!! - no warnings
+Completed proving methods in TestFormatFlagsConversionMismatchException

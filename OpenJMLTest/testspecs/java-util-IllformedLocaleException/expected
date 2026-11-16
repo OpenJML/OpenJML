@@ -1,0 +1,5 @@
+Proving methods in TestIllformedLocaleException
+Starting proof of TestIllformedLocaleException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIllformedLocaleException.construct() with prover !!!! - no warnings
+Completed proving methods in TestIllformedLocaleException

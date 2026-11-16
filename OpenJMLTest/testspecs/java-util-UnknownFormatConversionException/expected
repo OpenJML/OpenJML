@@ -1,0 +1,8 @@
+Proving methods in TestUnknownFormatConversionException
+Starting proof of TestUnknownFormatConversionException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestUnknownFormatConversionException.construct() with prover !!!! - no warnings
+Starting proof of TestUnknownFormatConversionException.nullArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestUnknownFormatConversionException.nullArgument() with prover !!!! - no warnings
+Completed proving methods in TestUnknownFormatConversionException

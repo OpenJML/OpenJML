@@ -1,0 +1,8 @@
+Proving methods in TestIllegalFormatFlagsException
+Starting proof of TestIllegalFormatFlagsException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIllegalFormatFlagsException.construct() with prover !!!! - no warnings
+Starting proof of TestIllegalFormatFlagsException.nullArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIllegalFormatFlagsException.nullArgument() with prover !!!! - no warnings
+Completed proving methods in TestIllegalFormatFlagsException

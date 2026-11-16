@@ -1,0 +1,8 @@
+Proving methods in TestMissingFormatWidthException
+Starting proof of TestMissingFormatWidthException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMissingFormatWidthException.construct() with prover !!!! - no warnings
+Starting proof of TestMissingFormatWidthException.nullArgument() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestMissingFormatWidthException.nullArgument() with prover !!!! - no warnings
+Completed proving methods in TestMissingFormatWidthException

@@ -1,0 +1,5 @@
+Proving methods in TestIllegalFormatWidthException
+Starting proof of TestIllegalFormatWidthException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIllegalFormatWidthException.construct() with prover !!!! - no warnings
+Completed proving methods in TestIllegalFormatWidthException

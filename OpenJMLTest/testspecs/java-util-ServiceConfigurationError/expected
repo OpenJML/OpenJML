@@ -1,0 +1,5 @@
+Proving methods in TestServiceConfigurationError
+Starting proof of TestServiceConfigurationError.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestServiceConfigurationError.construct() with prover !!!! - no warnings
+Completed proving methods in TestServiceConfigurationError

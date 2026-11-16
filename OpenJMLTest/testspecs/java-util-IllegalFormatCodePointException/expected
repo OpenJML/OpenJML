@@ -1,0 +1,5 @@
+Proving methods in TestIllegalFormatCodePointException
+Starting proof of TestIllegalFormatCodePointException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIllegalFormatCodePointException.construct() with prover !!!! - no warnings
+Completed proving methods in TestIllegalFormatCodePointException
