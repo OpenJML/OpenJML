@@ -1,0 +1,8 @@
+Proving methods in java.util.EventListenerProxy
+Starting proof of java.util.EventListenerProxy.EventListenerProxy(T) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.EventListenerProxy.EventListenerProxy(T) with prover !!!! - no warnings
+Starting proof of java.util.EventListenerProxy.getListener() with prover !!!!
+Feasibility check - at return statement : OK
+Completed proof of java.util.EventListenerProxy.getListener() with prover !!!! - no warnings
+Completed proving methods in java.util.EventListenerProxy
