@@ -1,0 +1,14 @@
+Proving methods in TestChronoField
+Starting proof of TestChronoField.constants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoField.constants() with prover !!!! - no warnings
+Starting proof of TestChronoField.timeBased() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoField.timeBased() with prover !!!! - no warnings
+Starting proof of TestChronoField.dateBased() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoField.dateBased() with prover !!!! - no warnings
+Starting proof of TestChronoField.supportedBy(java.time.temporal.TemporalAccessor) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoField.supportedBy(java.time.temporal.TemporalAccessor) with prover !!!! - no warnings
+Completed proving methods in TestChronoField

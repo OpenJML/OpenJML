@@ -1,0 +1,11 @@
+Proving methods in TestCharacterIterator
+Starting proof of TestCharacterIterator.ends(java.text.CharacterIterator) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestCharacterIterator.ends(java.text.CharacterIterator) with prover !!!! - no warnings
+Starting proof of TestCharacterIterator.stepping(java.text.CharacterIterator) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestCharacterIterator.stepping(java.text.CharacterIterator) with prover !!!! - no warnings
+Starting proof of TestCharacterIterator.positions(java.text.CharacterIterator) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestCharacterIterator.positions(java.text.CharacterIterator) with prover !!!! - no warnings
+Completed proving methods in TestCharacterIterator

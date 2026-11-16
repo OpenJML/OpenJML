@@ -1,0 +1,11 @@
+Proving methods in TestChronoUnit
+Starting proof of TestChronoUnit.constants() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoUnit.constants() with prover !!!! - no warnings
+Starting proof of TestChronoUnit.timeBased() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoUnit.timeBased() with prover !!!! - no warnings
+Starting proof of TestChronoUnit.dateBased() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoUnit.dateBased() with prover !!!! - no warnings
+Completed proving methods in TestChronoUnit

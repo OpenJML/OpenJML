@@ -1,0 +1,5 @@
+Proving methods in TestIsoChronology
+Starting proof of TestIsoChronology.leap() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestIsoChronology.leap() with prover !!!! - no warnings
+Completed proving methods in TestIsoChronology
