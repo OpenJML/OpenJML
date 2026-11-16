@@ -1,0 +1,8 @@
+Proving methods in TestTemporalAccessor
+Starting proof of TestTemporalAccessor.repeatable(java.time.temporal.TemporalAccessor,java.time.temporal.TemporalField) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestTemporalAccessor.repeatable(java.time.temporal.TemporalAccessor,java.time.temporal.TemporalField) with prover !!!! - no warnings
+Starting proof of TestTemporalAccessor.repeatableGet(java.time.temporal.TemporalAccessor,java.time.temporal.TemporalField) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestTemporalAccessor.repeatableGet(java.time.temporal.TemporalAccessor,java.time.temporal.TemporalField) with prover !!!! - no warnings
+Completed proving methods in TestTemporalAccessor

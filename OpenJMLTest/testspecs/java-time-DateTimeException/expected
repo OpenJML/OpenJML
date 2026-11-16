@@ -1,0 +1,8 @@
+Proving methods in TestDateTimeException
+Starting proof of TestDateTimeException.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDateTimeException.construct() with prover !!!! - no warnings
+Starting proof of TestDateTimeException.withCause() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestDateTimeException.withCause() with prover !!!! - no warnings
+Completed proving methods in TestDateTimeException

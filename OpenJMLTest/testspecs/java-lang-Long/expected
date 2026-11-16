@@ -1,0 +1,5 @@
+Proving methods in TestLong
+Starting proof of TestLong.compare() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestLong.compare() with prover !!!! - no warnings
+Completed proving methods in TestLong
