@@ -1,0 +1,6 @@
+Proving methods in TestFormattableFlags
+Starting proof of TestFormattableFlags.values() with prover !!!!
+Note: Using bit-vector arithmetic
+Feasibility check - at implicit return : OK
+Completed proof of TestFormattableFlags.values() with prover !!!! - no warnings
+Completed proving methods in TestFormattableFlags

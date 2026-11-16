@@ -1,0 +1,10 @@
+Proving methods in TestFormattable
+Proving methods in TestFormattable.F
+Starting proof of TestFormattable.F.formatTo(java.util.Formatter,int,int,int) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestFormattable.F.formatTo(java.util.Formatter,int,int,int) with prover !!!! - no warnings
+Completed proving methods in TestFormattable.F
+Starting proof of TestFormattable.formatTo(java.util.Formattable,java.util.Formatter) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestFormattable.formatTo(java.util.Formattable,java.util.Formatter) with prover !!!! - no warnings
+Completed proving methods in TestFormattable

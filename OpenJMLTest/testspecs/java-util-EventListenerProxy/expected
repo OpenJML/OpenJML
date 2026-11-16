@@ -1,0 +1,12 @@
+Proving methods in TestEventListenerProxy
+Proving methods in TestEventListenerProxy.Listener
+Completed proving methods in TestEventListenerProxy.Listener
+Proving methods in TestEventListenerProxy.Proxy
+Completed proving methods in TestEventListenerProxy.Proxy
+Starting proof of TestEventListenerProxy.listener() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestEventListenerProxy.listener() with prover !!!! - no warnings
+Starting proof of TestEventListenerProxy.nullListener() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestEventListenerProxy.nullListener() with prover !!!! - no warnings
+Completed proving methods in TestEventListenerProxy
