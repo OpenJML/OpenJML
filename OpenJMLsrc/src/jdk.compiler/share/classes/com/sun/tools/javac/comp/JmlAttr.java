@@ -456,6 +456,13 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             
             // Loading the specs makes sure that modifiers are present when nested declarations are attributed
             JmlSpecs.instance(context).getLoadedSpecs(c);
+            // Class files do not record non-sealed: a binary class with a sealed direct supertype
+            // that is neither sealed nor final is non-sealed, as javac's sealed-subclass check requires
+            if (isUnattributed && c.classfile != null && c.classfile.getKind() == JavaFileObject.Kind.CLASS
+                    && (c.flags_field & (Flags.FINAL | Flags.SEALED | Flags.NON_SEALED)) == 0
+                    && types.directSupertypes(c.type).stream().anyMatch(s -> s.tsym.isSealed())) {
+                c.flags_field |= Flags.NON_SEALED;
+            }
         	super.attribClass(c);
 
             // thisSymbol is needed in some cases (e.g. in creating default specs) before attributing the whiole class

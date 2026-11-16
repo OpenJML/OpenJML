@@ -1,0 +1,2 @@
+package p;
+public final class B extends S {}

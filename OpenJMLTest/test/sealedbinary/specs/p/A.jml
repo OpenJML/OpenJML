@@ -1,0 +1,6 @@
+package p;
+public non-sealed class A extends S {
+    //@ public normal_behavior
+    //@ pure
+    public A();
+}
