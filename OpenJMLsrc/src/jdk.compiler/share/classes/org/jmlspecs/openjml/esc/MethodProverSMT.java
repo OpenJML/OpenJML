@@ -1083,7 +1083,7 @@ public class MethodProverSMT {
             Boolean value = getBoolValue(id,info.smt,info.solver);
             //System.out.println("Loop block " + block.id + " " + value + " # " + spathCondition);
             if (value == null) {
-            	utils.verify("jml.messsage", "Failed to obtain a block value " + id);
+            	utils.verify("jml.message", "Failed to obtain a block value " + id);
                 // FIXME - error and what to do ?
                 continue;
             }
