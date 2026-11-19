@@ -134,14 +134,22 @@ clean-jml:
 	$(MAKE) -C ../OpenJMLUI clean
 	$(MAKE) -C ../OpenJMLGUITests clean
 
+## The options of the existing configuration, which clean-release reconfigures with (e.g. --with-xcode-path);
+## override with 'make clean-release CONFIGURE_ARGS=...'
+ifeq ($(origin CONFIGURE_ARGS), undefined)
+  CONFIGURE_ARGS := $(shell sed -n 's/^CONFIGURE_COMMAND_LINE:=//p' $(firstword $(wildcard $(topdir)/build/*/spec.gmk)) /dev/null)
+endif
+
 ## Cleans and makes release
+## (rm -rf build: dist-clean cannot remove a configuration whose tools no longer exist)
 clean-release:
 	-$(MAKE) clean dist-clean clean-jml
+	rm -rf build
 	rm -rf $(makefile_path)/html
 	rm -rf $(TEMP)
 	rm -rf src/java.base/share/classes/org/jmlspecs/annotation
 	rm -rf $(RELFILES)/tutorial
-	./configure
+	./configure $(CONFIGURE_ARGS)
 	$(MAKE) release
 
 ## Creates/updates the version.properties source file from ../version.txt
