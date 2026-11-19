@@ -63,6 +63,14 @@ else
 endif
 topdir := $(strip $(patsubst %/, %, $(dir $(makefile_path))))
 
+# OPENJML: for 'make openjml', stop on a configuration that cannot work (#1148). This runs before Init.gmk,
+# which would otherwise first run the configured (possibly missing) tools. Not repeated when make restarts.
+ifeq ($(filter openjml, $(MAKECMDGOALS))$(MAKE_RESTARTS), openjml)
+  ifneq ($(shell $(topdir)/../tools/check-toolchain $(topdir) >&2 || echo failed), )
+    $(error Fix the configuration problem reported above)
+  endif
+endif
+
 # ... and then we can include the real makefile
 include $(topdir)/make/Init.gmk
 
@@ -264,6 +272,7 @@ release-test: .FORCE
 
 ## Builds the openjml executable (without updating version, annotation and tutorial files)
 ## NOJML= disables JML during the build of OpenJML itself (since the openjml executable is the javac executable)
+## The configuration is checked near the top of this file (#1148)
 openjml: git-hooks .FORCE
 	NOJML= $(MAKE)
 

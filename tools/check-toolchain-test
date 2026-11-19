@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Tests tools/check-toolchain against synthetic build/*/spec.gmk files (#1148). Prints failures; exit 1 if any.
+
+check="$(cd "$(dirname "$0")" && pwd)/check-toolchain"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+fails=0
+
+# spec <src dir> <conf name> <os> <xcode version> <cc> [bash]
+spec() {
+    mkdir -p "$1/build/$2"
+    cat > "$1/build/$2/spec.gmk" <<EOF
+MAKE := $(command -v make)
+BASH:=${6:-/bin/bash}
+BASH_ARGS:= -o pipefail -e
+OPENJDK_TARGET_OS:=$3
+TOOLCHAIN_VERSION := $4
+CC :=   $5
+EOF
+}
+
+# expect <name> <src dir> <exit status> <grep pattern for stderr, or '' for no output>
+expect() {
+    out=$("$check" "$2" 2>&1)
+    st=$?
+    if [ $st -ne "$3" ]; then
+        echo "FAIL $1: exit $st, expected $3"; echo "$out"; fails=$((fails+1))
+    elif [ -z "$4" ] && [ -n "$out" ]; then
+        echo "FAIL $1: unexpected output"; echo "$out"; fails=$((fails+1))
+    elif [ -n "$4" ] && ! grep -q -- "$4" <<< "$out"; then
+        echo "FAIL $1: output lacks '$4'"; echo "$out"; fails=$((fails+1))
+    fi
+}
+
+XC=/Applications/Xcode_16.2.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
+
+mkdir -p "$tmp/none"
+expect "no configuration" "$tmp/none" 0 ''
+
+spec "$tmp/two" a macosx 16.2 "$XC"; spec "$tmp/two" b macosx 16.2 "$XC"
+expect "two configurations" "$tmp/two" 1 'more than one configuration'
+
+spec "$tmp/stale" c macosx 16.2 "$XC" /nonexistent/bin/bash
+expect "missing bash" "$tmp/stale" 1 'BASH = /nonexistent/bin/bash, which no longer exists'
+
+spec "$tmp/x160" c macosx 16.0 /usr/bin/clang
+expect "Xcode 16.0" "$tmp/x160" 1 'miscompiles'
+
+spec "$tmp/x161" c macosx 16.1.1 /usr/bin/clang
+expect "Xcode 16.1.1" "$tmp/x161" 1 'miscompiles'
+
+spec "$tmp/ok" c macosx 16.2 "$XC"
+expect "Xcode 16.2" "$tmp/ok" 0 ''
+
+spec "$tmp/x163" c macosx 16.3 /usr/bin/clang
+expect "Xcode 16.3" "$tmp/x163" 0 'CI builds with Xcode 16.2'
+
+spec "$tmp/brew" c macosx 16.2 /opt/homebrew/opt/llvm/bin/clang
+expect "Homebrew llvm" "$tmp/brew" 0 "not Xcode's clang"
+
+# The Xcode 16.0 error concerns Xcode's clang, which this configuration does not use
+spec "$tmp/brew160" c macosx 16.0 "/opt/homebrew/opt/llvm/bin/clang -std=gnu23"
+expect "Homebrew llvm with Xcode 16.0" "$tmp/brew160" 0 "not Xcode's clang"
+if "$check" "$tmp/brew160" 2>&1 | grep -q miscompiles; then
+    echo "FAIL Homebrew llvm with Xcode 16.0: reports the Xcode miscompile"; fails=$((fails+1))
+fi
+
+spec "$tmp/linux" c linux 11.4.0 /usr/bin/gcc
+expect "Linux" "$tmp/linux" 0 ''
+
+[ $fails -eq 0 ] && echo "check-toolchain: all tests passed"
+[ $fails -eq 0 ]

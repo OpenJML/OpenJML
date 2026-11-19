@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Checks the configuration in <OpenJMLsrc>/build (default: the current directory) before 'make openjml' (#1148):
+# errors for a configuration that cannot work, warnings for an untested macOS toolchain.
+# Exit status: 0 = build may proceed, 1 = error.
+
+src="${1:-.}"
+# Keep in sync with DEVELOPER_DIR in .github/actions/openjml-build/action.yml
+TESTED_XCODE=16.2
+FIX="bash configure --with-xcode-path=/Applications/Xcode_$TESTED_XCODE.app  (Xcode $TESTED_XCODE: https://developer.apple.com/download/all/)"
+
+specs=( "$src"/build/*/spec.gmk )
+# No configuration: the OpenJDK make reports that configure must be run
+[ -e "${specs[0]}" ] || exit 0
+
+if [ ${#specs[@]} -gt 1 ]; then
+    echo "ERROR: more than one configuration in $src/build:" >&2
+    for s in "${specs[@]}"; do echo "    $(dirname "$s")" >&2; done
+    echo "  Remove the stale ones; the OpenJML scripts expect exactly one." >&2
+    exit 1
+fi
+spec="${specs[0]}"
+conf=$(dirname "$spec")
+
+# Value of a 'VAR := value' (or 'VAR:=value') line in spec.gmk
+value() {
+    sed -n -E "s/^$1[[:space:]]*:?=[[:space:]]*//p" "$spec" | head -1
+}
+
+status=0
+error() {
+    echo "ERROR: $1" >&2
+    status=1
+}
+warn() {
+    echo "WARNING: $1" >&2
+}
+
+for var in BASH MAKE; do
+    tool=$(value $var)
+    tool=${tool%% *}
+    if [ -n "$tool" ] && [ ! -x "$tool" ]; then
+        error "$conf was configured with $var = $tool, which no longer exists. Remove $conf and rerun configure."
+    fi
+done
+
+if [ "$(value OPENJDK_TARGET_OS)" = macosx ] && [ $status -eq 0 ]; then
+    xcode=$(value TOOLCHAIN_VERSION)
+    cc=$(value CC)
+    cc=${cc%% *}
+    case "$cc" in
+        *.app/Contents/Developer/*|/usr/bin/clang)
+            case "$xcode" in
+                16.0|16.0.*|16.1|16.1.*)
+                    error "$conf uses Xcode $xcode, whose clang miscompiles the JVM (JDK-8340341). Reconfigure with:"$'\n'"    $FIX" ;;
+                "$TESTED_XCODE"|"$TESTED_XCODE".*) ;;
+                *)
+                    warn "$conf uses Xcode $xcode; OpenJML's CI builds with Xcode $TESTED_XCODE. If the build fails, reconfigure with:"$'\n'"    $FIX" ;;
+            esac ;;
+        *)
+            warn "$conf compiles with $cc, not Xcode's clang (for example Homebrew llvm found on the PATH); OpenJML's CI uses Xcode $TESTED_XCODE. If the build fails, reconfigure with:"$'\n'"    $FIX" ;;
+    esac
+fi
+exit $status
