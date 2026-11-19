@@ -65,7 +65,7 @@ clean: cov-clean
 	rm -rf tempUserGuide
 	rm -rf testcompiles
 	rm -rf jsontests/json-loc/xx
-	rm -f $T
+	rm -rf $T
 
 
 release: .FORCE
