@@ -131,7 +131,8 @@ clean-jml:
 	rm -rf release-temp temp-release "temp space" $(TEMPLIB) jmlruntime.jar $(USERGUIDE)
 	$(MAKE) -C ../OpenJMLTest clean
 	$(MAKE) -C ../OpenJMLlsp clean
-	$(MAKE) -C ../OpenJMLUI clean
+	# FIXME - OpenJMLUI has no Makefile, so its clean always fails; restore when it has one
+	# $(MAKE) -C ../OpenJMLUI clean
 	$(MAKE) -C ../OpenJMLGUITests clean
 
 ## The options of the existing configuration, which clean-release reconfigures with (e.g. --with-xcode-path);
