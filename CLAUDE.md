@@ -100,6 +100,8 @@ The build system is OpenJDK's standard make-based system. All build commands run
 # Initial setup (once per checkout or after clean)
 cd OpenJMLsrc
 bash configure
+# On macOS use CI's Xcode: bash configure --with-xcode-path=/Applications/Xcode_16.2.app
+# (other Xcode/clang versions miscompile or fail; 'make openjml' runs tools/check-toolchain)
 
 # Build the OpenJML compiler/JDK (development build)
 make openjml

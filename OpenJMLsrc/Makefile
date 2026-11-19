@@ -63,6 +63,14 @@ else
 endif
 topdir := $(strip $(patsubst %/, %, $(dir $(makefile_path))))
 
+# OPENJML: for 'make openjml', stop on a configuration that cannot work (#1148). This runs before Init.gmk,
+# which would otherwise first run the configured (possibly missing) tools. Not repeated when make restarts.
+ifeq ($(filter openjml, $(MAKECMDGOALS))$(MAKE_RESTARTS), openjml)
+  ifneq ($(shell $(topdir)/../tools/check-toolchain $(topdir) >&2 || echo failed), )
+    $(error Fix the configuration problem reported above)
+  endif
+endif
+
 # ... and then we can include the real makefile
 include $(topdir)/make/Init.gmk
 
@@ -126,14 +134,23 @@ clean-jml:
 	$(MAKE) -C ../OpenJMLUI clean
 	$(MAKE) -C ../OpenJMLGUITests clean
 
+## The options of the existing configuration, which clean-release reconfigures with (e.g. --with-xcode-path);
+## override with 'CONFIGURE_ARGS=... make clean-release'
+ifeq ($(origin CONFIGURE_ARGS), undefined)
+  CONFIGURE_ARGS := $(shell sed -n 's/^CONFIGURE_COMMAND_LINE:=//p' $(firstword $(wildcard $(topdir)/build/*/spec.gmk)) /dev/null)
+endif
+
 ## Cleans and makes release
+## (clean-jml separately and rm -rf build: clean and dist-clean fail for a configuration whose tools no longer exist)
 clean-release:
-	-$(MAKE) clean dist-clean clean-jml
+	-$(MAKE) clean-jml
+	-$(MAKE) clean dist-clean
+	rm -rf build
 	rm -rf $(makefile_path)/html
 	rm -rf $(TEMP)
 	rm -rf src/java.base/share/classes/org/jmlspecs/annotation
 	rm -rf $(RELFILES)/tutorial
-	./configure
+	./configure $(CONFIGURE_ARGS)
 	$(MAKE) release
 
 ## Creates/updates the version.properties source file from ../version.txt
@@ -264,6 +281,7 @@ release-test: .FORCE
 
 ## Builds the openjml executable (without updating version, annotation and tutorial files)
 ## NOJML= disables JML during the build of OpenJML itself (since the openjml executable is the javac executable)
+## The configuration is checked near the top of this file (#1148)
 openjml: git-hooks .FORCE
 	NOJML= $(MAKE)
 

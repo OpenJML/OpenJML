@@ -19,6 +19,10 @@ Changes are made by pull request.
 - Building and running tests are described in the [wiki](https://github.com/OpenJML/OpenJML/wiki).
   In short: in `OpenJMLsrc`, `bash configure` once, then `make openjml`; in `OpenJMLTest/unittests`,
   `./runtests <suite>` runs one test suite and `./runpar` runs them all.
+- On macOS, build with Xcode 16.2, as CI does: `bash configure --with-xcode-path=/Applications/Xcode_16.2.app`
+  (it can be installed beside another Xcode). Xcode 16.0 and 16.1 miscompile the JVM; newer Xcodes, the Command
+  Line Tools clang and Homebrew llvm fail on warnings in OpenJDK 21's native code. `make openjml` checks the
+  configuration (`tools/check-toolchain`) and says what to change.
 
 ## Requirements for a pull request
 
