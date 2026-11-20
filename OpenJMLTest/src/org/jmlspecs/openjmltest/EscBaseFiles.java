@@ -135,6 +135,16 @@ public abstract class EscBaseFiles extends EscBase {
      * putting the actual output in folder 'outDir' and comparing with expected files also in 'outDir'.
      * Default options are setup in 'collectArgs'.  The options in 'opts' are appended to them. 
      * **/
+    /** Whether the solver tag of an expected file applies: the tag names the prover (e.g. cvc5, z3-4.8.12) or the
+     *  executable it resolves to (e.g. z3-4.16.0 for z3), wholly or up to a '-' or '.' -- so z3 matches every z3
+     *  version and z3-4.3 matches z3-4.3.1, but z3-4.1 does not match z3-4.10.2 */
+    static boolean solverTagMatches(String tag, String... names) {
+        for (String n: names) {
+            if (n != null && (n.equals(tag) || n.startsWith(tag + "-") || n.startsWith(tag + "."))) return true;
+        }
+        return false;
+    }
+
     public void escOnFiles(String sourceDirname, String outDir, String ... opts) {
         boolean print = false;
         String actCompile = outDir + "/actual";
@@ -147,12 +157,20 @@ public abstract class EscBaseFiles extends EscBase {
 
             String diffs = null;
             // An expected file may be solver-specific: 'expected<suffix>.<solver>' (e.g. expected.cvc5) is
-            // considered only when the prover in use starts with <solver>; untagged files apply to every solver.
-            // A trailing '.bad' (as in jSMTLIB's SMTTests) marks output that is wrong because of that solver,
-            // e.g. a proof an old version cannot find; it is matched the same way.
+            // considered only when <solver> matches the prover in use (see solverTagMatches); untagged files
+            // apply to every solver. A trailing '.bad' (as in jSMTLIB's SMTTests) marks output that is wrong
+            // because of that solver, e.g. a proof an old version cannot find; it is matched the same way.
             String prover = solver != null ? solver : org.jmlspecs.openjml.JmlOption.PROVER.defaultValue().toString();
+            String exec = null;
+            try {
+                exec = org.jmlspecs.openjml.Main.solverExec(prover);
+            } catch (RuntimeException e) {
+                // no executable name to match
+            }
+            String execName = exec == null ? null : new File(exec).getName();
             var files = new File(outDir).list((f,s)->s.startsWith("expected") && !s.endsWith("-compile") && !s.endsWith(("-run"))
-                                                    && (s.indexOf('.') < 0 || prover.startsWith(s.substring(s.indexOf('.')+1).replaceFirst("\\.bad$", ""))));
+                                                    && (s.indexOf('.') < 0
+                                                        || solverTagMatches(s.substring(s.indexOf('.')+1).replaceFirst("\\.bad$", ""), prover, execName)));
             assertTrue("There are no expected output files in " + outDir, 0 != files.length);
             for (String name: files) {
                 String expectedFile = outDir + "/" + name;
