@@ -1,0 +1,10 @@
+OUT:
+-3 false false
+-2 true false
+-1 false false
+0 true true
+1 false false
+2 true false
+3 false false
+
+ERR:

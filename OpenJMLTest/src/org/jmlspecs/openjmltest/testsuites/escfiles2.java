@@ -116,6 +116,11 @@ public class escfiles2 extends EscBaseFiles {
     public void gitbug766() {
         helpEscSimple();
     }
+
+    @Test
+    public void gitbug766a() {
+        helpEscSimple();
+    }
     
     @Test
     public void gitbug777() {
