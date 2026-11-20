@@ -58,7 +58,6 @@ openjml: .FORCE
 clean: cov-clean
 	$(MAKE) -C unittests clean
 	find . -name '*.class' -delete
-	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
 	find . -name '*actual*' -delete
 	find . -name 'log*' -type f ! -path './test/gitbug785/guava/*' -delete
 	rm -f smt/*.smt*
@@ -164,7 +163,6 @@ cov-clean:
 	rm -rf ./cov
 	mkdir ./cov
 	find . -name '*.class' -delete
-	git checkout ./test/specspath/srczz/z/C.class ./test/specspath/srct/C.class ./test/specspath/srctt/C.class ./test/specspath/srcz/z/C.class
 
 # Runs all tests to produce coverage data.
 # Setting COV to any value (including empty) enables coverage measurement; leaving COV unset disables it.
