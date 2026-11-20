@@ -1,5 +1,12 @@
 package org.jmlspecs.openjmltest.testsuites;
 
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+
+import org.jmlspecs.openjml.Main;
 import org.jmlspecs.openjmltest.EscBaseFiles;
 
 import org.junit.*;
@@ -24,18 +31,48 @@ public class escspecspath extends EscBaseFiles {
     static final String OUT = "test/escspecspath/";
     static final String PS = java.io.File.pathSeparator;
 
-    /** The C and Z scenarios reference class C both as a .class and as a .java file on the class path;
-     * javac then uses whichever is newer. The script recompiles C.class first; here the (committed)
-     * class files are made newer than the sources instead, since a checkout gives them the same time. */
-    static final String[] classFiles = { "srct/C.class", "srctt/C.class", "srcta/C.class",
-                                       "srcz/z/C.class", "srczz/z/C.class", "srcza/z/C.class" };
+    /** The C and Z scenarios reference class C as a .class file, some with a sibling .java file, and javac
+     * uses the newer of the two. Each row: the source to compile, then the folders that get its C.class
+     * (the first is the source's own). The class files are not committed but built here (#1149). */
+    static final String[][] classFiles = {
+        { "srct/C.java", "srct", "srctt", "srcta", "srctq" },
+        { "srcz/z/C.java", "srcz/z", "srczz/z", "srcza/z" } };
+
+    static boolean classFilesBuilt = false;
+
+    /** Whether the class file is missing or not newer than the given file (if that exists). */
+    static boolean stale(File classFile, File other) {
+        return !classFile.exists() || (other.exists() && classFile.lastModified() <= other.lastModified());
+    }
+
+    /** Compiles each C.class that is missing or not newer than its source, and copies it to each folder
+     * whose C.class is missing or not newer than the compiled one or than that folder's own C.java. */
+    static synchronized void buildClassFiles() throws Exception {
+        if (classFilesBuilt) return;
+        for (String[] row: classFiles) {
+            File source = new File(SRC + row[0]);
+            File compiled = new File(SRC + row[1] + "/C.class");
+            if (stale(compiled, source)) {
+                StringWriter sw = new StringWriter();
+                int ex = Main.execute(new PrintWriter(sw), "-cp", SRC, "--compile", source.getPath());
+                if (ex != 0 || stale(compiled, source)) Assert.fail("Compiling " + source + " failed:\n" + sw);
+            }
+            for (int i = 2; i < row.length; i++) {
+                File copy = new File(SRC + row[i] + "/C.class");
+                if (stale(copy, compiled) || stale(copy, new File(SRC + row[i] + "/C.java"))) {
+                    copy.getParentFile().mkdirs();  // srctt and srczz hold only the class file, so git has no folder
+                    Files.copy(compiled.toPath(), copy.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+        classFilesBuilt = true;
+    }
 
     @Override
     public void setUp() throws Exception {
         super.setUp();
         ignoreNotes = true;
-        long now = System.currentTimeMillis();
-        for (String f: classFiles) new java.io.File(SRC + f).setLastModified(now);
+        buildClassFiles();
     }
 
     /** Runs ESC on the given file of test/specspath, with the given options. Like the script (which runs
