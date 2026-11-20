@@ -155,12 +155,13 @@ public abstract class EscBaseFiles extends EscBase {
             // An expected file may be solver-specific: 'expected<suffix>.<solver>' (e.g. expected.cvc5) is
             // considered only when the prover in use is <solver> or a version of it (see solverTagMatches), so a
             // solver-specific file (expected.z3-4.3), a solver-family file (expected.z3) and a generic file (expected)
-            // can all apply. A trailing '.bad' (as in jSMTLIB's SMTTests) marks output that is wrong because of that
-            // solver, e.g. a proof an old version cannot find; it is matched the same way.
+            // can all apply. As in jSMTLIB's SMTTests, a trailing '.bad' marks output that is wrong because of that
+            // solver (e.g. a proof an old version cannot find) and a trailing '.lenient' output that differs only because
+            // the solver accepts something it should not; both are matched the same way.
             String prover = solver != null ? solver : org.jmlspecs.openjml.JmlOption.PROVER.defaultValue().toString();
             var files = new File(outDir).list((f,s)->s.startsWith("expected") && !s.endsWith("-compile") && !s.endsWith(("-run"))
                                                     && (s.indexOf('.') < 0
-                                                        || solverTagMatches(prover, s.substring(s.indexOf('.')+1).replaceFirst("\\.bad$", ""))));
+                                                        || solverTagMatches(prover, s.substring(s.indexOf('.')+1).replaceFirst("\\.(bad|lenient)$", ""))));
             assertTrue("There are no expected output files in " + outDir, 0 != files.length);
             for (String name: files) {
                 String expectedFile = outDir + "/" + name;
