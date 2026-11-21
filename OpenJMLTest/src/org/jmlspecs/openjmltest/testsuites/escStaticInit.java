@@ -1,0 +1,230 @@
+package org.jmlspecs.openjmltest.testsuites;
+
+import org.jmlspecs.openjmltest.EscBase;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.openjml.runners.ParameterizedWithNames;
+
+/** ESC of static initialization through the synthetic method <clinit> (#1152): static fields start with their
+ *  default values, the static initializers and static blocks run in textual order with full checking, and at the
+ *  end the static invariants, non-null static fields and the static_initializer clause are checked. */
+@org.junit.FixMethodOrder(org.junit.runners.MethodSorters.NAME_ASCENDING)
+@RunWith(ParameterizedWithNames.class)
+public class escStaticInit extends EscBase {
+
+    @Test
+    public void testFieldInitializer() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static int z;
+                  static int good = 10 / (z == 0 ? 1 : z);
+                  static int bad = 10 / z;
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method <clinit>",23
+                );
+    }
+
+    @Test
+    public void testBlock() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static int z;
+                  static int k;
+                  static { k = 10 / (z == 0 ? 1 : z); }
+                  static { k = 10 / z; }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method <clinit>",19
+                );
+    }
+
+    @Test
+    public void testGhost() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static int z;
+                  //@ static ghost int good = 10 / (z == 0 ? 1 : z);
+                  //@ static ghost int bad = 10 / z;
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method <clinit>",33
+                );
+    }
+
+    @Test
+    public void testPrecondition() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  //@ requires i > 0;
+                  static /*@ pure */ int pos(int i) { return i; }
+                  static int good = pos(1);
+                  static int bad = pos(0);
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Precondition: /tt/TestJava.java:4:) in method <clinit>",23
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:6:",26
+                ,"/tt/TestJava.java:3: verify: Precondition conjunct is false: i > 0",18
+                );
+    }
+
+    // An out-of-range cast in a compile-time constant (#861)
+    @Test
+    public void testConstantCast() {
+        main.addOptions("--code-math=safe");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static final short GOOD = (short)30000;
+                  static final short BAD = (short)40000;
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method <clinit>",28
+                );
+    }
+
+    // Static fields start with their default values, so a non-null field must be set
+    @Test
+    public void testNonNullUnset() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static Object good = new Object();
+                  static Object bad;
+                  static void m() {}
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (NullField) in method <clinit>",17
+                );
+    }
+
+    // A forward reference reads the default value
+    @Test
+    public void testForwardReference() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static int a = TestJava.b + 1;
+                  static int b = 7;
+                  //@ static invariant a == 1 && b == 7;
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testStaticInvariant() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static int z;
+                  static int k = 5;
+                  //@ static invariant k == 5;
+                  //@ static invariant z == 3;
+                }
+                """
+                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (InvariantExit: /tt/TestJava.java:6:) in method <clinit>",8
+                ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:2:",14
+                );
+    }
+
+    @Test
+    public void testStaticInitializerHolds() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static int k;
+                  //@ ensures k == 10;
+                  //@ static_initializer
+                  static { k = 10; }
+                }
+                """
+                );
+    }
+
+    @Test
+    public void testStaticInitializerFalse() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static int k = 5;
+                  //@ ensures false;
+                  //@ static_initializer
+                }
+                """
+                ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Postcondition: /tt/TestJava.java:4:) in method <clinit>",7
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:5:",7
+                );
+    }
+
+    // The requires clause of a static_initializer is assumed at the start of <clinit>
+    @Test
+    public void testStaticInitializerRequires() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class Other { public static int q; }
+                public class TestJava {
+                  public static int k = 10 / Other.q;
+                  //@ requires Other.q != 0;
+                  //@ ensures k == 10 / Other.q;
+                  //@ static_initializer
+                }
+                """
+                );
+    }
+
+    // The static_initializer clause describes the state at the end of static initialization; a method may run
+    // after other code has changed k, so it may not assume k == 5
+    @Test
+    public void testStaticInitializerNotAssumedLater() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static int k = 5;
+                  //@ ensures k == 5;
+                  //@ static_initializer
+
+                  //@ assignable k;
+                  public static void inc() { k++; }
+                  public static void m() {
+                    //@ assert k == 5;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
+    // <clinit> can be selected like a method
+    @Test
+    public void testSelect() {
+        main.addOptions("--method=tt.TestJava.<clinit>");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static int z;
+                  static int bad = 10 / z;
+                  public static void m() { int i = 10 / z; }
+                }
+                """
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (PossiblyDivideByZero) in method <clinit>",23
+                );
+    }
+}

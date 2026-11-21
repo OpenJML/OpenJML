@@ -1,0 +1,16 @@
+Proving methods in Test
+Starting proof of Test.Test() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.Test() with prover !!!! - no warnings
+Starting proof of Test.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.main(String...) with prover !!!! - no warnings
+Starting proof of Test.<clinit>() with prover !!!!
+test/gitbug861/Test.java:4: verify: The prover cannot establish an assertion (ArithmeticCastRange) in method <clinit>
+    public final static short DECIMAL_OVERFLOW = (short)40000;
+                                                 ^
+Completed proof of Test.<clinit>() with prover !!!! - with warnings
+Completed proving methods in Test
+1 verification failure

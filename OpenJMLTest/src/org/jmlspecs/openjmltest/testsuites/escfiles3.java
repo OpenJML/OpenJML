@@ -494,6 +494,12 @@ public class escfiles3 extends EscBaseFiles {
         helpEscSimple();
     }
 
+    // The .jml initializer of a static field, checked at the end of <clinit> (#774, #1152)
+    @Test
+    public void gitbug774d() {
+        helpEscSimple();
+    }
+
     @Test
     public void gitbug774e() {
         helpEscSimple();

@@ -1,0 +1,16 @@
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.A() with prover !!!! - no warnings
+Starting proof of A.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.main(String...) with prover !!!! - no warnings
+Starting proof of A.<clinit>() with prover !!!!
+test/gitbug774d/A.jml:3: verify: The prover cannot establish an assertion (FieldInitializer) in method <clinit>
+    static int sj = si;
+               ^
+Completed proof of A.<clinit>() with prover !!!! - with warnings
+Completed proving methods in A
+1 verification failure
