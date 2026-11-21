@@ -207,7 +207,30 @@ public class escStaticInit extends EscBase {
                   }
                 }
                 """
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method inc: overflow in int sum",31
                 ,"/tt/TestJava.java:10: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
+    // A durable fact is a static invariant: <clinit> establishes it, methods assume it on entry and must restore it
+    @Test
+    public void testStaticInvariantAssumedLater() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static int k = 5;
+                  //@ public static invariant k == 5;
+
+                  //@ assignable k;
+                  public static void inc() { k++; }
+                  public static void m() {
+                    //@ assert k == 5;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:7: verify: The prover cannot establish an assertion (InvariantExit: /tt/TestJava.java:4:) in method inc",22
+                ,"/tt/TestJava.java:4: verify: Associated declaration: /tt/TestJava.java:7:",21
                 );
     }
 

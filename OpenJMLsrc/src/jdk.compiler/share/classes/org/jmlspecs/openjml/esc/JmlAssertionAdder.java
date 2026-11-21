@@ -5044,12 +5044,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				addStat(comment(methodDecl, "Assume static final constant fields", null));
 				addForClasses(collector.classes, finalStaticFieldAdder);
-				addStat(comment(methodDecl, "Assume static initialization", null));
-				addForClasses(collector.classes, staticInitializerAdder);
-				{
-					addStat(comment(methodDecl.pos(), "Static initialization", log.currentSourceFile()));
-					addStaticInitialization((ClassSymbol) methodDecl.sym.owner);
-				}
+				// The static_initializer clause describes the state at the end of static initialization; it is
+				// proved in <clinit> but not assumed here, since other code may have run since. Durable facts
+				// belong in static invariants, which are assumed above (#1152).
+//				addStat(comment(methodDecl, "Assume static initialization", null));
+//				addForClasses(collector.classes, staticInitializerAdder);
+//				{
+//					addStat(comment(methodDecl.pos(), "Static initialization", log.currentSourceFile()));
+//					addStaticInitialization((ClassSymbol) methodDecl.sym.owner);
+//				}
 			}
             addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after static initialization");
 
