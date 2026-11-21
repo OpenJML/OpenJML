@@ -157,7 +157,7 @@ public abstract class EscBaseFiles extends EscBase {
             // solver-specific file (expected.z3-4.3), a solver-family file (expected.z3) and a generic file (expected)
             // can all apply. As in jSMTLIB's SMTTests, a trailing '.bad' marks output that is wrong because of that
             // solver (e.g. a proof an old version cannot find) and a trailing '.lenient' output that differs only because
-            // the solver accepts something it should not; both are matched the same way.
+            // the solver accepts behavior beyond the standard; both are matched the same way.
             String prover = solver != null ? solver : org.jmlspecs.openjml.JmlOption.PROVER.defaultValue().toString();
             var files = new File(outDir).list((f,s)->s.startsWith("expected") && !s.endsWith("-compile") && !s.endsWith(("-run"))
                                                     && (s.indexOf('.') < 0
