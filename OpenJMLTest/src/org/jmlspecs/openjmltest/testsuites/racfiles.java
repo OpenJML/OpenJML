@@ -734,4 +734,9 @@ public class racfiles extends RacBase {
     public void gitbug774d() {
         helpRac("test/gitbug774d/A.java", "test/gitbug774d", "A", "--specs-path=test/gitbug774d");
     }
+
+    @Test
+    public void gitbug774f() {
+        helpRac("test/gitbug774f/A.java", "test/gitbug774f", "A", "--specs-path=test/gitbug774f", "--spec-math=safe");
+    }
 }

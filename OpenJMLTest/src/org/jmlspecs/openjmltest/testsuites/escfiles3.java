@@ -498,4 +498,9 @@ public class escfiles3 extends EscBaseFiles {
     public void gitbug774e() {
         helpEscSimple();
     }
+
+    @Test
+    public void gitbug774f() {
+        helpEscSimple("--spec-math=safe");
+    }
 }
