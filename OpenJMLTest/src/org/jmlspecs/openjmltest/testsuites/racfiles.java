@@ -484,9 +484,10 @@ public class racfiles extends RacBase {
         helpCompileRun("Test");
     }
     
+    // An out-of-range cast in a static constant initializer (#861); java code math does not check casts
     @Test
     public void gitbug861() {
-        helpCompileRun("Test");
+        helpCompileRun("Test", "--code-math=safe");
     }
 
     @Test
@@ -723,11 +724,6 @@ public class racfiles extends RacBase {
     @Test
     public void gitbug774a() {
         helpRac("test/gitbug774a/A.java", "test/gitbug774a", "A", "--specs-path=test/gitbug774a");
-    }
-
-    @Test
-    public void gitbug774c() {
-        helpRac("test/gitbug774c/A.java", "test/gitbug774c", "A", "--specs-path=test/gitbug774c");
     }
 
     @Test

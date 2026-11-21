@@ -3016,10 +3016,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	
     	boolean allowForwardRefSaved = allowForwardRef;
     	allowForwardRef = !(jmlenv.currentClauseKind == null || jmlenv.currentClauseKind == declClause); // FIXME - is this OK for oldClause - when is it ever needed?
+    	// Positions are comparable only within one file: v.pos is in the file declaring v, which for a reference in a
+    	// .jml initializer may be the .java file (#774)
+    	if (!allowForwardRef && log.currentSourceFile() != declarationFile(v)) allowForwardRef = true;
     	super.checkInit(tree,env,v,onlyWarning);
     	allowForwardRef = allowForwardRefSaved;
     }
     
+    /** The file whose positions v.pos refers to: a JML field's declaring file, else its class's source file */
+    protected JavaFileObject declarationFile(VarSymbol v) {
+        if (Utils.isJML(v.flags())) {
+            var fspecs = specs.getLoadedSpecs(v);
+            if (fspecs != null && fspecs.decl != null) return fspecs.decl.sourcefile;
+        }
+        var c = v.enclClass();
+        return c == null ? null : c.sourcefile;
+    }
+
     protected void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) {
         if (isStaticEnumField(v)) {
             if (jmlenv.currentClauseKind != null) return;  // ASWemahy reference enums in specificatinos.  FIXME: always? everywhere?  interaction with JLS restriction?
@@ -3081,16 +3094,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             annotationsToModifiers(fspecs.mods);
             if (fspecs.mods != fspecs.decl.mods) annotationsToModifiers(fspecs.mods); // FIXME - figure out which of these we actually need
             var specField = fspecs.decl;
-            // check for no initializer
-            if (specField.getInitializer() != null && // There is an initializer
-                                    utils.isSpecFile(specField.sourcefile) && // Not in a .java file
-                                    javaField != specField && // But there is a .java file
-                                    !Utils.isJML(specField.mods) && // The decl is not in JML
-                                    specField.sym.owner.kind != Kinds.Kind.MTH && // The decl is not a local decl in a method body
-                                    !specField.sym.owner.isEnum() // We are not an enum
-                                    ) {
-                utils.error(specField.sourcefile,specField.getInitializer(),"jml.no.initializer.in.specs",specField.sym.owner+"."+specField.name);
-            }
             //if (javaField != null && javaField != specField) checkAnnotations(javaField.mods, specField.mods, javaField.sym.owner);
         } else {
             // Spec fields, such as old declarations in method specs and declarations in quantifiers and the like,
@@ -3099,6 +3102,34 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         checkVarMods(javaField);
         // Type modifiers are checked when the type itself is attributed
+    }
+
+    /** True if d declares, in a specification file, a Java (non-JML) field with an initializer: the initializer
+     *  states the field's value at the end of initialization, so it must be pure (#774) */
+    public boolean isSpecFieldInitializer(JmlVariableDecl d) {
+        return d.init != null && utils.isSpecFile(d.sourcefile) && !Utils.isJML(d.mods)
+                && d.sym != null && d.sym.owner.kind == Kinds.Kind.TYP && !d.sym.owner.isEnum();
+    }
+
+    /** Reports a specification-file initializer whose constant value differs from the field's constant value (#774) */
+    protected void checkSpecInitializerValue(JmlVariableDecl d) {
+        Object javaValue = d.sym.getConstValue();
+        Type it = d.init.type;
+        if (javaValue == null || it == null || it.isErroneous() || it.constValue() == null) return;
+        Object specValue = cfolder.coerce(it, d.sym.type).constValue();
+        if (specValue == null || specValue.equals(javaValue)) return;
+        utils.error(d.sourcefile, d, "jml.mismatched.initializer", d.sym.owner + "." + d.name,
+                constantText(specValue, d.sym.type), constantText(javaValue, d.sym.type));
+    }
+
+    /** A constant value (as javac stores it) written as Java source for type t */
+    protected static String constantText(Object v, Type t) {
+        if (t.hasTag(com.sun.tools.javac.code.TypeTag.BOOLEAN)) return ((Integer)v) != 0 ? "true" : "false";
+        if (t.hasTag(com.sun.tools.javac.code.TypeTag.CHAR)) return "'" + com.sun.tools.javac.util.Convert.quote(String.valueOf((char)(int)(Integer)v)) + "'";
+        if (t.hasTag(com.sun.tools.javac.code.TypeTag.LONG)) return v + "L";
+        if (t.hasTag(com.sun.tools.javac.code.TypeTag.FLOAT)) return v + "f";
+        if (v instanceof String s) return "\"" + com.sun.tools.javac.util.Convert.quote(s) + "\"";
+        return v.toString();
     }
     
     public void checkJavaFlags(long javaFlags, JmlSource javaTree, long specflags, JmlSource specTree, Symbol symForFlags) {
@@ -8166,8 +8197,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     lintEnv = lintEnv.next;
                 env.info.lint = lintEnv.info.lint;
             }
-            super.visitVarDef(that);
-            
+            boolean specInit = isSpecFieldInitializer(that); // e.g. a .jml for a binary class
+            boolean prevPure = jmlenv.inPureEnvironment;
+            if (specInit) jmlenv.inPureEnvironment = true;
+            try {
+                super.visitVarDef(that);
+            } finally {
+                jmlenv.inPureEnvironment = prevPure;
+            }
+            if (specInit) checkSpecInitializerValue(that);
+
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
             
 
@@ -8309,18 +8348,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.error(that, "jml.message", "\\datagroup declarations may not have initializers");
             }
 
-            if (that.init != null && !Utils.isJML(that.mods.flags)) {
-                Object v = that.sym.getConstValue();
-                JCExpression initExpr = that.init;
-                if (v != null && initExpr instanceof JCLiteral lit) {
-                    if (!v.equals(lit.value)) {
-                        //System.out.println("INIT " + v.getClass() + " " + v + " " + lit.value.getClass() + " " + lit.value + " " + v.equals(lit.value));
-                        utils.error(that, "jml.message", "Initializer does not match compiled value: " + lit + " vs. " + v);
-                    }
-                }
-                //if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits(Double.NaN)));
-                //if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits(Float.NaN)));
-            }
+            // The comparison of a specification initializer with the constant value is checkSpecInitializerValue (#774)
+            //System.out.println("INIT " + v.getClass() + " " + v + " " + lit.value.getClass() + " " + lit.value + " " + v.equals(lit.value));
+            //if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits(Double.NaN)));
+            //if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits(Float.NaN)));
             if (that.originalType != null) {
                 var ok = types.isSubtype(that.type, that.originalType);
                 if (!ok) utils.error(that.vartype, "jml.message", "a replacement type must be a subtype of the source type: "
@@ -9090,9 +9121,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean prevAllow = ((JmlResolve)rs).setAllowJML(Utils.isJML(vsym.flags()));
             if (fspecs.decl != null && fspecs.decl.init != null && fspecs.decl.init.type == null) {
         		ResultInfo rri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
-        		jmlenv.inPureEnvironment = Utils.isJML(fspecs.decl.mods);
+        		boolean specInit = isSpecFieldInitializer(fspecs.decl);
+        		jmlenv.inPureEnvironment = Utils.isJML(fspecs.decl.mods) || specInit;
             	Type t = fspecs.decl.init.type = attribTree(fspecs.decl.init, initEnv, rri);
             	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
+            	else if (specInit) checkSpecInitializerValue(fspecs.decl);
             }
             ((JmlResolve)rs).setAllowJML(prevAllow);
 

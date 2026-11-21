@@ -3274,6 +3274,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										} else {
 											conj = conj == null ? e : treeutils.makeAnd(v.pos, conj, e);
 										}
+									} else if (!utils.isJMLStatic(v)) {
+										// A final instance field's specification-file initializer (#774)
+										JCExpression si = assumableSpecInitializer(v);
+										if (si != null) {
+											JCExpression e = treeutils.makeEquality(v.pos, treeutils.makeIdent(v.pos, v), si);
+											conj = conj == null ? e : treeutils.makeAnd(v.pos, conj, e);
+										}
 									}
 								}
 							}
@@ -4550,7 +4557,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			discoveredFields.stats = discoveredFields.stats.append(st);
 		}
-		if (st == null) {
+		JCExpression specInit = st == null ? assumableSpecInitializer(vsym) : null;
+		if (specInit != null && discoveredFields != null) {
+			// The value from the specification-file initializer (#774); collected with the declarations it needs
+			JavaFileObject prev = log.useSource(fspecs.decl.sourcefile);
+			try {
+				discoveredFields.stats = discoveredFields.stats.appendList(collectStats(() -> {
+					JCExpression field = treeutils.makeSelect(p, treeutils.makeType(p, vsym.owner.type), vsym);
+					addAssume(pos, Label.IMPLICIT_ASSUME, convertJML(treeutils.makeEquality(p, field, specInit)));
+				}));
+			} finally {
+				log.useSource(prev);
+			}
+		} else if (st == null) {
 			xx: {
 				Symbol owner = convertedfa.sym.owner;
 				if (!(owner instanceof ClassSymbol))
@@ -6598,6 +6617,53 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				convert(t);
 			}
 		}
+		addSpecInitializerChecks(false);
+	}
+
+	/** Asserts, at the end of instance or static initialization, that each field of the class being translated
+	 *  equals its specification-file initializer (#774). Constant values are compared when attributing. */
+	protected void addSpecInitializerChecks(boolean isStatic) {
+		for (JCTree t : classDecl.defs) {
+			if (!(t instanceof JmlVariableDecl vd) || vd.sym == null) continue;
+			if (utils.isJMLStatic(vd.sym) != isStatic) continue;
+			FieldSpecs fspecs = specs.getLoadedSpecs(vd.sym);
+			if (fspecs == null || fspecs.decl == vd || !attr.isSpecFieldInitializer(fspecs.decl)) continue;
+			JmlVariableDecl sd = fspecs.decl;
+			if (sd.init.type == null || sd.init.type.isErroneous()) continue;
+			if (vd.sym.getConstValue() != null && sd.init.type.constValue() != null) continue;
+			JavaFileObject prev = log.useSource(sd.sourcefile);
+			try {
+				JCExpression field = isStatic
+						? treeutils.makeSelect(sd.pos, treeutils.makeType(sd.pos, vd.sym.owner.type), vd.sym)
+						: treeutils.makeIdent(sd.pos, vd.sym);
+				JCExpression eq = treeutils.makeEquality(sd.pos, field, sd.init);
+				addAssert(sd.sourcefile, sd, Label.FIELD_INITIALIZER, convertJML(eq), null, null);
+			} finally {
+				log.useSource(prev);
+			}
+		}
+	}
+
+	/** The specification-file initializer of final field v, if it may be assumed wherever v is used: it reads
+	 *  only final fields and calls no methods, so it keeps the value it had at the end of initialization (#774) */
+	protected JCExpression assumableSpecInitializer(VarSymbol v) {
+		if (!isFinal(v) || v.getConstValue() != null) return null;
+		FieldSpecs fspecs = specs.getLoadedSpecs(v); // not getAttrSpecs: attributing here, mid-translation, breaks the proof
+		if (fspecs == null || fspecs.decl == null || !attr.isSpecFieldInitializer(fspecs.decl)) return null;
+		JCExpression init = fspecs.decl.init;
+		if (init.type == null || init.type.isErroneous()) return null;
+		boolean[] ok = { true };
+		new JmlTreeScanner() {
+			void check(Symbol sym) {
+				if (sym instanceof VarSymbol f && f.owner instanceof ClassSymbol && !isFinal(f)) ok[0] = false;
+			}
+			@Override public void visitIdent(JCIdent t) { check(t.sym); }
+			@Override public void visitSelect(JCFieldAccess t) { check(t.sym); super.visitSelect(t); }
+			@Override public void visitApply(JCMethodInvocation t) { ok[0] = false; }
+			@Override public void visitNewClass(JCNewClass t) { ok[0] = false; }
+			@Override public void visitNewArray(JCNewArray t) { ok[0] = false; }
+		}.scan(init);
+		return ok[0] ? init : null;
 	}
 
 	protected void addStaticInitialization(ClassSymbol csym) {
@@ -19253,6 +19319,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			JCBlock bl = checkStaticInitialization();
 			if (bl != null) this.classDefs.add(bl);
+			if (rac) {
+				// Last among the instance initializers, so it runs at the end of each constructor's prelude (#774)
+				bl = checkInstanceInitialization();
+				if (bl != null) this.classDefs.add(bl);
+			}
 
 			JmlSpecs.TypeSpecs tyspecs = that.typeSpecs;
 			if (!rac)
@@ -19308,6 +19379,20 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 	}
 
+	/** For RAC, an instance initializer block checking fields against their specification-file initializers */
+	protected JCBlock checkInstanceInitialization() {
+		JmlMethodDecl savedMethodDecl = methodDecl;
+		try {
+			methodSymForInitBlock(classDecl, 0L, classDecl);
+			ListBuffer<JCStatement> check = pushBlock();
+			addSpecInitializerChecks(false);
+			JCBlock bl = popBlock(0L, classDecl, check);
+			return onlyComments(bl.stats) ? null : bl;
+		} finally {
+			methodDecl = savedMethodDecl;
+		}
+	}
+
 	// FIXME - review
 	protected JCBlock checkStaticInitialization() {
 		JmlMethodDecl md = methodSymForInitBlock(classDecl, Flags.STATIC, classDecl);
@@ -19347,6 +19432,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		}
+		if (rac) addSpecInitializerChecks(true); // ESC verifies static initialization with #1152
 		// FIXME - what are the rules about accessibility for static initializers
 		boolean pv = checkAccessEnabled;
 		checkAccessEnabled = false;

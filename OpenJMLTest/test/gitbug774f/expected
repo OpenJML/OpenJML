@@ -3,10 +3,13 @@ Starting proof of A.A() with prover !!!!
 test/gitbug774f/A.jml:3: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method A: overflow in int sum
     int j = i + Integer.MAX_VALUE;
               ^
+test/gitbug774f/A.jml:3: verify: The prover cannot establish an assertion (FieldInitializer) in method A
+    int j = i + Integer.MAX_VALUE;
+        ^
 Completed proof of A.A() with prover !!!! - with warnings
 Starting proof of A.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of A.main(String...) with prover !!!! - no warnings
 Completed proving methods in A
-1 verification failure
+2 verification failures

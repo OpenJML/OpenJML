@@ -150,6 +150,9 @@ public class Label {
     
     /** Used for assume or assert statements generated from non-null designations on fields */
     /*@ non_null*/ public final static Label NULL_FIELD = new Label("NullField");
+
+    /** Used for assertions that a field's value at the end of initialization equals its specification-file initializer */
+    /*@ non_null*/ public final static Label FIELD_INITIALIZER = new Label("FieldInitializer");
     
     /** Used for assume or assert statements generated from non-null tests of actual arguments of methods or JML functions */
     /*@ non_null*/ public final static Label NULL_ARGUMENT = new Label("NullArgument");
