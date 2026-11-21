@@ -726,6 +726,14 @@ public class racfiles extends RacBase {
         helpRac("test/gitbug774a/A.java", "test/gitbug774a", "A", "--specs-path=test/gitbug774a");
     }
 
+    // Without --rac-java-checks, RAC does not check that the .jml initializer is defined: the program
+    // stops with the Java exception. Safe spec math keeps runtime-library frames out of the trace.
+    @Test
+    public void gitbug774c() {
+        expectedRACExit = 1;
+        helpRac("test/gitbug774c/A.java", "test/gitbug774c", "A", "--specs-path=test/gitbug774c", "--spec-math=safe");
+    }
+
     @Test
     public void gitbug774d() {
         helpRac("test/gitbug774d/A.java", "test/gitbug774d", "A", "--specs-path=test/gitbug774d");
