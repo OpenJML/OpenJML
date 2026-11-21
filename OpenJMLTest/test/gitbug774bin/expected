@@ -1,0 +1,26 @@
+specs-bad/p/B.jml:4: error: The initializer of p.B.NEG in the specification has value -2, but the Java value is -1
+    public static final int NEG = -2;
+                            ^
+specs-bad/p/B.jml:5: error: The initializer of p.B.EXPR in the specification has value 6, but the Java value is 5
+    public static final int EXPR = 2+4;
+                            ^
+specs-bad/p/B.jml:6: error: The initializer of p.B.BOOL in the specification has value false, but the Java value is true
+    public static final boolean BOOL = false;
+                                ^
+specs-bad/p/B.jml:7: error: The initializer of p.B.C in the specification has value 'b', but the Java value is 'a'
+    public static final char C = 'b';
+                             ^
+specs-bad/p/B.jml:8: error: The initializer of p.B.D in the specification has value -0.0, but the Java value is 0.0
+    public static final double D = -0.0;
+                               ^
+specs-bad/p/B.jml:9: error: The initializer of p.B.S in the specification has value "abd", but the Java value is "abc"
+    public static final String S = "ab" + "d";
+                               ^
+specs-bad/p/B.jml:10: error: The initializer of p.B.IL in the specification has value 8L, but the Java value is 7L
+    public final long IL = 8L;
+                      ^
+7 errors
+F.java:9: verify: The prover cannot establish an assertion (Assert) in method m4
+    public void m4() { //@ assert B.NONFINAL == 99;
+                           ^
+1 verification failure

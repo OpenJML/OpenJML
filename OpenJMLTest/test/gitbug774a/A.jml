@@ -1,0 +1,6 @@
+public class A {
+    int i = 11;
+    int j = i;
+    public A();
+    public static void main(String... a);
+}

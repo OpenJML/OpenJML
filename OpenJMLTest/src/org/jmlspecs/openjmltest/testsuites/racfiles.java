@@ -713,4 +713,25 @@ public class racfiles extends RacBase {
     public void textRac() {
         helpCompileRun("BL");
     }
+
+    // .jml field initializers (#774), checked at the end of initialization
+    @Test
+    public void gitbug774() {
+        helpRac("test/gitbug774/A.java", "test/gitbug774", "A", "--specs-path=test/gitbug774");
+    }
+
+    @Test
+    public void gitbug774a() {
+        helpRac("test/gitbug774a/A.java", "test/gitbug774a", "A", "--specs-path=test/gitbug774a");
+    }
+
+    @Test
+    public void gitbug774c() {
+        helpRac("test/gitbug774c/A.java", "test/gitbug774c", "A", "--specs-path=test/gitbug774c");
+    }
+
+    @Test
+    public void gitbug774d() {
+        helpRac("test/gitbug774d/A.java", "test/gitbug774d", "A", "--specs-path=test/gitbug774d");
+    }
 }

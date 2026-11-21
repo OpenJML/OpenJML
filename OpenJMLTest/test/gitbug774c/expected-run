@@ -1,0 +1,7 @@
+OUT:
+test/gitbug774c/A.jml:3: verify: JML Division by zero
+    int j = 10 / (i - 11);
+               ^
+END
+
+ERR:

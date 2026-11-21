@@ -1,0 +1,9 @@
+public class A {
+    static int si = 6;
+    static int sj = si - 1;
+    int i = 11;
+    int j = i - 1;
+    int k = j + 1;
+    public A();
+    public static void main(String... a);
+}
