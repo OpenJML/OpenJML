@@ -131,6 +131,12 @@ public abstract class EscBaseFiles extends EscBase {
         helpEscFile(d,"test/" + outdir,newopts);
     }
 
+    /** Whether an expected file's solver tag applies to the prover: the tag is the prover's name, or a prefix of it
+     *  that ends before a '-' or '.' (z3 and z3-4.3 apply to z3-4.3.1; z3-4.1 does not apply to z3-4.10.2) */
+    static boolean solverTagMatches(String prover, String tag) {
+        return prover.equals(tag) || prover.startsWith(tag + "-") || prover.startsWith(tag + ".");
+    }
+
     /** Runs an --esc test on the file named in 'sourceDirOrFileName' (or if it is a folder, all the files in that folder), 
      * putting the actual output in folder 'outDir' and comparing with expected files also in 'outDir'.
      * Default options are setup in 'collectArgs'.  The options in 'opts' are appended to them. 
@@ -147,10 +153,15 @@ public abstract class EscBaseFiles extends EscBase {
 
             String diffs = null;
             // An expected file may be solver-specific: 'expected<suffix>.<solver>' (e.g. expected.cvc5) is
-            // considered only when the prover in use starts with <solver>; untagged files apply to every solver.
+            // considered only when the prover in use is <solver> or a version of it (see solverTagMatches), so a
+            // solver-specific file (expected.z3-4.3), a solver-family file (expected.z3) and a generic file (expected)
+            // can all apply. As in jSMTLIB's SMTTests, a trailing '.bad' marks output that is wrong because of that
+            // solver (e.g. a proof an old version cannot find) and a trailing '.lenient' output that differs only because
+            // the solver accepts behavior beyond the standard; both are matched the same way.
             String prover = solver != null ? solver : org.jmlspecs.openjml.JmlOption.PROVER.defaultValue().toString();
             var files = new File(outDir).list((f,s)->s.startsWith("expected") && !s.endsWith("-compile") && !s.endsWith(("-run"))
-                                                    && (s.indexOf('.') < 0 || prover.startsWith(s.substring(s.indexOf('.')+1))));
+                                                    && (s.indexOf('.') < 0
+                                                        || solverTagMatches(prover, s.substring(s.indexOf('.')+1).replaceFirst("\\.(bad|lenient)$", ""))));
             assertTrue("There are no expected output files in " + outDir, 0 != files.length);
             for (String name: files) {
                 String expectedFile = outDir + "/" + name;

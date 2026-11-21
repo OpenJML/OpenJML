@@ -1,4 +1,10 @@
 test/gitbug766/Test.java:5: warning: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
               (\exists int x2; x2 == number; \exists int z2; (z2 % 2 == 0); x2 == z2);
                                              ^
-1 warning
+test/gitbug766/Test.java:9: warning: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+              (\exists int x2; x2 == number; \exists int z2; !(z2 % 2 == 0); x2 == z2);
+                                             ^
+test/gitbug766/Test2.java:9: warning: Runtime assertion checking is not implemented for this type or number of declarations in a quantified expression
+              (\exists int x2; x2 == number; \exists int z2; !(z2 == 0); x2 == z2);
+                                             ^
+3 warnings

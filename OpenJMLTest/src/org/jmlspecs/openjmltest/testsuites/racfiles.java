@@ -460,9 +460,16 @@ public class racfiles extends RacBase {
         helpCompileRun("Foo","-Xlint:none");
     }
 
+    // Not supported by RAC: the range of the inner \exists gives no bound for z2 (the bound is in the body),
+    // so RAC warns and does not check the clause (cf. #1151); gitbug766a is the supported form
     @Test
     public void gitbug766() {
         helpCompileOnly();
+    }
+
+    @Test
+    public void gitbug766a() {
+        helpCompileRun("Test");
     }
 
     @Test
