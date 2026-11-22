@@ -225,7 +225,7 @@ public class escStaticInit extends EscBase {
                   //@ pure
                   public P(int v) { this.v = v; }
                   //@ ensures \\result == v;
-                  //@ pure
+                  //@ pure helper
                   public int get() { return v; }
                 }
                 public class TestJava {
@@ -242,6 +242,41 @@ public class escStaticInit extends EscBase {
                   }
                 }
                 """
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
+    // A fact that calls a method that is not a helper is not inferred (the method's axioms are guarded by its class's
+    // invariants); a warning says so
+    @Test
+    public void testStaticInitializerNonHelperWarning() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class P {
+                  public final int v;
+                  //@ public normal_behavior
+                  //@   ensures this.v == v;
+                  //@ pure
+                  public P(int v) { this.v = v; }
+                  //@ public normal_behavior
+                  //@   ensures \\result == v;
+                  //@ pure
+                  public int get() { return v; }
+                }
+                public class TestJava {
+                  public static final P P5 = new P(5);
+                  //@ public normal_behavior
+                  //@   ensures P5 != null && P5.get() == 5;
+                  //@ static_initializer
+
+                  public static void m() {
+                    //@ assert P5 != null;
+                    //@ assert P5.get() == 5;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:16: warning: This static_initializer fact is not assumed as a static invariant, because get() is not a helper method",37
                 ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m",9
                 );
     }

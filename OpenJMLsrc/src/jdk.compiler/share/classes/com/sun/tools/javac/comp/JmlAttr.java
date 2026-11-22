@@ -9104,13 +9104,28 @@ public class JmlAttr extends Attr implements IJmlVisitor {
      *  constructors assume the invariant. A conjunct qualifies if it reads at least one static field, every field it
      *  reads is final and not a model field, an instance field only through final fields from a static final field
      *  (ORIGIN.next.x), it calls
-     *  only effectively spec_pure (deterministic) methods, and it reads no array elements and allocates nothing
-     *  (#1152; #1153 for objects of immutable classes) */
+     *  only effectively spec_pure (deterministic) helper methods (a non-helper one is warned about), it reads no array
+     *  elements and allocates nothing, and it mentions no static field that an explicit invariant pins with
+     *  'field == e' (#1152; #1153 for objects of immutable classes) */
     protected void inferStaticInitializerInvariants(TypeSpecs tspecs) {
         if (utils.rac) return;
         JmlTypeClauseInitializer tci = tspecs.staticInitializerSpec;
         if (tci == null || tci.specs == null) return;
         var M = JmlTree.Maker.instance(context);
+        // Static fields an explicit invariant already pins with a conjunct 'field == e' (or 'e == field'); facts about
+        // them are not inferred again
+        java.util.Set<Symbol> pinned = new java.util.HashSet<>();
+        for (JmlTypeClause t : tspecs.clauses) {
+            if (t.clauseType != invariantClause || !(t instanceof JmlTypeClauseExpr te)) continue;
+            for (JCExpression e : conjuncts(te.expression, new ListBuffer<>())) {
+                if (TreeInfo.skipParens(e) instanceof JCBinary b && b.getTag() == JCTree.Tag.EQ) {
+                    for (JCExpression side : List.of(b.lhs, b.rhs)) {
+                        if (TreeInfo.symbol(TreeInfo.skipParens(side)) instanceof VarSymbol v && v.isStatic()
+                                && v.owner instanceof TypeSymbol) pinned.add(v);
+                    }
+                }
+            }
+        }
         for (JmlSpecificationCase cs : tci.specs.cases) {
             if (cs.clauses == null) continue;
             boolean conditional = false;
@@ -9123,7 +9138,20 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             for (JmlMethodClause c : cs.clauses) {
                 if (c.clauseKind != ensuresClauseKind) continue;
                 for (JCExpression e : conjuncts(((JmlMethodClauseExpr)c).expression, new ListBuffer<>())) {
-                    if (!isDurableStaticFact(e)) continue;
+                    JCMethodInvocation[] nonHelper = { null };
+                    if (!isDurableStaticFact(e, pinned, nonHelper)) continue;
+                    if (nonHelper[0] != null) {
+                        // The axioms of a non-helper method are guarded by its class's invariants, which would then
+                        // include this fact about the method's own results
+                        JavaFileObject prev = log.useSource(cs.sourcefile != null ? cs.sourcefile : tci.source());
+                        try {
+                            utils.warning(nonHelper[0], "jml.message", "This static_initializer fact is not assumed as a static invariant, because "
+                                    + TreeInfo.symbol(nonHelper[0].meth) + " is not a helper method");
+                        } finally {
+                            log.useSource(prev);
+                        }
+                        continue;
+                    }
                     var cl = M.at(e.pos).JmlTypeClauseExpr(M.Modifiers(access | Flags.STATIC | Flags.FINAL),
                             invariantID, invariantClause, e);
                     cl.sourcefile = cs.sourcefile != null ? cs.sourcefile : tci.source();
@@ -9153,15 +9181,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         return x instanceof JCFieldAccess fa && isFinalPath(fa.selected);
     }
 
-    /** Whether e depends only on state fixed at the end of static initialization (see inferStaticInitializerInvariants) */
-    protected boolean isDurableStaticFact(JCExpression e) {
+    /** Whether e depends only on state fixed at the end of static initialization and mentions no pinned field (see
+     *  inferStaticInitializerInvariants); nonHelper[0] is set to a call of a method that is not a helper, if any */
+    protected boolean isDurableStaticFact(JCExpression e, java.util.Set<Symbol> pinned, JCMethodInvocation[] nonHelper) {
         boolean[] ok = { true };
         boolean[] readsStatic = { false };
         new JmlTreeScanner() {
             void field(Symbol s) {
                 if (!(s instanceof VarSymbol v) || !(v.owner instanceof TypeSymbol)) return; // locals, bound variables
                 if (v == syms.lengthVar) return;
-                if ((v.flags() & Flags.FINAL) == 0 || utils.isModel(v)) ok[0] = false;
+                if ((v.flags() & Flags.FINAL) == 0 || utils.isModel(v) || pinned.contains(v)) ok[0] = false;
                 if (v.isStatic()) readsStatic[0] = true;
             }
             @Override public void visitIdent(JCIdent t) { field(t.sym); }
@@ -9174,6 +9203,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             }
             @Override public void visitApply(JCMethodInvocation t) {
                 if (!(TreeInfo.symbol(t.meth) instanceof MethodSymbol m) || !specs.isEffectivelySpecPureMethod(m)) ok[0] = false;
+                else if (!utils.isHelper(m) && nonHelper[0] == null) nonHelper[0] = t;
                 super.visitApply(t);
             }
             @Override public void visitJmlMethodInvocation(JmlMethodInvocation t) { ok[0] = false; }

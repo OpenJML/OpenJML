@@ -179,7 +179,7 @@ public class escConstantFields extends EscBase {
                   }
                   //@ assignable \\everything;
                   static public void n() {}
-                  /*@ helper */ static private int z() { return 10; }
+                  /*@ pure helper */ static private int z() { return 10; }
                 }
                 """
                 ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (ExceptionInInitializer) in method <clinit>",32
@@ -208,7 +208,7 @@ public class escConstantFields extends EscBase {
                   //@ assignable \\everything;
                   static public void n() {}
                   //@ private normal_behavior ensures \\result == 10;
-                  /*@ helper */ static private int z() { return 10; }
+                  /*@ pure helper */ static private int z() { return 10; }
                 }
                 """
                 );
@@ -237,7 +237,7 @@ public class escConstantFields extends EscBase {
                   //@ assignable \\everything;
                   static public void n() {}
                   //@ ensures \\result == 10;
-                  /*@ helper */ static private int z() { return 10; }
+                  /*@ pure helper */ static private int z() { return 10; }
                 }
                 """
                 ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (ExceptionInInitializer) in method <clinit>",32

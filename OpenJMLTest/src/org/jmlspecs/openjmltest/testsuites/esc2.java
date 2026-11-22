@@ -2966,19 +2966,28 @@ public class esc2 extends EscBase {
     }
 
 
+    // The explicit invariant pins ii, so no invariant is inferred from the static_initializer fact about ii
     @Test
-    public void testFinalInvariant3() { 
+    public void testFinalInvariant3() {
         expectedExit = 0;
         helpEsc("tt.TestJava",
                 """
                 package tt;
                 public class TestJava  {
                   public static final int ii = mm();
-                 //@ ensures ii == mm(); static_initializer   //@ public final invariant ii == 19;
+                  //@ ensures ii == mm();
+                  //@ static_initializer
+
+                  //@ public final invariant ii == 19;
+
                   //@ public normal_behavior
                   //@   ensures \\result == 10 + 9;
+                  //@   pure helper
+                  public static int mm() { return 19; }
+
+                  //@ public normal_behavior
+                  //@   ensures \\result == 19;
                   //@   pure
-                  public static int mm() { return 19; }  //@ public normal_behavior ensures \\result == 19; pure
                   public int mmm() { return ii; }
                 }
                 """
