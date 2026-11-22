@@ -5961,7 +5961,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addConstraintInitiallyChecks(methodDecl, owner, receiver, currentStatements, true,
                     methodDecl.sym.isConstructor(), false, isHelper(methodDecl.sym), true, false, null);
             var bl = popBlock(methodDecl);
-            if (!isConstructor) {
+            if (isClinit(methodDecl)) {
+                // Static initialization must not throw: the class would be unusable (ExceptionInInitializerError).
+                // So the exit checks apply only to a normal exit (#1152)
+                pushBlock();
+                addAssert(methodDecl, Label.INITIALIZER_EXCEPTION, treeutils.falseLit);
+                JCBlock exbl = popBlock(methodDecl);
+                JCExpression ok = treeutils.makeEqObject(methodPos.getPreferredPosition(),
+                        treeutils.makeIdent(methodPos.getPreferredPosition(), exceptionSym), treeutils.nullLit);
+                addStat(M.at(methodDecl.pos).If(ok, bl, exbl));
+            } else if (!isConstructor) {
                 addStat(bl);
             } else {
                 pushBlock();

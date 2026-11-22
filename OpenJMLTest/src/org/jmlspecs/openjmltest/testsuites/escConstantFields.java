@@ -180,6 +180,67 @@ public class escConstantFields extends EscBase {
                   /*@ helper */ static private int z() { return 10; }
                 }
                 """
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (ExceptionInInitializer) in method <clinit>",32
+                );
+    }
+
+    @Test
+    public void testFieldsNotConstantWithHelperB() {
+        main.addOptions("-no-staticInitWarning"); // FIXME
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public final static int I = z();
+                  //@ ghost public final static int J = 1 + I;
+                  //@ public static invariant I == 10 && J == 11;
+                  public TestJava() {
+                     //@ assert I == 10 && J == 11;
+                     n();
+                     //@ assert I == 10 && J == 11;
+                  }
+                  public void m() {
+                     //@ assert I == 10 && J == 11;
+                     n();
+                     //@ assert I == 10 && J == 11;
+                  }
+                  //@ assignable \\everything;
+                  static public void n() {}
+                  //@ private normal_behavior ensures \\result == 10;
+                  /*@ helper */ static private int z() { return 10; }
+                }
+                """
+                );
+    }
+
+    // z() may throw (it is not normal_behavior), and static initialization must not throw (#1152)
+    @Test
+    public void testFieldsNotConstantWithHelperC() {
+        main.addOptions("-no-staticInitWarning"); // FIXME
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public final static int I = z();
+                  //@ ghost public final static int J = 1 + I;
+                  //@ public static invariant I == 10 && J == 11;
+                  public TestJava() {
+                     //@ assert I == 10 && J == 11;
+                     n();
+                     //@ assert I == 10 && J == 11;
+                  }
+                  public void m() {
+                     //@ assert I == 10 && J == 11;
+                     n();
+                     //@ assert I == 10 && J == 11;
+                  }
+                  //@ assignable \\everything;
+                  static public void n() {}
+                  //@ ensures \\result == 10;
+                  /*@ helper */ static private int z() { return 10; }
+                }
+                """
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (ExceptionInInitializer) in method <clinit>",32
                 );
     }
 
