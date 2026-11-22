@@ -375,6 +375,68 @@ public class escStaticInit extends EscBase {
                 );
     }
 
+    // A path through a non-final field does not pin: Q's facts (Q.x == 3) are still inferred
+    @Test
+    public void testStaticInitializerNonFinalPathNoPin() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class Q {
+                  public final int x;
+                  public int y;
+                  //@ public normal_behavior
+                  //@   ensures this.x == x && this.y == 0;
+                  //@ pure
+                  public Q(int x) { this.x = x; this.y = 0; }
+                }
+                public class TestJava {
+                  public static final Q Q3 = new Q(3);
+                  //@ public static invariant Q3 != null;
+                  //@ public static invariant Q3.y == 0;
+                  //@ public normal_behavior
+                  //@   ensures Q3 != null && Q3.x == 3;
+                  //@ static_initializer
+
+                  public static void m() {
+                    //@ assert Q3.x == 3;
+                  }
+                }
+                """
+                );
+    }
+
+    // A path through a final model field pins (R5.mv == 2 allows R5.v == 4, so the assert fails)
+    @Test
+    public void testStaticInitializerPinnedByModelPath() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class R {
+                  //@ public final model int mv;
+                  public final int v;
+                  //@ public represents mv = v / 2;
+                  //@ public normal_behavior
+                  //@   ensures this.v == v;
+                  //@ pure
+                  public R(int v) { this.v = v; }
+                }
+                public class TestJava {
+                  public static final R R5 = new R(5);
+                  //@ public static invariant R5 != null;
+                  //@ public static invariant R5.mv == 2;
+                  //@ public normal_behavior
+                  //@   ensures R5 != null && R5.v == 5;
+                  //@ static_initializer
+
+                  public static void m() {
+                    //@ assert R5.v == 5;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
     // A conditional case (with a requires) gives no invariant
     @Test
     public void testStaticInitializerConditionalNotInferred() {

@@ -9113,7 +9113,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         if (tci == null || tci.specs == null) return;
         var M = JmlTree.Maker.instance(context);
         // Static fields an explicit invariant already pins with a conjunct 'field == e' (or 'e == field'), where field
-        // may also be a path of instance fields from the static field (ZERO.seconds == 0); facts about them are not inferred
+        // may also be a path of final instance fields, model or not, from the static field (ZERO.seconds == 0); facts
+        // about them are not inferred
         java.util.Set<Symbol> pinned = new java.util.HashSet<>();
         for (JmlTypeClause t : tspecs.clauses) {
             if (t.clauseType != invariantClause || !(t instanceof JmlTypeClauseExpr te)) continue;
@@ -9121,8 +9122,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 if (TreeInfo.skipParens(e) instanceof JCBinary b && b.getTag() == JCTree.Tag.EQ) {
                     for (JCExpression side : List.of(b.lhs, b.rhs)) {
                         JCExpression x = TreeInfo.skipParens(side);
-                        while (x instanceof JCFieldAccess fa && TreeInfo.symbol(fa) instanceof VarSymbol v && !v.isStatic())
-                            x = TreeInfo.skipParens(fa.selected);
+                        while (x instanceof JCFieldAccess fa && TreeInfo.symbol(fa) instanceof VarSymbol v && !v.isStatic()
+                                && (v.flags() & Flags.FINAL) != 0) x = TreeInfo.skipParens(fa.selected);
                         if (TreeInfo.symbol(x) instanceof VarSymbol v && v.isStatic()
                                 && v.owner instanceof TypeSymbol) pinned.add(v);
                     }
