@@ -25,6 +25,9 @@ function ctrl_c() {
     exit 1
 }
 
+# No idle sleep while this script is running
+caffeinate -i -w $$ &
+
 echo START `date`
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 rm -f the.jml.lock unittestframework
