@@ -66,7 +66,8 @@ public class escnewBoxing extends EscBase {
                   //@ static_initializer
                 }
                 """
-                );   // FIXME - should generate warnings here
+                ,"/tt/TestJava.java:9: verify: The prover cannot establish an assertion (PossiblyNullUnbox) in method <clinit>",38
+                );
     }
 
     @Test

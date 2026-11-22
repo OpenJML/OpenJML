@@ -12,6 +12,7 @@ Feasibility check - at implicit return : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.Test() with prover !!!! - no warnings
 Starting proof of Test._sumFirstNElements(int[],int) with prover !!!!
+Feasibility check - after static invariant: //@ public static final invariant TYPE == int.class; // sourcefile: SimpleFileObject[$SPECS/java/lang/Integer.jml] : OK
 Feasibility check - after static initialization : OK
 Feasibility check - after field assumption: java.lang.Object theHashCode : OK
 Feasibility check - after field assumption: java.lang.Object uniqueHash : OK
@@ -45,6 +46,7 @@ Feasibility check - after call : OK
 Feasibility check - after call : OK
 Completed proof of Test._sumFirstNElements(int[],int) with prover !!!! - no warnings
 Starting proof of Test.sumArray(int[]) with prover !!!!
+Feasibility check - after static invariant: //@ public static final invariant TYPE == int.class; // sourcefile: SimpleFileObject[$SPECS/java/lang/Integer.jml] : OK
 Feasibility check - after static initialization : OK
 Feasibility check - after field assumption: java.lang.Object theHashCode : OK
 Feasibility check - after field assumption: java.lang.Object uniqueHash : OK
@@ -107,6 +109,7 @@ Feasibility check - at implicit return : OK
 Feasibility check - at program exit : OK
 Completed proof of Test2.Test2() with prover !!!! - no warnings
 Starting proof of Test2._sumFirstNElements(int[],int) with prover !!!!
+Feasibility check - after static invariant: //@ public static final invariant TYPE == int.class; // sourcefile: SimpleFileObject[$SPECS/java/lang/Integer.jml] : OK
 Feasibility check - after static initialization : OK
 Feasibility check - after field assumption: java.lang.Object theHashCode : OK
 Feasibility check - after field assumption: java.lang.Object uniqueHash : OK
@@ -140,6 +143,7 @@ Feasibility check - after call : OK
 Feasibility check - after call : OK
 Completed proof of Test2._sumFirstNElements(int[],int) with prover !!!! - no warnings
 Starting proof of Test2.sumArray(int[]) with prover !!!!
+Feasibility check - after static invariant: //@ public static final invariant TYPE == int.class; // sourcefile: SimpleFileObject[$SPECS/java/lang/Integer.jml] : OK
 Feasibility check - after static initialization : OK
 Feasibility check - after field assumption: java.lang.Object theHashCode : OK
 Feasibility check - after field assumption: java.lang.Object uniqueHash : OK

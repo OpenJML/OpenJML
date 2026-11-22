@@ -1655,6 +1655,7 @@ public class racnew2 extends RacBase {
                 """
                     ,"/tt/A.java:12: verify: JML Attempt to unbox a null object"
                     ,"/tt/A.java:15: verify: JML Attempt to unbox a null object"
+                    ,"/tt/A.java:15: verify: JML static initialization threw an exception"
                     ,"java.lang.ExceptionInInitializerError"
                     ,"Caused by: java.lang.NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\" because \"tt.A.ii\" is null"
                     ,"\tat tt.A.<clinit>(A.java:15)"
