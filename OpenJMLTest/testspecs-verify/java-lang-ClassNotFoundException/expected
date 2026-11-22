@@ -13,4 +13,7 @@ Feasibility check - at return statement : OK
 Completed proof of ClassNotFoundException.getException() with prover !!!! - no warnings
 Skipping proof of ClassNotFoundException.readObject(java.io.ObjectInputStream) (Skipping java.lang.ClassNotFoundException.readObject because it matches the exclusion readObject)
 Skipping proof of ClassNotFoundException.writeObject(java.io.ObjectOutputStream) (Skipping java.lang.ClassNotFoundException.writeObject because it matches the exclusion writeObject)
+Starting proof of ClassNotFoundException.<clinit>() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of ClassNotFoundException.<clinit>() with prover !!!! - no warnings
 Completed proving methods in java.lang.ClassNotFoundException

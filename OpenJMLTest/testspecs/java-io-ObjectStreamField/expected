@@ -1,0 +1,8 @@
+Proving methods in TestObjectStreamField
+Starting proof of TestObjectStreamField.construct() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestObjectStreamField.construct() with prover !!!! - no warnings
+Starting proof of TestObjectStreamField.exceptions() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestObjectStreamField.exceptions() with prover !!!! - no warnings
+Completed proving methods in TestObjectStreamField
