@@ -605,7 +605,7 @@ public class JmlOption {
 //        map.put("-nullable",NULLABLEBYDEFAULT);
 //    }
 
-    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK, PIPELINE };
+    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK, PIPELINE, STATIC_INIT_WARNING };
     final static private JmlOption[] obsoleteOptions = new JmlOption[] { PURITYCHECK, STATIC_INIT_WARNING };
     
     /** Holds the name of the option, as it is used in the command-line,
