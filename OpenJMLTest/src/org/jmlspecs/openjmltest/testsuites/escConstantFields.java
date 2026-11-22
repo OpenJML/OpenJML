@@ -420,6 +420,12 @@ public class escConstantFields extends EscBase {
     @Test
     public void testFieldNotConstantVerboseWarning() {
         main.addOptions("-staticInitWarning", "--jmlverbose");
+        // Discard the verbose tracing; only the diagnostics are checked
+        var discard = new java.io.PrintStream(java.io.OutputStream.nullOutputStream());
+        com.sun.tools.javac.util.Log.instance(context).setWriters(new java.io.PrintWriter(discard, true));
+        main.progressListener = new org.jmlspecs.openjml.Main.PrintProgressReporter(new java.io.PrintWriter(discard, true));
+        org.jmlspecs.openjml.Utils.setDebugOut(discard);
+        try {
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -438,5 +444,8 @@ public class escConstantFields extends EscBase {
                 ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.I (translating tt.TestJava.z())",27
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
+        } finally {
+            org.jmlspecs.openjml.Utils.setDebugOut(null);
+        }
     }
 }
