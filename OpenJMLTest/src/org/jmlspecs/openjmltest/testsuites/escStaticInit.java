@@ -212,6 +212,95 @@ public class escStaticInit extends EscBase {
                 );
     }
 
+    // A static_initializer fact about final static fields, read through deterministic methods, cannot change after
+    // static initialization, so it becomes an assumed static invariant (#1152)
+    @Test
+    public void testStaticInitializerInferredInvariant() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class P {
+                  public final int v;
+                  //@ ensures this.v == v;
+                  //@ pure
+                  public P(int v) { this.v = v; }
+                  //@ ensures \\result == v;
+                  //@ pure
+                  public int get() { return v; }
+                }
+                public class TestJava {
+                  public static final P P5 = new P(5);
+                  public static int k = 5;
+                  //@ public normal_behavior
+                  //@   ensures P5 != null && P5.get() == 5;
+                  //@   ensures k == 5;
+                  //@ static_initializer
+
+                  public static void m() {
+                    //@ assert P5.get() == 5;
+                    //@ assert k == 5;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:21: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
+    // A final instance field counts when read through final fields from a static final field; a non-final one does not
+    @Test
+    public void testStaticInitializerInferredInstanceField() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class Pt {
+                  public final int x;
+                  public int y;
+                  public final /*@ nullable */ Pt next;
+                  //@ public normal_behavior
+                  //@   ensures this.x == x && this.y == 0 && this.next == next;
+                  //@ pure
+                  public Pt(int x, /*@ nullable */ Pt next) { this.x = x; this.next = next; }
+                }
+                public class TestJava {
+                  public static final Pt ORIGIN = new Pt(0, new Pt(1, null));
+                  //@ public normal_behavior
+                  //@   ensures ORIGIN.x == 0 && ORIGIN.y == 0;
+                  //@   ensures ORIGIN.next != null && ORIGIN.next.x == 1;
+                  //@ static_initializer
+
+                  public static void m() {
+                    //@ assert ORIGIN.x == 0 && ORIGIN.next != null && ORIGIN.next.x == 1;
+                    //@ assert ORIGIN.y == 0;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:20: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
+    // A conditional case (with a requires) gives no invariant
+    @Test
+    public void testStaticInitializerConditionalNotInferred() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class Other { public static int q = 1; }
+                public class TestJava {
+                  public static final int K = 10 / Other.q;
+                  //@ public normal_behavior
+                  //@   requires Other.q == 1;
+                  //@   ensures K == 10;
+                  //@ static_initializer
+
+                  public static void m() {
+                    //@ assert K == 10;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:11: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
     // A durable fact is a static invariant: <clinit> establishes it, methods assume it on entry and must restore it
     @Test
     public void testStaticInvariantAssumedLater() {
@@ -253,6 +342,45 @@ public class escStaticInit extends EscBase {
                 }
                 """
                 ,"/tt/TestJava.java:6: warning: The static final field B is not mentioned in any static invariant, so methods can assume nothing about its value",30
+                );
+    }
+
+    // The default frame of static initialization is C.*, the static fields of the class
+    @Test
+    public void testDefaultFrame() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class Other { public static int q; }
+                public class TestJava {
+                  static int k = 1;
+                  static int j;
+                  static { k = 2; j = 3; Other.q = 3; }
+                }
+                """
+                ,"/tt/TestJava.java:6: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:3:) in method <clinit>: Other.q",34
+                ,"/tt/TestJava.java:3: verify: Associated declaration: /tt/TestJava.java:6:",8
+                );
+    }
+
+    // An assignable clause of the static_initializer is the frame of static initialization; a private heading lets
+    // the clause name non-public fields
+    @Test
+    public void testExplicitFrame() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  static int k = 1;
+                  private static int j;
+                  //@ private normal_behavior
+                  //@   assignable k;
+                  //@ static_initializer
+                  static { k = 2; j = 3; }
+                }
+                """
+                ,"/tt/TestJava.java:8: verify: The prover cannot establish an assertion (Assignable: /tt/TestJava.java:6:) in method <clinit>: j",21
+                ,"/tt/TestJava.java:6: verify: Associated declaration: /tt/TestJava.java:8:",9
                 );
     }
 

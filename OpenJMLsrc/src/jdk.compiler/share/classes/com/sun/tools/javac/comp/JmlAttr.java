@@ -9082,6 +9082,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		}
     		attrTypeClause(tspecs.initializerSpec, tspecs.specsEnv, ri);
     		attrTypeClause(tspecs.staticInitializerSpec, tspecs.specsEnv, ri);
+    		inferStaticInitializerInvariants(tspecs);
 		} catch (PropagatedException e) {
 		    throw e;
     	} catch (Exception e) {
@@ -9096,6 +9097,91 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		jmlenv = jmlenv.pop();
     		if (utils.verbose()) utils.note("    Attributed specs for " + csym + specs.status(csym));
     	}
+    }
+
+    /** For ESC: each conjunct of an unconditional ensures clause of the static_initializer that cannot change after
+     *  static initialization becomes an assume-only (FINAL) static invariant. <clinit> proves the clause; methods and
+     *  constructors assume the invariant. A conjunct qualifies if it reads at least one static field, every field it
+     *  reads is final and not a model field, an instance field only through final fields from a static final field
+     *  (ORIGIN.next.x), it calls
+     *  only effectively spec_pure (deterministic) methods, and it reads no array elements and allocates nothing
+     *  (#1152; #1153 for objects of immutable classes) */
+    protected void inferStaticInitializerInvariants(TypeSpecs tspecs) {
+        if (utils.rac) return;
+        JmlTypeClauseInitializer tci = tspecs.staticInitializerSpec;
+        if (tci == null || tci.specs == null) return;
+        var M = JmlTree.Maker.instance(context);
+        for (JmlSpecificationCase cs : tci.specs.cases) {
+            if (cs.clauses == null) continue;
+            boolean conditional = false;
+            for (JmlMethodClause c : cs.clauses) {
+                if (c.clauseKind == requiresClauseKind && !treeutils.isTrueLit(((JmlMethodClauseExpr)c).expression)) conditional = true;
+            }
+            if (conditional) continue;
+            // A lightweight case states facts about the fields it names; it is public like them
+            long access = cs.token == null || cs.modifiers == null ? Flags.PUBLIC : (cs.modifiers.flags & Flags.AccessFlags);
+            for (JmlMethodClause c : cs.clauses) {
+                if (c.clauseKind != ensuresClauseKind) continue;
+                for (JCExpression e : conjuncts(((JmlMethodClauseExpr)c).expression, new ListBuffer<>())) {
+                    if (!isDurableStaticFact(e)) continue;
+                    var cl = M.at(e.pos).JmlTypeClauseExpr(M.Modifiers(access | Flags.STATIC | Flags.FINAL),
+                            invariantID, invariantClause, e);
+                    cl.sourcefile = cs.sourcefile != null ? cs.sourcefile : tci.source();
+                    tspecs.clauses.add(cl);
+                }
+            }
+        }
+    }
+
+    private static ListBuffer<JCExpression> conjuncts(JCExpression e, ListBuffer<JCExpression> out) {
+        JCExpression x = TreeInfo.skipParens(e);
+        if (x instanceof JCBinary b && b.getTag() == JCTree.Tag.AND) {
+            conjuncts(b.lhs, out);
+            conjuncts(b.rhs, out);
+        } else {
+            out.add(e);
+        }
+        return out;
+    }
+
+    /** Whether e is a static final field, or a final instance field of such a path */
+    private boolean isFinalPath(JCExpression e) {
+        JCExpression x = TreeInfo.skipParens(e);
+        if (!(TreeInfo.symbol(x) instanceof VarSymbol v) || !(v.owner instanceof TypeSymbol) || (v.flags() & Flags.FINAL) == 0
+                || utils.isModel(v)) return false;
+        if (v.isStatic()) return true;
+        return x instanceof JCFieldAccess fa && isFinalPath(fa.selected);
+    }
+
+    /** Whether e depends only on state fixed at the end of static initialization (see inferStaticInitializerInvariants) */
+    protected boolean isDurableStaticFact(JCExpression e) {
+        boolean[] ok = { true };
+        boolean[] readsStatic = { false };
+        new JmlTreeScanner() {
+            void field(Symbol s) {
+                if (!(s instanceof VarSymbol v) || !(v.owner instanceof TypeSymbol)) return; // locals, bound variables
+                if (v == syms.lengthVar) return;
+                if ((v.flags() & Flags.FINAL) == 0 || utils.isModel(v)) ok[0] = false;
+                if (v.isStatic()) readsStatic[0] = true;
+            }
+            @Override public void visitIdent(JCIdent t) { field(t.sym); }
+            @Override public void visitSelect(JCFieldAccess t) {
+                field(t.sym);
+                // An instance field is read only through a chain of final fields from a static final field: ORIGIN.next.x
+                if (t.sym instanceof VarSymbol v && v.owner instanceof TypeSymbol && !v.isStatic() && v != syms.lengthVar
+                        && !isFinalPath(t.selected)) ok[0] = false;
+                super.visitSelect(t);
+            }
+            @Override public void visitApply(JCMethodInvocation t) {
+                if (!(TreeInfo.symbol(t.meth) instanceof MethodSymbol m) || !specs.isEffectivelySpecPureMethod(m)) ok[0] = false;
+                super.visitApply(t);
+            }
+            @Override public void visitJmlMethodInvocation(JmlMethodInvocation t) { ok[0] = false; }
+            @Override public void visitIndexed(JCArrayAccess t) { ok[0] = false; }
+            @Override public void visitNewClass(JCNewClass t) { ok[0] = false; }
+            @Override public void visitNewArray(JCNewArray t) { ok[0] = false; }
+        }.scan(e);
+        return ok[0] && readsStatic[0];
     }
 
     public void attrSpecs(VarSymbol vsym) {

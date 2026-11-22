@@ -6758,7 +6758,32 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		md.sourcefile = hasSpec ? tci.source() : cd.sourcefile;
 		treeutils.copyEndPosition(md, hasSpec ? tci : cd); // e.g. for the feasibility check at the end
 		treeutils.copyEndPosition(md.body, hasSpec ? tci : cd);
-		md.methodSpecs = hasSpec ? tci.specs : null;
+		// A case with no assignable clause has the default frame of static initialization: the static fields of the
+		// class, i.e. C.* and, since C.* omits final fields, each static final field (#1152)
+		ListBuffer<JCExpression> locs = new ListBuffer<>();
+		locs.add(M.at(pos).Select(treeutils.makeType(pos, cd.sym.type), (Name) null));
+		for (JCTree t : cd.defs) {
+			if (t instanceof JmlVariableDecl vd && vd.sym != null && utils.isJMLStatic(vd.sym) && isFinal(vd.sym)
+					&& !isModel(vd.sym)) {
+				locs.add(treeutils.makeSelect(pos, treeutils.makeType(pos, cd.sym.type), vd.sym));
+			}
+		}
+		JmlMethodClause frame = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind, locs.toList());
+		frame.sourcefile = md.sourcefile;
+		ListBuffer<JmlSpecificationCase> cases = new ListBuffer<>();
+		if (hasSpec) {
+			for (JmlSpecificationCase c : tci.specs.cases) {
+				boolean hasFrame = c.clauses != null && c.clauses.stream().anyMatch(cl -> cl.clauseKind == assignableClauseKind);
+				cases.add(hasFrame || c.block != null || c.clauses == null ? c : M.JmlSpecificationCase(c, c.clauses.append(frame)));
+			}
+		} else {
+			JmlSpecificationCase c = M.at(pos).JmlSpecificationCase(M.Modifiers(0), false, null, null, List.of(frame), null);
+			c.sourcefile = md.sourcefile;
+			cases.add(c);
+		}
+		JmlMethodSpecs mspecs = M.at(pos).JmlMethodSpecs(cases.toList());
+		if (hasSpec) mspecs.invariants = tci.specs.invariants;
+		md.methodSpecs = mspecs;
 		specs.putAttrSpecs(msym, new JmlSpecs.MethodSpecs(md));
 		return md;
 	}
