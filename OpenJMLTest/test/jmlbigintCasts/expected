@@ -132,5 +132,9 @@ test/jmlbigintCasts/Tcasts.java:109: verify: The prover cannot establish an asse
       //@ check (long)(z+Long.MAX_VALUE) == Long.MIN_VALUE + 49L;
                 ^
 Completed proof of Tcasts.b4() with prover !!!! - with warnings
+Starting proof of Tcasts.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Tcasts.<clinit>() with prover !!!! - no warnings
 Completed proving methods in Tcasts
 25 verification failures

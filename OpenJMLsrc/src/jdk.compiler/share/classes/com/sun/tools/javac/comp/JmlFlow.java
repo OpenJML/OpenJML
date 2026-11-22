@@ -494,6 +494,12 @@ public class JmlFlow extends Flow  {
 //            super.visitMethodDef(that);
 //        }
 
+        /** A model field is never assigned, so a final one is not a blank final */
+        @Override
+        protected boolean trackable(VarSymbol sym) {
+            return super.trackable(sym) && !(sym.owner.kind == TYP && utils.isModel(sym));
+        }
+
         /** A method declared in a .jml file (a model method with a body) has positions in that file, so the
          * position test in trackable() does not apply to its variables: track them all (#1100). */
         @Override

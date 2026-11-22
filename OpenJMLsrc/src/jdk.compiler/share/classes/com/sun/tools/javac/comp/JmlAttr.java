@@ -9112,15 +9112,19 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         JmlTypeClauseInitializer tci = tspecs.staticInitializerSpec;
         if (tci == null || tci.specs == null) return;
         var M = JmlTree.Maker.instance(context);
-        // Static fields an explicit invariant already pins with a conjunct 'field == e' (or 'e == field'); facts about
-        // them are not inferred again
+        // Static fields an explicit invariant already pins with a conjunct 'field == e' (or 'e == field'), where field
+        // may also be a path of final instance fields, model or not, from the static field (ZERO.seconds == 0); facts
+        // about them are not inferred
         java.util.Set<Symbol> pinned = new java.util.HashSet<>();
         for (JmlTypeClause t : tspecs.clauses) {
             if (t.clauseType != invariantClause || !(t instanceof JmlTypeClauseExpr te)) continue;
             for (JCExpression e : conjuncts(te.expression, new ListBuffer<>())) {
                 if (TreeInfo.skipParens(e) instanceof JCBinary b && b.getTag() == JCTree.Tag.EQ) {
                     for (JCExpression side : List.of(b.lhs, b.rhs)) {
-                        if (TreeInfo.symbol(TreeInfo.skipParens(side)) instanceof VarSymbol v && v.isStatic()
+                        JCExpression x = TreeInfo.skipParens(side);
+                        while (x instanceof JCFieldAccess fa && TreeInfo.symbol(fa) instanceof VarSymbol v && !v.isStatic()
+                                && (v.flags() & Flags.FINAL) != 0) x = TreeInfo.skipParens(fa.selected);
+                        if (TreeInfo.symbol(x) instanceof VarSymbol v && v.isStatic()
                                 && v.owner instanceof TypeSymbol) pinned.add(v);
                     }
                 }
@@ -9163,7 +9167,8 @@ public class JmlAttr extends Attr implements IJmlVisitor {
 
     private static ListBuffer<JCExpression> conjuncts(JCExpression e, ListBuffer<JCExpression> out) {
         JCExpression x = TreeInfo.skipParens(e);
-        if (x instanceof JCBinary b && b.getTag() == JCTree.Tag.AND) {
+        if (x instanceof JCBinary b && (b.getTag() == JCTree.Tag.AND
+                || (b.getTag() == JCTree.Tag.BITAND && b.type != null && b.type.getTag() == TypeTag.BOOLEAN))) {
             conjuncts(b.lhs, out);
             conjuncts(b.rhs, out);
         } else {

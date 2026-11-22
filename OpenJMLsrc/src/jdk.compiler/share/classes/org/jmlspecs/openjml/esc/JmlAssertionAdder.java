@@ -6795,9 +6795,18 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 *  would contradict that assignment. */
 	protected void addStaticInitialState() {
 		addStat(comment(methodDecl, "Static fields start with their default values", null));
+		// A final field's default is assumed only if nothing assigns it; else the assumption contradicts the assignment
+		java.util.Set<Symbol> assigned = new java.util.HashSet<>();
+		JmlTreeScanner collector = new JmlTreeScanner() {
+			@Override public void visitAssign(JCAssign t) { assigned.add(TreeInfo.symbol(t.lhs)); super.visitAssign(t); }
+		};
+		for (JCTree t : classDecl.defs) {
+			if (t instanceof JCBlock b && (b.flags & Flags.STATIC) != 0) collector.scan(b);
+		}
 		for (JCTree t : classDecl.defs) {
 			if (!(t instanceof JmlVariableDecl vd) || vd.sym == null || !utils.isJMLStatic(vd.sym)) continue;
-			if (isModel(vd.sym) || isFinal(vd.sym)) continue;
+			if (isModel(vd.sym)) continue;
+			if (isFinal(vd.sym) && (vd.init != null || assigned.contains(vd.sym))) continue;
 			JCExpression field = convertJML(treeutils.makeIdent(vd.pos, vd.sym));
 			addAssumeEqual(vd.pos(), Label.IMPLICIT_ASSUME, field, treeutils.makeZeroEquivalentLit(vd, vd.type));
 		}
