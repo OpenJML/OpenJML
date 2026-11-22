@@ -1,0 +1,12 @@
+OUT:
+test/gitbug1152/A.java:20: verify: JML static initialization threw an exception
+  public final static int I = 10 / z;
+                          ^
+B: java.lang.ArithmeticException: / by zero
+test/gitbug1152/A.java:26: verify: JML static initialization threw an exception
+  static { k = a[5]; }
+         ^
+C: java.lang.ArrayIndexOutOfBoundsException: Index 5 out of bounds for length 2
+5
+
+ERR:

@@ -734,6 +734,12 @@ public class racfiles extends RacBase {
         helpRac("test/gitbug774c/A.java", "test/gitbug774c", "A", "--specs-path=test/gitbug774c", "--spec-math=safe");
     }
 
+    // An exception thrown by static initialization is reported (ExceptionInInitializer) before it propagates (#1152)
+    @Test
+    public void gitbug1152() {
+        helpRac("test/gitbug1152/A.java", "test/gitbug1152", "A");
+    }
+
     @Test
     public void gitbug774d() {
         helpRac("test/gitbug774d/A.java", "test/gitbug774d", "A", "--specs-path=test/gitbug774d");

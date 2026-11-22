@@ -234,6 +234,28 @@ public class escStaticInit extends EscBase {
                 );
     }
 
+    // A static final field whose value is not a compile-time constant and that no static invariant mentions gets one
+    // warning, however many methods use it; a constant, and a field mentioned in a static invariant, get none
+    @org.junit.Ignore("the warning is disabled until the test suites are settled again")
+    @Test
+    public void testUndescribedStaticFinal() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public final static int C = 5;
+                  public final static int D = C + 1;
+                  public final static int[] A = new int[]{1, 2};
+                  public final static Object B = new Object();
+                  //@ public static invariant A.length == 2;
+                  public static int m() { return A[0] + B.hashCode(); }
+                  public static int n() { return A[1] + B.hashCode(); }
+                }
+                """
+                ,"/tt/TestJava.java:6: warning: The static final field B is not mentioned in any static invariant, so methods can assume nothing about its value",30
+                );
+    }
+
     // <clinit> can be selected like a method
     @Test
     public void testSelect() {

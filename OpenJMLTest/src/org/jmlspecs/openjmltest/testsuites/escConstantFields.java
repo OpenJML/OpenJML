@@ -102,7 +102,6 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotConstant() {
-        main.addOptions("-no-staticInitWarning");
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -122,15 +121,19 @@ public class escConstantFields extends EscBase {
                   }
                   //@ assignable \\everything;
                   static public void n() {}
+                  //@ ensures \\result == 10;
+                  //@ pure
                   static public int z() { return 10; }
                 }
                 """
+                // z() is not a helper, so it asserts the static invariant as a precondition, which does not yet hold
+                ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (InvariantEntrance: /tt/TestJava.java:5:) in method <clinit>: (Caller: tt.TestJava.<clinit>(), Callee: tt.TestJava.z())",32
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:3:",21
                 );
     }
 
     @Test
     public void testFieldsNotConstantNoInvariant() {
-        main.addOptions("-no-staticInitWarning");
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -157,7 +160,6 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotConstantWithHelper() {
-        main.addOptions("-no-staticInitWarning"); // FIXME
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -186,7 +188,6 @@ public class escConstantFields extends EscBase {
 
     @Test
     public void testFieldsNotConstantWithHelperB() {
-        main.addOptions("-no-staticInitWarning"); // FIXME
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -216,7 +217,6 @@ public class escConstantFields extends EscBase {
     // z() may throw (it is not normal_behavior), and static initialization must not throw (#1152)
     @Test
     public void testFieldsNotConstantWithHelperC() {
-        main.addOptions("-no-staticInitWarning"); // FIXME
         helpEsc("tt.TestJava",
                 """
                 package tt;
@@ -477,10 +477,10 @@ public class escConstantFields extends EscBase {
                 );
     }
 
-    // #1122: a non-constant static final field, with the static-init warning on and --jmlverbose, crashed
+    // #1122: a non-constant static final field, with the (now removed) static-init warning on and --jmlverbose, crashed
     @Test
     public void testFieldNotConstantVerboseWarning() {
-        main.addOptions("-staticInitWarning", "--jmlverbose");
+        main.addOptions("--jmlverbose");
         // Discard the verbose tracing; only the diagnostics are checked
         var discard = new java.io.PrintStream(java.io.OutputStream.nullOutputStream());
         com.sun.tools.javac.util.Log.instance(context).setWriters(new java.io.PrintWriter(discard, true));
@@ -500,9 +500,6 @@ public class escConstantFields extends EscBase {
                   static public int z() { return 10; }
                 }
                 """
-                ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.I (translating tt.TestJava.TestJava())",27
-                ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.I (translating tt.TestJava.m())",27
-                ,"/tt/TestJava.java:3: warning: Use a static_initializer clause to specify the values of static final fields: tt.TestJava.I (translating tt.TestJava.z())",27
                 ,"/tt/TestJava.java:5: verify: The prover cannot establish an assertion (Assert) in method m",10
                 );
         } finally {

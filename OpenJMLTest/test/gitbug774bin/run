@@ -8,5 +8,5 @@ LOCAL=$(dirname "$BASH_SOURCE[0]" )
 ## non-constant fields ESC trusts the .jml initializer; for a non-final field it gives no fact to clients.
 rm -rf actual bin
 (openjml --compile -d bin src/p/*.java && openjml --check -cp bin --specs-path specs-bad F.java ; \
-    openjml --esc -no-staticInitWarning -cp bin --specs-path specs-ok F.java) >& actual
+    openjml --esc -cp bin --specs-path specs-ok F.java) >& actual
 expected_output expected | diff actual - && rm -rf actual bin

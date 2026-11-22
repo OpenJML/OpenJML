@@ -235,7 +235,7 @@ public class escsf2 extends SFBugsBase {
     
     @Test
     public void gitbug622() { // Problem with implicit assertion about string literal
-        helpEscSimple("-staticInitWarning");
+        helpEscSimple();
     }
     
     @Test
