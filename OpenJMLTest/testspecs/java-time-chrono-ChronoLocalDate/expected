@@ -1,0 +1,11 @@
+Proving methods in TestChronoLocalDate
+Starting proof of TestChronoLocalDate.order(java.time.chrono.ChronoLocalDate,java.time.chrono.ChronoLocalDate) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoLocalDate.order(java.time.chrono.ChronoLocalDate,java.time.chrono.ChronoLocalDate) with prover !!!! - no warnings
+Starting proof of TestChronoLocalDate.equality(java.time.chrono.ChronoLocalDate,Object) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoLocalDate.equality(java.time.chrono.ChronoLocalDate,Object) with prover !!!! - no warnings
+Starting proof of TestChronoLocalDate.lengths(java.time.chrono.ChronoLocalDate) with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of TestChronoLocalDate.lengths(java.time.chrono.ChronoLocalDate) with prover !!!! - no warnings
+Completed proving methods in TestChronoLocalDate
