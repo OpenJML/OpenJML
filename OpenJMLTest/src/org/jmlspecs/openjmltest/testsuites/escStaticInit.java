@@ -313,6 +313,68 @@ public class escStaticInit extends EscBase {
                 );
     }
 
+    // Boolean & splits conjuncts as && does
+    @Test
+    public void testStaticInitializerBitAndSplit() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class Pt {
+                  public final int x;
+                  public int y;
+                  //@ public normal_behavior
+                  //@   ensures this.x == x && this.y == 0;
+                  //@ pure
+                  public Pt(int x) { this.x = x; }
+                }
+                public class TestJava {
+                  public static final Pt ORIGIN = new Pt(0);
+                  //@ public normal_behavior
+                  //@   ensures ORIGIN.x == 0 & ORIGIN.y == 0;
+                  //@ static_initializer
+
+                  public static void m() {
+                    //@ assert ORIGIN.x == 0;
+                    //@ assert ORIGIN.y == 0;
+                  }
+                }
+                """
+                ,"/tt/TestJava.java:18: verify: The prover cannot establish an assertion (Assert) in method m",9
+                );
+    }
+
+    // An explicit invariant 'P5.v == 5' pins P5 through its final field, so P5.get() == 5 is not inferred (no warning)
+    @Test
+    public void testStaticInitializerPinnedByPath() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                class P {
+                  public final int v;
+                  //@ public normal_behavior
+                  //@   ensures this.v == v;
+                  //@ pure
+                  public P(int v) { this.v = v; }
+                  //@ public normal_behavior
+                  //@   ensures \\result == v;
+                  //@ pure
+                  public int get() { return v; }
+                }
+                public class TestJava {
+                  public static final P P5 = new P(5);
+                  //@ public static invariant P5 != null && P5.v == 5;
+                  //@ public normal_behavior
+                  //@   ensures P5 != null && P5.get() == 5;
+                  //@ static_initializer
+
+                  public static void m() {
+                    //@ assert P5.v == 5;
+                  }
+                }
+                """
+                );
+    }
+
     // A conditional case (with a requires) gives no invariant
     @Test
     public void testStaticInitializerConditionalNotInferred() {
