@@ -17,4 +17,8 @@ Starting proof of TinitFinal.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TinitFinal.main(String...) with prover !!!! - no warnings
+Starting proof of TinitFinal.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TinitFinal.<clinit>() with prover !!!! - no warnings
 Completed proving methods in TinitFinal

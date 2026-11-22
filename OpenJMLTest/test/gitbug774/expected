@@ -7,4 +7,8 @@ Starting proof of A.main(String...) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of A.main(String...) with prover !!!! - no warnings
+Starting proof of A.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.<clinit>() with prover !!!! - no warnings
 Completed proving methods in A
