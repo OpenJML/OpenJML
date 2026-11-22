@@ -9,6 +9,7 @@ class TestJava {
 
 class Main {
     //@ requires System.out.outputText.isEmpty();
+    //@ requires CharSequence.eol == "\n"; // a fact of CharSequence's static_initializer, about a model field
     //@ ensures System.out.outputText.startsWith("foo".chars);
     //@ ensures System.out.outputText.startsWith("foo\n".chars);
     //@ ensures System.out.outputText == \old(System.out.outputText) + "foo".chars + CharSequence.eol.chars;

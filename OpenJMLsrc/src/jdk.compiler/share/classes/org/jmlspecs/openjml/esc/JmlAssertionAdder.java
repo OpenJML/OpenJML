@@ -6761,11 +6761,12 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		// A case with no assignable clause has the default frame of static initialization: the static fields of the
 		// class, i.e. C.* and, since C.* omits final fields, each static final field (#1152)
 		ListBuffer<JCExpression> locs = new ListBuffer<>();
-		locs.add(M.at(pos).Select(treeutils.makeType(pos, cd.sym.type), (Name) null));
+		Type ctype = types.erasure(cd.sym.type); // C, not C<T>: a static store-ref names the class
+		locs.add(M.at(pos).Select(treeutils.makeType(pos, ctype), (Name) null));
 		for (JCTree t : cd.defs) {
 			if (t instanceof JmlVariableDecl vd && vd.sym != null && utils.isJMLStatic(vd.sym) && isFinal(vd.sym)
 					&& !isModel(vd.sym)) {
-				locs.add(treeutils.makeSelect(pos, treeutils.makeType(pos, cd.sym.type), vd.sym));
+				locs.add(treeutils.makeSelect(pos, treeutils.makeType(pos, ctype), vd.sym));
 			}
 		}
 		JmlMethodClause frame = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind, locs.toList());
@@ -6788,13 +6789,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		return md;
 	}
 
-	/** At the start of the synthetic <clinit>: the class's static fields have their default values, except
-	 *  compile-time constants, which the JVM sets before static initialization (#1152) */
+	/** At the start of the synthetic <clinit>: the class's non-final static fields have their default values
+	 *  (#1152). Compile-time constants are set by the JVM before static initialization; other final fields are
+	 *  single values in the logic, which the assignment in <clinit> determines, so assuming the default for them
+	 *  would contradict that assignment. */
 	protected void addStaticInitialState() {
 		addStat(comment(methodDecl, "Static fields start with their default values", null));
 		for (JCTree t : classDecl.defs) {
 			if (!(t instanceof JmlVariableDecl vd) || vd.sym == null || !utils.isJMLStatic(vd.sym)) continue;
-			if (isModel(vd.sym) || vd.sym.getConstValue() != null) continue;
+			if (isModel(vd.sym) || isFinal(vd.sym)) continue;
 			JCExpression field = convertJML(treeutils.makeIdent(vd.pos, vd.sym));
 			addAssumeEqual(vd.pos(), Label.IMPLICIT_ASSUME, field, treeutils.makeZeroEquivalentLit(vd, vd.type));
 		}

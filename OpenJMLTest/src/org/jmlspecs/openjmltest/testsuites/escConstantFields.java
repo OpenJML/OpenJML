@@ -182,7 +182,11 @@ public class escConstantFields extends EscBase {
                   /*@ pure helper */ static private int z() { return 10; }
                 }
                 """
+                // z() is pure with no specification: its result is unknown, and it may throw
+                ,"/tt/TestJava.java:4: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method <clinit>: overflow in int sum",43
                 ,"/tt/TestJava.java:3: verify: The prover cannot establish an assertion (ExceptionInInitializer) in method <clinit>",32
+                ,"/tt/TestJava.java:2: verify: The prover cannot establish an assertion (InvariantExit: /tt/TestJava.java:5:) in method <clinit>",8
+                ,"/tt/TestJava.java:5: verify: Associated declaration: /tt/TestJava.java:2:",21
                 );
     }
 

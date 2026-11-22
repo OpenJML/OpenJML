@@ -7,4 +7,8 @@ Starting proof of test2.test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of test2.test() with prover !!!! - no warnings
+Starting proof of test2.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of test2.<clinit>() with prover !!!! - no warnings
 Completed proving methods in test2

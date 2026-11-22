@@ -419,6 +419,40 @@ public class escStaticInit extends EscBase {
                 );
     }
 
+    // The default frame of a generic class names the class itself (C.*, not C<T>.*)
+    @Test
+    public void testGenericClassFrame() {
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava<T> {
+                  public static Object o = new Object();
+                  public static int k;
+                  static { k = 1; }
+                  //@ ensures \\result == t;
+                  //@ pure
+                  public /*@ nullable */ T id(/*@ nullable */ T t) { return t; }
+                }
+                """
+                );
+    }
+
+    // A final static field assigned in <clinit> is a single value in the logic; static initialization stays feasible
+    @Test
+    public void testFinalFieldFeasible() {
+        main.addOptions("--check-feasibility=exit");
+        helpEsc("tt.TestJava",
+                """
+                package tt;
+                public class TestJava {
+                  public static final Object o = new Object();
+                  public static final int[] a = new int[]{1, 2};
+                  //@ public static invariant a.length == 2;
+                }
+                """
+                );
+    }
+
     // <clinit> can be selected like a method
     @Test
     public void testSelect() {

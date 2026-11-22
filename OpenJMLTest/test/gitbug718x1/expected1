@@ -13,5 +13,9 @@ test/gitbug718x1/test1.java:14: verify: Associated declaration: test/gitbug718x1
 //@ public invariant binarr[0]==1 && \forall int j;0 <= j < binarr.length-2;binarr[j]+binarr[j]==binarr[j+1];
            ^
 Completed proof of test1.test1() with prover !!!! - with warnings
+Starting proof of test1.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of test1.<clinit>() with prover !!!! - no warnings
 Completed proving methods in test1
 4 verification failures
