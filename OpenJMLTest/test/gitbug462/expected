@@ -11,4 +11,8 @@ Starting proof of Container.test() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Container.test() with prover !!!! - no warnings
+Starting proof of Container.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Container.<clinit>() with prover !!!! - no warnings
 Completed proving methods in Container

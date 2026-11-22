@@ -1,0 +1,10 @@
+OUT:
+test/gitbug774f/A.jml:3: verify: JML result of numeric operation is out of range of the target type
+    int j = i + Integer.MAX_VALUE;
+              ^
+test/gitbug774f/A.jml:3: verify: JML field value does not match its specification initializer
+    int j = i + Integer.MAX_VALUE;
+        ^
+END
+
+ERR:

@@ -1,0 +1,5 @@
+public class A {
+    static int si = 6;
+    static int sj = si;
+    public static void main(String... a);
+}

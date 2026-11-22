@@ -1,5 +1,5 @@
-// The problem here is that the initialization is a compiler-constant
-// and consequently there is no check for overflow in either --esc or --rac
+// The initializer is a compile-time constant with an out-of-range cast (#861): RAC reports it, and
+// ESC reports it in <clinit> (#1152)
 public class Test {
     public final static short DECIMAL_OVERFLOW = (short)40000;
 

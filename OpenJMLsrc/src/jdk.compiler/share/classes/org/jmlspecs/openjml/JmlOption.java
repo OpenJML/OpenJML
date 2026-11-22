@@ -554,7 +554,7 @@ public class JmlOption {
     public static final JmlOption PROPERTIES = new JmlOption("--properties",true,null,"Specifies the path to the properties file",null);
 
     public static final JmlOption DEFAULTS = new JmlOption("--defaults",true,"","Specifies various default behaviors: constructor:pure|everything",null);
-    public static final JmlOption STATIC_INIT_WARNING = new JmlOption("-staticInitWarning",false,true,"Warns about missing static_initializer clauses",null);
+    public static final JmlOption STATIC_INIT_WARNING = new JmlOption("-staticInitWarning",false,false,"Obsolete: formerly warned about missing static_initializer clauses",null);
     // Experimental
     public static final JmlOption DETERMINISM = new JmlOption("--determinism",false,true,"Experimental: enables better determinism (default is true)",null);
 
@@ -605,8 +605,8 @@ public class JmlOption {
 //        map.put("-nullable",NULLABLEBYDEFAULT);
 //    }
 
-    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK, PIPELINE };
-    final static private JmlOption[] obsoleteOptions = new JmlOption[] { PURITYCHECK };
+    final static private JmlOption[] hiddenOptions = new JmlOption[] { ALLOW_PURE_IN_SPECS, PURITYCHECK, PIPELINE, STATIC_INIT_WARNING };
+    final static private JmlOption[] obsoleteOptions = new JmlOption[] { PURITYCHECK, STATIC_INIT_WARNING };
     
     /** Holds the name of the option, as it is used in the command-line,
      * including the leading '-' characters.

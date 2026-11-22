@@ -1,0 +1,7 @@
+OUT:
+test/gitbug774a/A.jml:3: verify: JML field value does not match its specification initializer
+    int j = i;
+        ^
+END
+
+ERR:

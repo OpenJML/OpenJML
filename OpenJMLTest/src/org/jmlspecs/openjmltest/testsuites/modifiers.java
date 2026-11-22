@@ -581,10 +581,10 @@ public class modifiers extends TCBase {
                 );
     }
 
+    // A .jml initializer is permitted; it is compared with the value at the end of initialization by ESC and RAC (#774)
     @Test public void testMatchField4() {
         addMockFile("$A/A.jml","public class A { int k=0; }");
-        helpTCText("A.java","public class A{ int k; }",
-                "/$A/A.jml:1: error: Field initializers are not permitted in specification files: A.k", 24);
+        helpTCText("A.java","public class A{ int k; }");
     }
 
     @Test public void testMatchField5() {

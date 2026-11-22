@@ -103,6 +103,10 @@ public class runscripts1 extends RunBase {
         doTest();
     }
 
+    @Test public void gitbug774bin() {
+        doTest();
+    }
+
     @Test public void nomodelmethod() {
         doTest();
     }

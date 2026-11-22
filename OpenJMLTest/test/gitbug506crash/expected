@@ -9,4 +9,8 @@ Starting proof of B.B() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of B.B() with prover !!!! - no warnings
+Starting proof of B.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of B.<clinit>() with prover !!!! - no warnings
 Completed proving methods in B

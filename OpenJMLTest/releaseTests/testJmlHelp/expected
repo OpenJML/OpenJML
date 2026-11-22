@@ -141,7 +141,6 @@ JML options:
   --rac-missing-model-field-rep RAC: action when a model field has no representation (zero,zero-quiet,skip,skip-quiet,fail)
   --properties               Specifies the path to the properties file
   --defaults                 Specifies various default behaviors: constructor:pure|everything
-  -staticInitWarning         Warns about missing static_initializer clauses
   --determinism              Experimental: enables better determinism (default is true)
   --inline-function-literal  Whether to inline function literals (default: true)
   --require-white-space      Whether white space is required after the @ in a JML comment (default: false)

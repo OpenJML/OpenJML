@@ -16,5 +16,11 @@ Starting proof of Repro.Bar.getSeed2(int) with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Repro.Bar.getSeed2(int) with prover !!!! - no warnings
+Starting proof of Repro.Bar.<clinit>() with prover !!!!
+test/gitbug469/Repro.java:11: verify: The prover cannot establish an assertion (PossiblyNullInitialization) in method <clinit>: tmp
+        FileInputStream tmp = null;
+                        ^
+Completed proof of Repro.Bar.<clinit>() with prover !!!! - with warnings
 Completed proving methods in Repro.Bar
 Completed proving methods in Repro
+1 verification failure

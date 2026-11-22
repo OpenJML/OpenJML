@@ -1,0 +1,11 @@
+package p;
+public class B {
+    public static final int LIT = 2+3;
+    public static final int NEG = -2;
+    public static final int EXPR = 2+4;
+    public static final boolean BOOL = false;
+    public static final char C = 'b';
+    public static final double D = -0.0;
+    public static final String S = "ab" + "d";
+    public final long IL = 8L;
+}

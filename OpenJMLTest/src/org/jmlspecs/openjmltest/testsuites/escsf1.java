@@ -256,7 +256,7 @@ public class escsf1 extends SFBugsBase {
 
     // Just one method in one file
     @Test public void gitbug481b() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","--method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry","-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481b", "-cp", "test/gitbug481b","--method=org.apache.commons.math3.linear.ArrayFieldVector.getEntry");
     }
 
     static String p = "org.apache.commons.math3.linear.ArrayFieldVector.";
@@ -274,53 +274,53 @@ public class escsf1 extends SFBugsBase {
     static String all = m1+";"+m2+";"+m3+";"+m4+";"+m5+";"+m6+";"+m7+";"+m8+";"+m9+";"+m10;
     
     @Test public void gitbug481a1() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a1", "-cp", "test/gitbug481b","--method="+m1,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a1", "-cp", "test/gitbug481b","--method="+m1);
     }
 
     @Test public void gitbug481a2() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a2", "-cp", "test/gitbug481b","--method="+m2,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a2", "-cp", "test/gitbug481b","--method="+m2);
     }
 
     @Test public void gitbug481a3() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a3", "-cp", "test/gitbug481b","--method="+m3,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a3", "-cp", "test/gitbug481b","--method="+m3);
     }
 
     @Test public void gitbug481a4() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a4", "-cp", "test/gitbug481b","--method="+m4,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a4", "-cp", "test/gitbug481b","--method="+m4);
     }
 
     @Test public void gitbug481a5() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a5", "-cp", "test/gitbug481b","--method="+m5,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a5", "-cp", "test/gitbug481b","--method="+m5);
     }
 
     @Ignore // #1120; Requires more specs in the library
     @Test public void gitbug481a6() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a6", "-cp", "test/gitbug481b","--method="+m6,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a6", "-cp", "test/gitbug481b","--method="+m6);
     }
 
     @Ignore // #1120; Requires more specs in the library
     @Test public void gitbug481a7() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a7", "-cp", "test/gitbug481b","--method="+m7,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a7", "-cp", "test/gitbug481b","--method="+m7);
     }
 
     @Test public void gitbug481a8() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a8", "-cp", "test/gitbug481b","--method="+m8,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a8", "-cp", "test/gitbug481b","--method="+m8);
     }
 
     @Ignore // #1120; Requires more specs in the library
     @Test public void gitbug481a9() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","--method="+m9,"-no-staticInitWarning");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a9", "-cp", "test/gitbug481b","--method="+m9);
     }
 
     @Ignore // #1120; FIXME - Out of memory
     @Test public void gitbug481a10() {
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","--method="+m10,"-no-staticInitWarning","--solver-seed=42");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a10", "-cp", "test/gitbug481b","--method="+m10,"--solver-seed=42");
     }
 
     @Ignore // #1120; FIXME - timeout
     @Test public void gitbug481a() { // The rest
         expectedExit = 1;
-        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","--exclude="+all,"-no-staticInitWarning","--solver-seed=142");
+        helpEscFile("test/gitbug481b/org/apache/commons/math3/linear/ArrayFieldVector.java","test/gitbug481a", "-cp", "test/gitbug481b","--exclude="+all,"--solver-seed=142");
     }
 
 }

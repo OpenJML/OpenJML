@@ -150,12 +150,12 @@ public class escsf3 extends SFBugsBase {
     // java.util specs, and type errors involving those specs), which are not the subject of #671.
     @Test @Ignore
     public void gitbug671() {
-        helpEscFile("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","--timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
+        helpEscFile("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/set/ListOrderedSet.java","test/gitbug671","--timeout=1800","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
     }
     
     @Test @Ignore // FIXME -- nullpointer exception, time out //  // Complained of infinite run time
     public void gitbug672() {
-        helpEscFile("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/bidimap/TreeBidiMap.java","test/gitbug672","--timeout=1800","-no-staticInitWarning","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
+        helpEscFile("test/gitbug672/commons-collections4-4.3-sources/org/apache/commons/collections4/bidimap/TreeBidiMap.java","test/gitbug672","--timeout=1800","-cp","test/gitbug672/commons-collections4-4.3-sources","--esc-max-warnings=1");
     }
     
     @Test

@@ -12,5 +12,9 @@ Starting proof of features.NegativeIndex.test(int) with prover !!!!
         return array[i];
                     ^
 Completed proof of features.NegativeIndex.test(int) with prover !!!! - with warnings
+Starting proof of features.NegativeIndex.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of features.NegativeIndex.<clinit>() with prover !!!! - no warnings
 Completed proving methods in features.NegativeIndex
 1 verification failure

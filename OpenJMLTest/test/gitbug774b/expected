@@ -1,0 +1,5 @@
+test/gitbug774b/A.jml:3: error: Increment and decrement operators are not allowed where pure expressions are expected
+    int j = i++;
+             ^
+Operation not performed because of parse or type errors
+1 error

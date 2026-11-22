@@ -1,6 +1,3 @@
-test/gitbug718x1/test1.java:3: warning: Use a static_initializer clause to specify the values of static final fields: test1.binarr (translating test1.test1())
-	public static final /*@ readonly @*/ int /*@ non_null */ [] binarr = new int[]
-	                                                            ^
 Proving methods in test1
 Starting proof of test1.test1() with prover !!!!
 test/gitbug718x1/test1.java:2: verify: The prover cannot establish an assertion (InvariantExit: test/gitbug718x1/test1.java:14:) in method test1
@@ -16,6 +13,9 @@ test/gitbug718x1/test1.java:15: verify: Associated declaration: test/gitbug718x1
 //@ public invariant \forall int j;0 <= j < binarr.length-1;binarr[j] <= binarr[j+1];
            ^
 Completed proof of test1.test1() with prover !!!! - with warnings
+Starting proof of test1.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of test1.<clinit>() with prover !!!! - no warnings
 Completed proving methods in test1
-1 warning
 4 verification failures

@@ -60,6 +60,18 @@ else
     testlist=$@
 fi
 
+## With several jobs, start the longest-running suites first, so that they do not finish last
+## (the list can be set with LONGSUITES="suite1 suite2 ...")
+if [ $numjobs -gt 1 ]; then
+    long=${LONGSUITES-"SpecsEsc SpecsVerify"}
+    testlist=$(echo $testlist)
+    first=""
+    rest=""
+    for l in $long; do case " $testlist " in *" $l "*) first="$first $l" ;; esac; done
+    for d in $testlist; do case " $long " in *" $d "*) ;; *) rest="$rest $d" ;; esac; done
+    testlist="$first$rest"
+fi
+
 for d in $testlist; do rm -f log-${d%.java}; done
 
 RUNERR=0

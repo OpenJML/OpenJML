@@ -722,7 +722,7 @@ public class JmlSpecs {
      * @param spec the specs to associate with the type
      */
     public void putSpecs(ClassSymbol type, TypeSpecs spec) {
-        if (utils.verbose()) Utils.debugOut().println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec);
+        //if (utils.verbose()) Utils.debugOut().println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec);
         //if (type.toString().contains("Shape")) { System.out.println("PUTSPECS " + type + " " + type.hashCode() +  " " + spec); Utils.dumpStack(); }
         spec.csymbol = type;
         specsTypes.put(type,spec);

@@ -44,5 +44,9 @@ test/returnNullity/ReturnNullable.java:38: verify: The prover cannot establish a
      ff = null; // ERROR
         ^
 Completed proof of NZZ.r() with prover !!!! - with warnings
+Starting proof of NZZ.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of NZZ.<clinit>() with prover !!!! - no warnings
 Completed proving methods in NZZ
 7 verification failures

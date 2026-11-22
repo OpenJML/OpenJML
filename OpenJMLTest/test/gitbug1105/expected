@@ -57,5 +57,9 @@ Starting proof of T.get() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of T.get() with prover !!!! - no warnings
+Starting proof of T.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of T.<clinit>() with prover !!!! - no warnings
 Completed proving methods in T
 8 verification failures

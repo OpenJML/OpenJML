@@ -15,6 +15,10 @@ Starting proof of Test.q(java.util.stream.Stream<@NonNull Integer>) with prover 
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of Test.q(java.util.stream.Stream<@NonNull Integer>) with prover !!!! - no warnings
+Starting proof of Test.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of Test.<clinit>() with prover !!!! - no warnings
 Completed proving methods in Test
 Proving methods in TestB
 Starting proof of TestB.TestB() with prover !!!!
@@ -29,6 +33,10 @@ Starting proof of TestB.mq() with prover !!!!
 Feasibility check - end of preconditions : OK
 Feasibility check - at program exit : OK
 Completed proof of TestB.mq() with prover !!!! - no warnings
+Starting proof of TestB.<clinit>() with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of TestB.<clinit>() with prover !!!! - no warnings
 Completed proving methods in TestB
 Proving methods in TestA
 Starting proof of TestA.TestA() with prover !!!!

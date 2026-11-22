@@ -1,0 +1,6 @@
+OUT:
+test/gitbug861/Test.java:4: verify: JML argument to numeric cast is out of range of the target type
+    public final static short DECIMAL_OVERFLOW = (short)40000;
+                                                 ^
+
+ERR:

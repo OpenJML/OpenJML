@@ -229,6 +229,10 @@ public class JmlEsc extends JmlTreeScanner {
         } else {
             super.visitClassDef(node);
         }
+        // The synthetic static initialization method (#1152); its body repeats the static blocks, so it is
+        // not scanned for nested classes again
+        JmlMethodDecl clinit = assertionAdder.clinitDecls.get(node.sym);
+        if (clinit != null) proveMethodDecl(clinit);
         long classDuration = System.currentTimeMillis() - classStart;
         utils.progress(0,Utils.PROGRESS,"Completed proving methods in " + utils.classQualifiedName(node.sym) +  //$NON-NLS-1$
                 (utils.testingMode || !JmlOption.SHOW_SUMMARY.isSet(context) ? "" : String.format(" [%4.2f secs]", (classDuration/1000.0)))); //$NON-NLS-1$
@@ -264,7 +268,11 @@ public class JmlEsc extends JmlTreeScanner {
 
         // Do any nested classes and methods first (which will recursively call visitMethodDef)
         super.visitMethodDef(methodDecl);
+        proveMethodDecl(methodDecl);
+    }
 
+    /** Proves one method, unless it is skipped or filtered out */
+    protected void proveMethodDecl(JmlMethodDecl methodDecl) {
         // filter is applied even to a skipesc method, so that a --method item that selects it is recorded as
         // matching a method (cf. Utils.warnUnmatchedMethodItems)
         var reason = utils.filter(methodDecl);
@@ -278,7 +286,7 @@ public class JmlEsc extends JmlTreeScanner {
             return;
         }
 
-        JmlOptions.instance(context).pushOptions(decl.mods);
+        JmlOptions.instance(context).pushOptions(methodDecl.mods);
         try {
             // Stop immediately if ESC was cancelled between methods.
             if (Main.instance(context).canceled) throw new Main.JmlCanceledException("");

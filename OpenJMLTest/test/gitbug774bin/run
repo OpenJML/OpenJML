@@ -1,0 +1,12 @@
+#! /usr/bin/env bash
+
+LOCAL=$(dirname "$BASH_SOURCE[0]" )
+. "$LOCAL/../setup-script"
+
+## .jml initializers for a binary class (#774). specs-bad: constant initializers that evaluate to values
+## other than the class file's constants are errors. specs-ok: matching constants are accepted; for final
+## non-constant fields ESC trusts the .jml initializer; for a non-final field it gives no fact to clients.
+rm -rf actual bin
+(openjml --compile -d bin src/p/*.java && openjml --check -cp bin --specs-path specs-bad F.java ; \
+    openjml --esc -cp bin --specs-path specs-ok F.java) >& actual
+expected_output expected | diff actual - && rm -rf actual bin

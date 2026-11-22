@@ -1,0 +1,12 @@
+Proving methods in A
+Starting proof of A.A() with prover !!!!
+test/gitbug774c/A.jml:3: verify: The prover cannot establish an assertion (UndefinedDivideByZero) in method A
+    int j = 10 / (i - 11);
+               ^
+Completed proof of A.A() with prover !!!! - with warnings
+Starting proof of A.main(String...) with prover !!!!
+Feasibility check - end of preconditions : OK
+Feasibility check - at program exit : OK
+Completed proof of A.main(String...) with prover !!!! - no warnings
+Completed proving methods in A
+1 verification failure

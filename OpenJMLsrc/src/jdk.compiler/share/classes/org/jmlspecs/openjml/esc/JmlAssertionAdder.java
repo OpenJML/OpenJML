@@ -578,6 +578,19 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	 */
 	public BiMap<JmlMethodDecl, Translations> methodBiMap = new BiMap<JmlMethodDecl, Translations>();
 
+	/** For ESC and inference, the synthetic static initialization method of each translated class (#1152) */
+	public final Map<ClassSymbol, JmlMethodDecl> clinitDecls = new HashMap<>();
+
+	/** Whether d is a synthetic static initialization method made by makeClinit */
+	public boolean isClinit(JCMethodDecl d) {
+		return d != null && d.sym != null && d.sym.name == names.clinit;
+	}
+
+	/** Whether the method being translated is the synthetic static initialization method of csym */
+	protected boolean isOwnClinit(Symbol csym) {
+		return isClinit(methodDecl) && methodDecl.sym.owner == csym;
+	}
+
 	/**
 	 * A bi-map used to record the mapping between original and rewritten class ASTs
 	 */
@@ -1276,6 +1289,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					checkAccessEnabled = pv;
 				}
 			}
+			if (isClinit(methodDecl)) addStaticInitialState();
 			// mapSymbols contains at least the old symbols declared in
 			// specification preconditions. If a spec is used in the method body,
 			// (called recursively), old symbols will get a new mapping.
@@ -1319,6 +1333,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JCStatement s = iter.next();
 					convert(s);
 				} // TODO: Warn if continuation is EXIT and there are remaining statements?
+				if (isClinit(methodDecl) && continuation == Continuation.CONTINUE) addStaticInitializationEnd();
 
 				// Record compact constructors: the compiler (Lower.java) appends
 				// this.field = param for each record component AFTER the user body.
@@ -3083,6 +3098,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						continue;
 					if (utils.isJavaOrJmlPrimitiveType(s.type))
 						continue;
+					if (stat && isOwnClinit(csym))
+						continue; // in <clinit> it may still be null (#1152)
 					VarSymbol v = (VarSymbol) s;
 					JCExpression e;
 					if (receiver == null)
@@ -3233,6 +3250,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 						continue;
 					if (isDataGroup(ctype))
 						continue;
+					if (assume && isOwnClinit(ctype.tsym))
+						continue; // <clinit> establishes its class's invariants and field conditions (#1152)
 					// The parents include the enclosing classes, whose instance invariants are about the enclosing
 					// instance, not the receiver (#1012); without one, only their static invariants apply
 					JCExpression ctypeReceiver = invariantReceiver(pos, basetype, receiver, ctype);
@@ -3272,6 +3291,13 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 											// staticconj = staticconj == null ? e : treeutils.makeAnd(v.pos,
 											// staticconj, e);
 										} else {
+											conj = conj == null ? e : treeutils.makeAnd(v.pos, conj, e);
+										}
+									} else if (!utils.isJMLStatic(v)) {
+										// A final instance field's specification-file initializer (#774)
+										JCExpression si = assumableSpecInitializer(v);
+										if (si != null) {
+											JCExpression e = treeutils.makeEquality(v.pos, treeutils.makeIdent(v.pos, v), si);
 											conj = conj == null ? e : treeutils.makeAnd(v.pos, conj, e);
 										}
 									}
@@ -3755,6 +3781,8 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 					if (tspecs == null)
 						continue; // FIXME - why might this happen - see racnew.testElemtype & Cloneable
+					if (isOwnClinit(csym))
+						continue; // a constraint relates states after static initialization (#1152)
 
 					staticStats.add(comment(pos, (assume ? "Assume" : "Assert") + " constraints for " + csym, null));
 					for (JmlTypeClause clause : tspecs.clauses) {
@@ -4514,6 +4542,17 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		VarSymbol vsym = ((VarSymbol) convertedfa.sym);
 		Object value = vsym.getConstValue();
 
+		// In the class's own <clinit>, only compile-time constants have their values (#1152)
+		if (isClinit(methodDecl) && vsym.owner == methodDecl.sym.owner) {
+			if (value != null && discoveredFields != null) {
+				JmlStatementExpr a = treeutils.makeAssume(pos, Label.IMPLICIT_ASSUME,
+						treeutils.makeEquality(p, convertedfa, treeutils.makeLit(p, convertedfa.type, value)));
+				a.sourcefile = log.currentSourceFile();
+				discoveredFields.stats = discoveredFields.stats.append(a);
+			}
+			return;
+		}
+
 		//
 		if (discoveredFields != null)
 			discoveredFields.stats = discoveredFields.stats.appendList(collectStats(() -> {
@@ -4535,22 +4574,21 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			st.associatedSource = null;
 			st.optionalExpression = null;
 		} else {
-			if (JmlOption.STATIC_INIT_WARNING.isSet(context)) {
-				if (!hasStaticInitializer((ClassSymbol) convertedfa.sym.owner) && !convertedfa.sym.isEnum()
-						&& (convertedfa.sym.owner != attr.datagroupClass)
-						&& (convertedfa.sym.flags() & Flags.PRIVATE) == 0) {
-					utils.warning(convertedfa, "jml.message",
-							"Use a static_initializer clause to specify the values of static final fields: "
-									+ utils.qualifiedName(convertedfa.sym)
-									+ " (translating " + enclosingClass + "." + enclosingMethod +")");
-					if (utils.jmlverbose >= Utils.JMLVERBOSE)
-						utils.note(convertedfa, "jml.message",
-								"Warned about a non-constant initialized static final field: " + convertedfa);
-				}
-			}
 			discoveredFields.stats = discoveredFields.stats.append(st);
 		}
-		if (st == null) {
+		JCExpression specInit = st == null ? assumableSpecInitializer(vsym) : null;
+		if (specInit != null && discoveredFields != null) {
+			// The value from the specification-file initializer (#774); collected with the declarations it needs
+			JavaFileObject prev = log.useSource(fspecs.decl.sourcefile);
+			try {
+				discoveredFields.stats = discoveredFields.stats.appendList(collectStats(() -> {
+					JCExpression field = treeutils.makeSelect(p, treeutils.makeType(p, vsym.owner.type), vsym);
+					addAssume(pos, Label.IMPLICIT_ASSUME, convertJML(treeutils.makeEquality(p, field, specInit)));
+				}));
+			} finally {
+				log.useSource(prev);
+			}
+		} else if (st == null) {
 			xx: {
 				Symbol owner = convertedfa.sym.owner;
 				if (!(owner instanceof ClassSymbol))
@@ -4677,6 +4715,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void assumeStaticInvariants(ClassSymbol csym) {
+		if (isOwnClinit(csym)) return; // <clinit> establishes them (#1152)
 		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(csym);
 		if (tspecs == null) {
 			utils.error("jml.internal", "Null class specs for " + csym);
@@ -4992,12 +5031,15 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 				addStat(comment(methodDecl, "Assume static final constant fields", null));
 				addForClasses(collector.classes, finalStaticFieldAdder);
-				addStat(comment(methodDecl, "Assume static initialization", null));
-				addForClasses(collector.classes, staticInitializerAdder);
-				{
-					addStat(comment(methodDecl.pos(), "Static initialization", log.currentSourceFile()));
-					addStaticInitialization((ClassSymbol) methodDecl.sym.owner);
-				}
+				// The static_initializer clause describes the state at the end of static initialization; it is
+				// proved in <clinit> but not assumed here, since other code may have run since. Durable facts
+				// belong in static invariants, which are assumed above (#1152).
+//				addStat(comment(methodDecl, "Assume static initialization", null));
+//				addForClasses(collector.classes, staticInitializerAdder);
+//				{
+//					addStat(comment(methodDecl.pos(), "Static initialization", log.currentSourceFile()));
+//					addStaticInitialization((ClassSymbol) methodDecl.sym.owner);
+//				}
 			}
             addFeasibilityCheck(methodDecl, currentStatements, Strings.feas_methodaxioms, "after static initialization");
 
@@ -5045,7 +5087,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 			}
 
-			if (!methodDecl.sym.isConstructor()) {
+			if (!methodDecl.sym.isConstructor() && !isClinit(methodDecl)) {
 				assumeFieldInvariants(this.methodDecl, classDecl); // FIXME - do parent classes also?
 			}
 
@@ -5655,6 +5697,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 	}
 
 	protected void assumeStaticInitialState(TypeSymbol sym) {
+		if (isClinit(methodDecl)) return; // <clinit> starts from default values (#1152)
 		boolean helper = isHelper(methodDecl.sym);
 		addRecInvariants(true, true, true, helper, methodDecl, sym, null);
 //        for (ClassSymbol csym: utils.parents(sym, false)) { // FIXME - ??? false or true
@@ -5713,6 +5756,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 
 	protected void addNullnessAndTypeConditionsForField(TypeSymbol csym, VarSymbol sy, boolean beingConstructed) {
 		if (isDataGroup(sy.type)) return; // FIXME - check all primitive types?
+		if (utils.isJMLStatic(sy) && isOwnClinit(sy.owner)) return; // in <clinit> it may still be null (#1152)
 		
 		// Find the declaration for the variable symbol. This is only to hzve a
 		// sensible diagnostic position for it.
@@ -5904,7 +5948,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
             addConstraintInitiallyChecks(methodDecl, owner, receiver, currentStatements, true,
                     methodDecl.sym.isConstructor(), false, isHelper(methodDecl.sym), true, false, null);
             var bl = popBlock(methodDecl);
-            if (!isConstructor) {
+            if (isClinit(methodDecl)) {
+                // Static initialization must not throw: the class would be unusable (ExceptionInInitializerError).
+                // So the exit checks apply only to a normal exit (#1152)
+                pushBlock();
+                addAssert(methodDecl, Label.INITIALIZER_EXCEPTION, treeutils.falseLit);
+                JCBlock exbl = popBlock(methodDecl);
+                JCExpression ok = treeutils.makeEqObject(methodPos.getPreferredPosition(),
+                        treeutils.makeIdent(methodPos.getPreferredPosition(), exceptionSym), treeutils.nullLit);
+                addStat(M.at(methodDecl.pos).If(ok, bl, exbl));
+            } else if (!isConstructor) {
                 addStat(bl);
             } else {
                 pushBlock();
@@ -6598,9 +6651,174 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				convert(t);
 			}
 		}
+		addSpecInitializerChecks(false);
+	}
+
+	/** Asserts, at the end of instance or static initialization, that each field of the class being translated
+	 *  equals its specification-file initializer (#774). Constant values are compared when attributing. */
+	protected void addSpecInitializerChecks(boolean isStatic) {
+		for (JCTree t : classDecl.defs) {
+			if (!(t instanceof JmlVariableDecl vd) || vd.sym == null) continue;
+			if (utils.isJMLStatic(vd.sym) != isStatic) continue;
+			FieldSpecs fspecs = specs.getLoadedSpecs(vd.sym);
+			if (fspecs == null || fspecs.decl == vd || !attr.isSpecFieldInitializer(fspecs.decl)) continue;
+			JmlVariableDecl sd = fspecs.decl;
+			if (sd.init.type == null || sd.init.type.isErroneous()) continue;
+			if (vd.sym.getConstValue() != null && sd.init.type.constValue() != null) continue;
+			JavaFileObject prev = log.useSource(sd.sourcefile);
+			try {
+				JCExpression field = isStatic
+						? treeutils.makeSelect(sd.pos, treeutils.makeType(sd.pos, vd.sym.owner.type), vd.sym)
+						: treeutils.makeIdent(sd.pos, vd.sym);
+				JCExpression eq = treeutils.makeEquality(sd.pos, field, sd.init);
+				addAssert(sd.sourcefile, sd, Label.FIELD_INITIALIZER, convertJML(eq), null, null);
+			} finally {
+				log.useSource(prev);
+			}
+		}
+	}
+
+	/** The specification-file initializer of final field v, if it may be assumed wherever v is used: it reads
+	 *  only final fields and calls no methods, so it keeps the value it had at the end of initialization (#774) */
+	protected JCExpression assumableSpecInitializer(VarSymbol v) {
+		if (!isFinal(v) || v.getConstValue() != null) return null;
+		FieldSpecs fspecs = specs.getLoadedSpecs(v); // not getAttrSpecs: attributing here, mid-translation, breaks the proof
+		if (fspecs == null || fspecs.decl == null || !attr.isSpecFieldInitializer(fspecs.decl)) return null;
+		JCExpression init = fspecs.decl.init;
+		if (init.type == null || init.type.isErroneous()) return null;
+		boolean[] ok = { true };
+		new JmlTreeScanner() {
+			void check(Symbol sym) {
+				if (sym instanceof VarSymbol f && f.owner instanceof ClassSymbol && !isFinal(f)) ok[0] = false;
+			}
+			@Override public void visitIdent(JCIdent t) { check(t.sym); }
+			@Override public void visitSelect(JCFieldAccess t) { check(t.sym); super.visitSelect(t); }
+			@Override public void visitApply(JCMethodInvocation t) { ok[0] = false; }
+			@Override public void visitNewClass(JCNewClass t) { ok[0] = false; }
+			@Override public void visitNewArray(JCNewArray t) { ok[0] = false; }
+		}.scan(init);
+		return ok[0] ? init : null;
+	}
+
+	/** For ESC: warns once for each static final field of cd whose value is not a compile-time constant and that no
+	 *  static invariant of cd mentions; methods assume static invariants, so they know nothing about such a field's
+	 *  value (#1152) */
+	protected void warnUndescribedStaticFinals(JmlClassDecl cd) {
+		if (cd.sym == null) return;
+		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(cd.sym);
+		java.util.Set<Symbol> mentioned = new java.util.HashSet<>();
+		JmlTreeScanner collector = new JmlTreeScanner() {
+			@Override public void visitIdent(JCIdent t) { mentioned.add(t.sym); }
+			@Override public void visitSelect(JCFieldAccess t) { mentioned.add(t.sym); super.visitSelect(t); }
+		};
+		if (tspecs != null) {
+			for (JmlTypeClause t : tspecs.clauses) {
+				if (t.clauseType == invariantClause && t instanceof JmlTypeClauseExpr te
+						&& utils.isJMLStatic(t.modifiers, cd.sym)) collector.scan(te.expression);
+			}
+		}
+		for (JCTree t : cd.defs) {
+			if (!(t instanceof JmlVariableDecl vd) || vd.sym == null) continue;
+			VarSymbol v = vd.sym;
+			if (!utils.isJMLStatic(v) || !isFinal(v) || v.getConstValue() != null || v.isEnum() || isModel(v)) continue;
+			if (mentioned.contains(v)) continue;
+			utils.warning(vd, "jml.message", "The static final field " + v.name
+					+ " is not mentioned in any static invariant, so methods can assume nothing about its value");
+		}
+	}
+
+	/** For ESC and inference, a synthetic static initialization method of class cd (#1152): its body is the static
+	 *  field initializers and static blocks in textual order, and its specification is the class's static_initializer
+	 *  clause. Returns null if the class has nothing to check: no static block, no static_initializer clause, and no
+	 *  static initializer other than a literal constant. */
+	protected JmlMethodDecl makeClinit(JmlClassDecl cd) {
+		if (cd.sym == null || cd.sym.isEnum()) return null; // FIXME - enum constants are initialized by constructor calls
+		JmlSpecs.TypeSpecs tspecs = specs.getAttrSpecs(cd.sym);
+		JmlTypeClauseInitializer tci = tspecs == null ? null : tspecs.staticInitializerSpec;
+		boolean hasSpec = tci != null && tci.specs != null && !tci.specs.cases.isEmpty();
+		boolean needed = hasSpec;
+		ListBuffer<JCStatement> stats = new ListBuffer<>();
+		for (JCTree t : cd.defs) {
+			if (t instanceof JmlVariableDecl vd && vd.sym != null && vd.init != null && utils.isJMLStatic(vd.sym)
+					&& !isModel(vd.sym)) {
+				if (!(vd.init instanceof JCLiteral && vd.sym.getConstValue() != null)) needed = true;
+				stats.add(treeutils.makeAssignStat(vd.pos, treeutils.makeIdent(vd.pos, vd.sym), vd.init));
+			} else if (t instanceof JCBlock b && b.isStatic()) {
+				needed = true;
+				stats.add(M.at(b).Block(0L, b.stats));
+			}
+		}
+		if (!needed) return null;
+		MethodSymbol msym = new MethodSymbol(Flags.STATIC | Flags.PRIVATE, names.clinit,
+				new Type.MethodType(List.nil(), syms.voidType, List.nil(), syms.methodClass), cd.sym);
+		msym.params = List.nil();
+		// Diagnostics about the method as a whole (e.g. a postcondition) point to the static_initializer clause
+		int pos = hasSpec ? tci.pos : cd.pos;
+		JmlMethodDecl md = (JmlMethodDecl) M.at(pos).MethodDef(msym, M.at(pos).Block(0L, stats.toList()));
+		md.sourcefile = hasSpec ? tci.source() : cd.sourcefile;
+		treeutils.copyEndPosition(md, hasSpec ? tci : cd); // e.g. for the feasibility check at the end
+		treeutils.copyEndPosition(md.body, hasSpec ? tci : cd);
+		// A case with no assignable clause has the default frame of static initialization: the static fields of the
+		// class, i.e. C.* and, since C.* omits final fields, each static final field (#1152)
+		ListBuffer<JCExpression> locs = new ListBuffer<>();
+		Type ctype = types.erasure(cd.sym.type); // C, not C<T>: a static store-ref names the class
+		locs.add(M.at(pos).Select(treeutils.makeType(pos, ctype), (Name) null));
+		for (JCTree t : cd.defs) {
+			if (t instanceof JmlVariableDecl vd && vd.sym != null && utils.isJMLStatic(vd.sym) && isFinal(vd.sym)
+					&& !isModel(vd.sym)) {
+				locs.add(treeutils.makeSelect(pos, treeutils.makeType(pos, ctype), vd.sym));
+			}
+		}
+		JmlMethodClause frame = M.at(pos).JmlMethodClauseStoreRef(assignableID, assignableClauseKind, locs.toList());
+		frame.sourcefile = md.sourcefile;
+		ListBuffer<JmlSpecificationCase> cases = new ListBuffer<>();
+		if (hasSpec) {
+			for (JmlSpecificationCase c : tci.specs.cases) {
+				boolean hasFrame = c.clauses != null && c.clauses.stream().anyMatch(cl -> cl.clauseKind == assignableClauseKind);
+				cases.add(hasFrame || c.block != null || c.clauses == null ? c : M.JmlSpecificationCase(c, c.clauses.append(frame)));
+			}
+		} else {
+			JmlSpecificationCase c = M.at(pos).JmlSpecificationCase(M.Modifiers(0), false, null, null, List.of(frame), null);
+			c.sourcefile = md.sourcefile;
+			cases.add(c);
+		}
+		JmlMethodSpecs mspecs = M.at(pos).JmlMethodSpecs(cases.toList());
+		if (hasSpec) mspecs.invariants = tci.specs.invariants;
+		md.methodSpecs = mspecs;
+		specs.putAttrSpecs(msym, new JmlSpecs.MethodSpecs(md));
+		return md;
+	}
+
+	/** At the start of the synthetic <clinit>: the class's non-final static fields have their default values
+	 *  (#1152). Compile-time constants are set by the JVM before static initialization; other final fields are
+	 *  single values in the logic, which the assignment in <clinit> determines, so assuming the default for them
+	 *  would contradict that assignment. */
+	protected void addStaticInitialState() {
+		addStat(comment(methodDecl, "Static fields start with their default values", null));
+		for (JCTree t : classDecl.defs) {
+			if (!(t instanceof JmlVariableDecl vd) || vd.sym == null || !utils.isJMLStatic(vd.sym)) continue;
+			if (isModel(vd.sym) || isFinal(vd.sym)) continue;
+			JCExpression field = convertJML(treeutils.makeIdent(vd.pos, vd.sym));
+			addAssumeEqual(vd.pos(), Label.IMPLICIT_ASSUME, field, treeutils.makeZeroEquivalentLit(vd, vd.type));
+		}
+	}
+
+	/** At the end of the synthetic <clinit>: non-null static fields are set, and static fields agree with their
+	 *  specification-file initializers (#1152). Static invariants and the static_initializer ensures are checked
+	 *  as for any static method. */
+	protected void addStaticInitializationEnd() {
+		addStat(comment(methodDecl, "End of static initialization", null));
+		for (JCTree t : classDecl.defs) {
+			if (!(t instanceof JmlVariableDecl vd) || vd.sym == null || !utils.isJMLStatic(vd.sym)) continue;
+			if (isModel(vd.sym) || utils.isJavaOrJmlPrimitiveType(vd.sym.type) || !specs.isNonNull(vd.sym)) continue;
+			JCExpression field = treeutils.makeIdent(vd.pos, vd.sym);
+			addAssert(vd.sourcefile, vd, Label.NULL_FIELD, convertJML(treeutils.makeNotNull(vd.pos, field)), null, null);
+		}
+		addSpecInitializerChecks(true);
 	}
 
 	protected void addStaticInitialization(ClassSymbol csym) {
+		if (isOwnClinit(csym)) return; // <clinit> proves the static_initializer clause (#1152)
 	    // This method might be called to add static initializers while processing some class
 	    // If so, we have to temporarily reset topEnclosingMethod to avoid detecting spurious recursion.
 	    // However, this does go against the intended meaning of topEnclosingMethod
@@ -6617,22 +6835,25 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 					for (JmlSpecificationCase cs : tci.specs.cases) {
 						log.useSource(cs.source());
 						// FIXME - visibility?
+						// Each case contributes requires ==> ensures, translated as a whole so that checks that
+						// the ensures is well-defined are guarded by the requires (#1152)
 						JCExpression pre = null;
 						JCExpression post = null;
 						for (JmlMethodClause clause : cs.clauses) {
 							if (clause.clauseKind == requiresClauseKind) {
-								JCExpression p = convertJML(((JmlMethodClauseExpr) clause).expression);
+								JCExpression p = ((JmlMethodClauseExpr) clause).expression;
 								pre = pre == null ? p : treeutils.makeAnd(clause.pos, pre, p);
 							} else if (clause.clauseKind == MethodExprClauseExtensions.ensuresClauseKind) {
-								JCExpression p = convertJML(((JmlMethodClauseExpr) clause).expression);
-								post = post == null ? p : treeutils.makeAndSimp(clause.pos, post, p);
+								JCExpression p = ((JmlMethodClauseExpr) clause).expression;
+								post = post == null ? p : treeutils.makeAnd(clause.pos, post, p);
 							} else {
 								notImplemented(clause, "Clause not implemented in an initializer: " + clause.keyword);
 							}
 						}
 						if (post == null)
-							post = treeutils.trueLit;
-						addAssume(tci, Label.POSTCONDITION, post);
+							continue;
+						JCExpression e = pre == null ? post : treeutils.makeImplies(cs.pos, pre, post);
+						addAssume(tci, Label.POSTCONDITION, convertJML(e));
 					}
 					log.useSource(prev);
 			        topEnclosingMethod = saved;
@@ -6826,6 +7047,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			checkAccessEnabled = pv;
 			JCBlock bl = popBlock(that.flags, that, check);
 			if (isInInitializerBlock) { // FIXME - need a better way to tell which kind of block we are in
+				if (rac && (that.flags & Flags.STATIC) != 0) bl = racCatchInitializerException(bl, that);
 				classDefs.add(bl);
 			} else {
 				addStat(bl); // FIXME - don't always want this
@@ -18506,7 +18728,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				JCExpression typetree = treeutils.makeType(that.pos, sym.owner.type);
 				JCFieldAccess fa = treeutils.makeSelect(that.pos, typetree, sym);
 				if (!translatingJML && that.sym instanceof VarSymbol && that.sym.owner instanceof ClassSymbol
-						&& specs.isNonNull(sym)) {
+						&& specs.isNonNull(sym) && !isOwnClinit(sym.owner)) { // in <clinit> it may still be null (#1152)
 					JCExpression e = treeutils.trueLit;
 					if (!utils.isJavaOrJmlPrimitiveType(fa.type))
 						e = treeutils.makeNotNull(that.pos, fa);
@@ -19246,6 +19468,16 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 
+			// Disabled until the test suites are settled again (#1152)
+//			if (esc) warnUndescribedStaticFinals(that);
+			if (esc || infer) {
+				JmlMethodDecl clinit = makeClinit(that);
+				if (clinit != null) {
+					clinitDecls.put(that.sym, clinit);
+					scan(clinit);
+				}
+			}
+
 			// FIXME - need to fixup RAC and ESC check of static initialization
 			if (discoveredFields == null) {
 				pushBlock();
@@ -19253,6 +19485,11 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 			}
 			JCBlock bl = checkStaticInitialization();
 			if (bl != null) this.classDefs.add(bl);
+			if (rac) {
+				// Last among the instance initializers, so it runs at the end of each constructor's prelude (#774)
+				bl = checkInstanceInitialization();
+				if (bl != null) this.classDefs.add(bl);
+			}
 
 			JmlSpecs.TypeSpecs tyspecs = that.typeSpecs;
 			if (!rac)
@@ -19308,6 +19545,34 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 		}
 	}
 
+	/** For RAC, an instance initializer block checking fields against their specification-file initializers */
+	protected JCBlock checkInstanceInitialization() {
+		JmlMethodDecl savedMethodDecl = methodDecl;
+		try {
+			methodSymForInitBlock(classDecl, 0L, classDecl);
+			ListBuffer<JCStatement> check = pushBlock();
+			addSpecInitializerChecks(false);
+			JCBlock bl = popBlock(0L, classDecl, check);
+			return onlyComments(bl.stats) ? null : bl;
+		} finally {
+			methodDecl = savedMethodDecl;
+		}
+	}
+
+	/** RAC: wraps a piece of static initialization so that an exception it throws is reported before it propagates
+	 *  (as ExceptionInInitializerError): try { bl } catch (RuntimeException e) { report; throw e; } (#1152) */
+	protected JCBlock racCatchInitializerException(JCBlock bl, DiagnosticPosition pos) {
+		int p = pos.getPreferredPosition();
+		JCVariableDecl ex = treeutils.makeVarDef(syms.runtimeExceptionType, names.fromString("_JML__initex"),
+				methodDecl.sym, p);
+		ListBuffer<JCStatement> check = pushBlock();
+		addAssert(pos, Label.INITIALIZER_EXCEPTION, treeutils.falseLit);
+		addStat(M.at(p).Throw(treeutils.makeIdent(p, ex.sym)));
+		JCBlock handler = popBlock(pos, check);
+		JCTry t = M.at(p).Try(M.at(p).Block(0L, bl.stats), List.of(M.at(p).Catch(ex, handler)), null);
+		return M.at(p).Block(bl.flags, List.of(t));
+	}
+
 	// FIXME - review
 	protected JCBlock checkStaticInitialization() {
 		JmlMethodDecl md = methodSymForInitBlock(classDecl, Flags.STATIC, classDecl);
@@ -19347,6 +19612,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				}
 			}
 		}
+		if (rac) addSpecInitializerChecks(true); // ESC verifies static initialization with #1152
 		// FIXME - what are the rules about accessibility for static initializers
 		boolean pv = checkAccessEnabled;
 		checkAccessEnabled = false;
@@ -24285,7 +24551,10 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 				} finally {
 					if (statementStack.get(0) == null) {
 						// Class definition
-						if (currentStatements.isEmpty() && nn == null) {
+						// In RAC a static initializer that may throw goes in a block, so that the exception is reported (#1152)
+						boolean racStatic = rac && init != null && utils.isJMLStatic(that.sym)
+								&& that.sym.getConstValue() == null && !(init instanceof JCLiteral);
+						if (currentStatements.isEmpty() && nn == null && !racStatic) {
 							// Just a simple initialization since there is no nonnull check
 							// and the init expression did not create any new statements
 							popBlock(null, check); // Nothing present - just ignore the empty block
@@ -24307,6 +24576,7 @@ public class JmlAssertionAdder extends JmlTreeScanner {
 										treeutils.makeIdent(that.pos, that.sym), that.type));
 							}
 							JCBlock bl = popBlock(flags, that, check);
+							if (racStatic) bl = racCatchInitializerException(bl, that);
 							this.classDefs.add(stat);
 							this.classDefs.add(bl);
 						}

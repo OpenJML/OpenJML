@@ -484,9 +484,10 @@ public class racfiles extends RacBase {
         helpCompileRun("Test");
     }
     
+    // An out-of-range cast in a static constant initializer (#861); java code math does not check casts
     @Test
     public void gitbug861() {
-        helpCompileRun("Test");
+        helpCompileRun("Test", "--code-math=safe");
     }
 
     @Test
@@ -712,5 +713,40 @@ public class racfiles extends RacBase {
     @Test
     public void textRac() {
         helpCompileRun("BL");
+    }
+
+    // .jml field initializers (#774), checked at the end of initialization
+    @Test
+    public void gitbug774() {
+        helpRac("test/gitbug774/A.java", "test/gitbug774", "A", "--specs-path=test/gitbug774");
+    }
+
+    @Test
+    public void gitbug774a() {
+        helpRac("test/gitbug774a/A.java", "test/gitbug774a", "A", "--specs-path=test/gitbug774a");
+    }
+
+    // Without --rac-java-checks, RAC does not check that the .jml initializer is defined: the program
+    // stops with the Java exception. Safe spec math keeps runtime-library frames out of the trace.
+    @Test
+    public void gitbug774c() {
+        expectedRACExit = 1;
+        helpRac("test/gitbug774c/A.java", "test/gitbug774c", "A", "--specs-path=test/gitbug774c", "--spec-math=safe");
+    }
+
+    // An exception thrown by static initialization is reported (ExceptionInInitializer) before it propagates (#1152)
+    @Test
+    public void gitbug1152() {
+        helpRac("test/gitbug1152/A.java", "test/gitbug1152", "A");
+    }
+
+    @Test
+    public void gitbug774d() {
+        helpRac("test/gitbug774d/A.java", "test/gitbug774d", "A", "--specs-path=test/gitbug774d");
+    }
+
+    @Test
+    public void gitbug774f() {
+        helpRac("test/gitbug774f/A.java", "test/gitbug774f", "A", "--specs-path=test/gitbug774f", "--spec-math=safe");
     }
 }

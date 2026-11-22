@@ -1,0 +1,23 @@
+test/gitbug774e/A.jml:9: error: The initializer of A.E1 in the specification has value 6, but the Java value is 5
+    static final int E1 = 6;
+                     ^
+test/gitbug774e/A.jml:10: error: The initializer of A.E2 in the specification has value 6, but the Java value is 5
+    static final int E2 = 2+4;
+                     ^
+test/gitbug774e/A.jml:11: error: The initializer of A.E3 in the specification has value false, but the Java value is true
+    static final boolean E3 = false;
+                         ^
+test/gitbug774e/A.jml:12: error: The initializer of A.E4 in the specification has value 'b', but the Java value is 'a'
+    static final char E4 = 'b';
+                      ^
+test/gitbug774e/A.jml:13: error: The initializer of A.E5 in the specification has value -0.0, but the Java value is 0.0
+    static final double E5 = -0.0;
+                        ^
+test/gitbug774e/A.jml:14: error: The initializer of A.E6 in the specification has value "abd", but the Java value is "abc"
+    static final String E6 = "abd";
+                        ^
+test/gitbug774e/A.jml:15: error: The initializer of A.E7 in the specification has value 8L, but the Java value is 7L
+    final long E7 = 8L;
+               ^
+Operation not performed because of parse or type errors
+7 errors

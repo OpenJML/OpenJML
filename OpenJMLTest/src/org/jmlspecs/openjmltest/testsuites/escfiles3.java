@@ -472,4 +472,41 @@ public class escfiles3 extends EscBaseFiles {
     public void returnNullity() {
         helpEscSimple();
     }
+
+    // .jml field initializers (#774): the value after initialization, pure, checked like JML expressions
+    @Test
+    public void gitbug774() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug774a() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug774b() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug774c() {
+        helpEscSimple();
+    }
+
+    // The .jml initializer of a static field, checked at the end of <clinit> (#774, #1152)
+    @Test
+    public void gitbug774d() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug774e() {
+        helpEscSimple();
+    }
+
+    @Test
+    public void gitbug774f() {
+        helpEscSimple("--spec-math=safe");
+    }
 }

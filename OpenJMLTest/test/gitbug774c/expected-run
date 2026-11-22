@@ -1,0 +1,6 @@
+OUT:
+
+ERR:
+Exception in thread "main" java.lang.ArithmeticException: / by zero
+	at A.<init>(A.java:1)
+	at A.main(A.java:6)

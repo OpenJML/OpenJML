@@ -152,9 +152,10 @@ public class escfiles2 extends EscBaseFiles {
         helpEscSimple();
     }
     
+    // An out-of-range cast in a static constant initializer, checked in <clinit> (#861, #1152)
     @Test
     public void gitbug861() {
-        helpEscSimple();
+        helpEscSimple("--code-math=safe");
     }
     
     @Test

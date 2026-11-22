@@ -1,0 +1,17 @@
+public class A {
+    static final int OK1 = 2+3;
+    static final int OK2 = 5;
+    static final int OK3 = -1;
+    static final double OK4 = 0.0/0.0;
+    static final String OK5 = "abc";
+    final long OK6 = 3L + 4;
+
+    static final int E1 = 6;
+    static final int E2 = 2+4;
+    static final boolean E3 = false;
+    static final char E4 = 'b';
+    static final double E5 = -0.0;
+    static final String E6 = "abd";
+    final long E7 = 8L;
+    public A();
+}

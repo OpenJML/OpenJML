@@ -2,4 +2,7 @@ Proving methods in java.util.FormattableFlags
 Starting proof of java.util.FormattableFlags.FormattableFlags() with prover !!!!
 Feasibility check - at implicit return : OK
 Completed proof of java.util.FormattableFlags.FormattableFlags() with prover !!!! - no warnings
+Starting proof of java.util.FormattableFlags.<clinit>() with prover !!!!
+Feasibility check - at implicit return : OK
+Completed proof of java.util.FormattableFlags.<clinit>() with prover !!!! - no warnings
 Completed proving methods in java.util.FormattableFlags

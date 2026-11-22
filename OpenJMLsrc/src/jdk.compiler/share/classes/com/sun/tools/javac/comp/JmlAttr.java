@@ -3016,10 +3016,23 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     	
     	boolean allowForwardRefSaved = allowForwardRef;
     	allowForwardRef = !(jmlenv.currentClauseKind == null || jmlenv.currentClauseKind == declClause); // FIXME - is this OK for oldClause - when is it ever needed?
+    	// Positions are comparable only within one file: v.pos is in the file declaring v, which for a reference in a
+    	// .jml initializer may be the .java file (#774)
+    	if (!allowForwardRef && log.currentSourceFile() != declarationFile(v)) allowForwardRef = true;
     	super.checkInit(tree,env,v,onlyWarning);
     	allowForwardRef = allowForwardRefSaved;
     }
     
+    /** The file whose positions v.pos refers to: a JML field's declaring file, else its class's source file */
+    protected JavaFileObject declarationFile(VarSymbol v) {
+        if (Utils.isJML(v.flags())) {
+            var fspecs = specs.getLoadedSpecs(v);
+            if (fspecs != null && fspecs.decl != null) return fspecs.decl.sourcefile;
+        }
+        var c = v.enclClass();
+        return c == null ? null : c.sourcefile;
+    }
+
     protected void checkEnumInitializer(JCTree tree, Env<AttrContext> env, VarSymbol v) {
         if (isStaticEnumField(v)) {
             if (jmlenv.currentClauseKind != null) return;  // ASWemahy reference enums in specificatinos.  FIXME: always? everywhere?  interaction with JLS restriction?
@@ -3081,16 +3094,6 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             annotationsToModifiers(fspecs.mods);
             if (fspecs.mods != fspecs.decl.mods) annotationsToModifiers(fspecs.mods); // FIXME - figure out which of these we actually need
             var specField = fspecs.decl;
-            // check for no initializer
-            if (specField.getInitializer() != null && // There is an initializer
-                                    utils.isSpecFile(specField.sourcefile) && // Not in a .java file
-                                    javaField != specField && // But there is a .java file
-                                    !Utils.isJML(specField.mods) && // The decl is not in JML
-                                    specField.sym.owner.kind != Kinds.Kind.MTH && // The decl is not a local decl in a method body
-                                    !specField.sym.owner.isEnum() // We are not an enum
-                                    ) {
-                utils.error(specField.sourcefile,specField.getInitializer(),"jml.no.initializer.in.specs",specField.sym.owner+"."+specField.name);
-            }
             //if (javaField != null && javaField != specField) checkAnnotations(javaField.mods, specField.mods, javaField.sym.owner);
         } else {
             // Spec fields, such as old declarations in method specs and declarations in quantifiers and the like,
@@ -3099,6 +3102,34 @@ public class JmlAttr extends Attr implements IJmlVisitor {
         }
         checkVarMods(javaField);
         // Type modifiers are checked when the type itself is attributed
+    }
+
+    /** True if d declares, in a specification file, a Java (non-JML) field with an initializer: the initializer
+     *  states the field's value at the end of initialization, so it must be pure (#774) */
+    public boolean isSpecFieldInitializer(JmlVariableDecl d) {
+        return d.init != null && utils.isSpecFile(d.sourcefile) && !Utils.isJML(d.mods)
+                && d.sym != null && d.sym.owner.kind == Kinds.Kind.TYP && !d.sym.owner.isEnum();
+    }
+
+    /** Reports a specification-file initializer whose constant value differs from the field's constant value (#774) */
+    protected void checkSpecInitializerValue(JmlVariableDecl d) {
+        Object javaValue = d.sym.getConstValue();
+        Type it = d.init.type;
+        if (javaValue == null || it == null || it.isErroneous() || it.constValue() == null) return;
+        Object specValue = cfolder.coerce(it, d.sym.type).constValue();
+        if (specValue == null || specValue.equals(javaValue)) return;
+        utils.error(d.sourcefile, d, "jml.mismatched.initializer", d.sym.owner + "." + d.name,
+                constantText(specValue, d.sym.type), constantText(javaValue, d.sym.type));
+    }
+
+    /** A constant value (as javac stores it) written as Java source for type t */
+    protected static String constantText(Object v, Type t) {
+        if (t.hasTag(com.sun.tools.javac.code.TypeTag.BOOLEAN)) return ((Integer)v) != 0 ? "true" : "false";
+        if (t.hasTag(com.sun.tools.javac.code.TypeTag.CHAR)) return "'" + com.sun.tools.javac.util.Convert.quote(String.valueOf((char)(int)(Integer)v)) + "'";
+        if (t.hasTag(com.sun.tools.javac.code.TypeTag.LONG)) return v + "L";
+        if (t.hasTag(com.sun.tools.javac.code.TypeTag.FLOAT)) return v + "f";
+        if (v instanceof String s) return "\"" + com.sun.tools.javac.util.Convert.quote(s) + "\"";
+        return v.toString();
     }
     
     public void checkJavaFlags(long javaFlags, JmlSource javaTree, long specflags, JmlSource specTree, Symbol symForFlags) {
@@ -8166,8 +8197,16 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                     lintEnv = lintEnv.next;
                 env.info.lint = lintEnv.info.lint;
             }
-            super.visitVarDef(that);
-            
+            boolean specInit = isSpecFieldInitializer(that); // e.g. a .jml for a binary class
+            boolean prevPure = jmlenv.inPureEnvironment;
+            if (specInit) jmlenv.inPureEnvironment = true;
+            try {
+                super.visitVarDef(that);
+            } finally {
+                jmlenv.inPureEnvironment = prevPure;
+            }
+            if (specInit) checkSpecInitializerValue(that);
+
             checkVarDecl(that); // FIXME - why isn't this part of visitVarDef?
             
 
@@ -8309,18 +8348,10 @@ public class JmlAttr extends Attr implements IJmlVisitor {
                 utils.error(that, "jml.message", "\\datagroup declarations may not have initializers");
             }
 
-            if (that.init != null && !Utils.isJML(that.mods.flags)) {
-                Object v = that.sym.getConstValue();
-                JCExpression initExpr = that.init;
-                if (v != null && initExpr instanceof JCLiteral lit) {
-                    if (!v.equals(lit.value)) {
-                        //System.out.println("INIT " + v.getClass() + " " + v + " " + lit.value.getClass() + " " + lit.value + " " + v.equals(lit.value));
-                        utils.error(that, "jml.message", "Initializer does not match compiled value: " + lit + " vs. " + v);
-                    }
-                }
-                //if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits(Double.NaN)));
-                //if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits(Float.NaN)));
-            }
+            // The comparison of a specification initializer with the constant value is checkSpecInitializerValue (#774)
+            //System.out.println("INIT " + v.getClass() + " " + v + " " + lit.value.getClass() + " " + lit.value + " " + v.equals(lit.value));
+            //if (v instanceof Double) System.out.println("NAN " + String.format("0x%16X", Double.doubleToLongBits(Double.NaN)));
+            //if (v instanceof Float) System.out.println("NAN " + String.format("0x%08X", Float.floatToIntBits(Float.NaN)));
             if (that.originalType != null) {
                 var ok = types.isSubtype(that.type, that.originalType);
                 if (!ok) utils.error(that.vartype, "jml.message", "a replacement type must be a subtype of the source type: "
@@ -9051,6 +9082,7 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		}
     		attrTypeClause(tspecs.initializerSpec, tspecs.specsEnv, ri);
     		attrTypeClause(tspecs.staticInitializerSpec, tspecs.specsEnv, ri);
+    		inferStaticInitializerInvariants(tspecs);
 		} catch (PropagatedException e) {
 		    throw e;
     	} catch (Exception e) {
@@ -9065,6 +9097,121 @@ public class JmlAttr extends Attr implements IJmlVisitor {
     		jmlenv = jmlenv.pop();
     		if (utils.verbose()) utils.note("    Attributed specs for " + csym + specs.status(csym));
     	}
+    }
+
+    /** For ESC: each conjunct of an unconditional ensures clause of the static_initializer that cannot change after
+     *  static initialization becomes an assume-only (FINAL) static invariant. <clinit> proves the clause; methods and
+     *  constructors assume the invariant. A conjunct qualifies if it reads at least one static field, every field it
+     *  reads is final and not a model field, an instance field only through final fields from a static final field
+     *  (ORIGIN.next.x), it calls
+     *  only effectively spec_pure (deterministic) helper methods (a non-helper one is warned about), it reads no array
+     *  elements and allocates nothing, and it mentions no static field that an explicit invariant pins with
+     *  'field == e' (#1152; #1153 for objects of immutable classes) */
+    protected void inferStaticInitializerInvariants(TypeSpecs tspecs) {
+        if (utils.rac) return;
+        JmlTypeClauseInitializer tci = tspecs.staticInitializerSpec;
+        if (tci == null || tci.specs == null) return;
+        var M = JmlTree.Maker.instance(context);
+        // Static fields an explicit invariant already pins with a conjunct 'field == e' (or 'e == field'); facts about
+        // them are not inferred again
+        java.util.Set<Symbol> pinned = new java.util.HashSet<>();
+        for (JmlTypeClause t : tspecs.clauses) {
+            if (t.clauseType != invariantClause || !(t instanceof JmlTypeClauseExpr te)) continue;
+            for (JCExpression e : conjuncts(te.expression, new ListBuffer<>())) {
+                if (TreeInfo.skipParens(e) instanceof JCBinary b && b.getTag() == JCTree.Tag.EQ) {
+                    for (JCExpression side : List.of(b.lhs, b.rhs)) {
+                        if (TreeInfo.symbol(TreeInfo.skipParens(side)) instanceof VarSymbol v && v.isStatic()
+                                && v.owner instanceof TypeSymbol) pinned.add(v);
+                    }
+                }
+            }
+        }
+        for (JmlSpecificationCase cs : tci.specs.cases) {
+            if (cs.clauses == null) continue;
+            boolean conditional = false;
+            for (JmlMethodClause c : cs.clauses) {
+                if (c.clauseKind == requiresClauseKind && !treeutils.isTrueLit(((JmlMethodClauseExpr)c).expression)) conditional = true;
+            }
+            if (conditional) continue;
+            // A lightweight case states facts about the fields it names; it is public like them
+            long access = cs.token == null || cs.modifiers == null ? Flags.PUBLIC : (cs.modifiers.flags & Flags.AccessFlags);
+            for (JmlMethodClause c : cs.clauses) {
+                if (c.clauseKind != ensuresClauseKind) continue;
+                for (JCExpression e : conjuncts(((JmlMethodClauseExpr)c).expression, new ListBuffer<>())) {
+                    JCMethodInvocation[] nonHelper = { null };
+                    if (!isDurableStaticFact(e, pinned, nonHelper)) continue;
+                    if (nonHelper[0] != null) {
+                        // The axioms of a non-helper method are guarded by its class's invariants, which would then
+                        // include this fact about the method's own results
+                        JavaFileObject prev = log.useSource(cs.sourcefile != null ? cs.sourcefile : tci.source());
+                        try {
+                            utils.warning(nonHelper[0], "jml.message", "This static_initializer fact is not assumed as a static invariant, because "
+                                    + TreeInfo.symbol(nonHelper[0].meth) + " is not a helper method");
+                        } finally {
+                            log.useSource(prev);
+                        }
+                        continue;
+                    }
+                    var cl = M.at(e.pos).JmlTypeClauseExpr(M.Modifiers(access | Flags.STATIC | Flags.FINAL),
+                            invariantID, invariantClause, e);
+                    cl.sourcefile = cs.sourcefile != null ? cs.sourcefile : tci.source();
+                    tspecs.clauses.add(cl);
+                }
+            }
+        }
+    }
+
+    private static ListBuffer<JCExpression> conjuncts(JCExpression e, ListBuffer<JCExpression> out) {
+        JCExpression x = TreeInfo.skipParens(e);
+        if (x instanceof JCBinary b && b.getTag() == JCTree.Tag.AND) {
+            conjuncts(b.lhs, out);
+            conjuncts(b.rhs, out);
+        } else {
+            out.add(e);
+        }
+        return out;
+    }
+
+    /** Whether e is a static final field, or a final instance field of such a path */
+    private boolean isFinalPath(JCExpression e) {
+        JCExpression x = TreeInfo.skipParens(e);
+        if (!(TreeInfo.symbol(x) instanceof VarSymbol v) || !(v.owner instanceof TypeSymbol) || (v.flags() & Flags.FINAL) == 0
+                || utils.isModel(v)) return false;
+        if (v.isStatic()) return true;
+        return x instanceof JCFieldAccess fa && isFinalPath(fa.selected);
+    }
+
+    /** Whether e depends only on state fixed at the end of static initialization and mentions no pinned field (see
+     *  inferStaticInitializerInvariants); nonHelper[0] is set to a call of a method that is not a helper, if any */
+    protected boolean isDurableStaticFact(JCExpression e, java.util.Set<Symbol> pinned, JCMethodInvocation[] nonHelper) {
+        boolean[] ok = { true };
+        boolean[] readsStatic = { false };
+        new JmlTreeScanner() {
+            void field(Symbol s) {
+                if (!(s instanceof VarSymbol v) || !(v.owner instanceof TypeSymbol)) return; // locals, bound variables
+                if (v == syms.lengthVar) return;
+                if ((v.flags() & Flags.FINAL) == 0 || utils.isModel(v) || pinned.contains(v)) ok[0] = false;
+                if (v.isStatic()) readsStatic[0] = true;
+            }
+            @Override public void visitIdent(JCIdent t) { field(t.sym); }
+            @Override public void visitSelect(JCFieldAccess t) {
+                field(t.sym);
+                // An instance field is read only through a chain of final fields from a static final field: ORIGIN.next.x
+                if (t.sym instanceof VarSymbol v && v.owner instanceof TypeSymbol && !v.isStatic() && v != syms.lengthVar
+                        && !isFinalPath(t.selected)) ok[0] = false;
+                super.visitSelect(t);
+            }
+            @Override public void visitApply(JCMethodInvocation t) {
+                if (!(TreeInfo.symbol(t.meth) instanceof MethodSymbol m) || !specs.isEffectivelySpecPureMethod(m)) ok[0] = false;
+                else if (!utils.isHelper(m) && nonHelper[0] == null) nonHelper[0] = t;
+                super.visitApply(t);
+            }
+            @Override public void visitJmlMethodInvocation(JmlMethodInvocation t) { ok[0] = false; }
+            @Override public void visitIndexed(JCArrayAccess t) { ok[0] = false; }
+            @Override public void visitNewClass(JCNewClass t) { ok[0] = false; }
+            @Override public void visitNewArray(JCNewArray t) { ok[0] = false; }
+        }.scan(e);
+        return ok[0] && readsStatic[0];
     }
 
     public void attrSpecs(VarSymbol vsym) {
@@ -9090,9 +9237,11 @@ public class JmlAttr extends Attr implements IJmlVisitor {
             boolean prevAllow = ((JmlResolve)rs).setAllowJML(Utils.isJML(vsym.flags()));
             if (fspecs.decl != null && fspecs.decl.init != null && fspecs.decl.init.type == null) {
         		ResultInfo rri = new ResultInfo(KindSelector.VAL_TYP, vsym.type);
-        		jmlenv.inPureEnvironment = Utils.isJML(fspecs.decl.mods);
+        		boolean specInit = isSpecFieldInitializer(fspecs.decl);
+        		jmlenv.inPureEnvironment = Utils.isJML(fspecs.decl.mods) || specInit;
             	Type t = fspecs.decl.init.type = attribTree(fspecs.decl.init, initEnv, rri);
             	if (t.isErroneous()) stat = JmlSpecs.SpecsStatus.ERROR;
+            	else if (specInit) checkSpecInitializerValue(fspecs.decl);
             }
             ((JmlResolve)rs).setAllowJML(prevAllow);
 

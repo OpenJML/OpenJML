@@ -127,7 +127,6 @@ escfiles.bag                     # warning order nondeterministic under --esc-ma
 escfunction.testMethodAxioms2    # intermittent: z3 MBQI answers unknown; outcome flips with unrelated changes to the SMT text
 escfiles3.gitbug1018             # nondeterministic: the order of the four ArithmeticCastRange warnings in safeMode varies (#1028); expected/expected2 hold two orders
 escfiles2.gitbug450b		#	ArrayList contains
-escfiles2.gitbug861		#	needs checks within a compiler constant static initializer
 escfiles2.gitbug763		#	times out in the test runner (2026-10-21 full run); not yet investigated
 escfileslist1.test[choose-repeat]
 escfileslist1.test[dynamicFrames]
@@ -152,7 +151,6 @@ escnew.testSealed                 # sealed property not yet implemented
 
 # escnew3.testCast1               # m7 reports a verification error sometimes and sometimes does not
 
-racfiles.gitbug861                # missing check in compiler constant static initializer
 
 escfiles2.gitbug812a
 
@@ -180,3 +178,4 @@ escfpfiles.sfbug414n                  # asserts at Sqrt.java:29-30 not proved (A
 
 escfiles2.gitbug898b
 escfiles3.gitbug997
+SpecsVerify.testVerify[java-time-Duration]   # z3 rejects create/isPositive scripts: BigInteger.value (\bigint) gets a bit-vector sort (#1152)
