@@ -50,7 +50,8 @@ public class TestInstant {
         Instant a = Instant.ofEpochSecond(5, 1);
         Instant b = Instant.ofEpochSecond(5, 2);
         //@ assert a.compareTo(b) < 0 && a.isBefore(b) && !a.isAfter(b);
-        //@ assert a.equals(Instant.ofEpochSecond(4, 1_000_000_001L)) && !a.equals(b);
+        boolean e = a.equals(Instant.ofEpochSecond(4, 1_000_000_001L)) && !a.equals(b);
+        //@ assert e;
     }
 
     public static void limits() {
