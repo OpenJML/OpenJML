@@ -1,7 +1,4 @@
-import java.time.DateTimeException;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
-import java.time.Month;
+import java.time.*;
 
 public class TestLocalDate {
 
@@ -75,28 +72,30 @@ public class TestLocalDate {
     public static void days() {
         LocalDate a = LocalDate.of(2024, 5, 10);
         LocalDate b = a.plusDays(15);
-        //@ assert b.getYear() == 2024 && b.getMonthValue() == 5 && b.getDayOfMonth() == 25;
+        //@ check b.getYear() == 2024 && b.getMonthValue() == 5 && b.getDayOfMonth() == 25;
         LocalDate c = a.minusDays(9);
-        //@ assert c.getDayOfMonth() == 1 && c.getMonthValue() == 5;
+        //@ check c.getDayOfMonth() == 1 && c.getMonthValue() == 5;
         LocalDate d = a.plusDays(30);
-        //@ assert d.toEpochDay() == a.toEpochDay() + 30;
+        //@ check d.toEpochDay() == a.toEpochDay() + 30;
         LocalDate e = a.plusWeeks(2);
-        //@ assert e.toEpochDay() == a.toEpochDay() + 14;
+        //@ check e.toEpochDay() == a.toEpochDay() + 14;
     }
 
     public static void epochDays() {
         LocalDate a = LocalDate.ofEpochDay(0);
-        //@ assert a.toEpochDay() == 0;
+        //@ check a.toEpochDay() == 0;
         LocalDate b = LocalDate.ofEpochDay(4);
-        //@ assert b.getDayOfWeek() == DayOfWeek.MONDAY; // 1970-01-05
-        //@ assert LocalDate.EPOCH.getDayOfWeek() == DayOfWeek.THURSDAY;
+        //@ check b.getDayOfWeek() == DayOfWeek.MONDAY; // 1970-01-05
+        //@ check LocalDate.EPOCH.getDayOfWeek() == DayOfWeek.THURSDAY;
     }
 
     public static void comparison() {
         LocalDate a = LocalDate.of(2024, 5, 10);
         LocalDate b = LocalDate.of(2024, 6, 1);
-        //@ assert a.compareTo(b) < 0 && a.isBefore(b) && !a.isAfter(b) && !a.isEqual(b);
-        //@ assert a.equals(LocalDate.of(2024, 5, 10)) && !a.equals(b) && !a.equals("2024-05-10");
+        boolean bb = a.compareTo(b) < 0 && a.isBefore(b) && !a.isAfter(b) && !a.isEqual(b);
+        //@ check bb;
+        bb = a.equals(LocalDate.of(2024, 5, 10)) && !a.equals(b) && !a.equals("2024-05-10");
+        //@ check bb;
     }
 
     public static void exceptions() {
