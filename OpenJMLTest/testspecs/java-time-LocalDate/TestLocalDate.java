@@ -19,54 +19,54 @@ public class TestLocalDate {
     }
 
     public static void constants() {
-        //@ assert LocalDate.EPOCH.getYear() == 1970 && LocalDate.EPOCH.getMonthValue() == 1 && LocalDate.EPOCH.toEpochDay() == 0;
-        //@ assert LocalDate.MAX.getDayOfMonth() == 31;
+        //@ check LocalDate.EPOCH.getYear() == 1970 && LocalDate.EPOCH.getMonthValue() == 1 && LocalDate.EPOCH.toEpochDay() == 0;
+        //@ check LocalDate.MAX.getDayOfMonth() == 31;
     }
 
     public static void construct() {
         LocalDate a = LocalDate.of(2024, 2, 29);
-        //@ assert a.getYear() == 2024 && a.getMonthValue() == 2 && a.getDayOfMonth() == 29;
-        //@ assert a.getMonth() == Month.FEBRUARY && a.isLeapYear();
+        //@ check a.getYear() == 2024 && a.getMonthValue() == 2 && a.getDayOfMonth() == 29;
+        //@ check a.getMonth() == Month.FEBRUARY && a.isLeapYear();
     }
 
     public static void dayOfYear() {
         LocalDate b = LocalDate.of(2023, Month.DECEMBER, 31);
-        //@ assert b.getMonthValue() == 12 && b.getDayOfYear() == 365;
+        //@ check b.getMonthValue() == 12 && b.getDayOfYear() == 365;
     }
 
     public static void lengths() {
         LocalDate a = LocalDate.of(2023, 2, 1);
-        //@ assert a.lengthOfMonth() == 28 && a.lengthOfYear() == 365 && !a.isLeapYear();
+        //@ check a.lengthOfMonth() == 28 && a.lengthOfYear() == 365 && !a.isLeapYear();
         LocalDate b = LocalDate.of(2000, 4, 10);
-        //@ assert b.lengthOfMonth() == 30 && b.lengthOfYear() == 366;
+        //@ check b.lengthOfMonth() == 30 && b.lengthOfYear() == 366;
     }
 
     public static void withers() {
         LocalDate a = LocalDate.of(2024, 3, 31);
         LocalDate b = a.withMonth(4);
-        //@ assert b.getMonthValue() == 4 && b.getDayOfMonth() == 30;
+        //@ check b.getMonthValue() == 4 && b.getDayOfMonth() == 30;
         LocalDate c = LocalDate.of(2024, 2, 29).withYear(2023);
-        //@ assert c.getMonthValue() == 2 && c.getDayOfMonth() == 28;
+        //@ check c.getMonthValue() == 2 && c.getDayOfMonth() == 28;
         LocalDate d = a.withDayOfMonth(1);
-        //@ assert d.getYear() == 2024 && d.getMonthValue() == 3 && d.getDayOfMonth() == 1;
+        //@ check d.getYear() == 2024 && d.getMonthValue() == 3 && d.getDayOfMonth() == 1;
     }
 
     public static void years() {
         LocalDate a = LocalDate.of(2024, 2, 29);
         LocalDate b = a.plusYears(4);
-        //@ assert b.getYear() == 2028 && b.getDayOfMonth() == 29;
+        //@ check b.getYear() == 2028 && b.getDayOfMonth() == 29;
         LocalDate c = a.minusYears(1);
-        //@ assert c.getYear() == 2023 && c.getMonthValue() == 2 && c.getDayOfMonth() == 28;
+        //@ check c.getYear() == 2023 && c.getMonthValue() == 2 && c.getDayOfMonth() == 28;
     }
 
     public static void months() {
         LocalDate a = LocalDate.of(2024, 1, 31);
         LocalDate b = a.plusMonths(1);
-        //@ assert b.getYear() == 2024 && b.getMonthValue() == 2 && b.getDayOfMonth() == 29;
+        //@ check b.getYear() == 2024 && b.getMonthValue() == 2 && b.getDayOfMonth() == 29;
         LocalDate c = a.minusMonths(13);
-        //@ assert c.getYear() == 2022 && c.getMonthValue() == 12 && c.getDayOfMonth() == 31;
+        //@ check c.getYear() == 2022 && c.getMonthValue() == 12 && c.getDayOfMonth() == 31;
         LocalDate d = a.plusMonths(11);
-        //@ assert d.getYear() == 2024 && d.getMonthValue() == 12;
+        //@ check d.getYear() == 2024 && d.getMonthValue() == 12;
     }
 
     public static void days() {
