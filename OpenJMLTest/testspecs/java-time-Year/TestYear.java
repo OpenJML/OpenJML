@@ -38,7 +38,10 @@ public class TestYear {
         Year a = Year.of(1999);
         Year b = Year.of(2000);
         //@ assert a.compareTo(b) == -1 && a.isBefore(b) && b.isAfter(a);
-        //@ assert a.equals(Year.of(1999)) && !a.equals(b) && a.hashCode() == 1999;
+        // equals and hashCode are called in Java code, not in specs
+        boolean e = a.equals(Year.of(1999)) && !a.equals(b);
+        int h = a.hashCode();
+        //@ assert e && h == 1999;
     }
 
     public static void limits() {
