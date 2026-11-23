@@ -34,7 +34,8 @@ public class TestChronoLocalDate {
     public static void equality(ChronoLocalDate x, Object o) {
         boolean e = x.equals(o);
         //@ assert e ==> o instanceof ChronoLocalDate && x.toEpochDay() == ((ChronoLocalDate)o).toEpochDay();
-        //@ assert !x.equals(null);
+        boolean n = x.equals(null);
+        //@ assert !n;
     }
 
     public static void lengths(ChronoLocalDate x) {

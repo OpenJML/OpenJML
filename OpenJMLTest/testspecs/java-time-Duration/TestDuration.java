@@ -61,7 +61,8 @@ public class TestDuration {
         Duration f = e.negated();
         //@ assert f.getSeconds() == 1 && f.getNano() == 1;
         Duration g = e.abs();
-        //@ assert g.equals(f);
+        boolean gf = g.equals(f);
+        //@ assert gf;
         Duration h = d.minusNanos(1);
         //@ assert h.getSeconds() == 0 && h.getNano() == 999_999_999;
     }
@@ -85,8 +86,10 @@ public class TestDuration {
         Duration a = Duration.ofSeconds(1, 5);
         Duration b = Duration.ofSeconds(1, 7);
         //@ assert a.compareTo(b) < 0 && b.compareTo(a) > 0 && a.compareTo(a) == 0;
-        //@ assert !a.equals(b) && a.equals(Duration.ofNanos(1_000_000_005L));
-        //@ assert a.withNanos(7).equals(b);
+        boolean e = !a.equals(b) && a.equals(Duration.ofNanos(1_000_000_005L));
+        //@ assert e;
+        boolean w = a.withNanos(7).equals(b);
+        //@ assert w;
         //@ assert a.withSeconds(4).getSeconds() == 4 && a.withSeconds(4).getNano() == 5;
     }
 

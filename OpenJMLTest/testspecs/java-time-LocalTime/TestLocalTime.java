@@ -67,7 +67,8 @@ public class TestLocalTime {
         LocalTime a = LocalTime.of(8, 0);
         LocalTime b = LocalTime.of(8, 0, 0, 1);
         //@ assert a.compareTo(b) == -1 && a.isBefore(b) && b.isAfter(a);
-        //@ assert a.equals(LocalTime.of(8, 0, 0)) && !a.equals(b) && !a.equals("08:00");
+        boolean e = a.equals(LocalTime.of(8, 0, 0)) && !a.equals(b) && !a.equals("08:00");
+        //@ assert e;
     }
 
     public static void exceptions() {
