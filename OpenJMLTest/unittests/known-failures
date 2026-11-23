@@ -178,4 +178,5 @@ escfpfiles.sfbug414n                  # asserts at Sqrt.java:29-30 not proved (A
 
 escfiles2.gitbug898b
 escfiles3.gitbug997
-SpecsVerify.testVerify[java-time-Duration]   # z3 rejects create/isPositive scripts: BigInteger.value (\bigint) gets a bit-vector sort (#1152)
+##SpecsVerify.testVerify[java-time-Duration]   # z3 rejects create/isPositive scripts: BigInteger.value (\bigint) gets a bit-vector sort (#1152)
+escsmtstrings.smtstringsCvc5Array   # character reasoning in constant strings, in cvc5
