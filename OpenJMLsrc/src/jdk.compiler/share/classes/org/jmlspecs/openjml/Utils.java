@@ -1318,10 +1318,10 @@ public class Utils {
 
     /** Returns a method signature with a fully-qualified method name, but org.jmlspecs.annotation and java.lang and org.jmlspecs.lang removed */
     public String abbrevMethodSig(MethodSymbol sym) {
-        var sig = classQualifiedName(sym.owner) + "." + sym;
-        sig = sig.replace("@org.jmlspecs.annotation.","@").replace("org.jmlspecs.annotation.","");
-        var r = sig.replaceAll("java.lang." ,"").replaceAll("org.jmlspecs.lang." ,"");
-        return r;
+        // Only the method part is abbreviated; the owner stays fully qualified
+        var m = sym.toString().replace("@org.jmlspecs.annotation.","@").replace("org.jmlspecs.annotation.","")
+                .replace("java.lang.","").replace("org.jmlspecs.lang.","");
+        return classQualifiedName(sym.owner) + "." + m;
     }
     
     public static String uniqueSymbolName(Symbol sym) {

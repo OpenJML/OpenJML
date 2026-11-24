@@ -1,8 +1,8 @@
 Proving methods in java.lang.IllegalAccessException
-Starting proof of IllegalAccessException.IllegalAccessException() with prover !!!!
+Starting proof of java.lang.IllegalAccessException.IllegalAccessException() with prover !!!!
 Feasibility check - at implicit return : OK
-Completed proof of IllegalAccessException.IllegalAccessException() with prover !!!! - no warnings
-Starting proof of IllegalAccessException.IllegalAccessException(String) with prover !!!!
+Completed proof of java.lang.IllegalAccessException.IllegalAccessException() with prover !!!! - no warnings
+Starting proof of java.lang.IllegalAccessException.IllegalAccessException(String) with prover !!!!
 Feasibility check - at implicit return : OK
-Completed proof of IllegalAccessException.IllegalAccessException(String) with prover !!!! - no warnings
+Completed proof of java.lang.IllegalAccessException.IllegalAccessException(String) with prover !!!! - no warnings
 Completed proving methods in java.lang.IllegalAccessException
