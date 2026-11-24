@@ -19,7 +19,8 @@ for d in $DIRS ; do
       else
         openjml -jmltesting --command=parse --show=json $j
       fi
-      ( diff $j.json $j.json.expected && rm $j.json ) || ERR=1
+      ## File names use the platform's separator ("decl1\\Test.java" on Windows); the goldens use '/'
+      ( sed -E '/"primitive": "[^"]*\.java"/ s#\\\\#/#g' $j.json | diff - $j.json.expected && rm $j.json ) || ERR=1
     done
   fi
 done

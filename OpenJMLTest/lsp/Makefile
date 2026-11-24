@@ -6,19 +6,32 @@ LSPTEST     := $(patsubst %/,%,$(mkfile_dir))
 SRC      := $(LSPTEST)/../../OpenJMLsrc
 LSPROOT  := $(LSPTEST)/../../OpenJMLlsp
 BUILDJDK := $(firstword $(wildcard $(SRC)/build/*/jdk))
-NJAVAC   := $(BUILDJDK)/bin/javac
-NJAVA    := $(BUILDJDK)/bin/java
+NJAVAC   := $(or $(wildcard $(BUILDJDK)/bin/javac.exe),$(BUILDJDK)/bin/javac)
+NJAVA    := $(or $(wildcard $(BUILDJDK)/bin/java.exe),$(BUILDJDK)/bin/java)
+## On Windows (WSL) java.exe and javac.exe are Windows programs: they need Windows paths (wslpath -m gives
+## D:/a/..., which needs no shell quoting) and ';' between classpath entries, as in unittests/runtests
+ifeq ($(shell grep -qi microsoft /proc/version 2>/dev/null && echo y),y)
+  CPS := ;
+  wp   = $(foreach f,$(1),$(shell wslpath -m '$(f)'))
+else
+  CPS := :
+  wp   = $(1)
+endif
+empty :=
+space := $(empty) $(empty)
+## A classpath from a space-separated list of paths
+cp = $(subst $(space),$(CPS),$(strip $(call wp,$(1))))
 
 ## LSP4J version must match the one in OpenJMLlsp/Makefile
 LSP4J_VERSION := 1.0.0
 
 ## Classpath components
 JUNITDIR  := $(LSPTEST)/../libs
-JUNIT_CP  := $(JUNITDIR)/junit-4.13.2.jar:$(JUNITDIR)/hamcrest-core-1.3.jar:$(JUNITDIR)/junit-jupiter-api-5.5.2.jar:$(JUNITDIR)/apiguardian-api-1.1.0.jar:$(JUNITDIR)/opentest4j-1.3.0.jar
+JUNIT_JARS := $(JUNITDIR)/junit-4.13.2.jar $(JUNITDIR)/hamcrest-core-1.3.jar $(JUNITDIR)/junit-jupiter-api-5.5.2.jar $(JUNITDIR)/apiguardian-api-1.1.0.jar $(JUNITDIR)/opentest4j-1.3.0.jar
 ## LSP4J jars needed at compile time (for LSP Diagnostic types) and at runtime.
 ## Gson is intentionally excluded: jdk.compiler bundles and exports Gson, and putting
 ## a separate Gson jar on the classpath would create a split-package conflict.
-LSP4J_CP  := $(LSPROOT)/libs/org.eclipse.lsp4j-$(LSP4J_VERSION).jar:$(LSPROOT)/libs/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar
+LSP4J_JARS := $(LSPROOT)/libs/org.eclipse.lsp4j-$(LSP4J_VERSION).jar $(LSPROOT)/libs/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar
 LSP_JAR   := $(LSPROOT)/build/openjml-lsp.jar
 LSP_SRCS  := $(shell find $(LSPROOT)/src -name '*.java')
 
@@ -40,7 +53,7 @@ COV_CLI   := $(LSPTEST)/../jacoco/lib/jacococli.jar
 ## JAVA_AGENT is intentionally a recursively-expanded variable (=, not :=) so
 ## that $* (the test-class stem) is substituted at rule-firing time.
 ifneq ($(origin COV),undefined)
-  JAVA_AGENT = "-javaagent:$(COV_AGENT)=destfile=$(COV_DIR)/lsp-$*.exec"
+  JAVA_AGENT = "-javaagent:$(call wp,$(COV_AGENT))=destfile=$(call wp,$(COV_DIR))/lsp-$*.exec"
 else
   JAVA_AGENT =
 endif
@@ -147,9 +160,9 @@ compile: $(LSP_JAR)
 	@( . $(SRC)/setup-exports; \
 	   NOJML=1 WSLENV="$${WSLENV:+$$WSLENV:}NOJML" \
 	   $(NJAVAC) $$OPENJML_EXPORTS \
-	     -cp $(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP) \
-	     -d $(CLASSES) \
-	     $(INFRA_SRCS) $(TEST_SRCS) )
+	     -cp "$(call cp,$(LSP_JAR) $(LSP4J_JARS) $(JUNIT_JARS))" \
+	     -d $(call wp,$(CLASSES)) \
+	     $(call wp,$(INFRA_SRCS) $(TEST_SRCS)) )
 
 ## Sentinel: compile once, used as dependency by all per-class log targets.
 $(RESULT_DIR)/.compiled: compile
@@ -169,11 +182,12 @@ $(RESULT_DIR)/%.log: $(RESULT_DIR)/.compiled
 	      OPENJML_INSTALL="$(BUILDJDK)" \
 	      OPENJML_SPECS="$(SRC)/../../Specs/specs" \
 	      SMT_SOLVER_DIR="$${SMT_SOLVER_DIR:-$(SRC)/../../Solvers/Solvers-$$($(SRC)/os-name.sh)}" \
-	      "$(NJAVA)" "--patch-module=jdk.compiler=$(SRC)/libs/jSMTLIB.jar" $(JAVA_AGENT) "$${JVMARGS[@]}" $$OPENJML_EXPORTS \
-	        -Dlsp.testdata=$(LSPTEST)/testdata \
-	        -Djml.grammar.lsp=$(LSPROOT)/vscode-extension/syntaxes/jml.tmLanguage.json \
-	        -Djml.grammar.ui=$(LSPTEST)/../../OpenJMLUI/syntaxes/jml.tmLanguage.json \
-	        -cp "$(CLASSES):$(LSP_JAR):$(LSP4J_CP):$(JUNIT_CP)" \
+	      WSLENV="$${WSLENV:+$$WSLENV:}OPENJML_INSTALL/p:OPENJML_SPECS/p:SMT_SOLVER_DIR/p" \
+	      "$(NJAVA)" "--patch-module=jdk.compiler=$(call wp,$(SRC)/libs/jSMTLIB.jar)" $(JAVA_AGENT) "$${JVMARGS[@]}" $$OPENJML_EXPORTS \
+	        -Dlsp.testdata=$(call wp,$(LSPTEST)/testdata) \
+	        -Djml.grammar.lsp=$(call wp,$(LSPROOT)/vscode-extension/syntaxes/jml.tmLanguage.json) \
+	        -Djml.grammar.ui=$(call wp,$(LSPTEST)/../../OpenJMLUI/syntaxes/jml.tmLanguage.json) \
+	        -cp "$(call cp,$(CLASSES) $(LSP_JAR) $(LSP4J_JARS) $(JUNIT_JARS))" \
 	        org.junit.runner.JUnitCore \
 	        org.openjml.lsp.test.$* \
 	    ) > $@ 2>&1; \
