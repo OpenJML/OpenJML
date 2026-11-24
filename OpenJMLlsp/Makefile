@@ -11,18 +11,23 @@ BUILDJDK := $(firstword $(wildcard $(SRC)/build/*/jdk))
 NJAVAC   := $(or $(wildcard $(BUILDJDK)/bin/javac.exe),$(BUILDJDK)/bin/javac)
 NJAVA    := $(or $(wildcard $(BUILDJDK)/bin/java.exe),$(BUILDJDK)/bin/java)
 JAR      := jar
-## On Windows, javac.exe is a Windows PE process and does not understand WSL Unix paths.
-## The OpenJDK build produces a configured fixpath wrapper that translates Unix paths to
-## Windows format before exec-ing any Windows binary.  Use it when present (Windows only).
-FIXPATH  := $(wildcard $(dir $(BUILDJDK))fixpath)
-FIXPATH_EXEC := $(if $(FIXPATH),$(FIXPATH) exec)
+## On Windows (WSL) javac.exe is a Windows program: it needs Windows paths (wslpath -m gives D:/a/...,
+## which needs no shell quoting) and ';' between classpath entries, as in unittests/runtests.
+## (The build's fixpath wrapper is not in the CI build artifact.)
+ifeq ($(shell grep -qi microsoft /proc/version 2>/dev/null && echo y),y)
+  CPS := ;
+  wp   = $(foreach f,$(1),$(shell wslpath -m '$(f)'))
+else
+  CPS := :
+  wp   = $(1)
+endif
 
 ## LSP4J jars (downloaded into libs/ on first build)
 LSP4J_VERSION := 1.0.0
 LIBS          := $(LSPROOT)/libs
 LSP4J_JAR     := $(LIBS)/org.eclipse.lsp4j-$(LSP4J_VERSION).jar
 LSP4J_RPC_JAR := $(LIBS)/org.eclipse.lsp4j.jsonrpc-$(LSP4J_VERSION).jar
-LSP4J_CP      := $(LSP4J_JAR):$(LSP4J_RPC_JAR)
+LSP4J_CP      := $(call wp,$(LSP4J_JAR))$(CPS)$(call wp,$(LSP4J_RPC_JAR))
 
 ## Gson version required by the LSP server (via LSP4J's JSON-RPC layer).
 ## LSP does NOT bundle Gson — it uses Gson indirectly through OpenJML, which
@@ -97,10 +102,10 @@ compile: libs check-gson
 	@mkdir -p $(CLASSES)
 	@( . $(SRC)/setup-exports; \
 	   NOJML=1 WSLENV="$${WSLENV:+$$WSLENV:}NOJML" \
-	   $(FIXPATH_EXEC) $(NJAVAC) $$OPENJML_EXPORTS \
-	     -cp $(LSP4J_CP) \
-	     -d $(CLASSES) \
-	     $(JAVASRC) )
+	   $(NJAVAC) $$OPENJML_EXPORTS \
+	     -cp "$(LSP4J_CP)" \
+	     -d $(call wp,$(CLASSES)) \
+	     $(call wp,$(JAVASRC)) )
 
 ## Inject version into the classes tree as a properties resource.
 ## Only updates the file (and its mtime) when version.txt actually changes,
